@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<VOTABLE version="1.0" xmlns="http://www.ivoa.net/xml/VOTable/v1.0">
+  <DESCRIPTION>
+     HEASARC Browse data service
+     Please send inquiries to mailto:request@athena.gsfc.nasa.gov
+  </DESCRIPTION>
+  <DEFINITIONS>
+   <PARAM ID="Error" name="Error" datatype="char" arraysize="*"
+          value="DEC parameter out-of-range"/>
+  </DEFINITIONS>
+</VOTABLE>

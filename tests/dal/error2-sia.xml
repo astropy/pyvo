@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2">
+  <RESOURCE type="results">
+    <INFO name="QUERY_STATUS" value="ERROR">SiaUsageException: failed to parse POS: as3f,13.0 NumberFormatException: For input string: "as3f"</INFO>
+  </RESOURCE>
+</VOTABLE>

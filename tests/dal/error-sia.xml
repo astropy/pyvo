@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<VOTABLE version="1.0" xmlns="http://www.ivoa.net/xml/VOTable/v1.0">
+  <RESOURCE type="results">
+    <INFO name="QUERY_STATUS" value="ERROR">Forced Fail</INFO>
+  </RESOURCE>
+</VOTABLE>

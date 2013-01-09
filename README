@@ -1,0 +1,39 @@
+This package respresents an implementation of the VO Data Access Layer
+standard python interface.  
+
+This implementation requires the following prerequisite packagss:
+
+  o  numpy (1.6.0 or later)
+  o  astropy (0.1 or later)
+
+Currently in this pre-release state, disttool support (or the like) is
+not yet supported.  To use, one should set the PYTHONPATH variable to
+the location of the "python" directory containing the source code
+(i.e. below the directory containing this README).  If the
+prerequisites were not installed in the standard python module areas,
+these must be included in the PYTHONPATH as well.
+
+UNIT TESTS
+
+Unit tests are contained in the tests subdirectory.  To run a
+particular unit test script, type:
+
+   python tests/path-to-script.py
+
+For example:
+
+   python tests/daltestSIA.py
+
+If the script contains the string "NeedsNet" in its name, it requirs
+access to the network to work properly.  All other files do not
+require the network, working off of local input files our local
+services executed locally on-the-fly.  
+
+A few files aggregate the running of tests from several individual
+unit test files.  In particular:
+
+  testNoNet.py -- runs all unit tests that do not require access to
+                  the network to work.  
+  testNeedsNet.py -- all tests that require the network to work in
+                  order to complete.  
+

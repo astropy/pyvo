@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<VOTABLE version="1.0" xmlns="http://www.ivoa.net/xml/VOTable/v1.0">
+  <INFO name="Error" value="Forced Fail">Artificial Fail</INFO>
+</VOTABLE>

@@ -1,0 +1,132 @@
+<?xml version='1.0'?>
+<VOTABLE version="1.1"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.1 http://www.ivoa.net/xml/VOTable/v1.1"
+ xmlns="http://www.ivoa.net/xml/VOTable/v1.1">
+<!--
+ !  VOTable written by STIL version 2.8 (uk.ac.starlink.votable.VOTableWriter)
+ !  at 2013-01-03T16:40:48
+ !-->
+<RESOURCE>
+<TABLE>
+<FIELD arraysize="*" datatype="char" name="OBJID" ucd="ID_MAIN">
+<DESCRIPTION>unique ID number</DESCRIPTION>
+</FIELD>
+<FIELD arraysize="*" datatype="char" name="CATNAME">
+<DESCRIPTION>supplied catalogue name</DESCRIPTION>
+</FIELD>
+<FIELD arraysize="*" datatype="char" name="TARGETNAME">
+<DESCRIPTION>matching name in target table, used to name FITS files and generate thumbnail images</DESCRIPTION>
+</FIELD>
+<FIELD datatype="long" name="TARGETID">
+<DESCRIPTION>matching ID number in target</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="RA" ucd="POS_EQ_RA_MAIN" unit="deg">
+<DESCRIPTION>RA J2000</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="DEC" ucd="POS_EQ_DEC_MAIN" unit="deg">
+<DESCRIPTION>Dec J2000</DESCRIPTION>
+</FIELD>
+<FIELD datatype="short" name="PRIORITY">
+<DESCRIPTION>survey weight</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="MAG_1" unit="mag">
+<DESCRIPTION>supplied magnitude</DESCRIPTION>
+</FIELD>
+<FIELD datatype="short" name="PROGID">
+<DESCRIPTION>programme ID</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="MAG_2" unit="mag">
+<DESCRIPTION>supplied magnitude</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="J_M_K20FE" unit="mag">
+<DESCRIPTION>J 20mag/sq.&amp;quot; isophotal fiducial ell. ap. magnitude</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="H_M_K20FE" unit="mag">
+<DESCRIPTION>H 20mag/sq.&amp;quot; isophotal fiducial ell. ap. magnitude</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="K_M_K20FE" unit="mag">
+<DESCRIPTION>K 20mag/sq.&amp;quot; isophotal fiducial ell. ap. magnitude</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="RADIUS" unit="arcsec">
+<DESCRIPTION>20mag/sq.&amp;quot; isophotal K fiducial ell. ap. semi-major axis</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="A_B">
+<DESCRIPTION>minor/major axis ratio fit to 3-sig. super-coadd isophote</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="MUK20FE">
+<DESCRIPTION>average surface brightness within the mu_K = 20mag/sq arcsec elliptical isophote (derived from K_M_K20FE, RADIUS and A_B)</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="CORR">
+<DESCRIPTION>correction, based on MUK20FE, made to the isophotal magnitude K_M_K20FE to get a pseudo-total magnitude K</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="J" unit="mag">
+<DESCRIPTION>J magnitude (JEXT) used for J selection</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="H" unit="mag">
+<DESCRIPTION>H magnitude (HEXT) used for H selection</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="KEXT" unit="mag">
+<DESCRIPTION>KEXT magnitude</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="K" unit="mag">
+<DESCRIPTION>K magnitude (corrected) used for K selection</DESCRIPTION>
+</FIELD>
+<FIELD datatype="float" name="KEXT_K" unit="mag">
+<DESCRIPTION>KEXT minus K (corrected)</DESCRIPTION>
+</FIELD>
+<DATA>
+<TABLEDATA>
+  <TR>
+    <TD>34</TD>
+    <TD>00001574-0853281</TD>
+    <TD>g0000158-085328</TD>
+    <TD>33</TD>
+    <TD>0.065625</TD>
+    <TD>-8.8911667</TD>
+    <TD>8</TD>
+    <TD>99.99</TD>
+    <TD>1</TD>
+    <TD>99.99</TD>
+    <TD>13.755</TD>
+    <TD>12.946</TD>
+    <TD>12.63</TD>
+    <TD>8.3</TD>
+    <TD>0.66</TD>
+    <TD>18.017</TD>
+    <TD>0.126</TD>
+    <TD>13.628</TD>
+    <TD>12.805</TD>
+    <TD>12.529</TD>
+    <TD>12.504</TD>
+    <TD>0.025</TD>
+  </TR>
+  <TR>
+    <TD>138</TD>
+    <TD>00010491-0909156</TD>
+    <TD>g0001049-090916</TD>
+    <TD>125</TD>
+    <TD>0.2704583</TD>
+    <TD>-9.1543611</TD>
+    <TD>8</TD>
+    <TD>99.99</TD>
+    <TD>1</TD>
+    <TD>99.99</TD>
+    <TD>13.76</TD>
+    <TD>12.894</TD>
+    <TD>12.508</TD>
+    <TD>9.6</TD>
+    <TD>0.5</TD>
+    <TD>17.91</TD>
+    <TD>0.11</TD>
+    <TD>13.663</TD>
+    <TD>12.816</TD>
+    <TD>12.444</TD>
+    <TD>12.398</TD>
+    <TD>0.046</TD>
+  </TR>
+</TABLEDATA>
+</DATA>
+</TABLE>
+</RESOURCE>
+</VOTABLE>
