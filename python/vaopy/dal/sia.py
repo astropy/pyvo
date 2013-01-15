@@ -55,7 +55,7 @@ class SIAService(query.DalService):
 
         This method is provided for a simple but typical SIA queries.  For 
         more complex queries, one should create an SIAQuery object via 
-        createQuery()
+        create_query()
 
         :Args:
            *pos*:        a 2-element tuple giving the ICRS RA and Dec of the 
@@ -77,11 +77,11 @@ class SIAService(query.DalService):
                            set of columsn, 3 means as many columns as are 
                            available.  
         """
-        q = self.createQuery(pos, size, format, intersect, verbosity)
+        q = self.create_query(pos, size, format, intersect, verbosity)
         return q.execute()
 
-    def createQuery(self, pos=None, size=None, format=None, intersect=None, 
-                    verbosity=None):
+    def create_query(self, pos=None, size=None, format=None, intersect=None, 
+                     verbosity=None):
         """
         create a query object that constraints can be added to and then 
         executed.  The input arguments will initialize the query with the 
@@ -303,7 +303,7 @@ class SIAQuery(query.DalQuery):
            *DalQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
         """
-        return SIAResults(self.executeVotable(), self.getQueryURL())
+        return SIAResults(self.execute_votable(), self.getqueryurl())
 
 
 class SIAResults(query.DalResults):

@@ -62,10 +62,10 @@ class CSService(query.DalService):
                            set of columsn, 3 means as many columns as are 
                            available. 
         """
-        q = self.createQuery(ra, dec, sr, verbosity)
+        q = self.create_query(ra, dec, sr, verbosity)
         return q.execute()
 
-    def createQuery(self, ra=None, dec=None, sr=None, verbosity=None):
+    def create_query(self, ra=None, dec=None, sr=None, verbosity=None):
         """
         create a query object that constraints can be added to and then 
         executed.  The input arguments will initialize the query with the 
@@ -189,9 +189,9 @@ class CSQuery(query.DalQuery):
            *DalQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
         """
-        return CSResults(self.executeVotable(), self.getQueryURL(True))
+        return CSResults(self.execute_votable(), self.getqueryurl(True))
 
-    def executeVotable(self):
+    def execute_votable(self):
         """
         submit the query and return the results as an AstroPy votable instance
 
@@ -207,16 +207,16 @@ class CSQuery(query.DalQuery):
             raise RuntimeError("astropy votable not available")
 
         try:
-            return query._votableparse(self.executeStream().read)
+            return query._votableparse(self.execute_stream().read)
         except query.DalAccessError:
             raise
         except W22, e:
             raise query.DalFormatError("Unextractable Error encoded in " +
                                        "deprecated DEFINITIONS element")
         except Exception, e:
-            raise query.DalFormatError(e, self.getQueryURL())
+            raise query.DalFormatError(e, self.getqueryurl())
 
-    def getQueryURL(self, lax=False):
+    def getqueryurl(self, lax=False):
         """
         return the GET URL that encodes the current query.  This is the 
         URL that the execute functions will use if called next.  
@@ -227,7 +227,7 @@ class CSQuery(query.DalQuery):
                       are missing.  If True, no syntax checking will be 
                       done.  
         """
-        out = query.DalQuery.getQueryURL(self)
+        out = query.DalQuery.getqueryurl(self)
         if not lax:
             if self.ra is None:
                 raise DalQueryError("Query is missing an RA parameter", url=out)

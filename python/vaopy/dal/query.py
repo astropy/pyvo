@@ -19,13 +19,13 @@ other externally defined table.  In this case there is no VO defined
 standard data model.  Usually the field names are used to uniquely
 identify table columns.
 """
-__all__ = [ "ensureBaseURL", "DALQuery" ]
+__all__ = [ "ensure_baseurl", "DALQuery" ]
 
 import copy, re, warnings, socket
 from urllib2 import urlopen, URLError, HTTPError
 from urllib import quote_plus
 
-def ensureBaseURL(url):
+def ensure_baseurl(url):
     """
     ensure a well formed DAL base URL that ends either with a '?' or a '&'
     """
@@ -74,7 +74,7 @@ class DalService(object):
         """
         return self._desc
 
-    def createQuery(self):
+    def create_query(self):
         """
         create a query object that constraints can be added to and then 
         executed.
@@ -159,9 +159,9 @@ class DalQuery(object):
                               other user errors detected by the service
            *DalFormatError*:  for errors parsing the VOTable response
         """
-        return DalResults(self.executeVotable(), self.getQueryURL())
+        return DalResults(self.execute_votable(), self.getqueryurl())
 
-    def executeRaw(self):
+    def execute_raw(self):
         """
         submit the query and return the raw VOTable XML as a string.
 
@@ -170,7 +170,7 @@ class DalQuery(object):
                               communicating with the service
            *DalQueryError*:   for errors in the input query syntax
         """
-        f = self.executeStream()
+        f = self.execute_stream()
         out = None
         try:
             out = f.read()
@@ -178,7 +178,7 @@ class DalQuery(object):
             f.close()
         return out
 
-    def executeStream(self):
+    def execute_stream(self):
         """
         submit the query and return the raw VOTable XML as a file stream
 
@@ -188,12 +188,12 @@ class DalQuery(object):
            *DalQueryError*:   for errors in the input query syntax
         """
         try:
-            url = self.getQueryURL()
+            url = self.getqueryurl()
             return urlopen(url)
         except IOError, ex:
-            raise DalServiceError.fromExcept(ex, url)
+            raise DalServiceError.from_except(ex, url)
 
-    def executeVotable(self):
+    def execute_votable(self):
         """
         submit the query and return the results as an AstroPy votable instance
 
@@ -204,13 +204,13 @@ class DalQuery(object):
            *DalQueryError*:   for errors in the input query syntax
         """
         try:
-            return _votableparse(self.executeStream().read)
+            return _votableparse(self.execute_stream().read)
         except DalAccessError:
             raise
         except Exception, e:
             raise DalFormatError(e, self.getQueryURL())
 
-    def getQueryURL(self, lax=False):
+    def getqueryurl(self, lax=False):
         """
         return the GET URL that encodes the current query.  This is the 
         URL that the execute functions will use if called next.  
@@ -225,7 +225,7 @@ class DalQuery(object):
            *DalQueryError*:   when lax=False, for errors in the input query 
                       syntax
         """
-        return ensureBaseURL(self.baseurl) + \
+        return ensure_baseurl(self.baseurl) + \
             "&".join(map(lambda p: "%s=%s"%(p,self._paramtostr(self._param[p])),
                          self._param.keys()))
 
@@ -569,7 +569,7 @@ class Record(dict):
             inp.close()
 
 
-    def suggestExtension(self, default=None):
+    def suggest_extension(self, default=None):
         """
         returns a recommended filename extension for the dataset described 
         by this record.  Typically, this would look at the column describing 
@@ -730,7 +730,7 @@ class DalServiceError(DalProtocolError):
         self._code = None
 
     @classmethod
-    def fromExcept(cls, exc, url=None):
+    def from_except(cls, exc, url=None):
         if isinstance(exc, HTTPError):
             # python 2.7 has message as reason attribute; 2.6, msg
             reason = (hasattr(exc, 'reason') and exc.reason) or exc.msg
@@ -757,7 +757,7 @@ class DalServiceError(DalProtocolError):
             return DalServiceError("%s: %s" % (cls._typeName(exc), str(exc)), 
                                    cause=exc, url=url)
         else:
-            raise TypeError("fromExcept: expected Exception")
+            raise TypeError("from_except: expected Exception")
 
 class DalQueryError(DalAccessError):
     """

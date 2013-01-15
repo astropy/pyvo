@@ -52,14 +52,14 @@ class CSServiceTest(unittest.TestCase):
 
     def testCreateQuery(self):
         self.testCtor()
-        q = self.srv.createQuery()
+        q = self.srv.create_query()
         self.assert_(isinstance(q, cs.CSQuery))
         self.assertEquals(q.baseurl, self.baseurl)
         self.assertEquals(len(q._param.keys()), 0)
 
     def testCreateQueryWithArgs(self):
         self.testCtor()
-        q = self.srv.createQuery(ra=0.0, dec=0.0, sr=1.0, verbosity=2)
+        q = self.srv.create_query(ra=0.0, dec=0.0, sr=1.0, verbosity=2)
         self.assert_(isinstance(q, cs.CSQuery))
         self.assertEquals(q.baseurl, self.baseurl)
         self.assertEquals(len(q._param.keys()), 4)
@@ -69,7 +69,7 @@ class CSServiceTest(unittest.TestCase):
         self.assertEquals(q.sr,  1.0)
         self.assertEquals(q.verbosity, 2)
 
-        qurl = q.getQueryURL()
+        qurl = q.getqueryurl()
         self.assert_("RA=0.0" in qurl)
         self.assert_("DEC=0.0" in qurl)
         self.assert_("SR=1.0" in qurl)
@@ -116,14 +116,14 @@ class CSQueryTest(unittest.TestCase):
     def testCreateURL(self):
         self.testCtor()
         self.q.ra = 102.5511
-        qurl = self.q.getQueryURL(lax=True)
+        qurl = self.q.getqueryurl(lax=True)
         self.assertEquals(qurl, self.baseurl+"?RA=102.5511")
 
-        self.assertRaises(dalq.DalQueryError, self.q.getQueryURL)
+        self.assertRaises(dalq.DalQueryError, self.q.getqueryurl)
 
         self.q.dec = 24.312
         self.q.sr = 0.1
-        qurl = self.q.getQueryURL()
+        qurl = self.q.getqueryurl()
         self.assert_("RA=102.5511" in qurl)
         self.assert_("DEC=24.312" in qurl)
         self.assert_("SR=0.1" in qurl)

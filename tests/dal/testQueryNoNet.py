@@ -107,7 +107,7 @@ class DalServiceErrorTest(unittest.TestCase):
     def testFromExceptHTTP(self):
         url = "http://localhost/"
         c = HTTPError(url, self.code, self.msg, None, None)
-        e = dalq.DalServiceError.fromExcept(c)
+        e = dalq.DalServiceError.from_except(c)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.cause is c)
         self.assertEquals(self.code, e.code)
@@ -116,7 +116,7 @@ class DalServiceErrorTest(unittest.TestCase):
     def testFromExceptURL(self):
         url = "http://localhost/"
         c = URLError(self.msg)
-        e = dalq.DalServiceError.fromExcept(c, url)
+        e = dalq.DalServiceError.from_except(c, url)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.cause is c)
         self.assert_(e.code is None)
@@ -124,7 +124,7 @@ class DalServiceErrorTest(unittest.TestCase):
 
     def testFromExcept(self):
         c = RuntimeError(self.msg)
-        e = dalq.DalServiceError.fromExcept(c)
+        e = dalq.DalServiceError.from_except(c)
         self.assertEquals(e.reason, "RuntimeError: " + self.msg)
         self.assert_(e.cause is c)
         self.assert_(e.code is None)
@@ -279,24 +279,24 @@ class RecordTest(unittest.TestCase):
             pass
 
     def testSuggestExtension(self):
-        self.assertEquals(self.rec.suggestExtension("goob"), "goob")
-        self.assert_(self.rec.suggestExtension() is None)
+        self.assertEquals(self.rec.suggest_extension("goob"), "goob")
+        self.assert_(self.rec.suggest_extension() is None)
 
 class EnsureBaseURLTest(unittest.TestCase):
 
     def testFix(self):
-        self.assertEquals(dalq.ensureBaseURL("http://localhost")[-1], '?')
-        self.assertEquals(dalq.ensureBaseURL("http://localhost/sia")[-1], '?')
-        self.assertEquals(dalq.ensureBaseURL("http://localhost/sia?cat=neat")[-1], '&')
-        self.assertEquals(dalq.ensureBaseURL("http://localhost/sia?cat=neat&usecache=yes")[-1], '&')
+        self.assertEquals(dalq.ensure_baseurl("http://localhost")[-1], '?')
+        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia")[-1], '?')
+        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat")[-1], '&')
+        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat&usecache=yes")[-1], '&')
 
-        self.assertEquals(dalq.ensureBaseURL("http://localhost?"), 
+        self.assertEquals(dalq.ensure_baseurl("http://localhost?"), 
                           "http://localhost?")
-        self.assertEquals(dalq.ensureBaseURL("http://localhost/sia?"), 
+        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?"), 
                           "http://localhost/sia?")
-        self.assertEquals(dalq.ensureBaseURL("http://localhost/sia?cat=neat&"), 
+        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat&"), 
                           "http://localhost/sia?cat=neat&")
-        self.assertEquals(dalq.ensureBaseURL("http://localhost/sia?cat=neat&usecache=yes&"), 
+        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat&usecache=yes&"), 
                           "http://localhost/sia?cat=neat&usecache=yes&")
 
 class DalServiceTest(unittest.TestCase):
@@ -331,7 +331,7 @@ class DalServiceTest(unittest.TestCase):
 
     def testCreateQuery(self):
         self.testCtor()
-        q = self.srv.createQuery()
+        q = self.srv.create_query()
         self.assert_(isinstance(q, dalq.DalQuery))
         self.assertEquals(q.baseurl, self.baseurl)
 
@@ -378,16 +378,16 @@ class DalQueryTest(unittest.TestCase):
     def testQueryURL(self):
         self.testCtor()
         self.query.setparam("RA", 51.235)
-        qurl = self.query.getQueryURL()
+        qurl = self.query.getqueryurl()
         self.assertEquals(qurl, self.baseurl+'?RA=51.235')
 
         self.query.setparam("DEC", -13.49677)
-        qurl = self.query.getQueryURL()
+        qurl = self.query.getqueryurl()
         self.assert_(qurl == self.baseurl+'?RA=51.235&DEC=-13.49677' or
                      qurl == self.baseurl+'?DEC=-13.49677&RA=51.235')
 
         self.query.setparam("SR", "1.0")
-        qurl = self.query.getQueryURL()
+        qurl = self.query.getqueryurl()
         self.assert_(qurl == self.baseurl+'?RA=51.235&SR=1.0&DEC=-13.49677' or
                      qurl == self.baseurl+'?DEC=-13.49677&SR=1.0&RA=51.235' or 
                      qurl == self.baseurl+'?RA=51.235&DEC=-13.49677&SR=1.0' or
@@ -398,18 +398,18 @@ class DalQueryTest(unittest.TestCase):
     def testEncode(self):
         self.testCtor()
         self.query.setparam("NaMe", "a val")
-        qurl = self.query.getQueryURL()
+        qurl = self.query.getqueryurl()
         self.assertEquals(qurl, self.baseurl+'?NaMe=a+val')
         
         self.testCtor()
         self.query.setparam("NaMe", "a+val")
-        qurl = self.query.getQueryURL()
+        qurl = self.query.getqueryurl()
         self.assertEquals(qurl, self.baseurl+'?NaMe=a%2Bval')
 
     def testEncodeList(self):
         self.testCtor()
         self.query.setparam("POS", (5.231, -13.441))
-        qurl = self.query.getQueryURL()
+        qurl = self.query.getqueryurl()
         self.assertEquals(qurl, self.baseurl+'?POS=5.231,-13.441')
         
 
@@ -439,7 +439,7 @@ class QueryExecuteTest(unittest.TestCase):
         q = dalq.DalQuery("http://localhost:%d/sia" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
-        strm = q.executeStream()
+        strm = q.execute_stream()
         self.assert_(strm is not None)
         self.assert_(hasattr(strm, "read"))
         results = strm.read()
@@ -450,7 +450,7 @@ class QueryExecuteTest(unittest.TestCase):
         q = dalq.DalQuery("http://localhost:%d/sia" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
-        data = q.executeRaw()
+        data = q.execute_raw()
         self.assert_(data is not None)
         self.assert_(isinstance(data, unicode) or isinstance(data, str))
         self.assert_(data.startswith("<?xml version="))
@@ -459,7 +459,7 @@ class QueryExecuteTest(unittest.TestCase):
         q = dalq.DalQuery("http://localhost:%d/sia" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
-        results = q.executeVotable()
+        results = q.execute_votable()
         self.assert_(isinstance(results, VOTableFile))
 
     def testExecuteServiceErr(self):
@@ -472,14 +472,14 @@ class QueryExecuteTest(unittest.TestCase):
         q = dalq.DalQuery("http://localhost:%d/goob" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
-        self.assertRaises(dalq.DalServiceError, q.executeRaw)
+        self.assertRaises(dalq.DalServiceError, q.execute_raw)
 
     def testExecuteStreamServiceErr(self):
         q = dalq.DalQuery("http://localhost:%d/goob" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
-            q.executeRaw()
+            q.execute_raw()
             self.fail("failed to raise exception on bad url")
         except dalq.DalServiceError, e:
             self.assertEquals(e.code, 404)
@@ -493,13 +493,13 @@ class QueryExecuteTest(unittest.TestCase):
         q = dalq.DalQuery("http://localhost:%d/goob" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
-        self.assertRaises(dalq.DalServiceError, q.executeVotable)
+        self.assertRaises(dalq.DalServiceError, q.execute_votable)
 
     def testExecuteRawQueryErr(self):
         q = dalq.DalQuery("http://localhost:%d/err" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
-        data = q.executeRaw()
+        data = q.execute_raw()
         self.assert_(data is not None)
         self.assert_(isinstance(data, unicode) or isinstance(data, str))
         self.assert_(data.startswith("<?xml version="))

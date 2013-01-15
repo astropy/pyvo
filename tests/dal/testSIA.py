@@ -51,15 +51,15 @@ class SIAServiceTest(unittest.TestCase):
 
     def testCreateQuery(self):
         self.testCtor()
-        q = self.srv.createQuery()
+        q = self.srv.create_query()
         self.assert_(isinstance(q, sia.SIAQuery))
         self.assertEquals(q.baseurl, self.baseurl)
         self.assertEquals(len(q._param.keys()), 0)
 
     def testCreateQueryWithArgs(self):
         self.testCtor()
-        q = self.srv.createQuery(pos=(0,0), size=(1.0,1.0), format="all", 
-                                 intersect="overlaps", verbosity=2)
+        q = self.srv.create_query(pos=(0,0), size=(1.0,1.0), format="all", 
+                                  intersect="overlaps", verbosity=2)
         self.assert_(isinstance(q, sia.SIAQuery))
         self.assertEquals(q.baseurl, self.baseurl)
         self.assertEquals(len(q._param.keys()), 5)
@@ -70,7 +70,7 @@ class SIAServiceTest(unittest.TestCase):
         self.assertEquals(q.intersect, "OVERLAPS")
         self.assertEquals(q.verbosity, 2)
 
-        qurl = q.getQueryURL()
+        qurl = q.getqueryurl()
         self.assert_("POS=0,0" in qurl)
         self.assert_("SIZE=1.0,1.0" in qurl)
         self.assert_("FORMAT=ALL" in qurl)
@@ -228,11 +228,11 @@ class SIAQueryTest(unittest.TestCase):
         self.testCtor()
         self.q.ra = 102.5511
         self.q.dec = 24.312
-        qurl = self.q.getQueryURL()
+        qurl = self.q.getqueryurl()
         self.assertEquals(qurl, self.baseurl+"?POS=102.5511,24.312")
 
         self.q.size = (1.0, 1.0)
-        qurl = self.q.getQueryURL()
+        qurl = self.q.getqueryurl()
         self.assert_("POS=102.5511,24.312" in qurl)
         self.assert_("SIZE=1.0,1.0" in qurl)
 

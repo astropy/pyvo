@@ -94,7 +94,7 @@ class RegistryService(dalq.DalService):
 
         The result will be a RegistryResults instance.  
         """
-        srch = self.createQuery(keywords, servicetype, waveband, sqlpred)
+        srch = self.create_query(keywords, servicetype, waveband, sqlpred)
         return srch.execute()
         
     
@@ -104,13 +104,13 @@ class RegistryService(dalq.DalService):
         resource record.  
         @param ivoid          the IVOA Identifier of the resource
         """
-        srch = self.createQuery()
+        srch = self.create_query()
         srch.addPredicate("Identifier='%s'" % ivoid)
         res = srch.execute()
-        return res.getRecord(0)
+        return res.getrecord(0)
 
-    def createQuery(self, keywords=None, servicetype=None, 
-                    waveband=None, sqlpred=None):
+    def create_query(self, keywords=None, servicetype=None, 
+                     waveband=None, sqlpred=None):
         """
         create a RegistryQuery object that can be refined or saved
         before submitting.  
@@ -146,7 +146,7 @@ class RegistryQuery(dalq.DalQuery):
     """
     a representation of a registry query that can be built up over
     successive method calls and then executed.  An instance is normally
-    obtained via a call to RegistrySearch.createQuery()
+    obtained via a call to RegistrySearch.create_query()
     """
     
     SERVICE_NAME = "VOTCapBandPredOpt"
@@ -372,9 +372,9 @@ class RegistryQuery(dalq.DalQuery):
                     syntax error should only occur if the query 
                     query contains non-sensical predicates.
         """
-        return RegistryResults(self.executeVotable(), self.getQueryURL())
+        return RegistryResults(self.executeVotable(), self.getqueryurl())
 
-    def getQueryURL(self, lax=False):
+    def getqueryurl(self, lax=False):
         """
         return the GET URL that will submit the query and return the 
         results as a VOTable

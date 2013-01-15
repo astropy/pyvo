@@ -39,16 +39,16 @@ class RegServiceTest(unittest.TestCase):
 
     def testCreateQuery(self):
         self.testCtor()
-        q = self.srv.createQuery()
+        q = self.srv.create_query()
         self.assert_(isinstance(q, reg.RegistryQuery))
         self.assertEquals(q.baseurl, reg.RegistryService.STSCI_REGISTRY_BASEURL)
         self.assertEquals(len(q._param.keys()), 0)
 
     def testCreateQueryWithArgs(self):
         self.testCtor()
-        q = self.srv.createQuery(keywords=["galaxy", "AGN"], servicetype="sia",
-                                 waveband="radio", 
-                                 sqlpred="publisher like '%nrao%'")
+        q = self.srv.create_query(keywords=["galaxy", "AGN"], servicetype="sia",
+                                  waveband="radio", 
+                                  sqlpred="publisher like '%nrao%'")
         self.assert_(isinstance(q, reg.RegistryQuery))
         self.assertEquals(q.baseurl, reg.RegistryService.STSCI_REGISTRY_BASEURL)
         self.assertEquals(len(q._param.keys()), 1)
@@ -235,32 +235,32 @@ class RegQueryTest(unittest.TestCase):
 
         self.testCtor()
         self.q.waveband = "ir"
-        qurl = self.q.getQueryURL()
+        qurl = self.q.getqueryurl()
         self.assert_(qurl.startswith(baseurl))
         self.assert_("&waveband=Infrared" in qurl)
 
         self.q.servicetype = "image"
-        qurl = self.q.getQueryURL()
+        qurl = self.q.getqueryurl()
         self.assert_("&waveband=Infrared" in qurl)
         self.assert_("&capability=SimpleImageAccess" in qurl)
         self.assert_("&predicate=1" in qurl)
 
         self.q.addpredicate("publisher like '%nrao%'")
-        qurl = self.q.getQueryURL()
+        qurl = self.q.getqueryurl()
         self.assert_("&predicate=%28publisher+like+%27%25nrao%25%27%29" in qurl,
                      "unexpected predicate: " + qurl)
         self.q.addpredicate("Identifier like 'ivo%'")
-        qurl = self.q.getQueryURL()
+        qurl = self.q.getqueryurl()
         self.assert_("&predicate=%28publisher+like+%27%25nrao%25%27%29+AND+%28Identifier+like+%27ivo%25%27%29" in qurl,
                      "unexpected predicate: " + qurl)
         self.q.clearpredicates()
-        qurl = self.q.getQueryURL()
+        qurl = self.q.getqueryurl()
         self.assert_("&predicate=1" in qurl)
 
         # test keywords; not that we tested the pre-URL-encoding of the keyword
         # constraints in testKeywordsToPred()
         self.q.addkeywords(["galaxy", "AGN"])
-        qurl = self.q.getQueryURL()
+        qurl = self.q.getqueryurl()
         self.assert_("&waveband=Infrared" in qurl)
         self.assert_("&capability=SimpleImageAccess" in qurl)
         self.assert_("&predicate=1" not in qurl)
@@ -276,11 +276,11 @@ class RegQueryTest(unittest.TestCase):
         self.assert_("+OR+%28Title+" in qurl,
                      "unexpected predicate: " + qurl)
         self.q.or_keywords(False)
-        qurl = self.q.getQueryURL()
+        qurl = self.q.getqueryurl()
         self.assert_("+AND+%28Title+" in qurl)
 
         self.q.addpredicate("publisher like '%nrao%'")
-        qurl = self.q.getQueryURL()
+        qurl = self.q.getqueryurl()
         self.assert_("&predicate=%28publisher+like+%27%25nrao%25%27%29+AND+%28" 
                      in qurl,
                      "unexpected predicate: " + qurl)
