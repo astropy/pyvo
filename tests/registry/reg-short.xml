@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VOTABLE xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.ivoa.net/xml/VOTable/v1.1">
+  <DESCRIPTION>Registry Search Results</DESCRIPTION>
+  <RESOURCE name="Search Results">
+    <TABLE name="results">
+      <FIELD ID="tags" datatype="char" name="categories" arraysize="*" />
+      <FIELD ID="shortName" datatype="char" name="shortName" arraysize="*" />
+      <FIELD ID="title" datatype="char" name="title" arraysize="*" />
+      <FIELD ID="description" datatype="char" name="description" arraysize="*" />
+      <FIELD ID="publisher" datatype="char" name="publisher" arraysize="*" />
+      <FIELD ID="waveband" datatype="char" name="waveband" arraysize="*" />
+      <FIELD ID="identifier" datatype="char" name="identifier" ucd="ID_MAIN" arraysize="*" />
+      <FIELD ID="updated" datatype="char" name="descriptionUpdated" arraysize="*" />
+      <FIELD ID="subject" datatype="char" name="subject" arraysize="*" />
+      <FIELD ID="type" datatype="char" name="type" arraysize="*" />
+      <FIELD ID="contentLevel" datatype="char" name="contentLevel" arraysize="*" />
+      <FIELD ID="regionOfRegard" unit="arcsec" datatype="int" name="typicalRegionSize" />
+      <FIELD ID="version" datatype="char" name="version" arraysize="*" />
+      <FIELD ID="resourceID" datatype="char" name="resourceID" arraysize="*" />
+      <FIELD ID="capabilityClass" datatype="char" name="capabilityClass" arraysize="*" />
+      <FIELD ID="capabilityStandardID" datatype="char" name="capabilityStandardID" arraysize="*" />
+      <FIELD ID="capabilityValidationLevel" datatype="char" name="capabilityValidationLevel" arraysize="*" />
+      <FIELD ID="interfaceClass" datatype="char" name="interfaceClass" arraysize="*" />
+      <FIELD ID="interfaceVersion" datatype="char" name="interfaceVersion" arraysize="*" />
+      <FIELD ID="interfaceRole" datatype="char" name="interfaceRole" arraysize="*" />
+      <FIELD ID="accessURL" datatype="char" name="accessURL" arraysize="*" />
+      <FIELD ID="maxRadius" datatype="float" name="maxSearchRadius" />
+      <FIELD ID="maxRecords" datatype="int" name="maxRecords" />
+      <FIELD ID="publisherID" datatype="char" name="publisherIdentifier" arraysize="*" />
+      <FIELD ID="referenceURL" datatype="char" name="referenceURL" arraysize="*" />
+      <DATA>
+        <TABLEDATA>
+          <TR>
+            <TD>Web Page</TD>
+            <TD>J/MNRAS/333/100 [1]</TD>
+            <TD>Radio galaxies in the 2dFGRS (Magliocchetti+, 2002)</TD>
+            <TD>We use redshift determinations and spectral analysis of galaxies in the 2dF Galaxy Redshift Survey (&lt;VII/226&gt;) to study the properties of local radio sources with S&gt;=1mJy. 557 objects (hereafter called the spectroscopic sample) drawn from the FIRST survey(&lt;VIII/71&gt;) , corresponding to 2.3 per cent of the total radio sample, are found in the 2dFGRS catalogue within the area 9h 48min&lt;=RA&lt;=14h 32min and -2.77{deg}&lt;=DE&lt;=2.25{deg} (2000), down to a magnitude limit b_J_=19.45. The excellent quality of 2dF spectra allows us to divide these sources into classes, according to their optical spectra.</TD>
+            <TD>CDS</TD>
+            <TD>#Optical#Radio#</TD>
+            <TD>ivo://CDS.VizieR/J/MNRAS/333/100#1</TD>
+            <TD>2011-09-14T19:47:38Z</TD>
+            <TD>#AGN#Galaxies#Seyfert_Galaxies#Spectroscopy#</TD>
+            <TD>#Catalog#</TD>
+            <TD>#Research#</TD>
+            <TD />
+            <TD>09-Jul-2002</TD>
+            <TD>ivo://CDS.VizieR/J/MNRAS/333/100</TD>
+            <TD />
+            <TD />
+            <TD />
+            <TD>WebBrowser</TD>
+            <TD />
+            <TD />
+            <TD>http://vizier.u-strasbg.fr/cgi-bin/VizieR-2?-source=J/MNRAS/333/100</TD>
+            <TD />
+            <TD />
+            <TD>ivo://CDS</TD>
+            <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/MNRAS/333/100</TD>
+          </TR>
+          <TR>
+            <TD>HTTP Request</TD>
+            <TD>J/MNRAS/333/100 [2]</TD>
+            <TD>Radio galaxies in the 2dFGRS (Magliocchetti+, 2002)</TD>
+            <TD>We use redshift determinations and spectral analysis of galaxies in the 2dF Galaxy Redshift Survey (&lt;VII/226&gt;) to study the properties of local radio sources with S&gt;=1mJy. 557 objects (hereafter called the spectroscopic sample) drawn from the FIRST survey(&lt;VIII/71&gt;) , corresponding to 2.3 per cent of the total radio sample, are found in the 2dFGRS catalogue within the area 9h 48min&lt;=RA&lt;=14h 32min and -2.77{deg}&lt;=DE&lt;=2.25{deg} (2000), down to a magnitude limit b_J_=19.45. The excellent quality of 2dF spectra allows us to divide these sources into classes, according to their optical spectra.</TD>
+            <TD>CDS</TD>
+            <TD>#Optical#Radio#</TD>
+            <TD>ivo://CDS.VizieR/J/MNRAS/333/100#2</TD>
+            <TD>2011-09-14T19:47:38Z</TD>
+            <TD>#AGN#Galaxies#Seyfert_Galaxies#Spectroscopy#</TD>
+            <TD>#Catalog#</TD>
+            <TD>#Research#</TD>
+            <TD />
+            <TD>09-Jul-2002</TD>
+            <TD>ivo://CDS.VizieR/J/MNRAS/333/100</TD>
+            <TD />
+            <TD />
+            <TD />
+            <TD>ParamHTTP</TD>
+            <TD />
+            <TD />
+            <TD>http://vizier.u-strasbg.fr/viz-bin/votable/-dtd/-A?-source=J/MNRAS/333/100&amp;</TD>
+            <TD />
+            <TD />
+            <TD>ivo://CDS</TD>
+            <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/MNRAS/333/100</TD>
+          </TR>
+          <TR>
+            <TD>Catalog</TD>
+            <TD>J/MNRAS/333/100 [table23]</TD>
+            <TD>Radio galaxies in the 2dFGRS (Magliocchetti+, 2002)</TD>
+            <TD>We use redshift determinations and spectral analysis of galaxies in the 2dF Galaxy Redshift Survey (&lt;VII/226&gt;) to study the properties of local radio sources with S&gt;=1mJy. 557 objects (hereafter called the spectroscopic sample) drawn from the FIRST survey(&lt;VIII/71&gt;) , corresponding to 2.3 per cent of the total radio sample, are found in the 2dFGRS catalogue within the area 9h 48min&lt;=RA&lt;=14h 32min and -2.77{deg}&lt;=DE&lt;=2.25{deg} (2000), down to a magnitude limit b_J_=19.45. The excellent quality of 2dF spectra allows us to divide these sources into classes, according to their optical spectra.</TD>
+            <TD>CDS</TD>
+            <TD>#Optical#Radio#</TD>
+            <TD>ivo://CDS.VizieR/J/MNRAS/333/100#table23</TD>
+            <TD>2011-09-14T19:47:38Z</TD>
+            <TD>#AGN#Galaxies#Seyfert_Galaxies#Spectroscopy#</TD>
+            <TD>#Catalog#</TD>
+            <TD>#Research#</TD>
+            <TD />
+            <TD>09-Jul-2002</TD>
+            <TD>ivo://CDS.VizieR/J/MNRAS/333/100</TD>
+            <TD>ConeSearch</TD>
+            <TD>ivo://ivoa.net/std/ConeSearch</TD>
+            <TD />
+            <TD>ParamHTTP</TD>
+            <TD />
+            <TD>std</TD>
+            <TD>http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=J/MNRAS/333/100&amp;</TD>
+            <TD>180</TD>
+            <TD>9999</TD>
+            <TD>ivo://CDS</TD>
+            <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/MNRAS/333/100</TD>
+          </TR>
+          <TR>
+            <TD>Images</TD>
+            <TD>EIGA</TD>
+            <TD>The Extended IRAS Galaxy Atlas</TD>
+            <TD>The Extended IRAS Galaxy Atlas (EIGA) is an extension of the original IRAS Galaxy Atlas (IGA) to b = 6.7 deg.. High resolution images at 60 microns and 100 microns have been produced to match the latitude coverage of radio continuum observations obtained as part of the Canadian Galactic Plane Survey (CGPS). Also associated with the EIGA and IGA is the Mid-Infrared Galaxy Atlas (MIGA).</TD>
+            <TD>NASA/IPAC Infrared Science Archive</TD>
+            <TD>#Infrared#</TD>
+            <TD>ivo://irsa.ipac/EIGA#1</TD>
+            <TD>2007-04-11T08:52:38Z</TD>
+            <TD>##</TD>
+            <TD>#Archive#</TD>
+            <TD>#Research#</TD>
+            <TD />
+            <TD />
+            <TD>ivo://irsa.ipac/EIGA</TD>
+            <TD>SimpleImageAccess</TD>
+            <TD>ivo://ivoa.net/std/SIA</TD>
+            <TD />
+            <TD>ParamHTTP</TD>
+            <TD />
+            <TD>std</TD>
+            <TD>http://irsa.ipac.caltech.edu/cgi-bin/Atlas/nph-atlas?mission=EIGA&amp;hdr_location=%5CEIGADataPath%5C&amp;SIAP_ACTIVE=1&amp;collection_desc=The+Extended+IRAS+Galaxy+Atlas+%28EIGA%29&amp;</TD>
+            <TD />
+            <TD>300</TD>
+            <TD>ivo://irsa.ipac/IRSA</TD>
+            <TD>http://irsa.ipac.caltech.edu/data/EIGA</TD>
+          </TR>
+        </TABLEDATA>
+      </DATA>
+    </TABLE>
+  </RESOURCE>
+</VOTABLE>

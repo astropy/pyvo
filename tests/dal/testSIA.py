@@ -265,6 +265,8 @@ class SIAResultsTest(unittest.TestCase):
         self.testCtor()
         rec = self.r.getrecord(0)
         self.assert_(isinstance(rec, sia.SIARecord))
+        rec = self.r.getrecord(1)
+        self.assert_(isinstance(rec, sia.SIARecord))
 
 class SIAResultsErrorTest(unittest.TestCase):
 
