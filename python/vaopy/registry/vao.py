@@ -504,72 +504,91 @@ class SimpleResource(dalq.Record):
     @property
     def title(self):
         """
+        the title of the resource
         """
         return self.get("title")
 
     @property
     def shortname(self):
         """
+        the short name for the resource
         """
         return self.get("shortName")
 
     @property
     def tags(self):
         """
+        a user-friendly label for the resource
         """
         return self.get("tags")
 
     @property
     def ivoid(self):
         """
+        the IVOA identifier for the resource.  In this interface, this 
+        ID may be appended by a #-delimited suffix to point to a particular 
+        capability.
         """
         return self.get("identifier")
 
     @property
     def publisher(self):
         """
+        the name of the organization responsible for providing this resource.
         """
         return self.get("publisher")
 
     @property
     def waveband(self):
         """
+        a list of names of the wavebands that the resource provides data for
         """
         return self.get("waveband")
 
     @property
     def subject(self):
         """
+        a list of the subject keywords that describe this resource
         """
         return self.get("subject")
 
     @property
     def type(self):
         """
+        a list of the resource types that characterize this resource.
         """
         return self.get("type")
 
     @property
     def contentlevel(self):
         """
+        a list of content level labels that describe the intended audience 
+        for this resource.
         """
         return self.get("contentLevel")
 
     @property
     def capability(self):
         """
+        the name of the IVOA service capability.  This will typically set to
+        the value of the capability/@xsi:type attribute in the VOResource 
+        record (without the namespace prefix).
         """
         return self.get("capabilityClass")
 
     @property
     def standardid(self):
         """
+        the IVOA identifier of the standard that this resource capability 
+        supports.  
         """
         return self.get("capabilityStandardID")
 
     @property 
     def accessurl(self):
         """
+        the URL that can be used to access the service resource.  If the 
+        resource is not a service, this will typically be blank.  
         """
         return self.get("accessURL")
 
