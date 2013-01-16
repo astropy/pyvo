@@ -208,7 +208,7 @@ class DalQuery(object):
         except DalAccessError:
             raise
         except Exception, e:
-            raise DalFormatError(e, self.getQueryURL())
+            raise DalFormatError(e, self.getqueryurl())
 
     def getqueryurl(self, lax=False):
         """

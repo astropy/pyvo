@@ -21,6 +21,7 @@ interaction models.
 
 from ..dal import query as dalq
 from urllib import quote_plus, urlopen, urlretrieve
+import re
 
 def regsearch(keywords=None, servicetype=None, 
               waveband=None, sqlpred=None):
@@ -197,6 +198,7 @@ class RegistryQuery(dalq.DalQuery):
         self._kw = []          # list of individual keyword phrases
         self._preds = []       # list of SQL predicates
         self._svctype = None
+        self._band = None
         self._orKw = orKeywords
         self._doSort = True
         self._dalonly = False
@@ -297,11 +299,11 @@ class RegistryQuery(dalq.DalQuery):
         include only those resourse that indicate they have data from this 
         waveband.  Allowed values include:
         """
-        return self.getparam("waveband")
+        return self._band
     @waveband.setter
     def waveband(self, band):
         if band is None:
-            self.unsetparam("waveband")
+            self._band = None
             return
 
         if not isinstance(band, str):
@@ -319,10 +321,10 @@ class RegistryQuery(dalq.DalQuery):
         _band = _band[0].upper() + _band[1:]
         if _band not in self.ALLOWED_WAVEBANDS:
             raise ValueError("unrecognized waveband: " + band)
-        self.setparam("waveband", _band)
+        self._band = _band
     @waveband.deleter
     def waveband(self):
-        self.unsetparam("waveband")
+        self._band = None
 
     @property
     def predicates(self):
@@ -372,7 +374,38 @@ class RegistryQuery(dalq.DalQuery):
                     syntax error should only occur if the query 
                     query contains non-sensical predicates.
         """
-        return RegistryResults(self.executeVotable(), self.getqueryurl())
+        return RegistryResults(self.execute_votable(), self.getqueryurl())
+
+    def execute_stream(self):
+        """
+        submit the query and return the raw VOTable XML as a file stream
+
+        :Raises:
+           *DalServiceError*: for errors connecting to or 
+                              communicating with the service
+           *DalQueryError*:   for errors in the input query syntax
+        """
+        try:
+            url = self.getqueryurl()
+            out = urlopen(url)
+            if out.info().gettype() == "text/plain":
+                # Error message returned
+                self._raiseServiceError(out.read())
+            elif out.info().gettype() != "text/xml":
+                # Unexpected response
+                raise dalq.DalFormatError("Wrong response format: " + 
+                                          out.info().gettype())
+            return out
+
+        except IOError, ex:
+            raise dalq.DalServiceError.from_except(ex, url)
+
+    def _raiseServiceError(self, response):
+        invalidmessage = "System.InvalidOperationException: "
+        outmsg = re.sub(r'\n.*', '', response).strip()
+        if response.startswith(invalidmessage):
+            raise dalq.DalQueryError(outmsg[len(invalidmessage):])
+        raise dalq.DalServiceError(outmsg)
 
     def getqueryurl(self, lax=False):
         """
@@ -382,13 +415,18 @@ class RegistryQuery(dalq.DalQuery):
         url = "%s%s?%s" % (self._baseurl, self.SERVICE_NAME, 
                            self.RESULTSET_TYPE_ARG)
 
-        # this will add waveband 
-        if len(self.paramnames()) > 0:
-            url += "&" + \
-             "&".join(map(lambda p: "%s=%s"%(p,self._paramtostr(self._param[p])),
-                          self._param.keys()))
+        # this adds arbitrary parameters
+        # if len(self.paramnames()) > 0:
+        #    url += "&" + \
+        #     "&".join(map(lambda p: "%s=%s"%(p,self._paramtostr(self._param[p])),
+        #                  self._param.keys()))
 
-        if (self.servicetype):
+        if self._band:
+            url += "&waveband=%s" % self._band
+        else:
+            url += "&waveband="
+
+        if self._svctype:
             url += "&capability=%s" % self._toCapConst(self.servicetype)
         else:
             url += "&capability="
@@ -419,10 +457,9 @@ class RegistryQuery(dalq.DalQuery):
           *ored*      if True, the keywords should be ORed together; 
                           otherwise, they should be ANDed
         """
-        textcols = ["Title", "ShortName", "Identifier", 
+        textcols = ["title", "shortName", "identifier",
                     "[content/subject]", "[curation/publisher]", 
-                    "[content/description]", "[@xsi_type]", 
-                    "[capability/@xsi_type]"]
+                    "[content/description]" ]
 
         conjunction = (ored and ") OR (") or ") AND ("
 
@@ -592,3 +629,8 @@ class SimpleResource(dalq.Record):
         """
         return self.get("accessURL")
 
+class _RegServicePeeker(object):
+    """
+    a private class allows the response from a service be peeked at without 
+    fully reading the results to determine if an error occurred.  
+    """
