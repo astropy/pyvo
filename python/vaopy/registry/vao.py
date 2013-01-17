@@ -56,7 +56,7 @@ class RegistryService(dalq.DalService):
 
     STSCI_REGISTRY_BASEURL = "http://vao.stsci.edu/directory/NVORegInt.asmx/"
 
-    def __init__(self, baseurl=None, resmeta=None):
+    def __init__(self, baseurl=None, resmeta=None, version="1.0"):
         """
         connect to an STScI registry at the given URL
         :Args:
@@ -69,7 +69,7 @@ class RegistryService(dalq.DalService):
         if not baseurl:  baseurl = self.STSCI_REGISTRY_BASEURL
         if not baseurl.endswith("/"): baseurl += "/"
 
-        dalq.DalService.__init__(self, baseurl, resmeta)
+        dalq.DalService.__init__(self, baseurl, "vaoreg", version, resmeta)
 
 
     def search(self, keywords=None, servicetype=None, 
@@ -180,7 +180,7 @@ class RegistryQuery(dalq.DalQuery):
                      "simpleSpectralAccess": "SimpleSpectralAccess"  }
                      
 
-    def __init__(self, orKeywords=True, baseurl=None):
+    def __init__(self, orKeywords=True, baseurl=None, version="1.0"):
         """
         create the query instance
 
@@ -194,7 +194,7 @@ class RegistryQuery(dalq.DalQuery):
                             be set to the public VAO registry at STScI.  
         """
         if not baseurl:  baseurl = RegistryService.STSCI_REGISTRY_BASEURL
-        dalq.DalQuery.__init__(self, baseurl)
+        dalq.DalQuery.__init__(self, baseurl, "vaoreg", version)
         self._kw = []          # list of individual keyword phrases
         self._preds = []       # list of SQL predicates
         self._svctype = None
@@ -479,13 +479,13 @@ class RegistryResults(dalq.DalResults):
 
     _strarraycols = ["waveband", "subject", "type", "contentLevel"]
 
-    def __init__(self, votable, url=None):
+    def __init__(self, votable, url=None, version="1.0"):
         """
         initialize the results.  This constructor is not typically called 
         by directly applications; rather an instance is obtained from calling 
         a SIAQuery's execute().
         """
-        dalq.DalResults.__init__(self, votable, url)
+        dalq.DalResults.__init__(self, votable, url, "vaoreg", version)
 
     def getrecord(self, index):
         """

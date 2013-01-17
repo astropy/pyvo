@@ -51,7 +51,7 @@ class RegServiceTest(unittest.TestCase):
                                   sqlpred="publisher like '%nrao%'")
         self.assert_(isinstance(q, reg.RegistryQuery))
         self.assertEquals(q.baseurl, reg.RegistryService.STSCI_REGISTRY_BASEURL)
-        self.assertEquals(len(q._param.keys()), 1)
+        self.assertEquals(len(q._param.keys()), 0)
 
         self.assertEquals(q.waveband, "Radio")
         self.assertEquals(q.servicetype, "sia")
@@ -209,9 +209,7 @@ class RegQueryTest(unittest.TestCase):
               "Identifier LIKE '%%%(t)s%%' OR " + \
               "[content/subject] LIKE '%%%(t)s%%' OR "+\
               "[curation/publisher] LIKE '%%%(t)s%%' OR " + \
-              "[content/description] LIKE '%%%(t)s%%' OR " + \
-              "[@xsi_type] LIKE '%%%(t)s%%' OR " + \
-              "[capability/@xsi_type] LIKE '%%%(t)s%%')"
+              "[content/description] LIKE '%%%(t)s%%'"
 
         pred = self.q.keywords_to_predicate([kws], True)
         self.assertEquals(pred, pat % {"t": kws})
@@ -265,15 +263,14 @@ class RegQueryTest(unittest.TestCase):
         self.assert_("&capability=SimpleImageAccess" in qurl)
         self.assert_("&predicate=1" not in qurl)
         for kw in "AGN galaxy".split():
-            for col in ["Title", "ShortName", "Identifier", 
+            for col in ["title", "shortName", "identifier", 
                         "%5Bcontent%2Fsubject%5D", "%5Bcuration%2Fpublisher%5D", 
-                        "%5Bcontent%2Fdescription%5D", "%5B%40xsi_type%5D", 
-                        "%5Bcapability%2F%40xsi_type%5D"]:
+                        "%5Bcontent%2Fdescription%5D"]:
                 constraint = col + "+LIKE+%27%25" + kw + "%25%27"
                 self.assert_(constraint in qurl, 
                              "Missing %s constraint:\n%s" % (constraint,qurl))
-        self.assert_("+OR+ShortName+" in qurl)
-        self.assert_("+OR+%28Title+" in qurl,
+        self.assert_("+OR+shortName+" in qurl)
+        self.assert_("+OR+%28title+" in qurl,
                      "unexpected predicate: " + qurl)
         self.q.or_keywords(False)
         qurl = self.q.getqueryurl()
