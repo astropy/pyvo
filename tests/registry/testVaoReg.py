@@ -205,11 +205,11 @@ class RegQueryTest(unittest.TestCase):
         kws = "gal AGN"
         self.testCtor()
 
-        pat = "(Title LIKE '%%%(t)s%%' OR ShortName LIKE '%%%(t)s%%' OR " + \
-              "Identifier LIKE '%%%(t)s%%' OR " + \
+        pat = "(title LIKE '%%%(t)s%%' OR shortName LIKE '%%%(t)s%%' OR " + \
+              "identifier LIKE '%%%(t)s%%' OR " + \
               "[content/subject] LIKE '%%%(t)s%%' OR "+\
               "[curation/publisher] LIKE '%%%(t)s%%' OR " + \
-              "[content/description] LIKE '%%%(t)s%%'"
+              "[content/description] LIKE '%%%(t)s%%')"
 
         pred = self.q.keywords_to_predicate([kws], True)
         self.assertEquals(pred, pat % {"t": kws})
@@ -274,7 +274,7 @@ class RegQueryTest(unittest.TestCase):
                      "unexpected predicate: " + qurl)
         self.q.or_keywords(False)
         qurl = self.q.getqueryurl()
-        self.assert_("+AND+%28Title+" in qurl)
+        self.assert_("+AND+%28title+" in qurl)
 
         self.q.addpredicate("publisher like '%nrao%'")
         qurl = self.q.getqueryurl()
@@ -292,7 +292,7 @@ class RegResultsTest(unittest.TestCase):
     def testCtor(self):
         self.r = reg.RegistryResults(self.tbl)
         self.assert_(self.r._tbl is not None)
-        self.assertEquals(self.r.size, 4)
+        self.assertEquals(self.r.rowcount, 4)
 
     def testGetValue(self):
         self.testCtor()
