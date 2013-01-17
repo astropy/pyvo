@@ -106,7 +106,7 @@ class Cursor(Iter):
 	"""
         Iter.__init__(self, results)
 	self._description = self._mkdesc()
-	self._rowcount = self.resultset.size
+	self._rowcount = self.resultset.rowcount
 	self._arraysize = 1
 
     def _mkdesc(self):

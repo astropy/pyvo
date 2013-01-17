@@ -33,11 +33,13 @@ class SIAServiceTest(unittest.TestCase):
 
     def testCtor(self):
         self.res = {"title": "Archive", "shortName": "arch"}
-        self.srv = sia.SIAService(self.baseurl, self.res)
+        self.srv = sia.SIAService(self.baseurl, resmeta=self.res)
 
     def testProps(self):
         self.testCtor()
         self.assertEquals(self.srv.baseurl, self.baseurl)
+        self.assertEquals(self.srv.protocol, "sia")
+        self.assertEquals(self.srv.version, "1.0")
         try:
             self.srv.baseurl = "goober"
             self.fail("baseurl not read-only")
@@ -84,6 +86,9 @@ class SIAQueryTest(unittest.TestCase):
 
     def testCtor(self):
         self.q = sia.SIAQuery(self.baseurl)
+        self.assertEquals(self.q.baseurl, self.baseurl)
+        self.assertEquals(self.q.protocol, "sia")
+        self.assertEquals(self.q.version, "1.0")
 
     def testPos(self):
         self.testCtor()
@@ -245,9 +250,11 @@ class SIAResultsTest(unittest.TestCase):
 
     def testCtor(self):
         self.r = sia.SIAResults(self.tbl)
+        self.assertEquals(self.r.protocol, "sia")
+        self.assertEquals(self.r.version, "1.0")
         self.assert_(isinstance(self.r._fldnames, list))
         self.assert_(self.r._tbl is not None)
-        self.assertEquals(self.r.size, 2)
+        self.assertEquals(self.r.rowcount, 2)
 
     def testUCDMap(self):
         self.testCtor()
@@ -320,13 +327,13 @@ class SIAExecuteTest(unittest.TestCase):
         q.format = "all"
         results = q.execute()
         self.assert_(isinstance(results, sia.SIAResults))
-        self.assertEquals(results.size, 2)
+        self.assertEquals(results.rowcount, 2)
 
     def testSearch(self):
         srv = sia.SIAService("http://localhost:%d/sia" % testserverport)
         results = srv.search(pos=(0,0), size=(1.0,1.0))
         self.assert_(isinstance(results, sia.SIAResults))
-        self.assertEquals(results.size, 2)
+        self.assertEquals(results.rowcount, 2)
 
         qurl = results.queryurl
         # print qurl
@@ -341,7 +348,7 @@ class SIAExecuteTest(unittest.TestCase):
         results = sia.sia("http://localhost:%d/sia" % testserverport,
                           pos=(0,0), size=(1.0,1.0))
         self.assert_(isinstance(results, sia.SIAResults))
-        self.assertEquals(results.size, 2)
+        self.assertEquals(results.rowcount, 2)
 
     def testError(self):
         srv = sia.SIAService("http://localhost:%d/err" % testserverport)

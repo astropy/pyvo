@@ -172,9 +172,9 @@ class DalResultsTest(unittest.TestCase):
 
     def testProps(self):
         self.testCtor()
-        self.assertEquals(self.result.size, 2)
+        self.assertEquals(self.result.rowcount, 2)
         try:
-            self.result.size = 4
+            self.result.rowcount = 4
             self.fail("size is not read-only")
         except AttributeError:
             pass
@@ -306,14 +306,26 @@ class DalServiceTest(unittest.TestCase):
 
     def testCtor(self):
         self.res = {"title": "Archive", "shortName": "arch"}
-        self.srv = dalq.DalService(self.baseurl, self.res)
+        self.srv = dalq.DalService(self.baseurl, "sga", "2.0", self.res)
 
     def testProps(self):
         self.testCtor()
         self.assertEquals(self.srv.baseurl, self.baseurl)
+        self.assertEquals(self.srv.protocol, "sga")
+        self.assertEquals(self.srv.version, "2.0")
         try:
             self.srv.baseurl = "goober"
             self.fail("baseurl not read-only")
+        except AttributeError:
+            pass
+        try:
+            self.srv.protocol = "sia"
+            self.fail("protocol not read-only")
+        except AttributeError:
+            pass
+        try:
+            self.srv.version = "1.0"
+            self.fail("version not read-only")
         except AttributeError:
             pass
 
@@ -334,6 +346,8 @@ class DalServiceTest(unittest.TestCase):
         q = self.srv.create_query()
         self.assert_(isinstance(q, dalq.DalQuery))
         self.assertEquals(q.baseurl, self.baseurl)
+        self.assertEquals(q.protocol, self.protocol)
+        self.assertEquals(q.version, self.version)
 
 class DalQueryTest(unittest.TestCase):
 
@@ -341,12 +355,14 @@ class DalQueryTest(unittest.TestCase):
         self.baseurl = "http://localhost/sia"
 
     def testCtor(self):
-        self.query = dalq.DalQuery(self.baseurl)
+        self.query = dalq.DalQuery(self.baseurl, "sga", "2.0")
         self.assert_(self.query.getparam("format") is None)
 
     def testProps(self):
         self.testCtor()
         self.assertEquals(self.query.baseurl, self.baseurl)
+        self.assertEquals(self.query.query, "sga")
+        self.assertEquals(self.query.baseurl, "2.0")
 
     def testParam(self):
         self.testCtor()
@@ -433,7 +449,7 @@ class QueryExecuteTest(unittest.TestCase):
         # pdb.set_trace()
         results = q.execute()
         self.assert_(isinstance(results, dalq.DalResults))
-        self.assertEquals(results.size, 2)
+        self.assertEquals(results.rowcount, 2)
 
     def testExecuteStream(self):
         q = dalq.DalQuery("http://localhost:%d/sia" % testserverport)

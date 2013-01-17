@@ -39,6 +39,8 @@ class CSServiceTest(unittest.TestCase):
     def testProps(self):
         self.testCtor()
         self.assertEquals(self.srv.baseurl, self.baseurl)
+        self.assertEquals(self.srv.protocol, "scs")
+        self.assertEquals(self.srv.version, "1.0")
         try:
             self.srv.baseurl = "goober"
             self.fail("baseurl not read-only")
@@ -82,6 +84,9 @@ class CSQueryTest(unittest.TestCase):
 
     def testCtor(self):
         self.q = cs.CSQuery(self.baseurl)
+        self.assertEquals(self.q.baseurl, self.baseurl)
+        self.assertEquals(self.q.protocol, "scs")
+        self.assertEquals(self.q.version, "1.0")
 
     def testPos(self):
         self.testCtor()
@@ -137,9 +142,11 @@ class CSResultsTest(unittest.TestCase):
 
     def testCtor(self):
         self.r = cs.CSResults(self.tbl)
+        self.assertEquals(self.r.protocol, "scs")
+        self.assertEquals(self.r.version, "1.0")
         self.assert_(isinstance(self.r._fldnames, list))
         self.assert_(self.r._tbl is not None)
-        self.assertEquals(self.r.size, 2)
+        self.assertEquals(self.r.rowcount, 2)
 
     def testUCDMap(self):
         self.testCtor()
@@ -218,13 +225,13 @@ class CSExecuteTest(unittest.TestCase):
         q.sr = 0.25
         results = q.execute()
         self.assert_(isinstance(results, cs.CSResults))
-        self.assertEquals(results.size, 2)
+        self.assertEquals(results.rowcount, 2)
 
     def testSearch(self):
         srv = cs.CSService(self.baseurl % testserverport)
         results = srv.search(ra=0.0, dec=0.0, sr=0.25)
         self.assert_(isinstance(results, cs.CSResults))
-        self.assertEquals(results.size, 2)
+        self.assertEquals(results.rowcount, 2)
 
         qurl = results.queryurl
         # print qurl
@@ -239,7 +246,7 @@ class CSExecuteTest(unittest.TestCase):
         results = cs.conesearch(self.baseurl % testserverport, 
                                 ra=0.0, dec=0.0, sr=0.25)
         self.assert_(isinstance(results, cs.CSResults))
-        self.assertEquals(results.size, 2)
+        self.assertEquals(results.rowcount, 2)
         
 
 __all__ = "CSServiceTest CSQueryTest CSResultsTest CSRecordTest CSExecuteTest".split()

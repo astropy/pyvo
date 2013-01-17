@@ -37,7 +37,7 @@ class SIAService(query.DalService):
     a representation of an SIA service
     """
 
-    def __init__(self, baseurl, resmeta=None):
+    def __init__(self, baseurl, resmeta=None, version="1.0"):
         """
         instantiate an SIA service
 
@@ -47,7 +47,7 @@ class SIAService(query.DalService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DalService.__init__(self, baseurl, resmeta)
+        query.DalService.__init__(self, baseurl, "sia", version, resmeta)
 
     def search(self, pos, size, format='all', intersect="overlaps", verbosity=2):
         """
@@ -110,7 +110,7 @@ class SIAService(query.DalService):
         :Returns: 
            *SIAQuery*:  the query instance
         """
-        q = SIAQuery(self._baseurl)
+        q = SIAQuery(self.baseurl, self.version)
         if pos is not None: q.pos = pos
         if size is not None: q.size = size
         if format: q.format = format
@@ -128,11 +128,11 @@ class SIAQuery(query.DalQuery):
     """
     allowedIntersects = "COVERS ENCLOSED CENTER OVERLAPS".split()
 
-    def __init__(self, baseurl):
+    def __init__(self, baseurl, version="1.0"):
         """
         initialize the query object with a baseurl
         """
-        query.DalQuery.__init__(self, baseurl)
+        query.DalQuery.__init__(self, baseurl, "sia", version)
         
 
     @property
@@ -280,6 +280,11 @@ class SIAQuery(query.DalQuery):
 
     @property
     def verbosity(self):
+        """
+        an integer indicating the amount of metadata (i.e. columns) that will
+        be returned by a query where 0 is the minimum amount and 3 is the 
+        maximum available.
+        """
         return self.getparam("VERB")
     @verbosity.setter
     def verbosity(self, val):
@@ -319,7 +324,7 @@ class SIAResults(query.DalResults):
         by directly applications; rather an instance is obtained from calling 
         a SIAQuery's execute().
         """
-        query.DalResults.__init__(self, votable, url)
+        query.DalResults.__init__(self, votable, url, "sia", "1.0")
         self._siacols = { 
             "VOX:Image_Title": self.fieldname_with_ucd("VOX:Image_Title"),
             "INST_ID": self.fieldname_with_ucd("INST_ID"),

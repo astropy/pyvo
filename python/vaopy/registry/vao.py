@@ -106,7 +106,7 @@ class RegistryService(dalq.DalService):
         @param ivoid          the IVOA Identifier of the resource
         """
         srch = self.create_query()
-        srch.addPredicate("Identifier='%s'" % ivoid)
+        srch.addpredicate("identifier='%s'" % ivoid)
         res = srch.execute()
         return res.getrecord(0)
 
@@ -629,8 +629,3 @@ class SimpleResource(dalq.Record):
         """
         return self.get("accessURL")
 
-class _RegServicePeeker(object):
-    """
-    a private class allows the response from a service be peeked at without 
-    fully reading the results to determine if an error occurred.  
-    """

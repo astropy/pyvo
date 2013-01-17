@@ -19,7 +19,7 @@ other externally defined table.  In this case there is no VO defined
 standard data model.  Usually the field names are used to uniquely
 identify table columns.
 """
-__all__ = [ "ensure_baseurl", "DALQuery" ]
+__all__ = [ "ensure_baseurl", "DALService", "DALQuery" ]
 
 import copy, re, warnings, socket
 from urllib2 import urlopen, URLError, HTTPError
@@ -43,17 +43,22 @@ class DalService(object):
     endpoint.
     """
 
-    def __init__(self, baseurl, resmeta=None):
+    def __init__(self, baseurl, protocol=None, version=None, resmeta=None):
         """
         instantiate the service connecting it to a base URL
 
         :Args: 
            *baseurl*:  the base URL that should be used for forming queries to
                            the service.
+           *protocol*: The protocol implemented by the service, e.g., "scs", "sia",
+                           "ssa", and so forth.
+           *version*:  The protocol version, e.g, "1.0", "1.2", "2.0".
            *resmeta*:  a dictionary containing resource metadata describing the 
                            service.  This is usually provided a registry record.
         """
         self._baseurl = baseurl
+        self._protocol = protocol
+        self._version = version
         if not resmeta:  
             self._desc = {}
         elif isinstance(resmeta, dict):
@@ -65,6 +70,20 @@ class DalService(object):
         the base URL to use for submitting queries (read-only)
         """
         return self._baseurl
+
+    @property
+    def protocol(self):
+        """
+        The service protocol implemented by the service read-only).
+        """
+        return self._protocol
+
+    @property
+    def version(self):
+        """
+        The version of the service protocol implemented by the service read-only).
+        """
+        return self._version
 
     @property
     def description(self):
@@ -79,9 +98,9 @@ class DalService(object):
         create a query object that constraints can be added to and then 
         executed.
         """
-        # this must be overridden toreturn a Query subclass appropriate for 
+        # this must be overridden to return a Query subclass appropriate for 
         # the service type
-        return DalQuery(self._baseurl)
+        return DalQuery(self.baseurl, self.protocol, self.version)
 
 
 class DalQuery(object):
@@ -95,11 +114,13 @@ class DalQuery(object):
     The base URL for the query can be changed via the baseurl property.
     """
 
-    def __init__(self, baseurl):
+    def __init__(self, baseurl, protocol=None, version=None):
         """
         initialize the query object with a baseurl
         """
         self._baseurl = baseurl
+        self._protocol = protocol
+        self._version = version
         self._param = { }
 
     @property
@@ -109,10 +130,24 @@ class DalQuery(object):
         execute functions is called. 
         """
         return self._baseurl
-
     @baseurl.setter
     def baseurl(self):
         self._baseurl = baseurl
+
+    @property
+    def protocol(self):
+        """
+        The service protocol which generated this query response (read-only).
+        """
+        return self._protocol
+
+    @property
+    def version(self):
+        """
+        The version of the service protocol which generated this query response
+        (read-only).
+        """
+        return self._version
 
     def setparam(self, name, val):
         """
@@ -191,7 +226,8 @@ class DalQuery(object):
             url = self.getqueryurl()
             return urlopen(url)
         except IOError, ex:
-            raise DalServiceError.from_except(ex, url)
+            raise DalServiceError.from_except(ex, url, self.protocol, 
+                                              self.version)
 
     def execute_votable(self):
         """
@@ -208,7 +244,8 @@ class DalQuery(object):
         except DalAccessError:
             raise
         except Exception, e:
-            raise DalFormatError(e, self.getqueryurl())
+            raise DalFormatError(e, self.getqueryurl(), 
+                                 self.protocol, self.version)
 
     def getqueryurl(self, lax=False):
         """
@@ -242,7 +279,7 @@ class DalResults(object):
     (compliant with the Python Database API) or an iterable.
     """
 
-    def __init__(self, votable, url=None):
+    def __init__(self, votable, url=None, protocol=None, version=None):
         """
         initialize the cursor.  This constructor is not typically called 
         by directly applications; rather an instance is obtained from calling 
@@ -252,9 +289,12 @@ class DalResults(object):
                                 response table
         """
         self._url = url
+        self._protocol = protocol
+        self._version = version
         self._status = self._findstatus(votable)
         if self._status[0] != "OK":
-            raise DalQueryError(self._status[1], self._status[0], url)
+            raise DalQueryError(self._status[1], self._status[0], url,
+                                self.protocol, self.version)
 
         self._tbl = self._findresultstable(votable)
         if not self._tbl:
@@ -268,7 +308,8 @@ class DalResults(object):
                 self._fldnames.append(field.name)
         if len(self._fldnames) == 0:
             raise DalFormatError(reason="response table missing column " +
-                                 "descriptions.", url=self._url)
+                                 "descriptions.", url=self._url,
+                                protocol=self.protocol, version=self.version)
                                  
 
     def _findresultstable(self, votable):
@@ -317,7 +358,22 @@ class DalResults(object):
         for info in infos:
             if info.name == "QUERY_STATUS":
                 return info
+
                 
+    @property
+    def protocol(self):
+        """
+        The service protocol which generated this query response (read-only).
+        """
+        return self._protocol
+
+    @property
+    def version(self):
+        """
+        The version of the service protocol which generated this query response
+        (read-only).
+        """
+        return self._version
 
     @property
     def queryurl(self):
@@ -327,20 +383,11 @@ class DalResults(object):
         return self._url
 
     @property
-    def size(self):
+    def rowcount(self):
         """
         the number of records returned in this result (read-only)
         """
         return self._tbl.nrows
-
-    def infos(self):
-	"""Return any INFO elements in the VOTable as a dictionary.
-
-	:Returns:
-	    A dictionary with each element corresponding to a single INFO,
-	    representing the INFO as a name:value pair.
-	"""
-	pass
 
     def fielddesc(self):
         """
@@ -584,17 +631,23 @@ class DalAccessError(Exception):
     """
     _defreason = "Unknown service access error"
 
-    def __init__(self, reason=None, url=None):
+    def __init__(self, reason=None, url=None, protocol=None, version=None):
         """
         initialize the exception with an error message
         :Args:
-           *reason*:  a message describing the cause of the error
-           *url*:     the query URL that produced the error
+           *reason*:    a message describing the cause of the error
+           *url*:       the query URL that produced the error
+           *protocol*:  the label indicating the type service that produced 
+                          the error
+           *version*:   version of the protocol of the service that produced 
+                          the error
         """
         if not reason: reason = self._defreason
         Exception.__init__(self, reason)
         self._reason = reason
         self._url = url
+        self._protocol = protocol
+        self._version = version
 
     @classmethod
     def _typeName(cls, exc):
@@ -631,6 +684,32 @@ class DalAccessError(Exception):
     def url(self):
         self._url = None
 
+    @property
+    def protocol(self):
+        """
+        A label indicating the type service that produced the error
+        """
+        return self._protocol
+    @protocol.setter
+    def protocol(self, protocol):
+        self._protocol = protocol
+    @protocol.deleter
+    def protocol(self):
+        self._protocol = None
+
+    @property
+    def version(self):
+        """
+        The version of the protocol of the service that produced the error
+        """
+        return self._version
+    @version.setter
+    def version(self, version):
+        self._version = version
+    @version.deleter
+    def version(self):
+        self._version = None
+
 
 class DalProtocolError(DalAccessError):
     """
@@ -642,7 +721,8 @@ class DalProtocolError(DalAccessError):
     """
     _defreason = "Unknown DAL Protocol Error"
 
-    def __init__(self, reason=None, cause=None, url=None):
+    def __init__(self, reason=None, cause=None, url=None, 
+                 protocol=None, version=None):
         """
         initialize with a string message and an optional HTTP response code
         :Args:
@@ -652,8 +732,12 @@ class DalProtocolError(DalAccessError):
                         of None indicates that no underlying exception was 
                         caught.
            *url*:     the query URL that produced the error
+           *protocol*:  the label indicating the type service that produced 
+                          the error
+           *version*:   version of the protocol of the service that produced 
+                          the error
         """
-        DalAccessError.__init__(self, reason, url)
+        DalAccessError.__init__(self, reason, url, protocol, version)
         self._cause = cause
 
     @property
@@ -677,7 +761,8 @@ class DalFormatError(DalProtocolError):
     """
     _defreason = "Unknown VOTable Format Error"
 
-    def __init__(self, cause=None, url=None, reason=None):
+    def __init__(self, cause=None, url=None, reason=None, 
+                 protocol=None, version=None):
         """
         create the exception
         :Args:
@@ -686,10 +771,14 @@ class DalFormatError(DalProtocolError):
                         caught.
            *url*:     the query URL that produced the error
            *reason*:  a message describing the cause of the error
+           *protocol*:  the label indicating the type service that produced 
+                          the error
+           *version*:   version of the protocol of the service that produced 
+                          the error
         """
         if cause and not reason:  
             reason = "%s: %s" % (DalAccessError._typeName(cause), str(cause))
-        DalProtocolError.__init__(self, reason, cause, url)
+        DalProtocolError.__init__(self, reason, cause, url, protocol, version)
 
 
 class DalServiceError(DalProtocolError):
@@ -700,7 +789,8 @@ class DalServiceError(DalProtocolError):
     """
     _defreason = "Unknown service error"
     
-    def __init__(self, reason=None, code=None, cause=None, url=None):
+    def __init__(self, reason=None, code=None, cause=None, url=None, 
+                 protocol=None, version=None):
         """
         initialize with a string message and an optional HTTP response code
         :Args:
@@ -710,8 +800,12 @@ class DalServiceError(DalProtocolError):
                         of None indicates that no underlying exception was 
                         caught.
            *url*:     the query URL that produced the error
+           *protocol*:  the label indicating the type service that produced 
+                          the error
+           *version*:   version of the protocol of the service that produced 
+                          the error
         """
-        DalProtocolError.__init__(self, reason, cause, url)
+        DalProtocolError.__init__(self, reason, cause, url, protocol, version)
         self._code = code
 
     @property
@@ -730,7 +824,11 @@ class DalServiceError(DalProtocolError):
         self._code = None
 
     @classmethod
-    def from_except(cls, exc, url=None):
+    def from_except(cls, exc, url=None, protocol=None, version=None):
+        """
+        create and return DalServiceError exception appropriate
+        for the given exception that represents the underlying cause.
+        """
         if isinstance(exc, HTTPError):
             # python 2.7 has message as reason attribute; 2.6, msg
             reason = (hasattr(exc, 'reason') and exc.reason) or exc.msg
@@ -744,7 +842,7 @@ class DalServiceError(DalProtocolError):
                     url = exc.url
                 else:
                     url = exc.filename
-            return DalServiceError(reason, exc.code, exc, url)
+            return DalServiceError(reason, exc.code, exc, url, protocol, version)
         elif isinstance(exc, URLError):
             reason = exc.reason
             if isinstance(reason, IOError):
@@ -752,10 +850,12 @@ class DalServiceError(DalProtocolError):
             elif not isinstance(reason, str):
                 reason = str(reason)
 
-            return DalServiceError(reason, cause=exc, url=url)
+            return DalServiceError(reason, cause=exc, url=url, 
+                                   protocol=protocol, version=version)
         elif isinstance(exc, Exception):
             return DalServiceError("%s: %s" % (cls._typeName(exc), str(exc)), 
-                                   cause=exc, url=url)
+                                   cause=exc, url=url, 
+                                   protocol=protocol, version=version)
         else:
             raise TypeError("from_except: expected Exception")
 
@@ -770,15 +870,22 @@ class DalQueryError(DalAccessError):
     """
     _defreason = "Unknown DAL Query Error"
 
-    def __init__(self, reason=None, label=None, url=None):
+    def __init__(self, reason=None, label=None, url=None, 
+                 protocol=None, version=None):
         """
         :Args:
            *reason*:  a message describing the cause of the error.  This should 
+                        be set to the content of the INFO error element.
            *label*:   the identifying name of the error.  This should be the 
                         value of the INFO element's value attribute within the 
                         VOTable response that describes the error.
+           *url*:     the query URL that produced the error
+           *protocol*:  the label indicating the type service that produced 
+                          the error
+           *version*:   version of the protocol of the service that produced 
+                          the error
         """
-        DalAccessError.__init__(self, reason, url)
+        DalAccessError.__init__(self, reason, url, protocol, version)
         self._label = label
                           
     @property
@@ -788,7 +895,7 @@ class DalQueryError(DalAccessError):
         DAL queries that produce an error which is detectable on the server
         will respond with a VOTable containing an INFO element that contains 
         the description of the error.  This property contains the value of 
-        the value INFO attribute.  
+        the INFO's value attribute.  
         """
         return self._label
     @label.setter

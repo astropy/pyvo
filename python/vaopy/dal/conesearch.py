@@ -33,7 +33,7 @@ class CSService(query.DalService):
     a representation of a Cone Search service
     """
 
-    def __init__(self, baseurl, resmeta=None):
+    def __init__(self, baseurl, resmeta=None, version="1.0"):
         """
         instantiate a Cone Search service
 
@@ -43,7 +43,7 @@ class CSService(query.DalService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DalService.__init__(self, baseurl, resmeta)
+        query.DalService.__init__(self, baseurl, "scs", version, resmeta)
 
     def search(self, ra, dec, sr=1.0, verbosity=2):
         """
@@ -99,11 +99,11 @@ class CSQuery(query.DalQuery):
     The base URL for the query can be changed via the baseurl property.
     """
 
-    def __init__(self, baseurl):
+    def __init__(self, baseurl, version="1.0"):
         """
         initialize the query object with a baseurl
         """
-        query.DalQuery.__init__(self, baseurl)
+        query.DalQuery.__init__(self, baseurl, "scs", version)
         
 
     @property
@@ -244,13 +244,13 @@ class CSResults(query.DalResults):
     (compliant with the Python Database API) or an iterable.
     """
 
-    def __init__(self, votable, url=None):
+    def __init__(self, votable, url=None, version="1.0"):
         """
         initialize the cursor.  This constructor is not typically called 
         by directly applications; rather an instance is obtained from calling 
         a CSQuery's execute().
         """
-        query.DalResults.__init__(self, votable, url)
+        query.DalResults.__init__(self, votable, url, "scs", version)
         self._cscols = {
             "ID_MAIN":         self.fieldname_with_ucd("ID_MAIN"),
             "POS_EQ_RA_MAIN":  self.fieldname_with_ucd("POS_EQ_RA_MAIN"),

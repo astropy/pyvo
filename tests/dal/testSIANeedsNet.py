@@ -33,7 +33,7 @@ class NeatSIAExecuteTest(unittest.TestCase):
         q.setparam("NAXIS", (75, 75))
         results = q.execute()
         self.assert_(isinstance(results, sia.SIAResults))
-        self.assertEquals(results.size, 2)
+        self.assertEquals(results.rowcount, 2)
 
         rec = results.getrecord(0)
         self.assertEquals(rec.naxis, (75, 75))
@@ -42,12 +42,12 @@ class NeatSIAExecuteTest(unittest.TestCase):
         srv = sia.SIAService(neat)
         results = srv.search(pos=(0,0), size=(1.0,1.0))
         self.assert_(isinstance(results, sia.SIAResults))
-        self.assertEquals(results.size, 2)
+        self.assertEquals(results.rowcount, 2)
 
     def testSia(self):
         results = sia.sia(neat, pos=(0,0), size=(0.25,0.25))
         self.assert_(isinstance(results, sia.SIAResults))
-        self.assertEquals(results.size, 2)
+        self.assertEquals(results.rowcount, 2)
 
         rec = results.getrecord(0)
         self.assertEquals(rec.ra, 0.0)
