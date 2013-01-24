@@ -324,7 +324,7 @@ class DalResults(object):
         if len(votable.resources) < 1:
             return None
         for res in votable.resources:
-            if res.type == "results":
+            if res.type.lower() == "results":
                 return res
         return votable.resources[0]
 
@@ -543,8 +543,9 @@ class Record(dict):
         if no such column exists.
         """
         for fld in self._fdesc:
-            if fld.ucd.contains("meta.dataset") and \
-               fld.ucd.contains("meta.ref.url"):
+            if fld.utype.contains("Access.Reference") or \
+               (fld.ucd.contains("meta.dataset") and \
+               fld.ucd.contains("meta.ref.url")):
                 return self[fld]
         return None
 
@@ -944,7 +945,6 @@ def _votableparse(source, columns=None, invalid='mask', pedantic=False,
     with iterparser.get_xml_iterator(source) as iterator:
         return votabletree.VOTableFile(
           config=config, pos=(1, 1), version=version).parse(iterator, config)
-   
 
 
 

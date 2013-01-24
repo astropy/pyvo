@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-a test SIA server for testing dal.query
+a test DAL server for testing dal.query
 """
 import os
 import sys
@@ -14,6 +14,7 @@ if not testdir:  testdir = "tests"
 siaresult = "neat-sia.xml"
 scsresult = "twomass-cs.xml"
 errresult = "error-sia.xml"
+ssaresult = "jhu-ssa.xml"
 
 class TestHandler(BaseHTTPRequestHandler):
 
@@ -30,6 +31,8 @@ class TestHandler(BaseHTTPRequestHandler):
             self.send_sia()
         elif path == "/cs":
             self.send_scs()
+        elif path == "/ssa":
+            self.send_ssa()
         else:
             self.send_error(404)
             self.end_headers()
@@ -49,6 +52,9 @@ class TestHandler(BaseHTTPRequestHandler):
 
     def send_scs(self):
         self.send_file(os.path.join(testdir,scsresult))
+
+    def send_ssa(self):
+        self.send_file(os.path.join(testdir,ssaresult))
 
     def send_file(self, filename):
         f = open(filename)

@@ -1,0 +1,8 @@
+<VOTABLE xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="xmlns:http://www.ivoa.net/xml/VOTable/VOTable-1.1.xsd" version="1.1">
+  <RESOURCE type="results">
+    <INFO name="QUERY_STATUS" value="ERROR">Forced Fail</INFO>
+    <INFO name="FORMAT" value="votable"/>
+    <INFO name="serviceVersion" value="1.0"/>
+    <INFO name="contentType" value="dynamic"/>
+  </RESOURCE>
+</VOTABLE>

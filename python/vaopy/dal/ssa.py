@@ -1,0 +1,557 @@
+"""
+The DAL Query interface specialized for Simple Spectral Access (SSA) services.
+"""
+
+import numbers
+import re
+from . import query
+
+__all__ = [ "ssa", "SSAService", "SSAQuery" ]
+
+def ssa(url, pos, size, format='all'):
+    """
+    submit a simple SIA query that requests spectra overlapping a 
+    :Args:
+       *url*:  the base URL for the SSA service
+       *pos*:  a 2-element seqence giving the ICRS RA and DEC in decimal degrees
+       *size*: a floating point number or a 2-element tuple giving the size
+                 of the rectangular region around pos to search for spectra.  
+       *format*:     the spectral format(s) of interest.  "all" (default) 
+                       indicates all available formats; "graphic" indicates
+                       graphical images (e.g. jpeg, png, gif; not FITS); 
+                       "metadata" indicates that no images should be 
+                       returned--only an empty table with complete metadata.
+    """
+    service = SSAService(url)
+    return service.search(pos, size, format)
+
+class SSAService(query.DalService):
+    """
+    a representation of an SSA service
+    """
+
+    def __init__(self, baseurl, resmeta=None, version="1.0"):
+        """
+        instantiate an SSA service
+
+        :Args:
+           *baseurl*:  the base URL for submitting search queries to the 
+                         service.
+           *resmeta*:  an optional dictionary of properties about the 
+                         service
+        """
+        query.DalService.__init__(self, baseurl, "ssa", version, resmeta)
+
+    def search(self, pos, size, format='all', verbosity=2):
+        """
+        submit a simple SSA query to this service with the given constraints.  
+
+        This method is provided for a simple but typical SSA queries.  For 
+        more complex queries, one should create an SSAQuery object via 
+        create_query()
+
+        :Args:
+           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the 
+                           center of the search region in decimal degrees
+           *size*:       a 2-element tuple giving the full rectangular size of 
+                           the search region along the RA and Dec directions in 
+                           decimal degrees
+           *format*:     the spectral format(s) of interest.  "all" (default) 
+                           indicates all available formats; "graphic" indicates
+                           graphical spectra (e.g. jpeg, png, gif; not FITS); 
+                           "metadata" indicates that no spectra should be 
+                           returned--only an empty table with complete metadata.
+        """
+        q = self.create_query(pos, size, format)
+        return q.execute()
+
+    def create_query(self, pos=None, size=None, format=None, 
+                     verbosity=None):
+        """
+        create a query object that constraints can be added to and then 
+        executed.  The input arguments will initialize the query with the 
+        given values.
+
+        :Args:
+           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the 
+                           center of the search region in decimal degrees
+           *size*:       a 2-element tuple giving the full rectangular size of 
+                           the search region along the RA and Dec directions in 
+                           decimal degrees
+           *format*:     the image format(s) of interest.  "all" indicates 
+                           all available formats; "graphic" indicates
+                           graphical images (e.g. jpeg, png, gif; not FITS); 
+                           "metadata" indicates that no images should be 
+                           returned--only an empty table with complete metadata.
+
+        :Returns: 
+           *SSAQuery*:  the query instance
+        """
+        q = SSAQuery(self.baseurl, self.version)
+        if pos is not None: q.pos = pos
+        if size is not None: q.size = size
+        if format: q.format = format
+        return q
+
+class SSAQuery(query.DalQuery):
+    """
+    a class for preparing an query to an SSA service.  Query constraints
+    are added via its service type-specific methods.  The various execute()
+    functions will submit the query and return the results.  
+
+    The base URL for the query can be changed via the baseurl property.
+    """
+    
+    def __init__(self, baseurl,  version="1.0", request="queryData"):
+        """
+        initialize the query object with a baseurl and request type
+        """
+        query.DalQuery.__init__(self, baseurl, "ssa", version)
+        self.setparam("REQUEST", request)
+        
+    @property
+    def pos(self):
+        """
+        the position (POS) constraint as a 2-element tuple denoting RA and 
+        declination in decimal degrees.  This defaults to None.
+        """
+        return self.getparam("POS")
+    @pos.setter
+    def pos(self, pair):
+        # do a check on the input
+        if (isinstance(pair, list)):
+            pair = tuple(pair)
+        if (isinstance(pair, tuple)):
+            if len(pair) != 2:
+                raise ValueError("Wrong number of elements in pos list: " + 
+                                 str(pair))
+            if (not isinstance(pair[0], numbers.Number) or 
+                not isinstance(pair[1], numbers.Number)):
+                raise ValueError("Wrong type of elements in pos list: " + 
+                                 str(pair))
+        else:
+            raise ValueError("pos not a 2-element sequence")
+
+        if pair[1] > 90.0 or pair[1] < -90.0:
+            raise ValueError("pos declination out-of-range: " + str(pair[1]))
+
+        while pair[0] < 0:
+            pair = (pair[0]+360.0, pair[1])
+        while pair[0] >= 360.0:
+            pair = (pair[0]-360.0, pair[1])
+
+
+        self.setparam("POS", pair)
+    @pos.deleter
+    def pos(self):
+        self.unsetparam('POS')
+
+    @property
+    def ra(self):
+        """
+        the right ascension part of the position constraint (default: None).
+        If this is set but dec has not been set yet, dec will be set to 0.0.
+        """
+        if not self.pos: return None
+        return self.pos[0]
+    @ra.setter
+    def ra(self, val):
+        if not self.pos: self.pos = (0.0, 0.0)
+        self.pos = (val, self.pos[1])
+
+    @property
+    def dec(self):
+        """
+        the declination part of the position constraint (default: None).
+        If this is set but ra has not been set yet, ra will be set to 0.0.
+        """
+        if not self.pos: return None
+        return self.pos[1]
+    @dec.setter
+    def dec(self, val):
+        if not self.pos: self.pos = (0.0, 0.0)
+        self.pos = (self.pos[0], val)
+
+    @property
+    def size(self):
+        """
+        the diameter of the search region specified in decimal degrees
+        """
+        return self.getparam("SIZE")
+    @size.setter
+    def size(self, val):
+        if val is not None:
+            if not isinstance(val, numbers.Number):
+                raise ValueError("size constraint is not a number")
+            if val <= 0.0 or val > 180.0:
+                raise ValueError("size constraint out-of-range: " + str(val))
+
+        self.setparam("SIZE", val)
+    @size.deleter
+    def size(self):
+        self.unsetparam("SIZE")
+
+    @property
+    def band(self):
+        """
+        the spectral bandpass given in a range-list format
+        """
+        return self.getparam("BAND")
+    @band.setter
+    def band(self, val):
+        self.setparam("BAND", val)
+    @band.deleter
+    def band(self):
+        self.unsetparam("BAND")
+
+    @property
+    def time(self):
+        """
+        the time coverage given in a range-list format using a restricted
+        subset of ISO 8601.
+        """
+        return self.getparam("TIME")
+    @time.setter
+    def time(self, val):
+        # check the format:
+        # YYYY-MM-DD, YYYY-MM, YYYY, YYYY-MM-DDTHH:MM:SS
+        if "/" in val:
+            dates = val.split("/")
+        else:
+            dates = [val]
+        for date in dates:
+            if not(re.match("\d{4}$|\d{4}-\d{2}$|\d{4}-\d{2}-\d{2}$|" +
+                             "\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}$")):
+                raise ValueError("time format not valid: " + val)
+
+        self.setparam("TIME", val)
+    @time.deleter
+    def time(self):
+        self.unsetparam("TIME")
+
+    @property
+    def format(self):
+        """
+        the desired format of the images to be returned.  This will be in the 
+        form of a commna-separated lists of MIME-types or one of the following special
+        values. 
+
+        :Special Values:
+           all:  all formats available
+           compliant:  any SSA data model compliant format
+           native:  the native project specific format for the spectrum
+           graphic: any of the graphics formats: JPEG, PNG, GIF
+           votable: the SSA VOTable format
+           fits: the SSA-compliant FITS format
+           xml: the SSA native XML serialization
+           metadata: no images requested; only an empty table with fields
+                          properly specified
+
+        """
+        return self.getparam("FORMAT")
+    @format.setter
+    def format(self, val):
+        # check values
+        formats = val.split(",")
+        for f in formats:
+            f = f.lower()
+            if f not in ["all", "compliant", "native", "graphic", "votable", "fits",
+                         "xml", "metadata"]: # regex for MIME type
+                raise ValueError("format type not valid: " + f)
+
+        self.setparam("FORMAT", val)
+    @format.deleter
+    def format(self):
+        self.unsetparam("FORMAT")
+
+
+    def execute(self):
+        """
+        submit the query and return the results as a Results subclass instance.
+        This implimentation returns an SSAResults instance
+
+        :Raises:
+           *DalServiceError*: for errors connecting to or 
+                              communicating with the service
+           *DalQueryError*:   if the service responds with 
+                              an error, including a query syntax error.  
+        """
+        return SSAResults(self.execute_votable(), self.getqueryurl())
+
+
+class SSAResults(query.DalResults):
+    """
+    Results from an SSA query.  It provides random access to records in 
+    the response.  Alternatively, it can provide results via a Cursor 
+    (compliant with the Python Database API) or an iterator.
+    """
+
+    def __init__(self, votable, url=None):
+        """
+        initialize the cursor.  This constructor is not typically called 
+        by directly applications; rather an instance is obtained from calling 
+        a SSAQuery's execute().
+        """
+        query.DalResults.__init__(self, votable, url, "ssa", "1.0")
+        self._ssacols = {
+
+            "ssa:Query.Score": self.fieldname_with_utype("ssa:Query.Score"),
+            "ssa:Query.Token": self.fieldname_with_utype("ssa:Query.Token"),
+            "ssa:Association.Type": self.fieldname_with_utype("ssa:Association.Type"),
+            "ssa:Association.ID": self.fieldname_with_utype("ssa:Association.ID"),
+            "ssa:Association.Key": self.fieldname_with_utype("ssa:Association.Key"),
+            "ssa:Access.Reference": self.fieldname_with_utype("ssa:Access.Reference"),
+            "ssa:Access.Format": self.fieldname_with_utype("ssa:Access.Format"),
+            "ssa:Access.Size": self.fieldname_with_utype("ssa:Access.Size"),
+            "ssa:DataModel": self.fieldname_with_utype("ssa:DataModel"),
+            "ssa:Type": self.fieldname_with_utype("ssa:Type"),
+            "ssa:Length": self.fieldname_with_utype("ssa:Length"),
+            "ssa:TimeSI": self.fieldname_with_utype("ssa:TimeSI"),
+            "ssa:SpectralSI": self.fieldname_with_utype("ssa:SpectralSI"),
+            "ssa:FluxSI": self.fieldname_with_utype("ssa:FluxSI"),
+            "ssa:SpectralAxis": self.fieldname_with_utype("ssa:SpectralAxis"),
+            "ssa:FluxAxis": self.fieldname_with_utype("ssa:FluxAxis"),
+            "ssa:DataID.Title": self.fieldname_with_utype("ssa:DataID.Title"),
+            "ssa:DataID.Creator": self.fieldname_with_utype("ssa:DataID.Creator"),
+            "ssa:DataID.Collection": self.fieldname_with_utype("ssa:DataID.Collection"),
+            "ssa:DataID.DatasetID": self.fieldname_with_utype("ssa:DataID.DatasetID"),
+            "ssa:DataID.CreatorDID": self.fieldname_with_utype("ssa:DataID.CreatorDID"),
+            "ssa:DataID.Date": self.fieldname_with_utype("ssa:DataID.Date"),
+            "ssa:DataID.Version": self.fieldname_with_utype("ssa:DataID.Version"),
+            "ssa:DataID.Instrument": self.fieldname_with_utype("ssa:DataID.Instrument"),
+            "ssa:DataID.Bandpass": self.fieldname_with_utype("ssa:DataID.Bandpass"),
+            "ssa:DataID.DataSource": self.fieldname_with_utype("ssa:DataID.DataSource"),
+            "ssa:DataID.CreationType": self.fieldname_with_utype("ssa:DataID.CreationType"),
+            "ssa:DataID.Logo": self.fieldname_with_utype("ssa:DataID.Logo"),
+            "ssa:DataID.Contributor": self.fieldname_with_utype("ssa:DataID.Contributor"),
+            "ssa:Curation.Publisher": self.fieldname_with_utype("ssa:Curation.Publisher"),
+            "ssa:Curation.PublisherID": self.fieldname_with_utype("ssa:Curation.PublisherID"),
+            "ssa:Curation.PublisherDID": self.fieldname_with_utype("ssa:Curation.PublisherDID"),
+            "ssa:Curation.Date": self.fieldname_with_utype("ssa:Curation.Date"),
+            "ssa:Curation.Version": self.fieldname_with_utype("ssa:Curation.Version"),
+            "ssa:Curation.Rights": self.fieldname_with_utype("ssa:Curation.Rights"),
+            "ssa:Curation.Reference": self.fieldname_with_utype("ssa:Curation.Reference"),
+            "ssa:Curation.Contact.Name": self.fieldname_with_utype("ssa:Curation.Contact.Name"),
+            "ssa:Curation.Contact.Email": self.fieldname_with_utype("ssa:Curation.Contact.Email"),
+            "ssa:Target.Name": self.fieldname_with_utype("ssa:Target.Name"),
+            "ssa:Target.Description": self.fieldname_with_utype("ssa:Target.Description"),
+            "ssa:Target.Class": self.fieldname_with_utype("ssa:Target.Class"),
+            "ssa:Target.Pos": self.fieldname_with_utype("ssa:Target.Pos"),
+            "ssa:Target.SpectralClass": self.fieldname_with_utype("ssa:Target.SpectralClass"),
+            "ssa:Target.Redshift": self.fieldname_with_utype("ssa:Target.Redshift"),
+            "ssa:Target.VarAmpl": self.fieldname_with_utype("ssa:Target.VarAmpl"),
+            "ssa:Derived.SNR": self.fieldname_with_utype("ssa:Derived.SNR"),
+            "ssa:Derived.Redshift.Value": self.fieldname_with_utype("ssa:Derived.Redshift.Value"),
+            "ssa:Derived.Redshift.StatError": self.fieldname_with_utype("ssa:Derived.Redshift.StatError"),
+            "ssa:Derived.Redshift.Confidence": self.fieldname_with_utype("ssa:Derived.Redshift.Confidence"),
+            "ssa:Derived.VarAmpl": self.fieldname_with_utype("ssa:Derived.VarAmpl"),
+            "ssa:CoordSys.ID": self.fieldname_with_utype("ssa:CoordSys.ID"),
+            "ssa:CoordSys.SpaceFrame.Name": self.fieldname_with_utype("ssa:CoordSys.SpaceFrame.Name"),
+            "ssa:CoordSys.SpaceFrame.Ucd": self.fieldname_with_utype("ssa:CoordSys.SpaceFrame.Ucd"),
+            "ssa:CoordSys.SpaceFrame.RefPos": self.fieldname_with_utype("ssa:CoordSys.SpaceFrame.RefPos"),
+            "ssa:CoordSys.SpaceFrame.Equinox": self.fieldname_with_utype("ssa:CoordSys.SpaceFrame.Equinox"),
+            "ssa:CoordSys.TimeFrame.Name": self.fieldname_with_utype("ssa:CoordSys.TimeFrame.Name"),
+            "ssa:CoordSys.TimeFrame.Ucd": self.fieldname_with_utype("ssa:CoordSys.TimeFrame.Ucd"),
+            "ssa:CoordSys.TimeFrame.Zero": self.fieldname_with_utype("ssa:CoordSys.TimeFrame.Zero"),
+            "ssa:CoordSys.TimeFrame.RefPos": self.fieldname_with_utype("ssa:CoordSys.TimeFrame.RefPos"),
+            "ssa:CoordSys.SpectralFrame.Name": self.fieldname_with_utype("ssa:CoordSys.SpectralFrame.Name"),
+            "ssa:CoordSys.SpectralFrame.Ucd": self.fieldname_with_utype("ssa:CoordSys.SpectralFrame.Ucd"),
+            "ssa:CoordSys.SpectralFrame.RefPos": self.fieldname_with_utype("ssa:CoordSys.SpectralFrame.RefPos"),
+            "ssa:CoordSys.SpectralFrame.Redshift": self.fieldname_with_utype("ssa:CoordSys.SpectralFrame.Redshift"),
+            "ssa:CoordSys.RedshiftFrame.Name": self.fieldname_with_utype("ssa:CoordSys.RedshiftFrame.Name"),
+            "ssa:CoordSys.RedshiftFrame.DopplerDefinition": self.fieldname_with_utype("ssa:CoordSys.RedshiftFrame.DopplerDefinition"),
+            "ssa:CoordSys.RedshiftFrame.RefPos": self.fieldname_with_utype("ssa:CoordSys.RedshiftFrame.RefPos"),
+            "ssa:Char.SpatialAxis.Name": self.fieldname_with_utype("ssa:Char.SpatialAxis.Name"),
+            "ssa:Char.SpatialAxis.Ucd": self.fieldname_with_utype("ssa:Char.SpatialAxis.Ucd"),
+            "ssa:Char.SpatialAxis.Unit": self.fieldname_with_utype("ssa:Char.SpatialAxis.Unit"),
+            "ssa:Char.SpatialAxis.Coverage.Location.Value": self.fieldname_with_utype("ssa:Char.SpatialAxis.Coverage.Location.Value"),
+            "ssa:Char.SpatialAxis.Coverage.Bounds.Extent": self.fieldname_with_utype("ssa:Char.SpatialAxis.Coverage.Bounds.Extent"),
+            "ssa:Char.SpatialAxis.Coverage.Support.Area": self.fieldname_with_utype("ssa:Char.SpatialAxis.Coverage.Support.Area"),
+            "ssa:Char.SpatialAxis.Coverage.Support.Extent": self.fieldname_with_utype("ssa:Char.SpatialAxis.Coverage.Support.Extent"),
+            "ssa:Char.SpatialAxis.SamplingPrecision.SampleExtent": self.fieldname_with_utype("ssa:Char.SpatialAxis.SamplingPrecision.SampleExtent"),
+            "ssa:Char.SpatialAxis.SamplingPrecision.SamplingPrecisionRefVal.FillFactor": self.fieldname_with_utype("ssa:Char.SpatialAxis.SamplingPrecision.SamplingPrecisionRefVal.FillFactor"),
+            "ssa:Char.SpatialAxis.Accuracy.StatError": self.fieldname_with_utype("ssa:Char.SpatialAxis.Accuracy.StatError"),
+            "ssa:Char.SpatialAxis.Accuracy.SysError": self.fieldname_with_utype("ssa:Char.SpatialAxis.Accuracy.SysError"),
+            "ssa:Char.SpatialAxis.Calibration": self.fieldname_with_utype("ssa:Char.SpatialAxis.Calibration"),
+            "ssa:Char.SpatialAxis.Resolution": self.fieldname_with_utype("ssa:Char.SpatialAxis.Resolution"),
+            "ssa:Char.SpectralAxis.Name": self.fieldname_with_utype("ssa:Char.SpectralAxis.Name"),
+            "ssa:Char.SpectralAxis.Ucd": self.fieldname_with_utype("ssa:Char.SpectralAxis.Ucd"),
+            "ssa:Char.SpectralAxis.Unit": self.fieldname_with_utype("ssa:Char.SpectralAxis.Unit"),
+            "ssa:Char.SpectralAxis.Coverage.Location.Value": self.fieldname_with_utype("ssa:Char.SpectralAxis.Coverage.Location.Value"),
+            "ssa:Char.SpectralAxis.Coverage.Bounds.Extent": self.fieldname_with_utype("ssa:Char.SpectralAxis.Coverage.Bounds.Extent"),
+            "ssa:Char.SpectralAxis.Coverage.Bounds.Start": self.fieldname_with_utype("ssa:Char.SpectralAxis.Coverage.Bounds.Start"),
+            "ssa:Char.SpectralAxis.Coverage.Bounds.Stop": self.fieldname_with_utype("ssa:Char.SpectralAxis.Coverage.Bounds.Stop"),
+            "ssa:Char.SpectralAxis.Coverage.Support.Extent": self.fieldname_with_utype("ssa:Char.SpectralAxis.Coverage.Support.Extent"),
+            "ssa:Char.SpectralAxis.SamplingPrecision.SampleExtent": self.fieldname_with_utype("ssa:Char.SpectralAxis.SamplingPrecision.SampleExtent"),
+            "ssa:Char.SpectralAxis.SamplingPrecision.SamplingPrecisionRefVal.FillFactor": self.fieldname_with_utype("ssa:Char.SpectralAxis.SamplingPrecision.SamplingPrecisionRefVal.FillFactor"),
+            "ssa:Char.SpectralAxis.Accuracy.BinSize": self.fieldname_with_utype("ssa:Char.SpectralAxis.Accuracy.BinSize"),
+            "ssa:Char.SpectralAxis.Accuracy.StatError": self.fieldname_with_utype("ssa:Char.SpectralAxis.Accuracy.StatError"),
+            "ssa:Char.SpectralAxis.Accuracy.SysError": self.fieldname_with_utype("ssa:Char.SpectralAxis.Accuracy.SysError"),
+            "ssa:Char.SpectralAxis.Calibration": self.fieldname_with_utype("ssa:Char.SpectralAxis.Calibration"),
+            "ssa:Char.SpectralAxis.Resolution": self.fieldname_with_utype("ssa:Char.SpectralAxis.Resolution"),
+            "ssa:Char.SpectralAxis.ResPower": self.fieldname_with_utype("ssa:Char.SpectralAxis.ResPower"),
+            "ssa:Char.TimeAxis.Name": self.fieldname_with_utype("ssa:Char.TimeAxis.Name"),
+            "ssa:Char.TimeAxis.Ucd": self.fieldname_with_utype("ssa:Char.TimeAxis.Ucd"),
+            "ssa:Char.TimeAxis.Unit": self.fieldname_with_utype("ssa:Char.TimeAxis.Unit"),
+            "ssa:Char.TimeAxis.Coverage.Location.Value": self.fieldname_with_utype("ssa:Char.TimeAxis.Coverage.Location.Value"),
+            "ssa:Char.TimeAxis.Coverage.Bounds.Extent": self.fieldname_with_utype("ssa:Char.TimeAxis.Coverage.Bounds.Extent"),
+            "ssa:Char.TimeAxis.Coverage.Bounds.Start": self.fieldname_with_utype("ssa:Char.TimeAxis.Coverage.Bounds.Start"),
+            "ssa:Char.TimeAxis.Coverage.Bounds.Stop": self.fieldname_with_utype("ssa:Char.TimeAxis.Coverage.Bounds.Stop"),
+            "ssa:Char.TimeAxis.Coverage.Support.Extent": self.fieldname_with_utype("ssa:Char.TimeAxis.Coverage.Support.Extent"),
+            "ssa:Char.TimeAxis.SamplingPrecision.SampleExtent": self.fieldname_with_utype("ssa:Char.TimeAxis.SamplingPrecision.SampleExtent"),
+            "ssa:Char.TimeAxis.SamplingPrecision.SamplingPrecisionRefVal.FillFactor": self.fieldname_with_utype("ssa:Char.TimeAxis.SamplingPrecision.SamplingPrecisionRefVal.FillFactor"),
+            "ssa:Char.TimeAxis.Accuracy.BinSize": self.fieldname_with_utype("ssa:Char.TimeAxis.Accuracy.BinSize"),
+            "ssa:Char.TimeAxis.Accuracy.StatError": self.fieldname_with_utype("ssa:Char.TimeAxis.Accuracy.StatError"),
+            "ssa:Char.TimeAxis.Accuracy.SysError": self.fieldname_with_utype("ssa:Char.TimeAxis.Accuracy.SysError"),
+            "ssa:Char.TimeAxis.Calibration": self.fieldname_with_utype("ssa:Char.TimeAxis.Calibration"),
+            "ssa:Char.TimeAxis.Resolution": self.fieldname_with_utype("ssa:Char.TimeAxis.Resolution"),
+            "ssa:Char.FluxAxis.Name": self.fieldname_with_utype("ssa:Char.FluxAxis.Name"),
+            "ssa:Char.FluxAxis.Ucd": self.fieldname_with_utype("ssa:Char.FluxAxis.Ucd"),
+            "ssa:Char.FluxAxis.Unit": self.fieldname_with_utype("ssa:Char.FluxAxis.Unit"),
+            "ssa:Char.FluxAxis.Accuracy.StatError": self.fieldname_with_utype("ssa:Char.FluxAxis.Accuracy.StatError"),
+            "ssa:Char.FluxAxis.Accuracy.SysError": self.fieldname_with_utype("ssa:Char.FluxAxis.Accuracy.SysError"),
+            "ssa:Char.FluxAxis.Calibration": self.fieldname_with_utype("ssa:Char.FluxAxis.Calibration"),
+            "ssa:Data.SpectralAxis.Value": self.fieldname_with_utype("ssa:Data.SpectralAxis.Value"),
+            "ssa:Data.SpectralAxis.Ucd": self.fieldname_with_utype("ssa:Data.SpectralAxis.Ucd"),
+            "ssa:Data.SpectralAxis.Unit": self.fieldname_with_utype("ssa:Data.SpectralAxis.Unit"),
+            "ssa:Data.SpectralAxis.Accuracy.BinSize": self.fieldname_with_utype("ssa:Data.SpectralAxis.Accuracy.BinSize"),
+            "ssa:Data.SpectralAxis.Accuracy.BinLow": self.fieldname_with_utype("ssa:Data.SpectralAxis.Accuracy.BinLow"),
+            "ssa:Data.SpectralAxis.Accuracy.BinHigh": self.fieldname_with_utype("ssa:Data.SpectralAxis.Accuracy.BinHigh"),
+            "ssa:Data.SpectralAxis.Accuracy.StatError": self.fieldname_with_utype("ssa:Data.SpectralAxis.Accuracy.StatError"),
+            "ssa:Data.SpectralAxis.Accuracy.StatErrLow": self.fieldname_with_utype("ssa:Data.SpectralAxis.Accuracy.StatErrLow"),
+            "ssa:Data.SpectralAxis.Accuracy.StatErrHigh": self.fieldname_with_utype("ssa:Data.SpectralAxis.Accuracy.StatErrHigh"),
+            "ssa:Data.SpectralAxis.Accuracy.SysError": self.fieldname_with_utype("ssa:Data.SpectralAxis.Accuracy.SysError"),
+            "ssa:Data.SpectralAxis.Resolution": self.fieldname_with_utype("ssa:Data.SpectralAxis.Resolution"),
+            "ssa:Data.FluxAxis.Value": self.fieldname_with_utype("ssa:Data.FluxAxis.Value"),
+            "ssa:Data.FluxAxis.Ucd": self.fieldname_with_utype("ssa:Data.FluxAxis.Ucd"),
+            "ssa:Data.FluxAxis.Unit": self.fieldname_with_utype("ssa:Data.FluxAxis.Unit"),
+            "ssa:Data.FluxAxis.Accuracy.StatError": self.fieldname_with_utype("ssa:Data.FluxAxis.Accuracy.StatError"),
+            "ssa:Data.FluxAxis.Accuracy.StatErrLow": self.fieldname_with_utype("ssa:Data.FluxAxis.Accuracy.StatErrLow"),
+            "ssa:Data.FluxAxis.Accuracy.StatErrHigh": self.fieldname_with_utype("ssa:Data.FluxAxis.Accuracy.StatErrHigh"),
+            "ssa:Data.FluxAxis.Accuracy.SysError": self.fieldname_with_utype("ssa:Data.FluxAxis.Accuracy.SysError"),
+            "ssa:Data.FluxAxis.Quality": self.fieldname_with_utype("ssa:Data.FluxAxis.Quality"),
+            "ssa:Data.FluxAxis.Quality.n": self.fieldname_with_utype("ssa:Data.FluxAxis.Quality.n"),
+            "ssa:Data.TimeAxis.Value": self.fieldname_with_utype("ssa:Data.TimeAxis.Value"),
+            "ssa:Data.TimeAxis.Ucd": self.fieldname_with_utype("ssa:Data.TimeAxis.Ucd"),
+            "ssa:Data.TimeAxis.Unit": self.fieldname_with_utype("ssa:Data.TimeAxis.Unit"),
+            "ssa:Data.TimeAxis.Accuracy.BinSize": self.fieldname_with_utype("ssa:Data.TimeAxis.Accuracy.BinSize"),
+            "ssa:Data.TimeAxis.Accuracy.BinLow": self.fieldname_with_utype("ssa:Data.TimeAxis.Accuracy.BinLow"),
+            "ssa:Data.TimeAxis.Accuracy.BinHigh": self.fieldname_with_utype("ssa:Data.TimeAxis.Accuracy.BinHigh"),
+            "ssa:Data.TimeAxis.Accuracy.StatError": self.fieldname_with_utype("ssa:Data.TimeAxis.Accuracy.StatError"),
+            "ssa:Data.TimeAxis.Accuracy.StatErrLow": self.fieldname_with_utype("ssa:Data.TimeAxis.Accuracy.StatErrLow"),
+            "ssa:Data.TimeAxis.Accuracy.StatErrHigh": self.fieldname_with_utype("ssa:Data.TimeAxis.Accuracy.StatErrHigh"),
+            "ssa:Data.TimeAxis.Accuracy.SysError": self.fieldname_with_utype("ssa:Data.TimeAxis.Accuracy.SysError"),
+            "ssa:Data.TimeAxis.Resolution": self.fieldname_with_utype("ssa:Data.TimeAxis.Resolution"),
+            "ssa:Data.BackgroundModel.Value": self.fieldname_with_utype("ssa:Data.BackgroundModel.Value"),
+            "ssa:Data.BackgroundModel.Ucd": self.fieldname_with_utype("ssa:Data.BackgroundModel.Ucd"),
+            "ssa:Data.BackgroundModel.Unit": self.fieldname_with_utype("ssa:Data.BackgroundModel.Unit"),
+            "ssa:Data.BackgroundModel.Accuracy.StatError": self.fieldname_with_utype("ssa:Data.BackgroundModel.Accuracy.StatError"),
+            "ssa:Data.BackgroundModel.Accuracy.StatErrLow": self.fieldname_with_utype("ssa:Data.BackgroundModel.Accuracy.StatErrLow"),
+            "ssa:Data.BackgroundModel.Accuracy.StatErrHigh": self.fieldname_with_utype("ssa:Data.BackgroundModel.Accuracy.StatErrHigh"),
+            "ssa:Data.BackgroundModel.Accuracy.SysError": self.fieldname_with_utype("ssa:Data.BackgroundModel.Accuracy.SysError"),
+            "ssa:Data.BackgroundModel.Quality": self.fieldname_with_utype("ssa:Data.BackgroundModel.Quality")
+
+        }
+        self._recnames = { "title":   self._ssacols["ssa:DataID.Title"],
+                           # RA and Dec are not separately specified
+                           "pos":      self._ssacols["ssa:Target.Pos"],
+                           "instr":   self._ssacols["ssa:DataID.Instrument"],
+                           # This does not exist specifically in SSA but the closest is
+                           "dateobs": self._ssacols["ssa:DataID.Date"],
+                           "format":  self._ssacols["ssa:Access.Format"],
+                           "acref":   self._ssacols["ssa:Access.Reference"]
+                           }
+        
+    def getrecord(self, index):
+        """
+        return an SSA result record that follows dictionary
+        semantics.  The keys of the dictionary are those returned by this
+        instance's fieldNames() function: either the column IDs or name, if 
+        the ID is not set.  The returned record has additional accessor 
+        methods for getting at standard SSA response metadata (e.g. ra, dec).
+        """
+        return SSARecord(self, index)
+
+class SSARecord(query.Record):
+    """
+    a dictionary-like container for data in a record from the results of an
+    SSA query, describing an available spectrum.
+    """
+
+    def __init__(self, results, index):
+        query.Record.__init__(self, results, index)
+        self._utypecols = results._ssacols
+        self._names = results._recnames
+
+    @property
+    def ra(self):
+        """
+        return the right ascension of the center of the image
+        """
+        return self.get(self._names["pos"])[0]
+
+    @property
+    def dec(self):
+        """
+        return the declination of the center of the image
+        """
+        return self.get(self._names["pos"])[1]
+
+    @property
+    def title(self):
+        """
+        return the title of the image
+        """
+        return self.get(self._names["title"])
+
+    @property
+    def format(self):
+        """
+        return the title of the image
+        """
+        return self.get(self._names["format"])
+
+    @property
+    def dateobs(self):
+        """
+        return the modified Julien date (MJD) of the mid-point of the 
+        observational data that went into the image
+        """
+        return self.get(self._names["dateobs"])
+
+    @property
+    def instr(self):
+        """
+        return the name of the instrument (or instruments) that produced the 
+        data that went into this image.
+        """
+        return self.get(self._names["instr"])
+
+    @property
+    def acref(self):
+        """
+        return the URL that can be used to retrieve the image
+        """
+        return self.get(self._names["acref"])
+
+    def getdataurl(self):
+        """
+        return the URL contained in the access URL column which can be used 
+        to retrieve the dataset described by this record.  None is returned
+        if no such column exists.
+        """
+        return self.acref
+
+    def suggestExtension(self, default=None):
+        """
+        returns a recommended filename extension for the dataset described 
+        by this record.  Typically, this would look at the column describing 
+        the format and choose an extension accordingly.  
+        """
+        fmt = default
+        if self.format and self.format.startswith("image/"):
+            fmt = self.format[len("image/"):]
+            if fmt == "jpeg":  fmt = "jpg"
+        return fmt
+
+        

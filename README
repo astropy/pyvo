@@ -4,7 +4,7 @@ standard python interface.
 This implementation requires the following prerequisite packagss:
 
   o  numpy (1.6.0 or later)
-  o  astropy (0.1 or later)
+  o  astropy (0.1 - later versions have a different vo interface)
 
 Currently in this pre-release state, disttool support (or the like) is
 not yet supported.  To use, one should set the PYTHONPATH variable to
