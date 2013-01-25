@@ -15,6 +15,7 @@ siaresult = "neat-sia.xml"
 scsresult = "twomass-cs.xml"
 errresult = "error-sia.xml"
 ssaresult = "jhu-ssa.xml"
+slaresult = "nrao-sla.xml"
 
 class TestHandler(BaseHTTPRequestHandler):
 
@@ -33,6 +34,8 @@ class TestHandler(BaseHTTPRequestHandler):
             self.send_scs()
         elif path == "/ssa":
             self.send_ssa()
+        elif path == "/sla":
+            self.send_sla()
         else:
             self.send_error(404)
             self.end_headers()
@@ -55,6 +58,9 @@ class TestHandler(BaseHTTPRequestHandler):
 
     def send_ssa(self):
         self.send_file(os.path.join(testdir,ssaresult))
+
+    def send_sla(self):
+        self.send_file(os.path.join(testdir,slaresult))
 
     def send_file(self, filename):
         f = open(filename)

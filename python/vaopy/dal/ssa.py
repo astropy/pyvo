@@ -42,7 +42,7 @@ class SSAService(query.DalService):
         """
         query.DalService.__init__(self, baseurl, "ssa", version, resmeta)
 
-    def search(self, pos, size, format='all', verbosity=2):
+    def search(self, pos, size, format='all'):
         """
         submit a simple SSA query to this service with the given constraints.  
 
@@ -65,8 +65,7 @@ class SSAService(query.DalService):
         q = self.create_query(pos, size, format)
         return q.execute()
 
-    def create_query(self, pos=None, size=None, format=None, 
-                     verbosity=None):
+    def create_query(self, pos=None, size=None, format=None):
         """
         create a query object that constraints can be added to and then 
         executed.  The input arguments will initialize the query with the 
