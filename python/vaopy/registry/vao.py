@@ -20,6 +20,7 @@ interaction models.
 """
 
 from ..dal import query as dalq
+from ..dal import sia, ssa, sla, conesearch
 from urllib import quote_plus, urlopen, urlretrieve
 import re
 
@@ -629,3 +630,52 @@ class SimpleResource(dalq.Record):
         """
         return self.get("accessURL")
 
+    def to_service(self):
+        """
+        return an appropriate DALService subclass for this resource that 
+        can be used to search the resource.  Return None if the resource is 
+        not a recognized DAL service.  Currently, only Conesearch, SIA, SSA,
+        and SLA services are supported.  
+        """
+        return _createService(self);
+
+    def search(self, *args, **keys):
+        """
+        assuming this resource refers to a searchable service, execute a 
+        search against the resource.  This is equivalent to:
+
+           self.to_service().search(*args, **keys)
+
+        The arguments provided should be appropriate for the service that 
+        the DAL service type would expect.  
+
+        :Raises:
+           *RuntimeError*:   if the resource does not describe a searchable
+                                service.
+        """
+        service = self.to_service()
+        if not service:
+            raise RuntimeError("resource, %s, is not a searchable service" % self.shortname)
+
+        return service.search(*args, **keys)
+
+_standardIDs = {
+    "ivo://ivoa.net/std/ConeSearch":  conesearch.CSService,
+    "ivo://ivoa.net/std/SIA":  conesearch.SIAService,
+    "ivo://ivoa.net/std/SSA":  conesearch.SSAService,
+    "ivo://ivoa.net/std/SLAP":  conesearch.SLAService,
+}
+
+def _createService(resource, savemeta=False):
+    if not resource.accessurl:
+        return None
+    meta = None
+    if savemeta:
+        meta = resource
+
+    serviceCls = _standardIDs.get(resource.standardid)
+    try:
+        if serviceCls:
+            return serviceCls(resource.accessurl, meta)
+    except Exception ex:
+        return None
