@@ -134,7 +134,7 @@ class Cursor(Iter):
         return self._description 
 
     @property
-    def rowcont(self):
+    def rowcount(self):
         """
         the number of rows in the result (read-only)
         """
@@ -152,15 +152,6 @@ class Cursor(Iter):
         if not value: value = 1
         self._arraysize = value
 
-    def infos(self):
-	"""Return any INFO elements in the VOTable as a dictionary.
-
-	:Returns:
-	    A dictionary with each element corresponding to a single INFO,
-	    representing the INFO as a name:value pair.
-	"""
-	pass
-
     def fetchone(self):
 	"""Return the next row of the query response table.
 
@@ -169,7 +160,7 @@ class Cursor(Iter):
 	    corresponding table field.  
 	"""
         try:
-            rec = next()
+            rec = self.next()
             out = []
             for name in self.resultset.fieldnames():
                 out.append(rec[name])
@@ -204,13 +195,12 @@ class Cursor(Iter):
 	"""
 	pass
 
-    def nextset(self):
-	"""Advance to the next result set.
-
-	Advance to the next result set in a multi result-set query response.
-	Any remaining data in the current result set is skipped.
-	"""
-	raise NotSupportedError("nextset")
+    def next(self):
+        """
+        Advance to the next row.  
+        A StopIteration exception is raised when there are no more rows.
+        """
+        return Iter.next(self)
 
     def scroll(self, value, mode=None):
 	"""Move the row cursor.
@@ -224,69 +214,6 @@ class Cursor(Iter):
             self.pos = value
         else:
             self.pos += value
-
-    def getbyid(self, key):
-        """
-        return the value of the column with the given ID value
-        """
-        pass
-
-    def getbyname(self, key):
-        """
-        return the value of the first column with the given name
-        """
-        pass
-
-    def getbyucd(self, key):
-        """
-        return the value of the first column with the given UCD
-        """
-        pass
-
-    def getbyutype(self, key):
-        """
-        return the value of the first column with the given UType
-        """
-        pass
-
-    def getdataurl(self):
-        """
-        return the URL contained in the access URL column which can be used 
-        to retrieve the dataset described by this record.  None is returned
-        if no such column exists.
-        """
-        pass
-
-    def getdataset(self):
-	"""
-        Get the dataset described by this record
-
-	:Returns:
-	    An file-like object which may be read to retrieve the referenced 
-            dataset.
-	"""
-	pass
-
-    def cachedataset(self, filename=None):
-        """
-        retrieve the dataset described by this record and write it out to 
-        a file with the given name.  If the file already exists, it will be
-        over-written.
-
-        :Args:  
-            *filename*:   the path to a file to write to.  If None, a default
-                            name is attempted based on the record title and 
-                            format
-        """
-        pass
-
-    def makefilename(self):
-        """
-        create a reasonable default name for the dataset described by this 
-        record based on data in the record.  It is not guaranteed to be unique.  
-        """
-        # abstract; specialized for the different service types
-        pass
 
     def close():
 	"""Close the cursor object and free all resources.  This implementation
