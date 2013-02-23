@@ -681,10 +681,10 @@ class SimpleResource(dalq.Record):
         return service.search(*args, **keys)
 
 _standardIDs = {
-    "ivo://ivoa.net/std/ConeSearch":  conesearch.CSService,
-    "ivo://ivoa.net/std/SIA":  conesearch.SIAService,
-    "ivo://ivoa.net/std/SSA":  conesearch.SSAService,
-    "ivo://ivoa.net/std/SLAP":  conesearch.SLAService,
+    "ivo://ivoa.net/std/ConeSearch":  conesearch.SCSService,
+    "ivo://ivoa.net/std/SIA":  sia.SIAService,
+    "ivo://ivoa.net/std/SSA":  ssa.SSAService,
+    "ivo://ivoa.net/std/SLAP":  sla.SLAService,
 }
 
 def _createService(resource, savemeta=False):
@@ -698,5 +698,5 @@ def _createService(resource, savemeta=False):
     try:
         if serviceCls:
             return serviceCls(resource.accessurl, meta)
-    except Exception ex:
+    except Exception, ex:
         return None

@@ -8,7 +8,7 @@ from urllib2 import URLError, HTTPError
 
 import vaopy.dal.query as dalq
 import vaopy.registry.vao as reg
-from astropy.io.vo.tree import VOTableFile
+from astropy.io.votable.tree import VOTableFile
 from vaopy.dal.query import _votableparse as votableparse
 
 testdir = os.path.dirname(sys.argv[0])

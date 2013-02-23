@@ -9,7 +9,7 @@ from urllib2 import URLError, HTTPError
 import vaopy.dal.query as dalq
 import vaopy.registry.vao as reg
 # from astropy.io.vo import parse as votableparse
-from astropy.io.vo.tree import VOTableFile
+from astropy.io.votable.tree import VOTableFile
 
 class RegExecuteTest(unittest.TestCase):
 
