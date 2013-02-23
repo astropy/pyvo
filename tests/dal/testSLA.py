@@ -10,7 +10,7 @@ import vaopy.dal.query as dalq
 import vaopy.dal.sla as sla
 import vaopy.dal.dbapi2 as daldbapi
 # from astropy.io.vo import parse as votableparse
-from astropy.io.vo.tree import VOTableFile
+from astropy.io.votable.tree import VOTableFile
 from vaopy.dal.query import _votableparse as votableparse
 
 testdir = os.path.dirname(sys.argv[0])

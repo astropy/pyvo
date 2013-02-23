@@ -9,12 +9,13 @@ from urllib2 import URLError, HTTPError
 import vaopy.dal.query as dalq
 import vaopy.dal.dbapi2 as daldbapi
 # from astropy.io.vo import parse as votableparse
-from astropy.io.vo.tree import VOTableFile
+from astropy.io.votable.tree import VOTableFile
 from vaopy.dal.query import _votableparse as votableparse
 
 testdir = os.path.dirname(sys.argv[0])
 if not testdir:  testdir = "tests"
 siaresultfile = "neat-sia.xml"
+ssaresultfile = "jhu-ssa.xml"
 testserverport = 8081
 
 try:
@@ -346,8 +347,8 @@ class DalServiceTest(unittest.TestCase):
         q = self.srv.create_query()
         self.assert_(isinstance(q, dalq.DalQuery))
         self.assertEquals(q.baseurl, self.baseurl)
-        self.assertEquals(q.protocol, self.protocol)
-        self.assertEquals(q.version, self.version)
+        self.assertEquals(q.protocol, self.srv.protocol)
+        self.assertEquals(q.version, self.srv.version)
 
 class DalQueryTest(unittest.TestCase):
 
@@ -361,8 +362,8 @@ class DalQueryTest(unittest.TestCase):
     def testProps(self):
         self.testCtor()
         self.assertEquals(self.query.baseurl, self.baseurl)
-        self.assertEquals(self.query.query, "sga")
-        self.assertEquals(self.query.baseurl, "2.0")
+        self.assertEquals(self.query.protocol, "sga")
+        self.assertEquals(self.query.version, "2.0")
 
     def testParam(self):
         self.testCtor()
@@ -537,7 +538,77 @@ class QueryExecuteTest(unittest.TestCase):
             self.fail("wrong exception raised: " + str(type(e)))
 
 
-__all__ = "DalAccessErrorTest DalServiceErrorTest DalQueryErrorTest RecordTest EnsureBaseURLTest DalServiceTest DalQueryTest QueryExecuteTest".split()
+class CursorTest(unittest.TestCase):
+
+    def setUp(self):
+        resultfile = os.path.join(testdir, ssaresultfile)
+        self.tbl = votableparse(resultfile)
+
+    def testCtor(self):
+        self.result = dalq.DalResults(self.tbl)
+        self.assert_(isinstance(self.result._fldnames, list))
+        self.assert_(self.result._tbl is not None)
+        self.cursor = self.result.cursor()
+
+    def testCursor(self):
+        self.testCtor()
+        self.assert_(self.cursor is not None)
+        self.assert_(isinstance(self.cursor, daldbapi.Cursor))
+        self.assertEquals(self.cursor.rowcount, 35)
+        self.assertEquals(self.cursor.arraysize, 1)    
+        descr = self.cursor.description
+        self.assert_(len(descr) > 0)
+        self.assertEquals(descr[1][0], 'AcRef')
+        self.assert_(isinstance(descr[1][1], daldbapi.TypeObject))
+
+    def testInfos(self):
+        self.testCtor()
+        infos = self.cursor.infos()
+        self.assertEquals(int(infos['TableRows']), 35)
+
+    def testFetchOne(self):
+        self.testCtor()
+        pos = self.cursor.pos
+        rec = self.cursor.fetchone()
+        self.assertEquals(self.cursor.pos, pos + 1)
+        rec2 = self.cursor.fetchone()
+#        self.assert_(rec != rec2)
+        self.assertEquals(self.cursor.pos, pos + 2)
+
+    def testFetchMany(self):
+        self.testCtor()
+        pos = self.cursor.pos
+        recs = self.cursor.fetchmany()
+        self.assertEquals(len(recs), self.cursor.arraysize)         
+        recs = self.cursor.fetchmany(size = 5)
+        self.assertEquals(len(recs), 5)
+        recs = self.cursor.fetchmany(size = -5)
+
+    def testFetchAll(self):
+        self.testCtor()
+        recs = self.cursor.fetchall()
+        self.assertEquals(len(recs), 35)
+
+        self.testCtor()
+        self.cursor.fetchone()
+        recs = self.cursor.fetchall()
+        self.assertEquals(len(recs), 34)
+        
+    def testScroll(self):
+        self.testCtor()
+        pos = self.cursor.pos
+        self.cursor.scroll(5)
+        self.assertEquals(self.cursor.pos, pos + 5)
+        self.cursor.scroll(5, mode = "absolute")
+        self.assertEquals(self.cursor.pos, 5)
+        try:
+          self.cursor.scroll(-1, mode = "absolute")
+        except daldbapi.DataError:
+          pass
+        self.cursor.scroll(-1)
+        self.assertEquals(self.cursor.pos, 4)
+
+__all__ = "DalAccessErrorTest DalServiceErrorTest DalQueryErrorTest RecordTest EnsureBaseURLTest DalServiceTest DalQueryTest QueryExecuteTest CursorTest".split()
 def suite():
     tests = []
     for t in __all__:

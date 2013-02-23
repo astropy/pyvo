@@ -9,7 +9,7 @@ from urllib2 import URLError, HTTPError
 import vaopy.dal.query as dalq
 import vaopy.dal.sia as sia
 # from astropy.io.vo import parse as votableparse
-from astropy.io.vo.tree import VOTableFile
+from astropy.io.votable.tree import VOTableFile
 
 neat = "http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=neat&"
 

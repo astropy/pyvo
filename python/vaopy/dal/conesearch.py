@@ -1,12 +1,12 @@
 """
-The DAL Query interface specialized for Simple Cone Search (SCS) services.
+The DAL Query interface specialized for Simple Cone Search (SSCS) services.
 """
 
 import numbers
 from . import query
 from .query import DalQueryError
 
-__all__ = [ "conesearch", "CSService", "CSQuery" ]
+__all__ = [ "conesearch", "SSCSService", "SSCSQuery" ]
 
 def conesearch(url, ra, dec, sr=1.0, verbosity=2):
     """
@@ -25,10 +25,10 @@ def conesearch(url, ra, dec, sr=1.0, verbosity=2):
                        set of columsn, 3 means as many columns as are 
                        available. 
     """
-    service = CSService(url)
+    service = SCSService(url)
     return service.search(ra, dec, sr, verbosity)
 
-class CSService(query.DalService):
+class SCSService(query.DalService):
     """
     a representation of a Cone Search service
     """
@@ -83,14 +83,14 @@ class CSService(query.DalService):
                            set of columsn, 3 means as many columns as are 
                            available. 
         """
-        q = CSQuery(self._baseurl)
+        q = SCSQuery(self._baseurl)
         if ra  is not None:  q.ra  = ra
         if dec is not None:  q.dec = dec
         if sr  is not None:  q.sr  = sr
         if verbosity is not None: q.verbosity = verbosity
         return q
 
-class CSQuery(query.DalQuery):
+class SCSQuery(query.DalQuery):
     """
     a class for preparing an query to a Cone Search service.  Query constraints
     are added via its service type-specific methods.  The various execute()
@@ -181,7 +181,7 @@ class CSQuery(query.DalQuery):
     def execute(self):
         """
         submit the query and return the results as a Results subclass instance.
-        This implimentation returns an CSResults instance
+        This implimentation returns an SCSResults instance
 
         :Raises:
            *DalServiceError*: for errors connecting to or 
@@ -189,7 +189,7 @@ class CSQuery(query.DalQuery):
            *DalQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
         """
-        return CSResults(self.execute_votable(), self.getqueryurl(True))
+        return SCSResults(self.execute_votable(), self.getqueryurl(True))
 
     def execute_votable(self):
         """
@@ -202,7 +202,7 @@ class CSQuery(query.DalQuery):
            *DalQueryError*:   for errors in the input query syntax
         """
         try: 
-            from astropy.io.vo.exceptions import W22
+            from astropy.io.votable.exceptions import W22
         except ImportError, ex:
             raise RuntimeError("astropy votable not available")
 
@@ -237,7 +237,7 @@ class CSQuery(query.DalQuery):
                 raise DalQueryError("Query is missing an SR parameter", url=out)
         return out
 
-class CSResults(query.DalResults):
+class SCSResults(query.DalResults):
     """
     Results from a Cone Search query.  It provides random access to records in 
     the response.  Alternatively, it can provide results via a Cursor 
@@ -248,17 +248,17 @@ class CSResults(query.DalResults):
         """
         initialize the cursor.  This constructor is not typically called 
         by directly applications; rather an instance is obtained from calling 
-        a CSQuery's execute().
+        a SCSQuery's execute().
         """
         query.DalResults.__init__(self, votable, url, "scs", version)
-        self._cscols = {
+        self._scscols = {
             "ID_MAIN":         self.fieldname_with_ucd("ID_MAIN"),
             "POS_EQ_RA_MAIN":  self.fieldname_with_ucd("POS_EQ_RA_MAIN"),
             "POS_EQ_DEC_MAIN": self.fieldname_with_ucd("POS_EQ_DEC_MAIN")
             }
-        self._recnames = { "id":  self._cscols["ID_MAIN"],
-                           "ra":  self._cscols["POS_EQ_RA_MAIN"],
-                           "dec": self._cscols["POS_EQ_DEC_MAIN"]
+        self._recnames = { "id":  self._scscols["ID_MAIN"],
+                           "ra":  self._scscols["POS_EQ_RA_MAIN"],
+                           "dec": self._scscols["POS_EQ_DEC_MAIN"]
                            }
 
     def _findresultsresource(self, votable):
@@ -312,9 +312,9 @@ class CSResults(query.DalResults):
         methods for getting at stardard Cone Search response metadata (e.g. 
         ra, dec).
         """
-        return CSRecord(self, index)
+        return SCSRecord(self, index)
 
-class CSRecord(query.Record):
+class SCSRecord(query.Record):
     """
     a dictionary-like container for data in a record from the results of an
     Cone Search query, describing an available image.
@@ -322,7 +322,7 @@ class CSRecord(query.Record):
 
     def __init__(self, results, index):
         query.Record.__init__(self, results, index)
-        self._ucdcols = results._cscols
+        self._ucdcols = results._scscols
         self._names = results._recnames
 
     @property

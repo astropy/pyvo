@@ -17,7 +17,7 @@ class Error(StandardError):
     pass
 class Warning(StandardError):
     """
-    DB-API warnging
+    DB-API warning
     """
     pass
 class InterfaceError(Error):
@@ -152,6 +152,15 @@ class Cursor(Iter):
         if not value: value = 1
         self._arraysize = value
 
+    def infos(self):
+	"""Return any INFO elements in the VOTable as a dictionary.
+
+	:Returns:
+	    A dictionary with each element corresponding to a single INFO,
+	    representing the INFO as a name:value pair.
+	"""
+        return self.resultset._infos
+
     def fetchone(self):
 	"""Return the next row of the query response table.
 
@@ -168,7 +177,6 @@ class Cursor(Iter):
         except StopIteration:
             return None
 	
-
     def fetchmany(self, size=None):
 	"""Fetch the next block of rows from the query result.
 
@@ -184,6 +192,7 @@ class Cursor(Iter):
         out = []
         for i in xrange(size):
             out.append(self.fetchone())
+        return out
 
     def fetchall(self):
 	"""Fetch all remaining rows from the result set.
@@ -193,7 +202,10 @@ class Cursor(Iter):
 	    no more rows are available.  If a DictCursor is used then the output
 	    consists of a list of dictionaries, one per row.
 	"""
-	pass
+        out = []
+        for i in xrange(self._rowcount - self.pos):
+            out.append(self.fetchone())
+        return out
 
     def next(self):
         """
@@ -202,17 +214,20 @@ class Cursor(Iter):
         """
         return Iter.next(self)
 
-    def scroll(self, value, mode=None):
+    def scroll(self, value, mode="relative"):
 	"""Move the row cursor.
 
 	:Args:
 	    *value*: The number of rows to skip or the row number to position to.
 
-	    *mode*: Either "relative" for a relative skip, or "absolute" to position to a row by its absolute index within the result set (zero indexed).
+	    *mode*: Either "relative" for a relative skip (default), or "absolute" to position to a row by its absolute index within the result set (zero indexed).
 	"""
 	if mode == "absolute":
-            self.pos = value
-        else:
+            if value > 0:
+                self.pos = value
+            else:
+                raise DataError("row number not valid:" + str(value))
+        elif mode == "relative":
             self.pos += value
 
     def close():

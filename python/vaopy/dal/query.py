@@ -310,7 +310,8 @@ class DalResults(object):
             raise DalFormatError(reason="response table missing column " +
                                  "descriptions.", url=self._url,
                                 protocol=self.protocol, version=self.version)
-                                 
+
+        self._infos = self._findinfos(votable)
 
     def _findresultstable(self, votable):
         # this can be overridden to specialize for a particular DAL protocol
@@ -358,6 +359,16 @@ class DalResults(object):
         for info in infos:
             if info.name == "QUERY_STATUS":
                 return info
+
+    def _findinfos(self, votable):
+        # this can be overridden to specialize for a particular DAL protocol
+        infos = {}
+        res = self._findresultsresource(votable)
+        for info in res.infos:
+          infos[info.name] = info.value
+        for info in votable.infos:
+          infos[info.name] = info.value
+        return infos
 
                 
     @property
@@ -909,14 +920,15 @@ class DalQueryError(DalAccessError):
 def _votableparse(source, columns=None, invalid='mask', pedantic=False,
                   table_number=None, filename=None, version="1.1"):
     try:
-        import astropy.io.vo.tree as votabletree
-        import astropy.io.vo.table as votabletable
+        import astropy.io.votable.tree as votabletree
+        import astropy.io.votable.table as votabletable
         from astropy.utils.xml import iterparser
-        from astropy.io.vo.exceptions import W22
-        from astropy.io.vo.exceptions import W03,W06,W20,W21,W42,W46,W47,W49,E10
+        from astropy.io.votable.exceptions import W22
+        from astropy.io.votable.exceptions import W03,W06,W20,W21,W42,W46,W47,W49,E10
         for warning in (W03, W06, W20, W21, W42, W46, W47, W49, E10):
             warnings.simplefilter("ignore", warning)
-        warnings.simplefilter("error", W22)
+# MJG : 021913 - commented out to get CDS responses to work
+#        warnings.simplefilter("error", W22)
     except ImportError, ex:
         raise RuntimeError("astropy votable not available")
 

@@ -32,6 +32,7 @@ class RegExecuteTest(unittest.TestCase):
         self.assert_(r.size > 0)
 
         q.servicetype = "conesearch"
+        print q.getqueryurl()
         r = q.execute()
         self.assert_(r.size > 0)
 
@@ -67,11 +68,12 @@ class RegResolveTest(unittest.TestCase):
 
     def testResolve(self):
         service = reg.RegistryService()
-        r = service.resolve("ivo://CDS.VizieR/J/MNRAS/333/100#1")
+        #        r = service.resolve("ivo://CDS.VizieR/J/MNRAS/333/100#1")
+        r = service.resolve("ivo://CDS.VizieR/J/MNRAS/333/100")
         self.assert_(isinstance(r, reg.SimpleResource))
         self.assertEquals(r.identifier, "ivo://CDS.VizieR/J/MNRAS/333/100#1")
-        self.assertEquals(r.shortName, "J/MNRAS/333/100 [1]")
-        self.assertEquasl(r.title, 
+        self.assertEquals(r.shortname, "J/MNRAS/333/100 [1]")
+        self.assertEquals(r.title, 
                           "Radio galaxies in the 2dFGRS (Magliocchetti+, 2002)")
 
 __all__ = "RegExecuteTest RegResolveTest".split()

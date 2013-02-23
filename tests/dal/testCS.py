@@ -10,8 +10,8 @@ import vaopy.dal.query as dalq
 import vaopy.dal.conesearch as cs
 import vaopy.dal.dbapi2 as daldbapi
 # from astropy.io.vo import parse as votableparse
-from astropy.io.vo.tree import VOTableFile
-from astropy.io.vo.exceptions import W22
+from astropy.io.votable.tree import VOTableFile
+from astropy.io.votable.exceptions import W22
 from vaopy.dal.query import _votableparse as votableparse
 
 testdir = os.path.dirname(sys.argv[0])
@@ -28,13 +28,13 @@ try:
 except ImportError, e:
     print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
 
-class CSServiceTest(unittest.TestCase):
+class SCSServiceTest(unittest.TestCase):
 
     baseurl = "http://localhost/cs"
 
     def testCtor(self):
         self.res = {"title": "Archive", "shortName": "arch"}
-        self.srv = cs.CSService(self.baseurl, self.res)
+        self.srv = cs.SCSService(self.baseurl, self.res)
 
     def testProps(self):
         self.testCtor()
@@ -55,14 +55,14 @@ class CSServiceTest(unittest.TestCase):
     def testCreateQuery(self):
         self.testCtor()
         q = self.srv.create_query()
-        self.assert_(isinstance(q, cs.CSQuery))
+        self.assert_(isinstance(q, cs.SCSQuery))
         self.assertEquals(q.baseurl, self.baseurl)
         self.assertEquals(len(q._param.keys()), 0)
 
     def testCreateQueryWithArgs(self):
         self.testCtor()
         q = self.srv.create_query(ra=0.0, dec=0.0, sr=1.0, verbosity=2)
-        self.assert_(isinstance(q, cs.CSQuery))
+        self.assert_(isinstance(q, cs.SCSQuery))
         self.assertEquals(q.baseurl, self.baseurl)
         self.assertEquals(len(q._param.keys()), 4)
 
@@ -78,12 +78,12 @@ class CSServiceTest(unittest.TestCase):
         self.assert_("VERB=2" in qurl)
 
 
-class CSQueryTest(unittest.TestCase):
+class SCSQueryTest(unittest.TestCase):
 
     baseurl = "http://localhost/cs"
 
     def testCtor(self):
-        self.q = cs.CSQuery(self.baseurl)
+        self.q = cs.SCSQuery(self.baseurl)
         self.assertEquals(self.q.baseurl, self.baseurl)
         self.assertEquals(self.q.protocol, "scs")
         self.assertEquals(self.q.version, "1.0")
@@ -141,7 +141,7 @@ class CSResultsTest(unittest.TestCase):
         self.tbl = votableparse(resultfile)
 
     def testCtor(self):
-        self.r = cs.CSResults(self.tbl)
+        self.r = cs.SCSResults(self.tbl)
         self.assertEquals(self.r.protocol, "scs")
         self.assertEquals(self.r.version, "1.0")
         self.assert_(isinstance(self.r._fldnames, list))
@@ -150,23 +150,23 @@ class CSResultsTest(unittest.TestCase):
 
     def testUCDMap(self):
         self.testCtor()
-        self.assertEquals(self.r._cscols["POS_EQ_RA_MAIN"], "RA")
-        self.assertEquals(self.r._cscols["POS_EQ_DEC_MAIN"], "DEC")
-        self.assertEquals(self.r._cscols["ID_MAIN"], "OBJID")
+        self.assertEquals(self.r._scscols["POS_EQ_RA_MAIN"], "RA")
+        self.assertEquals(self.r._scscols["POS_EQ_DEC_MAIN"], "DEC")
+        self.assertEquals(self.r._scscols["ID_MAIN"], "OBJID")
 
     def testGetRecord(self):
         self.testCtor()
         rec = self.r.getrecord(0)
-        self.assert_(isinstance(rec, cs.CSRecord))
+        self.assert_(isinstance(rec, cs.SCSRecord))
 
 
-class SIAResultsErrorTest(unittest.TestCase):
+class CSResultsErrorTest(unittest.TestCase):
 
     def testErrorVOTableInfo(self):
         resultfile = os.path.join(testdir, errresultfile)
         self.tbl = votableparse(resultfile)
         try:
-            res = cs.CSResults(self.tbl)
+            res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
         except dalq.DalQueryError, ex:
             self.assertEquals(ex.label, "Error")
@@ -176,7 +176,7 @@ class SIAResultsErrorTest(unittest.TestCase):
         resultfile = os.path.join(testdir, "error3-cs.xml")
         self.tbl = votableparse(resultfile)
         try:
-            res = cs.CSResults(self.tbl)
+            res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
         except dalq.DalQueryError, ex:
             self.assertEquals(ex.label, "Error")
@@ -186,7 +186,7 @@ class SIAResultsErrorTest(unittest.TestCase):
         resultfile = os.path.join(testdir, "error2-cs.xml")
         self.tbl = votableparse(resultfile)
         try:
-            res = cs.CSResults(self.tbl)
+            res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
         except dalq.DalQueryError, ex:
             self.assertEquals(ex.label, "Error")
@@ -202,7 +202,7 @@ class CSRecordTest(unittest.TestCase):
     def setUp(self):
         resultfile = os.path.join(testdir, csresultfile)
         self.tbl = votableparse(resultfile)
-        self.result = cs.CSResults(self.tbl)
+        self.result = cs.SCSResults(self.tbl)
         self.rec = self.result.getrecord(0)
 
     def testNameMap(self):
@@ -219,18 +219,18 @@ class CSExecuteTest(unittest.TestCase):
     baseurl = "http://localhost:%d/cs?"
 
     def testExecute(self):
-        q = cs.CSQuery(self.baseurl % testserverport)
+        q = cs.SCSQuery(self.baseurl % testserverport)
         q.ra = 0.0
         q.dec = 0.0
         q.sr = 0.25
         results = q.execute()
-        self.assert_(isinstance(results, cs.CSResults))
+        self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.rowcount, 2)
 
     def testSearch(self):
-        srv = cs.CSService(self.baseurl % testserverport)
+        srv = cs.SCSService(self.baseurl % testserverport)
         results = srv.search(ra=0.0, dec=0.0, sr=0.25)
-        self.assert_(isinstance(results, cs.CSResults))
+        self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.rowcount, 2)
 
         qurl = results.queryurl
@@ -245,11 +245,11 @@ class CSExecuteTest(unittest.TestCase):
         # pdb.set_trace()
         results = cs.conesearch(self.baseurl % testserverport, 
                                 ra=0.0, dec=0.0, sr=0.25)
-        self.assert_(isinstance(results, cs.CSResults))
+        self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.rowcount, 2)
         
 
-__all__ = "CSServiceTest CSQueryTest CSResultsTest CSRecordTest CSExecuteTest".split()
+__all__ = "SCSServiceTest SCSQueryTest CSResultsTest CSRecordTest CSExecuteTest".split()
 def suite():
     tests = []
     for t in __all__:

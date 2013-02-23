@@ -97,6 +97,7 @@ class RegistryService(dalq.DalService):
         The result will be a RegistryResults instance.  
         """
         srch = self.create_query(keywords, servicetype, waveband, sqlpred)
+        print srch.getqueryurl()
         return srch.execute()
         
     
@@ -151,7 +152,8 @@ class RegistryQuery(dalq.DalQuery):
     obtained via a call to RegistrySearch.create_query()
     """
     
-    SERVICE_NAME = "VOTCapBandPredOpt"
+#    SERVICE_NAME = "VOTCapBandPredOpt"
+    SERVICE_NAME = "VOTCapability"
     RESULTSET_TYPE_ARG = "VOTStyleOption=2"
     ALLOWED_WAVEBANDS = "Radio Millimeter Infrared Optical UV".split() + \
         "EUV X-ray Gamma-ray".split()
@@ -181,18 +183,19 @@ class RegistryQuery(dalq.DalQuery):
                      "simpleSpectralAccess": "SimpleSpectralAccess"  }
                      
 
-    def __init__(self, orKeywords=True, baseurl=None, version="1.0"):
+    def __init__(self, baseurl=None, orKeywords=True, version="1.0"):
         """
         create the query instance
 
         :Args:
+           *baseurl*:     the base URL for the VAO registry.  If None, it will
+                            be set to the public VAO registry at STScI.
            *orKeywords*:  if True, keyword constraints will by default be 
                             OR-ed together; that is, a resource that matches 
                             any of the keywords will be returned.  If FALSE,
                             the keywords will be AND-ed, thus requiring a 
                             resource to match all the keywords.  
-           *baseurl*:     the base URL for the VAO registry.  If None, it will
-                            be set to the public VAO registry at STScI.  
+           
         """
         if not baseurl:  baseurl = RegistryService.STSCI_REGISTRY_BASEURL
         dalq.DalQuery.__init__(self, baseurl, "vaoreg", version)
@@ -438,9 +441,10 @@ class RegistryQuery(dalq.DalQuery):
         if (preds):
             url += "&predicate=%s" % \
                 quote_plus(" AND ".join(map(lambda p: "(%s)" % p, preds)))
-                              
+
+        # MJG - 01/30/13: VOTCapBandPredOpt service does not like predicate=1             
         else:
-            url += "&predicate=1"
+            url += "&predicate="
 
         return url
         
@@ -515,10 +519,18 @@ class RegistryResults(dalq.DalResults):
         out = dalq.DalResults.getvalue(self, name, index)
         if name not in self._strarraycols:
             return out
-
+        
+        if out == '': return out
         if out[0] == '#': out = out[1:]
         if out[-1] == '#': out = out[:-1]
         return tuple(out.split('#'))
+
+    @property
+    def size(self):
+        """
+        the number of records returned in this result (read-only)
+        """
+        return self._tbl.nrows    
 
 
 class SimpleResource(dalq.Record):
@@ -531,7 +543,7 @@ class SimpleResource(dalq.Record):
 
        title         the title of the resource
        shortname     the resource's short name
-       ivoid         the IVOA identifier for the resource
+       ivoid         the IVOA identifier for the resource (identifier will also work)
        accessurl     when the resource is a service, the service's access 
                        URL.
     """
@@ -562,6 +574,15 @@ class SimpleResource(dalq.Record):
 
     @property
     def ivoid(self):
+        """
+        the IVOA identifier for the resource.  In this interface, this 
+        ID may be appended by a #-delimited suffix to point to a particular 
+        capability.
+        """
+        return self.get("identifier")
+
+    @property
+    def identifier(self):
         """
         the IVOA identifier for the resource.  In this interface, this 
         ID may be appended by a #-delimited suffix to point to a particular 
