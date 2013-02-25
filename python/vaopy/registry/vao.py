@@ -160,7 +160,8 @@ class RegistryQuery(dalq.DalQuery):
     WAVEBAND_SYN = { "ir":  "Infrared",
                      "IR":  "Infrared",
                      "uv":  "UV",
-                     "euv": "EUV" }
+                     "euv": "EUV",
+                     "xray": "X-ray" }
                      
     ALLOWED_CAPS = { "table": "ConeSearch", 
                      "catalog": "ConeSearch", 
