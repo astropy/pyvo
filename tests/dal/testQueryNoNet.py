@@ -365,6 +365,10 @@ class DalQueryTest(unittest.TestCase):
         self.assertEquals(self.query.protocol, "sga")
         self.assertEquals(self.query.version, "2.0")
 
+        self.query.baseurl = "http://gomer.net/infinite/loop?"
+        self.assertEquals(self.query.baseurl, 
+                          "http://gomer.net/infinite/loop?");
+
     def testParam(self):
         self.testCtor()
         self.assertEquals(len(self.query.paramnames()), 0,

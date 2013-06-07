@@ -131,7 +131,7 @@ class DalQuery(object):
         """
         return self._baseurl
     @baseurl.setter
-    def baseurl(self):
+    def baseurl(self, baseurl):
         self._baseurl = baseurl
 
     @property

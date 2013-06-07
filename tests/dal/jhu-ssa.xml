@@ -100,7 +100,7 @@
 <FIELD ID="SpaceFrameName" name="SpaceFrameName" datatype="char" utype="ssa:CoordSys.SpaceFrame.Name" arraysize="*">
 <DESCRIPTION>Spatial coordinate frame name</DESCRIPTION>
 </FIELD>
-<FIELD ID="SpaceFrameEquinox" name="SpaceFrameEquinox" datatype="double" ucd="time.equinox;pos.frame" utype="ssa:CoordSys.SpaceFrame.Equinox" unit="y">
+<FIELD ID="SpaceFrameEquinox" name="SpaceFrameEquinox" datatype="double" ucd="time.equinox;pos.frame" utype="ssa:CoordSys.SpaceFrame.Equinox" unit="yr">
 <DESCRIPTION>Equinox</DESCRIPTION>
 </FIELD>
 <FIELD ID="TimeFrameName" name="TimeFrameName" datatype="char" ucd="time.scale" utype="ssa:CoordSys.TimeFrame.Name" arraysize="*">
@@ -120,7 +120,7 @@
 <DESCRIPTION>Access Metadata</DESCRIPTION>
 <FIELDref ref="AcRef"/>
 <FIELDref ref="Format"/>
-<PARAM ID="DatasetSize" unit="kilobytes" datatype="long" name="DatasetSize" utype="ssa:Access.Size" value="800">
+<PARAM ID="DatasetSize" unit="byte" datatype="long" name="DatasetSize" utype="ssa:Access.Size" value="800000">
 <DESCRIPTION>Estimated dataset size</DESCRIPTION>
 </PARAM>
 </GROUP>
