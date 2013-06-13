@@ -393,9 +393,9 @@ class SesameQueryTest(unittest.TestCase):
         self.query = sesame.SesameQuery()
 
     def testCtor(self):
-        self.assertEquals(sesame.defaultEndpoint, self.query.baseurl)
+        self.assertEquals(sesame.default_endpoint, self.query.baseurl)
         self.query = sesame.SesameQuery(sesame.endpoints["cfa"])
-        self.assertEquals(sesame.defaultEndpoint, self.query.baseurl)
+        self.assertEquals(sesame.default_endpoint, self.query.baseurl)
 
     def testDbs(self):
         self.assertEquals("", self.query.dbs)
@@ -415,26 +415,26 @@ class SesameQueryTest(unittest.TestCase):
 
     def testGetQueryURL(self):
         self.query.names = "m51"
-        self.assertEquals(sesame.defaultEndpoint + "/-ox?m51", 
+        self.assertEquals(sesame.default_endpoint + "/-ox?m51", 
                           self.query.getqueryurl())
         self.query.names = "m101 m51".split()
         self.query.opts = 'I'
-        self.assertEquals(sesame.defaultEndpoint +  "/-oxI?m101&m51", 
+        self.assertEquals(sesame.default_endpoint +  "/-oxI?m101&m51", 
                           self.query.getqueryurl())
         self.query.dbs = "SN"
-        self.assertEquals(sesame.defaultEndpoint +  "/-oxI/SN?m101&m51", 
+        self.assertEquals(sesame.default_endpoint +  "/-oxI/SN?m101&m51", 
                           self.query.getqueryurl())
         self.query.ignorecache = True
-        self.assertEquals(sesame.defaultEndpoint +  "/-oxI/~SN?m101&m51", 
+        self.assertEquals(sesame.default_endpoint +  "/-oxI/~SN?m101&m51", 
                           self.query.getqueryurl())
 
-        self.assertEquals(sesame.defaultEndpoint +  "/-oxI/~SN?m101&m51", 
+        self.assertEquals(sesame.default_endpoint +  "/-oxI/~SN?m101&m51", 
                           self.query.getqueryurl(format='x'))
-        self.assertEquals(sesame.defaultEndpoint +  "/-ox2I/~SN?m101&m51", 
+        self.assertEquals(sesame.default_endpoint +  "/-ox2I/~SN?m101&m51", 
                           self.query.getqueryurl(format='x2'))
-        self.assertEquals(sesame.defaultEndpoint +  "/-oI/~SN?m101&m51", 
+        self.assertEquals(sesame.default_endpoint +  "/-oI/~SN?m101&m51", 
                           self.query.getqueryurl(format='pc'))
-        self.assertEquals(sesame.defaultEndpoint +  "/-ox2pI/~SN?m101&m51", 
+        self.assertEquals(sesame.default_endpoint +  "/-ox2pI/~SN?m101&m51", 
                           self.query.getqueryurl(format='x2', astext=True))
 
     def assertRaisesOnQuery(self, msg, format=None):
@@ -456,13 +456,13 @@ class SesameQueryTest(unittest.TestCase):
 class EndpointSetTest(unittest.TestCase):
 
     def testSetDef(self):
-        self.assertEquals(sesame.endpoints["cfa"], sesame.defaultEndpoint)
+        self.assertEquals(sesame.endpoints["cfa"], sesame.default_endpoint)
 
         # pdb.set_trace()
-        sesame.setDefaultEndpoint("cds")
-        self.assertEquals(sesame.endpoints["cds"], sesame.defaultEndpoint)
-        sesame.setDefaultEndpoint("cfa")
-        self.assertEquals(sesame.endpoints["cfa"], sesame.defaultEndpoint)
+        sesame.set_default_endpoint("cds")
+        self.assertEquals(sesame.endpoints["cds"], sesame.default_endpoint)
+        sesame.set_default_endpoint("cfa")
+        self.assertEquals(sesame.endpoints["cfa"], sesame.default_endpoint)
         
 
 

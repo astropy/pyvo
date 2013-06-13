@@ -1,18 +1,25 @@
 """
 The CDS Sesame service interface.  This service provides basic information 
 about sources--most importantly, its position in the sky--given any of
-their official names.  
+their official names.  One can resolve names into J2000 positions via the 
+functions object2pos() (returning R.A.-Dec. decimal tuples) and 
+object2sexapos() (returning positions formated into sexagesimal strings).  
+More metadata about the source is available via the resolve() function. 
 
-The Sesame service is documented at http://cdsweb.u-strasbg.fr/doc/sesame.htx.
+Full access to the Sesame service capabilities (documented at 
+http://cdsweb.u-strasbg.fr/doc/sesame.htx) is available via the SesameQuery 
+class.  Sesame can consult three object databases: Simbad, NED, and Vizier; 
+Simbad is consulted by default.  
 
 The Sesame service is mirrored at multiple locations; the service
 endpoints are listed in this module the ``endpoints`` dictionary where
 the keys are short labels indicating the location.  The default one
-that will be used is given  by the symbol ``defaultEndpoint``.  The
-function ``setDefaultEndpoint()`` will set the default endpoint given
+that will be used is given  by the symbol ``default_endpoint``.  The
+function ``set_default_endpoint()`` will set the default endpoint given
 its name.  
 """
-__all__ = [ "resolve", "object2pos", "SesameQuery" ]
+__all__ = [ "resolve", "object2pos", "object2sexapos", "set_default_endpoint",
+            "SesameQuery", "ObjectData" ]
 
 import sys, os, re
 from urllib2 import urlopen, URLError, HTTPError
@@ -24,23 +31,25 @@ from ..dal.query import DalQueryError, DalFormatError, DalServiceError
 
 endpoints = { "cds": "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame",
               "cfa": "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame" }
-defaultEndpoint = endpoints["cfa"]
+default_endpoint = endpoints["cfa"]
 
-def setDefaultEndpoint(name):
+def set_default_endpoint(name):
     """
     set the endpoint for the sesame service that will be used by default
     given a short label representing its location.  Currently available 
-    labels can be listed via ``endpoints.keys()``.  
+    labels can be listed via ``endpoints.keys()``; these include "cds"
+    and "cfa".  
     """
-    global defaultEndpoint
+    global default_endpoint
     try:
-        defaultEndpoint = endpoints[name]
+        default_endpoint = endpoints[name]
     except KeyError:
         raise LookupError("unrecognized sesame endpoint label: " + name)
 
 def resolve(names, db="Simbad", include="", mirror=None):
     """
-    resolve one or more object names to ObjectData instances.
+    resolve one or more object names to nameresolver.sesame.ObjectData 
+    instances.
 
     :Args:
       *names*:   either a single object name (as a string) or a list of 
@@ -55,13 +64,13 @@ def resolve(names, db="Simbad", include="", mirror=None):
                    "fluxes" (flux magnitudes).  
       *mirror*:  Choose the service mirror by a name that is one of 
                    "cds" or "cfa".  The default will be service
-                   pointed to by the modeule attribute, defaultEndpoint.
-                   (see also setDefaultEndpoint().)
+                   pointed to by the modeule attribute, default_endpoint.
+                   (see also set_default_endpoint().)
     :Return:
        *ObjectData*:  if a single name was provided
        *list* of ObjectData: if a list of names was given
     """
-    baseurl = defaultEndpoint
+    baseurl = default_endpoint
     if mirror:
         try:
             baseurl = endpoints[mirror]
@@ -110,8 +119,8 @@ def object2pos(names, db="Simbad", mirror=None):
                    minimum match to one of ["Simbad", "NED", "Vizier"].  
       *mirror*:  Choose the service mirror by a name that is one of 
                    "cds" or "cfa".  The default will be service
-                   pointed to by the modeule attribute, defaultEndpoint.
-                   (see also setDefaultEndpoint().)
+                   pointed to by the modeule attribute, default_endpoint.
+                   (see also set_default_endpoint().)
     :Return:
        *tuple*:  2-element floating point position if a single name was provided
        *list* of tuples: if a list of names was given
@@ -133,10 +142,11 @@ def object2sexapos(names, db="Simbad", mirror=None):
                    minimum match to one of ["Simbad", "NED", "Vizier"].  
       *mirror*:  Choose the service mirror by a name that is one of 
                    "cds" or "cfa".  The default will be service
-                   pointed to by the modeule attribute, defaultEndpoint.
-                   (see also setDefaultEndpoint().)
+                   pointed to by the modeule attribute, default_endpoint.
+                   (see also set_default_endpoint().)
     :Return:
-       *tuple*:  2-element floating point position if a single name was provided
+       *tuple*:  2-element floating point position if a single name was 
+                    provided
        *list* of tuples: if a list of names was given
     """
     targetdata = resolve(names, db, mirror=mirror)
@@ -163,11 +173,11 @@ class SesameQuery(object):
 
         :Args:
           *baseurl*:  the service endpoint.  If None, the value of the 
-                        module attribute, defaultEndpoint will be used.
-                        (see also setDefaultEndpoint().)
+                        module attribute, default_endpoint will be used.
+                        (see also set_default_endpoint().)
         """
         if not baseurl:
-            baseurl = defaultEndpoint
+            baseurl = default_endpoint
         self._baseurl = baseurl
         self._dbs = ""
         self._opts = ""
@@ -214,8 +224,8 @@ class SesameQuery(object):
            A    All of the above
 
         Without ``A`` included, only the result from the database returning 
-        a matched result will be returned.  A value preceded by a '~' requests
-        that the result cache be ignored.  
+        a matched result will be returned.  A value preceded by a '~' 
+        requests that the result cache be ignored.  
 
         No syntax checking is done on this value upon setting (though it is
         done via getqueryurl when lax=false); consider using useDatabases().
@@ -270,8 +280,9 @@ class SesameQuery(object):
     @property
     def aliases(self):
         """
-        a boolean indicating whether to return all known identifiers for the 
-        resolved source.  If false, only the main designation will be returned.
+        a boolean indicating whether to return all known identifiers for 
+        the resolved source.  If false, only the main designation will be 
+        returned.
         """
         return 'I' in self._opts
 
@@ -292,8 +303,9 @@ class SesameQuery(object):
     @property
     def fluxes(self):
         """
-        a boolean indicating whether to return all known identifiers for the 
-        resolved source.  If false, only the main designation will be returned.
+        a boolean indicating whether to return all known identifiers for 
+        the resolved source.  If false, only the main designation will be 
+        returned.
         """
         return self._fluxes
     @fluxes.setter
@@ -558,7 +570,7 @@ class ObjectData(object):
     The metadata that gets returned will depend on the resolver, the type of 
     object (and what is known about it), and the input options given in 
     the sesame query.  The full set of possible metadata is given by the 
-    class attribute metadata, a dictionary where the keys are the metadata
+    class attribute "metadata", a dictionary where the keys are the metadata
     names and each value is a short definition of the corresponding metadatum. 
 
     A ObjectData instance follows dictionary semantics--i.e. metadata
@@ -572,7 +584,9 @@ class ObjectData(object):
     Some important metadata are made available as attributes.  This includes 
     "pos", the decimal J2000 position converted to a 2-elment tuple of floats.
     It also includes "sexapos", the sexagesimal-formatted J2000 position (as 
-    a single string), and "oname", the primary name for the target.  
+    a single string), and "oname", the primary name for the target.  If aliases
+    were requested, the "aliases" attribute will contain the list of names
+    the object is also known as.  
     """
 
     metadata = {"INFO": "status message from resolver", 
