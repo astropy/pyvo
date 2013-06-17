@@ -59,10 +59,12 @@ class DalService(object):
         self._baseurl = baseurl
         self._protocol = protocol
         self._version = version
-        if not resmeta:  
-            self._desc = {}
-        elif isinstance(resmeta, dict):
-            self._desc = copy.deepcopy(resmeta)
+        self._desc = {}
+        if resmeta and isinstance(resmeta, dict):
+            # since this is might (likely) a Record object, we need to hand
+            # copy it (as the astropy votable bits won't deepcopy).
+            for key in resmeta.keys():
+                self._desc[key] = resmeta[key]  # assuming primitive values
 
     @property
     def baseurl(self):
