@@ -231,6 +231,13 @@ class DalResultsTest(unittest.TestCase):
         self.assert_(isinstance(rec, dalq.Record))
         self.assertRaises(IndexError, self.result.getrecord, 2)
 
+    def testGetColumn(self):
+        self.testCtor()
+        col = self.result.getcolumn('Ra')
+        shifted = col + 0.05
+        self.assertAlmostEquals(0.05, shifted[0]-col[0])
+        self.assertRaises(ValueError, self.result.getcolumn, 'goob')
+
     def testIter(self):
         self.testCtor()
         i = 0
