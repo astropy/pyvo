@@ -473,6 +473,15 @@ class DalResults(object):
 
         return None
 
+    def getcolumn(self, name):
+        """
+        return a numpy array containing the values for the column with the 
+        given name
+        """
+        if name not in self.fieldnames():
+            raise ValueError("No such column name: " + name)
+        return self._tbl.array[name]
+
     def getrecord(self, index):
         """
         return a representation of a result record that follows dictionary
