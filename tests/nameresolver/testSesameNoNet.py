@@ -467,5 +467,11 @@ class EndpointSetTest(unittest.TestCase):
 
 
 __all__ = "DocQuantityTest ProperMotionTest ObjectDataTest SesameQueryTest EndpointSetTest".split()
+def suite():
+    tests = []
+    for t in __all__:
+        tests.append(unittest.makeSuite(globals()[t]))
+    return unittest.TestSuite(tests)
+
 if __name__ == "__main__":
     unittest.main()
