@@ -6,7 +6,6 @@
 <DESCRIPTION>Splatalogue SLAP Service</DESCRIPTION>
 <INFO name="QUERY_STATUS" value="OK"/>
 <INFO name="dbName" value="splat"/>
-<INFO name="tableName"/>
 <INFO name="REQUEST" value="queryData"/>
 <INFO name="WAVELENGTH" value="0.00260075/0.00260080"/>
 <INFO name="ServiceEngine" value="slap: SLAP version 1.0 DALServer version 0.3"/>
@@ -27,7 +26,8 @@
 <FIELD ID="molformula" name="molecular formula" datatype="char" ucd="phys.atmol.element" utype="ssldm:Line.initialElement.name" arraysize="*">
 <DESCRIPTION>The molecular formula which may include notation of the common quantum state of the transition</DESCRIPTION>
 </FIELD>
-<FIELD ID="chemicalname" name="chemicalname" datatype="char" arraysize="*">
+<FIELD ID="chemicalname" name="chemicalname" datatype="char"
+       arraysize="*" utype="ssldm:Line.species.name">
 <DESCRIPTION>Actual chemical name of the species</DESCRIPTION>
 </FIELD>
 <FIELD ID="moltype" name="molecule type" datatype="int">

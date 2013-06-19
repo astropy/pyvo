@@ -19,9 +19,10 @@ other externally defined table.  In this case there is no VO defined
 standard data model.  Usually the field names are used to uniquely
 identify table columns.
 """
-__all__ = [ "ensure_baseurl", "DALService", "DALQuery" ]
+__all__ = [ "ensure_baseurl", "DalAccessError", "DalProtocolError",
+            "DalFormatError", "DalServiceError", "DalQueryError"   ]
 
-import copy, re, warnings, socket
+import copy, os, re, warnings, socket
 from urllib2 import urlopen, URLError, HTTPError
 from urllib import quote_plus
 
@@ -95,14 +96,36 @@ class DalService(object):
         """
         return self._desc
 
-    def create_query(self):
+    def search(self, **keywords):
+        """
+        send a search query to this service.  
+
+        This implementation has no knowledge of the type of service being 
+        queried.  The query parameters are given as arbitrary keywords which 
+        will be assumed to be understood by the service (i.e. there is no
+        argument checking).  The response is a generic DalResults object.  
+
+        :Raises:
+           *DalServiceError*: for errors connecting to or 
+                              communicating with the service
+           *DalQueryError*:   for errors either in the input query syntax or 
+                              other user errors detected by the service
+           *DalFormatError*:  for errors parsing the VOTable response
+        """
+        q = create_query(**keywords)
+        return q.execute()
+
+    def create_query(self, **keywords):
         """
         create a query object that constraints can be added to and then 
         executed.
         """
         # this must be overridden to return a Query subclass appropriate for 
         # the service type
-        return DalQuery(self.baseurl, self.protocol, self.version)
+        q = DalQuery(self.baseurl, self.protocol, self.version)
+        for key in keywords.keys():
+            q.setparam(key, keywords[key])
+        return q
 
 
 class DalQuery(object):
@@ -115,6 +138,8 @@ class DalQuery(object):
 
     The base URL for the query can be changed via the baseurl property.
     """
+
+    std_parameters = [ ]
 
     def __init__(self, baseurl, protocol=None, version=None):
         """
@@ -196,7 +221,7 @@ class DalQuery(object):
                               other user errors detected by the service
            *DalFormatError*:  for errors parsing the VOTable response
         """
-        return DalResults(self.execute_votable(), self.getqueryurl())
+        return DalResults(self.execute_votable(), self.getqueryurl(True))
 
     def execute_raw(self):
         """
@@ -246,8 +271,8 @@ class DalQuery(object):
         except DalAccessError:
             raise
         except Exception, e:
-            raise DalFormatError(e, self.getqueryurl(), 
-                                 self.protocol, self.version)
+            raise DalFormatError(e, self.getqueryurl(True), 
+                                 protocol=self.protocol, version=self.version)
 
     def getqueryurl(self, lax=False):
         """
@@ -534,12 +559,15 @@ class Record(dict):
     additional functions for access to service type-specific data.
     """
 
-    def __init__(self, results, index):
-        self._fdesc = {}
+    def __init__(self, results, index, fielddesc=None):
+        self._fdesc = fielddesc
+        if not self._fdesc: 
+            self._fdesc = {}
         if results:
             for fld in results.fieldnames():
                 self[fld] = results.getvalue(fld, index)
-                self._fdesc[fld] = results.getdesc(fld)
+                if fielddesc is None:
+                    self._fdesc[fld] = results.getdesc(fld)
 
     def fielddesc(self, name):
         """
@@ -594,16 +622,20 @@ class Record(dict):
         else:
             return urlopen(url)
 
-    def cachedataset(self, filename=None, timeout=None, bufsize=524288):
+    def cachedataset(self, filename=None, dir=".", timeout=None, bufsize=524288):
         """
         retrieve the dataset described by this record and write it out to 
         a file with the given name.  If the file already exists, it will be
         over-written.
 
         :Args:  
-            *filename*:   the path to a file to write to.  If None, a default
-                            name is attempted based on the record title and 
-                            format
+            *filename*:   the name of the file to write dataset to.  If the
+                            value represents a relative path, it will be taken
+                            to be relative to the value of the ``dir`` 
+                            parameter.  If None, a default name is attempted 
+                            based on the record title and format.  
+            *dir*:        the directory to write the file into.  This value
+                            will be ignored if filename is an absolute path.
             *timeout*:    the time in seconds to allow for a successful 
                             connection with server before failing with an 
                             IOError (specifically, socket.timeout) exception
@@ -619,6 +651,10 @@ class Record(dict):
             *IOError*:    if an error occurs while writing out the dataset
         """
         if not bufsize: bufsize = 524288
+
+        if not filename:
+            filename = self.make_dataset_filename(dir)
+
         try:
             inp = self.getdataset(timeout)
             with open(filename, 'w') as out:
@@ -629,15 +665,139 @@ class Record(dict):
         finally:
             inp.close()
 
+    _dsname_no = 0  # used by make_dataset_filename
+
+    def make_dataset_filename(self, dir=".", base=None, ext=None):
+        """
+        create a viable pathname in a given directory for saving the dataset
+        available via getdataset().  The pathname that is returned is 
+        guaranteed not to already exist (under single-threaded conditions).  
+
+        This implementation will first try combining the base name with the 
+        file extension (with a dot).  If this file already exists in the 
+        directory, a name that appends an integer suffix ("-#") to the base
+        before joining with the extension will be tried.  The integer will
+        be incremented until a non-existent filename is created.
+
+        :Args:
+          *dir*:     the directory to save the dataset under.  This must already
+                       exist.
+          *base*:    a basename to use to as the base of the filename.  If 
+                       None, the result of ``suggest_dataset_basename()``
+                       will be used.
+          *ext*:     the filename extension to use.  If None, the result of 
+                     ``suggest_extension()`` will be used.
+        """
+        if not dir:
+          raise ValueError("make_dataset_filename(): no dir parameter provided")
+        if not os.path.exists(dir):
+            raise IOError("%s: directory not found" % dir)
+        if not os.path.isdir(dir):
+            raise ValueError("%s: not a directory" % dir)
+
+        if not base:
+            base = self.suggest_dataset_basename()
+        if not ext:
+            ext = self.suggest_extension("dat")
+
+        # be efficient when writing a bunch of files into the same directory
+        # in succession
+        n = self._dsname_no
+        mkpath = lambda i: os.path.join(dir, "%s-%d.%s" % (base, n, ext))
+        if n > 0:
+            # find the last file written of the form, base-n.ext
+            while n > 0 and not os.path.exists(mkpath(n)):
+                n -= 1
+        if n > 0:
+            n += 1
+        if n == 0:
+            # never wrote a file of form, base-n.ext; try base.ext
+            path = os.path.join(dir, "%s.%s" % (base, ext))
+            if not os.path.exists(path):
+                return path
+            n += 1
+        # find next available name
+        while os.path.exists(mkpath(n)):
+            n += 1
+        self._dsname_no = n
+        return mkpath(n)
+                
+
+    def suggest_dataset_basename(self):
+        """
+        return a default base filename that the dataset available via 
+        ``getdataset()`` can be saved as.  This function is 
+        specialized for a particular service type this record originates from
+        so that it can be used by ``cachedataset()`` via 
+        ``make_dataset_filename()``.
+        """
+        # abstract; specialized for the different service types
+        return "dataset"
 
     def suggest_extension(self, default=None):
         """
         returns a recommended filename extension for the dataset described 
         by this record.  Typically, this would look at the column describing 
-        the format and choose an extension accordingly.  
+        the format and choose an extension accordingly.  This function is 
+        specialized for a particular service type this record originates from
+        so that it can be used by ``cachedataset()`` via 
+        ``make_dataset_filename()``.
         """
         # abstract; specialized for the different service types
         return default
+
+_image_mt_re = re.compile(r'^image/(\w+)')
+_text_mt_re = re.compile(r'^text/(\w+)')
+_votable_mt_re = re.compile(r'^(\w+)/(x-)?votable(\+\w+)?')
+
+def mime2extension(mimetype, default=None):
+    """
+    return a recommended file extension for a file with a given MIME-type.
+
+    This function provides some generic mappings that can be leveraged in 
+    implementations of ``suggest_extension()`` in ``Record`` subclasses.
+
+      >>> mime2extension('application/fits')
+      fits
+      >>> mime2extension('image/jpeg')
+      jpg
+      >>> mime2extension('application/x-zed', 'dat')
+      dat
+
+    :Args:
+      *mimetype*:    the file MIME-type string to convert
+      *default*:     the default extension to return if one could not be 
+                         recommended based on ``mimetype``.  By convention, 
+                         this should not include a preceding '.'
+    :Returns:
+      *string* -- the recommended extension without a preceding '.', or the 
+                    value of ``default`` if no recommendation could be made.
+    """
+    if not mimetype:  
+        return default
+
+    if mimetype.endswith("/fits") or mimetype.endswith('/x-fits'):
+        return "fits"
+    if mimetype == "image/jpeg":
+        return "jpg"
+
+    m = _votable_mt_re.match(mimetype)  # r'^(\w+)/(x-)?votable(\+\w+)'
+    if m:
+        return "xml"
+
+    m = _image_mt_re.match(mimetype)    # r'^image/(\w+)'
+    if m:
+        return m.group(1).lower()
+
+    m = _text_mt_re.match(mimetype)     # r'^text/(\w+)'
+    if m:
+        if m.group(1) == 'html' or m.group(1) == 'xml':
+            return m.group(1)
+        return "txt"
+
+    return default
+        
+    
 
 class DalAccessError(Exception):
     """
@@ -730,7 +890,7 @@ class DalProtocolError(DalAccessError):
     a base exception indicating that a DAL service responded in an
     erroneous way.  This can be either an HTTP protocol error or a
     response format error; both of these are handled by separate
-    supclasses.  This base class captures an underlying exception
+    subclasses.  This base class captures an underlying exception
     clause. 
     """
     _defreason = "Unknown DAL Protocol Error"

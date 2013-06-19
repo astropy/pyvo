@@ -20,26 +20,32 @@ interaction models.
 """
 
 from ..dal import query as dalq
-from ..dal import sia, ssa, sla, conesearch
+from ..dal import sia, ssa, sla, scs
 from urllib import quote_plus, urlopen, urlretrieve
 import re
 
-def regsearch(keywords=None, servicetype=None, 
-              waveband=None, sqlpred=None):
+import numpy.ma as _ma
+
+__all__ = [ "search", "RegistryService", "RegistryQuery" ]
+
+def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
     """
     execute a simple query to the VAO registry.  
 
     :Args:
       *keywords*:  a string giving a single term or a python list 
                      of terms to match to registry records.  
-      *servicetype:  the service type to restrict results to; 
+      *servicetype*: the service type to restrict results to; 
                      allowed values include 'catalog' (synonyms: 
                      'scs', 'conesearch'), 'image' (synonym: 'sia'), 
                      'spectrum' (synonym: 'ssa'). 'service' (a generic
                      service). 'table' (synonyms: 'tap', 'database').
       *waveband*:  the name of a desired waveband; resources returned 
                      will be restricted to those that indicate as having
-                     data in that waveband.
+                     data in that waveband.  Allowed, case-insensitive 
+                     values include 'Radio', 'Millimeter', 'Infrared'
+                     (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
+                     (synonym: 'Xray').
       *sqlpred*:   an SQL WHERE predicate (without the leading "WHERE") 
                      that further contrains the search against supported 
                      keywords.
@@ -89,7 +95,10 @@ class RegistryService(dalq.DalService):
                          service). 'table' (synonyms: 'tap', 'database').
           *waveband*:  the name of a desired waveband; resources returned 
                          will be restricted to those that indicate as having
-                         data in that waveband.
+                         data in that waveband.  Allowed, case-insensitive 
+                         values include 'Radio', 'Millimeter', 'Infrared'
+                         (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
+                         (synonym: 'Xray').
           *sqlpred*:   an SQL WHERE predicate (without the leading "WHERE") 
                          that further contrains the search against supported 
                          keywords.
@@ -97,7 +106,7 @@ class RegistryService(dalq.DalService):
         The result will be a RegistryResults instance.  
         """
         srch = self.create_query(keywords, servicetype, waveband, sqlpred)
-        print srch.getqueryurl()
+        # print srch.getqueryurl()
         return srch.execute()
         
     
@@ -129,7 +138,10 @@ class RegistryService(dalq.DalService):
                          'database' (synonyms: 'tap','TableAccess').
           *waveband*:  the name of a desired waveband; resources returned 
                          will be restricted to those that indicate as having
-                         data in that waveband.
+                         data in that waveband.  Allowed, case-insensitive 
+                         values include 'Radio', 'Millimeter', 'Infrared'
+                         (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
+                         (synonym: 'Xray').
           *sqlpred*:   an SQL WHERE predicate (without the leading "WHERE") 
                          that further contrains the search against supported 
                          keywords.
@@ -152,8 +164,8 @@ class RegistryQuery(dalq.DalQuery):
     obtained via a call to RegistrySearch.create_query()
     """
     
-#    SERVICE_NAME = "VOTCapBandPredOpt"
-    SERVICE_NAME = "VOTCapability"
+    SERVICE_NAME = "VOTCapBandPredOpt"
+#    SERVICE_NAME = "VOTCapability"
     RESULTSET_TYPE_ARG = "VOTStyleOption=2"
     ALLOWED_WAVEBANDS = "Radio Millimeter Infrared Optical UV".split() + \
         "EUV X-ray Gamma-ray".split()
@@ -302,7 +314,9 @@ class RegistryQuery(dalq.DalQuery):
         """
         the waveband to restrict the query by.  The query results will 
         include only those resourse that indicate they have data from this 
-        waveband.  Allowed values include:
+        waveband.  Allowed values include "Radio", "Millimeter", "Infrared"
+        (synonym: "IR"), "Optical", "UV", "EUV", "X-ray" (synonym: "Xray");
+        when setting, the value is case-insensitive.  
         """
         return self._band
     @waveband.setter
@@ -321,9 +335,9 @@ class RegistryQuery(dalq.DalQuery):
         _band = band
         if self.WAVEBAND_SYN.has_key(band):
             _band = self.WAVEBAND_SYN[band]
-
-        # capitalize
-        _band = _band[0].upper() + _band[1:]
+        else:
+            # capitalize
+            _band = _band[0].upper() + _band[1:]
         if _band not in self.ALLOWED_WAVEBANDS:
             raise ValueError("unrecognized waveband: " + band)
         self._band = _band
@@ -367,6 +381,35 @@ class RegistryQuery(dalq.DalQuery):
         remove all previously added predicates.
         """
         self._preds = []
+
+    def execute_votable(self):
+        """
+        submit the query and return the results as an AstroPy votable instance
+
+        :Raises:
+           *DalServiceError*: for errors connecting to or 
+                              communicating with the service
+           *DalFormatError*:  for errors parsing the VOTable response
+           *DalQueryError*:   for errors in the input query syntax
+        """
+        out = dalq.DalQuery.execute_votable(self)
+        res = dalq.DalResults(out)
+        tbl = res._tbl
+
+        # We note that the server-side implementation of the service will 
+        # include all of the capability records of resource that have 
+        # capabilities of the given type.  Consequently, the results includes
+        # capabilites that are not of the requested type.
+
+        # filter out service types that don't match
+        if self.servicetype:
+            cap = self._toCapConst(self.servicetype)
+            tbl.array = \
+                _ma.array(tbl.array.data[tbl.array.data['capabilityClass']==cap],
+                     mask=tbl.array.mask[tbl.array.data['capabilityClass']==cap])
+            tbl._nrows = tbl.array.shape[0]
+
+        return out
 
     def execute(self):
         """
@@ -442,8 +485,6 @@ class RegistryQuery(dalq.DalQuery):
         if (preds):
             url += "&predicate=%s" % \
                 quote_plus(" AND ".join(map(lambda p: "(%s)" % p, preds)))
-
-        # MJG - 01/30/13: VOTCapBandPredOpt service does not like predicate=1             
         else:
             url += "&predicate="
 
@@ -659,7 +700,7 @@ class SimpleResource(dalq.Record):
         not a recognized DAL service.  Currently, only Conesearch, SIA, SSA,
         and SLA services are supported.  
         """
-        return _createService(self);
+        return _createService(self, True);
 
     def search(self, *args, **keys):
         """
@@ -675,14 +716,14 @@ class SimpleResource(dalq.Record):
            *RuntimeError*:   if the resource does not describe a searchable
                                 service.
         """
-        service = self.to_service()
+        service = _createService(self, False);
         if not service:
             raise RuntimeError("resource, %s, is not a searchable service" % self.shortname)
 
         return service.search(*args, **keys)
 
 _standardIDs = {
-    "ivo://ivoa.net/std/ConeSearch":  conesearch.SCSService,
+    "ivo://ivoa.net/std/ConeSearch":  scs.SCSService,
     "ivo://ivoa.net/std/SIA":  sia.SIAService,
     "ivo://ivoa.net/std/SSA":  ssa.SSAService,
     "ivo://ivoa.net/std/SLAP":  sla.SLAService,

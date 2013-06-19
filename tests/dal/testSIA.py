@@ -2,7 +2,7 @@
 """
 Tests for vaopy.dal.query
 """
-import os, sys, shutil, re, imp
+import os, sys, shutil, re, imp, glob
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -78,6 +78,39 @@ class SIAServiceTest(unittest.TestCase):
         self.assert_("FORMAT=ALL" in qurl)
         self.assert_("INTERSECT=OVERLAPS" in qurl)
         self.assert_("VERB=2" in qurl)
+
+    def testCreateQueryWithKws(self):
+        self.testCtor()
+        q = self.srv.create_query(CDELT=0.00028)
+        self.assertAlmostEquals(0.00028, q.getparam("CDELT"))
+
+        q.pos = (0, 0)
+        q.size = (1.0, 1.0)
+        qurl = q.getqueryurl()
+        self.assert_("POS=0,0" in qurl)
+        self.assert_("SIZE=1.0,1.0" in qurl)
+        self.assertTrue("CDELT=0.00028" in qurl, 
+                        "unexpected CDELT format: "+qurl)
+
+        q = self.srv.create_query(pos=(0,0), size=(1.0,1.0), format="all", 
+                                  intersect="overlaps", verbosity=2, 
+                                  CDELT=0.00028)
+        self.assert_(isinstance(q, sia.SIAQuery))
+        self.assertEquals(q.baseurl, self.baseurl)
+        self.assertEquals(len(q._param.keys()), 6)
+
+        self.assertEquals(q.pos, (0,0))
+        self.assertEquals(q.size, (1.0,1.0))
+        self.assertEquals(q.format, "ALL")
+        self.assertEquals(q.intersect, "OVERLAPS")
+        self.assertEquals(q.verbosity, 2)
+        self.assertAlmostEquals(q.getparam('CDELT'), 0.00028)
+
+        qurl = q.getqueryurl()
+        self.assert_("POS=0,0" in qurl)
+        self.assert_("SIZE=1.0,1.0" in qurl)
+        self.assertTrue("CDELT=0.00028" in qurl, 
+                        "unexpected CDELT format: "+qurl)
 
 
 class SIAQueryTest(unittest.TestCase):
@@ -345,8 +378,8 @@ class SIAExecuteTest(unittest.TestCase):
 
 
     def testSia(self):
-        results = sia.sia("http://localhost:%d/sia" % testserverport,
-                          pos=(0,0), size=(1.0,1.0))
+        results = sia.search("http://localhost:%d/sia" % testserverport,
+                             pos=(0,0), size=(1.0,1.0))
         self.assert_(isinstance(results, sia.SIAResults))
         self.assertEquals(results.rowcount, 2)
 
@@ -355,7 +388,81 @@ class SIAExecuteTest(unittest.TestCase):
         self.assertRaises(dalq.DalQueryError, srv.search, (0.0,0.0), 1.0)
         
 
-__all__ = "SIAServiceTest SIAQueryTest SIAResultsTest SIARecordTest SIAExecuteTest".split()
+class DatasetNameTest(unittest.TestCase):
+
+    base = "testim"
+
+    def setUp(self):
+        resultfile = os.path.join(testdir, siaresultfile)
+        self.tbl = votableparse(resultfile)
+        self.result = sia.SIAResults(self.tbl)
+        self.rec = self.result.getrecord(0)
+
+        self.cleanfiles()
+
+    def tearDown(self):
+        self.cleanfiles()
+
+    def cleanfiles(self):
+        files = glob.glob(os.path.join(testdir, self.base+"*.*"))
+        for f in files:
+            os.remove(f)
+
+    def testSuggest(self):
+        self.assertEquals(self.rec.title, self.rec.suggest_dataset_basename())
+        self.assertEquals("fits", self.rec.suggest_extension("DAT"))
+
+    def testMakeDatasetName(self):
+        self.assertEquals("./neat.fits", self.rec.make_dataset_filename())
+        self.assertEquals("./goober.fits", 
+                          self.rec.make_dataset_filename(base="goober"))
+        self.assertEquals("./neat.jpg", 
+                          self.rec.make_dataset_filename(ext="jpg"))
+        self.assertEquals("./goober.jpg", 
+                          self.rec.make_dataset_filename(base="goober", 
+                                                         ext="jpg"))
+                          
+        self.assertEquals(testdir+"/neat.fits", 
+                          self.rec.make_dataset_filename(testdir))
+
+        path = os.path.join(testdir,self.base+".fits")
+        self.assertFalse(os.path.exists(path))
+        self.assertEquals(path, 
+                          self.rec.make_dataset_filename(testdir, self.base))
+        open(path,'w').close()
+        self.assertTrue(os.path.exists(path))
+        path = os.path.join(testdir,self.base+"-1.fits")
+        self.assertEquals(path, 
+                          self.rec.make_dataset_filename(testdir, self.base))
+        open(path,'w').close()
+        self.assertTrue(os.path.exists(path))
+        path = os.path.join(testdir,self.base+"-2.fits")
+        self.assertEquals(path, 
+                          self.rec.make_dataset_filename(testdir, self.base))
+        open(path,'w').close()
+        self.assertTrue(os.path.exists(path))
+        path = os.path.join(testdir,self.base+"-3.fits")
+        self.assertEquals(path, 
+                          self.rec.make_dataset_filename(testdir, self.base))
+                         
+        self.cleanfiles()
+        open(os.path.join(testdir,self.base+".fits"),'w').close()
+        path = os.path.join(testdir,self.base+"-1.fits")
+        self.assertEquals(path, 
+                          self.rec.make_dataset_filename(testdir, self.base))
+        open(os.path.join(testdir,self.base+"-1.fits"),'w').close()
+        open(os.path.join(testdir,self.base+"-2.fits"),'w').close()
+        open(os.path.join(testdir,self.base+"-3.fits"),'w').close()
+        path = os.path.join(testdir,self.base+"-4.fits")
+        self.assertEquals(path, 
+                          self.rec.make_dataset_filename(testdir, self.base))
+
+        self.cleanfiles()
+        self.assertEquals(os.path.join(testdir,self.base+".fits"),
+                          self.rec.make_dataset_filename(testdir, self.base))
+
+
+__all__ = "SIAServiceTest SIAQueryTest SIAResultsTest SIARecordTest SIAExecuteTest DatasetNameTest".split()
 def suite():
     tests = []
     for t in __all__:

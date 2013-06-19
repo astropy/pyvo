@@ -1,14 +1,42 @@
 """
-The DAL Query interface specialized for Simple Spectral Access (SSA) services.
+A module for searching for spectra in a remote archive.
+
+A Simple Spectral Access (SSA) service allows a client to search for
+spectra in an archive whose field of view overlaps with a given cone
+on the sky.  The service responds to a search query with a table in
+which each row represents an image that is available for download.
+The columns provide metadata describing each image and one column in
+particular provides the image's download URL (also called the *access
+reference*, or *acref*).  Some SSA services can create spectra
+on-the-fly from underlying data (e.g. image cubes); in this case, the
+query result is a table of images whose aperture matches the
+requested cone and which will be created when accessed via the
+download URL.
+
+This module provides an interface for accessing an SSA service.  It is 
+implemented as a specialization of the DAL Query interface.
+
+The ``search()`` function support the simplest and most common types
+of queries, returning an SSAResults instance as its results which
+represents the matching imagess from the archive.  The SSAResults
+supports access to and iterations over the individual records; these
+are provided as SSARecord instances, which give easy access to key
+metadata in the response, such as the position of the spectrum's
+aperture, the spectrum format, its frequency range, and its download
+URL.
+
+For more complex queries, the SSAQuery class can be helpful which 
+allows one to build up, tweak, and reuse a query.  The SSAService
+class can represent a specific service available at a URL endpoint.
 """
 
 import numbers
 import re
 from . import query
 
-__all__ = [ "ssa", "SSAService", "SSAQuery" ]
+__all__ = [ "search", "SSAService", "SSAQuery" ]
 
-def ssa(url, pos, size, format='all'):
+def search(url, pos, size, format='all', **keywords):
     """
     submit a simple SIA query that requests spectra overlapping a 
     :Args:
@@ -21,9 +49,22 @@ def ssa(url, pos, size, format='all'):
                        graphical images (e.g. jpeg, png, gif; not FITS); 
                        "metadata" indicates that no images should be 
                        returned--only an empty table with complete metadata.
+       **keywords:   additional parameters can be given via arbitrary 
+                       keyword arguments.  These can be either standard 
+                       parameters (with names drown from the 
+                       ``SSAQuery.std_parameters`` list) or paramters
+                       custom to the service.  Where there is overlap 
+                       with the parameters set by the other arguments to
+                       this function, these keywords will override.
+
+        :Raises:
+           *DalServiceError*: for errors connecting to or 
+                              communicating with the service
+           *DalQueryError*:   if the service responds with 
+                              an error, including a query syntax error.  
     """
     service = SSAService(url)
-    return service.search(pos, size, format)
+    return service.search(pos, size, format, **keywords)
 
 class SSAService(query.DalService):
     """
@@ -42,7 +83,7 @@ class SSAService(query.DalService):
         """
         query.DalService.__init__(self, baseurl, "ssa", version, resmeta)
 
-    def search(self, pos, size, format='all'):
+    def search(self, pos, size, format='all', **keywords):
         """
         submit a simple SSA query to this service with the given constraints.  
 
@@ -61,11 +102,24 @@ class SSAService(query.DalService):
                            graphical spectra (e.g. jpeg, png, gif; not FITS); 
                            "metadata" indicates that no spectra should be 
                            returned--only an empty table with complete metadata.
+           **keywords:   additional parameters can be given via arbitrary 
+                           keyword arguments.  These can be either standard 
+                           parameters (with names drown from the 
+                           ``SSAQuery.std_parameters`` list) or paramters
+                           custom to the service.  Where there is overlap 
+                           with the parameters set by the other arguments to
+                           this function, these keywords will override.
+
+        :Raises:
+           *DalServiceError*: for errors connecting to or 
+                              communicating with the service
+           *DalQueryError*:   if the service responds with 
+                              an error, including a query syntax error.  
         """
-        q = self.create_query(pos, size, format)
+        q = self.create_query(pos, size, format, **keywords)
         return q.execute()
 
-    def create_query(self, pos=None, size=None, format=None):
+    def create_query(self, pos=None, size=None, format=None, **keywords):
         """
         create a query object that constraints can be added to and then 
         executed.  The input arguments will initialize the query with the 
@@ -82,6 +136,13 @@ class SSAService(query.DalService):
                            graphical images (e.g. jpeg, png, gif; not FITS); 
                            "metadata" indicates that no images should be 
                            returned--only an empty table with complete metadata.
+           **keywords:   additional parameters can be given via arbitrary 
+                           keyword arguments.  These can be either standard 
+                           parameters (with names drown from the 
+                           ``SSAQuery.std_parameters`` list) or paramters
+                           custom to the service.  Where there is overlap 
+                           with the parameters set by the other arguments to
+                           this function, these keywords will override.
 
         :Returns: 
            *SSAQuery*:  the query instance
@@ -90,6 +151,10 @@ class SSAService(query.DalService):
         if pos is not None: q.pos = pos
         if size is not None: q.size = size
         if format: q.format = format
+
+        for key in keywords.keys():
+            q.setparam(key, keywords[key])
+
         return q
 
 class SSAQuery(query.DalQuery):
@@ -101,6 +166,13 @@ class SSAQuery(query.DalQuery):
     The base URL for the query can be changed via the baseurl property.
     """
     
+    std_parameters = [ "REQUEST", "VERSION", "POS", "SIZE", "BAND", "TIME", 
+                       "FORMAT", "APERTURE", "SPECRP", "SPATRES", "TIMERES", 
+                       "SNR", "REDSHIFT", "VARAMPL", "TARGETNAME", 
+                       "TARGETCLASS", "FLUXCALIB", "WAVECALIB", "PUBID", 
+                       "CREATORID", "COLLECTION", "TOP", "MAXREC", "MTIME", 
+                       "COMPRESS", "RUNID" ]
+
     def __init__(self, baseurl,  version="1.0", request="queryData"):
         """
         initialize the query object with a baseurl and request type
@@ -541,16 +613,26 @@ class SSARecord(query.Record):
         """
         return self.acref
 
-    def suggestExtension(self, default=None):
+    def suggest_dataset_basename(self):
+        """
+        return a default base filename that the dataset available via 
+        ``getdataset()`` can be saved as.  This function is 
+        specialized for a particular service type this record originates from
+        so that it can be used by ``cachedataset()`` via 
+        ``make_dataset_filename()``.
+        """
+        out = self.title
+        if not out:
+            out = "image"
+        else:
+            out = re.sub(r'\s+', '_', out.strip())
+        return out
+
+    def suggest_extension(self, default=None):
         """
         returns a recommended filename extension for the dataset described 
         by this record.  Typically, this would look at the column describing 
         the format and choose an extension accordingly.  
         """
-        fmt = default
-        if self.format and self.format.startswith("image/"):
-            fmt = self.format[len("image/"):]
-            if fmt == "jpeg":  fmt = "jpg"
-        return fmt
+        return query.mime2extension(self.format, default)
 
-        

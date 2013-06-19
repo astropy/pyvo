@@ -2,7 +2,7 @@
 """
 Tests for vaopy.dal.query
 """
-import os, sys, shutil, re, imp
+import os, sys, shutil, re, imp, glob
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -350,6 +350,19 @@ class DalServiceTest(unittest.TestCase):
         self.assertEquals(q.protocol, self.srv.protocol)
         self.assertEquals(q.version, self.srv.version)
 
+    def testCreateQueryWithKws(self):
+        self.testCtor()
+        q = self.srv.create_query(RA=12.045, DEC=-13.08, SR=0.01)
+        self.assert_(isinstance(q, dalq.DalQuery))
+        self.assertEquals(q.baseurl, self.baseurl)
+        self.assertEquals(q.protocol, self.srv.protocol)
+        self.assertEquals(q.version, self.srv.version)
+        self.assertAlmostEquals(q.getparam('RA'), 12.045)
+        self.assertAlmostEquals(q.getparam('DEC'), -13.08)
+        self.assertAlmostEquals(q.getparam('SR'), 0.01)
+
+
+
 class DalQueryTest(unittest.TestCase):
 
     def setUp(self):
@@ -612,7 +625,97 @@ class CursorTest(unittest.TestCase):
         self.cursor.scroll(-1)
         self.assertEquals(self.cursor.pos, 4)
 
-__all__ = "DalAccessErrorTest DalServiceErrorTest DalQueryErrorTest RecordTest EnsureBaseURLTest DalServiceTest DalQueryTest QueryExecuteTest CursorTest".split()
+class DatasetNameTest(unittest.TestCase):
+
+    base = "testds"
+
+    def setUp(self):
+        resultfile = os.path.join(testdir, siaresultfile)
+        self.tbl = votableparse(resultfile)
+        self.result = dalq.DalResults(self.tbl)
+        self.rec = self.result.getrecord(0)
+
+        self.cleanfiles()
+
+    def tearDown(self):
+        self.cleanfiles()
+
+    def cleanfiles(self):
+        files = glob.glob(os.path.join(testdir, self.base+"*.*"))
+        for f in files:
+            os.remove(f)
+
+    def testMime2Ext(self):
+        self.assertEquals("fits", dalq.mime2extension("application/fits"))
+        self.assertEquals("fits", dalq.mime2extension("image/fits"))
+        self.assertEquals("fits", dalq.mime2extension("image/x-fits"))
+        self.assertEquals("jpg", dalq.mime2extension("image/jpeg"))
+        self.assertEquals("gif", dalq.mime2extension("image/gif"))
+        self.assertEquals("png", dalq.mime2extension("image/png"))
+        self.assertEquals("txt", dalq.mime2extension("text/plain"))
+        self.assertEquals("html", dalq.mime2extension("text/html"))
+        self.assertEquals("xml", dalq.mime2extension("text/xml"))
+        self.assertEquals("xml", dalq.mime2extension("application/votable;convention=stsci"))
+        self.assertEquals("xml", dalq.mime2extension("application/x-votable"))
+        self.assertEquals("xml", dalq.mime2extension("application/votable"))
+        self.assertEquals("xls", 
+               dalq.mime2extension("application/x-micrsoft-spreadsheet", "xls"))
+
+    def testSuggest(self):
+        self.assertEquals("dataset", self.rec.suggest_dataset_basename())
+        self.assertEquals("DAT", self.rec.suggest_extension("DAT"))
+
+    def testMakeDatasetName(self):
+        self.assertEquals("./dataset.dat", self.rec.make_dataset_filename())
+        self.assertEquals("./goober.dat", 
+                          self.rec.make_dataset_filename(base="goober"))
+        self.assertEquals("./dataset.fits", 
+                          self.rec.make_dataset_filename(ext="fits"))
+        self.assertEquals("./goober.fits", 
+                          self.rec.make_dataset_filename(base="goober", 
+                                                         ext="fits"))
+                          
+        self.assertEquals(testdir+"/dataset.dat", 
+                          self.rec.make_dataset_filename(testdir))
+
+        path = os.path.join(testdir,self.base+".dat")
+        self.assertFalse(os.path.exists(path))
+        self.assertEquals(path, 
+                          self.rec.make_dataset_filename(testdir, self.base))
+        open(path,'w').close()
+        self.assertTrue(os.path.exists(path))
+        path = os.path.join(testdir,self.base+"-1.dat")
+        self.assertEquals(path, 
+                          self.rec.make_dataset_filename(testdir, self.base))
+        open(path,'w').close()
+        self.assertTrue(os.path.exists(path))
+        path = os.path.join(testdir,self.base+"-2.dat")
+        self.assertEquals(path, 
+                          self.rec.make_dataset_filename(testdir, self.base))
+        open(path,'w').close()
+        self.assertTrue(os.path.exists(path))
+        path = os.path.join(testdir,self.base+"-3.dat")
+        self.assertEquals(path, 
+                          self.rec.make_dataset_filename(testdir, self.base))
+                         
+        self.cleanfiles()
+        open(os.path.join(testdir,self.base+".dat"),'w').close()
+        path = os.path.join(testdir,self.base+"-1.dat")
+        self.assertEquals(path, 
+                          self.rec.make_dataset_filename(testdir, self.base))
+        open(os.path.join(testdir,self.base+"-1.dat"),'w').close()
+        open(os.path.join(testdir,self.base+"-2.dat"),'w').close()
+        open(os.path.join(testdir,self.base+"-3.dat"),'w').close()
+        path = os.path.join(testdir,self.base+"-4.dat")
+        self.assertEquals(path, 
+                          self.rec.make_dataset_filename(testdir, self.base))
+
+        self.cleanfiles()
+        self.assertEquals(os.path.join(testdir,self.base+".dat"),
+                          self.rec.make_dataset_filename(testdir, self.base))
+
+
+__all__ = "DalAccessErrorTest DalServiceErrorTest DalQueryErrorTest RecordTest EnsureBaseURLTest DalServiceTest DalQueryTest QueryExecuteTest CursorTest DatasetNameTest".split()
 def suite():
     tests = []
     for t in __all__:

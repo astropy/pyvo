@@ -172,6 +172,11 @@ class SLARecordTest(unittest.TestCase):
 
     def testAttr(self):
         self.assertEquals(self.rec.title, "JPL: CH2OHCOCH2OH v29=1 65(10,55)-65( 9,56)")
+        self.assertAlmostEquals(self.rec.wavelength, 0.0026007993198247656)
+        self.assertEquals(self.rec.species_name, "Dihydroxyacetone")
+        self.assertTrue(self.rec.status is None)
+        self.assertTrue(self.rec.initial_level is None)
+        self.assertTrue(self.rec.final_level is None)
 
 class SLAExecuteTest(unittest.TestCase):
 
@@ -194,8 +199,8 @@ class SLAExecuteTest(unittest.TestCase):
 
 
     def testSla(self):
-        results = sla.sla("http://localhost:%d/sla" % testserverport,
-                          wavelength="0.00260075/0.00260080")
+        results = sla.search("http://localhost:%d/sla" % testserverport,
+                             wavelength="0.00260075/0.00260080")
         self.assert_(isinstance(results, sla.SLAResults))
         self.assertEquals(results.rowcount, 21)
 

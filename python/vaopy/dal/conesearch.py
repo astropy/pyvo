@@ -1,14 +1,33 @@
 """
-The DAL Query interface specialized for Simple Cone Search (SSCS) services.
+A module for searching remote source and observation catalogs
+
+A Simple Cone Search (SCS) service allows a client to search for
+records in a source or observation catalog whose positions are within
+some minimum distance of a search position (i.e. within a specified
+"cone" on the sky).  This module provides an interface for accessing
+such services.  It is implemented as a specialization of the DAL Query
+interface.
+
+The ``search()`` function provides a simple interface to a service, 
+returning an SCSResults instance as its results which represents the
+matching records from the catalog.  The SCSResults supports access to
+and iterations over the individual records; these are provided as
+SCSRecord instances, which give easy access to key metadata in the
+response, including the ICRS position of the matched source or
+observation.  
+
+This module also features the SCSQuery class that provides an
+interface for building up and remembering a query.  The SCSService
+class can represent a specific service available at a URL endpoint.
 """
 
 import numbers
 from . import query
 from .query import DalQueryError
 
-__all__ = [ "conesearch", "SSCSService", "SSCSQuery" ]
+__all__ = [ "search", "SCSResults", "SCSRecord", "SCSQuery", "SCSService" ]
 
-def conesearch(url, ra, dec, sr=1.0, verbosity=2):
+def search(url, ra, dec, sr=1.0, verbosity=2):
     """
     submit a simple Cone Search query that requests objects or observations
     whose positions fall within some distance from a search position.  
@@ -19,7 +38,8 @@ def conesearch(url, ra, dec, sr=1.0, verbosity=2):
                       circular search region, in decimal degrees
        *dec*:       the ICRS declination position of the center of the 
                       circular search region, in decimal degrees
-       *sr*:        the radius of the circular search region, in decimal degrees
+       *sr*:        the radius of the circular search region, in decimal 
+                      degrees
        *verbosity*  an integer value that indicates the volume of columns
                        to return in the result table.  0 means the minimum
                        set of columsn, 3 means as many columns as are 
