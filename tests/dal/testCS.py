@@ -61,7 +61,7 @@ class SCSServiceTest(unittest.TestCase):
 
     def testCreateQueryWithArgs(self):
         self.testCtor()
-        q = self.srv.create_query(ra=0.0, dec=0.0, sr=1.0, verbosity=2)
+        q = self.srv.create_query(pos=(0.0, 0.0), radius=1.0, verbosity=2)
         self.assert_(isinstance(q, cs.SCSQuery))
         self.assertEquals(q.baseurl, self.baseurl)
         self.assertEquals(len(q._param.keys()), 4)
@@ -69,6 +69,7 @@ class SCSServiceTest(unittest.TestCase):
         self.assertEquals(q.ra,  0.0)
         self.assertEquals(q.dec, 0.0)
         self.assertEquals(q.sr,  1.0)
+        self.assertEquals(q.radius,  1.0)
         self.assertEquals(q.verbosity, 2)
 
         qurl = q.getqueryurl()
@@ -98,8 +99,11 @@ class SCSQueryTest(unittest.TestCase):
         self.assertEquals(self.q.ra, 120.445)
         self.q.dec = 40.1434
         self.assertEquals(self.q.dec, 40.1434)
+        self.assertEquals(self.q.dec, self.q.pos[1])
+        self.assertEquals(self.q.ra, self.q.pos[0])
+        
         self.q.sr = 0.25
-        self.assertEquals(self.q.sr, 0.25)
+        self.assertEquals(self.q.radius, 0.25)
 
         self.q.ra = 400.0
         self.assertEquals(self.q.ra, 40.0)
@@ -113,7 +117,7 @@ class SCSQueryTest(unittest.TestCase):
         except ValueError:  pass
         try:  self.q.dec = "a b"; self.fail("dec took string values")
         except ValueError:  pass
-        try:  self.q.sr = "a b";  self.fail("dec took string values")
+        try:  self.q.radius = "a b";  self.fail("dec took string values")
         except ValueError:  pass
         try:  self.q.dec = 100; self.fail("dec took out-of-range value")
         except ValueError, e:  pass
@@ -127,11 +131,15 @@ class SCSQueryTest(unittest.TestCase):
         self.assertRaises(dalq.DalQueryError, self.q.getqueryurl)
 
         self.q.dec = 24.312
-        self.q.sr = 0.1
+        self.q.radius = 0.1
         qurl = self.q.getqueryurl()
         self.assert_("RA=102.5511" in qurl)
         self.assert_("DEC=24.312" in qurl)
         self.assert_("SR=0.1" in qurl)
+
+        self.q.sr = 0.05
+        qurl = self.q.getqueryurl()
+        self.assert_("SR=0.05" in qurl)
 
 
 class CSResultsTest(unittest.TestCase):
@@ -224,14 +232,14 @@ class CSExecuteTest(unittest.TestCase):
         q = cs.SCSQuery(self.baseurl % testserverport)
         q.ra = 0.0
         q.dec = 0.0
-        q.sr = 0.25
+        q.radius = 0.25
         results = q.execute()
         self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.rowcount, 2)
 
     def testSearch(self):
         srv = cs.SCSService(self.baseurl % testserverport)
-        results = srv.search(ra=0.0, dec=0.0, sr=0.25)
+        results = srv.search(pos=(0.0, 0.0), radius=0.25)
         self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.rowcount, 2)
 
@@ -246,7 +254,7 @@ class CSExecuteTest(unittest.TestCase):
     def testConesearch(self):
         # pdb.set_trace()
         results = cs.search(self.baseurl % testserverport, 
-                            ra=0.0, dec=0.0, sr=0.25)
+                            pos=(0.0, 0.0), radius=0.25)
         self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.rowcount, 2)
         

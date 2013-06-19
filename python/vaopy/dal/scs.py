@@ -27,26 +27,25 @@ from .query import DalQueryError
 
 __all__ = [ "search", "SCSResults", "SCSRecord", "SCSQuery", "SCSService" ]
 
-def search(url, ra, dec, sr=1.0, verbosity=2):
+def search(url, pos, radius=1.0, verbosity=2):
     """
     submit a simple Cone Search query that requests objects or observations
     whose positions fall within some distance from a search position.  
 
     :Args:
        *url*        the base URL of the query service.
-       *ra*:        the ICRS right ascension position of the center of the 
-                      circular search region, in decimal degrees
-       *dec*:       the ICRS declination position of the center of the 
-                      circular search region, in decimal degrees
-       *sr*:        the radius of the circular search region, in decimal 
-                      degrees
+       *pos*:       a 2-element tuple containing the ICRS right ascension 
+                       and declination defining the position of the center 
+                       of the circular search region, in decimal degrees
+       *radius*:    the radius of the circular search region, in decimal 
+                       degrees
        *verbosity*  an integer value that indicates the volume of columns
                        to return in the result table.  0 means the minimum
                        set of columsn, 3 means as many columns as are 
                        available. 
     """
     service = SCSService(url)
-    return service.search(ra, dec, sr, verbosity)
+    return service.search(pos, radius, verbosity)
 
 class SCSService(query.DalService):
     """
@@ -65,48 +64,49 @@ class SCSService(query.DalService):
         """
         query.DalService.__init__(self, baseurl, "scs", version, resmeta)
 
-    def search(self, ra, dec, sr=1.0, verbosity=2):
+    def search(self, pos, radius=1.0, verbosity=2):
         """
         submit a simple Cone Search query that requests objects or observations
         whose positions fall within some distance from a search position.  
 
         :Args:
-           *ra*:        the ICRS right ascension position of the center of the 
-                           circular search region, in decimal degrees
-           *dec*:       the ICRS declination position of the center of the 
-                           circular search region, in decimal degrees
-           *sr*:        the radius of the circular search region, in decimal 
+           *pos*:       a 2-element tuple containing the ICRS right ascension 
+                           and declination defining the position of the center 
+                           of the circular search region, in decimal degrees
+           *radius*:    the radius of the circular search region, in decimal 
                            degrees
            *verbosity*  an integer value that indicates the volume of columns
                            to return in the result table.  0 means the minimum
                            set of columsn, 3 means as many columns as are 
                            available. 
         """
-        q = self.create_query(ra, dec, sr, verbosity)
+        q = self.create_query(pos, radius, verbosity)
         return q.execute()
 
-    def create_query(self, ra=None, dec=None, sr=None, verbosity=None):
+    def create_query(self, pos=None, radius=None, verbosity=None):
         """
         create a query object that constraints can be added to and then 
         executed.  The input arguments will initialize the query with the 
         given values.
 
         :Args:
-           *ra*:        the ICRS right ascension position of the center of the 
-                           circular search region, in decimal degrees
-           *dec*:       the ICRS declination position of the center of the 
-                           circular search region, in decimal degrees
-           *sr*:        the radius of the circular search region, in decimal 
+           *pos*:       a 2-element tuple containing the ICRS right ascension 
+                           and declination defining the position of the center 
+                           of the circular search region, in decimal degrees
+           *radius*:    the radius of the circular search region, in decimal 
                            degrees
            *verbosity*  an integer value that indicates the volume of columns
                            to return in the result table.  0 means the minimum
                            set of columsn, 3 means as many columns as are 
                            available. 
         """
+        if pos is not None and not isinstance(pos, tuple) and \
+           not isinstance(pos, list):
+            raise TypeError("create_query(): pos is not a tuple or list")
+
         q = SCSQuery(self._baseurl)
-        if ra  is not None:  q.ra  = ra
-        if dec is not None:  q.dec = dec
-        if sr  is not None:  q.sr  = sr
+        if pos    is not None:  q.pos = pos
+        if radius is not None:  q.sr  = radius
         if verbosity is not None: q.verbosity = verbosity
         return q
 
@@ -167,13 +167,30 @@ class SCSQuery(query.DalQuery):
         self.unsetparam("DEC")
 
     @property
-    def sr(self):
+    def pos(self):
+        return (self.ra, self.dec)
+    @pos.setter
+    def pos(self, pair):
+        if pair is not None and not isinstance(pair, tuple) and \
+           not isinstance(pair, list):
+            raise TypeError("create_query(): pos is not a tuple or list")
+        if len(pair) < 2:
+            raise ValueError("create_query(): pos has fewer than 2 elements")
+        self.ra = pair[0]
+        self.dec = pair[1]
+    @pos.deleter
+    def pos(self, pair):
+        del self.ra
+        del self.dec
+
+    @property
+    def radius(self):
         """
         the radius of the circular (cone) search region.
         """
         return self.getparam("SR")
-    @sr.setter
-    def sr(self, val):
+    @radius.setter
+    def radius(self, val):
         if val is not None:
             if not isinstance(val, numbers.Number):
                 raise ValueError("ra constraint is not a number")
@@ -181,9 +198,22 @@ class SCSQuery(query.DalQuery):
                 raise ValueError("sr constraint out-of-range: " + val)
 
         self.setparam("SR", val)
+    @radius.deleter
+    def radius(self):
+        self.unsetparam("SR")
+
+    @property
+    def sr(self):
+        """
+        a synonym for radius
+        """
+        return self.radius
+    @sr.setter
+    def sr(self, val):
+        self.radius = val
     @sr.deleter
     def sr(self):
-        self.unsetparam("SR")
+        del self.radius
 
     @property
     def verbosity(self):
