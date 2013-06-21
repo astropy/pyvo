@@ -241,7 +241,7 @@ class RegQueryTest(unittest.TestCase):
         qurl = self.q.getqueryurl()
         self.assert_("&waveband=Infrared" in qurl)
         self.assert_("&capability=SimpleImageAccess" in qurl)
-        self.assert_("&predicate=1" in qurl)
+        self.assert_(qurl.endswith("&predicate="))
 
         self.q.addpredicate("publisher like '%nrao%'")
         qurl = self.q.getqueryurl()
@@ -253,7 +253,7 @@ class RegQueryTest(unittest.TestCase):
                      "unexpected predicate: " + qurl)
         self.q.clearpredicates()
         qurl = self.q.getqueryurl()
-        self.assert_("&predicate=1" in qurl)
+        self.assert_(qurl.endswith("&predicate="))
 
         # test keywords; not that we tested the pre-URL-encoding of the keyword
         # constraints in testKeywordsToPred()
@@ -347,6 +347,7 @@ class SimpleResTest(unittest.TestCase):
         self.assertEquals(self.r.publisher, "CDS")
         self.assertEquals(self.r.tags, "Web Page")
 
+        # pdb.set_trace()
         self.assert_(isinstance(self.r.subject, tuple))
         self.assertEquals(len(self.r.subject), 4)
         self.assertEquals(self.r.subject[0], "AGN")
