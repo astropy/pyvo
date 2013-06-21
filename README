@@ -4,7 +4,7 @@ standard python interface.
 This implementation requires the following prerequisite packagss:
 
   o  numpy (1.6.0 or later)
-  o  astropy (0.1 - later versions have a different vo interface)
+  o  astropy (0.2 - later versions have a different vo interface)
 
 Currently in this pre-release state, disttool support (or the like) is
 not yet supported.  To use, one should set the PYTHONPATH variable to
@@ -22,7 +22,7 @@ particular unit test script, type:
 
 For example:
 
-   python tests/daltestSIA.py
+   python tests/dal/testSIA.py
 
 If the script contains the string "NeedsNet" in its name, it requirs
 access to the network to work properly.  All other files do not
