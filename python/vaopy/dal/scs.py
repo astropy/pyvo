@@ -1,34 +1,53 @@
 """
-The DAL Query interface specialized for Simple Cone Search (SSCS) services.
+A module for searching remote source and observation catalogs
+
+A Simple Cone Search (SCS) service allows a client to search for
+records in a source or observation catalog whose positions are within
+some minimum distance of a search position (i.e. within a specified
+"cone" on the sky).  This module provides an interface for accessing
+such services.  It is implemented as a specialization of the DAL Query
+interface.
+
+The ``search()`` function provides a simple interface to a service, 
+returning an SCSResults instance as its results which represents the
+matching records from the catalog.  The SCSResults supports access to
+and iterations over the individual records; these are provided as
+SCSRecord instances, which give easy access to key metadata in the
+response, including the ICRS position of the matched source or
+observation.  
+
+This module also features the SCSQuery class that provides an
+interface for building up and remembering a query.  The SCSService
+class can represent a specific service available at a URL endpoint.
 """
 
 import numbers
 from . import query
-from .query import DalQueryError
+from .query import DALQueryError
 
-__all__ = [ "conesearch", "SSCSService", "SSCSQuery" ]
+__all__ = [ "search", "SCSResults", "SCSRecord", "SCSQuery", "SCSService" ]
 
-def conesearch(url, ra, dec, sr=1.0, verbosity=2):
+def search(url, pos, radius=1.0, verbosity=2):
     """
     submit a simple Cone Search query that requests objects or observations
     whose positions fall within some distance from a search position.  
 
     :Args:
        *url*        the base URL of the query service.
-       *ra*:        the ICRS right ascension position of the center of the 
-                      circular search region, in decimal degrees
-       *dec*:       the ICRS declination position of the center of the 
-                      circular search region, in decimal degrees
-       *sr*:        the radius of the circular search region, in decimal degrees
+       *pos*:       a 2-element tuple containing the ICRS right ascension 
+                       and declination defining the position of the center 
+                       of the circular search region, in decimal degrees
+       *radius*:    the radius of the circular search region, in decimal 
+                       degrees
        *verbosity*  an integer value that indicates the volume of columns
                        to return in the result table.  0 means the minimum
                        set of columsn, 3 means as many columns as are 
                        available. 
     """
     service = SCSService(url)
-    return service.search(ra, dec, sr, verbosity)
+    return service.search(pos, radius, verbosity)
 
-class SCSService(query.DalService):
+class SCSService(query.DALService):
     """
     a representation of a Cone Search service
     """
@@ -43,54 +62,55 @@ class SCSService(query.DalService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DalService.__init__(self, baseurl, "scs", version, resmeta)
+        query.DALService.__init__(self, baseurl, "scs", version, resmeta)
 
-    def search(self, ra, dec, sr=1.0, verbosity=2):
+    def search(self, pos, radius=1.0, verbosity=2):
         """
         submit a simple Cone Search query that requests objects or observations
         whose positions fall within some distance from a search position.  
 
         :Args:
-           *ra*:        the ICRS right ascension position of the center of the 
-                           circular search region, in decimal degrees
-           *dec*:       the ICRS declination position of the center of the 
-                           circular search region, in decimal degrees
-           *sr*:        the radius of the circular search region, in decimal 
+           *pos*:       a 2-element tuple containing the ICRS right ascension 
+                           and declination defining the position of the center 
+                           of the circular search region, in decimal degrees
+           *radius*:    the radius of the circular search region, in decimal 
                            degrees
            *verbosity*  an integer value that indicates the volume of columns
                            to return in the result table.  0 means the minimum
                            set of columsn, 3 means as many columns as are 
                            available. 
         """
-        q = self.create_query(ra, dec, sr, verbosity)
+        q = self.create_query(pos, radius, verbosity)
         return q.execute()
 
-    def create_query(self, ra=None, dec=None, sr=None, verbosity=None):
+    def create_query(self, pos=None, radius=None, verbosity=None):
         """
         create a query object that constraints can be added to and then 
         executed.  The input arguments will initialize the query with the 
         given values.
 
         :Args:
-           *ra*:        the ICRS right ascension position of the center of the 
-                           circular search region, in decimal degrees
-           *dec*:       the ICRS declination position of the center of the 
-                           circular search region, in decimal degrees
-           *sr*:        the radius of the circular search region, in decimal 
+           *pos*:       a 2-element tuple containing the ICRS right ascension 
+                           and declination defining the position of the center 
+                           of the circular search region, in decimal degrees
+           *radius*:    the radius of the circular search region, in decimal 
                            degrees
            *verbosity*  an integer value that indicates the volume of columns
                            to return in the result table.  0 means the minimum
                            set of columsn, 3 means as many columns as are 
                            available. 
         """
+        if pos is not None and not isinstance(pos, tuple) and \
+           not isinstance(pos, list):
+            raise TypeError("create_query(): pos is not a tuple or list")
+
         q = SCSQuery(self._baseurl)
-        if ra  is not None:  q.ra  = ra
-        if dec is not None:  q.dec = dec
-        if sr  is not None:  q.sr  = sr
+        if pos    is not None:  q.pos = pos
+        if radius is not None:  q.sr  = radius
         if verbosity is not None: q.verbosity = verbosity
         return q
 
-class SCSQuery(query.DalQuery):
+class SCSQuery(query.DALQuery):
     """
     a class for preparing an query to a Cone Search service.  Query constraints
     are added via its service type-specific methods.  The various execute()
@@ -103,7 +123,7 @@ class SCSQuery(query.DalQuery):
         """
         initialize the query object with a baseurl
         """
-        query.DalQuery.__init__(self, baseurl, "scs", version)
+        query.DALQuery.__init__(self, baseurl, "scs", version)
         
 
     @property
@@ -147,13 +167,30 @@ class SCSQuery(query.DalQuery):
         self.unsetparam("DEC")
 
     @property
-    def sr(self):
+    def pos(self):
+        return (self.ra, self.dec)
+    @pos.setter
+    def pos(self, pair):
+        if pair is not None and not isinstance(pair, tuple) and \
+           not isinstance(pair, list):
+            raise TypeError("create_query(): pos is not a tuple or list")
+        if len(pair) < 2:
+            raise ValueError("create_query(): pos has fewer than 2 elements")
+        self.ra = pair[0]
+        self.dec = pair[1]
+    @pos.deleter
+    def pos(self, pair):
+        del self.ra
+        del self.dec
+
+    @property
+    def radius(self):
         """
         the radius of the circular (cone) search region.
         """
         return self.getparam("SR")
-    @sr.setter
-    def sr(self, val):
+    @radius.setter
+    def radius(self, val):
         if val is not None:
             if not isinstance(val, numbers.Number):
                 raise ValueError("ra constraint is not a number")
@@ -161,9 +198,22 @@ class SCSQuery(query.DalQuery):
                 raise ValueError("sr constraint out-of-range: " + val)
 
         self.setparam("SR", val)
+    @radius.deleter
+    def radius(self):
+        self.unsetparam("SR")
+
+    @property
+    def sr(self):
+        """
+        a synonym for radius
+        """
+        return self.radius
+    @sr.setter
+    def sr(self, val):
+        self.radius = val
     @sr.deleter
     def sr(self):
-        self.unsetparam("SR")
+        del self.radius
 
     @property
     def verbosity(self):
@@ -184,9 +234,9 @@ class SCSQuery(query.DalQuery):
         This implimentation returns an SCSResults instance
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   if the service responds with 
+           *DALQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
         """
         return SCSResults(self.execute_votable(), self.getqueryurl(True))
@@ -196,10 +246,10 @@ class SCSQuery(query.DalQuery):
         submit the query and return the results as an AstroPy votable instance
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalFormatError*:  for errors parsing the VOTable response
-           *DalQueryError*:   for errors in the input query syntax
+           *DALFormatError*:  for errors parsing the VOTable response
+           *DALQueryError*:   for errors in the input query syntax
         """
         try: 
             from astropy.io.votable.exceptions import W22
@@ -208,13 +258,13 @@ class SCSQuery(query.DalQuery):
 
         try:
             return query._votableparse(self.execute_stream().read)
-        except query.DalAccessError:
+        except query.DALAccessError:
             raise
         except W22, e:
-            raise query.DalFormatError("Unextractable Error encoded in " +
+            raise query.DALFormatError("Unextractable Error encoded in " +
                                        "deprecated DEFINITIONS element")
         except Exception, e:
-            raise query.DalFormatError(e, self.getqueryurl())
+            raise query.DALFormatError(e, self.getqueryurl())
 
     def getqueryurl(self, lax=False):
         """
@@ -222,22 +272,22 @@ class SCSQuery(query.DalQuery):
         URL that the execute functions will use if called next.  
 
         :Args:
-           *lax*:  if False (default), a DalQueryError exception will be 
+           *lax*:  if False (default), a DALQueryError exception will be 
                       raised if any required parameters (RA, DEC, or SR)
                       are missing.  If True, no syntax checking will be 
                       done.  
         """
-        out = query.DalQuery.getqueryurl(self)
+        out = query.DALQuery.getqueryurl(self)
         if not lax:
             if self.ra is None:
-                raise DalQueryError("Query is missing an RA parameter", url=out)
+                raise DALQueryError("Query is missing an RA parameter", url=out)
             if self.dec is None:
-                raise DalQueryError("Query is missing a DEC parameter", url=out)
+                raise DALQueryError("Query is missing a DEC parameter", url=out)
             if self.sr is None:
-                raise DalQueryError("Query is missing an SR parameter", url=out)
+                raise DALQueryError("Query is missing an SR parameter", url=out)
         return out
 
-class SCSResults(query.DalResults):
+class SCSResults(query.DALResults):
     """
     Results from a Cone Search query.  It provides random access to records in 
     the response.  Alternatively, it can provide results via a Cursor 
@@ -250,7 +300,7 @@ class SCSResults(query.DalResults):
         by directly applications; rather an instance is obtained from calling 
         a SCSQuery's execute().
         """
-        query.DalResults.__init__(self, votable, url, "scs", version)
+        query.DALResults.__init__(self, votable, url, "scs", version)
         self._scscols = {
             "ID_MAIN":         self.fieldname_with_ucd("ID_MAIN"),
             "POS_EQ_RA_MAIN":  self.fieldname_with_ucd("POS_EQ_RA_MAIN"),

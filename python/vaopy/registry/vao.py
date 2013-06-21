@@ -20,26 +20,32 @@ interaction models.
 """
 
 from ..dal import query as dalq
-from ..dal import sia, ssa, sla, conesearch
+from ..dal import sia, ssa, sla, scs
 from urllib import quote_plus, urlopen, urlretrieve
 import re
 
-def regsearch(keywords=None, servicetype=None, 
-              waveband=None, sqlpred=None):
+import numpy.ma as _ma
+
+__all__ = [ "search", "RegistryService", "RegistryQuery" ]
+
+def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
     """
     execute a simple query to the VAO registry.  
 
     :Args:
       *keywords*:  a string giving a single term or a python list 
                      of terms to match to registry records.  
-      *servicetype:  the service type to restrict results to; 
+      *servicetype*: the service type to restrict results to; 
                      allowed values include 'catalog' (synonyms: 
                      'scs', 'conesearch'), 'image' (synonym: 'sia'), 
                      'spectrum' (synonym: 'ssa'). 'service' (a generic
                      service). 'table' (synonyms: 'tap', 'database').
       *waveband*:  the name of a desired waveband; resources returned 
                      will be restricted to those that indicate as having
-                     data in that waveband.
+                     data in that waveband.  Allowed, case-insensitive 
+                     values include 'Radio', 'Millimeter', 'Infrared'
+                     (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
+                     (synonym: 'Xray').
       *sqlpred*:   an SQL WHERE predicate (without the leading "WHERE") 
                      that further contrains the search against supported 
                      keywords.
@@ -50,7 +56,7 @@ def regsearch(keywords=None, servicetype=None,
     return reg.search(keywords, servicetype, waveband, sqlpred)
 
 
-class RegistryService(dalq.DalService):
+class RegistryService(dalq.DALService):
     """
     a class for submitting searches to the VAO registry.  
     """
@@ -70,7 +76,7 @@ class RegistryService(dalq.DalService):
         if not baseurl:  baseurl = self.STSCI_REGISTRY_BASEURL
         if not baseurl.endswith("/"): baseurl += "/"
 
-        dalq.DalService.__init__(self, baseurl, "vaoreg", version, resmeta)
+        dalq.DALService.__init__(self, baseurl, "vaoreg", version, resmeta)
 
 
     def search(self, keywords=None, servicetype=None, 
@@ -89,7 +95,10 @@ class RegistryService(dalq.DalService):
                          service). 'table' (synonyms: 'tap', 'database').
           *waveband*:  the name of a desired waveband; resources returned 
                          will be restricted to those that indicate as having
-                         data in that waveband.
+                         data in that waveband.  Allowed, case-insensitive 
+                         values include 'Radio', 'Millimeter', 'Infrared'
+                         (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
+                         (synonym: 'Xray').
           *sqlpred*:   an SQL WHERE predicate (without the leading "WHERE") 
                          that further contrains the search against supported 
                          keywords.
@@ -97,7 +106,7 @@ class RegistryService(dalq.DalService):
         The result will be a RegistryResults instance.  
         """
         srch = self.create_query(keywords, servicetype, waveband, sqlpred)
-        print srch.getqueryurl()
+        # print srch.getqueryurl()
         return srch.execute()
         
     
@@ -129,7 +138,10 @@ class RegistryService(dalq.DalService):
                          'database' (synonyms: 'tap','TableAccess').
           *waveband*:  the name of a desired waveband; resources returned 
                          will be restricted to those that indicate as having
-                         data in that waveband.
+                         data in that waveband.  Allowed, case-insensitive 
+                         values include 'Radio', 'Millimeter', 'Infrared'
+                         (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
+                         (synonym: 'Xray').
           *sqlpred*:   an SQL WHERE predicate (without the leading "WHERE") 
                          that further contrains the search against supported 
                          keywords.
@@ -145,15 +157,15 @@ class RegistryService(dalq.DalService):
             srch.addkeywords(keywords)
         return srch
 
-class RegistryQuery(dalq.DalQuery):
+class RegistryQuery(dalq.DALQuery):
     """
     a representation of a registry query that can be built up over
     successive method calls and then executed.  An instance is normally
     obtained via a call to RegistrySearch.create_query()
     """
     
-#    SERVICE_NAME = "VOTCapBandPredOpt"
-    SERVICE_NAME = "VOTCapability"
+    SERVICE_NAME = "VOTCapBandPredOpt"
+#    SERVICE_NAME = "VOTCapability"
     RESULTSET_TYPE_ARG = "VOTStyleOption=2"
     ALLOWED_WAVEBANDS = "Radio Millimeter Infrared Optical UV".split() + \
         "EUV X-ray Gamma-ray".split()
@@ -199,7 +211,7 @@ class RegistryQuery(dalq.DalQuery):
            
         """
         if not baseurl:  baseurl = RegistryService.STSCI_REGISTRY_BASEURL
-        dalq.DalQuery.__init__(self, baseurl, "vaoreg", version)
+        dalq.DALQuery.__init__(self, baseurl, "vaoreg", version)
         self._kw = []          # list of individual keyword phrases
         self._preds = []       # list of SQL predicates
         self._svctype = None
@@ -302,7 +314,9 @@ class RegistryQuery(dalq.DalQuery):
         """
         the waveband to restrict the query by.  The query results will 
         include only those resourse that indicate they have data from this 
-        waveband.  Allowed values include:
+        waveband.  Allowed values include "Radio", "Millimeter", "Infrared"
+        (synonym: "IR"), "Optical", "UV", "EUV", "X-ray" (synonym: "Xray");
+        when setting, the value is case-insensitive.  
         """
         return self._band
     @waveband.setter
@@ -321,9 +335,9 @@ class RegistryQuery(dalq.DalQuery):
         _band = band
         if self.WAVEBAND_SYN.has_key(band):
             _band = self.WAVEBAND_SYN[band]
-
-        # capitalize
-        _band = _band[0].upper() + _band[1:]
+        else:
+            # capitalize
+            _band = _band[0].upper() + _band[1:]
         if _band not in self.ALLOWED_WAVEBANDS:
             raise ValueError("unrecognized waveband: " + band)
         self._band = _band
@@ -368,6 +382,35 @@ class RegistryQuery(dalq.DalQuery):
         """
         self._preds = []
 
+    def execute_votable(self):
+        """
+        submit the query and return the results as an AstroPy votable instance
+
+        :Raises:
+           *DALServiceError*: for errors connecting to or 
+                              communicating with the service
+           *DALFormatError*:  for errors parsing the VOTable response
+           *DALQueryError*:   for errors in the input query syntax
+        """
+        out = dalq.DALQuery.execute_votable(self)
+        res = dalq.DALResults(out)
+        tbl = res.votable
+
+        # We note that the server-side implementation of the service will 
+        # include all of the capability records of resource that have 
+        # capabilities of the given type.  Consequently, the results includes
+        # capabilites that are not of the requested type.
+
+        # filter out service types that don't match
+        if self.servicetype:
+            cap = self._toCapConst(self.servicetype)
+            tbl.array = \
+                _ma.array(tbl.array.data[tbl.array.data['capabilityClass']==cap],
+                     mask=tbl.array.mask[tbl.array.data['capabilityClass']==cap])
+            tbl._nrows = tbl.array.shape[0]
+
+        return out
+
     def execute(self):
         """
         submit the query and return the results as a RegistryResults
@@ -386,9 +429,9 @@ class RegistryQuery(dalq.DalQuery):
         submit the query and return the raw VOTable XML as a file stream
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   for errors in the input query syntax
+           *DALQueryError*:   for errors in the input query syntax
         """
         try:
             url = self.getqueryurl()
@@ -398,19 +441,19 @@ class RegistryQuery(dalq.DalQuery):
                 self._raiseServiceError(out.read())
             elif out.info().gettype() != "text/xml":
                 # Unexpected response
-                raise dalq.DalFormatError("Wrong response format: " + 
+                raise dalq.DALFormatError("Wrong response format: " + 
                                           out.info().gettype())
             return out
 
         except IOError, ex:
-            raise dalq.DalServiceError.from_except(ex, url)
+            raise dalq.DALServiceError.from_except(ex, url)
 
     def _raiseServiceError(self, response):
         invalidmessage = "System.InvalidOperationException: "
         outmsg = re.sub(r'\n.*', '', response).strip()
         if response.startswith(invalidmessage):
-            raise dalq.DalQueryError(outmsg[len(invalidmessage):])
-        raise dalq.DalServiceError(outmsg)
+            raise dalq.DALQueryError(outmsg[len(invalidmessage):])
+        raise dalq.DALServiceError(outmsg)
 
     def getqueryurl(self, lax=False):
         """
@@ -442,8 +485,6 @@ class RegistryQuery(dalq.DalQuery):
         if (preds):
             url += "&predicate=%s" % \
                 quote_plus(" AND ".join(map(lambda p: "(%s)" % p, preds)))
-
-        # MJG - 01/30/13: VOTCapBandPredOpt service does not like predicate=1             
         else:
             url += "&predicate="
 
@@ -477,7 +518,7 @@ class RegistryQuery(dalq.DalQuery):
             const.append(" OR ".join(keyconst))
         return "("+conjunction.join(const)+")"
 
-class RegistryResults(dalq.DalResults):
+class RegistryResults(dalq.DALResults):
     """
     an iterable set of results from a registry query.  Each record is
     returned as SimpleResource instance
@@ -491,7 +532,7 @@ class RegistryResults(dalq.DalResults):
         by directly applications; rather an instance is obtained from calling 
         a SIAQuery's execute().
         """
-        dalq.DalResults.__init__(self, votable, url, "vaoreg", version)
+        dalq.DALResults.__init__(self, votable, url, "vaoreg", version)
 
     def getrecord(self, index):
         """
@@ -517,40 +558,50 @@ class RegistryResults(dalq.DalResults):
                          number of rows in the result table.
            KeyError    if name is not a recognized column name
         """
-        out = dalq.DalResults.getvalue(self, name, index)
-        if name not in self._strarraycols:
-            return out
-        
-        if out == '': return out
-        if out[0] == '#': out = out[1:]
-        if out[-1] == '#': out = out[:-1]
-        return tuple(out.split('#'))
+        out = dalq.DALResults.getvalue(self, name, index)
+        if name in self._strarraycols:
+            out = split_str_array_cell(out)
+        return out
 
     @property
     def size(self):
         """
         the number of records returned in this result (read-only)
         """
-        return self._tbl.nrows    
+        return self.votable.nrows    
 
 
 class SimpleResource(dalq.Record):
     """
-    a dictionary for the resource attributes returned by a registry query.
-    A SimpleResource is a dictionary, so in general, all attributes can 
+    a dictionary for the resource metadata returned in one record of a 
+    registry query.
+
+    A SimpleResource acts as a dictionary, so in general, all attributes can 
     be accessed by name via the [] operator, and the attribute names can 
     by returned via the keys() function.  For convenience, it also stores 
-    key values as public python attributes; these include:
+    key values as properties; these include:
 
-       title         the title of the resource
-       shortname     the resource's short name
-       ivoid         the IVOA identifier for the resource (identifier will also work)
-       accessurl     when the resource is a service, the service's access 
-                       URL.
+    :Properties:
+       *title*:       the title of the resource
+       *shortname*:   the resource's short name
+       *ivoid*:       the IVOA identifier for the resource (identifier will 
+                         also work)
+       *accessurl*:   when the resource is a service, the service's access 
+                         URL.
     """
 
     def __init__(self, results, index):
         dalq.Record.__init__(self, results, index)
+
+    def __getitem__(self, key):
+        """
+        return a resource metadatum value with a name given by key.  This
+        version will split encoded string array values into tuples.
+        """
+        out = dalq.Record.__getitem__(self, key)
+        if key in RegistryResults._strarraycols:
+            out = split_str_array_cell(out)
+        return out
 
     @property
     def title(self):
@@ -659,7 +710,7 @@ class SimpleResource(dalq.Record):
         not a recognized DAL service.  Currently, only Conesearch, SIA, SSA,
         and SLA services are supported.  
         """
-        return _createService(self);
+        return _createService(self, True);
 
     def search(self, *args, **keys):
         """
@@ -675,14 +726,14 @@ class SimpleResource(dalq.Record):
            *RuntimeError*:   if the resource does not describe a searchable
                                 service.
         """
-        service = self.to_service()
+        service = _createService(self, False);
         if not service:
             raise RuntimeError("resource, %s, is not a searchable service" % self.shortname)
 
         return service.search(*args, **keys)
 
 _standardIDs = {
-    "ivo://ivoa.net/std/ConeSearch":  conesearch.SCSService,
+    "ivo://ivoa.net/std/ConeSearch":  scs.SCSService,
     "ivo://ivoa.net/std/SIA":  sia.SIAService,
     "ivo://ivoa.net/std/SSA":  ssa.SSAService,
     "ivo://ivoa.net/std/SLAP":  sla.SLAService,
@@ -701,3 +752,20 @@ def _createService(resource, savemeta=False):
             return serviceCls(resource.accessurl, meta)
     except Exception, ex:
         return None
+
+def split_str_array_cell(val, delim='#'):
+    """
+    split an encoded string array value into a tuple.  The VAO registry's
+    search service encodes string array values by delimiting the elements 
+    with pound signs ('#').  These delimiters also mark the start and end 
+    of the encoded value as well.  This function converts the encoded value
+    into a split tuple.
+
+    :Args:
+       *val*:     the original string value to split
+       *delim*:   the delimiter that separates the values; defaults to '#'
+    """
+    if not val: return val
+    if val[0] == '#': val = val[1:]
+    if val[-1] == '#': val = val[:-1]
+    return tuple(val.split('#'))

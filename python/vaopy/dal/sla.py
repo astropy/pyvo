@@ -1,24 +1,60 @@
 """
-The DAL Query interface specialized for Simple Line Access (SLA) services.
+A module for searching for spectral line metadata in a remote database.
+
+A Simple Line Access (SLA) service allows a client to search for
+metadata describing atomic and molecular transitions that can result
+in spectral line emission and absorption.  The service responds to a
+search query with a table in which each row represents a transition
+that matches the query constraints.  The columns provide the metadata
+describing the transition.  This module provides an interface for
+accessing an SLA service.  It is implemented as a specialization of
+the DAL Query interface.
+
+The ``search()`` function support the simplest and most common types
+of queries, returning an SLAResults instance as its results which
+represents the matching imagess from the archive.  The SLAResults
+supports access to and iterations over the individual records; these
+are provided as SLARecord instances, which give easy access to key
+metadata in the response, such as the transition title.  
+
+For more complex queries, the SLAQuery class can be helpful which 
+allows one to build up, tweak, and reuse a query.  The SLAService
+class can represent a specific service available at a URL endpoint.
 """
 
 import numbers
 import re
 from . import query
 
-__all__ = [ "sla", "SLAService", "SLAQuery" ]
+__all__ = [ "search", "SLAService", "SLAQuery" ]
 
-def sla(url, wavelength):
+def search(url, wavelength, **keywords):
     """
-    submit a simple SLA query that requests spectral lines within a wavelength range
+    submit a simple SLA query that requests spectral lines within a 
+    wavelength range
+
     :Args:
-       *url*:  the base URL for the SLA service
-       *wavelength*:  a 2-element sequence giving the wavelength spectral range to search in meters
+       *url*:         the base URL for the SLA service
+       *wavelength*:  a 2-element sequence giving the wavelength spectral 
+                         range to search in meters
+       **keywords:    additional parameters can be given via arbitrary 
+                         keyword arguments.  These can be either standard 
+                         parameters (with names drown from the 
+                         ``SSAQuery.std_parameters`` list) or paramters
+                         custom to the service.  Where there is overlap 
+                         with the parameters set by the other arguments to
+                         this function, these keywords will override.
+
+        :Raises:
+           *DALServiceError*: for errors connecting to or 
+                              communicating with the service
+           *DALQueryError*:   if the service responds with 
+                              an error, including a query syntax error.  
     """
     service = SLAService(url)
-    return service.search(wavelength)
+    return service.search(wavelength, **keywords)
 
-class SLAService(query.DalService):
+class SLAService(query.DALService):
     """
     a representation of an SLA service
     """
@@ -33,9 +69,9 @@ class SLAService(query.DalService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DalService.__init__(self, baseurl, "sla", version, resmeta)
+        query.DALService.__init__(self, baseurl, "sla", version, resmeta)
 
-    def search(self, wavelength, format=None):
+    def search(self, wavelength, format=None, **keywords):
         """
         submit a simple SLA query to this service with the given constraints.  
 
@@ -46,8 +82,10 @@ class SLAService(query.DalService):
         :Args:
            *wavelength*: a 2-element sequence giving the wavelength spectral
                            range to search in meters
-           *format*:     the spectral format(s) of interest. "metadata" indicates that no
-                           spectra should be returned--only an empty table with complete metadata.
+           *format*:     the spectral format(s) of interest. "metadata" 
+                           indicates that no spectra should be returned--only 
+                           an empty table with complete metadata.
+                           
         """
         q = self.create_query(wavelength, format)
         return q.execute()
@@ -72,7 +110,7 @@ class SLAService(query.DalService):
         if format: q.format = format
         return q
 
-class SLAQuery(query.DalQuery):
+class SLAQuery(query.DALQuery):
     """
     a class for preparing an query to an SLA service.  Query constraints
     are added via its service type-specific methods.  The various execute()
@@ -80,12 +118,17 @@ class SLAQuery(query.DalQuery):
 
     The base URL for the query can be changed via the baseurl property.
     """
+
+    std_parameters = [ "REQUEST", "VERSION", "WAVELENGTH", "CHEMICAL_ELEMENT",
+                       "INITIAL_LEVEL_ENERGY FINAL_LEVEL_ENERGY",
+                       "TEMPERATURE", "EINSTEIN_A", "PROCESS_TYPE", 
+                       "PROCESS_NAME", "FORMAT" ]
     
     def __init__(self, baseurl,  version="1.0", request="queryData"):
         """
         initialize the query object with a baseurl and request type
         """
-        query.DalQuery.__init__(self, baseurl, "sla", version)
+        query.DALQuery.__init__(self, baseurl, "sla", version)
         self.setparam("REQUEST", request)
         
     @property
@@ -140,15 +183,15 @@ class SLAQuery(query.DalQuery):
         This implimentation returns an SSAResults instance
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   if the service responds with 
+           *DALQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
         """
         return SLAResults(self.execute_votable(), self.getqueryurl())
 
 
-class SLAResults(query.DalResults):
+class SLAResults(query.DALResults):
     """
     Results from an SLA query.  It provides random access to records in 
     the response.  Alternatively, it can provide results via a Cursor 
@@ -161,7 +204,7 @@ class SLAResults(query.DalResults):
         by directly applications; rather an instance is obtained from calling 
         a SLAQuery's execute().
         """
-        query.DalResults.__init__(self, votable, url, "sla", "1.0")
+        query.DALResults.__init__(self, votable, url, "sla", "1.0")
         self._slacols = {
 
 
@@ -174,6 +217,7 @@ class SLAResults(query.DalResults):
             "ssldm:Process.type": self.fieldname_with_utype("ssldm:Process.type"),
             "ssldm:Process.name": self.fieldname_with_utype("ssldm:Process.name"),
             "ssldm:Line.identificationStatus": self.fieldname_with_utype("ssldm:Line.identificationStatus"),
+            "ssldm:Line.species.name": self.fieldname_with_utype("ssldm:Line.species.name"),
             "ssldm:Line.initialLevel.name": self.fieldname_with_utype("ssldm:Line.initialLevel.name"),
             "ssldm:Line.finalLevel.name": self.fieldname_with_utype("ssldm:Line.finalLevel.name"),
             "ssldm:Line.observedWavelength.value": self.fieldname_with_utype("ssldm:Line.observedWavelength.value"),
@@ -187,7 +231,14 @@ class SLAResults(query.DalResults):
             "char:TimeAxis.Coverage.Bounds.Start": self.fieldname_with_utype("char:TimeAxis.Coverage.Bounds.Start"),
             "char:TimeAxis.Coverage.Bounds.Stop": self.fieldname_with_utype("char:TimeAxis.Coverage.Bounds.Stop")
         }
-        self._recnames = { "title":   self._slacols["ssldm:Line.title"]}
+        self._recnames = { 
+            "title":         self._slacols["ssldm:Line.title"],
+            "wavelength":    self._slacols["ssldm:Line.wavelength.value"],
+            "status":        self._slacols["ssldm:Line.identificationStatus"],
+            "species_name":  self._slacols["ssldm:Line.species.name"],
+            "initial_level": self._slacols["ssldm:Line.initialLevel.name"],
+            "final_level":   self._slacols["ssldm:Line.finalLevel.name"]
+            }
         
         
     def getrecord(self, index):
@@ -214,9 +265,42 @@ class SLARecord(query.Record):
     @property
     def title(self):
         """
-        return the title of the image
+        a title/small description of the line transition
         """
         return self.get(self._names["title"])
 
+    @property
+    def wavelength(self):
+        """
+        the vacuum wavelength of the line in meters.
+        """
+        return self.get(self._names["wavelength"])
 
+    @property
+    def species_name(self):
+        """
+        the name of the chemical species that produces the transition.
+        """
+        return self.get(self._names["species_name"])
+
+    @property
+    def status(self):
+        """
+        the name of the chemical species that produces the transition.
+        """
+        return self.get(self._names["status"])
+
+    @property
+    def initial_level(self):
+        """
+        a description of the initial (higher energy) quantum level
+        """
+        return self.get(self._names["initial_level"])
+
+    @property
+    def final_level(self):
+        """
+        a description of the final (higher energy) quantum level
+        """
+        return self.get(self._names["final_level"])
         

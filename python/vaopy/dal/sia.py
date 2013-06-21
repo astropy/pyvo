@@ -1,13 +1,41 @@
 """
-The DAL Query interface specialized for Simple Image Access (SIA) services.
+A module for searching for images in a remote archive.
+
+A Simple Image Access (SIA) service allows a client to search for
+images in an archive whose field of view overlaps with a given
+rectangular region on the sky.  The service responds to a search query
+with a table in which each row represents an image that is available
+for download.  The columns provide metadata describing each image and
+one column in particular provides the image's download URL (also
+called the *access reference*, or *acref*).  Some SIA services act as
+a cut-out service; in this case, the query result is a table of images
+whose field of view matches the requested region and which will be
+created when accessed via the download URL.
+
+This module provides an interface for accessing an SIA service.  It is 
+implemented as a specialization of the DAL Query interface.
+
+The ``search()`` function support the simplest and most common types
+of queries, returning an SIAResults instance as its results which
+represents the matching imagess from the archive.  The SIAResults
+supports access to and iterations over the individual records; these
+are provided as SIARecord instances, which give easy access to key
+metadata in the response, such as the position of the image's center,
+the image format, the size and shape of the image, and its download
+URL.
+
+For more complex queries, the SIAQuery class can be helpful which 
+allows one to build up, tweak, and reuse a query.  The SIAService
+class can represent a specific service available at a URL endpoint.
 """
 
-import numbers
+import numbers, re
 from . import query
 
-__all__ = [ "sia", "SIAService", "SIAQuery" ]
+__all__ = [ "search", "SIAResults", "SIARecord", "SIAQuery", "SIAService" ]
 
-def sia(url, pos, size, format='all', intersect="overlaps", verbosity=2):
+def search(url, pos, size, format='all', intersect="overlaps", verbosity=2,
+           **keywords):
     """
     submit a simple SIA query that requests images overlapping a 
     :Args:
@@ -24,15 +52,28 @@ def sia(url, pos, size, format='all', intersect="overlaps", verbosity=2):
                        * can have values like "fits", "jpeg", "png", etc. 
        *intersect*:  a token indicating how the returned images should 
                        intersect with the search region
-       *verbosity*   an integer value that indicates the volume of columns
+       *verbosity*:  an integer value that indicates the volume of columns
                        to return in the result table.  0 means the minimum
                        set of columsn, 3 means as many columns as are 
                        available.  
+       **keywords:   additional parameters can be given via arbitrary 
+                       keyword arguments.  These can be either standard 
+                       parameters (with names drown from the 
+                       ``SIAQuery.std_parameters`` list) or paramters
+                       custom to the service.  Where there is overlap 
+                       with the parameters set by the other arguments to
+                       this function, these keywords will override.
+
+    :Raises:
+       *DALServiceError*: for errors connecting to or 
+                          communicating with the service
+       *DALQueryError*:   if the service responds with 
+                          an error, including a query syntax error.  
     """
     service = SIAService(url)
-    return service.search(pos, size, format, intersect, verbosity)
+    return service.search(pos, size, format, intersect, verbosity, **keywords)
 
-class SIAService(query.DalService):
+class SIAService(query.DALService):
     """
     a representation of an SIA service
     """
@@ -47,9 +88,10 @@ class SIAService(query.DalService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DalService.__init__(self, baseurl, "sia", version, resmeta)
+        query.DALService.__init__(self, baseurl, "sia", version, resmeta)
 
-    def search(self, pos, size, format='all', intersect="overlaps", verbosity=2):
+    def search(self, pos, size, format='all', intersect="overlaps", verbosity=2,
+               **keywords):
         """
         submit a simple SIA query to this service with the given constraints.  
 
@@ -72,16 +114,30 @@ class SIAService(query.DalService):
                            * can have values like "fits", "jpeg", "png", etc. 
            *intersect*:  a token indicating how the returned images should 
                            intersect with the search region
-           *verbosity*   an integer value that indicates the volume of columns
+           *verbosity*:  an integer value that indicates the volume of columns
                            to return in the result table.  0 means the minimum
                            set of columsn, 3 means as many columns as are 
                            available.  
+           **keywords:   additional parameters can be given via arbitrary 
+                           keyword arguments.  These can be either standard 
+                           parameters (with names drown from the 
+                           ``SIAQuery.std_parameters`` list) or paramters
+                           custom to the service.  Where there is overlap 
+                           with the parameters set by the other arguments to
+                           this function, these keywords will override.
+
+        :Raises:
+           *DALServiceError*: for errors connecting to or 
+                              communicating with the service
+           *DALQueryError*:   if the service responds with 
+                              an error, including a query syntax error.  
         """
-        q = self.create_query(pos, size, format, intersect, verbosity)
+        q = self.create_query(pos, size, format, intersect, verbosity, 
+                              **keywords)
         return q.execute()
 
     def create_query(self, pos=None, size=None, format=None, intersect=None, 
-                     verbosity=None):
+                     verbosity=None, **keywords):
         """
         create a query object that constraints can be added to and then 
         executed.  The input arguments will initialize the query with the 
@@ -106,6 +162,13 @@ class SIAService(query.DalService):
                            to return in the result table.  0 means the minimum
                            set of columsn, 3 means as many columns as are 
                            available.  
+           **keywords:   additional parameters can be given via arbitrary 
+                           keyword arguments.  These can be either standard 
+                           parameters (with names drown from the 
+                           ``SIAQuery.std_parameters`` list) or paramters
+                           custom to the service.  Where there is overlap 
+                           with the parameters set by the other arguments to
+                           this function, these keywords will override.
 
         :Returns: 
            *SIAQuery*:  the query instance
@@ -116,9 +179,13 @@ class SIAService(query.DalService):
         if format: q.format = format
         if intersect: q.intersect = intersect
         if verbosity is not None: q.verbosity = verbosity
+
+        for key in keywords.keys():
+            q.setparam(key, keywords[key])
+
         return q
 
-class SIAQuery(query.DalQuery):
+class SIAQuery(query.DALQuery):
     """
     a class for preparing an query to an SIA service.  Query constraints
     are added via its service type-specific methods.  The various execute()
@@ -126,13 +193,17 @@ class SIAQuery(query.DalQuery):
 
     The base URL for the query can be changed via the baseurl property.
     """
-    allowedIntersects = "COVERS ENCLOSED CENTER OVERLAPS".split()
+    std_parameters = [ "POS", "SIZE", "INTERSECT", "NAXIS", "CFRAME",
+                       "EQUINOX", "CRPIX", "CRVAL", "CDELT", "ROTANG", 
+                       "PROJ", "FORMAT", "VERB" ]
+
+    allowed_intersects = "COVERS ENCLOSED CENTER OVERLAPS".split()
 
     def __init__(self, baseurl, version="1.0"):
         """
         initialize the query object with a baseurl
         """
-        query.DalQuery.__init__(self, baseurl, "sia", version)
+        query.DALQuery.__init__(self, baseurl, "sia", version)
         
 
     @property
@@ -234,9 +305,9 @@ class SIAQuery(query.DalQuery):
     @property
     def format(self):
         """
-        the desired format of the images to be returned.  This will be in the 
-        form of a MIME-type or one of the following special values.  (Lower
-        case are accepted on setting.)
+        the desired format of the images to be returned.  This will be in 
+        the form of a MIME-type (e.g. "image/fits") or one of the following 
+        special values.  (Lower case are accepted on setting.)
         :Special Values:
            ALL:  all formats available 
            GRAPHIC:  any graphical format (e.g. JPEG, PNG, GIF)
@@ -270,7 +341,7 @@ class SIAQuery(query.DalQuery):
             raise ValueError("intersect value not a string")
 
         val = val.upper()
-        if val not in self.allowedIntersects:
+        if val not in self.allowed_intersects:
             raise ValueError("unrecogized intersect value: " + val)
 
         self.setparam("INTERSECT", val)
@@ -303,15 +374,15 @@ class SIAQuery(query.DalQuery):
         This implimentation returns an SIAResults instance
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   if the service responds with 
+           *DALQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
         """
         return SIAResults(self.execute_votable(), self.getqueryurl())
 
 
-class SIAResults(query.DalResults):
+class SIAResults(query.DALResults):
     """
     Results from an SIA query.  It provides random access to records in 
     the response.  Alternatively, it can provide results via a Cursor 
@@ -324,7 +395,7 @@ class SIAResults(query.DalResults):
         by directly applications; rather an instance is obtained from calling 
         a SIAQuery's execute().
         """
-        query.DalResults.__init__(self, votable, url, "sia", "1.0")
+        query.DALResults.__init__(self, votable, url, "sia", "1.0")
         self._siacols = { 
             "VOX:Image_Title": self.fieldname_with_ucd("VOX:Image_Title"),
             "INST_ID": self.fieldname_with_ucd("INST_ID"),
@@ -458,16 +529,27 @@ class SIARecord(query.Record):
         """
         return self.acref
 
-    def suggestExtension(self, default=None):
+    def suggest_dataset_basename(self):
+        """
+        return a default base filename that the dataset available via 
+        ``getdataset()`` can be saved as.  This function is 
+        specialized for a particular service type this record originates from
+        so that it can be used by ``cachedataset()`` via 
+        ``make_dataset_filename()``.
+        """
+        out = self.title
+        if not out:
+            out = "image"
+        else:
+            out = re.sub(r'\s+', '_', out.strip())
+        return out
+
+    def suggest_extension(self, default=None):
         """
         returns a recommended filename extension for the dataset described 
         by this record.  Typically, this would look at the column describing 
         the format and choose an extension accordingly.  
         """
-        fmt = default
-        if self.format and self.format.startswith("image/"):
-            fmt = self.format[len("image/"):]
-            if fmt == "jpeg":  fmt = "jpg"
-        return fmt
+        return query.mime2extension(self.format, default)
 
         

@@ -129,8 +129,8 @@ class SLAResultsTest(unittest.TestCase):
         self.assertEquals(self.r.protocol, "sla")
         self.assertEquals(self.r.version, "1.0")
         self.assert_(isinstance(self.r._fldnames, list))
-        self.assert_(self.r._tbl is not None)
-        self.assertEquals(self.r.rowcount, 21)
+        self.assert_(self.r.votable is not None)
+        self.assertEquals(self.r.nrecs, 21)
 
     def testUTypeMap(self):
         self.testCtor()
@@ -155,7 +155,7 @@ class SLAResultsErrorTest(unittest.TestCase):
         try:
             res = sla.SLAResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DalQueryError, ex:
+        except dalq.DALQueryError, ex:
             self.assertEquals(ex.label, "ERROR")
             self.assertEquals(ex.reason, "Forced Fail")
 
@@ -172,6 +172,11 @@ class SLARecordTest(unittest.TestCase):
 
     def testAttr(self):
         self.assertEquals(self.rec.title, "JPL: CH2OHCOCH2OH v29=1 65(10,55)-65( 9,56)")
+        self.assertAlmostEquals(self.rec.wavelength, 0.0026007993198247656)
+        self.assertEquals(self.rec.species_name, "Dihydroxyacetone")
+        self.assertTrue(self.rec.status is None)
+        self.assertTrue(self.rec.initial_level is None)
+        self.assertTrue(self.rec.final_level is None)
 
 class SLAExecuteTest(unittest.TestCase):
 
@@ -180,13 +185,13 @@ class SLAExecuteTest(unittest.TestCase):
         q.wavelength = "0.00260075/0.00260080"
         results = q.execute()
         self.assert_(isinstance(results, sla.SLAResults))
-        self.assertEquals(results.rowcount, 21)
+        self.assertEquals(results.nrecs, 21)
 
     def testSearch(self):
         srv = sla.SLAService("http://localhost:%d/sla" % testserverport)
         results = srv.search(wavelength="0.00260075/0.00260080")
         self.assert_(isinstance(results, sla.SLAResults))
-        self.assertEquals(results.rowcount, 21)
+        self.assertEquals(results.nrecs, 21)
 
         qurl = results.queryurl
         self.assert_("REQUEST=queryData" in qurl)
@@ -194,14 +199,14 @@ class SLAExecuteTest(unittest.TestCase):
 
 
     def testSla(self):
-        results = sla.sla("http://localhost:%d/sla" % testserverport,
-                          wavelength="0.00260075/0.00260080")
+        results = sla.search("http://localhost:%d/sla" % testserverport,
+                             wavelength="0.00260075/0.00260080")
         self.assert_(isinstance(results, sla.SLAResults))
-        self.assertEquals(results.rowcount, 21)
+        self.assertEquals(results.nrecs, 21)
 
     def testError(self):
         srv = sla.SLAService("http://localhost:%d/err" % testserverport)
-        self.assertRaises(dalq.DalQueryError, srv.search, "0.00260075/0.00260080")
+        self.assertRaises(dalq.DALQueryError, srv.search, "0.00260075/0.00260080")
         
 
 __all__ = "SLAServiceTest SLAQueryTest SLAResultsTest SLARecordTest SLAExecuteTest".split()

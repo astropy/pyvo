@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Sesame xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="http://vizier.u-strasbg.fr/xml/sesame_4x.xsd">
+<Target option="VSNA">
+  <name>ngc 4258</name>
+  <!-- Q28643906 #1 -->
+  <Resolver name="V=VizieR (local)" code='VII/1B/catalog'>
+    <INFO>from cache</INFO>
+    <jpos>12:18.9     +47:19     </jpos>
+    <jradeg>184.73</jradeg>
+    <jdedeg>+47.31</jdedeg>
+    <oname>{NGC} 4258</oname>
+  </Resolver>
+  <Resolver name="S=Simbad (CDS, via client/server)">
+    <oid>@609478</oid>
+    <otype>LIN</otype>
+    <jpos>12:18:57.61 +47:18:13.3</jpos>
+    <jradeg>184.74008333</jradeg>
+    <jdedeg>47.30371944</jdedeg>
+    <refPos>2006AJ....131.1163S</refPos>
+    <z><v>0.001541</v><e>0.000090</e><q>D</q><r>2002LEDA.........0P</r></z>
+    <MType>3</MType>
+    <oname>M 106</oname>
+    <alias>M 106</alias>
+    <alias>B3 1216+475</alias>
+    <alias>GB1 1216+476</alias>
+    <alias>LEDA 39600</alias>
+    <alias>2MASX J12185761+4718133</alias>
+    <alias>MCG+08-22-104</alias>
+    <alias>NGC 4258</alias>
+    <alias>OHIO N 427</alias>
+    <alias>PBC J1218.9+4718</alias>
+    <alias>1RXP J121856.4+471755</alias>
+    <alias>RX J1219.0+4717</alias>
+    <alias>RX J1218.9+4718</alias>
+    <alias>1RXS J121900.4+471747</alias>
+    <alias>SAX J1219.7+4721</alias>
+    <alias>SWIFT J1219.4+4720</alias>
+    <alias>SWIFT J1219.0+4715</alias>
+    <alias>UGC 7353</alias>
+    <alias>UZC J121857.7+471820</alias>
+    <alias>VV 448</alias>
+    <alias>XSS J12190+4715</alias>
+    <alias>Z 243-67</alias>
+    <alias>Z 244-3</alias>
+    <alias>Z 1216.5+4735</alias>
+    <alias>[CHM2007] HDC 706 J121857.61+4718133</alias>
+    <alias>[CHM2007] LDC 867 J121857.61+4718133</alias>
+    <alias>[CPF88] 121629.0+473500.0</alias>
+    <alias>[KRL2007b] 111</alias>
+    <alias>[M98c] 121629.7+473455</alias>
+    <alias>[VDD93] 154</alias>
+    <alias>[VV2000c] J121857.5+471814</alias>
+    <alias>[VV2003c] J121857.5+471814</alias>
+    <alias>[VV2006c] J121857.5+471814</alias>
+    <alias>[VV2010c] J121857.5+471814</alias>
+    <alias>[VV98c] J121857.5+471814</alias>
+    <alias>[ZEH2003] RX J1219.0+4717 1</alias>
+    <nrefs>1630</nrefs>
+  </Resolver>
+  <Resolver name="N=NED">
+    <otype>G</otype>
+    <jpos>12:18:57.50 +47:18:14.3</jpos>
+    <jradeg>184.7396025</jradeg>
+    <jdedeg>+47.3039731</jdedeg>
+    <refPos>2005ApJ...629..719H</refPos>
+    <errRAmas>7.70</errRAmas><errDEmas>7.50</errDEmas>
+    <Vel><v>447.89000</v><e>2.99793</e><r>1991RC3.9.C...0000d</r></Vel>
+    <MType>SAB(s)bc;LINER</MType>
+    <oname>MESSIER 106 </oname>
+    <alias>NGC 4258</alias>
+    <alias>UGC 07353</alias>
+    <alias>VV 448</alias>
+    <alias>CGCG 243-067</alias>
+    <alias>CGCG 244-003</alias>
+    <alias>CGCG 1216.5+4735</alias>
+    <alias>MCG +08-22-104</alias>
+    <alias>B3 1216+475</alias>
+    <alias>2MASX J12185761+4718133</alias>
+    <alias>2MASXi J1218574+471814</alias>
+    <alias>AKARI J1218583+471830</alias>
+    <alias>LDCE 0867 NED099</alias>
+    <alias>HDCE 0706 NED056</alias>
+    <alias>USGC U480 NED23</alias>
+    <alias>HOLM 363A</alias>
+    <alias>PGC 039600</alias>
+    <alias>UZC J121857.7+471820</alias>
+    <alias>87GB 121625.0+473537</alias>
+    <alias>87GB[BWE91] 1216+4735</alias>
+    <alias>[WB92] 1216+4735</alias>
+    <alias>VLSS J1218.9+4718</alias>
+    <alias>6C B121624.5+473456</alias>
+    <alias>GB1 1216+475</alias>
+    <alias>RX J121857.8+471813</alias>
+    <alias>RX J1219.0+4717</alias>
+    <alias>1RXS J121900.4+471747</alias>
+    <alias>1RXP J121856.4+471755</alias>
+    <alias>2PBC J1218.9+4718</alias>
+    <alias>2XMM J121857.5+471814</alias>
+    <alias>2XMMp J121857.5+471814</alias>
+    <alias>1AXG J121856+4718</alias>
+    <alias>XSS J12190+4715</alias>
+    <alias>CXO J121857.50+471814.3</alias>
+    <alias>SWIFT J1219.0+4715</alias>
+    <alias>SWIFT J1219.4+4720</alias>
+    <alias>LGG 290:[G93] 004</alias>
+    <alias>NGC 4258:[CPH93] 50C</alias>
+    <alias>NGC 4258:[TH94] 10</alias>
+    <alias>[M98j] 170 NED52</alias>
+    <alias>RX J1219.0+4717:[BEV98] 001</alias>
+    <alias>NGC 4258:[VP99a] X18</alias>
+    <alias>NGC 4258:[RW2000] X-06</alias>
+    <alias>[VCV2001] J121857.5+471814</alias>
+    <alias>[CHP2004] J121857.4+471812</alias>
+    <alias>[VCV2006] J121857.5+471814</alias>
+    <alias>[KRL2007] 111</alias>
+    <alias>NGC 4258:[L2011a] X0001</alias>
+    <alias>1216+4735</alias>
+    <alias>1216+475</alias>
+    <alias>LEDA 039600</alias>
+    <nrefs>908</nrefs>
+  </Resolver>
+</Target>
+<Target option="VSNA">
+  <name>goober</name>
+  <!-- Q28643906 #2 -->
+  <Resolver name="V=VizieR (local)">
+    <INFO>Zero (0) answers</INFO>
+  </Resolver>
+  <Resolver name="S=Simbad (CDS, via client/server)">
+    <INFO> *** Nothing found *** </INFO>
+  </Resolver>
+  <Resolver name="N=NED">
+    <INFO>Zero (0) answers</INFO>
+  </Resolver>
+</Target>
+<Target option="VSNA">
+  <name>ngc4258</name>
+  <!-- Q28643906 #3 -->
+  <Resolver name="V=VizieR (local)" code='VII/1B/catalog'>
+    <jpos>12:18.9     +47:19     </jpos>
+    <jradeg>184.73</jradeg>
+    <jdedeg>+47.31</jdedeg>
+    <oname>{NGC} 4258</oname>
+  </Resolver>
+  <Resolver name="S=Simbad (CDS, via client/server)">
+    <oid>@609478</oid>
+    <otype>LIN</otype>
+    <jpos>12:18:57.61 +47:18:13.3</jpos>
+    <jradeg>184.74008333</jradeg>
+    <jdedeg>47.30371944</jdedeg>
+    <refPos>2006AJ....131.1163S</refPos>
+    <z><v>0.001541</v><e>0.000090</e><q>D</q><r>2002LEDA.........0P</r></z>
+    <MType>3</MType>
+    <oname>M 106</oname>
+    <alias>M 106</alias>
+    <alias>B3 1216+475</alias>
+    <alias>GB1 1216+476</alias>
+    <alias>LEDA 39600</alias>
+    <alias>2MASX J12185761+4718133</alias>
+    <alias>MCG+08-22-104</alias>
+    <alias>NGC 4258</alias>
+    <alias>OHIO N 427</alias>
+    <alias>PBC J1218.9+4718</alias>
+    <alias>1RXP J121856.4+471755</alias>
+    <alias>RX J1219.0+4717</alias>
+    <alias>RX J1218.9+4718</alias>
+    <alias>1RXS J121900.4+471747</alias>
+    <alias>SAX J1219.7+4721</alias>
+    <alias>SWIFT J1219.4+4720</alias>
+    <alias>SWIFT J1219.0+4715</alias>
+    <alias>UGC 7353</alias>
+    <alias>UZC J121857.7+471820</alias>
+    <alias>VV 448</alias>
+    <alias>XSS J12190+4715</alias>
+    <alias>Z 243-67</alias>
+    <alias>Z 244-3</alias>
+    <alias>Z 1216.5+4735</alias>
+    <alias>[CHM2007] HDC 706 J121857.61+4718133</alias>
+    <alias>[CHM2007] LDC 867 J121857.61+4718133</alias>
+    <alias>[CPF88] 121629.0+473500.0</alias>
+    <alias>[KRL2007b] 111</alias>
+    <alias>[M98c] 121629.7+473455</alias>
+    <alias>[VDD93] 154</alias>
+    <alias>[VV2000c] J121857.5+471814</alias>
+    <alias>[VV2003c] J121857.5+471814</alias>
+    <alias>[VV2006c] J121857.5+471814</alias>
+    <alias>[VV2010c] J121857.5+471814</alias>
+    <alias>[VV98c] J121857.5+471814</alias>
+    <alias>[ZEH2003] RX J1219.0+4717 1</alias>
+    <nrefs>1630</nrefs>
+  </Resolver>
+  <Resolver name="N=NED">
+    <otype>G</otype>
+    <jpos>12:18:57.50 +47:18:14.3</jpos>
+    <jradeg>184.7396025</jradeg>
+    <jdedeg>+47.3039731</jdedeg>
+    <refPos>2005ApJ...629..719H</refPos>
+    <errRAmas>7.70</errRAmas><errDEmas>7.50</errDEmas>
+    <Vel><v>447.89000</v><e>2.99793</e><r>1991RC3.9.C...0000d</r></Vel>
+    <MType>SAB(s)bc;LINER</MType>
+    <oname>MESSIER 106 </oname>
+    <alias>NGC 4258</alias>
+    <alias>UGC 07353</alias>
+    <alias>VV 448</alias>
+    <alias>CGCG 243-067</alias>
+    <alias>CGCG 244-003</alias>
+    <alias>CGCG 1216.5+4735</alias>
+    <alias>MCG +08-22-104</alias>
+    <alias>B3 1216+475</alias>
+    <alias>2MASX J12185761+4718133</alias>
+    <alias>2MASXi J1218574+471814</alias>
+    <alias>AKARI J1218583+471830</alias>
+    <alias>LDCE 0867 NED099</alias>
+    <alias>HDCE 0706 NED056</alias>
+    <alias>USGC U480 NED23</alias>
+    <alias>HOLM 363A</alias>
+    <alias>PGC 039600</alias>
+    <alias>UZC J121857.7+471820</alias>
+    <alias>87GB 121625.0+473537</alias>
+    <alias>87GB[BWE91] 1216+4735</alias>
+    <alias>[WB92] 1216+4735</alias>
+    <alias>VLSS J1218.9+4718</alias>
+    <alias>6C B121624.5+473456</alias>
+    <alias>GB1 1216+475</alias>
+    <alias>RX J121857.8+471813</alias>
+    <alias>RX J1219.0+4717</alias>
+    <alias>1RXS J121900.4+471747</alias>
+    <alias>1RXP J121856.4+471755</alias>
+    <alias>2PBC J1218.9+4718</alias>
+    <alias>2XMM J121857.5+471814</alias>
+    <alias>2XMMp J121857.5+471814</alias>
+    <alias>1AXG J121856+4718</alias>
+    <alias>XSS J12190+4715</alias>
+    <alias>CXO J121857.50+471814.3</alias>
+    <alias>SWIFT J1219.0+4715</alias>
+    <alias>SWIFT J1219.4+4720</alias>
+    <alias>LGG 290:[G93] 004</alias>
+    <alias>NGC 4258:[CPH93] 50C</alias>
+    <alias>NGC 4258:[TH94] 10</alias>
+    <alias>[M98j] 170 NED52</alias>
+    <alias>RX J1219.0+4717:[BEV98] 001</alias>
+    <alias>NGC 4258:[VP99a] X18</alias>
+    <alias>NGC 4258:[RW2000] X-06</alias>
+    <alias>[VCV2001] J121857.5+471814</alias>
+    <alias>[CHP2004] J121857.4+471812</alias>
+    <alias>[VCV2006] J121857.5+471814</alias>
+    <alias>[KRL2007] 111</alias>
+    <alias>NGC 4258:[L2011a] X0001</alias>
+    <alias>1216+4735</alias>
+    <alias>1216+475</alias>
+    <alias>LEDA 039600</alias>
+    <nrefs>908</nrefs>
+  </Resolver>
+</Target>
+</Sesame>
+<!--- ====Done (2013-Jun-09,05:15:08z)==== -->
