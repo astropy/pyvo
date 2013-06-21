@@ -12,10 +12,7 @@ testserverport = 8081
 
 tests = []
 for t in [
-    "testQueryNoNet",
-    "testSIA",
-    "testSSA",
-    "testCS",
+    "testSIANeedsNet",
     ]:
     try:
         mod = imp.find_module(t, [testdir])
@@ -27,25 +24,6 @@ for t in [
 
 testsuite = unittest.TestSuite(tests)
 
-try:
-    t = "aTestSIAServer"
-    mod = imp.find_module(t, [testdir])
-    testserver = imp.load_module(t, mod[0], mod[1], mod[2])
-    testserver.testdir = testdir
-except ImportError, e:
-    print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
-
-def suite():
-    return testsuite
-
 if __name__ == "__main__":
-    ok = False
-    srvr = testserver.TestServer(testserverport)
-    try:
-        srvr.start()
-        ok = unittest.TextTestRunner().run(testsuite).wasSuccessful()
-    finally:
-        if srvr.isAlive():
-            srvr.shutdown()
+    ok = unittest.TextTestRunner().run(testsuite).wasSuccessful()
     sys.exit(int(not ok))
-
