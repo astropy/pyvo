@@ -130,7 +130,7 @@ class SLAResultsTest(unittest.TestCase):
         self.assertEquals(self.r.version, "1.0")
         self.assert_(isinstance(self.r._fldnames, list))
         self.assert_(self.r.votable is not None)
-        self.assertEquals(self.r.rowcount, 21)
+        self.assertEquals(self.r.nrecs, 21)
 
     def testUTypeMap(self):
         self.testCtor()
@@ -185,13 +185,13 @@ class SLAExecuteTest(unittest.TestCase):
         q.wavelength = "0.00260075/0.00260080"
         results = q.execute()
         self.assert_(isinstance(results, sla.SLAResults))
-        self.assertEquals(results.rowcount, 21)
+        self.assertEquals(results.nrecs, 21)
 
     def testSearch(self):
         srv = sla.SLAService("http://localhost:%d/sla" % testserverport)
         results = srv.search(wavelength="0.00260075/0.00260080")
         self.assert_(isinstance(results, sla.SLAResults))
-        self.assertEquals(results.rowcount, 21)
+        self.assertEquals(results.nrecs, 21)
 
         qurl = results.queryurl
         self.assert_("REQUEST=queryData" in qurl)
@@ -202,7 +202,7 @@ class SLAExecuteTest(unittest.TestCase):
         results = sla.search("http://localhost:%d/sla" % testserverport,
                              wavelength="0.00260075/0.00260080")
         self.assert_(isinstance(results, sla.SLAResults))
-        self.assertEquals(results.rowcount, 21)
+        self.assertEquals(results.nrecs, 21)
 
     def testError(self):
         srv = sla.SLAService("http://localhost:%d/err" % testserverport)

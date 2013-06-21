@@ -287,7 +287,7 @@ class SIAResultsTest(unittest.TestCase):
         self.assertEquals(self.r.version, "1.0")
         self.assert_(isinstance(self.r._fldnames, list))
         self.assert_(self.r.votable is not None)
-        self.assertEquals(self.r.rowcount, 2)
+        self.assertEquals(self.r.nrecs, 2)
 
     def testUCDMap(self):
         self.testCtor()
@@ -360,13 +360,13 @@ class SIAExecuteTest(unittest.TestCase):
         q.format = "all"
         results = q.execute()
         self.assert_(isinstance(results, sia.SIAResults))
-        self.assertEquals(results.rowcount, 2)
+        self.assertEquals(results.nrecs, 2)
 
     def testSearch(self):
         srv = sia.SIAService("http://localhost:%d/sia" % testserverport)
         results = srv.search(pos=(0,0), size=(1.0,1.0))
         self.assert_(isinstance(results, sia.SIAResults))
-        self.assertEquals(results.rowcount, 2)
+        self.assertEquals(results.nrecs, 2)
 
         qurl = results.queryurl
         # print qurl
@@ -381,7 +381,7 @@ class SIAExecuteTest(unittest.TestCase):
         results = sia.search("http://localhost:%d/sia" % testserverport,
                              pos=(0,0), size=(1.0,1.0))
         self.assert_(isinstance(results, sia.SIAResults))
-        self.assertEquals(results.rowcount, 2)
+        self.assertEquals(results.nrecs, 2)
 
     def testError(self):
         srv = sia.SIAService("http://localhost:%d/err" % testserverport)

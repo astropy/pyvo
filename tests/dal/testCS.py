@@ -153,8 +153,8 @@ class CSResultsTest(unittest.TestCase):
         self.assertEquals(self.r.protocol, "scs")
         self.assertEquals(self.r.version, "1.0")
         self.assert_(isinstance(self.r._fldnames, list))
-        self.assert_(self.r._tbl is not None)
-        self.assertEquals(self.r.rowcount, 2)
+        self.assert_(self.r.votable is not None)
+        self.assertEquals(self.r.nrecs, 2)
 
     def testUCDMap(self):
         self.testCtor()
@@ -235,13 +235,13 @@ class CSExecuteTest(unittest.TestCase):
         q.radius = 0.25
         results = q.execute()
         self.assert_(isinstance(results, cs.SCSResults))
-        self.assertEquals(results.rowcount, 2)
+        self.assertEquals(results.nrecs, 2)
 
     def testSearch(self):
         srv = cs.SCSService(self.baseurl % testserverport)
         results = srv.search(pos=(0.0, 0.0), radius=0.25)
         self.assert_(isinstance(results, cs.SCSResults))
-        self.assertEquals(results.rowcount, 2)
+        self.assertEquals(results.nrecs, 2)
 
         qurl = results.queryurl
         # print qurl
@@ -256,7 +256,7 @@ class CSExecuteTest(unittest.TestCase):
         results = cs.search(self.baseurl % testserverport, 
                             pos=(0.0, 0.0), radius=0.25)
         self.assert_(isinstance(results, cs.SCSResults))
-        self.assertEquals(results.rowcount, 2)
+        self.assertEquals(results.nrecs, 2)
         
 
 __all__ = "SCSServiceTest SCSQueryTest CSResultsTest CSRecordTest CSExecuteTest".split()

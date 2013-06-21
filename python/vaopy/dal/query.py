@@ -431,14 +431,14 @@ class DalResults(object):
         return self._url
 
     @property
-    def rowcount(self):
+    def nrecs(self):
         """
         the number of records returned in this result (read-only)
         """
         return self.votable.nrows
 
     def __len__(self):
-        return self.rowcount
+        return self.nrecs
 
     def __getitem__(self, indx):
         """

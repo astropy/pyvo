@@ -173,9 +173,9 @@ class DalResultsTest(unittest.TestCase):
 
     def testProps(self):
         self.testCtor()
-        self.assertEquals(self.result.rowcount, 2)
+        self.assertEquals(self.result.nrecs, 2)
         try:
-            self.result.rowcount = 4
+            self.result.nrecs = 4
             self.fail("size is not read-only")
         except AttributeError:
             pass
@@ -474,7 +474,7 @@ class QueryExecuteTest(unittest.TestCase):
         # pdb.set_trace()
         results = q.execute()
         self.assert_(isinstance(results, dalq.DalResults))
-        self.assertEquals(results.rowcount, 2)
+        self.assertEquals(results.nrecs, 2)
 
     def testExecuteStream(self):
         q = dalq.DalQuery("http://localhost:%d/sia" % testserverport)

@@ -245,7 +245,7 @@ class SSAResultsTest(unittest.TestCase):
         self.assertEquals(self.r.version, "1.0")
         self.assert_(isinstance(self.r._fldnames, list))
         self.assert_(self.r.votable is not None)
-        self.assertEquals(self.r.rowcount, 35)
+        self.assertEquals(self.r.nrecs, 35)
 
     def testUTypeMap(self):
         self.testCtor()
@@ -314,13 +314,13 @@ class SSAExecuteTest(unittest.TestCase):
         q.format = "all"
         results = q.execute()
         self.assert_(isinstance(results, ssa.SSAResults))
-        self.assertEquals(results.rowcount, 35)
+        self.assertEquals(results.nrecs, 35)
 
     def testSearch(self):
         srv = ssa.SSAService("http://localhost:%d/ssa" % testserverport)
         results = srv.search(pos=(0,0), size=1.0)
         self.assert_(isinstance(results, ssa.SSAResults))
-        self.assertEquals(results.rowcount, 35)
+        self.assertEquals(results.nrecs, 35)
 
         qurl = results.queryurl
         # print qurl
@@ -334,7 +334,7 @@ class SSAExecuteTest(unittest.TestCase):
         results = ssa.search("http://localhost:%d/ssa" % testserverport,
                              pos=(0,0), size=1.0)
         self.assert_(isinstance(results, ssa.SSAResults))
-        self.assertEquals(results.rowcount, 35)
+        self.assertEquals(results.nrecs, 35)
 
     def testError(self):
         srv = ssa.SSAService("http://localhost:%d/err" % testserverport)
