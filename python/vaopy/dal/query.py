@@ -438,12 +438,15 @@ class DalResults(object):
         return self.votable.nrows
 
     def __len__(self):
+        """
+        return the value of the nrecs property
+        """
         return self.nrecs
 
     def __getitem__(self, indx):
         """
-        if indx is a string, r[indx] will return the field with the name of indx;
-        if indx is an integer, r[indx] will return the indx-th record.  
+        if indx is a string, r[indx] will return the field with the name of 
+        indx; if indx is an integer, r[indx] will return the indx-th record.  
         """
         if isinstance(indx, int):
             return self.getrecord(indx)
