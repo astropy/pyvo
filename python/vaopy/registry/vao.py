@@ -559,13 +559,9 @@ class RegistryResults(dalq.DALResults):
            KeyError    if name is not a recognized column name
         """
         out = dalq.DALResults.getvalue(self, name, index)
-        if name not in self._strarraycols:
-            return out
-        
-        if out == '': return out
-        if out[0] == '#': out = out[1:]
-        if out[-1] == '#': out = out[:-1]
-        return tuple(out.split('#'))
+        if name in self._strarraycols:
+            out = split_str_array_cell(out)
+        return out
 
     @property
     def size(self):
@@ -577,21 +573,35 @@ class RegistryResults(dalq.DALResults):
 
 class SimpleResource(dalq.Record):
     """
-    a dictionary for the resource attributes returned by a registry query.
-    A SimpleResource is a dictionary, so in general, all attributes can 
+    a dictionary for the resource metadata returned in one record of a 
+    registry query.
+
+    A SimpleResource acts as a dictionary, so in general, all attributes can 
     be accessed by name via the [] operator, and the attribute names can 
     by returned via the keys() function.  For convenience, it also stores 
-    key values as public python attributes; these include:
+    key values as properties; these include:
 
-       title         the title of the resource
-       shortname     the resource's short name
-       ivoid         the IVOA identifier for the resource (identifier will also work)
-       accessurl     when the resource is a service, the service's access 
-                       URL.
+    :Properties:
+       *title*:       the title of the resource
+       *shortname*:   the resource's short name
+       *ivoid*:       the IVOA identifier for the resource (identifier will 
+                         also work)
+       *accessurl*:   when the resource is a service, the service's access 
+                         URL.
     """
 
     def __init__(self, results, index):
         dalq.Record.__init__(self, results, index)
+
+    def __getitem__(self, key):
+        """
+        return a resource metadatum value with a name given by key.  This
+        version will split encoded string array values into tuples.
+        """
+        out = dalq.Record.__getitem__(self, key)
+        if key in RegistryResults._strarraycols:
+            out = split_str_array_cell(out)
+        return out
 
     @property
     def title(self):
@@ -742,3 +752,20 @@ def _createService(resource, savemeta=False):
             return serviceCls(resource.accessurl, meta)
     except Exception, ex:
         return None
+
+def split_str_array_cell(val, delim='#'):
+    """
+    split an encoded string array value into a tuple.  The VAO registry's
+    search service encodes string array values by delimiting the elements 
+    with pound signs ('#').  These delimiters also mark the start and end 
+    of the encoded value as well.  This function converts the encoded value
+    into a split tuple.
+
+    :Args:
+       *val*:     the original string value to split
+       *delim*:   the delimiter that separates the values; defaults to '#'
+    """
+    if not val: return val
+    if val[0] == '#': val = val[1:]
+    if val[-1] == '#': val = val[:-1]
+    return tuple(val.split('#'))

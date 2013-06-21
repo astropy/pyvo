@@ -615,8 +615,8 @@ class Record(object):
 
     def get(self, key, default=None):
         try:
-            return self.rec.__getitem__(key)
-        except IndexError:
+            return self.__getitem__(key)
+        except KeyError:
             return default
 
     def __contains__(self, key):
