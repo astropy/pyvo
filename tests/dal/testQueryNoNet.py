@@ -169,7 +169,7 @@ class DalResultsTest(unittest.TestCase):
     def testCtor(self):
         self.result = dalq.DalResults(self.tbl)
         self.assert_(isinstance(self.result._fldnames, list))
-        self.assert_(self.result._tbl is not None)
+        self.assert_(self.result.votable is not None)
 
     def testProps(self):
         self.testCtor()
@@ -571,7 +571,7 @@ class CursorTest(unittest.TestCase):
     def testCtor(self):
         self.result = dalq.DalResults(self.tbl)
         self.assert_(isinstance(self.result._fldnames, list))
-        self.assert_(self.result._tbl is not None)
+        self.assert_(self.result.votable is not None)
         self.cursor = self.result.cursor()
 
     def testCursor(self):

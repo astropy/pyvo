@@ -394,7 +394,7 @@ class RegistryQuery(dalq.DalQuery):
         """
         out = dalq.DalQuery.execute_votable(self)
         res = dalq.DalResults(out)
-        tbl = res._tbl
+        tbl = res.votable
 
         # We note that the server-side implementation of the service will 
         # include all of the capability records of resource that have 
@@ -572,7 +572,7 @@ class RegistryResults(dalq.DalResults):
         """
         the number of records returned in this result (read-only)
         """
-        return self._tbl.nrows    
+        return self.votable.nrows    
 
 
 class SimpleResource(dalq.Record):

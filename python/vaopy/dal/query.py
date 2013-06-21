@@ -62,10 +62,10 @@ class DalService(object):
         self._version = version
         self._desc = {}
         if resmeta and isinstance(resmeta, dict):
-            # since this is might (likely) a Record object, we need to hand
-            # copy it (as the astropy votable bits won't deepcopy).
+            # since this might be (rather, is likely) a Record object, we need 
+            # to hand copy it (as the astropy votable bits won't deepcopy).
             for key in resmeta.keys():
-                self._desc[key] = resmeta[key]  # assuming primitive values
+                self._desc[key] = resmeta[key]  # assuming immutable values
 
     @property
     def baseurl(self):
@@ -311,6 +311,16 @@ class DalResults(object):
         initialize the cursor.  This constructor is not typically called 
         by directly applications; rather an instance is obtained from calling 
         a DalQuery's execute().
+
+        :Args:
+           *votable*:    the service response parsed into an
+                           astropy.io.votable.tree.VOTableFile instance.
+           *url*:        the URL that produced the response
+           *protocol*:   the name of the protocol that this response 
+                           (supposedly) complies with
+           *version*:    the version of the protocol that this response 
+                           (supposedly) complies with
+
         :Raises:
            *DalFormatError*:  if the response VOTable does not contain a 
                                 response table
@@ -323,8 +333,8 @@ class DalResults(object):
             raise DalQueryError(self._status[1], self._status[0], url,
                                 self.protocol, self.version)
 
-        self._tbl = self._findresultstable(votable)
-        if not self._tbl:
+        self.votable = self._findresultstable(votable)
+        if not self.votable:
             raise DalFormatError(reason="VOTable response missing results table",
                                  url=self._url)
         self._fldnames = []
@@ -425,7 +435,20 @@ class DalResults(object):
         """
         the number of records returned in this result (read-only)
         """
-        return self._tbl.nrows
+        return self.votable.nrows
+
+    def __len__(self):
+        return self.rowcount
+
+    def __getitem__(self, indx):
+        """
+        if indx is a string, r[indx] will return the field with the name of indx;
+        if indx is an integer, r[indx] will return the indx-th record.  
+        """
+        if isinstance(indx, int):
+            return self.getrecord(indx)
+        else:
+            return self.getcolumn(indx)
 
     def fielddesc(self):
         """
@@ -433,7 +456,7 @@ class DalResults(object):
         object with attributes corresponding the the VOTable FIELD attributes,
         namely: name, id, type, ucd, utype, arraysize, description
         """
-        return self._tbl.fields
+        return self.votable.fields
 
     def fieldnames(self):
         """
@@ -480,7 +503,7 @@ class DalResults(object):
         """
         if name not in self.fieldnames():
             raise ValueError("No such column name: " + name)
-        return self._tbl.array[name]
+        return self.votable.array[name]
 
     def getrecord(self, index):
         """
@@ -511,7 +534,7 @@ class DalResults(object):
                          number of rows in the result table.
            KeyError    if name is not a recognized column name
         """
-        return self._tbl.array[name][index]
+        return self.votable.array[name][index]
 
     def getdesc(self, name):
         """
@@ -527,7 +550,7 @@ class DalResults(object):
         """
         if name not in self._fldnames:
             raise KeyError(name)
-        return self._tbl.get_field_by_id_or_name(name)
+        return self.votable.get_field_by_id_or_name(name)
 
     def __iter__(self):
         """
@@ -560,7 +583,7 @@ class Iter(object):
         except IndexError:
             raise StopIteration()
 
-class Record(dict):
+class Record(object):
     """
     one record from a DAL query result.  The column values are accessible 
     as dictionary items.  It also provides special added functions for 
@@ -573,10 +596,48 @@ class Record(dict):
         if not self._fdesc: 
             self._fdesc = {}
         if results:
-            for fld in results.fieldnames():
-                self[fld] = results.getvalue(fld, index)
-                if fielddesc is None:
+            self.rec = results.votable.array.data[index]
+            if fielddesc is None:
+                for fld in results.fieldnames():
                     self._fdesc[fld] = results.getdesc(fld)
+
+    def __len__(self):
+        return len(self.rec.dtype.names)
+
+    def __getitem__(self, key):
+        try:
+            return self.rec.__getitem__(key)
+        except IndexError:
+            raise KeyError(key)
+
+    def get(self, key, default=None):
+        try:
+            return self.rec.__getitem__(key)
+        except IndexError:
+            return default
+
+    def __contains__(self, key):
+        return self.has_key(key)
+
+    def has_key(self, key):
+        return self.rec.dtype.names
+
+    def keys(self):
+        return tuple(self.iterkeys())
+    def items(self):
+        return tuple(self.iteritems())
+    def values(self):
+        return tuple(self.itervalues())
+
+    def iteritems(self):
+        for key in self.rec.dtype.names:
+            yield (key, self.__getitem__(key))
+    def iterkeys(self):
+        for key in self.rec.dtype.names:
+            yield key
+    def itervalues(self):
+        for key in self.rec.dtype.names:
+            yield self.__getitem__(key)
 
     def fielddesc(self, name):
         """
@@ -592,11 +653,11 @@ class Record(dict):
         to retrieve the dataset described by this record.  None is returned
         if no such column exists.
         """
-        for fld in self._fdesc:
-            if fld.utype.contains("Access.Reference") or \
-               (fld.ucd.contains("meta.dataset") and \
-               fld.ucd.contains("meta.ref.url")):
-                return self[fld]
+        for name,fld in self._fdesc.iteritems():
+            if (fld.utype and "Access.Reference" in fld.utype) or \
+               (fld.ucd   and "meta.dataset" in fld.ucd 
+                          and "meta.ref.url" in fld.ucd):
+                return self[name]
         return None
 
     def getdataset(self, timeout=None):

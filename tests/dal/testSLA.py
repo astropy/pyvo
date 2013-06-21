@@ -129,7 +129,7 @@ class SLAResultsTest(unittest.TestCase):
         self.assertEquals(self.r.protocol, "sla")
         self.assertEquals(self.r.version, "1.0")
         self.assert_(isinstance(self.r._fldnames, list))
-        self.assert_(self.r._tbl is not None)
+        self.assert_(self.r.votable is not None)
         self.assertEquals(self.r.rowcount, 21)
 
     def testUTypeMap(self):
