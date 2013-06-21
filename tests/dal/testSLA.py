@@ -155,7 +155,7 @@ class SLAResultsErrorTest(unittest.TestCase):
         try:
             res = sla.SLAResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DalQueryError, ex:
+        except dalq.DALQueryError, ex:
             self.assertEquals(ex.label, "ERROR")
             self.assertEquals(ex.reason, "Forced Fail")
 
@@ -206,7 +206,7 @@ class SLAExecuteTest(unittest.TestCase):
 
     def testError(self):
         srv = sla.SLAService("http://localhost:%d/err" % testserverport)
-        self.assertRaises(dalq.DalQueryError, srv.search, "0.00260075/0.00260080")
+        self.assertRaises(dalq.DALQueryError, srv.search, "0.00260075/0.00260080")
         
 
 __all__ = "SLAServiceTest SLAQueryTest SLAResultsTest SLARecordTest SLAExecuteTest".split()

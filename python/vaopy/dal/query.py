@@ -19,8 +19,8 @@ other externally defined table.  In this case there is no VO defined
 standard data model.  Usually the field names are used to uniquely
 identify table columns.
 """
-__all__ = [ "ensure_baseurl", "DalAccessError", "DalProtocolError",
-            "DalFormatError", "DalServiceError", "DalQueryError"   ]
+__all__ = [ "ensure_baseurl", "DALAccessError", "DALProtocolError",
+            "DALFormatError", "DALServiceError", "DALQueryError"   ]
 
 import copy, os, re, warnings, socket
 from urllib2 import urlopen, URLError, HTTPError
@@ -38,7 +38,7 @@ def ensure_baseurl(url):
     else:
         return url+'?'
 
-class DalService(object):
+class DALService(object):
     """
     an abstract base class representing a DAL service located a particular 
     endpoint.
@@ -103,14 +103,14 @@ class DalService(object):
         This implementation has no knowledge of the type of service being 
         queried.  The query parameters are given as arbitrary keywords which 
         will be assumed to be understood by the service (i.e. there is no
-        argument checking).  The response is a generic DalResults object.  
+        argument checking).  The response is a generic DALResults object.  
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   for errors either in the input query syntax or 
+           *DALQueryError*:   for errors either in the input query syntax or 
                               other user errors detected by the service
-           *DalFormatError*:  for errors parsing the VOTable response
+           *DALFormatError*:  for errors parsing the VOTable response
         """
         q = create_query(**keywords)
         return q.execute()
@@ -122,13 +122,13 @@ class DalService(object):
         """
         # this must be overridden to return a Query subclass appropriate for 
         # the service type
-        q = DalQuery(self.baseurl, self.protocol, self.version)
+        q = DALQuery(self.baseurl, self.protocol, self.version)
         for key in keywords.keys():
             q.setparam(key, keywords[key])
         return q
 
 
-class DalQuery(object):
+class DALQuery(object):
     """
     a class for preparing a query to a particular service.  Query constraints
     are typically added via its service type-specific methods; however, they 
@@ -215,22 +215,22 @@ class DalQuery(object):
         submit the query and return the results as a Results subclass instance
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   for errors either in the input query syntax or 
+           *DALQueryError*:   for errors either in the input query syntax or 
                               other user errors detected by the service
-           *DalFormatError*:  for errors parsing the VOTable response
+           *DALFormatError*:  for errors parsing the VOTable response
         """
-        return DalResults(self.execute_votable(), self.getqueryurl(True))
+        return DALResults(self.execute_votable(), self.getqueryurl(True))
 
     def execute_raw(self):
         """
         submit the query and return the raw VOTable XML as a string.
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   for errors in the input query syntax
+           *DALQueryError*:   for errors in the input query syntax
         """
         f = self.execute_stream()
         out = None
@@ -245,15 +245,15 @@ class DalQuery(object):
         submit the query and return the raw VOTable XML as a file stream
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   for errors in the input query syntax
+           *DALQueryError*:   for errors in the input query syntax
         """
         try:
             url = self.getqueryurl()
             return urlopen(url)
         except IOError, ex:
-            raise DalServiceError.from_except(ex, url, self.protocol, 
+            raise DALServiceError.from_except(ex, url, self.protocol, 
                                               self.version)
 
     def execute_votable(self):
@@ -261,17 +261,17 @@ class DalQuery(object):
         submit the query and return the results as an AstroPy votable instance
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalFormatError*:  for errors parsing the VOTable response
-           *DalQueryError*:   for errors in the input query syntax
+           *DALFormatError*:  for errors parsing the VOTable response
+           *DALQueryError*:   for errors in the input query syntax
         """
         try:
             return _votableparse(self.execute_stream().read)
-        except DalAccessError:
+        except DALAccessError:
             raise
         except Exception, e:
-            raise DalFormatError(e, self.getqueryurl(True), 
+            raise DALFormatError(e, self.getqueryurl(True), 
                                  protocol=self.protocol, version=self.version)
 
     def getqueryurl(self, lax=False):
@@ -280,13 +280,13 @@ class DalQuery(object):
         URL that the execute functions will use if called next.  
 
         :Args:
-           *lax*:  if False (default), a DalQueryError exception will be 
+           *lax*:  if False (default), a DALQueryError exception will be 
                       raised if the current set of parameters cannot be 
                       used to form a legal query.  This implementation does 
                       no syntax checking; thus, this argument is ignored.
 
         :Raises:
-           *DalQueryError*:   when lax=False, for errors in the input query 
+           *DALQueryError*:   when lax=False, for errors in the input query 
                       syntax
         """
         return ensure_baseurl(self.baseurl) + \
@@ -299,7 +299,7 @@ class DalQuery(object):
         return quote_plus(str(pval))
         
 
-class DalResults(object):
+class DALResults(object):
     """
     Results from a DAL query.  It provides random access to records in 
     the response.  Alternatively, it can provide results via a Cursor 
@@ -310,7 +310,7 @@ class DalResults(object):
         """
         initialize the cursor.  This constructor is not typically called 
         by directly applications; rather an instance is obtained from calling 
-        a DalQuery's execute().
+        a DALQuery's execute().
 
         :Args:
            *votable*:    the service response parsed into an
@@ -322,7 +322,7 @@ class DalResults(object):
                            (supposedly) complies with
 
         :Raises:
-           *DalFormatError*:  if the response VOTable does not contain a 
+           *DALFormatError*:  if the response VOTable does not contain a 
                                 response table
         """
         self._url = url
@@ -330,12 +330,12 @@ class DalResults(object):
         self._version = version
         self._status = self._findstatus(votable)
         if self._status[0] != "OK":
-            raise DalQueryError(self._status[1], self._status[0], url,
+            raise DALQueryError(self._status[1], self._status[0], url,
                                 self.protocol, self.version)
 
         self.votable = self._findresultstable(votable)
         if not self.votable:
-            raise DalFormatError(reason="VOTable response missing results table",
+            raise DALFormatError(reason="VOTable response missing results table",
                                  url=self._url)
         self._fldnames = []
         for field in self.fielddesc():
@@ -344,7 +344,7 @@ class DalResults(object):
             else:
                 self._fldnames.append(field.name)
         if len(self._fldnames) == 0:
-            raise DalFormatError(reason="response table missing column " +
+            raise DALFormatError(reason="response table missing column " +
                                  "descriptions.", url=self._url,
                                 protocol=self.protocol, version=self.version)
 
@@ -872,7 +872,7 @@ def mime2extension(mimetype, default=None):
         
     
 
-class DalAccessError(Exception):
+class DALAccessError(Exception):
     """
     a base class for failures while accessing a DAL service
     """
@@ -958,7 +958,7 @@ class DalAccessError(Exception):
         self._version = None
 
 
-class DalProtocolError(DalAccessError):
+class DALProtocolError(DALAccessError):
     """
     a base exception indicating that a DAL service responded in an
     erroneous way.  This can be either an HTTP protocol error or a
@@ -984,7 +984,7 @@ class DalProtocolError(DalAccessError):
            *version*:   version of the protocol of the service that produced 
                           the error
         """
-        DalAccessError.__init__(self, reason, url, protocol, version)
+        DALAccessError.__init__(self, reason, url, protocol, version)
         self._cause = cause
 
     @property
@@ -1001,7 +1001,7 @@ class DalProtocolError(DalAccessError):
         self._cause = None
 
 
-class DalFormatError(DalProtocolError):
+class DALFormatError(DALProtocolError):
     """
     an exception indicating that a DAL response contains fatal format errors.
     This would include XML or VOTable format errors.  
@@ -1024,11 +1024,11 @@ class DalFormatError(DalProtocolError):
                           the error
         """
         if cause and not reason:  
-            reason = "%s: %s" % (DalAccessError._typeName(cause), str(cause))
-        DalProtocolError.__init__(self, reason, cause, url, protocol, version)
+            reason = "%s: %s" % (DALAccessError._typeName(cause), str(cause))
+        DALProtocolError.__init__(self, reason, cause, url, protocol, version)
 
 
-class DalServiceError(DalProtocolError):
+class DALServiceError(DALProtocolError):
     """
     an exception indicating a failure communicating with a DAL
     service.  Most typically, this is used to report DAL queries that result 
@@ -1052,7 +1052,7 @@ class DalServiceError(DalProtocolError):
            *version*:   version of the protocol of the service that produced 
                           the error
         """
-        DalProtocolError.__init__(self, reason, cause, url, protocol, version)
+        DALProtocolError.__init__(self, reason, cause, url, protocol, version)
         self._code = code
 
     @property
@@ -1073,7 +1073,7 @@ class DalServiceError(DalProtocolError):
     @classmethod
     def from_except(cls, exc, url=None, protocol=None, version=None):
         """
-        create and return DalServiceError exception appropriate
+        create and return DALServiceError exception appropriate
         for the given exception that represents the underlying cause.
         """
         if isinstance(exc, HTTPError):
@@ -1089,7 +1089,7 @@ class DalServiceError(DalProtocolError):
                     url = exc.url
                 else:
                     url = exc.filename
-            return DalServiceError(reason, exc.code, exc, url, protocol, version)
+            return DALServiceError(reason, exc.code, exc, url, protocol, version)
         elif isinstance(exc, URLError):
             reason = exc.reason
             if isinstance(reason, IOError):
@@ -1097,16 +1097,16 @@ class DalServiceError(DalProtocolError):
             elif not isinstance(reason, str):
                 reason = str(reason)
 
-            return DalServiceError(reason, cause=exc, url=url, 
+            return DALServiceError(reason, cause=exc, url=url, 
                                    protocol=protocol, version=version)
         elif isinstance(exc, Exception):
-            return DalServiceError("%s: %s" % (cls._typeName(exc), str(exc)), 
+            return DALServiceError("%s: %s" % (cls._typeName(exc), str(exc)), 
                                    cause=exc, url=url, 
                                    protocol=protocol, version=version)
         else:
             raise TypeError("from_except: expected Exception")
 
-class DalQueryError(DalAccessError):
+class DALQueryError(DALAccessError):
     """
     an exception indicating an error by a working DAL service while processing
     a query.  Generally, this would be an error that the service successfully 
@@ -1132,7 +1132,7 @@ class DalQueryError(DalAccessError):
            *version*:   version of the protocol of the service that produced 
                           the error
         """
-        DalAccessError.__init__(self, reason, url, protocol, version)
+        DALAccessError.__init__(self, reason, url, protocol, version)
         self._label = label
                           
     @property

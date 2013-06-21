@@ -46,15 +46,15 @@ def search(url, wavelength, **keywords):
                          this function, these keywords will override.
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   if the service responds with 
+           *DALQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
     """
     service = SLAService(url)
     return service.search(wavelength, **keywords)
 
-class SLAService(query.DalService):
+class SLAService(query.DALService):
     """
     a representation of an SLA service
     """
@@ -69,7 +69,7 @@ class SLAService(query.DalService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DalService.__init__(self, baseurl, "sla", version, resmeta)
+        query.DALService.__init__(self, baseurl, "sla", version, resmeta)
 
     def search(self, wavelength, format=None, **keywords):
         """
@@ -110,7 +110,7 @@ class SLAService(query.DalService):
         if format: q.format = format
         return q
 
-class SLAQuery(query.DalQuery):
+class SLAQuery(query.DALQuery):
     """
     a class for preparing an query to an SLA service.  Query constraints
     are added via its service type-specific methods.  The various execute()
@@ -128,7 +128,7 @@ class SLAQuery(query.DalQuery):
         """
         initialize the query object with a baseurl and request type
         """
-        query.DalQuery.__init__(self, baseurl, "sla", version)
+        query.DALQuery.__init__(self, baseurl, "sla", version)
         self.setparam("REQUEST", request)
         
     @property
@@ -183,15 +183,15 @@ class SLAQuery(query.DalQuery):
         This implimentation returns an SSAResults instance
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   if the service responds with 
+           *DALQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
         """
         return SLAResults(self.execute_votable(), self.getqueryurl())
 
 
-class SLAResults(query.DalResults):
+class SLAResults(query.DALResults):
     """
     Results from an SLA query.  It provides random access to records in 
     the response.  Alternatively, it can provide results via a Cursor 
@@ -204,7 +204,7 @@ class SLAResults(query.DalResults):
         by directly applications; rather an instance is obtained from calling 
         a SLAQuery's execute().
         """
-        query.DalResults.__init__(self, votable, url, "sla", "1.0")
+        query.DALResults.__init__(self, votable, url, "sla", "1.0")
         self._slacols = {
 
 

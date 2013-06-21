@@ -276,7 +276,7 @@ class SSAResultsErrorTest(unittest.TestCase):
         try:
             res = ssa.SSAResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DalQueryError, ex:
+        except dalq.DALQueryError, ex:
             self.assertEquals(ex.label, "ERROR")
             self.assertEquals(ex.reason, "Forced Fail")
 
@@ -338,7 +338,7 @@ class SSAExecuteTest(unittest.TestCase):
 
     def testError(self):
         srv = ssa.SSAService("http://localhost:%d/err" % testserverport)
-        self.assertRaises(dalq.DalQueryError, srv.search, (0.0,0.0), 1.0)
+        self.assertRaises(dalq.DALQueryError, srv.search, (0.0,0.0), 1.0)
         
 
 class DatasetNameTest(unittest.TestCase):

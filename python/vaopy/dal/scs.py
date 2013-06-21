@@ -23,7 +23,7 @@ class can represent a specific service available at a URL endpoint.
 
 import numbers
 from . import query
-from .query import DalQueryError
+from .query import DALQueryError
 
 __all__ = [ "search", "SCSResults", "SCSRecord", "SCSQuery", "SCSService" ]
 
@@ -47,7 +47,7 @@ def search(url, pos, radius=1.0, verbosity=2):
     service = SCSService(url)
     return service.search(pos, radius, verbosity)
 
-class SCSService(query.DalService):
+class SCSService(query.DALService):
     """
     a representation of a Cone Search service
     """
@@ -62,7 +62,7 @@ class SCSService(query.DalService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DalService.__init__(self, baseurl, "scs", version, resmeta)
+        query.DALService.__init__(self, baseurl, "scs", version, resmeta)
 
     def search(self, pos, radius=1.0, verbosity=2):
         """
@@ -110,7 +110,7 @@ class SCSService(query.DalService):
         if verbosity is not None: q.verbosity = verbosity
         return q
 
-class SCSQuery(query.DalQuery):
+class SCSQuery(query.DALQuery):
     """
     a class for preparing an query to a Cone Search service.  Query constraints
     are added via its service type-specific methods.  The various execute()
@@ -123,7 +123,7 @@ class SCSQuery(query.DalQuery):
         """
         initialize the query object with a baseurl
         """
-        query.DalQuery.__init__(self, baseurl, "scs", version)
+        query.DALQuery.__init__(self, baseurl, "scs", version)
         
 
     @property
@@ -234,9 +234,9 @@ class SCSQuery(query.DalQuery):
         This implimentation returns an SCSResults instance
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   if the service responds with 
+           *DALQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
         """
         return SCSResults(self.execute_votable(), self.getqueryurl(True))
@@ -246,10 +246,10 @@ class SCSQuery(query.DalQuery):
         submit the query and return the results as an AstroPy votable instance
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalFormatError*:  for errors parsing the VOTable response
-           *DalQueryError*:   for errors in the input query syntax
+           *DALFormatError*:  for errors parsing the VOTable response
+           *DALQueryError*:   for errors in the input query syntax
         """
         try: 
             from astropy.io.votable.exceptions import W22
@@ -258,13 +258,13 @@ class SCSQuery(query.DalQuery):
 
         try:
             return query._votableparse(self.execute_stream().read)
-        except query.DalAccessError:
+        except query.DALAccessError:
             raise
         except W22, e:
-            raise query.DalFormatError("Unextractable Error encoded in " +
+            raise query.DALFormatError("Unextractable Error encoded in " +
                                        "deprecated DEFINITIONS element")
         except Exception, e:
-            raise query.DalFormatError(e, self.getqueryurl())
+            raise query.DALFormatError(e, self.getqueryurl())
 
     def getqueryurl(self, lax=False):
         """
@@ -272,22 +272,22 @@ class SCSQuery(query.DalQuery):
         URL that the execute functions will use if called next.  
 
         :Args:
-           *lax*:  if False (default), a DalQueryError exception will be 
+           *lax*:  if False (default), a DALQueryError exception will be 
                       raised if any required parameters (RA, DEC, or SR)
                       are missing.  If True, no syntax checking will be 
                       done.  
         """
-        out = query.DalQuery.getqueryurl(self)
+        out = query.DALQuery.getqueryurl(self)
         if not lax:
             if self.ra is None:
-                raise DalQueryError("Query is missing an RA parameter", url=out)
+                raise DALQueryError("Query is missing an RA parameter", url=out)
             if self.dec is None:
-                raise DalQueryError("Query is missing a DEC parameter", url=out)
+                raise DALQueryError("Query is missing a DEC parameter", url=out)
             if self.sr is None:
-                raise DalQueryError("Query is missing an SR parameter", url=out)
+                raise DALQueryError("Query is missing an SR parameter", url=out)
         return out
 
-class SCSResults(query.DalResults):
+class SCSResults(query.DALResults):
     """
     Results from a Cone Search query.  It provides random access to records in 
     the response.  Alternatively, it can provide results via a Cursor 
@@ -300,7 +300,7 @@ class SCSResults(query.DalResults):
         by directly applications; rather an instance is obtained from calling 
         a SCSQuery's execute().
         """
-        query.DalResults.__init__(self, votable, url, "scs", version)
+        query.DALResults.__init__(self, votable, url, "scs", version)
         self._scscols = {
             "ID_MAIN":         self.fieldname_with_ucd("ID_MAIN"),
             "POS_EQ_RA_MAIN":  self.fieldname_with_ucd("POS_EQ_RA_MAIN"),

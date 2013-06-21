@@ -58,15 +58,15 @@ def search(url, pos, size, format='all', **keywords):
                        this function, these keywords will override.
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   if the service responds with 
+           *DALQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
     """
     service = SSAService(url)
     return service.search(pos, size, format, **keywords)
 
-class SSAService(query.DalService):
+class SSAService(query.DALService):
     """
     a representation of an SSA service
     """
@@ -81,7 +81,7 @@ class SSAService(query.DalService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DalService.__init__(self, baseurl, "ssa", version, resmeta)
+        query.DALService.__init__(self, baseurl, "ssa", version, resmeta)
 
     def search(self, pos, size, format='all', **keywords):
         """
@@ -111,9 +111,9 @@ class SSAService(query.DalService):
                            this function, these keywords will override.
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   if the service responds with 
+           *DALQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
         """
         q = self.create_query(pos, size, format, **keywords)
@@ -157,7 +157,7 @@ class SSAService(query.DalService):
 
         return q
 
-class SSAQuery(query.DalQuery):
+class SSAQuery(query.DALQuery):
     """
     a class for preparing an query to an SSA service.  Query constraints
     are added via its service type-specific methods.  The various execute()
@@ -177,7 +177,7 @@ class SSAQuery(query.DalQuery):
         """
         initialize the query object with a baseurl and request type
         """
-        query.DalQuery.__init__(self, baseurl, "ssa", version)
+        query.DALQuery.__init__(self, baseurl, "ssa", version)
         self.setparam("REQUEST", request)
         
     @property
@@ -342,15 +342,15 @@ class SSAQuery(query.DalQuery):
         This implimentation returns an SSAResults instance
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   if the service responds with 
+           *DALQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
         """
         return SSAResults(self.execute_votable(), self.getqueryurl())
 
 
-class SSAResults(query.DalResults):
+class SSAResults(query.DALResults):
     """
     Results from an SSA query.  It provides random access to records in 
     the response.  Alternatively, it can provide results via a Cursor 
@@ -363,7 +363,7 @@ class SSAResults(query.DalResults):
         by directly applications; rather an instance is obtained from calling 
         a SSAQuery's execute().
         """
-        query.DalResults.__init__(self, votable, url, "ssa", "1.0")
+        query.DALResults.__init__(self, votable, url, "ssa", "1.0")
         self._ssacols = {
 
             "ssa:Query.Score": self.fieldname_with_utype("ssa:Query.Score"),

@@ -40,14 +40,14 @@ class SesameQueryTest(unittest.TestCase):
                         "unexpected mid-line: " + line[5])
 
         q.dbs = "GB"
-        self.assertRaises(sesame.DalQueryError, q.execute_stream)
+        self.assertRaises(sesame.DALQueryError, q.execute_stream)
         strm = q.execute_stream(lax=True)
         strm.close()
 
         del q.dbs
         self.assertEquals("", q.dbs)
         q.opts = "bo"
-        self.assertRaises(sesame.DalQueryError, q.execute_stream)
+        self.assertRaises(sesame.DALQueryError, q.execute_stream)
         strm = q.execute_stream(lax=True)
         strm.close()
 

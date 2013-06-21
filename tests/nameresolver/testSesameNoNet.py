@@ -438,7 +438,7 @@ class SesameQueryTest(unittest.TestCase):
                           self.query.getqueryurl(format='x2', astext=True))
 
     def assertRaisesOnQuery(self, msg, format=None):
-        self.assertRaises(sesame.DalQueryError, self.query.getqueryurl,
+        self.assertRaises(sesame.DALQueryError, self.query.getqueryurl,
                           format=format)
         self.query.getqueryurl(True)
 

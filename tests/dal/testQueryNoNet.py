@@ -26,33 +26,33 @@ try:
 except ImportError, e:
     print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
 
-class DalAccessErrorTest(unittest.TestCase):
+class DALAccessErrorTest(unittest.TestCase):
 
     msg = "nya-nya"
     url = "http://localhost"
 
     def testProperties2(self):
-        e = dalq.DalAccessError(self.msg, self.url)
+        e = dalq.DALAccessError(self.msg, self.url)
         self.assertEquals(self.msg, e.reason)
         self.assertEquals(self.url, e.url)
 
         e.reason = "poof"
         self.assertEquals("poof", e.reason)
         del e.reason
-        self.assertEquals(dalq.DalAccessError._defreason, e.reason)
+        self.assertEquals(dalq.DALAccessError._defreason, e.reason)
 
     def testProperties1(self):
-        e = dalq.DalAccessError(self.msg)
+        e = dalq.DALAccessError(self.msg)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.url is None)
 
     def testPropertiesDef(self):
-        e = dalq.DalAccessError()
-        self.assertEquals(dalq.DalAccessError._defreason, e.reason)
+        e = dalq.DALAccessError()
+        self.assertEquals(dalq.DALAccessError._defreason, e.reason)
         self.assert_(e.url is None)
 
 
-class DalServiceErrorTest(unittest.TestCase):
+class DALServiceErrorTest(unittest.TestCase):
 
     msg = "nya-nya"
     code = 404
@@ -60,7 +60,7 @@ class DalServiceErrorTest(unittest.TestCase):
 
     def testProperties4(self):
         c = HTTPError("http://localhost/", self.code, self.msg, None, None)
-        e = dalq.DalServiceError(self.msg, self.code, c, self.url)
+        e = dalq.DALServiceError(self.msg, self.code, c, self.url)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.cause is c)
         self.assertEquals(self.code, e.code)
@@ -78,28 +78,28 @@ class DalServiceErrorTest(unittest.TestCase):
 
     def testProperties3(self):
         c = HTTPError("http://localhost/", self.code, self.msg, None, None)
-        e = dalq.DalServiceError(self.msg, self.code, c)
+        e = dalq.DALServiceError(self.msg, self.code, c)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.cause is c)
         self.assertEquals(self.code, e.code)
         self.assert_(e.url is None)
 
     def testProperties2(self):
-        e = dalq.DalServiceError(self.msg, self.code)
+        e = dalq.DALServiceError(self.msg, self.code)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.cause is None)
         self.assertEquals(self.code, e.code)
         self.assert_(e.url is None)
         
     def testProperties1(self):
-        e = dalq.DalServiceError(self.msg)
+        e = dalq.DALServiceError(self.msg)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.cause is None)
         self.assert_(e.code is None)
         self.assert_(e.url is None)
         
     def testPropertiesDef(self):
-        e = dalq.DalServiceError()
+        e = dalq.DALServiceError()
         self.assert_(e.reason and e.reason.startswith("Unknown service "))
         self.assert_(e.cause is None)
         self.assert_(e.code is None)
@@ -108,7 +108,7 @@ class DalServiceErrorTest(unittest.TestCase):
     def testFromExceptHTTP(self):
         url = "http://localhost/"
         c = HTTPError(url, self.code, self.msg, None, None)
-        e = dalq.DalServiceError.from_except(c)
+        e = dalq.DALServiceError.from_except(c)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.cause is c)
         self.assertEquals(self.code, e.code)
@@ -117,7 +117,7 @@ class DalServiceErrorTest(unittest.TestCase):
     def testFromExceptURL(self):
         url = "http://localhost/"
         c = URLError(self.msg)
-        e = dalq.DalServiceError.from_except(c, url)
+        e = dalq.DALServiceError.from_except(c, url)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.cause is c)
         self.assert_(e.code is None)
@@ -125,19 +125,19 @@ class DalServiceErrorTest(unittest.TestCase):
 
     def testFromExcept(self):
         c = RuntimeError(self.msg)
-        e = dalq.DalServiceError.from_except(c)
+        e = dalq.DALServiceError.from_except(c)
         self.assertEquals(e.reason, "RuntimeError: " + self.msg)
         self.assert_(e.cause is c)
         self.assert_(e.code is None)
         self.assert_(e.url is None)
 
-class DalQueryErrorTest(unittest.TestCase):
+class DALQueryErrorTest(unittest.TestCase):
 
     msg = "nya-nya"
     label = "goofed"
 
     def testProperties2(self):
-        e = dalq.DalQueryError(self.msg, self.label)
+        e = dalq.DALQueryError(self.msg, self.label)
         self.assertEquals(self.msg, e.reason)
         self.assertEquals(self.label, e.label)
 
@@ -150,24 +150,24 @@ class DalQueryErrorTest(unittest.TestCase):
         self.assert_(e.label is None)
 
     def testProperties1(self):
-        e = dalq.DalQueryError(self.msg)
+        e = dalq.DALQueryError(self.msg)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.label is None)
 
     def testPropertiesDef(self):
-        e = dalq.DalQueryError()
+        e = dalq.DALQueryError()
         self.assert_(e.reason and e.reason.startswith("Unknown DAL Query "))
         self.assert_(e.label is None)
 
 
-class DalResultsTest(unittest.TestCase):
+class DALResultsTest(unittest.TestCase):
 
     def setUp(self):
         resultfile = os.path.join(testdir, siaresultfile)
         self.tbl = votableparse(resultfile)
 
     def testCtor(self):
-        self.result = dalq.DalResults(self.tbl)
+        self.result = dalq.DALResults(self.tbl)
         self.assert_(isinstance(self.result._fldnames, list))
         self.assert_(self.result.votable is not None)
 
@@ -264,7 +264,7 @@ class RecordTest(unittest.TestCase):
     def setUp(self):
         resultfile = os.path.join(testdir, siaresultfile)
         self.tbl = votableparse(resultfile)
-        self.result = dalq.DalResults(self.tbl)
+        self.result = dalq.DALResults(self.tbl)
         self.rec = self.result.getrecord(0)
 
     def testFields(self):
@@ -307,14 +307,14 @@ class EnsureBaseURLTest(unittest.TestCase):
         self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat&usecache=yes&"), 
                           "http://localhost/sia?cat=neat&usecache=yes&")
 
-class DalServiceTest(unittest.TestCase):
+class DALServiceTest(unittest.TestCase):
 
     def setUp(self):
         self.baseurl = "http://localhost/sia"
 
     def testCtor(self):
         self.res = {"title": "Archive", "shortName": "arch"}
-        self.srv = dalq.DalService(self.baseurl, "sga", "2.0", self.res)
+        self.srv = dalq.DALService(self.baseurl, "sga", "2.0", self.res)
 
     def testProps(self):
         self.testCtor()
@@ -343,7 +343,7 @@ class DalServiceTest(unittest.TestCase):
         self.assertEquals(self.res["title"], "Archive")
 
     def testNoResmeta(self):
-        srv = dalq.DalService(self.baseurl)
+        srv = dalq.DALService(self.baseurl)
         self.assertEquals(srv.baseurl, self.baseurl)
         self.assert_(srv.description is not None)
         self.assert_(hasattr(srv.description, "get"))
@@ -352,7 +352,7 @@ class DalServiceTest(unittest.TestCase):
     def testCreateQuery(self):
         self.testCtor()
         q = self.srv.create_query()
-        self.assert_(isinstance(q, dalq.DalQuery))
+        self.assert_(isinstance(q, dalq.DALQuery))
         self.assertEquals(q.baseurl, self.baseurl)
         self.assertEquals(q.protocol, self.srv.protocol)
         self.assertEquals(q.version, self.srv.version)
@@ -360,7 +360,7 @@ class DalServiceTest(unittest.TestCase):
     def testCreateQueryWithKws(self):
         self.testCtor()
         q = self.srv.create_query(RA=12.045, DEC=-13.08, SR=0.01)
-        self.assert_(isinstance(q, dalq.DalQuery))
+        self.assert_(isinstance(q, dalq.DALQuery))
         self.assertEquals(q.baseurl, self.baseurl)
         self.assertEquals(q.protocol, self.srv.protocol)
         self.assertEquals(q.version, self.srv.version)
@@ -370,13 +370,13 @@ class DalServiceTest(unittest.TestCase):
 
 
 
-class DalQueryTest(unittest.TestCase):
+class DALQueryTest(unittest.TestCase):
 
     def setUp(self):
         self.baseurl = "http://localhost/sia"
 
     def testCtor(self):
-        self.query = dalq.DalQuery(self.baseurl, "sga", "2.0")
+        self.query = dalq.DALQuery(self.baseurl, "sga", "2.0")
         self.assert_(self.query.getparam("format") is None)
 
     def testProps(self):
@@ -469,15 +469,15 @@ class QueryExecuteTest(unittest.TestCase):
         #    print "prob"
 
     def testExecute(self):
-        q = dalq.DalQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
         results = q.execute()
-        self.assert_(isinstance(results, dalq.DalResults))
+        self.assert_(isinstance(results, dalq.DALResults))
         self.assertEquals(results.nrecs, 2)
 
     def testExecuteStream(self):
-        q = dalq.DalQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
         strm = q.execute_stream()
@@ -488,7 +488,7 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_(results.startswith("<?xml version="))
 
     def testExecuteRaw(self):
-        q = dalq.DalQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
         data = q.execute_raw()
@@ -497,32 +497,32 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_(data.startswith("<?xml version="))
 
     def testExecuteVotable(self):
-        q = dalq.DalQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
         results = q.execute_votable()
         self.assert_(isinstance(results, VOTableFile))
 
     def testExecuteServiceErr(self):
-        q = dalq.DalQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
-        self.assertRaises(dalq.DalServiceError, q.execute)
+        self.assertRaises(dalq.DALServiceError, q.execute)
 
     def testExecuteRawServiceErr(self):
-        q = dalq.DalQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
-        self.assertRaises(dalq.DalServiceError, q.execute_raw)
+        self.assertRaises(dalq.DALServiceError, q.execute_raw)
 
     def testExecuteStreamServiceErr(self):
-        q = dalq.DalQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
             q.execute_raw()
             self.fail("failed to raise exception on bad url")
-        except dalq.DalServiceError, e:
+        except dalq.DALServiceError, e:
             self.assertEquals(e.code, 404)
             self.assertEquals(e.reason, "Not Found")
             self.assert_(isinstance(e.cause, HTTPError))
@@ -531,13 +531,13 @@ class QueryExecuteTest(unittest.TestCase):
 
 
     def testExecuteVotableServiceErr(self):
-        q = dalq.DalQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
-        self.assertRaises(dalq.DalServiceError, q.execute_votable)
+        self.assertRaises(dalq.DALServiceError, q.execute_votable)
 
     def testExecuteRawQueryErr(self):
-        q = dalq.DalQuery("http://localhost:%d/err" % testserverport)
+        q = dalq.DALQuery("http://localhost:%d/err" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
         data = q.execute_raw()
@@ -547,17 +547,17 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_('<INFO name="QUERY_STATUS" value="ERR' in data)
 
     def testExecuteQueryErr(self):
-        q = dalq.DalQuery("http://localhost:%d/err" % testserverport)
+        q = dalq.DALQuery("http://localhost:%d/err" % testserverport)
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
             q.execute()
             self.fail("failed to raise exception for syntax error")
-        except dalq.DalQueryError, e:
+        except dalq.DALQueryError, e:
             self.assertEquals(e.label, "ERROR")
             self.assertEquals(str(e), "Forced Fail")
-        except dalq.DalServiceError, e:
-            self.fail("wrong exception raised: DalServiceError: " + str(e))
+        except dalq.DALServiceError, e:
+            self.fail("wrong exception raised: DALServiceError: " + str(e))
         except Exception, e:
             self.fail("wrong exception raised: " + str(type(e)))
 
@@ -569,7 +569,7 @@ class CursorTest(unittest.TestCase):
         self.tbl = votableparse(resultfile)
 
     def testCtor(self):
-        self.result = dalq.DalResults(self.tbl)
+        self.result = dalq.DALResults(self.tbl)
         self.assert_(isinstance(self.result._fldnames, list))
         self.assert_(self.result.votable is not None)
         self.cursor = self.result.cursor()
@@ -639,7 +639,7 @@ class DatasetNameTest(unittest.TestCase):
     def setUp(self):
         resultfile = os.path.join(testdir, siaresultfile)
         self.tbl = votableparse(resultfile)
-        self.result = dalq.DalResults(self.tbl)
+        self.result = dalq.DALResults(self.tbl)
         self.rec = self.result.getrecord(0)
 
         self.cleanfiles()
@@ -722,7 +722,7 @@ class DatasetNameTest(unittest.TestCase):
                           self.rec.make_dataset_filename(testdir, self.base))
 
 
-__all__ = "DalAccessErrorTest DalServiceErrorTest DalQueryErrorTest RecordTest EnsureBaseURLTest DalServiceTest DalQueryTest QueryExecuteTest CursorTest DatasetNameTest".split()
+__all__ = "DALAccessErrorTest DALServiceErrorTest DALQueryErrorTest RecordTest EnsureBaseURLTest DALServiceTest DALQueryTest QueryExecuteTest CursorTest DatasetNameTest".split()
 def suite():
     tests = []
     for t in __all__:

@@ -14,5 +14,5 @@ __all__ = [ "imagesearch", "spectrumsearch", "linesearch", "consesearch",
             "SIAService", "SSAService", "SLAService", "SCSService",
             "SIAResults", "SSAResults", "SLAResults", "SCSResults",
             "SIARecord",  "SSARecord",  "SLARecord",  "SCSRecord",
-            "DalResults" ]
+            "DALResults" ]
 

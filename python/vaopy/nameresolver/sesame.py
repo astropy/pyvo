@@ -27,7 +27,7 @@ from urllib import quote_plus
 import xml.etree.ElementTree as ET
 from xml.parsers.expat import ExpatError
 
-from ..dal.query import DalQueryError, DalFormatError, DalServiceError
+from ..dal.query import DALQueryError, DALFormatError, DALServiceError
 
 endpoints = { "cds": "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame",
               "cfa": "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame" }
@@ -371,7 +371,7 @@ class SesameQuery(object):
         URL that the execute functions will use if called next.  
 
         :Args:
-           *lax*:  if False (default), a DalQueryError exception will be 
+           *lax*:  if False (default), a DALQueryError exception will be 
                       raised if the current set of parameters cannot be 
                       used to form a legal query.  This implementation does 
                       no syntax checking; thus, this argument is ignored.
@@ -385,7 +385,7 @@ class SesameQuery(object):
                       
                    
         :Raises:
-           *DalQueryError*:   when lax=False, for errors in the input query 
+           *DALQueryError*:   when lax=False, for errors in the input query 
                       syntax
         """
     
@@ -394,22 +394,22 @@ class SesameQuery(object):
                                    c not in set(self.database_codes.values()), 
                          set(self._dbs))
             if len(bad) > 0:
-                raise DalQueryError(("database selection, %s, includes " +
+                raise DALQueryError(("database selection, %s, includes " +
                                     "unrecognized databases: %s.") 
                                     % (self._dbs, str(tuple(bad))))
 
             bad = filter(lambda c: c not in set("IF"), 
                          set(self._opts))
             if len(bad) > 0:
-                raise DalQueryError(("options, %s, includes " +
+                raise DALQueryError(("options, %s, includes " +
                                     "unrecognized items: %s.")
                                     % (self._opts, str(tuple(bad))))
 
             if format and format not in "x x2 x4 pc".split():
-                raise DalQueryError("unrecognized format: " + format)
+                raise DALQueryError("unrecognized format: " + format)
 
             if not self._names:
-                raise DalQueryError("No source names provided")
+                raise DALQueryError("No source names provided")
 
         out = self._baseurl
         opts = "/-o"
@@ -442,21 +442,21 @@ class SesameQuery(object):
                       percent-code format.  
            *astext*  request results be returned with a MIME-type of 
                       "text/plain", regardless of the format.
-           *lax*:  if False (default), a DalQueryError exception will be 
+           *lax*:  if False (default), a DALQueryError exception will be 
                       raised if the current set of parameters cannot be 
                       used to form a legal query.  This implementation does 
                       no syntax checking; thus, this argument is ignored.
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   for errors in the input query syntax
+           *DALQueryError*:   for errors in the input query syntax
         """
         try:
             url = self.getqueryurl(lax, format, astext)
             return urlopen(url)
         except IOError, ex:
-            raise DalServiceError.from_except(ex, url, self.protocol, 
+            raise DALServiceError.from_except(ex, url, self.protocol, 
                                               self.version)
 
     def execute(self):
@@ -465,24 +465,24 @@ class SesameQuery(object):
         each requested target.  
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   for errors in the input query syntax
-           *DalFormatError*:  if the XML response is corrupted
+           *DALQueryError*:   for errors in the input query syntax
+           *DALFormatError*:  if the XML response is corrupted
         """
         resp = self.execute_stream(lax=False)
         out = []
         try:
             root = ET.parse(resp).getroot()
             if root.tag != "Sesame":
-                raise DalServiceError("Unexpected output: " + ET.dump(root))
+                raise DALServiceError("Unexpected output: " + ET.dump(root))
             for tel in root.findall('Target'):
                 out.append(Target(tel))
         except ExpatError, e:
-            raise DalFormatError(e)
+            raise DALFormatError(e)
 
         if len(out) == 0:
-            raise DalServiceError("No targets resolved")
+            raise DALServiceError("No targets resolved")
         return out
 
 class Target(object):
@@ -711,7 +711,7 @@ class ObjectData(object):
         right ascension and declination.  If None, a position 
         was not returned.  
         :Raises:
-           *DalFormatError*:  if the position data is incomplete or otherwise
+           *DALFormatError*:  if the position data is incomplete or otherwise
                                  contains a formatting error
         """
         ra = self.get("jradeg")
@@ -719,13 +719,13 @@ class ObjectData(object):
         if ra is None and dec is None:
             return None
         if ra is None:
-            raise DalFormatError("Missing RA value (jradeg)")
+            raise DALFormatError("Missing RA value (jradeg)")
         if dec is None:
-            raise DalFormatError("Missing Dec value (jdedeg)")
+            raise DALFormatError("Missing Dec value (jdedeg)")
         try:
             return (float(ra), float(dec))
         except ValueError:
-            raise DalFormatError("Non-float given in (%s, %s)" % (ra, dec))
+            raise DALFormatError("Non-float given in (%s, %s)" % (ra, dec))
         
     @property
     def pos(self):
@@ -784,19 +784,19 @@ class DocQuantity(object):
             d.append(item)
 
         if d[0] is None:
-            raise DalFormatError("%s: Missing quantity value" % etreeEl.tag)
+            raise DALFormatError("%s: Missing quantity value" % etreeEl.tag)
             
         try:
             self.val = float(d[0])
         except ValueError:
-            raise DalFormatError("%s: non-decimal value: %s" 
+            raise DALFormatError("%s: non-decimal value: %s" 
                                  % (etreeEl.tag, d[0]))
         self.error = d[1]
         if self.error is not None:
             try:
                 self.error = float(d[1])
             except ValueError:
-                raise DalFormatError("%s: non-decimal error: %s" 
+                raise DALFormatError("%s: non-decimal error: %s" 
                                      % (etreeEl.tag, d[1]))
 
         self.unit = self._unit_by_name.get(etreeEl.tag)
@@ -860,10 +860,10 @@ class ProperMotion(DocQuantity):
                 try:
                     item = float(item.text.strip())
                 except:
-                    raise DalFormatError("%s: non-decimal %s: %s" 
+                    raise DALFormatError("%s: non-decimal %s: %s" 
                                          % (etreeEl.tag, tag, item))
             elif tag in ["pm", "pmRA", "pmDE"]:
-                raise DalFormatError("%s: Missing %s" % (etreeEl.tag, tag))
+                raise DALFormatError("%s: Missing %s" % (etreeEl.tag, tag))
 
             d.append(item)
 

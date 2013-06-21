@@ -65,15 +65,15 @@ def search(url, pos, size, format='all', intersect="overlaps", verbosity=2,
                        this function, these keywords will override.
 
     :Raises:
-       *DalServiceError*: for errors connecting to or 
+       *DALServiceError*: for errors connecting to or 
                           communicating with the service
-       *DalQueryError*:   if the service responds with 
+       *DALQueryError*:   if the service responds with 
                           an error, including a query syntax error.  
     """
     service = SIAService(url)
     return service.search(pos, size, format, intersect, verbosity, **keywords)
 
-class SIAService(query.DalService):
+class SIAService(query.DALService):
     """
     a representation of an SIA service
     """
@@ -88,7 +88,7 @@ class SIAService(query.DalService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DalService.__init__(self, baseurl, "sia", version, resmeta)
+        query.DALService.__init__(self, baseurl, "sia", version, resmeta)
 
     def search(self, pos, size, format='all', intersect="overlaps", verbosity=2,
                **keywords):
@@ -127,9 +127,9 @@ class SIAService(query.DalService):
                            this function, these keywords will override.
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   if the service responds with 
+           *DALQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
         """
         q = self.create_query(pos, size, format, intersect, verbosity, 
@@ -185,7 +185,7 @@ class SIAService(query.DalService):
 
         return q
 
-class SIAQuery(query.DalQuery):
+class SIAQuery(query.DALQuery):
     """
     a class for preparing an query to an SIA service.  Query constraints
     are added via its service type-specific methods.  The various execute()
@@ -203,7 +203,7 @@ class SIAQuery(query.DalQuery):
         """
         initialize the query object with a baseurl
         """
-        query.DalQuery.__init__(self, baseurl, "sia", version)
+        query.DALQuery.__init__(self, baseurl, "sia", version)
         
 
     @property
@@ -374,15 +374,15 @@ class SIAQuery(query.DalQuery):
         This implimentation returns an SIAResults instance
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   if the service responds with 
+           *DALQueryError*:   if the service responds with 
                               an error, including a query syntax error.  
         """
         return SIAResults(self.execute_votable(), self.getqueryurl())
 
 
-class SIAResults(query.DalResults):
+class SIAResults(query.DALResults):
     """
     Results from an SIA query.  It provides random access to records in 
     the response.  Alternatively, it can provide results via a Cursor 
@@ -395,7 +395,7 @@ class SIAResults(query.DalResults):
         by directly applications; rather an instance is obtained from calling 
         a SIAQuery's execute().
         """
-        query.DalResults.__init__(self, votable, url, "sia", "1.0")
+        query.DALResults.__init__(self, votable, url, "sia", "1.0")
         self._siacols = { 
             "VOX:Image_Title": self.fieldname_with_ucd("VOX:Image_Title"),
             "INST_ID": self.fieldname_with_ucd("INST_ID"),

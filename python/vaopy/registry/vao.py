@@ -56,7 +56,7 @@ def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
     return reg.search(keywords, servicetype, waveband, sqlpred)
 
 
-class RegistryService(dalq.DalService):
+class RegistryService(dalq.DALService):
     """
     a class for submitting searches to the VAO registry.  
     """
@@ -76,7 +76,7 @@ class RegistryService(dalq.DalService):
         if not baseurl:  baseurl = self.STSCI_REGISTRY_BASEURL
         if not baseurl.endswith("/"): baseurl += "/"
 
-        dalq.DalService.__init__(self, baseurl, "vaoreg", version, resmeta)
+        dalq.DALService.__init__(self, baseurl, "vaoreg", version, resmeta)
 
 
     def search(self, keywords=None, servicetype=None, 
@@ -157,7 +157,7 @@ class RegistryService(dalq.DalService):
             srch.addkeywords(keywords)
         return srch
 
-class RegistryQuery(dalq.DalQuery):
+class RegistryQuery(dalq.DALQuery):
     """
     a representation of a registry query that can be built up over
     successive method calls and then executed.  An instance is normally
@@ -211,7 +211,7 @@ class RegistryQuery(dalq.DalQuery):
            
         """
         if not baseurl:  baseurl = RegistryService.STSCI_REGISTRY_BASEURL
-        dalq.DalQuery.__init__(self, baseurl, "vaoreg", version)
+        dalq.DALQuery.__init__(self, baseurl, "vaoreg", version)
         self._kw = []          # list of individual keyword phrases
         self._preds = []       # list of SQL predicates
         self._svctype = None
@@ -387,13 +387,13 @@ class RegistryQuery(dalq.DalQuery):
         submit the query and return the results as an AstroPy votable instance
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalFormatError*:  for errors parsing the VOTable response
-           *DalQueryError*:   for errors in the input query syntax
+           *DALFormatError*:  for errors parsing the VOTable response
+           *DALQueryError*:   for errors in the input query syntax
         """
-        out = dalq.DalQuery.execute_votable(self)
-        res = dalq.DalResults(out)
+        out = dalq.DALQuery.execute_votable(self)
+        res = dalq.DALResults(out)
         tbl = res.votable
 
         # We note that the server-side implementation of the service will 
@@ -429,9 +429,9 @@ class RegistryQuery(dalq.DalQuery):
         submit the query and return the raw VOTable XML as a file stream
 
         :Raises:
-           *DalServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or 
                               communicating with the service
-           *DalQueryError*:   for errors in the input query syntax
+           *DALQueryError*:   for errors in the input query syntax
         """
         try:
             url = self.getqueryurl()
@@ -441,19 +441,19 @@ class RegistryQuery(dalq.DalQuery):
                 self._raiseServiceError(out.read())
             elif out.info().gettype() != "text/xml":
                 # Unexpected response
-                raise dalq.DalFormatError("Wrong response format: " + 
+                raise dalq.DALFormatError("Wrong response format: " + 
                                           out.info().gettype())
             return out
 
         except IOError, ex:
-            raise dalq.DalServiceError.from_except(ex, url)
+            raise dalq.DALServiceError.from_except(ex, url)
 
     def _raiseServiceError(self, response):
         invalidmessage = "System.InvalidOperationException: "
         outmsg = re.sub(r'\n.*', '', response).strip()
         if response.startswith(invalidmessage):
-            raise dalq.DalQueryError(outmsg[len(invalidmessage):])
-        raise dalq.DalServiceError(outmsg)
+            raise dalq.DALQueryError(outmsg[len(invalidmessage):])
+        raise dalq.DALServiceError(outmsg)
 
     def getqueryurl(self, lax=False):
         """
@@ -518,7 +518,7 @@ class RegistryQuery(dalq.DalQuery):
             const.append(" OR ".join(keyconst))
         return "("+conjunction.join(const)+")"
 
-class RegistryResults(dalq.DalResults):
+class RegistryResults(dalq.DALResults):
     """
     an iterable set of results from a registry query.  Each record is
     returned as SimpleResource instance
@@ -532,7 +532,7 @@ class RegistryResults(dalq.DalResults):
         by directly applications; rather an instance is obtained from calling 
         a SIAQuery's execute().
         """
-        dalq.DalResults.__init__(self, votable, url, "vaoreg", version)
+        dalq.DALResults.__init__(self, votable, url, "vaoreg", version)
 
     def getrecord(self, index):
         """
@@ -558,7 +558,7 @@ class RegistryResults(dalq.DalResults):
                          number of rows in the result table.
            KeyError    if name is not a recognized column name
         """
-        out = dalq.DalResults.getvalue(self, name, index)
+        out = dalq.DALResults.getvalue(self, name, index)
         if name not in self._strarraycols:
             return out
         

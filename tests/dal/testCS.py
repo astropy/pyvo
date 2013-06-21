@@ -128,7 +128,7 @@ class SCSQueryTest(unittest.TestCase):
         qurl = self.q.getqueryurl(lax=True)
         self.assertEquals(qurl, self.baseurl+"?RA=102.5511")
 
-        self.assertRaises(dalq.DalQueryError, self.q.getqueryurl)
+        self.assertRaises(dalq.DALQueryError, self.q.getqueryurl)
 
         self.q.dec = 24.312
         self.q.radius = 0.1
@@ -176,7 +176,7 @@ class CSResultsErrorTest(unittest.TestCase):
         try:
             res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DalQueryError, ex:
+        except dalq.DALQueryError, ex:
             self.assertEquals(ex.label, "Error")
             self.assertEquals(ex.reason, "Forced Fail")
 
@@ -186,7 +186,7 @@ class CSResultsErrorTest(unittest.TestCase):
         try:
             res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DalQueryError, ex:
+        except dalq.DALQueryError, ex:
             self.assertEquals(ex.label, "Error")
             self.assertEquals(ex.reason, "Forced Fail")
 
@@ -196,7 +196,7 @@ class CSResultsErrorTest(unittest.TestCase):
         try:
             res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DalQueryError, ex:
+        except dalq.DALQueryError, ex:
             self.assertEquals(ex.label, "Error")
             self.assertEquals(ex.reason, "DEC parameter out-of-range")
 

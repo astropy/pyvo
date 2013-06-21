@@ -291,8 +291,8 @@ class RegResultsTest(unittest.TestCase):
 
     def testCtor(self):
         self.r = reg.RegistryResults(self.tbl)
-        self.assert_(self.r._tbl is not None)
-        self.assertEquals(self.r.rowcount, 4)
+        self.assert_(self.r.votable is not None)
+        self.assertEquals(self.r.nrecs, 4)
 
     def testGetValue(self):
         self.testCtor()
