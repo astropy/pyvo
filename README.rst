@@ -1,3 +1,7 @@
+====
+PyVO
+====
+
 PyVO is a package providing access to remote data and services of the
 Virtual observatory (VO) using Python.
 
@@ -23,19 +27,40 @@ Source code can be found on GitHub at:
 
 This implementation requires the following prerequisite packagss:
 
-  o  numpy (1.6.0 or later)
-  o  astropy (0.2 - later versions have a different vo interface)
+* numpy (1.6.0 or later)
+* astropy (0.2 - later versions have a different vo interface)
 
-Currently in this pre-release state, disttool support (or the like) is
-not yet supported.  To use, one should set the PYTHONPATH variable to
-the location of the "python" directory containing the source code
-(i.e. below the directory containing this README).  If the
-prerequisites were not installed in the standard python module areas,
-these must be included in the PYTHONPATH as well.
+These must be installed before install PyVO.
 
+As an Astropy affiliate, this package uses the Astropy build
+infrastructure.  
+
+To install directly into the python installation, type as root user: 
+
+   python setup.py install
+
+To install into a special directory called, say, $MYPYVO (which need
+not require root permission), first be sure that astropy and numpy are
+in your PYTHONPATH (if they are also installed in a non-standard
+place).  Next, try: 
+
+   python setup.py install --home=$MYPYVO
+
+To just try out PyVO in this directory, you can build it in
+"developer" mode via:
+
+   python setup.py build_ext --inplace
+
+In this mode, update your PYTHONPATH to include the directory
+containing this file.  
+
+**********
 UNIT TESTS
+**********
 
-Unit tests are contained in the tests subdirectory.  To run a
+The PyVO unit tests have not yet been integrated into the py.test
+framework used by Astropy.  (They currently use the standard unittest
+module.)  Unit tests are contained in the tests subdirectory.  To run a
 particular unit test script, type:
 
    python tests/path-to-script.py
