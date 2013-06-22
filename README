@@ -1,5 +1,5 @@
-PyVO is a package providing to remote data and services of the Virtual
-observatory (VO) using Python.  
+PyVO is a package providing access to remote data and services of the
+Virtual observatory (VO) using Python.
 
 Its development was launched by NSF/NASA-funded Virtual Astronomical
 Observatory (VAO, www.usvao.org) project (formerly under the name
