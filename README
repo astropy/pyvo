@@ -1,5 +1,25 @@
-This package respresents an implementation of the VO Data Access Layer
-standard python interface.  
+PyVO is a package providing to remote data and services of the Virtual
+observatory (VO) using Python.  
+
+Its development was launched by NSF/NASA-funded Virtual Astronomical
+Observatory (VAO, www.usvao.org) project (formerly under the name
+VAOpy) as part of its initiative to bring VO capabilities to desktop.
+Its goal is allow astronomers and tool developers to access data and
+services from remote archives and other web resources.  It takes
+advantage VO standards to give access to thousands of catalogs,
+data archives, information services, and analysis tools.  It also
+takes advantage of the general capabilities of Astopy (and numpy), and
+so a secondary goal is to provide a development platform for migrating
+more VO capabilities into Astropy. 
+
+Information about this package, including latest releases, can be
+found at:
+
+  http://dev.usvao.org/vao/wiki/Products/PyVO
+
+Source code can be found on GitHub at:
+
+  http://github.com/pyvirtobs/pyvo
 
 This implementation requires the following prerequisite packagss:
 
