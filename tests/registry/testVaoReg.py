@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 """
-Tests for vaopy.registry.vao
+Tests for pyvo.registry.vao
 """
 import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
-import vaopy.dal.query as dalq
-import vaopy.registry.vao as reg
+import pyvo.dal.query as dalq
+import pyvo.registry.vao as reg
 from astropy.io.votable.tree import VOTableFile
-from vaopy.dal.query import _votableparse as votableparse
+from pyvo.dal.query import _votableparse as votableparse
 
 testdir = os.path.dirname(sys.argv[0])
 if not testdir:  testdir = "tests"

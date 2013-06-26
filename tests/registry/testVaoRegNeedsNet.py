@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """
-Tests for vaopy.registry.vao module
+Tests for pyvo.registry.vao module
 """
 import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
-import vaopy.dal.query as dalq
-import vaopy.registry.vao as reg
+import pyvo.dal.query as dalq
+import pyvo.registry.vao as reg
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
 
@@ -32,7 +32,7 @@ class RegExecuteTest(unittest.TestCase):
         self.assert_(r.size > 0)
 
         q.servicetype = "conesearch"
-        print q.getqueryurl()
+        # print q.getqueryurl()
         r = q.execute()
         self.assert_(r.size > 0)
 
