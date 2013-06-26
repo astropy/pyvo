@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 The CDS Sesame service interface.  This service provides basic information 
 about sources--most importantly, its position in the sky--given any of

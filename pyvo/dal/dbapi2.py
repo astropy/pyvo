@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 An implementation of the Database API v2.0 interface to DAL VOTable responses.
 This only supports read-only access.  
