@@ -32,9 +32,10 @@ from astropy.setup_helpers import (register_commands, adjust_compiler,
                                    filter_packages, update_package_files,
                                    get_debug_option)
 from astropy.version_helpers import get_git_devstr, generate_version_py
+import pyvo
 
 # Set affiliated package-specific settings
-PACKAGENAME = 'PyVO'
+PACKAGENAME = 'pyvo'
 DESCRIPTION = 'Astropy affiliated package for accessing Virtual Observatory data and services'
 LONG_DESCRIPTION = pyvo.__doc__
 AUTHOR = 'the Virtual Astronomical Observatory (VAO)'
@@ -43,7 +44,7 @@ LICENSE = 'BSD'
 URL = 'http://dev.usvao.org/vao/wiki/Products/PyVO'
 
 # VERSION should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
-VERSION = '0.0dev'
+VERSION = '0.0.dev'
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION

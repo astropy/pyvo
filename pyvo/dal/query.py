@@ -599,11 +599,11 @@ class Record(object):
         self._fdesc = fielddesc
         if not self._fdesc: 
             self._fdesc = {}
-        if results:
-            self.rec = results.votable.array.data[index]
-            if fielddesc is None:
-                for fld in results.fieldnames():
-                    self._fdesc[fld] = results.getdesc(fld)
+
+        self.rec = results.votable.array.data[index]
+        if fielddesc is None:
+            for fld in results.fieldnames():
+                self._fdesc[fld] = results.getdesc(fld)
 
     def __len__(self):
         return len(self.rec.dtype.names)
