@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """
-Tests for vaopy.dal.query
+Tests for pyvo.dal.query
 """
 import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
-import vaopy.dal.query as dalq
-import vaopy.dal.sia as sia
+import pyvo.dal.query as dalq
+import pyvo.dal.sia as sia
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
 

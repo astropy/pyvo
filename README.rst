@@ -60,8 +60,10 @@ UNIT TESTS
 
 The PyVO unit tests have not yet been integrated into the py.test
 framework used by Astropy.  (They currently use the standard unittest
-module.)  Unit tests are contained in the tests subdirectory.  To run a
-particular unit test script, type:
+module.)  Unit tests are contained in the tests subdirectory.  Before 
+running a test, be sure that the directory containing the tests
+subdirectory (.) is in your PYTHONPATH (along with astropy and
+numpy).  Then, to run a particular unit test script, type:
 
    python tests/path-to-script.py
 

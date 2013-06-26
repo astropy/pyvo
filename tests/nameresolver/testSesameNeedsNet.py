@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """
-Tests for vaopy.nameresolver.sesame
+Tests for pyvo.nameresolver.sesame
 """
 import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
-import vaopy.nameresolver.sesame as sesame
+import pyvo.nameresolver.sesame as sesame
 import xml.etree.ElementTree as ET
 
 testdir = os.path.dirname(sys.argv[0])

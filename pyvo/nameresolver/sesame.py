@@ -456,8 +456,7 @@ class SesameQuery(object):
             url = self.getqueryurl(lax, format, astext)
             return urlopen(url)
         except IOError, ex:
-            raise DALServiceError.from_except(ex, url, self.protocol, 
-                                              self.version)
+            raise DALServiceError.from_except(ex, url)
 
     def execute(self):
         """

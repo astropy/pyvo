@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 """
-Tests for vaopy.dal.query
+Tests for pyvo.dal.query
 """
 import os, sys, shutil, re, imp, glob
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
-import vaopy.dal.query as dalq
-import vaopy.dal.ssa as ssa
-import vaopy.dal.dbapi2 as daldbapi
+import pyvo.dal.query as dalq
+import pyvo.dal.ssa as ssa
+import pyvo.dal.dbapi2 as daldbapi
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
-from vaopy.dal.query import _votableparse as votableparse
+from pyvo.dal.query import _votableparse as votableparse
 
 testdir = os.path.dirname(sys.argv[0])
 if not testdir:  testdir = "tests"
