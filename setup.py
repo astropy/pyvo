@@ -34,6 +34,8 @@ from astropy.setup_helpers import (register_commands, adjust_compiler,
 from astropy.version_helpers import get_git_devstr, generate_version_py
 import pyvo
 
+import pyvo
+
 # Set affiliated package-specific settings
 PACKAGENAME = 'pyvo'
 DESCRIPTION = 'Astropy affiliated package for accessing Virtual Observatory data and services'
