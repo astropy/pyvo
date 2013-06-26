@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 """
-Tests for vaopy.dal.conesearch
+Tests for pyvo.dal.conesearch
 """
 import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
-import vaopy.dal.query as dalq
-from vaopy.dal import scs as cs
-import vaopy.dal.dbapi2 as daldbapi
+import pyvo.dal.query as dalq
+from pyvo.dal import scs as cs
+import pyvo.dal.dbapi2 as daldbapi
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
 from astropy.io.votable.exceptions import W22
-from vaopy.dal.query import _votableparse as votableparse
+from pyvo.dal.query import _votableparse as votableparse
 
 testdir = os.path.dirname(sys.argv[0])
 if not testdir:  testdir = "tests"

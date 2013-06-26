@@ -89,9 +89,10 @@ class TestServer(threading.Thread):
         self.httpd.serve_forever()
 
     def shutdown(self):
-        self.httpd.shutdown()
-        self.join(self._timeout+1)
-        self.httpd = None
+        if self.httpd:  
+            self.httpd.shutdown()
+            self.join(self._timeout+1)
+            self.httpd = None
 
 def run():
     httpd = HTTPServer(('', 8081), TestHandler)
