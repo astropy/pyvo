@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module provides access to astronomical name resolvers available
 as web services.  A name resolver service, in its most basic form, is

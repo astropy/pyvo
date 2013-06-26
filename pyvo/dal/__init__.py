@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from .sia import search as imagesearch
 from .ssa import search as spectrumsearch
 from .sla import search as linesearch

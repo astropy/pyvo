@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 A module for walking through the query response of VO data access layer
 (DAL) queries and general VOTable-based datasets.

@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 A module for searching for spectra in a remote archive.
 

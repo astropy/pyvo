@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 a module for basic VO Registry interactions.  
 
