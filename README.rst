@@ -54,6 +54,12 @@ To just try out PyVO in this directory, you can build it in
 In this mode, update your PYTHONPATH to include the directory
 containing this file.  
 
+********
+EXAMPLES
+********
+
+The scripts directory contains instructive examples of the use of pyvo.
+
 **********
 UNIT TESTS
 **********
