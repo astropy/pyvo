@@ -157,7 +157,7 @@ class SCSQuery(query.DALQuery):
     def dec(self, val):
         if val is not None:
             if not isinstance(val, numbers.Number):
-                raise ValueError("ra constraint is not a number")
+                raise ValueError("dec constraint is not a number")
             if val < -90.0 or val > 90.0:
                 raise ValueError("dec constraint out-of-range: " + str(val))
 
