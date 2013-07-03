@@ -1,8 +1,7 @@
-:tocdepth: 2
 
-#################
-PyVO User's Guide
-#################
+********************
+PyVO Reference Guide
+********************
 
 PyVO is a package providing access to remote data and services of the
 Virtual Observatory (VO) using Python.
@@ -10,10 +9,11 @@ Virtual Observatory (VO) using Python.
 **Contents**
 
 .. toctree::
-   :maxdepth: 2
+  :maxdepth: 2
 
-   vo
-   install
-   data_discovery
-   ref
+  mod
+  dal
+  registry
+  nameresolver
 
+  

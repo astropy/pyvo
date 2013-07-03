@@ -112,8 +112,8 @@ and they all work the same way:
 * you get back a list of items that match your constraints which you
   can iterate through,
 * catchable exceptions will be thrown if anything goes wrong, 
-* each returned record will have properties that describe that item,
-  and 
+* each returned record will have properties holding metadata that
+  describe that item, and 
 * when searching for a dataset, the record will include a URL for
   downloading the dataset.  
 
@@ -172,3 +172,60 @@ You might notice:
 25. We can download each image to a directory via the
     ``cachedataset()`` function.  
 
+===================================
+What's available in the pyvo Module
+===================================
+
+The :py:mod:`pyvo` module is organized such that most of what might need is
+available at the top of the module; that is, simply importing this
+module is sufficient for most uses:
+
+.. code-block:: python
+
+   import pyvo as vo
+
+The module's search capabilities are available through top-level
+functions.  Four of the functions represent what's referred to as the
+*VO Data Access Layer* (DAL):
+
+* :py:func:`~pyvo.conesearch` -- search a remote catalog for data
+  about sources or observations located within some radius of a given
+  position.  
+* :py:func:`~pyvo.imagesearch` -- search an image archive for images
+  that overlap a region of the sky
+* :py:func:`~pyvo.spectrumsearch` -- search an image archive for spectra
+  observed within some radius of a given position.
+* :py:func:`~pyvo.linesearch` -- search a remote spectral line database
+  for data about emission lines.  
+
+All the DAL search functions require a URL that represents the
+location of the service as its first argument.  If you don't the URL,
+you can look it up through a search of the VO Registry:
+
+* :py:func:`~pyvo.regsearch` -- search the VO Registry to find
+  services and archives.  
+
+The module also has functions that look up information about named
+objects in the sky, their positions being the most important.  There
+are three functions available:
+
+* :py:func:`~pyvo.nameresolver.sesame.object2pos` -- returns an
+  IRCS position given an object name.  If a list of names are passed in,
+  the positions of each will be returned as a list.  
+* :py:func:`~pyvo.nameresolver.sesame.object2sexapos` -- just like
+  `object2pos()`, except that positions are returned as sexagesimal
+  format.  
+* :py:func:`~pyvo.nameresolver.sesame.resolve` -- returns a container
+  full of data about a source with a gien name.  
+
+Finally, the :py:mod:`pyvo` module makes available a set of exceptions
+that are thrown by the above functions when things go wrong.  These
+are described in the Data Access Queries section: 
+
+============================================  ==================================
+:py:class:`~pyvo.dal.query.DALAccessError`    a base class for all failures while accessing a DAL service
+:py:class:`~pyvo.dal.query.DALProtocolError`  a base exception indicating that a DAL service responded in an erroneous way.  
+:py:class:`~pyvo.dal.query.DALFormatError`    an exception indicating that a DAL response contains fatal format errors.
+:py:class:`~pyvo.dal.query.DALServiceError`   an exception indicating a failure communicating with a DAL service.
+:py:class:`~pyvo.dal.query.DALQueryError`     an exception indicating an error by a working DAL service while processing a query.  
+============================================  ==================================
