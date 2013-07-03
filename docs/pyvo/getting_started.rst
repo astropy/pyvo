@@ -1,7 +1,7 @@
 
-************************
-Data Discovery With PyVO
-************************
+*************************
+Getting Started With PyVO
+*************************
 
 PyVO lets your find and download astronomical data available from
 archives that support standard VO service protocols.   The different
@@ -10,9 +10,9 @@ data.  Nevertheless, these services have similar interfaces:  Queries
 are formed via a set of name=value parameters, and results are
 returned as a table in VOTable format.   
 
-===============================
-Getting Started: A Few Examples
-===============================
+==============
+A Few Examples
+==============
 
 As a quick overview, we start with an example that illustrates a
 number of the key features of the PyVO's data discovery capabilities.
