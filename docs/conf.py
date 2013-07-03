@@ -122,7 +122,7 @@ extensions += ['astropy.sphinx.ext.edit_on_github']
 # Don't import the module as "version" or it will override the
 # "version" configuration parameter
 from pyvo import version as versionmod
-edit_on_github_project = "astropy/reponame"
+edit_on_github_project = "pyvirtobs/pyvo"
 if versionmod.release:
     edit_on_github_branch = "v" + versionmod.version
 else:
