@@ -1,3 +1,4 @@
+.. _getting-started:
 
 *************************
 Getting Started With PyVO
@@ -9,6 +10,8 @@ types of services that are supported will access different types of
 data.  Nevertheless, these services have similar interfaces:  Queries
 are formed via a set of name=value parameters, and results are
 returned as a table in VOTable format.   
+
+.. _getting-started-examples:
 
 ==============
 A Few Examples
@@ -172,6 +175,8 @@ You might notice:
 25. We can download each image to a directory via the
     ``cachedataset()`` function.  
 
+.. _getting-started-pyvo
+
 ===================================
 What's available in the pyvo Module
 ===================================
@@ -229,3 +234,16 @@ are described in the Data Access Queries section:
 :py:class:`~pyvo.dal.query.DALServiceError`   an exception indicating a failure communicating with a DAL service.
 :py:class:`~pyvo.dal.query.DALQueryError`     an exception indicating an error by a working DAL service while processing a query.  
 ============================================  ==================================
+
+Finally, we will see in the next chapter that additional features are
+available in sub-modules, each associated with a different type of
+services.  This includes:
+
+================================  =========================================
+:py:mod:`~pyvo.dal.sia`           Classes for accessing image services
+:py:mod:`~pyvo.dal.ssa`           Classes for accessing spectrum services
+:py:mod:`~pyvo.dal.scs`           Classes for accessing catalog services
+:py:mod:`~pyvo.dal.sla`           Classes for accessing spectral line catalog services
+:py:mod:`~pyvo.dal.registry`      Classes for accessing the registry
+:py:mod:`~pyvo.dal.nameresolver`  Classes for accessing the nameresolver servicees
+================================  =========================================

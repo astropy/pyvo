@@ -14,6 +14,9 @@ Virtual Observatory (VO) using Python.
 
    vo
    install
-   data_discovery
+   getting_started
+   data_access
+   registry_access
+   resolve_names
    ref
 
