@@ -42,16 +42,15 @@ def search(url, pos, size, format='all', intersect="overlaps", verbosity=2,
 
     Parameters
     ----------
-    url  
+    url : str
        the base URL for the SIA service
-    pos 
-       a 2-element seqence giving the ICRS RA and DEC in decimal 
-       degrees
-
-    size
-       a floating point number or a 2-element tuple giving the size
-       of the rectangular region around pos to search for images.  
-    format
+    pos : 2-element sequence of floats
+       the ICRS RA and DEC in decimal degrees
+    size : a float or a 2-element sequence of floats
+       the size of the rectangular region around pos to search 
+       for images.  If a single value is given, the region is
+       a "square".  
+    format : str
        the image format(s) of interest.  "all" (default) 
        indicates all available formats; "graphic" indicates
        graphical images (e.g. jpeg, png, gif; not FITS); 
@@ -59,10 +58,18 @@ def search(url, pos, size, format='all', intersect="overlaps", verbosity=2,
        returned--only an empty table with complete metadata;
        "image/*" indicates a particular image format where * can 
        have values like "fits", "jpeg", "png", etc. 
-    intersect
-       a token indicating how the returned images should 
-       intersect with the search region
-    verbosity
+    intersect : str
+       a case-insensitive token indicating how the returned images should 
+       intersect with the search region; recognized values include:
+
+       ========= ======================================================
+       COVERS    select images that completely cover the search region
+       ENCLOSED  select images that are complete enclosed by the region
+       OVERLAPS  select any image that overlaps with the search region
+       CENTER    select images whose center is within the search region
+       ========= ======================================================
+
+    verbosity : int
        an integer value that indicates the volume of columns
        to return in the result table.  0 means the minimum
        set of columsn, 3 means as many columns as are 
@@ -516,7 +523,7 @@ class SIARecord(query.Record):
     @property
     def format(self):
         """
-        return the title of the image
+        return the format of the image
         """
         return self.get(self._names["format"])
 

@@ -1,3 +1,4 @@
+.. _about-vo:
 
 **********************************
 About the Virtual Observatory (VO)
@@ -22,6 +23,8 @@ Started".  However, if you are completely new to the concepts of the
 VO, or you encounter something you don't understand, you can read on
 for an overview of VO services.  
 
+.. _about-data-disc:
+
 =========================
 Data Discovery and Access
 =========================
@@ -43,8 +46,10 @@ asks what datasets the archive has of a particular type and that match
 the user's constraints.  Currently, PyVO supports querying two types
 of dataset services: 
 
-* Simple Image Access (SIA) -- a service for finding images
-* Simple Spectral Access (SSA) -- a service for finding spectra
+* `Simple Image Access (SIA) <http://www.ivoa.net/documents/SIA/>`_ -- 
+  a service for finding images
+* `Simple Spectral Access <http://www.ivoa.net/documents/SSA/> (SSA)`_
+  -- a service for finding spectra
 
 The response is a table where each row is describes a single
 downloadable dataset (an image or a spectrum) available in the archive
@@ -60,12 +65,14 @@ With a catalog service, there is no dataset to download; instead one
 is simply searching a catalog for its records.  Currently, PyVO
 supports querying two types of dataset services: 
 
-* Simple Cone Search (SCS) -- a service for searching a source catalog
-  or an observation log.  In particular, you can ask such for all
-  sources or observations whose positions within some distance of a
-  particular position of the sky.  
-* Simple Line Access (SLAP) -- a service for finding data about
-  spectral lines, including their rest frequencies.
+* `Simple Cone Search (SCS) <http://www.ivoa.net/documents/latest/ConeSearch.html>`_ 
+  -- a service for searching a source catalog or an observation log.
+  In particular, you can ask such for all sources or observations
+  whose positions within some distance of a particular position of the
+  sky.  
+* `Simple Line Access (SLAP) <http://www.ivoa.net/documents/SLAP/>`_ 
+  -- a service for finding data about spectral lines, including their
+  rest frequencies. 
 
 In all DAL search results, the archive can provide a rich set of
 metadata that describe whatever it is that is being searched for.  The
