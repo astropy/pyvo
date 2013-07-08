@@ -305,8 +305,8 @@ class SSAQuery(query.DALQuery):
     def format(self):
         """
         the desired format of the images to be returned.  This will be in the 
-        form of a commna-separated lists of MIME-types or one of the following special
-        values. 
+        form of a commna-separated list of MIME-types or one of the following 
+        special values.  
 
         :Special Values:
            all:  all formats available

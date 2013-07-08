@@ -346,18 +346,39 @@ class SIAQuery(query.DALQuery):
            METADATA:  no images reqested; only an empty table with fields 
                           properly specified
 
-        In addition, a value of "GRAPHIC-_fmt[,fmt]_" where fmt is graphical 
+        In addition, a value of "GRAPHIC-*fmt[,fmt]*" where *fmt* is graphical 
         format type (e.g. "jpeg", "png", "gif") indicates that a graphical 
         format is desired with a preference for _fmt_ in the order given.
         """
         return self.getparam("FORMAT")
     @format.setter
     def format(self, val):
-        uval = val.upper()
-        if uval in ["ALL", "GRAPHIC", "GRAPHIC-ALL", "METADATA"]:
-            val = uval
-        elif uval.startswith("GRAPHIC-"):
-            val = uval[:8] + val[8:]
+        if isinstance(val, str):
+            uval = val.upper()
+            if uval in ["ALL", "GRAPHIC", "GRAPHIC-ALL", "METADATA"]:
+                val = uval
+            elif uval.startswith("GRAPHIC-"):
+                val = uval[:8] + val[8:]
+            elif ',' in val:
+                # can be a comma-separated list of MIME-types
+                self.format = val.split(',')
+            elif not query.is_mime_type(val):
+                raise ValueError("Not a MIME-type of special value: " + val)
+
+        elif hasattr(val, "__iter__"):
+            # accept python iterables of MIME-types
+            if len(val) == 0:
+                self.unsetparam("FORMAT")
+                return
+            elif len(val) == 1:
+                self.format = list(val)[0]
+                return
+            bad = filter(lambda f: not query.is_mime_type(f), val)
+            if len(bad) > 0:
+                raise ValueError("format list can only contain MIME-types; " +
+                                 "(bad values: " + ','.join(bad) + ')')
+            val = ','.join(val)
+
         self.setparam("FORMAT", val)
     @format.deleter
     def format(self):
