@@ -307,6 +307,21 @@ class EnsureBaseURLTest(unittest.TestCase):
         self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat&usecache=yes&"), 
                           "http://localhost/sia?cat=neat&usecache=yes&")
 
+class MimeCheckTestCase(unittest.TestCase):
+    
+    def testGood(self):
+        self.assertTrue(dalq.is_mime_type("image/jpeg"))
+        self.assertTrue(dalq.is_mime_type("application/fits"))
+        self.assertTrue(dalq.is_mime_type("application/x-fits"))
+        self.assertTrue(dalq.is_mime_type("application/fits"))
+        self.assertTrue(dalq.is_mime_type("application/votable+xml"))
+        self.assertTrue(dalq.is_mime_type("application/fits;convention=STScI-STIS"))
+
+    def testBad(self):
+        self.assertFalse(dalq.is_mime_type("image"))
+        self.assertFalse(dalq.is_mime_type("image/votable/xml"))
+
+
 class DALServiceTest(unittest.TestCase):
 
     def setUp(self):

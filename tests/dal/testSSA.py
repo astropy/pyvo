@@ -219,6 +219,25 @@ class SSAQueryTest(unittest.TestCase):
         del self.q.format
         self.assert_(self.q.format is None)
 
+    def testFormat(self):
+        self.testCtor()
+        self.assert_(self.q.format is None)
+        self.q.format = "all"
+        self.assertEquals(self.q.format, "all")
+        del self.q.format
+        self.assert_(self.q.format is None)
+
+        # check all special values
+        for val in "compliant native graphic votable fits xml metadata".split():
+            self.q.format = val
+            self.assertEquals(self.q.format, val)
+
+        # make sure MIME-type value is accepted
+        self.q.format = "image/jpeg"
+        self.assertEquals(self.q.format, "image/jpeg")
+
+        # check for list values
+        self.q.format = "fits,image/jpeg"
 
     def testCreateURL(self):
         self.testCtor()
