@@ -722,4 +722,119 @@ Digitized Sky Survey (DSS2)::
 NRAO VLA Sky Survey (NVSS)::
     http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
 
+IRSA Two Micron All-Sky Survey (2MASS)::
+    http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=2mass&
+
+.. _data-access-ssa
+
+======================
+Simple Spectrum Access
+======================
+
+Searching for spectra is much like searching for images, although the
+search parameters are a little different.  Instead of searching a
+rectangular region of the sky, we look for spectra falling within a
+circular region of the sky.  Nevertheless, the spectrum search API
+follows the same pattern as described in the previous section
+(:ref:`data-access-sia`).
+
+.. _ssa-func
+
+---------------------------
+The Spectra Search Function
+---------------------------
+
+The :py:func:`~pyvo.spectrumsearch` function can be used to find
+spectra from some region of the sky.  Here's an example of search for
+spectra of lensed QSOs in the direction of the Coma cluster:
+
+>>> url = 'http://dc.zah.uni-heidelberg.de/mlqso/q/q/ssap.xml?'
+>>> spectra = vo.spectrumsearch(url, pos=(194.9529, 27.9805556), size=0.1)
+>>> len(spectra)
+180
+
+You can restrict the results to a specific format.  This service happens to 
+have previews in JPEG format:
+
+>>> previews = vo.spectrumsearch(url, pos=(194.9529, 27.9805556), size=0.1, format='image/jpeg')
+>>> len(spectra)
+36
+
+In addition to accepting formats values as MIME-type names, some
+special values accepted, including "fits" for FITS format and "xml"
+for VOTable format:
+
+>>> spectra = vo.spectrumsearch(url, pos=(194.9529, 27.9805556), size=0.1, format='fits')
+>>> len(spectra)
+36
+
+See the :py:attr:`pyvo.ssa.SSAQuery.format` for a full enumeration of
+the special format values.  
+
+Just like searching for images, you can iterate through your results
+to process the spectra:
+
+.. code-block:: python
+
+   import os
+   os.mkdir("cdfs-spectra")
+
+   for spec in spectra:
+       print "Downloading %s..." % spec.title
+       spec.cachedataset(dir="cdfs-spectra")
+
+.. _ssa-rec
+
+----------------------------
+Spectrum Results and Records
+----------------------------
+
+The results object returned by a spectrum search the same interface as
+what is returned from a image search (see :ref:`sia-results`):
+
+* you can treat the results like a list of records: iterate through
+  the records or access specific records with the bracket
+  (``[``*i*``]``) operator.  
+* Use :py:meth:`~pyvo.dal.query.DALResults.fieldnames()` and 
+  :py:meth:`~pyvo.dal.query.DALResults.fielddesc` to access the record
+  field names and descriptions.  
+* Handle the results as a Astropy :py:class:`~astropy.table.Table` or 
+  or VOTable :py:class:`~astropy.io.votable.tree.Table`.  
+
+When you process the results like a list of records, each record will
+be a :py:class:`pyvo.dal.ssa.SSARecord` instance.  Just like its image
+counterpart, you can treat the record like a dictionary where the keys
+are the field names:
+
+>>> rec = spectra[0]
+>>> rec.keys()
+('Survey', 'Ra', 'Dec', 'Dim', 'Size', 'Scale', 'Format', 'PixFlags', 'URL', 'LogicalName')
+
+In addition, the record provides properties that allow you to pick out
+key metadata about the spectrum regardless of what the column names
+are.  These include:
+
+==========================================  =========================================================
+attribute                                   description
+==========================================  =========================================================
+:py:attr:`~pyvo.dal.ssa.SSARecord.ra`       the IRCS right ascension of the center of the spectrum 
+                                            in decimal degrees
+------------------------------------------  ---------------------------------------------------------
+:py:attr:`~pyvo.dal.ssa.SSARecord.dec`      the IRCS declination of the center of the spectrum
+                                            in decimal degrees            
+------------------------------------------  ---------------------------------------------------------
+:py:attr:`~pyvo.dal.ssa.SSARecord.title`    the name or identifier of the spectrum as given by
+                                            the archive
+------------------------------------------  ---------------------------------------------------------
+:py:attr:`~pyvo.dal.ssa.SSARecord.format`   the format of the spectrum
+------------------------------------------  ---------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.S@ARecord.dateobs`  the modified Julien date (MJD) of the mid-point of 
+                                            the observational data that went into the image
+                                            (optional)
+------------------------------------------  ---------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SSARecord.instr`    the name of the instrument (or instruments) that 
+                                            produced the data that went into this image.
+------------------------------------------  ---------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.acref`    the URL that can be used to retrieve the image.  
+==========================================  =========================================================
 
