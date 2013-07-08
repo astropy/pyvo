@@ -38,38 +38,59 @@ __all__ = [ "search", "SIAResults", "SIARecord", "SIAQuery", "SIAService" ]
 def search(url, pos, size, format='all', intersect="overlaps", verbosity=2,
            **keywords):
     """
-    submit a simple SIA query that requests images overlapping a 
-    :Args:
-       *url*:  the base URL for the SIA service
-       *pos*:  a 2-element seqence giving the ICRS RA and DEC in decimal degrees
-       *size*: a floating point number or a 2-element tuple giving the size
-                 of the rectangular region around pos to search for images.  
-       *format*:     the image format(s) of interest.  "all" (default) 
-                       indicates all available formats; "graphic" indicates
-                       graphical images (e.g. jpeg, png, gif; not FITS); 
-                       "metadata" indicates that no images should be 
-                       returned--only an empty table with complete metadata;
-                       "image/*" indicates a particular image format where 
-                       * can have values like "fits", "jpeg", "png", etc. 
-       *intersect*:  a token indicating how the returned images should 
-                       intersect with the search region
-       *verbosity*:  an integer value that indicates the volume of columns
-                       to return in the result table.  0 means the minimum
-                       set of columsn, 3 means as many columns as are 
-                       available.  
-       **keywords:   additional parameters can be given via arbitrary 
-                       keyword arguments.  These can be either standard 
-                       parameters (with names drown from the 
-                       ``SIAQuery.std_parameters`` list) or paramters
-                       custom to the service.  Where there is overlap 
-                       with the parameters set by the other arguments to
-                       this function, these keywords will override.
+    submit a simple SIA query that requests images overlapping a given region
 
-    :Raises:
-       *DALServiceError*: for errors connecting to or 
-                          communicating with the service
-       *DALQueryError*:   if the service responds with 
-                          an error, including a query syntax error.  
+    Parameters
+    ----------
+    url : str
+       the base URL for the SIA service
+    pos : 2-element sequence of floats
+       the ICRS RA and DEC in decimal degrees
+    size : a float or a 2-element sequence of floats
+       the size of the rectangular region around pos to search 
+       for images.  If a single value is given, the region is
+       a "square".  
+    format : str
+       the image format(s) of interest.  "all" (default) 
+       indicates all available formats; "graphic" indicates
+       graphical images (e.g. jpeg, png, gif; not FITS); 
+       "metadata" indicates that no images should be 
+       returned--only an empty table with complete metadata;
+       "image/*" indicates a particular image format where * can 
+       have values like "fits", "jpeg", "png", etc. 
+    intersect : str
+       a case-insensitive token indicating how the returned images should 
+       intersect with the search region; recognized values include:
+
+       ========= ======================================================
+       COVERS    select images that completely cover the search region
+       ENCLOSED  select images that are complete enclosed by the region
+       OVERLAPS  select any image that overlaps with the search region
+       CENTER    select images whose center is within the search region
+       ========= ======================================================
+
+    verbosity : int
+       an integer value that indicates the volume of columns
+       to return in the result table.  0 means the minimum
+       set of columsn, 3 means as many columns as are 
+       available.  
+    **keywords   
+       additional parameters can be given via arbitrary 
+       keyword arguments.  These can be either standard 
+       parameters (with names drown from the 
+       ``SIAQuery.std_parameters`` list) or paramters
+       custom to the service.  Where there is overlap 
+       with the parameters set by the other arguments to
+       this function, these keywords will override.
+
+    Raises
+    ------
+    DALServiceError
+       for errors connecting to or 
+       communicating with the service
+    DALQueryError
+       if the service responds with 
+       an error, including a query syntax error.  
     """
     service = SIAService(url)
     return service.search(pos, size, format, intersect, verbosity, **keywords)
@@ -83,7 +104,8 @@ class SIAService(query.DALService):
         """
         instantiate an SIA service
 
-        :Args:
+        Parameters
+        ----------
            *baseurl*:  the base URL for submitting search queries to the 
                          service.
            *resmeta*:  an optional dictionary of properties about the 
@@ -100,7 +122,8 @@ class SIAService(query.DALService):
         more complex queries, one should create an SIAQuery object via 
         create_query()
 
-        :Args:
+        Parameters
+        ----------
            *pos*:        a 2-element tuple giving the ICRS RA and Dec of the 
                            center of the search region in decimal degrees
            *size*:       a 2-element tuple giving the full rectangular size of 
@@ -127,7 +150,8 @@ class SIAService(query.DALService):
                            with the parameters set by the other arguments to
                            this function, these keywords will override.
 
-        :Raises:
+        Raises
+        ------
            *DALServiceError*: for errors connecting to or 
                               communicating with the service
            *DALQueryError*:   if the service responds with 
@@ -144,7 +168,8 @@ class SIAService(query.DALService):
         executed.  The input arguments will initialize the query with the 
         given values.
 
-        :Args:
+        Parameters
+        ----------
            *pos*:        a 2-element tuple giving the ICRS RA and Dec of the 
                            center of the search region in decimal degrees
            *size*:       a 2-element tuple giving the full rectangular size of 
@@ -272,6 +297,11 @@ class SIAQuery(query.DALQuery):
 
     @property
     def size(self):
+        """
+        a 2-element tuple giving the size of the rectangular search region
+        along the right-ascension and declination directions, measured in 
+        decimal degrees.  
+        """
         return self.getparam("SIZE")
     @size.setter
     def size(self, val):
@@ -316,18 +346,39 @@ class SIAQuery(query.DALQuery):
            METADATA:  no images reqested; only an empty table with fields 
                           properly specified
 
-        In addition, a value of "GRAPHIC-_fmt[,fmt]_" where fmt is graphical 
+        In addition, a value of "GRAPHIC-*fmt[,fmt]*" where *fmt* is graphical 
         format type (e.g. "jpeg", "png", "gif") indicates that a graphical 
         format is desired with a preference for _fmt_ in the order given.
         """
         return self.getparam("FORMAT")
     @format.setter
     def format(self, val):
-        uval = val.upper()
-        if uval in ["ALL", "GRAPHIC", "GRAPHIC-ALL", "METADATA"]:
-            val = uval
-        elif uval.startswith("GRAPHIC-"):
-            val = uval[:8] + val[8:]
+        if isinstance(val, str):
+            uval = val.upper()
+            if uval in ["ALL", "GRAPHIC", "GRAPHIC-ALL", "METADATA"]:
+                val = uval
+            elif uval.startswith("GRAPHIC-"):
+                val = uval[:8] + val[8:]
+            elif ',' in val:
+                # can be a comma-separated list of MIME-types
+                self.format = val.split(',')
+            elif not query.is_mime_type(val):
+                raise ValueError("Not a MIME-type of special value: " + val)
+
+        elif hasattr(val, "__iter__"):
+            # accept python iterables of MIME-types
+            if len(val) == 0:
+                self.unsetparam("FORMAT")
+                return
+            elif len(val) == 1:
+                self.format = list(val)[0]
+                return
+            bad = filter(lambda f: not query.is_mime_type(f), val)
+            if len(bad) > 0:
+                raise ValueError("format list can only contain MIME-types; " +
+                                 "(bad values: " + ','.join(bad) + ')')
+            val = ','.join(val)
+
         self.setparam("FORMAT", val)
     @format.deleter
     def format(self):
@@ -335,6 +386,18 @@ class SIAQuery(query.DALQuery):
 
     @property
     def intersect(self):
+        """
+        the search constraint that controls how images that overlap the 
+        search region are selected.  Allowed (case-insensitive) values 
+        include:
+
+        ========= ======================================================
+        COVERS    select images that completely cover the search region
+        ENCLOSED  select images that are complete enclosed by the region
+        OVERLAPS  select any image that overlaps with the search region
+        CENTER    select images whose center is within the search region
+        ========= ======================================================
+        """
         return self.getparam("INTERSECT")
     @intersect.setter
     def intersect(self, val):
@@ -374,7 +437,8 @@ class SIAQuery(query.DALQuery):
         submit the query and return the results as a Results subclass instance.
         This implimentation returns an SIAResults instance
 
-        :Raises:
+        Raises
+        ------
            *DALServiceError*: for errors connecting to or 
                               communicating with the service
            *DALQueryError*:   if the service responds with 
@@ -480,7 +544,7 @@ class SIARecord(query.Record):
     @property
     def format(self):
         """
-        return the title of the image
+        return the format of the image
         """
         return self.get(self._names["format"])
 

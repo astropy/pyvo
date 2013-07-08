@@ -4,14 +4,22 @@ PyVO is a package providing access to remote data and services of the
 Virtual observatory (VO) using Python.  
 
 The pyvo module currently provides these main capabilities:
+
 * find archives that provide particular data of a particular type and/or 
   relates to a particular topic
+
   *  regsearch()
+
 * search an archive for datasets of a particular type
+
   *  imagesearch(), spectrumsearch()
+
 * do simple searches on catalogs or databases
+
   *  conesearch(), linesearch()
+
 * get information about an object via its name
+
   *  resolve(), object2pos(), object2sexapos()
 
 Submodules provide additional functions and classes for greater control over

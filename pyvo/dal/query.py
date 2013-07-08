@@ -21,11 +21,17 @@ standard data model.  Usually the field names are used to uniquely
 identify table columns.
 """
 __all__ = [ "ensure_baseurl", "DALAccessError", "DALProtocolError",
-            "DALFormatError", "DALServiceError", "DALQueryError"   ]
+            "DALFormatError", "DALServiceError", "DALQueryError",
+            "DALService", "DALQuery", "DALResults", "Record"]
 
 import copy, os, re, warnings, socket
 from urllib2 import urlopen, URLError, HTTPError
 from urllib import quote_plus
+
+_mimetype_re = re.compile(r'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
+
+def is_mime_type(val):
+    return bool(_mimetype_re.match(val))
 
 def ensure_baseurl(url):
     """

@@ -305,8 +305,8 @@ class SSAQuery(query.DALQuery):
     def format(self):
         """
         the desired format of the images to be returned.  This will be in the 
-        form of a commna-separated lists of MIME-types or one of the following special
-        values. 
+        form of a commna-separated list of MIME-types or one of the following 
+        special values.  
 
         :Special Values:
            all:  all formats available
@@ -327,8 +327,9 @@ class SSAQuery(query.DALQuery):
         formats = val.split(",")
         for f in formats:
             f = f.lower()
-            if f not in ["all", "compliant", "native", "graphic", "votable", "fits",
-                         "xml", "metadata"]: # regex for MIME type
+            if not query.is_mime_type(f) and \
+               f not in ["all", "compliant", "native", "graphic", "votable", 
+                         "fits", "xml", "metadata"]: 
                 raise ValueError("format type not valid: " + f)
 
         self.setparam("FORMAT", val)

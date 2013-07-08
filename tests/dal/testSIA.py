@@ -262,6 +262,70 @@ class SIAQueryTest(unittest.TestCase):
         try: self.q.intersect = "ALL"; self.fail("bad intersect value accepted")
         except ValueError:  pass
 
+    def testFormat(self):
+        self.testCtor()
+        self.assert_(self.q.format is None)
+        self.q.format = "ALL"
+        self.assertEquals(self.q.format, "ALL")
+        del self.q.format
+        self.assert_(self.q.format is None)
+
+        self.q.format = "ALL"
+        self.assertEquals(self.q.format, "ALL")
+
+        for f in "all graphic graphic-all metadata".split():
+            self.q.format = f
+            self.assertEquals(self.q.format, f.upper())
+        for f in "ALL GRAPHIC GRAPHIC-ALL METADATA".split():
+            self.q.format = f
+            self.assertEquals(self.q.format, f.upper())
+
+        self.q.format = "graphic-png,jpeg,gif"
+        self.assertEquals(self.q.format, "GRAPHIC-png,jpeg,gif")
+
+        self.q.format = "image/fits"
+        self.assertEquals(self.q.format, "image/fits")
+        self.q.format = ["image/fits"]
+        self.assertEquals(self.q.format, "image/fits")
+        self.q.format = set(["image/fits"])
+        self.assertEquals(self.q.format, "image/fits")
+        self.q.format = tuple(["image/fits"])
+        self.assertEquals(self.q.format, "image/fits")
+
+        self.q.format = "image/fits,text/html"
+        self.assertEquals(self.q.format, "image/fits,text/html")
+        self.q.format = "image/fits text/html".split()
+        self.assertEquals(self.q.format, "image/fits,text/html")
+        self.q.format = set("image/fits text/html".split())
+        self.assertEquals(self.q.format, "image/fits,text/html")
+        self.q.format = tuple("image/fits text/html".split())
+        self.assertEquals(self.q.format, "image/fits,text/html")
+
+    def _assertPropSetRaises(self, extype, obj, att, val):
+        try:
+            setattr(obj, att, val)
+            self.fail("Failed to raise ValueError for %s=%s" % (att,str(val)))
+        except extype:
+            pass
+        except Exception, ex:
+            self.fail("Raised wrong exception: %s: %s" % 
+                      (str(type(ex)), str(ex)))
+
+    def testBadFormat(self):
+        self.testCtor()
+        self._assertPropSetRaises(ValueError, self.q, "format", "goober")
+        self._assertPropSetRaises(ValueError, self.q, "format", ["goober"])
+        self._assertPropSetRaises(ValueError, self.q, "format", 
+                                  "graphic image/fits".split())
+        self._assertPropSetRaises(ValueError, self.q, "format", 
+                                  set("graphic image/fits".split()))
+        self._assertPropSetRaises(ValueError, self.q, "format", 
+                                  tuple("graphic image/fits".split()))
+        self._assertPropSetRaises(ValueError, self.q, "format", 
+                                  "graphic,image/fits")
+            
+        
+
     def testCreateURL(self):
         self.testCtor()
         self.q.ra = 102.5511
