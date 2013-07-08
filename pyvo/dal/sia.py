@@ -48,8 +48,8 @@ def search(url, pos, size, format='all', intersect="overlaps", verbosity=2,
        the ICRS RA and DEC in decimal degrees
     size : a float or a 2-element sequence of floats
        the size of the rectangular region around pos to search 
-       for images.  If a single value is given, the region is
-       a "square".  
+       for images, given in decimal degrees.  If a single value is 
+       given, the region is a "square".  
     format : str
        the image format(s) of interest.  "all" (default) 
        indicates all available formats; "graphic" indicates
