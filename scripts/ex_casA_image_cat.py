@@ -2,15 +2,15 @@
 import pyvo as vo
 
 # find archives with x-ray images
-archives = vo.regsearch(servicetype='image',
-                        waveband='xray')
+archives = vo.regsearch(servicetype='image', waveband='xray')
+                        
 # position of my favorite source
 pos = vo.object2pos('Cas A')
 
 # find images and list in a file
 with open('cas-a.csv', 'w') as csv:
-    print >> csv, "Archive short name,Archive", \
-                   "title,Image title,RA,Dec,URL"
+    print >> csv, "Archive short name,Archive title,Image", \
+                   "title,RA,Dec,format,URL"
     for arch in archives:
         print "searching %s..." % arch.shortname
         try:
@@ -23,5 +23,5 @@ with open('cas-a.csv', 'w') as csv:
         for image in matches:
              print >> csv, ','.join(
               (arch.shortname, arch.title, image.title,
-               str(image.ra), str(image.dec),
+               str(image.ra), str(image.dec), image.format,
                image.getdataurl()) )
