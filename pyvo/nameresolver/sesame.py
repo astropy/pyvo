@@ -49,8 +49,8 @@ def set_default_endpoint(name):
 
 def resolve(names, db="Simbad", include="", mirror=None):
     """
-    resolve one or more object names to nameresolver.sesame.ObjectData 
-    instances.
+    resolve one or more object names each to an ObjectData instance 
+    containing metadata about the object.  
 
     :Args:
       *names*:   either a single object name (as a string) or a list of 
@@ -111,7 +111,7 @@ def resolve(names, db="Simbad", include="", mirror=None):
 
 def object2pos(names, db="Simbad", mirror=None):
     """
-    resolve one or more object names to ObjectData instances.
+    resolve one or more object names each to a position.
 
     :Args:
       *names*:   either a single object name (as a string) or a list of 
@@ -134,7 +134,8 @@ def object2pos(names, db="Simbad", mirror=None):
 
 def object2sexapos(names, db="Simbad", mirror=None):
     """
-    resolve one or more object names to ObjectData instances.
+    resolve one or more object names each to a sesagesimal-formatted 
+    position.
 
     :Args:
       *names*:   either a single object name (as a string) or a list of 
