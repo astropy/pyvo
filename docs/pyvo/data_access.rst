@@ -477,7 +477,7 @@ query.  This class can sometimes be useful at the query level.  Query
 classes are specialized to the type of service being accessed and have
 built-in knowledge the input parameters it accepts.  In the case of
 searching for images via an SIA service,  one can use the 
-:ref:`~pyvo.dal.sia.SIAQuery` class.  
+:py:`~pyvo.dal.sia.SIAQuery` class.  
 
 With a query class, you create an instance, set the query parameters,
 and then execute it:
@@ -838,3 +838,10 @@ attribute                                   description
 :py:attr:`~pyvo.dal.sia.SIARecord.acref`    the URL that can be used to retrieve the image.  
 ==========================================  =========================================================
 
+--------------------------
+Search and Service Classes
+--------------------------
+
+Just as in the image search case, the spectrum interface also has a
+query class (see :ref:`sia-query`) and service class (see
+:ref:`service-objects`). 
