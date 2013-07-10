@@ -13,17 +13,25 @@ Source code can be found on GitHub at:
 
   http://github.com/pyvirtobs/pyvo
 
-This implementation requires the following prerequisite packagss:
+This implementation requires the following prerequisite packages:
 
 * numpy (1.6.0 or later)
 * astropy (0.2 - later versions have a different vo interface)
 
-These must be installed before installing PyVO.
+If you install PyVO from a source distribution, these must be
+installed first. 
 
 As an Astropy affiliate, this package uses the Astropy build
 infrastructure.  
 
-To install directly into the python installation, type as root user: 
+Releases of PyVO are available from `PyPI <https://pypi.python.org/pypi/pyvo>`;
+thus, it and its prerequisites can be most easily installed using ``pip``:
+
+   pip install pyvo
+
+Alternatively, you can download and unpack a source tar-ball
+(pyvo-x.x.tar.gz).  To install directly into the python installation,
+type as root user inside the distributions root directory:  
 
    python setup.py install
 
