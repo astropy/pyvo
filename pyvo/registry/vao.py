@@ -445,7 +445,7 @@ class RegistryQuery(dalq.DALQuery):
                                           out.info().gettype())
             return out
 
-        except IOError, ex:
+        except IOError as ex:
             raise dalq.DALServiceError.from_except(ex, url)
 
     def _raiseServiceError(self, response):
