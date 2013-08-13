@@ -13,7 +13,7 @@ a cut-out service; in this case, the query result is a table of images
 whose field of view matches the requested region and which will be
 created when accessed via the download URL.
 
-This module provides an interface for accessing an SIA service.  It is 
+This module provides an interface for accessing an SIA service.  It is
 implemented as a specialization of the DAL Query interface.
 
 The ``search()`` function support the simplest and most common types
@@ -25,15 +25,17 @@ metadata in the response, such as the position of the image's center,
 the image format, the size and shape of the image, and its download
 URL.
 
-For more complex queries, the SIAQuery class can be helpful which 
+For more complex queries, the SIAQuery class can be helpful which
 allows one to build up, tweak, and reuse a query.  The SIAService
 class can represent a specific service available at a URL endpoint.
 """
 
-import numbers, re
+import numbers
+import re
 from . import query
 
-__all__ = [ "search", "SIAResults", "SIARecord", "SIAQuery", "SIAService" ]
+__all__ = ["search", "SIAResults", "SIARecord", "SIAQuery", "SIAService"]
+
 
 def search(url, pos, size, format='all', intersect="overlaps", verbosity=2,
            **keywords):
@@ -47,19 +49,19 @@ def search(url, pos, size, format='all', intersect="overlaps", verbosity=2,
     pos : 2-element sequence of floats
        the ICRS RA and DEC in decimal degrees
     size : a float or a 2-element sequence of floats
-       the size of the rectangular region around pos to search 
-       for images, given in decimal degrees.  If a single value is 
-       given, the region is a "square".  
+       the size of the rectangular region around pos to search
+       for images, given in decimal degrees.  If a single value is
+       given, the region is a "square".
     format : str
-       the image format(s) of interest.  "all" (default) 
+       the image format(s) of interest.  "all" (default)
        indicates all available formats; "graphic" indicates
-       graphical images (e.g. jpeg, png, gif; not FITS); 
-       "metadata" indicates that no images should be 
+       graphical images (e.g. jpeg, png, gif; not FITS);
+       "metadata" indicates that no images should be
        returned--only an empty table with complete metadata;
-       "image/*" indicates a particular image format where * can 
-       have values like "fits", "jpeg", "png", etc. 
+       "image/*" indicates a particular image format where * can
+       have values like "fits", "jpeg", "png", etc.
     intersect : str
-       a case-insensitive token indicating how the returned images should 
+       a case-insensitive token indicating how the returned images should
        intersect with the search region; recognized values include:
 
        ========= ======================================================
@@ -72,30 +74,32 @@ def search(url, pos, size, format='all', intersect="overlaps", verbosity=2,
     verbosity : int
        an integer value that indicates the volume of columns
        to return in the result table.  0 means the minimum
-       set of columsn, 3 means as many columns as are 
-       available.  
-    **keywords   
-       additional parameters can be given via arbitrary 
-       keyword arguments.  These can be either standard 
-       parameters (with names drown from the 
+       set of columsn, 3 means as many columns as are
+       available.
+    **keywords
+       additional parameters can be given via arbitrary
+       keyword arguments.  These can be either standard
+       parameters (with names drown from the
        ``SIAQuery.std_parameters`` list) or paramters
-       custom to the service.  Where there is overlap 
+       custom to the service.  Where there is overlap
        with the parameters set by the other arguments to
        this function, these keywords will override.
 
     Raises
     ------
     DALServiceError
-       for errors connecting to or 
+       for errors connecting to or
        communicating with the service
     DALQueryError
-       if the service responds with 
-       an error, including a query syntax error.  
+       if the service responds with
+       an error, including a query syntax error.
     """
     service = SIAService(url)
     return service.search(pos, size, format, intersect, verbosity, **keywords)
 
+
 class SIAService(query.DALService):
+
     """
     a representation of an SIA service
     """
@@ -106,9 +110,9 @@ class SIAService(query.DALService):
 
         Parameters
         ----------
-           *baseurl*:  the base URL for submitting search queries to the 
+           *baseurl*:  the base URL for submitting search queries to the
                          service.
-           *resmeta*:  an optional dictionary of properties about the 
+           *resmeta*:  an optional dictionary of properties about the
                          service
         """
         query.DALService.__init__(self, baseurl, "sia", version, resmeta)
@@ -116,112 +120,119 @@ class SIAService(query.DALService):
     def search(self, pos, size, format='all', intersect="overlaps", verbosity=2,
                **keywords):
         """
-        submit a simple SIA query to this service with the given constraints.  
+        submit a simple SIA query to this service with the given constraints.
 
-        This method is provided for a simple but typical SIA queries.  For 
-        more complex queries, one should create an SIAQuery object via 
+        This method is provided for a simple but typical SIA queries.  For
+        more complex queries, one should create an SIAQuery object via
         create_query()
 
         Parameters
         ----------
-           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the 
+           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the
                            center of the search region in decimal degrees
-           *size*:       a 2-element tuple giving the full rectangular size of 
-                           the search region along the RA and Dec directions in 
+           *size*:       a 2-element tuple giving the full rectangular size of
+                           the search region along the RA and Dec directions in
                            decimal degrees
-           *format*:     the image format(s) of interest.  "all" (default) 
+           *format*:     the image format(s) of interest.  "all" (default)
                            indicates all available formats; "graphic" indicates
-                           graphical images (e.g. jpeg, png, gif; not FITS); 
-                           "metadata" indicates that no images should be 
+                           graphical images (e.g. jpeg, png, gif; not FITS);
+                           "metadata" indicates that no images should be
                            returned--only an empty table with complete metadata;
-                           "image/*" indicates a particular image format where 
-                           * can have values like "fits", "jpeg", "png", etc. 
-           *intersect*:  a token indicating how the returned images should 
+                           "image/*" indicates a particular image format where
+                           * can have values like "fits", "jpeg", "png", etc.
+           *intersect*:  a token indicating how the returned images should
                            intersect with the search region
            *verbosity*:  an integer value that indicates the volume of columns
                            to return in the result table.  0 means the minimum
-                           set of columsn, 3 means as many columns as are 
-                           available.  
-           **keywords:   additional parameters can be given via arbitrary 
-                           keyword arguments.  These can be either standard 
-                           parameters (with names drown from the 
+                           set of columsn, 3 means as many columns as are
+                           available.
+           **keywords:   additional parameters can be given via arbitrary
+                           keyword arguments.  These can be either standard
+                           parameters (with names drown from the
                            ``SIAQuery.std_parameters`` list) or paramters
-                           custom to the service.  Where there is overlap 
+                           custom to the service.  Where there is overlap
                            with the parameters set by the other arguments to
                            this function, these keywords will override.
 
         Raises
         ------
-           *DALServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or
                               communicating with the service
-           *DALQueryError*:   if the service responds with 
-                              an error, including a query syntax error.  
+           *DALQueryError*:   if the service responds with
+                              an error, including a query syntax error.
         """
-        q = self.create_query(pos, size, format, intersect, verbosity, 
+        q = self.create_query(pos, size, format, intersect, verbosity,
                               **keywords)
         return q.execute()
 
-    def create_query(self, pos=None, size=None, format=None, intersect=None, 
+    def create_query(self, pos=None, size=None, format=None, intersect=None,
                      verbosity=None, **keywords):
         """
-        create a query object that constraints can be added to and then 
-        executed.  The input arguments will initialize the query with the 
+        create a query object that constraints can be added to and then
+        executed.  The input arguments will initialize the query with the
         given values.
 
         Parameters
         ----------
-           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the 
+           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the
                            center of the search region in decimal degrees
-           *size*:       a 2-element tuple giving the full rectangular size of 
-                           the search region along the RA and Dec directions in 
+           *size*:       a 2-element tuple giving the full rectangular size of
+                           the search region along the RA and Dec directions in
                            decimal degrees
-           *format*:     the image format(s) of interest.  "all" indicates 
+           *format*:     the image format(s) of interest.  "all" indicates
                            all available formats; "graphic" indicates
-                           graphical images (e.g. jpeg, png, gif; not FITS); 
-                           "metadata" indicates that no images should be 
+                           graphical images (e.g. jpeg, png, gif; not FITS);
+                           "metadata" indicates that no images should be
                            returned--only an empty table with complete metadata;
-                           "image/*" indicates a particular image format where 
-                           * can have values like "fits", "jpeg", "png", etc. 
-           *intersect*:  a token indicating how the returned images should 
+                           "image/*" indicates a particular image format where
+                           * can have values like "fits", "jpeg", "png", etc.
+           *intersect*:  a token indicating how the returned images should
                            intersect with the search region
            *verbosity*   an integer value that indicates the volume of columns
                            to return in the result table.  0 means the minimum
-                           set of columsn, 3 means as many columns as are 
-                           available.  
-           **keywords:   additional parameters can be given via arbitrary 
-                           keyword arguments.  These can be either standard 
-                           parameters (with names drown from the 
+                           set of columsn, 3 means as many columns as are
+                           available.
+           **keywords:   additional parameters can be given via arbitrary
+                           keyword arguments.  These can be either standard
+                           parameters (with names drown from the
                            ``SIAQuery.std_parameters`` list) or paramters
-                           custom to the service.  Where there is overlap 
+                           custom to the service.  Where there is overlap
                            with the parameters set by the other arguments to
                            this function, these keywords will override.
 
-        :Returns: 
+        :Returns:
            *SIAQuery*:  the query instance
         """
         q = SIAQuery(self.baseurl, self.version)
-        if pos is not None: q.pos = pos
-        if size is not None: q.size = size
-        if format: q.format = format
-        if intersect: q.intersect = intersect
-        if verbosity is not None: q.verbosity = verbosity
+        if pos is not None:
+            q.pos = pos
+        if size is not None:
+            q.size = size
+        if format:
+            q.format = format
+        if intersect:
+            q.intersect = intersect
+        if verbosity is not None:
+            q.verbosity = verbosity
 
         for key in keywords.keys():
             q.setparam(key, keywords[key])
 
         return q
 
+
 class SIAQuery(query.DALQuery):
+
     """
     a class for preparing an query to an SIA service.  Query constraints
     are added via its service type-specific methods.  The various execute()
-    functions will submit the query and return the results.  
+    functions will submit the query and return the results.
 
     The base URL for the query can be changed via the baseurl property.
     """
-    std_parameters = [ "POS", "SIZE", "INTERSECT", "NAXIS", "CFRAME",
-                       "EQUINOX", "CRPIX", "CRVAL", "CDELT", "ROTANG", 
-                       "PROJ", "FORMAT", "VERB" ]
+    std_parameters = ["POS", "SIZE", "INTERSECT", "NAXIS", "CFRAME",
+                     "EQUINOX", "CRPIX", "CRVAL", "CDELT", "ROTANG",
+                     "PROJ", "FORMAT", "VERB"]
 
     allowed_intersects = "COVERS ENCLOSED CENTER OVERLAPS".split()
 
@@ -230,15 +241,15 @@ class SIAQuery(query.DALQuery):
         initialize the query object with a baseurl
         """
         query.DALQuery.__init__(self, baseurl, "sia", version)
-        
 
     @property
     def pos(self):
         """
-        the position (POS) constraint as a 2-element tuple denoting RA and 
+        the position (POS) constraint as a 2-element tuple denoting RA and
         declination in decimal degrees.  This defaults to None.
         """
         return self.getparam("POS")
+
     @pos.setter
     def pos(self, pair):
         # do a check on the input
@@ -246,11 +257,11 @@ class SIAQuery(query.DALQuery):
             pair = tuple(pair)
         if (isinstance(pair, tuple)):
             if len(pair) != 2:
-                raise ValueError("Wrong number of elements in pos list: " + 
+                raise ValueError("Wrong number of elements in pos list: " +
                                  str(pair))
-            if (not isinstance(pair[0], numbers.Number) or 
-                not isinstance(pair[1], numbers.Number)):
-                raise ValueError("Wrong type of elements in pos list: " + 
+            if (not isinstance(pair[0], numbers.Number) or
+                    not isinstance(pair[1], numbers.Number)):
+                raise ValueError("Wrong type of elements in pos list: " +
                                  str(pair))
         else:
             raise ValueError("pos not a 2-element sequence")
@@ -263,8 +274,8 @@ class SIAQuery(query.DALQuery):
         while pair[0] >= 360.0:
             pair = (pair[0]-360.0, pair[1])
 
-
         self.setparam("POS", pair)
+
     @pos.deleter
     def pos(self):
         self.unsetparam('POS')
@@ -275,11 +286,14 @@ class SIAQuery(query.DALQuery):
         the right ascension part of the position constraint (default: None).
         If this is set but dec has not been set yet, dec will be set to 0.0.
         """
-        if not self.pos: return None
+        if not self.pos:
+            return None
         return self.pos[0]
+
     @ra.setter
     def ra(self, val):
-        if not self.pos: self.pos = (0.0, 0.0)
+        if not self.pos:
+            self.pos = (0.0, 0.0)
         self.pos = (val, self.pos[1])
 
     @property
@@ -288,21 +302,25 @@ class SIAQuery(query.DALQuery):
         the declination part of the position constraint (default: None).
         If this is set but ra has not been set yet, ra will be set to 0.0.
         """
-        if not self.pos: return None
+        if not self.pos:
+            return None
         return self.pos[1]
+
     @dec.setter
     def dec(self, val):
-        if not self.pos: self.pos = (0.0, 0.0)
+        if not self.pos:
+            self.pos = (0.0, 0.0)
         self.pos = (self.pos[0], val)
 
     @property
     def size(self):
         """
         a 2-element tuple giving the size of the rectangular search region
-        along the right-ascension and declination directions, measured in 
-        decimal degrees.  
+        along the right-ascension and declination directions, measured in
+        decimal degrees.
         """
         return self.getparam("SIZE")
+
     @size.setter
     def size(self, val):
         # do a check on the input
@@ -313,11 +331,11 @@ class SIAQuery(query.DALQuery):
 
         if (isinstance(val, tuple)):
             if len(val) != 2:
-                raise ValueError("Wrong number of elements in size seq: " + 
+                raise ValueError("Wrong number of elements in size seq: " +
                                  str(val))
-            if (not isinstance(val[0], numbers.Number) or 
-                not isinstance(val[1], numbers.Number)):
-                raise ValueError("Wrong type of elements in size seq: " + 
+            if (not isinstance(val[0], numbers.Number) or
+                    not isinstance(val[1], numbers.Number)):
+                raise ValueError("Wrong type of elements in size seq: " +
                                  str(val))
         else:
             raise ValueError("size not a 2-element number sequence: " + str(val))
@@ -329,6 +347,7 @@ class SIAQuery(query.DALQuery):
 
         # do check on val; convert single number to a pair
         self.setparam("SIZE", val)
+
     @size.deleter
     def size(self):
         self.unsetparam("SIZE")
@@ -336,21 +355,22 @@ class SIAQuery(query.DALQuery):
     @property
     def format(self):
         """
-        the desired format of the images to be returned.  This will be in 
-        the form of a MIME-type (e.g. "image/fits") or one of the following 
+        the desired format of the images to be returned.  This will be in
+        the form of a MIME-type (e.g. "image/fits") or one of the following
         special values.  (Lower case are accepted on setting.)
         :Special Values:
-           ALL:  all formats available 
+           ALL:  all formats available
            GRAPHIC:  any graphical format (e.g. JPEG, PNG, GIF)
            GRAPHIC-ALL:  all graphical formats available
-           METADATA:  no images reqested; only an empty table with fields 
+           METADATA:  no images reqested; only an empty table with fields
                           properly specified
 
-        In addition, a value of "GRAPHIC-*fmt[,fmt]*" where *fmt* is graphical 
-        format type (e.g. "jpeg", "png", "gif") indicates that a graphical 
+        In addition, a value of "GRAPHIC-*fmt[,fmt]*" where *fmt* is graphical
+        format type (e.g. "jpeg", "png", "gif") indicates that a graphical
         format is desired with a preference for _fmt_ in the order given.
         """
         return self.getparam("FORMAT")
+
     @format.setter
     def format(self, val):
         if isinstance(val, str):
@@ -380,6 +400,7 @@ class SIAQuery(query.DALQuery):
             val = ','.join(val)
 
         self.setparam("FORMAT", val)
+
     @format.deleter
     def format(self):
         self.unsetparam("FORMAT")
@@ -387,8 +408,8 @@ class SIAQuery(query.DALQuery):
     @property
     def intersect(self):
         """
-        the search constraint that controls how images that overlap the 
-        search region are selected.  Allowed (case-insensitive) values 
+        the search constraint that controls how images that overlap the
+        search region are selected.  Allowed (case-insensitive) values
         include:
 
         ========= ======================================================
@@ -399,6 +420,7 @@ class SIAQuery(query.DALQuery):
         ========= ======================================================
         """
         return self.getparam("INTERSECT")
+
     @intersect.setter
     def intersect(self, val):
         if not isinstance(val, str):
@@ -409,6 +431,7 @@ class SIAQuery(query.DALQuery):
             raise ValueError("unrecogized intersect value: " + val)
 
         self.setparam("INTERSECT", val)
+
     @intersect.deleter
     def intersect(self):
         self.unsetparam("INTERSECT")
@@ -417,20 +440,21 @@ class SIAQuery(query.DALQuery):
     def verbosity(self):
         """
         an integer indicating the amount of metadata (i.e. columns) that will
-        be returned by a query where 0 is the minimum amount and 3 is the 
+        be returned by a query where 0 is the minimum amount and 3 is the
         maximum available.
         """
         return self.getparam("VERB")
+
     @verbosity.setter
     def verbosity(self, val):
         # do a check on val
         if not isinstance(val, int):
             raise ValueError("verbosity value not an integer: " + val)
         self.setparam("VERB", val)
+
     @verbosity.deleter
     def verbosity(self):
         self.unsetparam("VERB")
-
 
     def execute(self):
         """
@@ -439,33 +463,34 @@ class SIAQuery(query.DALQuery):
 
         Raises
         ------
-           *DALServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or
                               communicating with the service
-           *DALQueryError*:   if the service responds with 
-                              an error, including a query syntax error.  
+           *DALQueryError*:   if the service responds with
+                              an error, including a query syntax error.
         """
         return SIAResults(self.execute_votable(), self.getqueryurl())
 
 
 class SIAResults(query.DALResults):
+
     """
-    Results from an SIA query.  It provides random access to records in 
-    the response.  Alternatively, it can provide results via a Cursor 
+    Results from an SIA query.  It provides random access to records in
+    the response.  Alternatively, it can provide results via a Cursor
     (compliant with the Python Database API) or an iterable.
     """
 
     def __init__(self, votable, url=None):
         """
-        initialize the cursor.  This constructor is not typically called 
-        by directly applications; rather an instance is obtained from calling 
+        initialize the cursor.  This constructor is not typically called
+        by directly applications; rather an instance is obtained from calling
         a SIAQuery's execute().
         """
         query.DALResults.__init__(self, votable, url, "sia", "1.0")
-        self._siacols = { 
+        self._siacols = {
             "VOX:Image_Title": self.fieldname_with_ucd("VOX:Image_Title"),
             "INST_ID": self.fieldname_with_ucd("INST_ID"),
             "VOX:Image_MJDateObs": self.fieldname_with_ucd("VOX:Image_MJDateObs"),
-            "POS_EQ_RA_MAIN":  self.fieldname_with_ucd("POS_EQ_RA_MAIN"),
+            "POS_EQ_RA_MAIN": self.fieldname_with_ucd("POS_EQ_RA_MAIN"),
             "POS_EQ_DEC_MAIN": self.fieldname_with_ucd("POS_EQ_DEC_MAIN"),
             "VOX:Image_Naxes": self.fieldname_with_ucd("VOX:Image_Naxes"),
             "VOX:Image_Naxis": self.fieldname_with_ucd("VOX:Image_Naxis"),
@@ -487,29 +512,31 @@ class SIAResults(query.DALResults):
             "VOX:Image_AccessRefTTL": self.fieldname_with_ucd("VOX:Image_AccessRefTTL"),
             "VOX:Image_FileSize": self.fieldname_with_ucd("VOX:Image_FileSize")
 
-            }
-        self._recnames = { "title":   self._siacols["VOX:Image_Title"],
-                           "ra":      self._siacols["POS_EQ_RA_MAIN"],
-                           "dec":     self._siacols["POS_EQ_DEC_MAIN"],
-                           "instr":   self._siacols["INST_ID"],
-                           "dateobs": self._siacols["VOX:Image_MJDateObs"],
-                           "format":  self._siacols["VOX:Image_Format"],
-                           "naxes":   self._siacols["VOX:Image_Naxes"],
-                           "naxis":   self._siacols["VOX:Image_Naxis"],
-                           "acref":   self._siacols["VOX:Image_AccessReference"]
-                           }
-        
+        }
+        self._recnames = {"title": self._siacols["VOX:Image_Title"],
+                         "ra": self._siacols["POS_EQ_RA_MAIN"],
+                         "dec": self._siacols["POS_EQ_DEC_MAIN"],
+                         "instr": self._siacols["INST_ID"],
+                         "dateobs": self._siacols["VOX:Image_MJDateObs"],
+                         "format": self._siacols["VOX:Image_Format"],
+                         "naxes": self._siacols["VOX:Image_Naxes"],
+                         "naxis": self._siacols["VOX:Image_Naxis"],
+                         "acref": self._siacols["VOX:Image_AccessReference"]
+                          }
+
     def getrecord(self, index):
         """
         return an SIA result record that follows dictionary
         semantics.  The keys of the dictionary are those returned by this
-        instance's fieldNames() function: either the column IDs or name, if 
-        the ID is not set.  The returned record has additional accessor 
+        instance's fieldNames() function: either the column IDs or name, if
+        the ID is not set.  The returned record has additional accessor
         methods for getting at stardard SIA response metadata (e.g. ra, dec).
         """
         return SIARecord(self, index)
 
+
 class SIARecord(query.Record):
+
     """
     a dictionary-like container for data in a record from the results of an
     SIA query, describing an available image.
@@ -551,7 +578,7 @@ class SIARecord(query.Record):
     @property
     def dateobs(self):
         """
-        return the modified Julien date (MJD) of the mid-point of the 
+        return the modified Julien date (MJD) of the mid-point of the
         observational data that went into the image
         """
         return self.get(self._names["dateobs"])
@@ -559,14 +586,14 @@ class SIARecord(query.Record):
     @property
     def naxes(self):
         """
-        return the number of axes in this image.  
+        return the number of axes in this image.
         """
         return self.get(self._names["naxes"])
 
     @property
     def naxis(self):
         """
-        return the lengths of the sides along each axis, in pixels, as 
+        return the lengths of the sides along each axis, in pixels, as
         a sequence
         """
         return tuple(self.get(self._names["naxis"]))
@@ -574,7 +601,7 @@ class SIARecord(query.Record):
     @property
     def instr(self):
         """
-        return the name of the instrument (or instruments) that produced the 
+        return the name of the instrument (or instruments) that produced the
         data that went into this image.
         """
         return self.get(self._names["instr"])
@@ -588,7 +615,7 @@ class SIARecord(query.Record):
 
     def getdataurl(self):
         """
-        return the URL contained in the access URL column which can be used 
+        return the URL contained in the access URL column which can be used
         to retrieve the dataset described by this record.  None is returned
         if no such column exists.
         """
@@ -596,10 +623,10 @@ class SIARecord(query.Record):
 
     def suggest_dataset_basename(self):
         """
-        return a default base filename that the dataset available via 
-        ``getdataset()`` can be saved as.  This function is 
+        return a default base filename that the dataset available via
+        ``getdataset()`` can be saved as.  This function is
         specialized for a particular service type this record originates from
-        so that it can be used by ``cachedataset()`` via 
+        so that it can be used by ``cachedataset()`` via
         ``make_dataset_filename()``.
         """
         out = self.title
@@ -611,10 +638,8 @@ class SIARecord(query.Record):
 
     def suggest_extension(self, default=None):
         """
-        returns a recommended filename extension for the dataset described 
-        by this record.  Typically, this would look at the column describing 
-        the format and choose an extension accordingly.  
+        returns a recommended filename extension for the dataset described
+        by this record.  Typically, this would look at the column describing
+        the format and choose an extension accordingly.
         """
         return query.mime2extension(self.format, default)
-
-        

@@ -2,8 +2,13 @@
 """
 Tests for pyvo.dal.conesearch
 """
-import os, sys, shutil, re, imp
-import unittest, pdb
+import os
+import sys
+import shutil
+import re
+import imp
+import unittest
+import pdb
 from urllib2 import URLError, HTTPError
 
 import pyvo.dal.query as dalq
@@ -15,7 +20,8 @@ from astropy.io.votable.exceptions import W22
 from pyvo.dal.query import _votableparse as votableparse
 
 testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
+if not testdir:
+    testdir = "tests"
 csresultfile = "twomass-cs.xml"
 errresultfile = "error-cs.xml"
 testserverport = 8081
@@ -25,8 +31,9 @@ try:
     mod = imp.find_module(t, [testdir])
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
-except ImportError, e:
+except ImportError as e:
     print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+
 
 class SCSServiceTest(unittest.TestCase):
 
@@ -66,10 +73,10 @@ class SCSServiceTest(unittest.TestCase):
         self.assertEquals(q.baseurl, self.baseurl)
         self.assertEquals(len(q._param.keys()), 4)
 
-        self.assertEquals(q.ra,  0.0)
+        self.assertEquals(q.ra, 0.0)
         self.assertEquals(q.dec, 0.0)
-        self.assertEquals(q.sr,  1.0)
-        self.assertEquals(q.radius,  1.0)
+        self.assertEquals(q.sr, 1.0)
+        self.assertEquals(q.radius, 1.0)
         self.assertEquals(q.verbosity, 2)
 
         qurl = q.getqueryurl()
@@ -101,7 +108,7 @@ class SCSQueryTest(unittest.TestCase):
         self.assertEquals(self.q.dec, 40.1434)
         self.assertEquals(self.q.dec, self.q.pos[1])
         self.assertEquals(self.q.ra, self.q.pos[0])
-        
+
         self.q.sr = 0.25
         self.assertEquals(self.q.radius, 0.25)
 
@@ -110,18 +117,29 @@ class SCSQueryTest(unittest.TestCase):
         self.q.ra = -60.0
         self.assertEquals(self.q.ra, 300.0)
 
-
     def testBadPos(self):
         self.testCtor()
-        try:  self.q.ra = "a b";  self.fail("ra took string values")
-        except ValueError:  pass
-        try:  self.q.dec = "a b"; self.fail("dec took string values")
-        except ValueError:  pass
-        try:  self.q.radius = "a b";  self.fail("dec took string values")
-        except ValueError:  pass
-        try:  self.q.dec = 100; self.fail("dec took out-of-range value")
-        except ValueError, e:  pass
-            
+        try:
+            self.q.ra = "a b"
+            self.fail("ra took string values")
+        except ValueError:
+            pass
+        try:
+            self.q.dec = "a b"
+            self.fail("dec took string values")
+        except ValueError:
+            pass
+        try:
+            self.q.radius = "a b"
+            self.fail("dec took string values")
+        except ValueError:
+            pass
+        try:
+            self.q.dec = 100
+            self.fail("dec took out-of-range value")
+        except ValueError as e:
+            pass
+
     def testCreateURL(self):
         self.testCtor()
         self.q.ra = 102.5511
@@ -176,7 +194,7 @@ class CSResultsErrorTest(unittest.TestCase):
         try:
             res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "Error")
             self.assertEquals(ex.reason, "Forced Fail")
 
@@ -186,7 +204,7 @@ class CSResultsErrorTest(unittest.TestCase):
         try:
             res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "Error")
             self.assertEquals(ex.reason, "Forced Fail")
 
@@ -196,7 +214,7 @@ class CSResultsErrorTest(unittest.TestCase):
         try:
             res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "Error")
             self.assertEquals(ex.reason, "DEC parameter out-of-range")
 
@@ -225,6 +243,7 @@ class CSRecordTest(unittest.TestCase):
         self.assertEquals(self.rec.dec, -8.8911667)
         self.assertEquals(self.rec.id, "34")
 
+
 class CSExecuteTest(unittest.TestCase):
     baseurl = "http://localhost:%d/cs?"
 
@@ -250,16 +269,17 @@ class CSExecuteTest(unittest.TestCase):
         self.assert_("SR=0.25" in qurl)
         self.assert_("VERB=2" in qurl)
 
-
     def testConesearch(self):
         # pdb.set_trace()
-        results = cs.search(self.baseurl % testserverport, 
+        results = cs.search(self.baseurl % testserverport,
                             pos=(0.0, 0.0), radius=0.25)
         self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.nrecs, 2)
-        
+
 
 __all__ = "SCSServiceTest SCSQueryTest CSResultsTest CSRecordTest CSExecuteTest".split()
+
+
 def suite():
     tests = []
     for t in __all__:

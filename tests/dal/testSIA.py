@@ -2,8 +2,14 @@
 """
 Tests for pyvo.dal.query
 """
-import os, sys, shutil, re, imp, glob
-import unittest, pdb
+import os
+import sys
+import shutil
+import re
+import imp
+import glob
+import unittest
+import pdb
 from urllib2 import URLError, HTTPError
 
 import pyvo.dal.query as dalq
@@ -14,7 +20,8 @@ from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
 
 testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
+if not testdir:
+    testdir = "tests"
 siaresultfile = "neat-sia.xml"
 errresultfile = "error-sia.xml"
 testserverport = 8081
@@ -24,8 +31,9 @@ try:
     mod = imp.find_module(t, [testdir])
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
-except ImportError, e:
+except ImportError as e:
     print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+
 
 class SIAServiceTest(unittest.TestCase):
 
@@ -60,7 +68,7 @@ class SIAServiceTest(unittest.TestCase):
 
     def testCreateQueryWithArgs(self):
         self.testCtor()
-        q = self.srv.create_query(pos=(0,0), size=(1.0,1.0), format="all", 
+        q = self.srv.create_query(pos=(0,0), size=(1.0,1.0), format="all",
                                   intersect="overlaps", verbosity=2)
         self.assert_(isinstance(q, sia.SIAQuery))
         self.assertEquals(q.baseurl, self.baseurl)
@@ -89,11 +97,11 @@ class SIAServiceTest(unittest.TestCase):
         qurl = q.getqueryurl()
         self.assert_("POS=0,0" in qurl)
         self.assert_("SIZE=1.0,1.0" in qurl)
-        self.assertTrue("CDELT=0.00028" in qurl, 
+        self.assertTrue("CDELT=0.00028" in qurl,
                         "unexpected CDELT format: "+qurl)
 
-        q = self.srv.create_query(pos=(0,0), size=(1.0,1.0), format="all", 
-                                  intersect="overlaps", verbosity=2, 
+        q = self.srv.create_query(pos=(0,0), size=(1.0,1.0), format="all",
+                                  intersect="overlaps", verbosity=2,
                                   CDELT=0.00028)
         self.assert_(isinstance(q, sia.SIAQuery))
         self.assertEquals(q.baseurl, self.baseurl)
@@ -109,7 +117,7 @@ class SIAServiceTest(unittest.TestCase):
         qurl = q.getqueryurl()
         self.assert_("POS=0,0" in qurl)
         self.assert_("SIZE=1.0,1.0" in qurl)
-        self.assertTrue("CDELT=0.00028" in qurl, 
+        self.assertTrue("CDELT=0.00028" in qurl,
                         "unexpected CDELT format: "+qurl)
 
 
@@ -162,25 +170,36 @@ class SIAQueryTest(unittest.TestCase):
     def testBadPos(self):
         self.testCtor()
         try:
-            self.q.pos = 22.3; self.fail("pos took scalar value")
-        except ValueError:  pass
+            self.q.pos = 22.3
+            self.fail("pos took scalar value")
+        except ValueError:
+            pass
         try:
-            self.q.pos = range(4); self.fail("pos took bad-length array value")
-        except ValueError:  pass
+            self.q.pos = range(4)
+            self.fail("pos took bad-length array value")
+        except ValueError:
+            pass
         try:
-            self.q.pos = "a b".split(); self.fail("pos took string values")
-        except ValueError:  pass
+            self.q.pos = "a b".split()
+            self.fail("pos took string values")
+        except ValueError:
+            pass
         try:
-            self.q.ra = "a b"; self.fail("ra took string values")
-        except ValueError:  pass
+            self.q.ra = "a b"
+            self.fail("ra took string values")
+        except ValueError:
+            pass
         try:
-            self.q.dec = "a b"; self.fail("dec took string values")
-        except ValueError:  pass
+            self.q.dec = "a b"
+            self.fail("dec took string values")
+        except ValueError:
+            pass
         try:
-            self.q.dec = 100; self.fail("dec took out-of-range value")
-        except ValueError, e:  pass
-            
-            
+            self.q.dec = 100
+            self.fail("dec took out-of-range value")
+        except ValueError as e:
+            pass
+
     def testSize(self):
         self.testCtor()
         self.assert_(self.q.size is None)
@@ -202,39 +221,72 @@ class SIAQueryTest(unittest.TestCase):
 
     def testBadSize(self):
         self.testCtor()
-        try: self.q.size[0] = 1.0; self.fail("updated size element")
-        except TypeError: pass
+        try:
+            self.q.size[0] = 1.0
+            self.fail("updated size element")
+        except TypeError:
+            pass
 
         self.q.size = 1.0
-        try: self.q.size[0] = 1.0; self.fail("updated size element")
-        except TypeError: pass
+        try:
+            self.q.size[0] = 1.0
+            self.fail("updated size element")
+        except TypeError:
+            pass
 
-        try:  self.q.size = range(4); self.fail("size took bad array")
-        except ValueError: pass
+        try:
+            self.q.size = range(4)
+            self.fail("size took bad array")
+        except ValueError:
+            pass
 
-        try:  self.q.size = "a b".split(); self.fail("size took non-numbers")
-        except ValueError: pass
+        try:
+            self.q.size = "a b".split()
+            self.fail("size took non-numbers")
+        except ValueError:
+            pass
 
-        try:  self.q.size = "a b"; self.fail("size took non-numbers")
-        except ValueError: pass
+        try:
+            self.q.size = "a b"
+            self.fail("size took non-numbers")
+        except ValueError:
+            pass
 
-        try:  self.q.size = [0.5, 200]; self.fail("size took out-of-range dec")
-        except ValueError: pass
+        try:
+            self.q.size = [0.5, 200]
+            self.fail("size took out-of-range dec")
+        except ValueError:
+            pass
 
-        try:  self.q.size = [500, 0.5]; self.fail("size took out-of-range ra")
-        except ValueError: pass
+        try:
+            self.q.size = [500, 0.5]
+            self.fail("size took out-of-range ra")
+        except ValueError:
+            pass
 
-        try:  self.q.size = [0.5, 0]; self.fail("size took out-of-range dec")
-        except ValueError: pass
+        try:
+            self.q.size = [0.5, 0]
+            self.fail("size took out-of-range dec")
+        except ValueError:
+            pass
 
-        try:  self.q.size = [0, 0.5]; self.fail("size took out-of-range ra")
-        except ValueError: pass
+        try:
+            self.q.size = [0, 0.5]
+            self.fail("size took out-of-range ra")
+        except ValueError:
+            pass
 
-        try:  self.q.size = [0.5, -5]; self.fail("size took out-of-range dec")
-        except ValueError: pass
+        try:
+            self.q.size = [0.5, -5]
+            self.fail("size took out-of-range dec")
+        except ValueError:
+            pass
 
-        try:  self.q.size = [-5, 0.5]; self.fail("size took out-of-range ra")
-        except ValueError: pass
+        try:
+            self.q.size = [-5, 0.5]
+            self.fail("size took out-of-range ra")
+        except ValueError:
+            pass
 
     def testProps(self):
         self.testCtor()
@@ -249,8 +301,11 @@ class SIAQueryTest(unittest.TestCase):
         self.assertEquals(self.q.verbosity, 1)
         del self.q.verbosity
         self.assert_(self.q.verbosity is None)
-        try: self.q.verbosity = "ALL"; self.fail("verb set to non-int")
-        except ValueError:  pass
+        try:
+            self.q.verbosity = "ALL"
+            self.fail("verb set to non-int")
+        except ValueError:
+            pass
 
         self.assert_(self.q.intersect is None)
         for val in "covers enclosed center overlaps".split() + "COVERS ENCLOSED CENTER OVERLAPS".split():
@@ -259,8 +314,11 @@ class SIAQueryTest(unittest.TestCase):
 
         del self.q.intersect
         self.assert_(self.q.intersect is None)
-        try: self.q.intersect = "ALL"; self.fail("bad intersect value accepted")
-        except ValueError:  pass
+        try:
+            self.q.intersect = "ALL"
+            self.fail("bad intersect value accepted")
+        except ValueError:
+            pass
 
     def testFormat(self):
         self.testCtor()
@@ -307,23 +365,23 @@ class SIAQueryTest(unittest.TestCase):
             self.fail("Failed to raise ValueError for %s=%s" % (att,str(val)))
         except extype:
             pass
-        except Exception, ex:
-            self.fail("Raised wrong exception: %s: %s" % 
+        except Exception as ex:
+            self.fail("Raised wrong exception: %s: %s" %
                       (str(type(ex)), str(ex)))
 
     def testBadFormat(self):
         self.testCtor()
         self._assertPropSetRaises(ValueError, self.q, "format", "goober")
         self._assertPropSetRaises(ValueError, self.q, "format", ["goober"])
-        self._assertPropSetRaises(ValueError, self.q, "format", 
+        self._assertPropSetRaises(ValueError, self.q, "format",
                                   "graphic image/fits".split())
-        self._assertPropSetRaises(ValueError, self.q, "format", 
+        self._assertPropSetRaises(ValueError, self.q, "format",
                                   set("graphic image/fits".split()))
-        self._assertPropSetRaises(ValueError, self.q, "format", 
+        self._assertPropSetRaises(ValueError, self.q, "format",
                                   tuple("graphic image/fits".split()))
-        self._assertPropSetRaises(ValueError, self.q, "format", 
+        self._assertPropSetRaises(ValueError, self.q, "format",
                                   "graphic,image/fits")
-            
+
     def testCreateURL(self):
         self.testCtor()
         self.q.ra = 102.5511
@@ -370,6 +428,7 @@ class SIAResultsTest(unittest.TestCase):
         rec = self.r.getrecord(1)
         self.assert_(isinstance(rec, sia.SIARecord))
 
+
 class SIAResultsErrorTest(unittest.TestCase):
 
     def setUp(self):
@@ -380,9 +439,10 @@ class SIAResultsErrorTest(unittest.TestCase):
         try:
             res = sia.SIAResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "ERROR")
             self.assertEquals(ex.reason, "Forced Fail")
+
 
 class SIARecordTest(unittest.TestCase):
 
@@ -413,6 +473,7 @@ class SIARecordTest(unittest.TestCase):
         self.assertEquals(self.rec.acref, self.acref)
         self.assertEquals(self.rec.getdataurl(), self.acref)
 
+
 class SIAExecuteTest(unittest.TestCase):
 
     def testExecute(self):
@@ -438,7 +499,6 @@ class SIAExecuteTest(unittest.TestCase):
         self.assert_("INTERSECT=OVERLAPS" in qurl)
         self.assert_("VERB=2" in qurl)
 
-
     def testSia(self):
         results = sia.search("http://localhost:%d/sia" % testserverport,
                              pos=(0,0), size=(1.0,1.0))
@@ -448,7 +508,7 @@ class SIAExecuteTest(unittest.TestCase):
     def testError(self):
         srv = sia.SIAService("http://localhost:%d/err" % testserverport)
         self.assertRaises(dalq.DALQueryError, srv.search, (0.0,0.0), 1.0)
-        
+
 
 class DatasetNameTest(unittest.TestCase):
 
@@ -476,47 +536,47 @@ class DatasetNameTest(unittest.TestCase):
 
     def testMakeDatasetName(self):
         self.assertEquals("./neat.fits", self.rec.make_dataset_filename())
-        self.assertEquals("./goober.fits", 
+        self.assertEquals("./goober.fits",
                           self.rec.make_dataset_filename(base="goober"))
-        self.assertEquals("./neat.jpg", 
+        self.assertEquals("./neat.jpg",
                           self.rec.make_dataset_filename(ext="jpg"))
-        self.assertEquals("./goober.jpg", 
-                          self.rec.make_dataset_filename(base="goober", 
+        self.assertEquals("./goober.jpg",
+                          self.rec.make_dataset_filename(base="goober",
                                                          ext="jpg"))
-                          
-        self.assertEquals(testdir+"/neat.fits", 
+
+        self.assertEquals(testdir+"/neat.fits",
                           self.rec.make_dataset_filename(testdir))
 
         path = os.path.join(testdir,self.base+".fits")
         self.assertFalse(os.path.exists(path))
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
         path = os.path.join(testdir,self.base+"-1.fits")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
         path = os.path.join(testdir,self.base+"-2.fits")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
         path = os.path.join(testdir,self.base+"-3.fits")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
-                         
+
         self.cleanfiles()
         open(os.path.join(testdir,self.base+".fits"),'w').close()
         path = os.path.join(testdir,self.base+"-1.fits")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
         open(os.path.join(testdir,self.base+"-1.fits"),'w').close()
         open(os.path.join(testdir,self.base+"-2.fits"),'w').close()
         open(os.path.join(testdir,self.base+"-3.fits"),'w').close()
         path = os.path.join(testdir,self.base+"-4.fits")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
 
         self.cleanfiles()
@@ -525,6 +585,8 @@ class DatasetNameTest(unittest.TestCase):
 
 
 __all__ = "SIAServiceTest SIAQueryTest SIAResultsTest SIARecordTest SIAExecuteTest DatasetNameTest".split()
+
+
 def suite():
     tests = []
     for t in __all__:

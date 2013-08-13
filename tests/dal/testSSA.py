@@ -2,8 +2,14 @@
 """
 Tests for pyvo.dal.query
 """
-import os, sys, shutil, re, imp, glob
-import unittest, pdb
+import os
+import sys
+import shutil
+import re
+import imp
+import glob
+import unittest
+import pdb
 from urllib2 import URLError, HTTPError
 
 import pyvo.dal.query as dalq
@@ -14,7 +20,8 @@ from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
 
 testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
+if not testdir:
+    testdir = "tests"
 ssaresultfile = "jhu-ssa.xml"
 errresultfile = "error-ssa.xml"
 testserverport = 8081
@@ -24,8 +31,9 @@ try:
     mod = imp.find_module(t, [testdir])
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
-except ImportError, e:
+except ImportError as e:
     print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+
 
 class SSAServiceTest(unittest.TestCase):
 
@@ -91,10 +99,10 @@ class SSAServiceTest(unittest.TestCase):
         self.assert_("REQUEST=queryData" in qurl)
         self.assert_("POS=0,0" in qurl)
         self.assert_("SIZE=1.0" in qurl)
-        self.assertTrue("APERTURE=0.00028" in qurl, 
+        self.assertTrue("APERTURE=0.00028" in qurl,
                         "unexpected APERTURE format: "+qurl)
 
-        q = self.srv.create_query(pos=(0,0), size=1.0, format="all", 
+        q = self.srv.create_query(pos=(0,0), size=1.0, format="all",
                                   APERTURE=0.00028)
         self.assert_(isinstance(q, ssa.SSAQuery))
         self.assertEquals(q.baseurl, self.baseurl)
@@ -110,10 +118,8 @@ class SSAServiceTest(unittest.TestCase):
         self.assert_("POS=0,0" in qurl)
         self.assert_("SIZE=1.0" in qurl)
         self.assert_("FORMAT=all" in qurl)
-        self.assertTrue("APERTURE=0.00028" in qurl, 
+        self.assertTrue("APERTURE=0.00028" in qurl,
                         "unexpected APERTURE format: "+qurl)
-
-        
 
 
 class SSAQueryTest(unittest.TestCase):
@@ -165,25 +171,36 @@ class SSAQueryTest(unittest.TestCase):
     def testBadPos(self):
         self.testCtor()
         try:
-            self.q.pos = 22.3; self.fail("pos took scalar value")
-        except ValueError:  pass
+            self.q.pos = 22.3
+            self.fail("pos took scalar value")
+        except ValueError:
+            pass
         try:
-            self.q.pos = range(4); self.fail("pos took bad-length array value")
-        except ValueError:  pass
+            self.q.pos = range(4)
+            self.fail("pos took bad-length array value")
+        except ValueError:
+            pass
         try:
-            self.q.pos = "a b".split(); self.fail("pos took string values")
-        except ValueError:  pass
+            self.q.pos = "a b".split()
+            self.fail("pos took string values")
+        except ValueError:
+            pass
         try:
-            self.q.ra = "a b"; self.fail("ra took string values")
-        except ValueError:  pass
+            self.q.ra = "a b"
+            self.fail("ra took string values")
+        except ValueError:
+            pass
         try:
-            self.q.dec = "a b"; self.fail("dec took string values")
-        except ValueError:  pass
+            self.q.dec = "a b"
+            self.fail("dec took string values")
+        except ValueError:
+            pass
         try:
-            self.q.dec = 100; self.fail("dec took out-of-range value")
-        except ValueError, e:  pass
-            
-            
+            self.q.dec = 100
+            self.fail("dec took out-of-range value")
+        except ValueError as e:
+            pass
+
     def testSize(self):
         self.testCtor()
         self.assert_(self.q.size is None)
@@ -199,17 +216,29 @@ class SSAQueryTest(unittest.TestCase):
 
     def testBadSize(self):
         self.testCtor()
-        try:  self.q.size = "a"; self.fail("size took non-numbers")
-        except ValueError: pass
+        try:
+            self.q.size = "a"
+            self.fail("size took non-numbers")
+        except ValueError:
+            pass
 
-        try:  self.q.size = 200; self.fail("size took out-of-range dec")
-        except ValueError: pass
+        try:
+            self.q.size = 200
+            self.fail("size took out-of-range dec")
+        except ValueError:
+            pass
 
-        try:  self.q.size = 0; self.fail("size took out-of-range dec")
-        except ValueError: pass
+        try:
+            self.q.size = 0
+            self.fail("size took out-of-range dec")
+        except ValueError:
+            pass
 
-        try:  self.q.size = -5; self.fail("size took out-of-range dec")
-        except ValueError: pass
+        try:
+            self.q.size = -5
+            self.fail("size took out-of-range dec")
+        except ValueError:
+            pass
 
     def testProps(self):
         self.testCtor()
@@ -285,6 +314,7 @@ class SSAResultsTest(unittest.TestCase):
         rec = self.r.getrecord(1)
         self.assert_(isinstance(rec, ssa.SSARecord))
 
+
 class SSAResultsErrorTest(unittest.TestCase):
 
     def setUp(self):
@@ -295,9 +325,10 @@ class SSAResultsErrorTest(unittest.TestCase):
         try:
             res = ssa.SSAResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "ERROR")
             self.assertEquals(ex.reason, "Forced Fail")
+
 
 class SSARecordTest(unittest.TestCase):
 
@@ -324,6 +355,7 @@ class SSARecordTest(unittest.TestCase):
         self.assertEquals(self.rec.acref, self.acref)
         self.assertEquals(self.rec.getdataurl(), self.acref)
 
+
 class SSAExecuteTest(unittest.TestCase):
 
     def testExecute(self):
@@ -348,7 +380,6 @@ class SSAExecuteTest(unittest.TestCase):
         self.assert_("SIZE=1.0" in qurl)
         self.assert_("FORMAT=all" in qurl)
 
-
     def testSsa(self):
         results = ssa.search("http://localhost:%d/ssa" % testserverport,
                              pos=(0,0), size=1.0)
@@ -358,7 +389,7 @@ class SSAExecuteTest(unittest.TestCase):
     def testError(self):
         srv = ssa.SSAService("http://localhost:%d/err" % testserverport)
         self.assertRaises(dalq.DALQueryError, srv.search, (0.0,0.0), 1.0)
-        
+
 
 class DatasetNameTest(unittest.TestCase):
 
@@ -381,54 +412,54 @@ class DatasetNameTest(unittest.TestCase):
             os.remove(f)
 
     def testSuggest(self):
-        self.assertEquals("SDSS_J115923.80+005905.16_GALAXY", 
+        self.assertEquals("SDSS_J115923.80+005905.16_GALAXY",
                           self.rec.suggest_dataset_basename())
         self.assertEquals("xml", self.rec.suggest_extension("DAT"))
 
     def testMakeDatasetName(self):
-        self.assertEquals("./SDSS_J115923.80+005905.16_GALAXY.xml", 
+        self.assertEquals("./SDSS_J115923.80+005905.16_GALAXY.xml",
                           self.rec.make_dataset_filename())
-        self.assertEquals("./goober.xml", 
+        self.assertEquals("./goober.xml",
                           self.rec.make_dataset_filename(base="goober"))
-        self.assertEquals("./SDSS_J115923.80+005905.16_GALAXY.jpg", 
+        self.assertEquals("./SDSS_J115923.80+005905.16_GALAXY.jpg",
                           self.rec.make_dataset_filename(ext="jpg"))
-        self.assertEquals("./goober.jpg", 
-                          self.rec.make_dataset_filename(base="goober", 
+        self.assertEquals("./goober.jpg",
+                          self.rec.make_dataset_filename(base="goober",
                                                          ext="jpg"))
-                          
-        self.assertEquals(testdir+"/SDSS_J115923.80+005905.16_GALAXY.xml", 
+
+        self.assertEquals(testdir+"/SDSS_J115923.80+005905.16_GALAXY.xml",
                           self.rec.make_dataset_filename(testdir))
 
         path = os.path.join(testdir,self.base+".xml")
         self.assertFalse(os.path.exists(path))
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
         path = os.path.join(testdir,self.base+"-1.xml")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
         path = os.path.join(testdir,self.base+"-2.xml")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
         path = os.path.join(testdir,self.base+"-3.xml")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
-                         
+
         self.cleanfiles()
         open(os.path.join(testdir,self.base+".xml"),'w').close()
         path = os.path.join(testdir,self.base+"-1.xml")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
         open(os.path.join(testdir,self.base+"-1.xml"),'w').close()
         open(os.path.join(testdir,self.base+"-2.xml"),'w').close()
         open(os.path.join(testdir,self.base+"-3.xml"),'w').close()
         path = os.path.join(testdir,self.base+"-4.xml")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
 
         self.cleanfiles()
@@ -436,8 +467,9 @@ class DatasetNameTest(unittest.TestCase):
                           self.rec.make_dataset_filename(testdir, self.base))
 
 
-
 __all__ = "SSAServiceTest SSAQueryTest SSAResultsTest SSARecordTest SSAExecuteTest DatasetNameTest".split()
+
+
 def suite():
     tests = []
     for t in __all__:

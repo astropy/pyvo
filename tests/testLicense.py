@@ -2,12 +2,19 @@
 """
 Tests for pyvo.dal.query
 """
-import os, sys, shutil, re, imp, glob
-import unittest, pdb
+import os
+import sys
+import shutil
+import re
+import imp
+import glob
+import unittest
+import pdb
 
 license_ref_line = \
-   "# Licensed under a 3-clause BSD style license - see LICENSE.rst"
+    "# Licensed under a 3-clause BSD style license - see LICENSE.rst"
 license_file = "licenses/LICENSE.rst"
+
 
 class LicenseTestCase(unittest.TestCase):
 
@@ -26,8 +33,9 @@ class LicenseTestCase(unittest.TestCase):
         self.assertTrue(os.path.exists(license_file),
                         "license/LICENSE.rst appears to be missing (what dir are you in?)")
 
+
 def list_py_files(arg, dirname, names):
-    return map(lambda f: (f[:-3], os.path.join(dirname,f)), 
+    return map(lambda f: (f[:-3], os.path.join(dirname,f)),
                filter(lambda n: n.endswith(".py"), names))
 
 for dirp, dirs, files in os.walk("pyvo"):
@@ -40,6 +48,8 @@ for dirp, dirs, files in os.walk("pyvo"):
         setattr(LicenseTestCase, "test_"+name, eval(f))
 
 __all__ = "LicenseTestCase".split()
+
+
 def suite():
     tests = []
     for t in __all__:

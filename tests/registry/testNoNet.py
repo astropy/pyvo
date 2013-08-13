@@ -2,7 +2,10 @@
 """
 Test all available tests that do not require access to the network.
 """
-import sys, os, unittest, imp
+import sys
+import os
+import unittest
+import imp
 
 if len(sys.argv) > 1:
     testdir = sys.argv[1]
@@ -13,13 +16,13 @@ testserverport = 8081
 tests = []
 for t in [
     "testVaoReg",
-    ]:
+]:
     try:
         mod = imp.find_module(t, [testdir])
         mod = imp.load_module(t, mod[0], mod[1], mod[2])
         mod.testdir = testdir
         tests += mod.suite()
-    except ImportError, e:
+    except ImportError as e:
         print >> sys.stderr, "Unable to load %s: %s" % (t, str(e))
 
 testsuite = unittest.TestSuite(tests)

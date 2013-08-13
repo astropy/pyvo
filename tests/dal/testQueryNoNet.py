@@ -2,8 +2,14 @@
 """
 Tests for pyvo.dal.query
 """
-import os, sys, shutil, re, imp, glob
-import unittest, pdb
+import os
+import sys
+import shutil
+import re
+import imp
+import glob
+import unittest
+import pdb
 from urllib2 import URLError, HTTPError
 
 import pyvo.dal.query as dalq
@@ -13,7 +19,8 @@ from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
 
 testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
+if not testdir:
+    testdir = "tests"
 siaresultfile = "neat-sia.xml"
 ssaresultfile = "jhu-ssa.xml"
 testserverport = 8081
@@ -23,8 +30,9 @@ try:
     mod = imp.find_module(t, [testdir])
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
-except ImportError, e:
+except ImportError as e:
     print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+
 
 class DALAccessErrorTest(unittest.TestCase):
 
@@ -66,7 +74,7 @@ class DALServiceErrorTest(unittest.TestCase):
         self.assertEquals(self.code, e.code)
         self.assertEquals(self.url, e.url)
 
-        del e.cause 
+        del e.cause
         self.assert_(e.cause is None)
         e.cause = c
         self.assert_(e.cause is c)
@@ -90,14 +98,14 @@ class DALServiceErrorTest(unittest.TestCase):
         self.assert_(e.cause is None)
         self.assertEquals(self.code, e.code)
         self.assert_(e.url is None)
-        
+
     def testProperties1(self):
         e = dalq.DALServiceError(self.msg)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.cause is None)
         self.assert_(e.code is None)
         self.assert_(e.url is None)
-        
+
     def testPropertiesDef(self):
         e = dalq.DALServiceError()
         self.assert_(e.reason and e.reason.startswith("Unknown service "))
@@ -130,6 +138,7 @@ class DALServiceErrorTest(unittest.TestCase):
         self.assert_(e.cause is c)
         self.assert_(e.code is None)
         self.assert_(e.url is None)
+
 
 class DALQueryErrorTest(unittest.TestCase):
 
@@ -184,9 +193,9 @@ class DALResultsTest(unittest.TestCase):
         self.assert_(isinstance(names, list))
         self.assertEquals(len(names), 10)
         for i in xrange(len(names)):
-            self.assert_(isinstance(names[i], str) or 
+            self.assert_(isinstance(names[i], str) or
                          isinstance(names[i], unicode),
-                         "field name #%d not a string: %s" % (i,type(names[i]))) 
+                         "field name #%d not a string: %s" % (i,type(names[i])))
             self.assert_(len(names[i]) > 0, "field name #%s is empty" % i)
 
         fd = self.result.fielddesc()
@@ -290,6 +299,7 @@ class RecordTest(unittest.TestCase):
         self.assertEquals(self.rec.suggest_extension("goob"), "goob")
         self.assert_(self.rec.suggest_extension() is None)
 
+
 class EnsureBaseURLTest(unittest.TestCase):
 
     def testFix(self):
@@ -298,17 +308,18 @@ class EnsureBaseURLTest(unittest.TestCase):
         self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat")[-1], '&')
         self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat&usecache=yes")[-1], '&')
 
-        self.assertEquals(dalq.ensure_baseurl("http://localhost?"), 
+        self.assertEquals(dalq.ensure_baseurl("http://localhost?"),
                           "http://localhost?")
-        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?"), 
+        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?"),
                           "http://localhost/sia?")
-        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat&"), 
+        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat&"),
                           "http://localhost/sia?cat=neat&")
-        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat&usecache=yes&"), 
+        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat&usecache=yes&"),
                           "http://localhost/sia?cat=neat&usecache=yes&")
 
+
 class MimeCheckTestCase(unittest.TestCase):
-    
+
     def testGood(self):
         self.assertTrue(dalq.is_mime_type("image/jpeg"))
         self.assertTrue(dalq.is_mime_type("application/fits"))
@@ -384,7 +395,6 @@ class DALServiceTest(unittest.TestCase):
         self.assertAlmostEquals(q.getparam('SR'), 0.01)
 
 
-
 class DALQueryTest(unittest.TestCase):
 
     def setUp(self):
@@ -401,13 +411,13 @@ class DALQueryTest(unittest.TestCase):
         self.assertEquals(self.query.version, "2.0")
 
         self.query.baseurl = "http://gomer.net/infinite/loop?"
-        self.assertEquals(self.query.baseurl, 
-                          "http://gomer.net/infinite/loop?");
+        self.assertEquals(self.query.baseurl,
+                          "http://gomer.net/infinite/loop?")
 
     def testParam(self):
         self.testCtor()
         self.assertEquals(len(self.query.paramnames()), 0,
-                          "param set should be empty: " + 
+                          "param set should be empty: " +
                           str(self.query.paramnames()))
         self.assert_(self.query.getparam("RA") is None)
 
@@ -445,10 +455,10 @@ class DALQueryTest(unittest.TestCase):
         self.query.setparam("SR", "1.0")
         qurl = self.query.getqueryurl()
         self.assert_(qurl == self.baseurl+'?RA=51.235&SR=1.0&DEC=-13.49677' or
-                     qurl == self.baseurl+'?DEC=-13.49677&SR=1.0&RA=51.235' or 
+                     qurl == self.baseurl+'?DEC=-13.49677&SR=1.0&RA=51.235' or
                      qurl == self.baseurl+'?RA=51.235&DEC=-13.49677&SR=1.0' or
-                     qurl == self.baseurl+'?DEC=-13.49677&RA=51.235&SR=1.0' or 
-                     qurl == self.baseurl+'?SR=1.0&DEC=-13.49677&RA=51.235' or 
+                     qurl == self.baseurl+'?DEC=-13.49677&RA=51.235&SR=1.0' or
+                     qurl == self.baseurl+'?SR=1.0&DEC=-13.49677&RA=51.235' or
                      qurl == self.baseurl+'?SR=1.0&RA=51.235&DEC=-13.49677')
 
     def testEncode(self):
@@ -456,7 +466,7 @@ class DALQueryTest(unittest.TestCase):
         self.query.setparam("NaMe", "a val")
         qurl = self.query.getqueryurl()
         self.assertEquals(qurl, self.baseurl+'?NaMe=a+val')
-        
+
         self.testCtor()
         self.query.setparam("NaMe", "a+val")
         qurl = self.query.getqueryurl()
@@ -467,7 +477,7 @@ class DALQueryTest(unittest.TestCase):
         self.query.setparam("POS", (5.231, -13.441))
         qurl = self.query.getqueryurl()
         self.assertEquals(qurl, self.baseurl+'?POS=5.231,-13.441')
-        
+
 
 class QueryExecuteTest(unittest.TestCase):
 
@@ -477,10 +487,10 @@ class QueryExecuteTest(unittest.TestCase):
         # self.srvr.start()
 
     def tearDown(self):
-        pass 
-        #if self.srvr.isAlive():
+        pass
+        # if self.srvr.isAlive():
         #    self.srvr.shutdown()
-        #if self.srvr.isAlive():
+        # if self.srvr.isAlive():
         #    print "prob"
 
     def testExecute(self):
@@ -537,13 +547,12 @@ class QueryExecuteTest(unittest.TestCase):
         try:
             q.execute_raw()
             self.fail("failed to raise exception on bad url")
-        except dalq.DALServiceError, e:
+        except dalq.DALServiceError as e:
             self.assertEquals(e.code, 404)
             self.assertEquals(e.reason, "Not Found")
             self.assert_(isinstance(e.cause, HTTPError))
-        except Exception, e:
+        except Exception as e:
             self.fail("wrong exception raised: " + str(type(e)))
-
 
     def testExecuteVotableServiceErr(self):
         q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
@@ -568,12 +577,12 @@ class QueryExecuteTest(unittest.TestCase):
         try:
             q.execute()
             self.fail("failed to raise exception for syntax error")
-        except dalq.DALQueryError, e:
+        except dalq.DALQueryError as e:
             self.assertEquals(e.label, "ERROR")
             self.assertEquals(str(e), "Forced Fail")
-        except dalq.DALServiceError, e:
+        except dalq.DALServiceError as e:
             self.fail("wrong exception raised: DALServiceError: " + str(e))
-        except Exception, e:
+        except Exception as e:
             self.fail("wrong exception raised: " + str(type(e)))
 
 
@@ -594,7 +603,7 @@ class CursorTest(unittest.TestCase):
         self.assert_(self.cursor is not None)
         self.assert_(isinstance(self.cursor, daldbapi.Cursor))
         self.assertEquals(self.cursor.rowcount, 35)
-        self.assertEquals(self.cursor.arraysize, 1)    
+        self.assertEquals(self.cursor.arraysize, 1)
         descr = self.cursor.description
         self.assert_(len(descr) > 0)
         self.assertEquals(descr[1][0], 'AcRef')
@@ -618,10 +627,10 @@ class CursorTest(unittest.TestCase):
         self.testCtor()
         pos = self.cursor.pos
         recs = self.cursor.fetchmany()
-        self.assertEquals(len(recs), self.cursor.arraysize)         
-        recs = self.cursor.fetchmany(size = 5)
+        self.assertEquals(len(recs), self.cursor.arraysize)
+        recs = self.cursor.fetchmany(size=5)
         self.assertEquals(len(recs), 5)
-        recs = self.cursor.fetchmany(size = -5)
+        recs = self.cursor.fetchmany(size=-5)
 
     def testFetchAll(self):
         self.testCtor()
@@ -632,20 +641,21 @@ class CursorTest(unittest.TestCase):
         self.cursor.fetchone()
         recs = self.cursor.fetchall()
         self.assertEquals(len(recs), 34)
-        
+
     def testScroll(self):
         self.testCtor()
         pos = self.cursor.pos
         self.cursor.scroll(5)
         self.assertEquals(self.cursor.pos, pos + 5)
-        self.cursor.scroll(5, mode = "absolute")
+        self.cursor.scroll(5, mode="absolute")
         self.assertEquals(self.cursor.pos, 5)
         try:
-          self.cursor.scroll(-1, mode = "absolute")
+            self.cursor.scroll(-1, mode="absolute")
         except daldbapi.DataError:
-          pass
+            pass
         self.cursor.scroll(-1)
         self.assertEquals(self.cursor.pos, 4)
+
 
 class DatasetNameTest(unittest.TestCase):
 
@@ -680,7 +690,7 @@ class DatasetNameTest(unittest.TestCase):
         self.assertEquals("xml", dalq.mime2extension("application/votable;convention=stsci"))
         self.assertEquals("xml", dalq.mime2extension("application/x-votable"))
         self.assertEquals("xml", dalq.mime2extension("application/votable"))
-        self.assertEquals("xls", 
+        self.assertEquals("xls",
                dalq.mime2extension("application/x-micrsoft-spreadsheet", "xls"))
 
     def testSuggest(self):
@@ -689,47 +699,47 @@ class DatasetNameTest(unittest.TestCase):
 
     def testMakeDatasetName(self):
         self.assertEquals("./dataset.dat", self.rec.make_dataset_filename())
-        self.assertEquals("./goober.dat", 
+        self.assertEquals("./goober.dat",
                           self.rec.make_dataset_filename(base="goober"))
-        self.assertEquals("./dataset.fits", 
+        self.assertEquals("./dataset.fits",
                           self.rec.make_dataset_filename(ext="fits"))
-        self.assertEquals("./goober.fits", 
-                          self.rec.make_dataset_filename(base="goober", 
+        self.assertEquals("./goober.fits",
+                          self.rec.make_dataset_filename(base="goober",
                                                          ext="fits"))
-                          
-        self.assertEquals(testdir+"/dataset.dat", 
+
+        self.assertEquals(testdir+"/dataset.dat",
                           self.rec.make_dataset_filename(testdir))
 
         path = os.path.join(testdir,self.base+".dat")
         self.assertFalse(os.path.exists(path))
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
         path = os.path.join(testdir,self.base+"-1.dat")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
         path = os.path.join(testdir,self.base+"-2.dat")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
         path = os.path.join(testdir,self.base+"-3.dat")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
-                         
+
         self.cleanfiles()
         open(os.path.join(testdir,self.base+".dat"),'w').close()
         path = os.path.join(testdir,self.base+"-1.dat")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
         open(os.path.join(testdir,self.base+"-1.dat"),'w').close()
         open(os.path.join(testdir,self.base+"-2.dat"),'w').close()
         open(os.path.join(testdir,self.base+"-3.dat"),'w').close()
         path = os.path.join(testdir,self.base+"-4.dat")
-        self.assertEquals(path, 
+        self.assertEquals(path,
                           self.rec.make_dataset_filename(testdir, self.base))
 
         self.cleanfiles()
@@ -738,6 +748,8 @@ class DatasetNameTest(unittest.TestCase):
 
 
 __all__ = "DALAccessErrorTest DALServiceErrorTest DALQueryErrorTest RecordTest EnsureBaseURLTest DALServiceTest DALQueryTest QueryExecuteTest CursorTest DatasetNameTest".split()
+
+
 def suite():
     tests = []
     for t in __all__:
