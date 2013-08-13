@@ -191,7 +191,7 @@ class Cursor(Iter):
 	"""
 	if not size: size = self.arraysize
         out = []
-        for i in xrange(size):
+        for _ in xrange(size):
             out.append(self.fetchone())
         return out
 
@@ -204,7 +204,7 @@ class Cursor(Iter):
 	    consists of a list of dictionaries, one per row.
 	"""
         out = []
-        for i in xrange(self._rowcount - self.pos):
+        for _ in xrange(self._rowcount - self.pos):
             out.append(self.fetchone())
         return out
 

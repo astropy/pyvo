@@ -750,7 +750,7 @@ def _createService(resource, savemeta=False):
     try:
         if serviceCls:
             return serviceCls(resource.accessurl, meta)
-    except Exception, ex:
+    except Exception:
         return None
 
 def split_str_array_cell(val, delim='#'):

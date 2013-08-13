@@ -1173,7 +1173,7 @@ def _votableparse(source, columns=None, invalid='mask', pedantic=False,
             warnings.simplefilter("ignore", warning)
 # MJG : 021913 - commented out to get CDS responses to work
 #        warnings.simplefilter("error", W22)
-    except ImportError, ex:
+    except ImportError:
         raise RuntimeError("astropy votable not available")
 
     invalid = invalid.lower()

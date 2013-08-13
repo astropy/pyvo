@@ -254,7 +254,7 @@ class SCSQuery(query.DALQuery):
         """
         try: 
             from astropy.io.votable.exceptions import W22
-        except ImportError, ex:
+        except ImportError:
             raise RuntimeError("astropy votable not available")
 
         try:
