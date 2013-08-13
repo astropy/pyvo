@@ -2,8 +2,13 @@
 """
 Tests for pyvo.dal.query
 """
-import os, sys, shutil, re, imp
-import unittest, pdb
+import os
+import sys
+import shutil
+import re
+import imp
+import unittest
+import pdb
 from urllib2 import URLError, HTTPError
 
 import pyvo.dal.query as dalq
@@ -14,7 +19,8 @@ from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
 
 testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
+if not testdir:
+    testdir = "tests"
 slaresultfile = "nrao-sla.xml"
 errresultfile = "error-sla.xml"
 testserverport = 8081
@@ -24,8 +30,9 @@ try:
     mod = imp.find_module(t, [testdir])
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
-except ImportError, e:
+except ImportError as e:
     print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+
 
 class SLAServiceTest(unittest.TestCase):
 
@@ -70,7 +77,7 @@ class SLAServiceTest(unittest.TestCase):
         qurl = q.getqueryurl()
         self.assert_("REQUEST=queryData" in qurl)
         self.assert_("WAVELENGTH=7.6e-6%2F1.e-5" in qurl)
-        
+
 
 class SLAQueryTest(unittest.TestCase):
 
@@ -98,18 +105,22 @@ class SLAQueryTest(unittest.TestCase):
     def testBadWavelength(self):
         self.testCtor()
         try:
-            self.q.wavelength = "7.6e-6,"; self.fail("incorrect syntax for wavelength")
-        except ValueError:  pass
+            self.q.wavelength = "7.6e-6,"
+            self.fail("incorrect syntax for wavelength")
+        except ValueError:
+            pass
 
         try:
-            self.q.wavelength = "7.6e-6//1.e-5"; self.fail("incorrect syntax for wavelength")
-        except ValueError:  pass
+            self.q.wavelength = "7.6e-6//1.e-5"
+            self.fail("incorrect syntax for wavelength")
+        except ValueError:
+            pass
 
         try:
-            self.q.wavelength = "7.6e-6/1.e-5/"; self.fail("incorrect syntax for wavelength")
-        except ValueError:  pass
-
-            
+            self.q.wavelength = "7.6e-6/1.e-5/"
+            self.fail("incorrect syntax for wavelength")
+        except ValueError:
+            pass
 
     def testCreateURL(self):
         self.testCtor()
@@ -145,6 +156,7 @@ class SLAResultsTest(unittest.TestCase):
         rec = self.r.getrecord(1)
         self.assert_(isinstance(rec, sla.SLARecord))
 
+
 class SLAResultsErrorTest(unittest.TestCase):
 
     def setUp(self):
@@ -155,9 +167,10 @@ class SLAResultsErrorTest(unittest.TestCase):
         try:
             res = sla.SLAResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "ERROR")
             self.assertEquals(ex.reason, "Forced Fail")
+
 
 class SLARecordTest(unittest.TestCase):
 
@@ -178,6 +191,7 @@ class SLARecordTest(unittest.TestCase):
         self.assertTrue(self.rec.initial_level is None)
         self.assertTrue(self.rec.final_level is None)
 
+
 class SLAExecuteTest(unittest.TestCase):
 
     def testExecute(self):
@@ -197,7 +211,6 @@ class SLAExecuteTest(unittest.TestCase):
         self.assert_("REQUEST=queryData" in qurl)
         self.assert_("WAVELENGTH=0.00260075%2F0.00260080" in qurl)
 
-
     def testSla(self):
         results = sla.search("http://localhost:%d/sla" % testserverport,
                              wavelength="0.00260075/0.00260080")
@@ -207,9 +220,11 @@ class SLAExecuteTest(unittest.TestCase):
     def testError(self):
         srv = sla.SLAService("http://localhost:%d/err" % testserverport)
         self.assertRaises(dalq.DALQueryError, srv.search, "0.00260075/0.00260080")
-        
+
 
 __all__ = "SLAServiceTest SLAQueryTest SLAResultsTest SLARecordTest SLAExecuteTest".split()
+
+
 def suite():
     tests = []
     for t in __all__:

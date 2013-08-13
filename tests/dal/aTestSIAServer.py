@@ -10,12 +10,14 @@ import threading
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
 testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
+if not testdir:
+    testdir = "tests"
 siaresult = "neat-sia.xml"
 scsresult = "twomass-cs.xml"
 errresult = "error-sia.xml"
 ssaresult = "jhu-ssa.xml"
 slaresult = "nrao-sla.xml"
+
 
 class TestHandler(BaseHTTPRequestHandler):
 
@@ -74,6 +76,7 @@ class TestHandler(BaseHTTPRequestHandler):
     def log_message(format, *args):
         pass
 
+
 class TestServer(threading.Thread):
 
     def __init__(self, port=8081, timeout=5):
@@ -82,17 +85,17 @@ class TestServer(threading.Thread):
         self._timeout = timeout
         self.httpd = None
 
-
     def run(self):
         self.httpd = HTTPServer(('', self._port), TestHandler)
         self.httpd.timeout = self._timeout
         self.httpd.serve_forever()
 
     def shutdown(self):
-        if self.httpd:  
+        if self.httpd:
             self.httpd.shutdown()
             self.join(self._timeout+1)
             self.httpd = None
+
 
 def run():
     httpd = HTTPServer(('', 8081), TestHandler)
@@ -104,5 +107,3 @@ def run():
 
 if __name__ == "__main__":
     run()
-
-

@@ -2,8 +2,13 @@
 """
 Tests for pyvo.registry.vao
 """
-import os, sys, shutil, re, imp
-import unittest, pdb
+import os
+import sys
+import shutil
+import re
+import imp
+import unittest
+import pdb
 from urllib2 import URLError, HTTPError
 
 import pyvo.dal.query as dalq
@@ -12,7 +17,8 @@ from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
 
 testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
+if not testdir:
+    testdir = "tests"
 regresultfile = "reg-short.xml"
 
 
@@ -24,7 +30,7 @@ class RegServiceTest(unittest.TestCase):
 
     def testProps(self):
         self.testCtor()
-        self.assertEquals(self.srv.baseurl, 
+        self.assertEquals(self.srv.baseurl,
                           reg.RegistryService.STSCI_REGISTRY_BASEURL)
         try:
             self.srv.baseurl = "goober"
@@ -47,7 +53,7 @@ class RegServiceTest(unittest.TestCase):
     def testCreateQueryWithArgs(self):
         self.testCtor()
         q = self.srv.create_query(keywords=["galaxy", "AGN"], servicetype="sia",
-                                  waveband="radio", 
+                                  waveband="radio",
                                   sqlpred="publisher like '%nrao%'")
         self.assert_(isinstance(q, reg.RegistryQuery))
         self.assertEquals(q.baseurl, reg.RegistryService.STSCI_REGISTRY_BASEURL)
@@ -62,8 +68,9 @@ class RegServiceTest(unittest.TestCase):
         self.assertEquals(len(q.predicates), 1)
         self.assertEquals(q.predicates[0], "publisher like '%nrao%'")
 
+
 class RegQueryTest(unittest.TestCase):
-    
+
     def testCtor(self):
         self.q = reg.RegistryQuery()
 
@@ -74,7 +81,7 @@ class RegQueryTest(unittest.TestCase):
         self.assert_(self.q.waveband is not None)
         self.assertEquals(self.q.waveband, "Radio")
 
-        del self.q.waveband 
+        del self.q.waveband
         self.assert_(self.q.waveband is None)
 
         self.q.waveband = "radio"
@@ -141,7 +148,7 @@ class RegQueryTest(unittest.TestCase):
             self.fail("failed to reject unrecognized servicetype")
         except ValueError:
             pass
-        
+
     def testOrKeywords(self):
         self.testCtor()
         self.assert_(self.q.will_or_keywords())
@@ -159,7 +166,7 @@ class RegQueryTest(unittest.TestCase):
 
         self.q.clearkeywords()
         self.assertEquals(self.q.keywords, [])
-        
+
         self.q.addkeywords("AGN")
         self.assertEquals(self.q.keywords, ["AGN"])
         self.q.addkeywords("galaxy")
@@ -167,21 +174,21 @@ class RegQueryTest(unittest.TestCase):
         self.q.addkeywords("dwarf companion")
         self.assertEquals(self.q.keywords, ["AGN", "galaxy", "dwarf companion"])
         self.q.addkeywords("HI velocities".split())
-        self.assertEquals(self.q.keywords, 
+        self.assertEquals(self.q.keywords,
                        ["AGN", "galaxy", "dwarf companion", "HI", "velocities"])
 
         self.q.removekeywords("HI galaxy".split())
-        self.assertEquals(self.q.keywords, 
+        self.assertEquals(self.q.keywords,
                           ["AGN", "dwarf companion", "velocities"])
 
     def testPredicates(self):
         self.testCtor()
         self.assertEquals(self.q.predicates, [])
-        
+
         self.q.addpredicate("Identifier like 'ivo://ncsa.%'")
         self.assertEquals(self.q.predicates, ["Identifier like 'ivo://ncsa.%'"])
         self.q.addpredicate("publisher like '%nrao%'")
-        self.assertEquals(self.q.predicates, 
+        self.assertEquals(self.q.predicates,
                           ["Identifier like 'ivo://ncsa.%'",
                            "publisher like '%nrao%'"])
 
@@ -219,13 +226,12 @@ class RegQueryTest(unittest.TestCase):
         self.assertEquals(pred, pat % {"t": kws[0]})
 
         pred = self.q.keywords_to_predicate(kws, True)
-        self.assertEquals(pred, 
+        self.assertEquals(pred,
                           (pat % {"t": kws[0]}) + " OR " + (pat % {"t": kws[1]}))
 
         pred = self.q.keywords_to_predicate(kws, False)
-        self.assertEquals(pred, 
+        self.assertEquals(pred,
                          (pat % {"t": kws[0]}) + " AND " + (pat % {"t": kws[1]}))
-
 
     def testCreateURL(self):
         baseurl = reg.RegistryService.STSCI_REGISTRY_BASEURL + \
@@ -263,11 +269,11 @@ class RegQueryTest(unittest.TestCase):
         self.assert_("&capability=SimpleImageAccess" in qurl)
         self.assert_("&predicate=1" not in qurl)
         for kw in "AGN galaxy".split():
-            for col in ["title", "shortName", "identifier", 
-                        "%5Bcontent%2Fsubject%5D", "%5Bcuration%2Fpublisher%5D", 
+            for col in ["title", "shortName", "identifier",
+                        "%5Bcontent%2Fsubject%5D", "%5Bcuration%2Fpublisher%5D",
                         "%5Bcontent%2Fdescription%5D"]:
                 constraint = col + "+LIKE+%27%25" + kw + "%25%27"
-                self.assert_(constraint in qurl, 
+                self.assert_(constraint in qurl,
                              "Missing %s constraint:\n%s" % (constraint,qurl))
         self.assert_("+OR+shortName+" in qurl)
         self.assert_("+OR+%28title+" in qurl,
@@ -278,9 +284,10 @@ class RegQueryTest(unittest.TestCase):
 
         self.q.addpredicate("publisher like '%nrao%'")
         qurl = self.q.getqueryurl()
-        self.assert_("&predicate=%28publisher+like+%27%25nrao%25%27%29+AND+%28" 
+        self.assert_("&predicate=%28publisher+like+%27%25nrao%25%27%29+AND+%28"
                      in qurl,
                      "unexpected predicate: " + qurl)
+
 
 class RegResultsTest(unittest.TestCase):
 
@@ -320,14 +327,14 @@ class RegResultsTest(unittest.TestCase):
         for i in xrange(4):
             rec = self.r.getrecord(0)
             self.assert_(isinstance(rec, reg.SimpleResource))
-        
+
 
 class SimpleResTest(unittest.TestCase):
 
     def setUp(self):
         resultfile = os.path.join(testdir, regresultfile)
         self.tbl = votableparse(resultfile)
-        self.result =  reg.RegistryResults(self.tbl)
+        self.result = reg.RegistryResults(self.tbl)
         self.setrec(0)
 
     def setrec(self, i):
@@ -339,10 +346,10 @@ class SimpleResTest(unittest.TestCase):
 
     def testAttr(self):
         self.assertEquals(self.r.shortname, "J/MNRAS/333/100 [1]")
-        self.assertEquals(self.r.title, 
+        self.assertEquals(self.r.title,
                           "Radio galaxies in the 2dFGRS (Magliocchetti+, 2002)")
         self.assertEquals(self.r.ivoid, "ivo://CDS.VizieR/J/MNRAS/333/100#1")
-        self.assertEquals(self.r.accessurl, 
+        self.assertEquals(self.r.accessurl,
            "http://vizier.u-strasbg.fr/cgi-bin/VizieR-2?-source=J/MNRAS/333/100")
         self.assertEquals(self.r.publisher, "CDS")
         self.assertEquals(self.r.tags, "Web Page")
@@ -379,17 +386,13 @@ class SimpleResTest(unittest.TestCase):
         self.assertEquals(self.r.capability, "SimpleImageAccess")
 
 
-
-
-
-
-
 class RegExecuteTest(unittest.TestCase):
     pass
 
 
-
 __all__ = "RegServiceTest RegQueryTest RegResultsTest SimpleResTest RegExecuteTest".split()
+
+
 def suite():
     tests = []
     for t in __all__:

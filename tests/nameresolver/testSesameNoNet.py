@@ -2,8 +2,13 @@
 """
 Tests for pyvo.nameresolver.sesame
 """
-import os, sys, shutil, re, imp
-import unittest, pdb
+import os
+import sys
+import shutil
+import re
+import imp
+import unittest
+import pdb
 from urllib2 import URLError, HTTPError
 
 import pyvo.nameresolver.sesame as sesame
@@ -13,6 +18,7 @@ testdir = os.path.dirname(sys.argv[0])
 resultfile = "sesame.xml"
 
 xmldecl = "<?xml version=\"1.0\"?>"
+
 
 class DocQuantityTest(unittest.TestCase):
 
@@ -201,6 +207,7 @@ class ProperMotionTest(unittest.TestCase):
         self.assertTrue(q.error_dec is None)
         self.assertEquals("1991RC3.9.C...0000d", q.ref)
 
+
 class ObjectDataTest(unittest.TestCase):
 
     def setUp(self):
@@ -247,7 +254,7 @@ class ObjectDataTest(unittest.TestCase):
         self.assertTrue(res.success)
         self.assertFalse(res.fromcache)
 
-        self.assertEquals("S=Simbad (CDS, via client/server)", 
+        self.assertEquals("S=Simbad (CDS, via client/server)",
                           res.resolver_name)
         self.assertEquals("12:18:57.61 +47:18:13.3", res.sexapos)
         self.assertEquals(2, len(res.pos))
@@ -259,7 +266,7 @@ class ObjectDataTest(unittest.TestCase):
         el = self.selectResolver(1, 2)
         res = sesame.ObjectData(el)
         self.assertTrue(res.success)
-        self.assertEquals("S=Simbad (CDS, via client/server)", 
+        self.assertEquals("S=Simbad (CDS, via client/server)",
                           res.resolver_name)
 
         self.assertEquals("12:18:57.61 +47:18:13.3", res.get('jpos'))
@@ -287,7 +294,7 @@ class ObjectDataTest(unittest.TestCase):
         el = self.selectResolver(1, 2)
         res = sesame.ObjectData(el)
         self.assertTrue(res.success)
-        self.assertEquals("S=Simbad (CDS, via client/server)", 
+        self.assertEquals("S=Simbad (CDS, via client/server)",
                           res.resolver_name)
 
         self.assertEquals("12:18:57.61 +47:18:13.3", res['jpos'])
@@ -314,7 +321,7 @@ class ObjectDataTest(unittest.TestCase):
         el = self.selectResolver(1, 1)
         res = sesame.ObjectData(el)
         self.assertTrue(res.success)
-        self.assertTrue(res.resolver_name.startswith("V=VizieR"), 
+        self.assertTrue(res.resolver_name.startswith("V=VizieR"),
                         "Not matched: " + res.resolver_name)
         keys = res.keys()
         self.assertTrue("jpos" in keys)
@@ -326,7 +333,7 @@ class ObjectDataTest(unittest.TestCase):
         el = self.selectResolver(1, 3)
         res = sesame.ObjectData(el)
         self.assertTrue(res.success)
-        self.assertTrue(res.resolver_name.startswith("N=NED"), 
+        self.assertTrue(res.resolver_name.startswith("N=NED"),
                         "Not matched: " + res.resolver_name)
         keys = res.keys()
         self.assertTrue("jpos" in keys)
@@ -387,6 +394,7 @@ class TargetTest(unittest.TestCase):
 
         self.assertRaises(LookupError, target.according_to, "")
 
+
 class SesameQueryTest(unittest.TestCase):
 
     def setUp(self):
@@ -415,26 +423,26 @@ class SesameQueryTest(unittest.TestCase):
 
     def testGetQueryURL(self):
         self.query.names = "m51"
-        self.assertEquals(sesame.default_endpoint + "/-ox?m51", 
+        self.assertEquals(sesame.default_endpoint + "/-ox?m51",
                           self.query.getqueryurl())
         self.query.names = "m101 m51".split()
         self.query.opts = 'I'
-        self.assertEquals(sesame.default_endpoint +  "/-oxI?m101&m51", 
+        self.assertEquals(sesame.default_endpoint + "/-oxI?m101&m51",
                           self.query.getqueryurl())
         self.query.dbs = "SN"
-        self.assertEquals(sesame.default_endpoint +  "/-oxI/SN?m101&m51", 
+        self.assertEquals(sesame.default_endpoint + "/-oxI/SN?m101&m51",
                           self.query.getqueryurl())
         self.query.ignorecache = True
-        self.assertEquals(sesame.default_endpoint +  "/-oxI/~SN?m101&m51", 
+        self.assertEquals(sesame.default_endpoint + "/-oxI/~SN?m101&m51",
                           self.query.getqueryurl())
 
-        self.assertEquals(sesame.default_endpoint +  "/-oxI/~SN?m101&m51", 
+        self.assertEquals(sesame.default_endpoint + "/-oxI/~SN?m101&m51",
                           self.query.getqueryurl(format='x'))
-        self.assertEquals(sesame.default_endpoint +  "/-ox2I/~SN?m101&m51", 
+        self.assertEquals(sesame.default_endpoint + "/-ox2I/~SN?m101&m51",
                           self.query.getqueryurl(format='x2'))
-        self.assertEquals(sesame.default_endpoint +  "/-oI/~SN?m101&m51", 
+        self.assertEquals(sesame.default_endpoint + "/-oI/~SN?m101&m51",
                           self.query.getqueryurl(format='pc'))
-        self.assertEquals(sesame.default_endpoint +  "/-ox2pI/~SN?m101&m51", 
+        self.assertEquals(sesame.default_endpoint + "/-ox2pI/~SN?m101&m51",
                           self.query.getqueryurl(format='x2', astext=True))
 
     def assertRaisesOnQuery(self, msg, format=None):
@@ -453,6 +461,7 @@ class SesameQueryTest(unittest.TestCase):
         self.query.opts = ""
         self.assertRaisesOnQuery("Failed to catch bad format", "uu")
 
+
 class EndpointSetTest(unittest.TestCase):
 
     def testSetDef(self):
@@ -463,10 +472,11 @@ class EndpointSetTest(unittest.TestCase):
         self.assertEquals(sesame.endpoints["cds"], sesame.default_endpoint)
         sesame.set_default_endpoint("cfa")
         self.assertEquals(sesame.endpoints["cfa"], sesame.default_endpoint)
-        
 
 
 __all__ = "DocQuantityTest ProperMotionTest ObjectDataTest SesameQueryTest EndpointSetTest".split()
+
+
 def suite():
     tests = []
     for t in __all__:

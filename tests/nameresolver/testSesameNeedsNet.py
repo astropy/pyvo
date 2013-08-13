@@ -2,8 +2,13 @@
 """
 Tests for pyvo.nameresolver.sesame
 """
-import os, sys, shutil, re, imp
-import unittest, pdb
+import os
+import sys
+import shutil
+import re
+import imp
+import unittest
+import pdb
 from urllib2 import URLError, HTTPError
 
 import pyvo.nameresolver.sesame as sesame
@@ -13,6 +18,7 @@ testdir = os.path.dirname(sys.argv[0])
 resultfile = "sesame.xml"
 
 xmldecl = "<?xml version=\"1.0\"?>"
+
 
 class SesameQueryTest(unittest.TestCase):
 
@@ -34,9 +40,9 @@ class SesameQueryTest(unittest.TestCase):
         for line in strm:
             lines.append(line)
         strm.close()
-        self.assertTrue(lines[0].startswith('#'), 
+        self.assertTrue(lines[0].startswith('#'),
                         "unexpected first line: " + line[0])
-        self.assertTrue(lines[5].startswith('%'), 
+        self.assertTrue(lines[5].startswith('%'),
                         "unexpected mid-line: " + line[5])
 
         q.dbs = "GB"
@@ -58,7 +64,7 @@ class SesameQueryTest(unittest.TestCase):
         r = q.execute()
         self.assertTrue(isinstance(r, list))
         self.assertEquals(1, len(r))
-        
+
         q.names = ["ngc4258", "goob's star", "m51"]
         r = q.execute()
         self.assertTrue(isinstance(r, list))
@@ -72,7 +78,7 @@ class SesameQueryTest(unittest.TestCase):
         odata = target.according_to("sim")
         self.assertTrue(odata is not None)
         self.assertEquals("M 106", odata.oname)
-        
+
         target = r[1]
         self.assertEquals(0, len(target.responses))
         self.assertFalse(target.resolved)
@@ -94,6 +100,7 @@ class SesameQueryTest(unittest.TestCase):
         odata = target.according_to("viz")
         self.assertTrue(odata is not None)
         self.assertEquals("{NGC} 4258", odata.oname)
+
 
 class ResolveTest(unittest.TestCase):
 
@@ -121,7 +128,7 @@ class ResolveTest(unittest.TestCase):
         self.assertTrue(odata.resolver_name.startswith("N=NED"))
         self.assertEquals("MESSIER 106", odata.oname)
         self.assertTrue("MType" in odata.keys())
-        
+
         odata = sesame.resolve(["NGC4258", "M51"], "NED")
         self.assertTrue(odata is not None)
         self.assertTrue(isinstance(odata, list))
@@ -137,7 +144,7 @@ class ResolveTest(unittest.TestCase):
         self.assertTrue(odata.resolver_name.startswith("V=VizieR"))
         self.assertEquals("{NGC} 4258", odata.oname)
         self.assertTrue("jpos" in odata.keys())
-        
+
     def testInclude(self):
         odata = sesame.resolve("NGC4258", include=" aliases fluxes")
         self.assertTrue(odata is not None)
@@ -171,6 +178,7 @@ class ResolveTest(unittest.TestCase):
         self.assertTrue("otype" in odata.keys())
 
         self.assertRaises(LookupError, sesame.resolve, "NGC4258", mirror="ncsa")
+
 
 class Object2posTest(unittest.TestCase):
 
@@ -222,8 +230,9 @@ class Object2posTest(unittest.TestCase):
         self.assertAlmostEquals(184.74008333, pos[0])
         self.assertAlmostEquals(47.30371944, pos[1])
 
-        self.assertRaises(LookupError, sesame.object2pos, "NGC4258", 
+        self.assertRaises(LookupError, sesame.object2pos, "NGC4258",
                           mirror="ncsa")
+
 
 class Object2sexaposTest(unittest.TestCase):
 
@@ -255,9 +264,9 @@ class Object2sexaposTest(unittest.TestCase):
         self.assertEquals("12:18.9     +47:19", pos)
 
 
-
-
 __all__ = "SesameQueryTest".split()
+
+
 def suite():
     tests = []
     for t in __all__:

@@ -14,7 +14,7 @@ query result is a table of images whose aperture matches the
 requested cone and which will be created when accessed via the
 download URL.
 
-This module provides an interface for accessing an SSA service.  It is 
+This module provides an interface for accessing an SSA service.  It is
 implemented as a specialization of the DAL Query interface.
 
 The ``search()`` function support the simplest and most common types
@@ -26,7 +26,7 @@ metadata in the response, such as the position of the spectrum's
 aperture, the spectrum format, its frequency range, and its download
 URL.
 
-For more complex queries, the SSAQuery class can be helpful which 
+For more complex queries, the SSAQuery class can be helpful which
 allows one to build up, tweak, and reuse a query.  The SSAService
 class can represent a specific service available at a URL endpoint.
 """
@@ -35,39 +35,42 @@ import numbers
 import re
 from . import query
 
-__all__ = [ "search", "SSAService", "SSAQuery" ]
+__all__ = ["search", "SSAService", "SSAQuery"]
+
 
 def search(url, pos, size, format='all', **keywords):
     """
-    submit a simple SIA query that requests spectra overlapping a 
+    submit a simple SIA query that requests spectra overlapping a
     :Args:
        *url*:  the base URL for the SSA service
        *pos*:  a 2-element seqence giving the ICRS RA and DEC in decimal degrees
        *size*: a floating point number or a 2-element tuple giving the size
-                 of the rectangular region around pos to search for spectra.  
-       *format*:     the spectral format(s) of interest.  "all" (default) 
+                 of the rectangular region around pos to search for spectra.
+       *format*:     the spectral format(s) of interest.  "all" (default)
                        indicates all available formats; "graphic" indicates
-                       graphical images (e.g. jpeg, png, gif; not FITS); 
-                       "metadata" indicates that no images should be 
+                       graphical images (e.g. jpeg, png, gif; not FITS);
+                       "metadata" indicates that no images should be
                        returned--only an empty table with complete metadata.
-       **keywords:   additional parameters can be given via arbitrary 
-                       keyword arguments.  These can be either standard 
-                       parameters (with names drown from the 
+       **keywords:   additional parameters can be given via arbitrary
+                       keyword arguments.  These can be either standard
+                       parameters (with names drown from the
                        ``SSAQuery.std_parameters`` list) or paramters
-                       custom to the service.  Where there is overlap 
+                       custom to the service.  Where there is overlap
                        with the parameters set by the other arguments to
                        this function, these keywords will override.
 
         :Raises:
-           *DALServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or
                               communicating with the service
-           *DALQueryError*:   if the service responds with 
-                              an error, including a query syntax error.  
+           *DALQueryError*:   if the service responds with
+                              an error, including a query syntax error.
     """
     service = SSAService(url)
     return service.search(pos, size, format, **keywords)
 
+
 class SSAService(query.DALService):
+
     """
     a representation of an SSA service
     """
@@ -77,117 +80,123 @@ class SSAService(query.DALService):
         instantiate an SSA service
 
         :Args:
-           *baseurl*:  the base URL for submitting search queries to the 
+           *baseurl*:  the base URL for submitting search queries to the
                          service.
-           *resmeta*:  an optional dictionary of properties about the 
+           *resmeta*:  an optional dictionary of properties about the
                          service
         """
         query.DALService.__init__(self, baseurl, "ssa", version, resmeta)
 
     def search(self, pos, size, format='all', **keywords):
         """
-        submit a simple SSA query to this service with the given constraints.  
+        submit a simple SSA query to this service with the given constraints.
 
-        This method is provided for a simple but typical SSA queries.  For 
-        more complex queries, one should create an SSAQuery object via 
+        This method is provided for a simple but typical SSA queries.  For
+        more complex queries, one should create an SSAQuery object via
         create_query()
 
         :Args:
-           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the 
+           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the
                            center of the search region in decimal degrees
-           *size*:       a 2-element tuple giving the full rectangular size of 
-                           the search region along the RA and Dec directions in 
+           *size*:       a 2-element tuple giving the full rectangular size of
+                           the search region along the RA and Dec directions in
                            decimal degrees
-           *format*:     the spectral format(s) of interest.  "all" (default) 
+           *format*:     the spectral format(s) of interest.  "all" (default)
                            indicates all available formats; "graphic" indicates
-                           graphical spectra (e.g. jpeg, png, gif; not FITS); 
-                           "metadata" indicates that no spectra should be 
+                           graphical spectra (e.g. jpeg, png, gif; not FITS);
+                           "metadata" indicates that no spectra should be
                            returned--only an empty table with complete metadata.
-           **keywords:   additional parameters can be given via arbitrary 
-                           keyword arguments.  These can be either standard 
-                           parameters (with names drown from the 
+           **keywords:   additional parameters can be given via arbitrary
+                           keyword arguments.  These can be either standard
+                           parameters (with names drown from the
                            ``SSAQuery.std_parameters`` list) or paramters
-                           custom to the service.  Where there is overlap 
+                           custom to the service.  Where there is overlap
                            with the parameters set by the other arguments to
                            this function, these keywords will override.
 
         :Raises:
-           *DALServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or
                               communicating with the service
-           *DALQueryError*:   if the service responds with 
-                              an error, including a query syntax error.  
+           *DALQueryError*:   if the service responds with
+                              an error, including a query syntax error.
         """
         q = self.create_query(pos, size, format, **keywords)
         return q.execute()
 
     def create_query(self, pos=None, size=None, format=None, **keywords):
         """
-        create a query object that constraints can be added to and then 
-        executed.  The input arguments will initialize the query with the 
+        create a query object that constraints can be added to and then
+        executed.  The input arguments will initialize the query with the
         given values.
 
         :Args:
-           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the 
+           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the
                            center of the search region in decimal degrees
-           *size*:       a 2-element tuple giving the full rectangular size of 
-                           the search region along the RA and Dec directions in 
+           *size*:       a 2-element tuple giving the full rectangular size of
+                           the search region along the RA and Dec directions in
                            decimal degrees
-           *format*:     the image format(s) of interest.  "all" indicates 
+           *format*:     the image format(s) of interest.  "all" indicates
                            all available formats; "graphic" indicates
-                           graphical images (e.g. jpeg, png, gif; not FITS); 
-                           "metadata" indicates that no images should be 
+                           graphical images (e.g. jpeg, png, gif; not FITS);
+                           "metadata" indicates that no images should be
                            returned--only an empty table with complete metadata.
-           **keywords:   additional parameters can be given via arbitrary 
-                           keyword arguments.  These can be either standard 
-                           parameters (with names drown from the 
+           **keywords:   additional parameters can be given via arbitrary
+                           keyword arguments.  These can be either standard
+                           parameters (with names drown from the
                            ``SSAQuery.std_parameters`` list) or paramters
-                           custom to the service.  Where there is overlap 
+                           custom to the service.  Where there is overlap
                            with the parameters set by the other arguments to
                            this function, these keywords will override.
 
-        :Returns: 
+        :Returns:
            *SSAQuery*:  the query instance
         """
         q = SSAQuery(self.baseurl, self.version)
-        if pos is not None: q.pos = pos
-        if size is not None: q.size = size
-        if format: q.format = format
+        if pos is not None:
+            q.pos = pos
+        if size is not None:
+            q.size = size
+        if format:
+            q.format = format
 
         for key in keywords.keys():
             q.setparam(key, keywords[key])
 
         return q
 
+
 class SSAQuery(query.DALQuery):
+
     """
     a class for preparing an query to an SSA service.  Query constraints
     are added via its service type-specific methods.  The various execute()
-    functions will submit the query and return the results.  
+    functions will submit the query and return the results.
 
     The base URL for the query can be changed via the baseurl property.
     """
-    
-    std_parameters = [ "REQUEST", "VERSION", "POS", "SIZE", "BAND", "TIME", 
-                       "FORMAT", "APERTURE", "SPECRP", "SPATRES", "TIMERES", 
-                       "SNR", "REDSHIFT", "VARAMPL", "TARGETNAME", 
-                       "TARGETCLASS", "FLUXCALIB", "WAVECALIB", "PUBID", 
-                       "CREATORID", "COLLECTION", "TOP", "MAXREC", "MTIME", 
-                       "COMPRESS", "RUNID" ]
 
-    def __init__(self, baseurl,  version="1.0", request="queryData"):
+    std_parameters = ["REQUEST", "VERSION", "POS", "SIZE", "BAND", "TIME",
+                     "FORMAT", "APERTURE", "SPECRP", "SPATRES", "TIMERES",
+                     "SNR", "REDSHIFT", "VARAMPL", "TARGETNAME",
+                     "TARGETCLASS", "FLUXCALIB", "WAVECALIB", "PUBID",
+                     "CREATORID", "COLLECTION", "TOP", "MAXREC", "MTIME",
+                     "COMPRESS", "RUNID"]
+
+    def __init__(self, baseurl, version="1.0", request="queryData"):
         """
         initialize the query object with a baseurl and request type
         """
         query.DALQuery.__init__(self, baseurl, "ssa", version)
         self.setparam("REQUEST", request)
-        
+
     @property
     def pos(self):
         """
-        the position (POS) constraint as a 2-element tuple denoting RA and 
+        the position (POS) constraint as a 2-element tuple denoting RA and
         declination in decimal degrees.  This defaults to None.
         """
         return self.getparam("POS")
+
     @pos.setter
     def pos(self, pair):
         # do a check on the input
@@ -195,11 +204,11 @@ class SSAQuery(query.DALQuery):
             pair = tuple(pair)
         if (isinstance(pair, tuple)):
             if len(pair) != 2:
-                raise ValueError("Wrong number of elements in pos list: " + 
+                raise ValueError("Wrong number of elements in pos list: " +
                                  str(pair))
-            if (not isinstance(pair[0], numbers.Number) or 
-                not isinstance(pair[1], numbers.Number)):
-                raise ValueError("Wrong type of elements in pos list: " + 
+            if (not isinstance(pair[0], numbers.Number) or
+                    not isinstance(pair[1], numbers.Number)):
+                raise ValueError("Wrong type of elements in pos list: " +
                                  str(pair))
         else:
             raise ValueError("pos not a 2-element sequence")
@@ -212,8 +221,8 @@ class SSAQuery(query.DALQuery):
         while pair[0] >= 360.0:
             pair = (pair[0]-360.0, pair[1])
 
-
         self.setparam("POS", pair)
+
     @pos.deleter
     def pos(self):
         self.unsetparam('POS')
@@ -224,11 +233,14 @@ class SSAQuery(query.DALQuery):
         the right ascension part of the position constraint (default: None).
         If this is set but dec has not been set yet, dec will be set to 0.0.
         """
-        if not self.pos: return None
+        if not self.pos:
+            return None
         return self.pos[0]
+
     @ra.setter
     def ra(self, val):
-        if not self.pos: self.pos = (0.0, 0.0)
+        if not self.pos:
+            self.pos = (0.0, 0.0)
         self.pos = (val, self.pos[1])
 
     @property
@@ -237,11 +249,14 @@ class SSAQuery(query.DALQuery):
         the declination part of the position constraint (default: None).
         If this is set but ra has not been set yet, ra will be set to 0.0.
         """
-        if not self.pos: return None
+        if not self.pos:
+            return None
         return self.pos[1]
+
     @dec.setter
     def dec(self, val):
-        if not self.pos: self.pos = (0.0, 0.0)
+        if not self.pos:
+            self.pos = (0.0, 0.0)
         self.pos = (self.pos[0], val)
 
     @property
@@ -250,6 +265,7 @@ class SSAQuery(query.DALQuery):
         the diameter of the search region specified in decimal degrees
         """
         return self.getparam("SIZE")
+
     @size.setter
     def size(self, val):
         if val is not None:
@@ -259,6 +275,7 @@ class SSAQuery(query.DALQuery):
                 raise ValueError("size constraint out-of-range: " + str(val))
 
         self.setparam("SIZE", val)
+
     @size.deleter
     def size(self):
         self.unsetparam("SIZE")
@@ -269,9 +286,11 @@ class SSAQuery(query.DALQuery):
         the spectral bandpass given in a range-list format
         """
         return self.getparam("BAND")
+
     @band.setter
     def band(self, val):
         self.setparam("BAND", val)
+
     @band.deleter
     def band(self):
         self.unsetparam("BAND")
@@ -283,6 +302,7 @@ class SSAQuery(query.DALQuery):
         subset of ISO 8601.
         """
         return self.getparam("TIME")
+
     @time.setter
     def time(self, val):
         # check the format:
@@ -293,10 +313,11 @@ class SSAQuery(query.DALQuery):
             dates = [val]
         for _ in dates:
             if not(re.match("\d{4}$|\d{4}-\d{2}$|\d{4}-\d{2}-\d{2}$|" +
-                             "\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}$")):
+                  "\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}$")):
                 raise ValueError("time format not valid: " + val)
 
         self.setparam("TIME", val)
+
     @time.deleter
     def time(self):
         self.unsetparam("TIME")
@@ -304,9 +325,9 @@ class SSAQuery(query.DALQuery):
     @property
     def format(self):
         """
-        the desired format of the images to be returned.  This will be in the 
+        the desired format of the images to be returned.  This will be in the
         form of a commna-separated list of MIME-types or one of the following special
-        values. 
+        values.
 
         :Special Values:
            all:  all formats available
@@ -321,6 +342,7 @@ class SSAQuery(query.DALQuery):
 
         """
         return self.getparam("FORMAT")
+
     @format.setter
     def format(self, val):
         # check values
@@ -328,15 +350,15 @@ class SSAQuery(query.DALQuery):
         for f in formats:
             f = f.lower()
             if not query.is_mime_type(f) and \
-               f not in ["all", "compliant", "native", "graphic", "votable", 
-                         "fits", "xml", "metadata"]: 
+               f not in ["all", "compliant", "native", "graphic", "votable",
+                         "fits", "xml", "metadata"]:
                 raise ValueError("format type not valid: " + f)
 
         self.setparam("FORMAT", val)
+
     @format.deleter
     def format(self):
         self.unsetparam("FORMAT")
-
 
     def execute(self):
         """
@@ -344,25 +366,26 @@ class SSAQuery(query.DALQuery):
         This implimentation returns an SSAResults instance
 
         :Raises:
-           *DALServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or
                               communicating with the service
-           *DALQueryError*:   if the service responds with 
-                              an error, including a query syntax error.  
+           *DALQueryError*:   if the service responds with
+                              an error, including a query syntax error.
         """
         return SSAResults(self.execute_votable(), self.getqueryurl())
 
 
 class SSAResults(query.DALResults):
+
     """
-    Results from an SSA query.  It provides random access to records in 
-    the response.  Alternatively, it can provide results via a Cursor 
+    Results from an SSA query.  It provides random access to records in
+    the response.  Alternatively, it can provide results via a Cursor
     (compliant with the Python Database API) or an iterator.
     """
 
     def __init__(self, votable, url=None):
         """
-        initialize the cursor.  This constructor is not typically called 
-        by directly applications; rather an instance is obtained from calling 
+        initialize the cursor.  This constructor is not typically called
+        by directly applications; rather an instance is obtained from calling
         a SSAQuery's execute().
         """
         query.DALResults.__init__(self, votable, url, "ssa", "1.0")
@@ -525,27 +548,29 @@ class SSAResults(query.DALResults):
             "ssa:Data.BackgroundModel.Quality": self.fieldname_with_utype("ssa:Data.BackgroundModel.Quality")
 
         }
-        self._recnames = { "title":   self._ssacols["ssa:DataID.Title"],
-                           # RA and Dec are not separately specified
-                           "pos":      self._ssacols["ssa:Target.Pos"],
-                           "instr":   self._ssacols["ssa:DataID.Instrument"],
-                           # This does not exist specifically in SSA but the closest is
-                           "dateobs": self._ssacols["ssa:DataID.Date"],
-                           "format":  self._ssacols["ssa:Access.Format"],
-                           "acref":   self._ssacols["ssa:Access.Reference"]
-                           }
-        
+        self._recnames = {"title": self._ssacols["ssa:DataID.Title"],
+                         # RA and Dec are not separately specified
+                         "pos": self._ssacols["ssa:Target.Pos"],
+                         "instr": self._ssacols["ssa:DataID.Instrument"],
+                         # This does not exist specifically in SSA but the closest is
+                         "dateobs": self._ssacols["ssa:DataID.Date"],
+                         "format": self._ssacols["ssa:Access.Format"],
+                         "acref": self._ssacols["ssa:Access.Reference"]
+                          }
+
     def getrecord(self, index):
         """
         return an SSA result record that follows dictionary
         semantics.  The keys of the dictionary are those returned by this
-        instance's fieldNames() function: either the column IDs or name, if 
-        the ID is not set.  The returned record has additional accessor 
+        instance's fieldNames() function: either the column IDs or name, if
+        the ID is not set.  The returned record has additional accessor
         methods for getting at standard SSA response metadata (e.g. ra, dec).
         """
         return SSARecord(self, index)
 
+
 class SSARecord(query.Record):
+
     """
     a dictionary-like container for data in a record from the results of an
     SSA query, describing an available spectrum.
@@ -587,7 +612,7 @@ class SSARecord(query.Record):
     @property
     def dateobs(self):
         """
-        return the modified Julien date (MJD) of the mid-point of the 
+        return the modified Julien date (MJD) of the mid-point of the
         observational data that went into the image
         """
         return self.get(self._names["dateobs"])
@@ -595,7 +620,7 @@ class SSARecord(query.Record):
     @property
     def instr(self):
         """
-        return the name of the instrument (or instruments) that produced the 
+        return the name of the instrument (or instruments) that produced the
         data that went into this image.
         """
         return self.get(self._names["instr"])
@@ -609,7 +634,7 @@ class SSARecord(query.Record):
 
     def getdataurl(self):
         """
-        return the URL contained in the access URL column which can be used 
+        return the URL contained in the access URL column which can be used
         to retrieve the dataset described by this record.  None is returned
         if no such column exists.
         """
@@ -617,10 +642,10 @@ class SSARecord(query.Record):
 
     def suggest_dataset_basename(self):
         """
-        return a default base filename that the dataset available via 
-        ``getdataset()`` can be saved as.  This function is 
+        return a default base filename that the dataset available via
+        ``getdataset()`` can be saved as.  This function is
         specialized for a particular service type this record originates from
-        so that it can be used by ``cachedataset()`` via 
+        so that it can be used by ``cachedataset()`` via
         ``make_dataset_filename()``.
         """
         out = self.title
@@ -632,9 +657,8 @@ class SSARecord(query.Record):
 
     def suggest_extension(self, default=None):
         """
-        returns a recommended filename extension for the dataset described 
-        by this record.  Typically, this would look at the column describing 
-        the format and choose an extension accordingly.  
+        returns a recommended filename extension for the dataset described
+        by this record.  Typically, this would look at the column describing
+        the format and choose an extension accordingly.
         """
         return query.mime2extension(self.format, default)
-

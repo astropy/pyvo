@@ -20,9 +20,9 @@ other externally defined table.  In this case there is no VO defined
 standard data model.  Usually the field names are used to uniquely
 identify table columns.
 """
-__all__ = [ "ensure_baseurl", "DALAccessError", "DALProtocolError",
-            "DALFormatError", "DALServiceError", "DALQueryError",
-            "DALService", "DALQuery", "DALResults", "Record"]
+__all__ = ["ensure_baseurl", "DALAccessError", "DALProtocolError",
+          "DALFormatError", "DALServiceError", "DALQueryError",
+          "DALService", "DALQuery", "DALResults", "Record"]
 
 import os
 import re
@@ -32,9 +32,11 @@ from urllib import quote_plus
 
 _mimetype_re = re.compile(r'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
 
+
 def is_mime_type(val):
     return bool(_mimetype_re.match(val))
- 
+
+
 def ensure_baseurl(url):
     """
     ensure a well formed DAL base URL that ends either with a '?' or a '&'
@@ -47,9 +49,11 @@ def ensure_baseurl(url):
     else:
         return url+'?'
 
+
 class DALService(object):
+
     """
-    an abstract base class representing a DAL service located a particular 
+    an abstract base class representing a DAL service located a particular
     endpoint.
     """
 
@@ -57,13 +61,13 @@ class DALService(object):
         """
         instantiate the service connecting it to a base URL
 
-        :Args: 
+        :Args:
            *baseurl*:  the base URL that should be used for forming queries to
                            the service.
            *protocol*: The protocol implemented by the service, e.g., "scs", "sia",
                            "ssa", and so forth.
            *version*:  The protocol version, e.g, "1.0", "1.2", "2.0".
-           *resmeta*:  a dictionary containing resource metadata describing the 
+           *resmeta*:  a dictionary containing resource metadata describing the
                            service.  This is usually provided a registry record.
         """
         self._baseurl = baseurl
@@ -71,7 +75,7 @@ class DALService(object):
         self._version = version
         self._desc = {}
         if resmeta and isinstance(resmeta, dict):
-            # since this might be (rather, is likely) a Record object, we need 
+            # since this might be (rather, is likely) a Record object, we need
             # to hand copy it (as the astropy votable bits won't deepcopy).
             for key in resmeta.keys():
                 self._desc[key] = resmeta[key]  # assuming immutable values
@@ -100,24 +104,24 @@ class DALService(object):
     @property
     def description(self):
         """
-        an optional dictionary of resource metadata that describes the 
-        service.  This is generally information stored in a VO registry.  
+        an optional dictionary of resource metadata that describes the
+        service.  This is generally information stored in a VO registry.
         """
         return self._desc
 
     def search(self, **keywords):
         """
-        send a search query to this service.  
+        send a search query to this service.
 
-        This implementation has no knowledge of the type of service being 
-        queried.  The query parameters are given as arbitrary keywords which 
+        This implementation has no knowledge of the type of service being
+        queried.  The query parameters are given as arbitrary keywords which
         will be assumed to be understood by the service (i.e. there is no
-        argument checking).  The response is a generic DALResults object.  
+        argument checking).  The response is a generic DALResults object.
 
         :Raises:
-           *DALServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or
                               communicating with the service
-           *DALQueryError*:   for errors either in the input query syntax or 
+           *DALQueryError*:   for errors either in the input query syntax or
                               other user errors detected by the service
            *DALFormatError*:  for errors parsing the VOTable response
         """
@@ -126,10 +130,10 @@ class DALService(object):
 
     def create_query(self, **keywords):
         """
-        create a query object that constraints can be added to and then 
+        create a query object that constraints can be added to and then
         executed.
         """
-        # this must be overridden to return a Query subclass appropriate for 
+        # this must be overridden to return a Query subclass appropriate for
         # the service type
         q = DALQuery(self.baseurl, self.protocol, self.version)
         for key in keywords.keys():
@@ -138,17 +142,18 @@ class DALService(object):
 
 
 class DALQuery(object):
+
     """
     a class for preparing a query to a particular service.  Query constraints
-    are typically added via its service type-specific methods; however, they 
+    are typically added via its service type-specific methods; however, they
     can be added generically (including custom parameters) via the setparam()
-    function.  The various execute() functions will submit the query and 
-    return the results.  
+    function.  The various execute() functions will submit the query and
+    return the results.
 
     The base URL for the query can be changed via the baseurl property.
     """
 
-    std_parameters = [ ]
+    std_parameters = []
 
     def __init__(self, baseurl, protocol=None, version=None):
         """
@@ -157,15 +162,16 @@ class DALQuery(object):
         self._baseurl = baseurl
         self._protocol = protocol
         self._version = version
-        self._param = { }
+        self._param = {}
 
     @property
     def baseurl(self):
         """
-        the base URL that this query will be sent to when one of the 
-        execute functions is called. 
+        the base URL that this query will be sent to when one of the
+        execute functions is called.
         """
         return self._baseurl
+
     @baseurl.setter
     def baseurl(self, baseurl):
         self._baseurl = baseurl
@@ -190,12 +196,12 @@ class DALQuery(object):
         add a parameter constraint to the query.
 
         :Args:
-            *name*:  the name of the parameter.  This should be a name that 
-                     is recognized by the service itself.  
-            *val*:   the value for the constraint.  This value must meet the 
-                     requirements set by the standard or by the service.  If 
-                     the constraint consists of multiple values, it should be 
-                     passed as a sequence.  
+            *name*:  the name of the parameter.  This should be a name that
+                     is recognized by the service itself.
+            *val*:   the value for the constraint.  This value must meet the
+                     requirements set by the standard or by the service.  If
+                     the constraint consists of multiple values, it should be
+                     passed as a sequence.
         """
         self._param[name] = val
 
@@ -224,9 +230,9 @@ class DALQuery(object):
         submit the query and return the results as a Results subclass instance
 
         :Raises:
-           *DALServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or
                               communicating with the service
-           *DALQueryError*:   for errors either in the input query syntax or 
+           *DALQueryError*:   for errors either in the input query syntax or
                               other user errors detected by the service
            *DALFormatError*:  for errors parsing the VOTable response
         """
@@ -237,7 +243,7 @@ class DALQuery(object):
         submit the query and return the raw VOTable XML as a string.
 
         :Raises:
-           *DALServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or
                               communicating with the service
            *DALQueryError*:   for errors in the input query syntax
         """
@@ -254,7 +260,7 @@ class DALQuery(object):
         submit the query and return the raw VOTable XML as a file stream
 
         :Raises:
-           *DALServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or
                               communicating with the service
            *DALQueryError*:   for errors in the input query syntax
         """
@@ -262,7 +268,7 @@ class DALQuery(object):
             url = self.getqueryurl()
             return urlopen(url)
         except IOError as ex:
-            raise DALServiceError.from_except(ex, url, self.protocol, 
+            raise DALServiceError.from_except(ex, url, self.protocol,
                                               self.version)
 
     def execute_votable(self):
@@ -270,7 +276,7 @@ class DALQuery(object):
         submit the query and return the results as an AstroPy votable instance
 
         :Raises:
-           *DALServiceError*: for errors connecting to or 
+           *DALServiceError*: for errors connecting to or
                               communicating with the service
            *DALFormatError*:  for errors parsing the VOTable response
            *DALQueryError*:   for errors in the input query syntax
@@ -280,58 +286,59 @@ class DALQuery(object):
         except DALAccessError:
             raise
         except Exception as e:
-            raise DALFormatError(e, self.getqueryurl(True), 
+            raise DALFormatError(e, self.getqueryurl(True),
                                  protocol=self.protocol, version=self.version)
 
     def getqueryurl(self, lax=False):
         """
-        return the GET URL that encodes the current query.  This is the 
-        URL that the execute functions will use if called next.  
+        return the GET URL that encodes the current query.  This is the
+        URL that the execute functions will use if called next.
 
         :Args:
-           *lax*:  if False (default), a DALQueryError exception will be 
-                      raised if the current set of parameters cannot be 
-                      used to form a legal query.  This implementation does 
+           *lax*:  if False (default), a DALQueryError exception will be
+                      raised if the current set of parameters cannot be
+                      used to form a legal query.  This implementation does
                       no syntax checking; thus, this argument is ignored.
 
         :Raises:
-           *DALQueryError*:   when lax=False, for errors in the input query 
+           *DALQueryError*:   when lax=False, for errors in the input query
                       syntax
         """
         return ensure_baseurl(self.baseurl) + \
-            "&".join(map(lambda p: "%s=%s"%(p,self._paramtostr(self._param[p])),
+            "&".join(map(lambda p: "%s=%s" %(p,self._paramtostr(self._param[p])),
                          self._param.keys()))
 
     def _paramtostr(self, pval):
         if isinstance(pval, tuple) or isinstance(pval, list):
             return ",".join(map(lambda p: quote_plus(str(p)), pval))
         return quote_plus(str(pval))
-        
+
 
 class DALResults(object):
+
     """
-    Results from a DAL query.  It provides random access to records in 
-    the response.  Alternatively, it can provide results via a Cursor 
+    Results from a DAL query.  It provides random access to records in
+    the response.  Alternatively, it can provide results via a Cursor
     (compliant with the Python Database API) or an iterable.
     """
 
     def __init__(self, votable, url=None, protocol=None, version=None):
         """
-        initialize the cursor.  This constructor is not typically called 
-        by directly applications; rather an instance is obtained from calling 
+        initialize the cursor.  This constructor is not typically called
+        by directly applications; rather an instance is obtained from calling
         a DALQuery's execute().
 
         :Args:
            *votable*:    the service response parsed into an
                            astropy.io.votable.tree.VOTableFile instance.
            *url*:        the URL that produced the response
-           *protocol*:   the name of the protocol that this response 
+           *protocol*:   the name of the protocol that this response
                            (supposedly) complies with
-           *version*:    the version of the protocol that this response 
+           *version*:    the version of the protocol that this response
                            (supposedly) complies with
 
         :Raises:
-           *DALFormatError*:  if the response VOTable does not contain a 
+           *DALFormatError*:  if the response VOTable does not contain a
                                 response table
         """
         self._url = url
@@ -377,7 +384,7 @@ class DALResults(object):
 
     def _findstatus(self, votable):
         # this can be overridden to specialize for a particular DAL protocol
-        
+
         # look first in the result resource
         res = self._findresultsresource(votable)
         if res:
@@ -411,12 +418,11 @@ class DALResults(object):
         infos = {}
         res = self._findresultsresource(votable)
         for info in res.infos:
-          infos[info.name] = info.value
+            infos[info.name] = info.value
         for info in votable.infos:
-          infos[info.name] = info.value
+            infos[info.name] = info.value
         return infos
 
-                
     @property
     def protocol(self):
         """
@@ -454,8 +460,8 @@ class DALResults(object):
 
     def __getitem__(self, indx):
         """
-        if indx is a string, r[indx] will return the field with the name of 
-        indx; if indx is an integer, r[indx] will return the indx-th record.  
+        if indx is a string, r[indx] will return the field with the name of
+        indx; if indx is an integer, r[indx] will return the indx-th record.
         """
         if isinstance(indx, int):
             return self.getrecord(indx)
@@ -464,7 +470,7 @@ class DALResults(object):
 
     def fielddesc(self):
         """
-        return the full metadata for a column as Field instance, a simple 
+        return the full metadata for a column as Field instance, a simple
         object with attributes corresponding the the VOTable FIELD attributes,
         namely: name, id, type, ucd, utype, arraysize, description
         """
@@ -472,20 +478,21 @@ class DALResults(object):
 
     def fieldnames(self):
         """
-        return the names of the columns.  These are the names that are used 
-        to access values from the dictionaries returned by getrecord().  They 
-        correspond the ID of the column, if it is set, or otherwise to the 
+        return the names of the columns.  These are the names that are used
+        to access values from the dictionaries returned by getrecord().  They
+        correspond the ID of the column, if it is set, or otherwise to the
         column name.
         """
         return self._fldnames[:]
 
     def fieldname_with_ucd(self, ucd):
         """
-        return the field name that has a given UCD value or None if the UCD 
-        is not found.  None is also returned if the UCD is None or an empty 
+        return the field name that has a given UCD value or None if the UCD
+        is not found.  None is also returned if the UCD is None or an empty
         stirng
         """
-        if not ucd: return None
+        if not ucd:
+            return None
 
         for fld in self.fieldnames():
             desc = self.getdesc(fld)
@@ -496,10 +503,11 @@ class DALResults(object):
 
     def fieldname_with_utype(self, utype):
         """
-        return the field name that has a given UType value or None if the UType 
+        return the field name that has a given UType value or None if the UType
         is not found.  None is also returned if UType is None or an empty stirng
         """
-        if not utype: return None
+        if not utype:
+            return None
 
         for fld in self.fieldnames():
             desc = self.getdesc(fld)
@@ -510,7 +518,7 @@ class DALResults(object):
 
     def getcolumn(self, name):
         """
-        return a numpy array containing the values for the column with the 
+        return a numpy array containing the values for the column with the
         given name
         """
         if name not in self.fieldnames():
@@ -521,15 +529,15 @@ class DALResults(object):
         """
         return a representation of a result record that follows dictionary
         semantics.  The keys of the dictionary are those returned by this
-        instance's fieldNames() function: either the column IDs or name, if 
-        the ID is not set.  The returned record may have additional accessor 
+        instance's fieldNames() function: either the column IDs or name, if
+        the ID is not set.  The returned record may have additional accessor
         methods for getting at stardard DAL response metadata (e.g. ra, dec).
         :Args:
            *index*:  the integer index of the desired record where 0 returns
                         the first record
 
         :Raises:
-           IndexError  if index is negative or equal or larger than the 
+           IndexError  if index is negative or equal or larger than the
                        number of rows in the result table.
         """
         return Record(self, index)
@@ -542,7 +550,7 @@ class DALResults(object):
            *index*:  the zero-based index of the record
 
         :Raises:
-           IndexError  if index is negative or equal or larger than the 
+           IndexError  if index is negative or equal or larger than the
                          number of rows in the result table.
            KeyError    if name is not a recognized column name
         """
@@ -550,10 +558,10 @@ class DALResults(object):
 
     def getdesc(self, name):
         """
-        return the field description for the record attribute (column) with 
+        return the field description for the record attribute (column) with
         the given name
         :Args:
-           *name*:   the name of the attribute (column), chosen from those 
+           *name*:   the name of the attribute (column), chosen from those
                         in fieldnames()
 
         :Returns:
@@ -573,13 +581,15 @@ class DALResults(object):
 
     def cursor(self):
         """
-        return a cursor that is compliant with the Python Database API's 
+        return a cursor that is compliant with the Python Database API's
         Cursor interface.
         """
         from .dbapi2 import Cursor
         return Cursor(self)
 
+
 class Iter(object):
+
     def __init__(self, res):
         self.resultset = res
         self.pos = 0
@@ -595,17 +605,19 @@ class Iter(object):
         except IndexError:
             raise StopIteration()
 
+
 class Record(object):
+
     """
-    one record from a DAL query result.  The column values are accessible 
-    as dictionary items.  It also provides special added functions for 
+    one record from a DAL query result.  The column values are accessible
+    as dictionary items.  It also provides special added functions for
     accessing the dataset the record corresponds to.  Subclasses may provide
     additional functions for access to service type-specific data.
     """
 
     def __init__(self, results, index, fielddesc=None):
         self._fdesc = fielddesc
-        if not self._fdesc: 
+        if not self._fdesc:
             self._fdesc = {}
 
         self.rec = results.votable.array.data[index]
@@ -629,60 +641,64 @@ class Record(object):
             return default
 
     def __contains__(self, key):
-        return self.has_key(key)
+        return key in self
 
     def has_key(self, key):
         return self.rec.dtype.names
 
     def keys(self):
         return tuple(self.iterkeys())
+
     def items(self):
         return tuple(self.iteritems())
+
     def values(self):
         return tuple(self.itervalues())
 
     def iteritems(self):
         for key in self.rec.dtype.names:
             yield (key, self.__getitem__(key))
+
     def iterkeys(self):
         for key in self.rec.dtype.names:
             yield key
+
     def itervalues(self):
         for key in self.rec.dtype.names:
             yield self.__getitem__(key)
 
     def fielddesc(self, name):
         """
-        return an object with attributes (name, id, datatype, unit, ucd, 
-        utype, arraysize) that describe the record attribute with the given 
-        name.  
+        return an object with attributes (name, id, datatype, unit, ucd,
+        utype, arraysize) that describe the record attribute with the given
+        name.
         """
         return self._fdesc[name]
 
     def getdataurl(self):
         """
-        return the URL contained in the access URL column which can be used 
+        return the URL contained in the access URL column which can be used
         to retrieve the dataset described by this record.  None is returned
         if no such column exists.
         """
         for name,fld in self._fdesc.iteritems():
             if (fld.utype and "Access.Reference" in fld.utype) or \
-               (fld.ucd   and "meta.dataset" in fld.ucd 
-                          and "meta.ref.url" in fld.ucd):
+               (fld.ucd and "meta.dataset" in fld.ucd
+                    and "meta.ref.url" in fld.ucd):
                 return self[name]
         return None
 
     def getdataset(self, timeout=None):
-	"""
+        """
         Get the dataset described by this record from the server.
 
         :Args:
-            *timeout*:    the time in seconds to allow for a successful 
-                            connection with server before failing with an 
+            *timeout*:    the time in seconds to allow for a successful
+                            connection with server before failing with an
                             IOError (specifically, socket.timeout) exception
 
-	:Returns:
-	    A file-like object which may be read to retrieve the referenced 
+        :Returns:
+            A file-like object which may be read to retrieve the referenced
             dataset.
 
         :Raises:
@@ -693,10 +709,10 @@ class Record(object):
                              (note: subclass of IOError)
             *socket.timeout*:  if the timeout is exceeded before a connection
                              is established.  (note: subclass of IOError)
-            *IOError*:    if some other error occurs while establishing the 
+            *IOError*:    if some other error occurs while establishing the
                              data stream.
-	"""
-	url = self.getdataurl()
+        """
+        url = self.getdataurl()
         if not url:
             raise KeyError("no dataset access URL recognized in record")
         if timeout:
@@ -706,20 +722,20 @@ class Record(object):
 
     def cachedataset(self, filename=None, dir=".", timeout=None, bufsize=524288):
         """
-        retrieve the dataset described by this record and write it out to 
+        retrieve the dataset described by this record and write it out to
         a file with the given name.  If the file already exists, it will be
         over-written.
 
-        :Args:  
+        :Args:
             *filename*:   the name of the file to write dataset to.  If the
                             value represents a relative path, it will be taken
-                            to be relative to the value of the ``dir`` 
-                            parameter.  If None, a default name is attempted 
-                            based on the record title and format.  
+                            to be relative to the value of the ``dir``
+                            parameter.  If None, a default name is attempted
+                            based on the record title and format.
             *dir*:        the directory to write the file into.  This value
                             will be ignored if filename is an absolute path.
-            *timeout*:    the time in seconds to allow for a successful 
-                            connection with server before failing with an 
+            *timeout*:    the time in seconds to allow for a successful
+                            connection with server before failing with an
                             IOError (specifically, socket.timeout) exception
             *bufsize*:    a buffer size for copying the data to disk (default:
                             0.5 MB)
@@ -732,7 +748,8 @@ class Record(object):
                              is established.  (note: subclass of IOError)
             *IOError*:    if an error occurs while writing out the dataset
         """
-        if not bufsize: bufsize = 524288
+        if not bufsize:
+            bufsize = 524288
 
         if not filename:
             filename = self.make_dataset_filename(dir)
@@ -752,11 +769,11 @@ class Record(object):
     def make_dataset_filename(self, dir=".", base=None, ext=None):
         """
         create a viable pathname in a given directory for saving the dataset
-        available via getdataset().  The pathname that is returned is 
-        guaranteed not to already exist (under single-threaded conditions).  
+        available via getdataset().  The pathname that is returned is
+        guaranteed not to already exist (under single-threaded conditions).
 
-        This implementation will first try combining the base name with the 
-        file extension (with a dot).  If this file already exists in the 
+        This implementation will first try combining the base name with the
+        file extension (with a dot).  If this file already exists in the
         directory, a name that appends an integer suffix ("-#") to the base
         before joining with the extension will be tried.  The integer will
         be incremented until a non-existent filename is created.
@@ -764,14 +781,14 @@ class Record(object):
         :Args:
           *dir*:     the directory to save the dataset under.  This must already
                        exist.
-          *base*:    a basename to use to as the base of the filename.  If 
+          *base*:    a basename to use to as the base of the filename.  If
                        None, the result of ``suggest_dataset_basename()``
                        will be used.
-          *ext*:     the filename extension to use.  If None, the result of 
+          *ext*:     the filename extension to use.  If None, the result of
                      ``suggest_extension()`` will be used.
         """
         if not dir:
-          raise ValueError("make_dataset_filename(): no dir parameter provided")
+            raise ValueError("make_dataset_filename(): no dir parameter provided")
         if not os.path.exists(dir):
             raise IOError("%s: directory not found" % dir)
         if not os.path.isdir(dir):
@@ -803,14 +820,13 @@ class Record(object):
             n += 1
         self._dsname_no = n
         return mkpath(n)
-                
 
     def suggest_dataset_basename(self):
         """
-        return a default base filename that the dataset available via 
-        ``getdataset()`` can be saved as.  This function is 
+        return a default base filename that the dataset available via
+        ``getdataset()`` can be saved as.  This function is
         specialized for a particular service type this record originates from
-        so that it can be used by ``cachedataset()`` via 
+        so that it can be used by ``cachedataset()`` via
         ``make_dataset_filename()``.
         """
         # abstract; specialized for the different service types
@@ -818,11 +834,11 @@ class Record(object):
 
     def suggest_extension(self, default=None):
         """
-        returns a recommended filename extension for the dataset described 
-        by this record.  Typically, this would look at the column describing 
-        the format and choose an extension accordingly.  This function is 
+        returns a recommended filename extension for the dataset described
+        by this record.  Typically, this would look at the column describing
+        the format and choose an extension accordingly.  This function is
         specialized for a particular service type this record originates from
-        so that it can be used by ``cachedataset()`` via 
+        so that it can be used by ``cachedataset()`` via
         ``make_dataset_filename()``.
         """
         # abstract; specialized for the different service types
@@ -832,11 +848,12 @@ _image_mt_re = re.compile(r'^image/(\w+)')
 _text_mt_re = re.compile(r'^text/(\w+)')
 _votable_mt_re = re.compile(r'^(\w+)/(x-)?votable(\+\w+)?')
 
+
 def mime2extension(mimetype, default=None):
     """
     return a recommended file extension for a file with a given MIME-type.
 
-    This function provides some generic mappings that can be leveraged in 
+    This function provides some generic mappings that can be leveraged in
     implementations of ``suggest_extension()`` in ``Record`` subclasses.
 
       >>> mime2extension('application/fits')
@@ -848,14 +865,14 @@ def mime2extension(mimetype, default=None):
 
     :Args:
       *mimetype*:    the file MIME-type string to convert
-      *default*:     the default extension to return if one could not be 
-                         recommended based on ``mimetype``.  By convention, 
+      *default*:     the default extension to return if one could not be
+                         recommended based on ``mimetype``.  By convention,
                          this should not include a preceding '.'
     :Returns:
-      *string* -- the recommended extension without a preceding '.', or the 
+      *string* -- the recommended extension without a preceding '.', or the
                     value of ``default`` if no recommendation could be made.
     """
-    if not mimetype:  
+    if not mimetype:
         return default
 
     if mimetype.endswith("/fits") or mimetype.endswith('/x-fits'):
@@ -878,10 +895,10 @@ def mime2extension(mimetype, default=None):
         return "txt"
 
     return default
-        
-    
+
 
 class DALAccessError(Exception):
+
     """
     a base class for failures while accessing a DAL service
     """
@@ -893,12 +910,13 @@ class DALAccessError(Exception):
         :Args:
            *reason*:    a message describing the cause of the error
            *url*:       the query URL that produced the error
-           *protocol*:  the label indicating the type service that produced 
+           *protocol*:  the label indicating the type service that produced
                           the error
-           *version*:   version of the protocol of the service that produced 
+           *version*:   version of the protocol of the service that produced
                           the error
         """
-        if not reason: reason = self._defreason
+        if not reason:
+            reason = self._defreason
         Exception.__init__(self, reason)
         self._reason = reason
         self._url = url
@@ -908,21 +926,26 @@ class DALAccessError(Exception):
     @classmethod
     def _typeName(cls, exc):
         return re.sub(r"'>$", '', re.sub(r"<type '.*\.", '', str(type(exc))))
+
     def __str__(self):
         return self._reason
+
     def __repr__(self):
         return "%s: %s" % (self._typeName(self), self._reason)
-   
+
     @property
     def reason(self):
         """
         a string description of what went wrong
         """
         return self._reason
+
     @reason.setter
     def reason(self, val):
-        if val is None: val = self._defreason
+        if val is None:
+            val = self._defreason
         self._reason = val
+
     @reason.deleter
     def reason(self):
         self._reason = self._defreason
@@ -933,9 +956,11 @@ class DALAccessError(Exception):
         the URL that produced the error.  If None, the URL is unknown or unset
         """
         return self._url
+
     @url.setter
     def url(self, val):
         self._url = val
+
     @url.deleter
     def url(self):
         self._url = None
@@ -946,9 +971,11 @@ class DALAccessError(Exception):
         A label indicating the type service that produced the error
         """
         return self._protocol
+
     @protocol.setter
     def protocol(self, protocol):
         self._protocol = protocol
+
     @protocol.deleter
     def protocol(self):
         self._protocol = None
@@ -959,25 +986,28 @@ class DALAccessError(Exception):
         The version of the protocol of the service that produced the error
         """
         return self._version
+
     @version.setter
     def version(self, version):
         self._version = version
+
     @version.deleter
     def version(self):
         self._version = None
 
 
 class DALProtocolError(DALAccessError):
+
     """
     a base exception indicating that a DAL service responded in an
     erroneous way.  This can be either an HTTP protocol error or a
     response format error; both of these are handled by separate
     subclasses.  This base class captures an underlying exception
-    clause. 
+    clause.
     """
     _defreason = "Unknown DAL Protocol Error"
 
-    def __init__(self, reason=None, cause=None, url=None, 
+    def __init__(self, reason=None, cause=None, url=None,
                  protocol=None, version=None):
         """
         initialize with a string message and an optional HTTP response code
@@ -985,12 +1015,12 @@ class DALProtocolError(DALAccessError):
            *reason*:  a message describing the cause of the error
            *code*:    the HTTP error code (as an integer)
            *cause*:   an exception issued as the underlying cause.  A value
-                        of None indicates that no underlying exception was 
+                        of None indicates that no underlying exception was
                         caught.
            *url*:     the query URL that produced the error
-           *protocol*:  the label indicating the type service that produced 
+           *protocol*:  the label indicating the type service that produced
                           the error
-           *version*:   version of the protocol of the service that produced 
+           *version*:   version of the protocol of the service that produced
                           the error
         """
         DALAccessError.__init__(self, reason, url, protocol, version)
@@ -1002,50 +1032,54 @@ class DALProtocolError(DALAccessError):
         a string description of what went wrong
         """
         return self._cause
+
     @cause.setter
     def cause(self, val):
         self._cause = val
+
     @cause.deleter
     def cause(self):
         self._cause = None
 
 
 class DALFormatError(DALProtocolError):
+
     """
     an exception indicating that a DAL response contains fatal format errors.
-    This would include XML or VOTable format errors.  
+    This would include XML or VOTable format errors.
     """
     _defreason = "Unknown VOTable Format Error"
 
-    def __init__(self, cause=None, url=None, reason=None, 
+    def __init__(self, cause=None, url=None, reason=None,
                  protocol=None, version=None):
         """
         create the exception
         :Args:
            *cause*:   an exception issued as the underlying cause.  A value
-                        of None indicates that no underlying exception was 
+                        of None indicates that no underlying exception was
                         caught.
            *url*:     the query URL that produced the error
            *reason*:  a message describing the cause of the error
-           *protocol*:  the label indicating the type service that produced 
+           *protocol*:  the label indicating the type service that produced
                           the error
-           *version*:   version of the protocol of the service that produced 
+           *version*:   version of the protocol of the service that produced
                           the error
         """
-        if cause and not reason:  
+        if cause and not reason:
             reason = "%s: %s" % (DALAccessError._typeName(cause), str(cause))
         DALProtocolError.__init__(self, reason, cause, url, protocol, version)
 
 
 class DALServiceError(DALProtocolError):
+
     """
     an exception indicating a failure communicating with a DAL
-    service.  Most typically, this is used to report DAL queries that result 
-    in an HTTP error.  
+    service.  Most typically, this is used to report DAL queries that result
+    in an HTTP error.
     """
     _defreason = "Unknown service error"
-    
-    def __init__(self, reason=None, code=None, cause=None, url=None, 
+
+    def __init__(self, reason=None, code=None, cause=None, url=None,
                  protocol=None, version=None):
         """
         initialize with a string message and an optional HTTP response code
@@ -1053,12 +1087,12 @@ class DALServiceError(DALProtocolError):
            *reason*:  a message describing the cause of the error
            *code*:    the HTTP error code (as an integer)
            *cause*:   an exception issued as the underlying cause.  A value
-                        of None indicates that no underlying exception was 
+                        of None indicates that no underlying exception was
                         caught.
            *url*:     the query URL that produced the error
-           *protocol*:  the label indicating the type service that produced 
+           *protocol*:  the label indicating the type service that produced
                           the error
-           *version*:   version of the protocol of the service that produced 
+           *version*:   version of the protocol of the service that produced
                           the error
         """
         DALProtocolError.__init__(self, reason, cause, url, protocol, version)
@@ -1068,13 +1102,15 @@ class DALServiceError(DALProtocolError):
     def code(self):
         """
         the HTTP error code that resulted from the DAL service query,
-        indicating the error.  If None, the service did not produce an HTTP 
+        indicating the error.  If None, the service did not produce an HTTP
         response.
         """
         return self._code
+
     @code.setter
     def code(self, val):
         self._code = val
+
     @code.deleter
     def code(self):
         self._code = None
@@ -1093,7 +1129,7 @@ class DALServiceError(DALProtocolError):
             elif not isinstance(reason, str):
                 reason = str(reason)
 
-            if not url: 
+            if not url:
                 if hasattr(exc, 'url'):
                     url = exc.url
                 else:
@@ -1106,19 +1142,21 @@ class DALServiceError(DALProtocolError):
             elif not isinstance(reason, str):
                 reason = str(reason)
 
-            return DALServiceError(reason, cause=exc, url=url, 
+            return DALServiceError(reason, cause=exc, url=url,
                                    protocol=protocol, version=version)
         elif isinstance(exc, Exception):
-            return DALServiceError("%s: %s" % (cls._typeName(exc), str(exc)), 
-                                   cause=exc, url=url, 
+            return DALServiceError("%s: %s" % (cls._typeName(exc), str(exc)),
+                                   cause=exc, url=url,
                                    protocol=protocol, version=version)
         else:
             raise TypeError("from_except: expected Exception")
 
+
 class DALQueryError(DALAccessError):
+
     """
     an exception indicating an error by a working DAL service while processing
-    a query.  Generally, this would be an error that the service successfully 
+    a query.  Generally, this would be an error that the service successfully
     detected and consequently was able to respond with a legal error response--
     namely, a VOTable document with an INFO element contains the description
     of the error.  Possible errors will include bad usage by the client, such
@@ -1126,40 +1164,43 @@ class DALQueryError(DALAccessError):
     """
     _defreason = "Unknown DAL Query Error"
 
-    def __init__(self, reason=None, label=None, url=None, 
+    def __init__(self, reason=None, label=None, url=None,
                  protocol=None, version=None):
         """
         :Args:
-           *reason*:  a message describing the cause of the error.  This should 
+           *reason*:  a message describing the cause of the error.  This should
                         be set to the content of the INFO error element.
-           *label*:   the identifying name of the error.  This should be the 
-                        value of the INFO element's value attribute within the 
+           *label*:   the identifying name of the error.  This should be the
+                        value of the INFO element's value attribute within the
                         VOTable response that describes the error.
            *url*:     the query URL that produced the error
-           *protocol*:  the label indicating the type service that produced 
+           *protocol*:  the label indicating the type service that produced
                           the error
-           *version*:   version of the protocol of the service that produced 
+           *version*:   version of the protocol of the service that produced
                           the error
         """
         DALAccessError.__init__(self, reason, url, protocol, version)
         self._label = label
-                          
+
     @property
     def label(self):
         """
         the identifing name for the error given in the DAL query response.
         DAL queries that produce an error which is detectable on the server
-        will respond with a VOTable containing an INFO element that contains 
-        the description of the error.  This property contains the value of 
-        the INFO's value attribute.  
+        will respond with a VOTable containing an INFO element that contains
+        the description of the error.  This property contains the value of
+        the INFO's value attribute.
         """
         return self._label
+
     @label.setter
     def label(self, val):
         self._label = val
+
     @label.deleter
     def label(self):
         self._label = None
+
 
 def _votableparse(source, columns=None, invalid='mask', pedantic=False,
                   table_number=None, filename=None, version="1.1"):
@@ -1167,7 +1208,7 @@ def _votableparse(source, columns=None, invalid='mask', pedantic=False,
         import astropy.io.votable.tree as votabletree
         import astropy.io.votable.table as votabletable
         from astropy.utils.xml import iterparser
-        #from astropy.io.votable.exceptions import W22
+        # from astropy.io.votable.exceptions import W22
         from astropy.io.votable.exceptions import W03,W06,W20,W21,W42,W46,W47,W49,E10
         for warning in (W03, W06, W20, W21, W42, W46, W47, W49, E10):
             warnings.simplefilter("ignore", warning)
@@ -1185,13 +1226,13 @@ def _votableparse(source, columns=None, invalid='mask', pedantic=False,
         pedantic = votabletable.PEDANTIC()
 
     config = {
-        'columns'      :      columns,
-        'invalid'      :      invalid,
-        'pedantic'     :     pedantic,
-        'chunk_size'   :   chunk_size,
-        'table_number' : table_number,
-        'filename'     :     filename,
-        'version_1_1_or_later': True   }
+        'columns': columns,
+        'invalid': invalid,
+        'pedantic': pedantic,
+        'chunk_size': chunk_size,
+        'table_number': table_number,
+        'filename': filename,
+        'version_1_1_or_later': True}
 
     if filename is None and isinstance(source, basestring):
         config['filename'] = source
@@ -1200,8 +1241,4 @@ def _votableparse(source, columns=None, invalid='mask', pedantic=False,
 
     with iterparser.get_xml_iterator(source) as iterator:
         return votabletree.VOTableFile(
-          config=config, pos=(1, 1), version=version).parse(iterator, config)
-
-
-
-
+            config=config, pos=(1, 1), version=version).parse(iterator, config)

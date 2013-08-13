@@ -2,8 +2,13 @@
 """
 Tests for pyvo.dal.query
 """
-import os, sys, shutil, re, imp
-import unittest, pdb
+import os
+import sys
+import shutil
+import re
+import imp
+import unittest
+import pdb
 from urllib2 import URLError, HTTPError
 
 import pyvo.dal.query as dalq
@@ -12,6 +17,7 @@ import pyvo.dal.sia as sia
 from astropy.io.votable.tree import VOTableFile
 
 neat = "http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=neat&"
+
 
 class NeatSIAExecuteTest(unittest.TestCase):
 
@@ -71,10 +77,11 @@ class NeatSIAExecuteTest(unittest.TestCase):
             with open(self.imfile) as fits:
                 hdr = fits.read(20)
                 self.assert_(hdr.startswith("SIMPLE  ="), "Not a FITS image?")
-        
-        
+
 
 __all__ = "NeatSIAExecuteTest".split()
+
+
 def suite():
     tests = []
     for t in __all__:
@@ -83,4 +90,3 @@ def suite():
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-PyVO is a package providing access to remote data and services of the 
-Virtual observatory (VO) using Python.  
+PyVO is a package providing access to remote data and services of the
+Virtual observatory (VO) using Python.
 
 The pyvo module currently provides these main capabilities:
 
-* find archives that provide particular data of a particular type and/or 
+* find archives that provide particular data of a particular type and/or
   relates to a particular topic
 
   *  regsearch()
@@ -25,11 +25,11 @@ The pyvo module currently provides these main capabilities:
 Submodules provide additional functions and classes for greater control over
 access to these services.
 
-This module also exposes the exception classes raised by the above functions, 
-of which DALAccessError is the root parent exception. 
+This module also exposes the exception classes raised by the above functions,
+of which DALAccessError is the root parent exception.
 """
 
-#this indicates whether or not we are in the pyvo's setup.py
+# this indicates whether or not we are in the pyvo's setup.py
 try:
     _ASTROPY_SETUP_
 except NameError:
@@ -79,9 +79,9 @@ from .dal import ssa, sia, sla, scs
 from .registry import search as regsearch
 from .dal import imagesearch, spectrumsearch, conesearch, linesearch
 from .dal import DALAccessError, DALProtocolError, DALFormatError,   \
-                 DALServiceError, DALQueryError
+    DALServiceError, DALQueryError
 
 from .nameresolver import *
 
-__all__ = [ "imagesearch", "spectrumsearch", "conesearch", "linesearch", 
-            "regsearch", "resolve", "object2pos", "object2sexapos" ]
+__all__ = ["imagesearch", "spectrumsearch", "conesearch", "linesearch",
+          "regsearch", "resolve", "object2pos", "object2sexapos"]
