@@ -231,7 +231,7 @@ class Cursor(Iter):
         elif mode == "relative":
             self.pos += value
 
-    def close():
+    def close(self):
 	"""Close the cursor object and free all resources.  This implementation
         does nothing.  It is provided for compliance with the Python Database 
         API.  
