@@ -22,7 +22,7 @@ interaction models.
 
 from ..dal import query as dalq
 from ..dal import sia, ssa, sla, scs
-from urllib import quote_plus, urlopen, urlretrieve
+from urllib import quote_plus, urlopen
 import re
 
 import numpy.ma as _ma

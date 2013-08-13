@@ -24,7 +24,9 @@ __all__ = [ "ensure_baseurl", "DALAccessError", "DALProtocolError",
             "DALFormatError", "DALServiceError", "DALQueryError",
             "DALService", "DALQuery", "DALResults", "Record"]
 
-import copy, os, re, warnings, socket
+import os
+import re
+import warnings
 from urllib2 import urlopen, URLError, HTTPError
 from urllib import quote_plus
 
@@ -1165,7 +1167,7 @@ def _votableparse(source, columns=None, invalid='mask', pedantic=False,
         import astropy.io.votable.tree as votabletree
         import astropy.io.votable.table as votabletable
         from astropy.utils.xml import iterparser
-        from astropy.io.votable.exceptions import W22
+        #from astropy.io.votable.exceptions import W22
         from astropy.io.votable.exceptions import W03,W06,W20,W21,W42,W46,W47,W49,E10
         for warning in (W03, W06, W20, W21, W42, W46, W47, W49, E10):
             warnings.simplefilter("ignore", warning)

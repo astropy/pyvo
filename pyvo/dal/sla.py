@@ -23,7 +23,6 @@ allows one to build up, tweak, and reuse a query.  The SLAService
 class can represent a specific service available at a URL endpoint.
 """
 
-import numbers
 import re
 from . import query
 

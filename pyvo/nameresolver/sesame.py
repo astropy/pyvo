@@ -22,8 +22,8 @@ its name.
 __all__ = [ "resolve", "object2pos", "object2sexapos", "set_default_endpoint",
             "SesameQuery", "ObjectData" ]
 
-import sys, os, re
-from urllib2 import urlopen, URLError, HTTPError
+import re
+from urllib2 import urlopen
 from urllib import quote_plus
 import xml.etree.ElementTree as ET
 from xml.parsers.expat import ExpatError
