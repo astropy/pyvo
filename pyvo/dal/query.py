@@ -119,7 +119,7 @@ class DALService(object):
                               other user errors detected by the service
            *DALFormatError*:  for errors parsing the VOTable response
         """
-        q = create_query(**keywords)
+        q = self.create_query(**keywords)
         return q.execute()
 
     def create_query(self, **keywords):
