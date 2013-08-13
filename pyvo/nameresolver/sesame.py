@@ -193,8 +193,8 @@ class SesameQuery(object):
         """
         return self._baseurl
     @baseurl.setter
-    def baseurl(self):
-        self._baseurl = baseurl
+    def baseurl(self, val):
+        self._baseurl = val
 
     @property
     def ignorecache(self):
