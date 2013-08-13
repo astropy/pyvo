@@ -295,8 +295,7 @@ class RegistryQuery(dalq.DALQuery):
         if not val:
             raise ValueError("missing serviceType value");
         if len(val) < 2:
-            raise ValueError("unrecognized serviceType value: " + 
-                             serviceType);
+            raise ValueError("unrecognized serviceType value: " + val);
 
         # uncapitalize
         if val[0].upper() == val[0]:
