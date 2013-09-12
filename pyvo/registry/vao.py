@@ -22,7 +22,7 @@ interaction models.
 
 from ..dal import query as dalq
 from ..dal import sia, ssa, sla, scs
-from urllib import quote_plus, urlopen, urlretrieve
+from urllib import quote_plus, urlopen
 import re
 
 import numpy.ma as _ma
@@ -295,8 +295,7 @@ class RegistryQuery(dalq.DALQuery):
         if not val:
             raise ValueError("missing serviceType value");
         if len(val) < 2:
-            raise ValueError("unrecognized serviceType value: " + 
-                             serviceType);
+            raise ValueError("unrecognized serviceType value: " + val);
 
         # uncapitalize
         if val[0].upper() == val[0]:
@@ -751,7 +750,7 @@ def _createService(resource, savemeta=False):
     try:
         if serviceCls:
             return serviceCls(resource.accessurl, meta)
-    except Exception, ex:
+    except Exception:
         return None
 
 def split_str_array_cell(val, delim='#'):
