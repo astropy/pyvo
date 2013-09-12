@@ -845,3 +845,8 @@ Search and Service Classes
 Just as in the image search case, the spectrum interface also has a
 query class (see :ref:`sia-query`) and service class (see
 :ref:`service-objects`). 
+
+The query class, :py:`~pyvo.dal.ssa.SSAQuery`, differs from its SIA
+conterpart in the search parameters it exposes as properties.  
+
+
