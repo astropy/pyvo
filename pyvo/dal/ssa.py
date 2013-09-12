@@ -293,7 +293,7 @@ class SSAQuery(query.DALQuery):
             dates = [val]
         for date in dates:
             if not(re.match("\d{4}$|\d{4}-\d{2}$|\d{4}-\d{2}-\d{2}$|" +
-                             "\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}$")):
+                             "\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}$"), date):
                 raise ValueError("time format not valid: " + val)
 
         self.setparam("TIME", val)
