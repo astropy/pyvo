@@ -301,8 +301,9 @@ class DALQuery(object):
                       syntax
         """
         return ensure_baseurl(self.baseurl) + \
-            "&".join(map(lambda p: "%s=%s"%(p,self._paramtostr(self._param[p])),
-                         self._param.keys()))
+           "&".join(map(lambda p: "{0}={1}".format(
+                                            p,self._paramtostr(self._param[p])),
+                        self._param.keys()))
 
     def _paramtostr(self, pval):
         if isinstance(pval, tuple) or isinstance(pval, list):
@@ -775,9 +776,9 @@ class Record(object):
         if not dir:
           raise ValueError("make_dataset_filename(): no dir parameter provided")
         if not os.path.exists(dir):
-            raise IOError("%s: directory not found" % dir)
+            raise IOError("{0}: directory not found".format(dir))
         if not os.path.isdir(dir):
-            raise ValueError("%s: not a directory" % dir)
+            raise ValueError("{0}: not a directory".format(dir))
 
         if not base:
             base = self.suggest_dataset_basename()
@@ -787,7 +788,7 @@ class Record(object):
         # be efficient when writing a bunch of files into the same directory
         # in succession
         n = self._dsname_no
-        mkpath = lambda i: os.path.join(dir, "%s-%d.%s" % (base, n, ext))
+        mkpath = lambda i: os.path.join(dir, "{0}-{1}.{2}".format(base, n, ext))
         if n > 0:
             # find the last file written of the form, base-n.ext
             while n > 0 and not os.path.exists(mkpath(n)):
@@ -796,7 +797,7 @@ class Record(object):
             n += 1
         if n == 0:
             # never wrote a file of form, base-n.ext; try base.ext
-            path = os.path.join(dir, "%s.%s" % (base, ext))
+            path = os.path.join(dir, "{0}.{1}".format(base, ext))
             if not os.path.exists(path):
                 return path
             n += 1
@@ -913,7 +914,7 @@ class DALAccessError(Exception):
     def __str__(self):
         return self._reason
     def __repr__(self):
-        return "%s: %s" % (self._typeName(self), self._reason)
+        return "{0}: {1}".format(self._typeName(self), self._reason)
    
     @property
     def reason(self):
@@ -1035,7 +1036,8 @@ class DALFormatError(DALProtocolError):
                           the error
         """
         if cause and not reason:  
-            reason = "%s: %s" % (DALAccessError._typeName(cause), str(cause))
+            reason = "{0}: {0}".format(DALAccessError._typeName(cause), 
+                                       str(cause))
         DALProtocolError.__init__(self, reason, cause, url, protocol, version)
 
 
@@ -1111,7 +1113,8 @@ class DALServiceError(DALProtocolError):
             return DALServiceError(reason, cause=exc, url=url, 
                                    protocol=protocol, version=version)
         elif isinstance(exc, Exception):
-            return DALServiceError("%s: %s" % (cls._typeName(exc), str(exc)), 
+            return DALServiceError("{0}: {1}".format(cls._typeName(exc), 
+                                                     str(exc)), 
                                    cause=exc, url=url, 
                                    protocol=protocol, version=version)
         else:

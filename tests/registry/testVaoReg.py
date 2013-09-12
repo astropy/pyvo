@@ -207,26 +207,28 @@ class RegQueryTest(unittest.TestCase):
         kws = "gal AGN"
         self.testCtor()
 
-        pat = "(title LIKE '%%%(t)s%%' OR shortName LIKE '%%%(t)s%%' OR " + \
-              "identifier LIKE '%%%(t)s%%' OR " + \
-              "[content/subject] LIKE '%%%(t)s%%' OR "+\
-              "[curation/publisher] LIKE '%%%(t)s%%' OR " + \
-              "[content/description] LIKE '%%%(t)s%%')"
+        pat = "(title LIKE '%{t}%' OR shortName LIKE '%{t}%' OR " + \
+              "identifier LIKE '%{t}%' OR " + \
+              "[content/subject] LIKE '%{t}%' OR "+\
+              "[curation/publisher] LIKE '%{t}%' OR " + \
+              "[content/description] LIKE '%{t}%')"
 
         pred = self.q.keywords_to_predicate([kws], True)
-        self.assertEquals(pred, pat % {"t": kws})
+        self.assertEquals(pred, pat.format(**{"t": kws}))
 
         kws = kws.split()
         pred = self.q.keywords_to_predicate(kws[0:1], False)
-        self.assertEquals(pred, pat % {"t": kws[0]})
+        self.assertEquals(pred, pat.format(**{"t": kws[0]}))
 
         pred = self.q.keywords_to_predicate(kws, True)
         self.assertEquals(pred, 
-                          (pat % {"t": kws[0]}) + " OR " + (pat % {"t": kws[1]}))
+                          (pat.format(**{"t": kws[0]})) + " OR " + 
+                          (pat.format(**{"t": kws[1]})))
 
         pred = self.q.keywords_to_predicate(kws, False)
         self.assertEquals(pred, 
-                         (pat % {"t": kws[0]}) + " AND " + (pat % {"t": kws[1]}))
+                          (pat.format(**{"t": kws[0]})) + " AND " + 
+                          (pat.format(**{"t": kws[1]})))
 
 
     def testCreateURL(self):
@@ -270,7 +272,7 @@ class RegQueryTest(unittest.TestCase):
                         "%5Bcontent%2Fdescription%5D"]:
                 constraint = col + "+LIKE+%27%25" + kw + "%25%27"
                 self.assert_(constraint in qurl, 
-                             "Missing %s constraint:\n%s" % (constraint,qurl))
+                         "Missing {0} constraint:\n{1}".format(constraint,qurl))
         self.assert_("+OR+shortName+" in qurl)
         self.assert_("+OR+%28title+" in qurl,
                      "unexpected predicate: " + qurl)

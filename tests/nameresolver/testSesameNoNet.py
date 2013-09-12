@@ -21,14 +21,14 @@ class DocQuantityTest(unittest.TestCase):
     xmldecl = "<?xml version=\"1.0\"?>"
 
     def makeQuantXML(self, tag, include="eqr"):
-        out = "%s<%s><v>447.89000</v>" % (self.xmldecl, tag)
+        out = "{0}<{1}><v>447.89000</v>".format(self.xmldecl, tag)
         if 'e' in include:
             out += "<e>2.99793</e>"
         if 'q' in include:
             out += "<q>A</q>"
         if 'r' in include:
             out += "<r>1991RC3.9.C...0000d</r>"
-        out += "</%s>" % tag
+        out += "</{0}>".format(tag)
         return out
 
     def makeQuantEl(self, tag="Vel", include="eqr"):
@@ -49,17 +49,17 @@ class DocQuantityTest(unittest.TestCase):
 
     def testToString(self):
         q = sesame.DocQuantity(self.makeQuantEl())
-        self.assertEquals("447.890000 km/s", q.to_string(False))
-        self.assertEquals("447.890000 +/- 2.997930 km/s", q.to_string(True))
-        self.assertEquals("447.890000 +/- 2.997930 km/s", str(q))
+        self.assertEquals("447.89 km/s", q.to_string(False))
+        self.assertEquals("447.89 +/- 2.99793 km/s", q.to_string(True))
+        self.assertEquals("447.89 +/- 2.99793 km/s", str(q))
 
         # pdb.set_trace()
         self.assertTrue(re.match(r'quant\((\S+,\s){4}\S+\)', repr(q)) is not None)
 
         q = sesame.DocQuantity(self.makeQuantEl(include=""))
-        self.assertEquals("447.890000 km/s", q.to_string(False))
-        self.assertEquals("447.890000 km/s", q.to_string(True))
-        self.assertEquals("447.890000 km/s", str(q))
+        self.assertEquals("447.89 km/s", q.to_string(False))
+        self.assertEquals("447.89 km/s", q.to_string(True))
+        self.assertEquals("447.89 km/s", str(q))
 
         self.assertTrue(re.match(r'quant\((\S+,\s){4}\S+\)', repr(q)) is not None)
 
@@ -104,7 +104,7 @@ class ProperMotionTest(unittest.TestCase):
 
     def makeQuantXML(self, include="eqr"):
         tag = "pm"
-        out = "%s<%s><v>3.44</v>" % (xmldecl, tag)
+        out = "{0}<{1}><v>3.44</v>".format(xmldecl, tag)
         if 'e' in include:
             out += "<e>0.28</e>"
         if 'q' in include:
@@ -119,7 +119,7 @@ class ProperMotionTest(unittest.TestCase):
         if 'e' in include:
             out += "<epmDE>0.2</epmDE>"
 
-        out += "</%s>" % tag
+        out += "</{0}>".format(tag)
         return out
 
     def makeQuantEl(self, include="eqr"):
@@ -128,17 +128,17 @@ class ProperMotionTest(unittest.TestCase):
 
     def testToString(self):
         q = sesame.ProperMotion(self.makeQuantEl())
-        self.assertEquals("3.440000 mas/yr", q.to_string(False))
-        self.assertEquals("3.440000 +/- 0.280000 mas/yr", q.to_string(True))
-        self.assertEquals("3.440000 +/- 0.280000 mas/yr", str(q))
+        self.assertEquals("3.44 mas/yr", q.to_string(False))
+        self.assertEquals("3.44 +/- 0.28 mas/yr", q.to_string(True))
+        self.assertEquals("3.44 +/- 0.28 mas/yr", str(q))
 
         # pdb.set_trace()
         self.assertTrue(re.match(r'pm\((\S+,\s){9}\S+\)', repr(q)) is not None)
 
         q = sesame.ProperMotion(self.makeQuantEl(include=""))
-        self.assertEquals("3.440000 mas/yr", q.to_string(False))
-        self.assertEquals("3.440000 mas/yr", q.to_string(True))
-        self.assertEquals("3.440000 mas/yr", str(q))
+        self.assertEquals("3.44 mas/yr", q.to_string(False))
+        self.assertEquals("3.44 mas/yr", q.to_string(True))
+        self.assertEquals("3.44 mas/yr", str(q))
 
         self.assertTrue(re.match(r'pm\((\S+,\s){9}\S+\)', repr(q)) is not None)
 

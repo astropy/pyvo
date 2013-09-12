@@ -398,16 +398,16 @@ class SesameQuery(object):
                                    c not in set(self.database_codes.values()), 
                          set(self._dbs))
             if len(bad) > 0:
-                raise DALQueryError(("database selection, %s, includes " +
-                                    "unrecognized databases: %s.") 
-                                    % (self._dbs, str(tuple(bad))))
+                raise DALQueryError(("database selection, {0}, includes " +
+                                    "unrecognized databases: {1}.").format(
+                                     self._dbs, str(tuple(bad))))
 
             bad = filter(lambda c: c not in set("IF"), 
                          set(self._opts))
             if len(bad) > 0:
-                raise DALQueryError(("options, %s, includes " +
-                                    "unrecognized items: %s.")
-                                    % (self._opts, str(tuple(bad))))
+                raise DALQueryError(("options, {0}, includes " +
+                                    "unrecognized items: {0}.").format(
+                                     self._opts, str(tuple(bad))))
 
             if format and format not in "x x2 x4 pc".split():
                 raise DALQueryError("unrecognized format: " + format)
@@ -728,7 +728,7 @@ class ObjectData(object):
         try:
             return (float(ra), float(dec))
         except ValueError:
-            raise DALFormatError("Non-float given in (%s, %s)" % (ra, dec))
+            raise DALFormatError("Non-float given in ({0}, {1})".format(ra, dec))
         
     @property
     def pos(self):
@@ -787,20 +787,21 @@ class DocQuantity(object):
             d.append(item)
 
         if d[0] is None:
-            raise DALFormatError("%s: Missing quantity value" % etreeEl.tag)
+            raise DALFormatError("{0}: Missing quantity value".format(
+                                  etreeEl.tag))
             
         try:
             self.val = float(d[0])
         except ValueError:
-            raise DALFormatError("%s: non-decimal value: %s" 
-                                 % (etreeEl.tag, d[0]))
+            raise DALFormatError("{0}: non-decimal value: {1}".format(
+                                 etreeEl.tag, d[0]))
         self.error = d[1]
         if self.error is not None:
             try:
                 self.error = float(d[1])
             except ValueError:
-                raise DALFormatError("%s: non-decimal error: %s" 
-                                     % (etreeEl.tag, d[1]))
+                raise DALFormatError("{0}: non-decimal error: {0}".format(
+                                     etreeEl.tag, d[1]))
 
         self.unit = self._unit_by_name.get(etreeEl.tag)
         self.qual = d[2]
@@ -818,16 +819,16 @@ class DocQuantity(object):
                          will be "val +/- error unit".  If False, the error
                          will be excluded, as in "val unit".  
         """
-        out = "%f" % self.val
+        out = "{0}".format(self.val)
         if showerr and self.error:
-            out += " +/- %f" % self.error
+            out += " +/- {0}".format(self.error)
         if self.unit:
-            out += " %s" % self.unit
+            out += " {0}".format(self.unit)
         return out
 
     def __repr__(self):
-        return "quant(%s, %s, %s, %s, %s)" % \
-            (self.val, self.unit, self.error, self.qual, self.ref)
+        return "quant({0}, {1}, {2}, {3}, {4})".format(
+            self.val, self.unit, self.error, self.qual, self.ref)
 
 class ProperMotion(DocQuantity):
     """
@@ -863,10 +864,10 @@ class ProperMotion(DocQuantity):
                 try:
                     item = float(item.text.strip())
                 except:
-                    raise DALFormatError("%s: non-decimal %s: %s" 
-                                         % (etreeEl.tag, tag, item))
+                    raise DALFormatError("{0}: non-decimal {0}: {1}".format(
+                                         etreeEl.tag, tag, item))
             elif tag in ["pm", "pmRA", "pmDE"]:
-                raise DALFormatError("%s: Missing %s" % (etreeEl.tag, tag))
+                raise DALFormatError("{0}: Missing {1}".format(etreeEl.tag, tag))
 
             d.append(item)
 
@@ -878,7 +879,7 @@ class ProperMotion(DocQuantity):
             
             
     def __repr__(self):
-        return "pm(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" % \
-            (self.val, self.unit, self.error, self.qual, self.ref,
+        return "pm({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})".format(
+             self.val, self.unit, self.error, self.qual, self.ref,
              self.pa, self.val_ra, self.val_dec, self.error_ra, self.error_dec)
 

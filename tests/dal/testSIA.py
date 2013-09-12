@@ -306,12 +306,12 @@ class SIAQueryTest(unittest.TestCase):
     def _assertPropSetRaises(self, extype, obj, att, val):
         try:
             setattr(obj, att, val)
-            self.fail("Failed to raise ValueError for %s=%s" % (att,str(val)))
+            self.fail("Failed to raise ValueError for {0}={1}".format(att,str(val)))
         except extype:
             pass
         except Exception, ex:
-            self.fail("Raised wrong exception: %s: %s" % 
-                      (str(type(ex)), str(ex)))
+            self.fail("Raised wrong exception: {0}: {1}".format(str(type(ex)), 
+                                                                str(ex)))
 
     def testBadFormat(self):
         self.testCtor()
@@ -418,7 +418,7 @@ class SIARecordTest(unittest.TestCase):
 class SIAExecuteTest(unittest.TestCase):
 
     def testExecute(self):
-        q = sia.SIAQuery("http://localhost:%d/sia" % testserverport)
+        q = sia.SIAQuery("http://localhost:{0}/sia".format(testserverport))
         q.pos = (0, 0)
         q.size = (1.0, 1.0)
         q.format = "all"
@@ -427,7 +427,7 @@ class SIAExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 2)
 
     def testSearch(self):
-        srv = sia.SIAService("http://localhost:%d/sia" % testserverport)
+        srv = sia.SIAService("http://localhost:{0}/sia".format(testserverport))
         results = srv.search(pos=(0,0), size=(1.0,1.0))
         self.assert_(isinstance(results, sia.SIAResults))
         self.assertEquals(results.nrecs, 2)
@@ -442,13 +442,13 @@ class SIAExecuteTest(unittest.TestCase):
 
 
     def testSia(self):
-        results = sia.search("http://localhost:%d/sia" % testserverport,
+        results = sia.search("http://localhost:{0}/sia".format(testserverport),
                              pos=(0,0), size=(1.0,1.0))
         self.assert_(isinstance(results, sia.SIAResults))
         self.assertEquals(results.nrecs, 2)
 
     def testError(self):
-        srv = sia.SIAService("http://localhost:%d/err" % testserverport)
+        srv = sia.SIAService("http://localhost:{0}/err".format(testserverport))
         self.assertRaises(dalq.DALQueryError, srv.search, (0.0,0.0), 1.0)
         
 

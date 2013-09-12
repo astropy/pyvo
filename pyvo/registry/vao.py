@@ -119,7 +119,7 @@ class RegistryService(dalq.DALService):
         @param ivoid          the IVOA Identifier of the resource
         """
         srch = self.create_query()
-        srch.addpredicate("identifier='%s'" % ivoid)
+        srch.addpredicate("identifier='{0}'".format(ivoid))
         res = srch.execute()
         return res.getrecord(0)
 
@@ -461,22 +461,22 @@ class RegistryQuery(dalq.DALQuery):
         return the GET URL that will submit the query and return the 
         results as a VOTable
         """
-        url = "%s%s?%s" % (self._baseurl, self.SERVICE_NAME, 
-                           self.RESULTSET_TYPE_ARG)
+        url = "{0}{1}?{2}".format(self._baseurl, self.SERVICE_NAME, 
+                                  self.RESULTSET_TYPE_ARG)
 
         # this adds arbitrary parameters
         # if len(self.paramnames()) > 0:
         #    url += "&" + \
-        #     "&".join(map(lambda p: "%s=%s"%(p,self._paramtostr(self._param[p])),
+        #     "&".join(map(lambda p: "{0}={1}".format(p,self._paramtostr(self._param[p])),
         #                  self._param.keys()))
 
         if self._band:
-            url += "&waveband=%s" % self._band
+            url += "&waveband={0}".format(self._band)
         else:
             url += "&waveband="
 
         if self._svctype:
-            url += "&capability=%s" % self._toCapConst(self.servicetype)
+            url += "&capability={0}".format(self._toCapConst(self.servicetype))
         else:
             url += "&capability="
 
@@ -484,8 +484,9 @@ class RegistryQuery(dalq.DALQuery):
         if (self.keywords): 
             preds.append(self.keywords_to_predicate(self.keywords, self._orKw))
         if (preds):
-            url += "&predicate=%s" % \
-                quote_plus(" AND ".join(map(lambda p: "(%s)" % p, preds)))
+            url += "&predicate={0}".format(
+                quote_plus(" AND ".join(map(lambda p: "({0})".format(p), 
+                                            preds))))
         else:
             url += "&predicate="
 
@@ -515,7 +516,7 @@ class RegistryQuery(dalq.DALQuery):
         for kw in keywords:
             keyconst = []
             for col in textcols:
-                keyconst.append("%s LIKE '%%%s%%'" % (col, kw))
+                keyconst.append("{0} LIKE '%{1}%'".format(col, kw))
             const.append(" OR ".join(keyconst))
         return "("+conjunction.join(const)+")"
 
@@ -729,7 +730,7 @@ class SimpleResource(dalq.Record):
         """
         service = _createService(self, False);
         if not service:
-            raise RuntimeError("resource, %s, is not a searchable service" % self.shortname)
+            raise RuntimeError("resource, {0}, is not a searchable service".format(self.shortname))
 
         return service.search(*args, **keys)
 

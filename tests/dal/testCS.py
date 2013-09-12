@@ -228,10 +228,10 @@ class CSRecordTest(unittest.TestCase):
         self.assertEquals(self.rec.id, "34")
 
 class CSExecuteTest(unittest.TestCase):
-    baseurl = "http://localhost:%d/cs?"
+    baseurl = "http://localhost:{0}/cs?"
 
     def testExecute(self):
-        q = cs.SCSQuery(self.baseurl % testserverport)
+        q = cs.SCSQuery(self.baseurl.format(testserverport))
         q.ra = 0.0
         q.dec = 0.0
         q.radius = 0.25
@@ -240,7 +240,7 @@ class CSExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 2)
 
     def testSearch(self):
-        srv = cs.SCSService(self.baseurl % testserverport)
+        srv = cs.SCSService(self.baseurl.format(testserverport))
         results = srv.search(pos=(0.0, 0.0), radius=0.25)
         self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.nrecs, 2)
@@ -255,7 +255,7 @@ class CSExecuteTest(unittest.TestCase):
 
     def testConesearch(self):
         # pdb.set_trace()
-        results = cs.search(self.baseurl % testserverport, 
+        results = cs.search(self.baseurl.format(testserverport), 
                             pos=(0.0, 0.0), radius=0.25)
         self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.nrecs, 2)

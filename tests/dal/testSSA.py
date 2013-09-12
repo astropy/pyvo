@@ -329,7 +329,7 @@ class SSARecordTest(unittest.TestCase):
 class SSAExecuteTest(unittest.TestCase):
 
     def testExecute(self):
-        q = ssa.SSAQuery("http://localhost:%d/ssa" % testserverport)
+        q = ssa.SSAQuery("http://localhost:{0}/ssa".format(testserverport))
         q.pos = (0, 0)
         q.size = 1.0
         q.format = "all"
@@ -338,7 +338,7 @@ class SSAExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 35)
 
     def testSearch(self):
-        srv = ssa.SSAService("http://localhost:%d/ssa" % testserverport)
+        srv = ssa.SSAService("http://localhost:{0}/ssa".format(testserverport))
         results = srv.search(pos=(0,0), size=1.0)
         self.assert_(isinstance(results, ssa.SSAResults))
         self.assertEquals(results.nrecs, 35)
@@ -352,13 +352,13 @@ class SSAExecuteTest(unittest.TestCase):
 
 
     def testSsa(self):
-        results = ssa.search("http://localhost:%d/ssa" % testserverport,
+        results = ssa.search("http://localhost:{0}/ssa".format(testserverport),
                              pos=(0,0), size=1.0)
         self.assert_(isinstance(results, ssa.SSAResults))
         self.assertEquals(results.nrecs, 35)
 
     def testError(self):
-        srv = ssa.SSAService("http://localhost:%d/err" % testserverport)
+        srv = ssa.SSAService("http://localhost:{0}/err".format(testserverport))
         self.assertRaises(dalq.DALQueryError, srv.search, (0.0,0.0), 1.0)
         
 

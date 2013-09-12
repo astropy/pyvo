@@ -22,7 +22,7 @@ for t in [
         mod.testdir = testdir
         tests += mod.suite()
     except ImportError, e:
-        sys.stderr.write("Unable to load %s: %s\n" % (t, str(e)))
+        sys.stderr.write("Unable to load {0}: {1}\n".format(t, str(e)))
 
 testsuite = unittest.TestSuite(tests)
 

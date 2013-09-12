@@ -188,8 +188,8 @@ class DALResultsTest(unittest.TestCase):
         for i in xrange(len(names)):
             self.assert_(isinstance(names[i], str) or 
                          isinstance(names[i], unicode),
-                         "field name #%d not a string: %s" % (i,type(names[i]))) 
-            self.assert_(len(names[i]) > 0, "field name #%s is empty" % i)
+                 "field name #{0} not a string: {1}".format(i,type(names[i]))) 
+            self.assert_(len(names[i]) > 0, "field name #{0} is empty".format(i))
 
         fd = self.result.fielddesc()
         self.assert_(isinstance(fd, list))
@@ -486,7 +486,7 @@ class QueryExecuteTest(unittest.TestCase):
         #    print("prob")
 
     def testExecute(self):
-        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         results = q.execute()
@@ -494,7 +494,7 @@ class QueryExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 2)
 
     def testExecuteStream(self):
-        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         strm = q.execute_stream()
@@ -505,7 +505,7 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_(results.startswith("<?xml version="))
 
     def testExecuteRaw(self):
-        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         data = q.execute_raw()
@@ -514,26 +514,26 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_(data.startswith("<?xml version="))
 
     def testExecuteVotable(self):
-        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         results = q.execute_votable()
         self.assert_(isinstance(results, VOTableFile))
 
     def testExecuteServiceErr(self):
-        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute)
 
     def testExecuteRawServiceErr(self):
-        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute_raw)
 
     def testExecuteStreamServiceErr(self):
-        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
@@ -548,13 +548,13 @@ class QueryExecuteTest(unittest.TestCase):
 
 
     def testExecuteVotableServiceErr(self):
-        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute_votable)
 
     def testExecuteRawQueryErr(self):
-        q = dalq.DALQuery("http://localhost:%d/err" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/err".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         data = q.execute_raw()
@@ -564,7 +564,7 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_('<INFO name="QUERY_STATUS" value="ERR' in data)
 
     def testExecuteQueryErr(self):
-        q = dalq.DALQuery("http://localhost:%d/err" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/err".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
