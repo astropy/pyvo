@@ -2,6 +2,8 @@
 """
 Tests for pyvo.nameresolver.sesame
 """
+from __future__ import print_function, division
+
 import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError

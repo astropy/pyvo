@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """
-Tests for pyvo.dal.conesearch
+Tests for pyvo.dal.scs
 """
+from __future__ import print_function, division
+
 import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
@@ -26,7 +28,7 @@ try:
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
 except ImportError, e:
-    print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+    sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
 
 class SCSServiceTest(unittest.TestCase):
 
@@ -244,7 +246,7 @@ class CSExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 2)
 
         qurl = results.queryurl
-        # print qurl
+        # print(qurl)
         self.assert_("RA=0.0" in qurl)
         self.assert_("DEC=0.0" in qurl)
         self.assert_("SR=0.25" in qurl)

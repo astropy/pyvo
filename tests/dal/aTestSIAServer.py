@@ -2,6 +2,8 @@
 """
 a test DAL server for testing dal.query
 """
+from __future__ import print_function, division
+
 import os
 import sys
 import shutil

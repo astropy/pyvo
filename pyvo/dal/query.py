@@ -20,6 +20,8 @@ other externally defined table.  In this case there is no VO defined
 standard data model.  Usually the field names are used to uniquely
 identify table columns.
 """
+from __future__ import print_function, division
+
 __all__ = [ "ensure_baseurl", "DALAccessError", "DALProtocolError",
             "DALFormatError", "DALServiceError", "DALQueryError",
             "DALService", "DALQuery", "DALResults", "Record"]

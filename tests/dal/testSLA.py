@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """
-Tests for pyvo.dal.query
+Tests for pyvo.dal.sla
 """
+from __future__ import print_function, division
+
 import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
@@ -25,7 +27,7 @@ try:
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
 except ImportError, e:
-    print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+    sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
 
 class SLAServiceTest(unittest.TestCase):
 

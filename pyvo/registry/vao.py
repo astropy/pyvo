@@ -19,6 +19,7 @@ and resource aliases), can be a more convenient interface.  The more
 basic interface provided here allows developers to code their own 
 interaction models.  
 """
+from __future__ import print_function, division
 
 from ..dal import query as dalq
 from ..dal import sia, ssa, sla, scs
@@ -107,7 +108,7 @@ class RegistryService(dalq.DALService):
         The result will be a RegistryResults instance.  
         """
         srch = self.create_query(keywords, servicetype, waveband, sqlpred)
-        # print srch.getqueryurl()
+        # print(srch.getqueryurl())
         return srch.execute()
         
     

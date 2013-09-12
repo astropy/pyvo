@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """
-Tests for pyvo.dal.query
+Tests for pyvo.dal.sia
 """
+from __future__ import print_function, division
+
 import os, sys, shutil, re, imp, glob
 import unittest, pdb
 from urllib2 import URLError, HTTPError
@@ -25,7 +27,7 @@ try:
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
 except ImportError, e:
-    print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+    sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
 
 class SIAServiceTest(unittest.TestCase):
 
@@ -431,7 +433,7 @@ class SIAExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 2)
 
         qurl = results.queryurl
-        # print qurl
+        # print(qurl)
         self.assert_("POS=0,0" in qurl)
         self.assert_("SIZE=1.0,1.0" in qurl)
         self.assert_("FORMAT=ALL" in qurl)

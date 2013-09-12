@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """
-Tests for pyvo.dal.query
+Tests for pyvo.dal.sia
 """
+from __future__ import print_function, division
+
 import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
@@ -63,7 +65,7 @@ class NeatSIAExecuteTest(unittest.TestCase):
         qurl = rec.getdataurl()
         self.assert_(qurl is not None and len(qurl) > 0)
         self.assert_(not os.path.exists(self.imfile))
-        # print qurl
+        # print(qurl)
         rec.cachedataset(self.imfile)
         self.assert_(os.path.exists(self.imfile))
 

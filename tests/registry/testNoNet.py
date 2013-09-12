@@ -2,6 +2,8 @@
 """
 Test all available tests that do not require access to the network.
 """
+from __future__ import print_function, division
+
 import sys, os, unittest, imp
 
 if len(sys.argv) > 1:
@@ -20,7 +22,7 @@ for t in [
         mod.testdir = testdir
         tests += mod.suite()
     except ImportError, e:
-        print >> sys.stderr, "Unable to load %s: %s" % (t, str(e))
+        sys.stderr.write("Unable to load {0}: {1}".format(t, str(e)))
 
 testsuite = unittest.TestSuite(tests)
 

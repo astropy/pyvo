@@ -3,6 +3,8 @@
 An implementation of the Database API v2.0 interface to DAL VOTable responses.
 This only supports read-only access.  
 """
+from __future__ import print_function, division
+
 from .query import Iter
 
 apilevel = "2.0"

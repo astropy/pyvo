@@ -30,6 +30,7 @@ For more complex queries, the SSAQuery class can be helpful which
 allows one to build up, tweak, and reuse a query.  The SSAService
 class can represent a specific service available at a URL endpoint.
 """
+from __future__ import print_function, division
 
 import numbers
 import re

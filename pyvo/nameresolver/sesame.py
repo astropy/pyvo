@@ -19,6 +19,8 @@ that will be used is given  by the symbol ``default_endpoint``.  The
 function ``set_default_endpoint()`` will set the default endpoint given
 its name.  
 """
+from __future__ import print_function, division
+
 __all__ = [ "resolve", "object2pos", "object2sexapos", "set_default_endpoint",
             "SesameQuery", "ObjectData" ]
 

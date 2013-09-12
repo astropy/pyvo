@@ -2,6 +2,8 @@
 """
 Tests for pyvo.registry.vao module
 """
+from __future__ import print_function, division
+
 import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
@@ -32,7 +34,7 @@ class RegExecuteTest(unittest.TestCase):
         self.assert_(r.size > 0)
 
         q.servicetype = "conesearch"
-        # print q.getqueryurl()
+        # print(q.getqueryurl())
         r = q.execute()
         self.assert_(r.size > 0)
 

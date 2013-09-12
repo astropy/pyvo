@@ -29,6 +29,7 @@ For more complex queries, the SIAQuery class can be helpful which
 allows one to build up, tweak, and reuse a query.  The SIAService
 class can represent a specific service available at a URL endpoint.
 """
+from __future__ import print_function, division
 
 import numbers, re
 from . import query
