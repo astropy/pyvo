@@ -64,7 +64,7 @@ class SCSService(query.DALService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DALService.__init__(self, baseurl, "scs", version, resmeta)
+        super(SCSService, self).__init__(baseurl, "scs", version, resmeta)
 
     def search(self, pos, radius=1.0, verbosity=2):
         """
@@ -125,7 +125,7 @@ class SCSQuery(query.DALQuery):
         """
         initialize the query object with a baseurl
         """
-        query.DALQuery.__init__(self, baseurl, "scs", version)
+        super(SCSQuery, self).__init__(baseurl, "scs", version)
         
 
     @property
@@ -302,7 +302,7 @@ class SCSResults(query.DALResults):
         by directly applications; rather an instance is obtained from calling 
         a SCSQuery's execute().
         """
-        query.DALResults.__init__(self, votable, url, "scs", version)
+        super(SCSResults, self).__init__(votable, url, "scs", version)
         self._scscols = {
             "ID_MAIN":         self.fieldname_with_ucd("ID_MAIN"),
             "POS_EQ_RA_MAIN":  self.fieldname_with_ucd("POS_EQ_RA_MAIN"),
@@ -373,7 +373,7 @@ class SCSRecord(query.Record):
     """
 
     def __init__(self, results, index):
-        query.Record.__init__(self, results, index)
+        super(SCSRecord, self).__init__(results, index)
         self._ucdcols = results._scscols
         self._names = results._recnames
 

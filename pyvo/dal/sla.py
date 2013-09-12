@@ -70,7 +70,7 @@ class SLAService(query.DALService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DALService.__init__(self, baseurl, "sla", version, resmeta)
+        super(SLAService, self).__init__(baseurl, "sla", version, resmeta)
 
     def search(self, wavelength, format=None, **keywords):
         """
@@ -129,7 +129,7 @@ class SLAQuery(query.DALQuery):
         """
         initialize the query object with a baseurl and request type
         """
-        query.DALQuery.__init__(self, baseurl, "sla", version)
+        super(SLAQuery, self).__init__(baseurl, "sla", version)
         self.setparam("REQUEST", request)
         
     @property
@@ -205,7 +205,7 @@ class SLAResults(query.DALResults):
         by directly applications; rather an instance is obtained from calling 
         a SLAQuery's execute().
         """
-        query.DALResults.__init__(self, votable, url, "sla", "1.0")
+        super(SLAResults, self).__init__(votable, url, "sla", "1.0")
         self._slacols = {
 
 
@@ -259,7 +259,7 @@ class SLARecord(query.Record):
     """
 
     def __init__(self, results, index):
-        query.Record.__init__(self, results, index)
+        super(SLARecord, self).__init__(results, index)
         self._utypecols = results._slacols
         self._names = results._recnames
 

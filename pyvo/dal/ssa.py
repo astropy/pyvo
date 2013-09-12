@@ -83,7 +83,7 @@ class SSAService(query.DALService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DALService.__init__(self, baseurl, "ssa", version, resmeta)
+        super(SSAService, self).__init__(baseurl, "ssa", version, resmeta)
 
     def search(self, pos, size, format='all', **keywords):
         """
@@ -179,7 +179,7 @@ class SSAQuery(query.DALQuery):
         """
         initialize the query object with a baseurl and request type
         """
-        query.DALQuery.__init__(self, baseurl, "ssa", version)
+        super(SSAQuery, self).__init__(baseurl, "ssa", version)
         self.setparam("REQUEST", request)
         
     @property
@@ -366,7 +366,7 @@ class SSAResults(query.DALResults):
         by directly applications; rather an instance is obtained from calling 
         a SSAQuery's execute().
         """
-        query.DALResults.__init__(self, votable, url, "ssa", "1.0")
+        super(SSAResults, self).__init__(votable, url, "ssa", "1.0")
         self._ssacols = {
 
             "ssa:Query.Score": self.fieldname_with_utype("ssa:Query.Score"),
@@ -553,7 +553,7 @@ class SSARecord(query.Record):
     """
 
     def __init__(self, results, index):
-        query.Record.__init__(self, results, index)
+        super(SSARecord, self).__init__(results, index)
         self._utypecols = results._ssacols
         self._names = results._recnames
 

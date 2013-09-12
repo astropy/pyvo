@@ -107,7 +107,7 @@ class Cursor(Iter):
         by directly applications; rather an instance is obtained from calling a 
         DalQuery's execute().
 	"""
-        Iter.__init__(self, results)
+        super(Cursor, self).__init__(results)
 	self._description = self._mkdesc()
 	self._rowcount = self.resultset.nrecs
 	self._arraysize = 1

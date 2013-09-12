@@ -854,7 +854,7 @@ class ProperMotion(DocQuantity):
     """
 
     def __init__(self, etreeEl):
-        DocQuantity.__init__(self, etreeEl)
+        super(ProperMotion, self).__init__(etreeEl)
 
         d = []
         item = None

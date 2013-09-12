@@ -902,7 +902,7 @@ class DALAccessError(Exception):
                           the error
         """
         if not reason: reason = self._defreason
-        Exception.__init__(self, reason)
+        super(DALAccessError, self).__init__(reason)
         self._reason = reason
         self._url = url
         self._protocol = protocol
@@ -996,7 +996,7 @@ class DALProtocolError(DALAccessError):
            *version*:   version of the protocol of the service that produced 
                           the error
         """
-        DALAccessError.__init__(self, reason, url, protocol, version)
+        super(DALProtocolError, self).__init__(reason, url, protocol, version)
         self._cause = cause
 
     @property
@@ -1038,7 +1038,8 @@ class DALFormatError(DALProtocolError):
         if cause and not reason:  
             reason = "{0}: {0}".format(DALAccessError._typeName(cause), 
                                        str(cause))
-        DALProtocolError.__init__(self, reason, cause, url, protocol, version)
+        super(DALFormatError, self).__init__(reason, cause, url, 
+                                             protocol, version)
 
 
 class DALServiceError(DALProtocolError):
@@ -1065,7 +1066,8 @@ class DALServiceError(DALProtocolError):
            *version*:   version of the protocol of the service that produced 
                           the error
         """
-        DALProtocolError.__init__(self, reason, cause, url, protocol, version)
+        super(DALServiceError, self).__init__(reason, cause, url, 
+                                              protocol, version)
         self._code = code
 
     @property
@@ -1146,7 +1148,7 @@ class DALQueryError(DALAccessError):
            *version*:   version of the protocol of the service that produced 
                           the error
         """
-        DALAccessError.__init__(self, reason, url, protocol, version)
+        super(DALQueryError, self).__init__(reason, url, protocol, version)
         self._label = label
                           
     @property

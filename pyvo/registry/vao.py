@@ -78,7 +78,8 @@ class RegistryService(dalq.DALService):
         if not baseurl:  baseurl = self.STSCI_REGISTRY_BASEURL
         if not baseurl.endswith("/"): baseurl += "/"
 
-        dalq.DALService.__init__(self, baseurl, "vaoreg", version, resmeta)
+        super(RegistryService, self).__init__(baseurl, "vaoreg", 
+                                              version, resmeta)
 
 
     def search(self, keywords=None, servicetype=None, 
@@ -213,7 +214,7 @@ class RegistryQuery(dalq.DALQuery):
            
         """
         if not baseurl:  baseurl = RegistryService.STSCI_REGISTRY_BASEURL
-        dalq.DALQuery.__init__(self, baseurl, "vaoreg", version)
+        super(RegistryQuery, self).__init__(baseurl, "vaoreg", version)
         self._kw = []          # list of individual keyword phrases
         self._preds = []       # list of SQL predicates
         self._svctype = None
@@ -534,7 +535,7 @@ class RegistryResults(dalq.DALResults):
         by directly applications; rather an instance is obtained from calling 
         a SIAQuery's execute().
         """
-        dalq.DALResults.__init__(self, votable, url, "vaoreg", version)
+        super(RegistryResults, self).__init__(votable, url, "vaoreg", version)
 
     def getrecord(self, index):
         """
@@ -560,7 +561,7 @@ class RegistryResults(dalq.DALResults):
                          number of rows in the result table.
            KeyError    if name is not a recognized column name
         """
-        out = dalq.DALResults.getvalue(self, name, index)
+        out = super(RegistryResults, self).getvalue(name, index)
         if name in self._strarraycols:
             out = split_str_array_cell(out)
         return out
@@ -593,14 +594,14 @@ class SimpleResource(dalq.Record):
     """
 
     def __init__(self, results, index):
-        dalq.Record.__init__(self, results, index)
+        super(SimpleResource, self).__init__(results, index)
 
     def __getitem__(self, key):
         """
         return a resource metadatum value with a name given by key.  This
         version will split encoded string array values into tuples.
         """
-        out = dalq.Record.__getitem__(self, key)
+        out = super(SimpleResource, self).__getitem__(key)
         if key in RegistryResults._strarraycols:
             out = split_str_array_cell(out)
         return out

@@ -112,7 +112,7 @@ class SIAService(query.DALService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DALService.__init__(self, baseurl, "sia", version, resmeta)
+        super(SIAService, self).__init__(baseurl, "sia", version, resmeta)
 
     def search(self, pos, size, format='all', intersect="overlaps", verbosity=2,
                **keywords):
@@ -230,7 +230,7 @@ class SIAQuery(query.DALQuery):
         """
         initialize the query object with a baseurl
         """
-        query.DALQuery.__init__(self, baseurl, "sia", version)
+        super(SIAQuery, self).__init__(baseurl, "sia", version)
         
 
     @property
@@ -461,7 +461,7 @@ class SIAResults(query.DALResults):
         by directly applications; rather an instance is obtained from calling 
         a SIAQuery's execute().
         """
-        query.DALResults.__init__(self, votable, url, "sia", "1.0")
+        super(SIAResults, self).__init__(votable, url, "sia", "1.0")
         self._siacols = { 
             "VOX:Image_Title": self.fieldname_with_ucd("VOX:Image_Title"),
             "INST_ID": self.fieldname_with_ucd("INST_ID"),
@@ -517,7 +517,7 @@ class SIARecord(query.Record):
     """
 
     def __init__(self, results, index):
-        query.Record.__init__(self, results, index)
+        super(SIARecord, self).__init__(results, index)
         self._ucdcols = results._siacols
         self._names = results._recnames
 
