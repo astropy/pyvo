@@ -263,7 +263,7 @@ class DALQuery(object):
         try:
             url = self.getqueryurl()
             return urlopen(url)
-        except IOError, ex:
+        except IOError as ex:
             raise DALServiceError.from_except(ex, url, self.protocol, 
                                               self.version)
 
@@ -281,7 +281,7 @@ class DALQuery(object):
             return _votableparse(self.execute_stream().read)
         except DALAccessError:
             raise
-        except Exception, e:
+        except Exception as e:
             raise DALFormatError(e, self.getqueryurl(True), 
                                  protocol=self.protocol, version=self.version)
 

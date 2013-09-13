@@ -26,7 +26,7 @@ try:
     mod = imp.find_module(t, [testdir])
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
-except ImportError, e:
+except ImportError as e:
     sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
 
 class SIAServiceTest(unittest.TestCase):
@@ -180,7 +180,7 @@ class SIAQueryTest(unittest.TestCase):
         except ValueError:  pass
         try:
             self.q.dec = 100; self.fail("dec took out-of-range value")
-        except ValueError, e:  pass
+        except ValueError as e:  pass
             
             
     def testSize(self):
@@ -309,7 +309,7 @@ class SIAQueryTest(unittest.TestCase):
             self.fail("Failed to raise ValueError for {0}={1}".format(att,str(val)))
         except extype:
             pass
-        except Exception, ex:
+        except Exception as ex:
             self.fail("Raised wrong exception: {0}: {1}".format(str(type(ex)), 
                                                                 str(ex)))
 
@@ -382,7 +382,7 @@ class SIAResultsErrorTest(unittest.TestCase):
         try:
             res = sia.SIAResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "ERROR")
             self.assertEquals(ex.reason, "Forced Fail")
 

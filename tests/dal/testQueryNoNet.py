@@ -25,7 +25,7 @@ try:
     mod = imp.find_module(t, [testdir])
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
-except ImportError, e:
+except ImportError as e:
     sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
 
 class DALAccessErrorTest(unittest.TestCase):
@@ -539,11 +539,11 @@ class QueryExecuteTest(unittest.TestCase):
         try:
             q.execute_raw()
             self.fail("failed to raise exception on bad url")
-        except dalq.DALServiceError, e:
+        except dalq.DALServiceError as e:
             self.assertEquals(e.code, 404)
             self.assertEquals(e.reason, "Not Found")
             self.assert_(isinstance(e.cause, HTTPError))
-        except Exception, e:
+        except Exception as e:
             self.fail("wrong exception raised: " + str(type(e)))
 
 
@@ -570,12 +570,12 @@ class QueryExecuteTest(unittest.TestCase):
         try:
             q.execute()
             self.fail("failed to raise exception for syntax error")
-        except dalq.DALQueryError, e:
+        except dalq.DALQueryError as e:
             self.assertEquals(e.label, "ERROR")
             self.assertEquals(str(e), "Forced Fail")
-        except dalq.DALServiceError, e:
+        except dalq.DALServiceError as e:
             self.fail("wrong exception raised: DALServiceError: " + str(e))
-        except Exception, e:
+        except Exception as e:
             self.fail("wrong exception raised: " + str(type(e)))
 
 

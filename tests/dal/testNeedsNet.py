@@ -21,7 +21,7 @@ for t in [
         mod = imp.load_module(t, mod[0], mod[1], mod[2])
         mod.testdir = testdir
         tests += mod.suite()
-    except ImportError, e:
+    except ImportError as e:
         sys.stderr.write("Unable to load {0}: {1]".format(t, str(e)))
 
 testsuite = unittest.TestSuite(tests)

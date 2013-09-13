@@ -26,7 +26,7 @@ try:
     mod = imp.find_module(t, [testdir])
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
-except ImportError, e:
+except ImportError as e:
     sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
 
 class SLAServiceTest(unittest.TestCase):
@@ -157,7 +157,7 @@ class SLAResultsErrorTest(unittest.TestCase):
         try:
             res = sla.SLAResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "ERROR")
             self.assertEquals(ex.reason, "Forced Fail")
 

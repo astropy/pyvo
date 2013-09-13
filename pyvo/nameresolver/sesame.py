@@ -459,7 +459,7 @@ class SesameQuery(object):
         try:
             url = self.getqueryurl(lax, format, astext)
             return urlopen(url)
-        except IOError, ex:
+        except IOError as ex:
             raise DALServiceError.from_except(ex, url)
 
     def execute(self):
@@ -481,7 +481,7 @@ class SesameQuery(object):
                 raise DALServiceError("Unexpected output: " + ET.dump(root))
             for tel in root.findall('Target'):
                 out.append(Target(tel))
-        except ExpatError, e:
+        except ExpatError as e:
             raise DALFormatError(e)
 
         if len(out) == 0:

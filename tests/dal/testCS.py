@@ -27,7 +27,7 @@ try:
     mod = imp.find_module(t, [testdir])
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
-except ImportError, e:
+except ImportError as e:
     sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
 
 class SCSServiceTest(unittest.TestCase):
@@ -122,7 +122,7 @@ class SCSQueryTest(unittest.TestCase):
         try:  self.q.radius = "a b";  self.fail("dec took string values")
         except ValueError:  pass
         try:  self.q.dec = 100; self.fail("dec took out-of-range value")
-        except ValueError, e:  pass
+        except ValueError as e:  pass
             
     def testCreateURL(self):
         self.testCtor()
@@ -178,7 +178,7 @@ class CSResultsErrorTest(unittest.TestCase):
         try:
             res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "Error")
             self.assertEquals(ex.reason, "Forced Fail")
 
@@ -188,7 +188,7 @@ class CSResultsErrorTest(unittest.TestCase):
         try:
             res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "Error")
             self.assertEquals(ex.reason, "Forced Fail")
 
@@ -198,7 +198,7 @@ class CSResultsErrorTest(unittest.TestCase):
         try:
             res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "Error")
             self.assertEquals(ex.reason, "DEC parameter out-of-range")
 

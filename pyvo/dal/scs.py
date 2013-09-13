@@ -262,10 +262,10 @@ class SCSQuery(query.DALQuery):
             return query._votableparse(self.execute_stream().read)
         except query.DALAccessError:
             raise
-        except W22, e:
+        except W22 as e:
             raise query.DALFormatError("Unextractable Error encoded in " +
                                        "deprecated DEFINITIONS element")
-        except Exception, e:
+        except Exception as e:
             raise query.DALFormatError(e, self.getqueryurl())
 
     def getqueryurl(self, lax=False):
