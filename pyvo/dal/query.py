@@ -676,7 +676,7 @@ class Record(object):
         return None
 
     def getdataset(self, timeout=None):
-	"""
+        """
         Get the dataset described by this record from the server.
 
         :Args:
@@ -684,8 +684,8 @@ class Record(object):
                             connection with server before failing with an 
                             IOError (specifically, socket.timeout) exception
 
-	:Returns:
-	    A file-like object which may be read to retrieve the referenced 
+        :Returns:
+            A file-like object which may be read to retrieve the referenced 
             dataset.
 
         :Raises:
@@ -698,8 +698,8 @@ class Record(object):
                              is established.  (note: subclass of IOError)
             *IOError*:    if some other error occurs while establishing the 
                              data stream.
-	"""
-	url = self.getdataurl()
+        """
+        url = self.getdataurl()
         if not url:
             raise KeyError("no dataset access URL recognized in record")
         if timeout:

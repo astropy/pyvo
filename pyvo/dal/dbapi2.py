@@ -103,14 +103,14 @@ class Cursor(Iter):
     """
 
     def __init__(self, results):
-	"""Create a cursor instance.  The constructor is not typically called 
+        """Create a cursor instance.  The constructor is not typically called 
         by directly applications; rather an instance is obtained from calling a 
         DalQuery's execute().
-	"""
+        """
         super(Cursor, self).__init__(results)
-	self._description = self._mkdesc()
-	self._rowcount = self.resultset.nrecs
-	self._arraysize = 1
+        self._description = self._mkdesc()
+        self._rowcount = self.resultset.nrecs
+        self._arraysize = 1
 
     def _mkdesc(self):
         flds = self.resultset.fieldnames()
@@ -156,21 +156,21 @@ class Cursor(Iter):
         self._arraysize = value
 
     def infos(self):
-	"""Return any INFO elements in the VOTable as a dictionary.
+        """Return any INFO elements in the VOTable as a dictionary.
 
-	:Returns:
-	    A dictionary with each element corresponding to a single INFO,
-	    representing the INFO as a name:value pair.
-	"""
+        :Returns:
+            A dictionary with each element corresponding to a single INFO,
+            representing the INFO as a name:value pair.
+        """
         return self.resultset._infos
 
     def fetchone(self):
-	"""Return the next row of the query response table.
+        """Return the next row of the query response table.
 
-	:Returns:
-	    The response is a tuple wherein each element is the value of the
-	    corresponding table field.  
-	"""
+        :Returns:
+            The response is a tuple wherein each element is the value of the
+            corresponding table field.  
+        """
         try:
             rec = self.next()
             out = []
@@ -179,32 +179,32 @@ class Cursor(Iter):
             return out
         except StopIteration:
             return None
-	
+        
     def fetchmany(self, size=None):
-	"""Fetch the next block of rows from the query result.
+        """Fetch the next block of rows from the query result.
 
-	:Args:
-	    *size*: The number of rows to return (default: cursor.arraysize).
+        :Args:
+            *size*: The number of rows to return (default: cursor.arraysize).
 
-	:Returns:
-	    A list of tuples, one per row.  An empty sequence is returned when
-	    no more rows are available.  If a DictCursor is used then the output
-	    consists of a list of dictionaries, one per row.
-	"""
-	if not size: size = self.arraysize
+        :Returns:
+            A list of tuples, one per row.  An empty sequence is returned when
+            no more rows are available.  If a DictCursor is used then the output
+            consists of a list of dictionaries, one per row.
+        """
+        if not size: size = self.arraysize
         out = []
         for _ in xrange(size):
             out.append(self.fetchone())
         return out
 
     def fetchall(self):
-	"""Fetch all remaining rows from the result set.
+        """Fetch all remaining rows from the result set.
 
-	:Returns:
-	    A list of tuples, one per row.  An empty sequence is returned when
-	    no more rows are available.  If a DictCursor is used then the output
-	    consists of a list of dictionaries, one per row.
-	"""
+        :Returns:
+            A list of tuples, one per row.  An empty sequence is returned when
+            no more rows are available.  If a DictCursor is used then the output
+            consists of a list of dictionaries, one per row.
+        """
         out = []
         for _ in xrange(self._rowcount - self.pos):
             out.append(self.fetchone())
@@ -218,14 +218,14 @@ class Cursor(Iter):
         return Iter.next(self)
 
     def scroll(self, value, mode="relative"):
-	"""Move the row cursor.
+        """Move the row cursor.
 
-	:Args:
-	    *value*: The number of rows to skip or the row number to position to.
+        :Args:
+            *value*: The number of rows to skip or the row number to position to.
 
-	    *mode*: Either "relative" for a relative skip (default), or "absolute" to position to a row by its absolute index within the result set (zero indexed).
-	"""
-	if mode == "absolute":
+            *mode*: Either "relative" for a relative skip (default), or "absolute" to position to a row by its absolute index within the result set (zero indexed).
+        """
+        if mode == "absolute":
             if value > 0:
                 self.pos = value
             else:
@@ -234,10 +234,10 @@ class Cursor(Iter):
             self.pos += value
 
     def close(self):
-	"""Close the cursor object and free all resources.  This implementation
+        """Close the cursor object and free all resources.  This implementation
         does nothing.  It is provided for compliance with the Python Database 
         API.  
-	"""
+        """
         # this can remain implemented as "pass" 
         pass
 
