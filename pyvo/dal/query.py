@@ -632,10 +632,10 @@ class Record(object):
             return default
 
     def __contains__(self, key):
-        return self.has_key(key)
+        return key in self.rec.dtype.names
 
     def has_key(self, key):
-        return self.rec.dtype.names
+        return self.__contains__(key)
 
     def keys(self):
         return tuple(self.iterkeys())

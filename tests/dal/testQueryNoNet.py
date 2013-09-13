@@ -292,6 +292,14 @@ class RecordTest(unittest.TestCase):
         self.assertEquals(self.rec.suggest_extension("goob"), "goob")
         self.assert_(self.rec.suggest_extension() is None)
 
+    def testHasKey(self):
+        self.assertEquals(self.rec["Format"], "image/fits")
+        self.assertTrue(self.rec.has_key('Format'))
+        self.assertTrue('Format' in self.rec)
+        self.assertFalse(self.rec.has_key('Goober'))
+        self.assertFalse('Goober' in self.rec)
+
+
 class EnsureBaseURLTest(unittest.TestCase):
 
     def testFix(self):
