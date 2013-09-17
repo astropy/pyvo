@@ -303,7 +303,7 @@ class SSAResultsErrorTest(unittest.TestCase):
 
 class SSARecordTest(unittest.TestCase):
 
-    acref = "http://vaosa-vm1.aoc.nrao.edu/ivoa-dal/JhuSsapServlet?REQUEST=getData&FORMAT=votable&PubDID=ivo%3A%2F%2Fjhu%2Fsdss%2Fdr6%2Fspec%2F2.5%2380442261170552832"
+    acref = b"http://vaosa-vm1.aoc.nrao.edu/ivoa-dal/JhuSsapServlet?REQUEST=getData&FORMAT=votable&PubDID=ivo%3A%2F%2Fjhu%2Fsdss%2Fdr6%2Fspec%2F2.5%2380442261170552832"
 
     def setUp(self):
         resultfile = os.path.join(testdir, ssaresultfile)
@@ -320,9 +320,9 @@ class SSARecordTest(unittest.TestCase):
     def testAttr(self):
         self.assertEquals(self.rec.ra, 179.84916)
         self.assertEquals(self.rec.dec, 0.984768)
-        self.assertEquals(self.rec.title, "SDSS J115923.80+005905.16 GALAXY")
-        self.assertEquals(self.rec.dateobs, "2000-04-29 03:22:00Z")
-        self.assertEquals(self.rec.instr, "SDSS 2.5-M SPEC2 v4_5")
+        self.assertEquals(self.rec.title, b"SDSS J115923.80+005905.16 GALAXY")
+        self.assertEquals(self.rec.dateobs, b"2000-04-29 03:22:00Z")
+        self.assertEquals(self.rec.instr, b"SDSS 2.5-M SPEC2 v4_5")
         self.assertEquals(self.rec.acref, self.acref)
         self.assertEquals(self.rec.getdataurl(), self.acref)
 
