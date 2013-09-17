@@ -388,7 +388,7 @@ class SIAResultsErrorTest(unittest.TestCase):
 
 class SIARecordTest(unittest.TestCase):
 
-    acref = "http://skyview.gsfc.nasa.gov/cgi-bin/images?position=0.0%2C0.0&survey=neat&pixels=300%2C300&sampler=Clip&size=1.0%2C1.0&projection=Tan&coordinates=J2000.0&return=FITS"
+    acref = b"http://skyview.gsfc.nasa.gov/cgi-bin/images?position=0.0%2C0.0&survey=neat&pixels=300%2C300&sampler=Clip&size=1.0%2C1.0&projection=Tan&coordinates=J2000.0&return=FITS"
 
     def setUp(self):
         resultfile = os.path.join(testdir, siaresultfile)
@@ -407,7 +407,7 @@ class SIARecordTest(unittest.TestCase):
     def testAttr(self):
         self.assertEquals(self.rec.ra, 0.0)
         self.assertEquals(self.rec.dec, 0.0)
-        self.assertEquals(self.rec.title, "neat")
+        self.assertEquals(self.rec.title, b"neat")
         self.assert_(self.rec.dateobs is None)
         self.assertEquals(self.rec.naxes, 2)
         self.assertEquals(self.rec.naxis, (300, 300))
@@ -473,7 +473,10 @@ class DatasetNameTest(unittest.TestCase):
             os.remove(f)
 
     def testSuggest(self):
-        self.assertEquals(self.rec.title, self.rec.suggest_dataset_basename())
+        title = self.rec.title
+        if sys.version_info[0] >= 3:
+            title = title.decode('utf-8')
+        self.assertEquals(title, self.rec.suggest_dataset_basename())
         self.assertEquals("fits", self.rec.suggest_extension("DAT"))
 
     def testMakeDatasetName(self):

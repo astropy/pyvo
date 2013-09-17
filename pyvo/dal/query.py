@@ -26,15 +26,22 @@ __all__ = [ "ensure_baseurl", "DALAccessError", "DALProtocolError",
             "DALFormatError", "DALServiceError", "DALQueryError",
             "DALService", "DALQuery", "DALResults", "Record"]
 
+import sys
 import os
 import re
 import warnings
 from urllib2 import urlopen, URLError, HTTPError
 from urllib import quote_plus
 
-_mimetype_re = re.compile(r'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
+if sys.version_info[0] >= 3:
+    _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
+else:
+    _mimetype_re = re.compile(r'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
 
 def is_mime_type(val):
+    if sys.version_info[0] >= 3 and isinstance(val, str):
+        val = val.encode('utf-8')
+
     return bool(_mimetype_re.match(val))
  
 def ensure_baseurl(url):
@@ -598,6 +605,10 @@ class Iter(object):
         except IndexError:
             raise StopIteration()
 
+# Note: this is for Iter subclassess (i.e. .dbapi2.Cursor) and python3
+if sys.version_info[0] >= 3 and not hasattr(Iter, "next"):
+    setattr(Iter, "next", lambda self: self.__next__())
+
 class Record(object):
     """
     one record from a DAL query result.  The column values are accessible 
@@ -636,23 +647,6 @@ class Record(object):
 
     def has_key(self, key):
         return self.__contains__(key)
-
-    def keys(self):
-        return tuple(self.iterkeys())
-    def items(self):
-        return tuple(self.iteritems())
-    def values(self):
-        return tuple(self.itervalues())
-
-    def iteritems(self):
-        for key in self.rec.dtype.names:
-            yield (key, self.__getitem__(key))
-    def iterkeys(self):
-        for key in self.rec.dtype.names:
-            yield key
-    def itervalues(self):
-        for key in self.rec.dtype.names:
-            yield self.__getitem__(key)
 
     def fielddesc(self, name):
         """
@@ -831,9 +825,40 @@ class Record(object):
         # abstract; specialized for the different service types
         return default
 
-_image_mt_re = re.compile(r'^image/(\w+)')
-_text_mt_re = re.compile(r'^text/(\w+)')
-_votable_mt_re = re.compile(r'^(\w+)/(x-)?votable(\+\w+)?')
+# take care giving Record its dictionary functionality with attention to 
+# whether we are using Python 2 or 3.  
+def _record_iteritems(self):
+    for key in self.rec.dtype.names:
+        yield (key, self.__getitem__(key))
+def _record_iterkeys(self):
+    for key in self.rec.dtype.names:
+        yield key
+def _record_itervalues(self):
+    for key in self.rec.dtype.names:
+        yield self.__getitem__(key)
+
+if sys.version_info[0] >= 3:
+    setattr(Record, 'items', _record_iteritems)
+    setattr(Record, 'keys', _record_iterkeys)
+    setattr(Record, 'values', _record_itervalues)
+else:
+    setattr(Record, 'iteritems', _record_iteritems)
+    setattr(Record, 'iterkeys', _record_iterkeys)
+    setattr(Record, 'itervalues', _record_itervalues)
+    setattr(Record, 'items', lambda self: tuple(self.iteritems()))
+    setattr(Record, 'keys', lambda self: tuple(self.iterkeys()))
+    setattr(Record, 'values', lambda self: tuple(self.itervalues()))
+    
+
+
+if sys.version_info[0] >= 3:
+    _image_mt_re = re.compile(b'^image/(\w+)')
+    _text_mt_re = re.compile(b'^text/(\w+)')
+    _votable_mt_re = re.compile(b'^(\w+)/(x-)?votable(\+\w+)?')
+else:
+    _image_mt_re = re.compile(r'^image/(\w+)')
+    _text_mt_re = re.compile(r'^text/(\w+)')
+    _votable_mt_re = re.compile(r'^(\w+)/(x-)?votable(\+\w+)?')
 
 def mime2extension(mimetype, default=None):
     """
@@ -850,7 +875,7 @@ def mime2extension(mimetype, default=None):
       dat
 
     :Args:
-      *mimetype*:    the file MIME-type string to convert
+      *mimetype*:    the file MIME-type byte-string to convert
       *default*:     the default extension to return if one could not be 
                          recommended based on ``mimetype``.  By convention, 
                          this should not include a preceding '.'
@@ -860,10 +885,12 @@ def mime2extension(mimetype, default=None):
     """
     if not mimetype:  
         return default
+    if sys.version_info[0] >= 3 and isinstance(mimetype, str):
+        mimetype = mimetype.encode('utf-8')
 
-    if mimetype.endswith("/fits") or mimetype.endswith('/x-fits'):
+    if mimetype.endswith(b"/fits") or mimetype.endswith(b'/x-fits'):
         return "fits"
-    if mimetype == "image/jpeg":
+    if mimetype == b"image/jpeg":
         return "jpg"
 
     m = _votable_mt_re.match(mimetype)  # r'^(\w+)/(x-)?votable(\+\w+)'
@@ -872,12 +899,18 @@ def mime2extension(mimetype, default=None):
 
     m = _image_mt_re.match(mimetype)    # r'^image/(\w+)'
     if m:
-        return m.group(1).lower()
+        out = m.group(1).lower()
+        if sys.version_info[0] >= 3:
+            out = out.decode('utf-8')
+        return out
 
     m = _text_mt_re.match(mimetype)     # r'^text/(\w+)'
     if m:
-        if m.group(1) == 'html' or m.group(1) == 'xml':
-            return m.group(1)
+        if m.group(1) == b'html' or m.group(1) == b'xml':
+            out = m.group(1)
+            if sys.version_info[0] >= 3:
+                out = out.decode('utf-8')
+            return out
         return "txt"
 
     return default
@@ -910,7 +943,9 @@ class DALAccessError(Exception):
 
     @classmethod
     def _typeName(cls, exc):
-        return re.sub(r"'>$", '', re.sub(r"<type '.*\.", '', str(type(exc))))
+        return re.sub(r"'>$", '', 
+                      re.sub(r"<(type|class) '(.*\.)?", '', 
+                             str(type(exc))))
     def __str__(self):
         return self._reason
     def __repr__(self):

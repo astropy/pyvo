@@ -31,7 +31,7 @@ class can represent a specific service available at a URL endpoint.
 """
 from __future__ import print_function, division
 
-import numbers, re
+import numbers, re, sys
 from . import query
 
 __all__ = [ "search", "SIAResults", "SIARecord", "SIAQuery", "SIAService" ]
@@ -604,6 +604,9 @@ class SIARecord(query.Record):
         ``make_dataset_filename()``.
         """
         out = self.title
+        if sys.version_info[0] >= 3 and isinstance(out, bytes):
+            out = out.decode('utf-8')
+
         if not out:
             out = "image"
         else:

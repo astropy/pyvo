@@ -6,6 +6,7 @@ This only supports read-only access.
 from __future__ import print_function, division
 
 from .query import Iter
+import sys
 
 apilevel = "2.0"
 threadsafety = 2
@@ -209,13 +210,6 @@ class Cursor(Iter):
         for _ in xrange(self._rowcount - self.pos):
             out.append(self.fetchone())
         return out
-
-    def next(self):
-        """
-        Advance to the next row.  
-        A StopIteration exception is raised when there are no more rows.
-        """
-        return Iter.next(self)
 
     def scroll(self, value, mode="relative"):
         """Move the row cursor.

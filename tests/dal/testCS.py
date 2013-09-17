@@ -200,7 +200,9 @@ class CSResultsErrorTest(unittest.TestCase):
             self.fail("Failed to detect error response")
         except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "Error")
-            self.assertEquals(ex.reason, "DEC parameter out-of-range")
+            # Note: because it is stored in a PARAM and the datatype is "char",
+            # the value will come out as bytes (rather than unicode)
+            self.assertEquals(ex.reason, b"DEC parameter out-of-range")
 
 #    def testErrorDefParam(self):
 #       Will not raise if VOTable version is 1.0
@@ -225,7 +227,7 @@ class CSRecordTest(unittest.TestCase):
     def testAttr(self):
         self.assertEquals(self.rec.ra, 0.065625)
         self.assertEquals(self.rec.dec, -8.8911667)
-        self.assertEquals(self.rec.id, "34")
+        self.assertEquals(self.rec.id, b"34")
 
 class CSExecuteTest(unittest.TestCase):
     baseurl = "http://localhost:{0}/cs?"

@@ -9,6 +9,7 @@ import sys
 import shutil
 import re
 import threading
+import socket
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
 testdir = os.path.dirname(sys.argv[0])
@@ -39,8 +40,14 @@ class TestHandler(BaseHTTPRequestHandler):
         elif path == "/sla":
             self.send_sla()
         else:
-            self.send_error(404)
-            self.end_headers()
+            try:
+                self.send_error(404)
+                self.end_headers()
+            except socket.error as ex:
+                if ex.errno != 104:
+                    print("Test Server: Detected socket error while serving "+
+                          path+": " + str(ex))
+                
 
     def send_path(self):
         self.send_response(200)
@@ -65,7 +72,7 @@ class TestHandler(BaseHTTPRequestHandler):
         self.send_file(os.path.join(testdir,slaresult))
 
     def send_file(self, filename):
-        f = open(filename)
+        f = open(filename,'rb')
 
         self.send_response(200)
         self.send_header("Content-type", "text/xml")

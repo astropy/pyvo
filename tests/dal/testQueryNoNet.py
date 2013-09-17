@@ -214,8 +214,8 @@ class DALResultsTest(unittest.TestCase):
 
     def testValue(self):
         self.testCtor()
-        self.assertEquals(self.result.getvalue("Format", 0), "image/fits")
-        self.assertEquals(self.result.getvalue("Format", 1), "image/jpeg")
+        self.assertEquals(self.result.getvalue("Format", 0), b"image/fits")
+        self.assertEquals(self.result.getvalue("Format", 1), b"image/jpeg")
         self.assertEquals(self.result.getvalue("Dim", 0), 2)
         val = self.result.getvalue("Size", 0)
         self.assertEquals(len(val), 2)
@@ -276,7 +276,7 @@ class RecordTest(unittest.TestCase):
             self.assert_(name in reckeys, "Missing fieldname: "+name)
 
     def testValues(self):
-        self.assertEquals(self.rec["Format"], "image/fits")
+        self.assertEquals(self.rec["Format"], b"image/fits")
         self.assertEquals(self.rec["Dim"], 2)
         val = self.rec["Size"]
         self.assertEquals(len(val), 2)
@@ -293,7 +293,7 @@ class RecordTest(unittest.TestCase):
         self.assert_(self.rec.suggest_extension() is None)
 
     def testHasKey(self):
-        self.assertEquals(self.rec["Format"], "image/fits")
+        self.assertEquals(self.rec["Format"], b"image/fits")
         self.assertTrue(self.rec.has_key('Format'))
         self.assertTrue('Format' in self.rec)
         self.assertFalse(self.rec.has_key('Goober'))
@@ -330,7 +330,6 @@ class MimeCheckTestCase(unittest.TestCase):
     def testBad(self):
         self.assertFalse(dalq.is_mime_type("image"))
         self.assertFalse(dalq.is_mime_type("image/votable/xml"))
-
 
 class DALServiceTest(unittest.TestCase):
 
@@ -510,7 +509,7 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_(hasattr(strm, "read"))
         results = strm.read()
         strm.close()
-        self.assert_(results.startswith("<?xml version="))
+        self.assert_(results.startswith(b"<?xml version="))
 
     def testExecuteRaw(self):
         q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
@@ -518,8 +517,11 @@ class QueryExecuteTest(unittest.TestCase):
         # pdb.set_trace()
         data = q.execute_raw()
         self.assert_(data is not None)
-        self.assert_(isinstance(data, unicode) or isinstance(data, str))
-        self.assert_(data.startswith("<?xml version="))
+        if sys.version_info[0] >= 3:
+            self.assert_(isinstance(data, str) or isinstance(data, bytes))
+        else:
+            self.assert_(isinstance(data, unicode) or isinstance(data, str))
+        self.assert_(data.startswith(b"<?xml version="))
 
     def testExecuteVotable(self):
         q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
@@ -545,7 +547,7 @@ class QueryExecuteTest(unittest.TestCase):
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
-            q.execute_raw()
+            q.execute_stream()
             self.fail("failed to raise exception on bad url")
         except dalq.DALServiceError as e:
             self.assertEquals(e.code, 404)
@@ -567,9 +569,12 @@ class QueryExecuteTest(unittest.TestCase):
         # pdb.set_trace()
         data = q.execute_raw()
         self.assert_(data is not None)
-        self.assert_(isinstance(data, unicode) or isinstance(data, str))
-        self.assert_(data.startswith("<?xml version="))
-        self.assert_('<INFO name="QUERY_STATUS" value="ERR' in data)
+        if sys.version_info[0] >= 3:
+            self.assert_(isinstance(data, str) or isinstance(data, bytes))
+        else:
+            self.assert_(isinstance(data, unicode) or isinstance(data, str))
+        self.assert_(data.startswith(b"<?xml version="))
+        self.assert_(b'<INFO name="QUERY_STATUS" value="ERR' in data)
 
     def testExecuteQueryErr(self):
         q = dalq.DALQuery("http://localhost:{0}/err".format(testserverport))
