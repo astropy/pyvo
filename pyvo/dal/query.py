@@ -35,11 +35,13 @@ from urllib import quote_plus
 
 if sys.version_info[0] >= 3:
     _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
+    _is_python3 = True
 else:
     _mimetype_re = re.compile(r'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
+    _is_python3 = False
 
 def is_mime_type(val):
-    if sys.version_info[0] >= 3 and isinstance(val, str):
+    if _is_python3 and isinstance(val, str):
         val = val.encode('utf-8')
 
     return bool(_mimetype_re.match(val))
@@ -606,7 +608,7 @@ class Iter(object):
             raise StopIteration()
 
 # Note: this is for Iter subclassess (i.e. .dbapi2.Cursor) and python3
-if sys.version_info[0] >= 3 and not hasattr(Iter, "next"):
+if _is_python3 and not hasattr(Iter, "next"):
     setattr(Iter, "next", lambda self: self.__next__())
 
 class Record(object):
@@ -642,6 +644,23 @@ class Record(object):
         except KeyError:
             return default
 
+    def _get_to_str(self, key, default=None):
+        # Needed for python3 support, this will convert to a native string 
+        # if it is not already
+        try:
+            out = self.__getitem__(key)
+        except KeyError:
+            return default
+        if isinstance(out, str):
+            return out
+        if _is_python3: 
+            if isinstance(out, bytes):
+                out = out.decode('utf-8')
+        else:
+            if isinstance(out, unicode):
+                out = out.decode('utf-8')
+        return out
+
     def __contains__(self, key):
         return key in self.rec.dtype.names
 
@@ -666,7 +685,10 @@ class Record(object):
             if (fld.utype and "Access.Reference" in fld.utype) or \
                (fld.ucd   and "meta.dataset" in fld.ucd 
                           and "meta.ref.url" in fld.ucd):
-                return self[name]
+                out = self[name]
+                if _is_python3 and isinstance(out, bytes):
+                    out = out.decode('utf-8')
+                return out
         return None
 
     def getdataset(self, timeout=None):
@@ -734,9 +756,9 @@ class Record(object):
         if not filename:
             filename = self.make_dataset_filename(dir)
 
+        inp = self.getdataset(timeout)
         try:
-            inp = self.getdataset(timeout)
-            with open(filename, 'w') as out:
+            with open(filename, 'wb') as out:
                 buf = inp.read(bufsize)
                 while buf:
                     out.write(buf)
@@ -837,7 +859,7 @@ def _record_itervalues(self):
     for key in self.rec.dtype.names:
         yield self.__getitem__(key)
 
-if sys.version_info[0] >= 3:
+if _is_python3:
     setattr(Record, 'items', _record_iteritems)
     setattr(Record, 'keys', _record_iterkeys)
     setattr(Record, 'values', _record_itervalues)
@@ -851,7 +873,7 @@ else:
     
 
 
-if sys.version_info[0] >= 3:
+if _is_python3:
     _image_mt_re = re.compile(b'^image/(\w+)')
     _text_mt_re = re.compile(b'^text/(\w+)')
     _votable_mt_re = re.compile(b'^(\w+)/(x-)?votable(\+\w+)?')
@@ -885,7 +907,7 @@ def mime2extension(mimetype, default=None):
     """
     if not mimetype:  
         return default
-    if sys.version_info[0] >= 3 and isinstance(mimetype, str):
+    if _is_python3 and isinstance(mimetype, str):
         mimetype = mimetype.encode('utf-8')
 
     if mimetype.endswith(b"/fits") or mimetype.endswith(b'/x-fits'):
@@ -900,7 +922,7 @@ def mime2extension(mimetype, default=None):
     m = _image_mt_re.match(mimetype)    # r'^image/(\w+)'
     if m:
         out = m.group(1).lower()
-        if sys.version_info[0] >= 3:
+        if _is_python3:
             out = out.decode('utf-8')
         return out
 
@@ -908,7 +930,7 @@ def mime2extension(mimetype, default=None):
     if m:
         if m.group(1) == b'html' or m.group(1) == b'xml':
             out = m.group(1)
-            if sys.version_info[0] >= 3:
+            if _is_python3:
                 out = out.decode('utf-8')
             return out
         return "txt"

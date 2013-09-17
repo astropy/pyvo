@@ -54,7 +54,7 @@ class NeatSIAExecuteTest(unittest.TestCase):
         rec = results.getrecord(0)
         self.assertEquals(rec.ra, 0.0)
         self.assertEquals(rec.dec, 0.0)
-        self.assertEquals(rec.title, "neat")
+        self.assertEquals(rec.title, b"neat")
         self.assert_(rec.dateobs is None)
         self.assertEquals(rec.naxes, 2)
         self.assertEquals(rec.naxis, (300, 300))
@@ -69,7 +69,7 @@ class NeatSIAExecuteTest(unittest.TestCase):
         rec.cachedataset(self.imfile)
         self.assert_(os.path.exists(self.imfile))
 
-        if rec.format == "image/fits":
+        if rec.format == b"image/fits":
             with open(self.imfile) as fits:
                 hdr = fits.read(20)
                 self.assert_(hdr.startswith("SIMPLE  ="), "Not a FITS image?")
