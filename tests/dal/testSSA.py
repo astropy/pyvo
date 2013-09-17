@@ -303,7 +303,7 @@ class SSAResultsErrorTest(unittest.TestCase):
 
 class SSARecordTest(unittest.TestCase):
 
-    acref = b"http://vaosa-vm1.aoc.nrao.edu/ivoa-dal/JhuSsapServlet?REQUEST=getData&FORMAT=votable&PubDID=ivo%3A%2F%2Fjhu%2Fsdss%2Fdr6%2Fspec%2F2.5%2380442261170552832"
+    acref = "http://vaosa-vm1.aoc.nrao.edu/ivoa-dal/JhuSsapServlet?REQUEST=getData&FORMAT=votable&PubDID=ivo%3A%2F%2Fjhu%2Fsdss%2Fdr6%2Fspec%2F2.5%2380442261170552832"
 
     def setUp(self):
         resultfile = os.path.join(testdir, ssaresultfile)

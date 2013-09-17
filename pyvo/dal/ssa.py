@@ -607,7 +607,7 @@ class SSARecord(query.Record):
         """
         return the URL that can be used to retrieve the image
         """
-        return self.get(self._names["acref"])
+        return self._get_to_str(self._names["acref"])
 
     def getdataurl(self):
         """
@@ -626,7 +626,7 @@ class SSARecord(query.Record):
         ``make_dataset_filename()``.
         """
         out = self.title
-        if sys.version_info[0] >= 3 and isinstance(out, bytes):
+        if query._is_python3 and isinstance(out, bytes):
             out = out.decode('utf-8')
 
         if not out:
