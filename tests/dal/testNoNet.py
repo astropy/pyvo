@@ -2,6 +2,8 @@
 """
 Test all available tests that do not require access to the network.
 """
+from __future__ import print_function, division
+
 import sys, os, unittest, imp
 
 if len(sys.argv) > 1:
@@ -22,8 +24,8 @@ for t in [
         mod = imp.load_module(t, mod[0], mod[1], mod[2])
         mod.testdir = testdir
         tests += mod.suite()
-    except ImportError, e:
-        print >> sys.stderr, "Unable to load %s: %s" % (t, str(e))
+    except ImportError as e:
+        sys.stderr.write("Unable to load {0}: {1}".format(t, str(e)))
 
 testsuite = unittest.TestSuite(tests)
 
@@ -32,8 +34,8 @@ try:
     mod = imp.find_module(t, [testdir])
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
-except ImportError, e:
-    print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+except ImportError as e:
+    sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
 
 def suite():
     return testsuite

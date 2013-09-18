@@ -21,6 +21,7 @@ This module also features the SCSQuery class that provides an
 interface for building up and remembering a query.  The SCSService
 class can represent a specific service available at a URL endpoint.
 """
+from __future__ import print_function, division
 
 import numbers
 from . import query
@@ -63,7 +64,7 @@ class SCSService(query.DALService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DALService.__init__(self, baseurl, "scs", version, resmeta)
+        super(SCSService, self).__init__(baseurl, "scs", version, resmeta)
 
     def search(self, pos, radius=1.0, verbosity=2):
         """
@@ -124,7 +125,7 @@ class SCSQuery(query.DALQuery):
         """
         initialize the query object with a baseurl
         """
-        query.DALQuery.__init__(self, baseurl, "scs", version)
+        super(SCSQuery, self).__init__(baseurl, "scs", version)
         
 
     @property
@@ -261,10 +262,10 @@ class SCSQuery(query.DALQuery):
             return query._votableparse(self.execute_stream().read)
         except query.DALAccessError:
             raise
-        except W22, e:
+        except W22 as e:
             raise query.DALFormatError("Unextractable Error encoded in " +
                                        "deprecated DEFINITIONS element")
-        except Exception, e:
+        except Exception as e:
             raise query.DALFormatError(e, self.getqueryurl())
 
     def getqueryurl(self, lax=False):
@@ -301,7 +302,7 @@ class SCSResults(query.DALResults):
         by directly applications; rather an instance is obtained from calling 
         a SCSQuery's execute().
         """
-        query.DALResults.__init__(self, votable, url, "scs", version)
+        super(SCSResults, self).__init__(votable, url, "scs", version)
         self._scscols = {
             "ID_MAIN":         self.fieldname_with_ucd("ID_MAIN"),
             "POS_EQ_RA_MAIN":  self.fieldname_with_ucd("POS_EQ_RA_MAIN"),
@@ -372,7 +373,7 @@ class SCSRecord(query.Record):
     """
 
     def __init__(self, results, index):
-        query.Record.__init__(self, results, index)
+        super(SCSRecord, self).__init__(results, index)
         self._ucdcols = results._scscols
         self._names = results._recnames
 
