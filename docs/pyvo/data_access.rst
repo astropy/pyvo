@@ -10,7 +10,7 @@ Data Access Services
 In this section, we look at the interfaces for accessing remote
 archives for data using the standard VO interfaces.  
 
-Four types of data access services are supported by PyVO:
+Four types of data access services are currently supported by PyVO:
 
 * `Simple Image Access (SIA) <http://www.ivoa.net/documents/SIA/>`_ -- 
   an interface for finding images in an archive
@@ -477,7 +477,7 @@ query.  This class can sometimes be useful at the query level.  Query
 classes are specialized to the type of service being accessed and have
 built-in knowledge the input parameters it accepts.  In the case of
 searching for images via an SIA service,  one can use the 
-:py:`~pyvo.dal.sia.SIAQuery` class.  
+:py:class:`~pyvo.dal.sia.SIAQuery` class.  
 
 With a query class, you create an instance, set the query parameters,
 and then execute it:
@@ -845,3 +845,8 @@ Search and Service Classes
 Just as in the image search case, the spectrum interface also has a
 query class (see :ref:`sia-query`) and service class (see
 :ref:`service-objects`). 
+
+The query class, :py:class:`~pyvo.dal.ssa.SSAQuery`, differs from its SIA
+conterpart in the search parameters it exposes as properties.  
+
+
