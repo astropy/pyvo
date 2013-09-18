@@ -107,10 +107,10 @@ class SIAService(query.DALService):
 
         Parameters
         ----------
-           *baseurl*:  the base URL for submitting search queries to the 
-                         service.
-           *resmeta*:  an optional dictionary of properties about the 
-                         service
+        baseurl : str
+           the base URL for submitting search queries to the service.
+        resmeta : str
+           an optional dictionary of properties about the service
         """
         super(SIAService, self).__init__(baseurl, "sia", version, resmeta)
 
@@ -125,38 +125,53 @@ class SIAService(query.DALService):
 
         Parameters
         ----------
-           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the 
-                           center of the search region in decimal degrees
-           *size*:       a 2-element tuple giving the full rectangular size of 
-                           the search region along the RA and Dec directions in 
-                           decimal degrees
-           *format*:     the image format(s) of interest.  "all" (default) 
-                           indicates all available formats; "graphic" indicates
-                           graphical images (e.g. jpeg, png, gif; not FITS); 
-                           "metadata" indicates that no images should be 
-                           returned--only an empty table with complete metadata;
-                           "image/*" indicates a particular image format where 
-                           * can have values like "fits", "jpeg", "png", etc. 
-           *intersect*:  a token indicating how the returned images should 
-                           intersect with the search region
-           *verbosity*:  an integer value that indicates the volume of columns
-                           to return in the result table.  0 means the minimum
-                           set of columsn, 3 means as many columns as are 
-                           available.  
-           **keywords:   additional parameters can be given via arbitrary 
-                           keyword arguments.  These can be either standard 
-                           parameters (with names drown from the 
-                           ``SIAQuery.std_parameters`` list) or paramters
-                           custom to the service.  Where there is overlap 
-                           with the parameters set by the other arguments to
-                           this function, these keywords will override.
+        pos : 2-element tuple of floats
+           a 2-element tuple giving the ICRS RA and Dec of the 
+           center of the search region in decimal degrees
+        size : 2-element tuple of floats
+           a 2-element tuple giving the full rectangular size of 
+           the search region along the RA and Dec directions in 
+           decimal degrees
+        format : str
+           the image format(s) of interest.  "all" (default) 
+           indicates all available formats; "graphic" indicates
+           graphical images (e.g. jpeg, png, gif; not FITS); 
+           "metadata" indicates that no images should be 
+           returned--only an empty table with complete metadata;
+           "image/*" indicates a particular image format where 
+           * can have values like "fits", "jpeg", "png", etc. 
+        intersect : str
+           a token indicating how the returned images should 
+           intersect with the search region; recognized values include:
+
+           ========= ======================================================
+           COVERS    select images that completely cover the search region
+           ENCLOSED  select images that are complete enclosed by the region
+           OVERLAPS  select any image that overlaps with the search region
+           CENTER    select images whose center is within the search region
+           ========= ======================================================
+
+        verbosity : str
+           an integer value that indicates the volume of columns
+           to return in the result table.  0 means the minimum
+           set of columsn, 3 means as many columns as are 
+           available.  
+        **keywords :    
+           additional parameters can be given via arbitrary 
+           keyword arguments.  These can be either standard 
+           parameters (with names drown from the 
+           ``SIAQuery.std_parameters`` list) or paramters
+           custom to the service.  Where there is overlap 
+           with the parameters set by the other arguments to
+           this function, these keywords will override.
 
         Raises
         ------
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALQueryError*:   if the service responds with 
-                              an error, including a query syntax error.  
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           if the service responds with an error, including a query syntax 
+           error.  
         """
         q = self.create_query(pos, size, format, intersect, verbosity, 
                               **keywords)
@@ -171,34 +186,50 @@ class SIAService(query.DALService):
 
         Parameters
         ----------
-           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the 
-                           center of the search region in decimal degrees
-           *size*:       a 2-element tuple giving the full rectangular size of 
-                           the search region along the RA and Dec directions in 
-                           decimal degrees
-           *format*:     the image format(s) of interest.  "all" indicates 
-                           all available formats; "graphic" indicates
-                           graphical images (e.g. jpeg, png, gif; not FITS); 
-                           "metadata" indicates that no images should be 
-                           returned--only an empty table with complete metadata;
-                           "image/*" indicates a particular image format where 
-                           * can have values like "fits", "jpeg", "png", etc. 
-           *intersect*:  a token indicating how the returned images should 
-                           intersect with the search region
-           *verbosity*   an integer value that indicates the volume of columns
-                           to return in the result table.  0 means the minimum
-                           set of columsn, 3 means as many columns as are 
-                           available.  
-           **keywords:   additional parameters can be given via arbitrary 
-                           keyword arguments.  These can be either standard 
-                           parameters (with names drown from the 
-                           ``SIAQuery.std_parameters`` list) or paramters
-                           custom to the service.  Where there is overlap 
-                           with the parameters set by the other arguments to
-                           this function, these keywords will override.
+        pos : 2-element tuple of floats
+           a 2-element tuple giving the ICRS RA and Dec of the 
+           center of the search region in decimal degrees
+        size : 2-element tuple of floats
+           a 2-element tuple giving the full rectangular size of 
+           the search region along the RA and Dec directions in 
+           decimal degrees
+        format : str
+           the image format(s) of interest.  "all" indicates 
+           all available formats; "graphic" indicates
+           graphical images (e.g. jpeg, png, gif; not FITS); 
+           "metadata" indicates that no images should be 
+           returned--only an empty table with complete metadata;
+           "image/*" indicates a particular image format where 
+           * can have values like "fits", "jpeg", "png", etc. 
+        intersect : str
+           a token indicating how the returned images should 
+           intersect with the search region; recognized values include:
 
-        :Returns: 
-           *SIAQuery*:  the query instance
+           ========= ======================================================
+           COVERS    select images that completely cover the search region
+           ENCLOSED  select images that are complete enclosed by the region
+           OVERLAPS  select any image that overlaps with the search region
+           CENTER    select images whose center is within the search region
+           ========= ======================================================
+
+        verbosity : int   
+           an integer value that indicates the volume of columns
+           to return in the result table.  0 means the minimum
+           set of columsn, 3 means as many columns as are 
+           available.  
+        **keywords :   
+           additional parameters can be given via arbitrary 
+           keyword arguments.  These can be either standard 
+           parameters (with names drown from the 
+           ``SIAQuery.std_parameters`` list) or paramters
+           custom to the service.  Where there is overlap 
+           with the parameters set by the other arguments to
+           this function, these keywords will override.
+
+        Returns
+        -------
+        SIAQuery
+           the query instance
         """
         q = SIAQuery(self.baseurl, self.version)
         if pos is not None: q.pos = pos
@@ -440,10 +471,11 @@ class SIAQuery(query.DALQuery):
 
         Raises
         ------
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALQueryError*:   if the service responds with 
-                              an error, including a query syntax error.  
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           if the service responds with an error, including a query syntax 
+           error.  
         """
         return SIAResults(self.execute_votable(), self.getqueryurl())
 

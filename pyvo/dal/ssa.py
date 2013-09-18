@@ -42,29 +42,37 @@ __all__ = [ "search", "SSAService", "SSAQuery" ]
 def search(url, pos, size, format='all', **keywords):
     """
     submit a simple SIA query that requests spectra overlapping a 
-    :Args:
-       *url*:  the base URL for the SSA service
-       *pos*:  a 2-element seqence giving the ICRS RA and DEC in decimal degrees
-       *size*: a floating point number or a 2-element tuple giving the size
-                 of the rectangular region around pos to search for spectra.  
-       *format*:     the spectral format(s) of interest.  "all" (default) 
-                       indicates all available formats; "graphic" indicates
-                       graphical images (e.g. jpeg, png, gif; not FITS); 
-                       "metadata" indicates that no images should be 
-                       returned--only an empty table with complete metadata.
-       **keywords:   additional parameters can be given via arbitrary 
-                       keyword arguments.  These can be either standard 
-                       parameters (with names drown from the 
-                       ``SSAQuery.std_parameters`` list) or paramters
-                       custom to the service.  Where there is overlap 
-                       with the parameters set by the other arguments to
-                       this function, these keywords will override.
 
-        :Raises:
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALQueryError*:   if the service responds with 
-                              an error, including a query syntax error.  
+    Parameters
+    ----------
+    url : str
+       the base URL for the SSA service
+    pos : 2-element sequence of floats
+       a 2-element seqence giving the ICRS RA and DEC in decimal degrees
+    size : float
+       a floating point number giving the diameter of the circular region
+       in decimal degrees around pos in which to search for spectra.  
+    format : str
+       the spectral format(s) of interest.  "all" (default) 
+       indicates all available formats; "graphic" indicates
+       graphical images (e.g. jpeg, png, gif; not FITS); 
+       "metadata" indicates that no images should be 
+       returned--only an empty table with complete metadata.
+    **keywords:   
+       additional parameters can be given via arbitrary 
+       keyword arguments.  These can be either standard 
+       parameters (with names drown from the 
+       ``SSAQuery.std_parameters`` list) or paramters
+       custom to the service.  Where there is overlap 
+       with the parameters set by the other arguments to
+       this function, these keywords will override.
+
+    Raises
+    ------
+    DALServiceError
+       for errors connecting to or communicating with the service
+    DALQueryError
+       if the service responds with an error, including a query syntax error.  
     """
     service = SSAService(url)
     return service.search(pos, size, format, **keywords)
@@ -78,11 +86,12 @@ class SSAService(query.DALService):
         """
         instantiate an SSA service
 
-        :Args:
-           *baseurl*:  the base URL for submitting search queries to the 
-                         service.
-           *resmeta*:  an optional dictionary of properties about the 
-                         service
+        Parameters
+        ----------
+        baseurl : str
+           the base URL for submitting search queries to the service.
+        resmeta : dict
+           an optional dictionary of properties about the service
         """
         super(SSAService, self).__init__(baseurl, "ssa", version, resmeta)
 
@@ -94,30 +103,35 @@ class SSAService(query.DALService):
         more complex queries, one should create an SSAQuery object via 
         create_query()
 
-        :Args:
-           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the 
-                           center of the search region in decimal degrees
-           *size*:       a 2-element tuple giving the full rectangular size of 
-                           the search region along the RA and Dec directions in 
-                           decimal degrees
-           *format*:     the spectral format(s) of interest.  "all" (default) 
-                           indicates all available formats; "graphic" indicates
-                           graphical spectra (e.g. jpeg, png, gif; not FITS); 
-                           "metadata" indicates that no spectra should be 
-                           returned--only an empty table with complete metadata.
-           **keywords:   additional parameters can be given via arbitrary 
-                           keyword arguments.  These can be either standard 
-                           parameters (with names drown from the 
-                           ``SSAQuery.std_parameters`` list) or paramters
-                           custom to the service.  Where there is overlap 
-                           with the parameters set by the other arguments to
-                           this function, these keywords will override.
+        Parameters
+        ----------
+        pos : 2-element tuple of floats
+           a 2-element tuple giving the ICRS RA and Dec of the 
+           center of the search region in decimal degrees
+        size : float
+           a floating point number giving the diameter of the circular region
+           in decimal degrees around pos in which to search for spectra.  
+        format : str
+           the spectral format(s) of interest.  "all" (default) 
+           indicates all available formats; "graphic" indicates
+           graphical spectra (e.g. jpeg, png, gif; not FITS); 
+           "metadata" indicates that no spectra should be 
+           returned--only an empty table with complete metadata.
+        **keywords :   
+           additional parameters can be given via arbitrary 
+           keyword arguments.  These can be either standard 
+           parameters (with names drown from the 
+           ``SSAQuery.std_parameters`` list) or paramters
+           custom to the service.  Where there is overlap 
+           with the parameters set by the other arguments to
+           this function, these keywords will override.
 
-        :Raises:
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALQueryError*:   if the service responds with 
-                              an error, including a query syntax error.  
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           if the service responds with an error, including a query syntax error
         """
         q = self.create_query(pos, size, format, **keywords)
         return q.execute()
@@ -128,27 +142,33 @@ class SSAService(query.DALService):
         executed.  The input arguments will initialize the query with the 
         given values.
 
-        :Args:
-           *pos*:        a 2-element tuple giving the ICRS RA and Dec of the 
-                           center of the search region in decimal degrees
-           *size*:       a 2-element tuple giving the full rectangular size of 
-                           the search region along the RA and Dec directions in 
-                           decimal degrees
-           *format*:     the image format(s) of interest.  "all" indicates 
-                           all available formats; "graphic" indicates
-                           graphical images (e.g. jpeg, png, gif; not FITS); 
-                           "metadata" indicates that no images should be 
-                           returned--only an empty table with complete metadata.
-           **keywords:   additional parameters can be given via arbitrary 
-                           keyword arguments.  These can be either standard 
-                           parameters (with names drown from the 
-                           ``SSAQuery.std_parameters`` list) or paramters
-                           custom to the service.  Where there is overlap 
-                           with the parameters set by the other arguments to
-                           this function, these keywords will override.
+        Parameters
+        ----------
+        pos : 2-element tuple of floats
+           a 2-element tuple giving the ICRS RA and Dec of the 
+           center of the search region in decimal degrees
+        size : float
+           a floating point number giving the diameter of the circular region
+           in decimal degrees around pos in which to search for spectra.  
+        format : str
+           the image format(s) of interest.  "all" indicates 
+           all available formats; "graphic" indicates
+           graphical images (e.g. jpeg, png, gif; not FITS); 
+           "metadata" indicates that no images should be 
+           returned--only an empty table with complete metadata.
+        **keywords : 
+           additional parameters can be given via arbitrary 
+           keyword arguments.  These can be either standard 
+           parameters (with names drown from the 
+           ``SSAQuery.std_parameters`` list) or paramters
+           custom to the service.  Where there is overlap 
+           with the parameters set by the other arguments to
+           this function, these keywords will override.
 
-        :Returns: 
-           *SSAQuery*:  the query instance
+        Returns
+        -------
+        SSAQuery  
+            the query instance
         """
         q = SSAQuery(self.baseurl, self.version)
         if pos is not None: q.pos = pos
@@ -307,8 +327,8 @@ class SSAQuery(query.DALQuery):
     def format(self):
         """
         the desired format of the images to be returned.  This will be in the 
-        form of a commna-separated list of MIME-types or one of the following special
-        values. 
+        form of a commna-separated list of MIME-types or one of the following 
+        special values. 
 
         :Special Values:
            all:  all formats available
@@ -345,11 +365,12 @@ class SSAQuery(query.DALQuery):
         submit the query and return the results as a Results subclass instance.
         This implimentation returns an SSAResults instance
 
-        :Raises:
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALQueryError*:   if the service responds with 
-                              an error, including a query syntax error.  
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           if the service responds with an error, including a query syntax error
         """
         return SSAResults(self.execute_votable(), self.getqueryurl())
 
