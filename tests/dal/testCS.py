@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """
-Tests for pyvo.dal.conesearch
+Tests for pyvo.dal.scs
 """
+from __future__ import print_function, division
+
 import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
@@ -25,8 +27,8 @@ try:
     mod = imp.find_module(t, [testdir])
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
-except ImportError, e:
-    print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+except ImportError as e:
+    sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
 
 class SCSServiceTest(unittest.TestCase):
 
@@ -120,7 +122,7 @@ class SCSQueryTest(unittest.TestCase):
         try:  self.q.radius = "a b";  self.fail("dec took string values")
         except ValueError:  pass
         try:  self.q.dec = 100; self.fail("dec took out-of-range value")
-        except ValueError, e:  pass
+        except ValueError as e:  pass
             
     def testCreateURL(self):
         self.testCtor()
@@ -176,7 +178,7 @@ class CSResultsErrorTest(unittest.TestCase):
         try:
             res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "Error")
             self.assertEquals(ex.reason, "Forced Fail")
 
@@ -186,7 +188,7 @@ class CSResultsErrorTest(unittest.TestCase):
         try:
             res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "Error")
             self.assertEquals(ex.reason, "Forced Fail")
 
@@ -196,9 +198,11 @@ class CSResultsErrorTest(unittest.TestCase):
         try:
             res = cs.SCSResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "Error")
-            self.assertEquals(ex.reason, "DEC parameter out-of-range")
+            # Note: because it is stored in a PARAM and the datatype is "char",
+            # the value will come out as bytes (rather than unicode)
+            self.assertEquals(ex.reason, b"DEC parameter out-of-range")
 
 #    def testErrorDefParam(self):
 #       Will not raise if VOTable version is 1.0
@@ -223,13 +227,13 @@ class CSRecordTest(unittest.TestCase):
     def testAttr(self):
         self.assertEquals(self.rec.ra, 0.065625)
         self.assertEquals(self.rec.dec, -8.8911667)
-        self.assertEquals(self.rec.id, "34")
+        self.assertEquals(self.rec.id, b"34")
 
 class CSExecuteTest(unittest.TestCase):
-    baseurl = "http://localhost:%d/cs?"
+    baseurl = "http://localhost:{0}/cs?"
 
     def testExecute(self):
-        q = cs.SCSQuery(self.baseurl % testserverport)
+        q = cs.SCSQuery(self.baseurl.format(testserverport))
         q.ra = 0.0
         q.dec = 0.0
         q.radius = 0.25
@@ -238,13 +242,13 @@ class CSExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 2)
 
     def testSearch(self):
-        srv = cs.SCSService(self.baseurl % testserverport)
+        srv = cs.SCSService(self.baseurl.format(testserverport))
         results = srv.search(pos=(0.0, 0.0), radius=0.25)
         self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.nrecs, 2)
 
         qurl = results.queryurl
-        # print qurl
+        # print(qurl)
         self.assert_("RA=0.0" in qurl)
         self.assert_("DEC=0.0" in qurl)
         self.assert_("SR=0.25" in qurl)
@@ -253,7 +257,7 @@ class CSExecuteTest(unittest.TestCase):
 
     def testConesearch(self):
         # pdb.set_trace()
-        results = cs.search(self.baseurl % testserverport, 
+        results = cs.search(self.baseurl.format(testserverport), 
                             pos=(0.0, 0.0), radius=0.25)
         self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.nrecs, 2)

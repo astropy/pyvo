@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """
-Tests for pyvo.dal.query
+Tests for pyvo.dal.ssa
 """
+from __future__ import print_function, division
+
 import os, sys, shutil, re, imp, glob
 import unittest, pdb
 from urllib2 import URLError, HTTPError
@@ -24,8 +26,8 @@ try:
     mod = imp.find_module(t, [testdir])
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
-except ImportError, e:
-    print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+except ImportError as e:
+    sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
 
 class SSAServiceTest(unittest.TestCase):
 
@@ -181,7 +183,7 @@ class SSAQueryTest(unittest.TestCase):
         except ValueError:  pass
         try:
             self.q.dec = 100; self.fail("dec took out-of-range value")
-        except ValueError, e:  pass
+        except ValueError as e:  pass
             
             
     def testSize(self):
@@ -295,7 +297,7 @@ class SSAResultsErrorTest(unittest.TestCase):
         try:
             res = ssa.SSAResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "ERROR")
             self.assertEquals(ex.reason, "Forced Fail")
 
@@ -318,16 +320,16 @@ class SSARecordTest(unittest.TestCase):
     def testAttr(self):
         self.assertEquals(self.rec.ra, 179.84916)
         self.assertEquals(self.rec.dec, 0.984768)
-        self.assertEquals(self.rec.title, "SDSS J115923.80+005905.16 GALAXY")
-        self.assertEquals(self.rec.dateobs, "2000-04-29 03:22:00Z")
-        self.assertEquals(self.rec.instr, "SDSS 2.5-M SPEC2 v4_5")
+        self.assertEquals(self.rec.title, b"SDSS J115923.80+005905.16 GALAXY")
+        self.assertEquals(self.rec.dateobs, b"2000-04-29 03:22:00Z")
+        self.assertEquals(self.rec.instr, b"SDSS 2.5-M SPEC2 v4_5")
         self.assertEquals(self.rec.acref, self.acref)
         self.assertEquals(self.rec.getdataurl(), self.acref)
 
 class SSAExecuteTest(unittest.TestCase):
 
     def testExecute(self):
-        q = ssa.SSAQuery("http://localhost:%d/ssa" % testserverport)
+        q = ssa.SSAQuery("http://localhost:{0}/ssa".format(testserverport))
         q.pos = (0, 0)
         q.size = 1.0
         q.format = "all"
@@ -336,13 +338,13 @@ class SSAExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 35)
 
     def testSearch(self):
-        srv = ssa.SSAService("http://localhost:%d/ssa" % testserverport)
+        srv = ssa.SSAService("http://localhost:{0}/ssa".format(testserverport))
         results = srv.search(pos=(0,0), size=1.0)
         self.assert_(isinstance(results, ssa.SSAResults))
         self.assertEquals(results.nrecs, 35)
 
         qurl = results.queryurl
-        # print qurl
+        # print(qurl)
         self.assert_("REQUEST=queryData" in qurl)
         self.assert_("POS=0,0" in qurl)
         self.assert_("SIZE=1.0" in qurl)
@@ -350,13 +352,13 @@ class SSAExecuteTest(unittest.TestCase):
 
 
     def testSsa(self):
-        results = ssa.search("http://localhost:%d/ssa" % testserverport,
+        results = ssa.search("http://localhost:{0}/ssa".format(testserverport),
                              pos=(0,0), size=1.0)
         self.assert_(isinstance(results, ssa.SSAResults))
         self.assertEquals(results.nrecs, 35)
 
     def testError(self):
-        srv = ssa.SSAService("http://localhost:%d/err" % testserverport)
+        srv = ssa.SSAService("http://localhost:{0}/err".format(testserverport))
         self.assertRaises(dalq.DALQueryError, srv.search, (0.0,0.0), 1.0)
         
 
