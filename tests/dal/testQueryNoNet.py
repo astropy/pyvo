@@ -2,6 +2,8 @@
 """
 Tests for pyvo.dal.query
 """
+from __future__ import print_function, division
+
 import os, sys, shutil, re, imp, glob
 import unittest, pdb
 from urllib2 import URLError, HTTPError
@@ -23,8 +25,8 @@ try:
     mod = imp.find_module(t, [testdir])
     testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     testserver.testdir = testdir
-except ImportError, e:
-    print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+except ImportError as e:
+    sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
 
 class DALAccessErrorTest(unittest.TestCase):
 
@@ -186,8 +188,8 @@ class DALResultsTest(unittest.TestCase):
         for i in xrange(len(names)):
             self.assert_(isinstance(names[i], str) or 
                          isinstance(names[i], unicode),
-                         "field name #%d not a string: %s" % (i,type(names[i]))) 
-            self.assert_(len(names[i]) > 0, "field name #%s is empty" % i)
+                 "field name #{0} not a string: {1}".format(i,type(names[i]))) 
+            self.assert_(len(names[i]) > 0, "field name #{0} is empty".format(i))
 
         fd = self.result.fielddesc()
         self.assert_(isinstance(fd, list))
@@ -212,8 +214,8 @@ class DALResultsTest(unittest.TestCase):
 
     def testValue(self):
         self.testCtor()
-        self.assertEquals(self.result.getvalue("Format", 0), "image/fits")
-        self.assertEquals(self.result.getvalue("Format", 1), "image/jpeg")
+        self.assertEquals(self.result.getvalue("Format", 0), b"image/fits")
+        self.assertEquals(self.result.getvalue("Format", 1), b"image/jpeg")
         self.assertEquals(self.result.getvalue("Dim", 0), 2)
         val = self.result.getvalue("Size", 0)
         self.assertEquals(len(val), 2)
@@ -274,7 +276,7 @@ class RecordTest(unittest.TestCase):
             self.assert_(name in reckeys, "Missing fieldname: "+name)
 
     def testValues(self):
-        self.assertEquals(self.rec["Format"], "image/fits")
+        self.assertEquals(self.rec["Format"], b"image/fits")
         self.assertEquals(self.rec["Dim"], 2)
         val = self.rec["Size"]
         self.assertEquals(len(val), 2)
@@ -289,6 +291,14 @@ class RecordTest(unittest.TestCase):
     def testSuggestExtension(self):
         self.assertEquals(self.rec.suggest_extension("goob"), "goob")
         self.assert_(self.rec.suggest_extension() is None)
+
+    def testHasKey(self):
+        self.assertEquals(self.rec["Format"], b"image/fits")
+        self.assertTrue(self.rec.has_key('Format'))
+        self.assertTrue('Format' in self.rec)
+        self.assertFalse(self.rec.has_key('Goober'))
+        self.assertFalse('Goober' in self.rec)
+
 
 class EnsureBaseURLTest(unittest.TestCase):
 
@@ -320,7 +330,6 @@ class MimeCheckTestCase(unittest.TestCase):
     def testBad(self):
         self.assertFalse(dalq.is_mime_type("image"))
         self.assertFalse(dalq.is_mime_type("image/votable/xml"))
-
 
 class DALServiceTest(unittest.TestCase):
 
@@ -481,10 +490,10 @@ class QueryExecuteTest(unittest.TestCase):
         #if self.srvr.isAlive():
         #    self.srvr.shutdown()
         #if self.srvr.isAlive():
-        #    print "prob"
+        #    print("prob")
 
     def testExecute(self):
-        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         results = q.execute()
@@ -492,7 +501,7 @@ class QueryExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 2)
 
     def testExecuteStream(self):
-        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         strm = q.execute_stream()
@@ -500,80 +509,86 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_(hasattr(strm, "read"))
         results = strm.read()
         strm.close()
-        self.assert_(results.startswith("<?xml version="))
+        self.assert_(results.startswith(b"<?xml version="))
 
     def testExecuteRaw(self):
-        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         data = q.execute_raw()
         self.assert_(data is not None)
-        self.assert_(isinstance(data, unicode) or isinstance(data, str))
-        self.assert_(data.startswith("<?xml version="))
+        if sys.version_info[0] >= 3:
+            self.assert_(isinstance(data, str) or isinstance(data, bytes))
+        else:
+            self.assert_(isinstance(data, unicode) or isinstance(data, str))
+        self.assert_(data.startswith(b"<?xml version="))
 
     def testExecuteVotable(self):
-        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         results = q.execute_votable()
         self.assert_(isinstance(results, VOTableFile))
 
     def testExecuteServiceErr(self):
-        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute)
 
     def testExecuteRawServiceErr(self):
-        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute_raw)
 
     def testExecuteStreamServiceErr(self):
-        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
-            q.execute_raw()
+            q.execute_stream()
             self.fail("failed to raise exception on bad url")
-        except dalq.DALServiceError, e:
+        except dalq.DALServiceError as e:
             self.assertEquals(e.code, 404)
             self.assertEquals(e.reason, "Not Found")
             self.assert_(isinstance(e.cause, HTTPError))
-        except Exception, e:
+        except Exception as e:
             self.fail("wrong exception raised: " + str(type(e)))
 
 
     def testExecuteVotableServiceErr(self):
-        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute_votable)
 
     def testExecuteRawQueryErr(self):
-        q = dalq.DALQuery("http://localhost:%d/err" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/err".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         data = q.execute_raw()
         self.assert_(data is not None)
-        self.assert_(isinstance(data, unicode) or isinstance(data, str))
-        self.assert_(data.startswith("<?xml version="))
-        self.assert_('<INFO name="QUERY_STATUS" value="ERR' in data)
+        if sys.version_info[0] >= 3:
+            self.assert_(isinstance(data, str) or isinstance(data, bytes))
+        else:
+            self.assert_(isinstance(data, unicode) or isinstance(data, str))
+        self.assert_(data.startswith(b"<?xml version="))
+        self.assert_(b'<INFO name="QUERY_STATUS" value="ERR' in data)
 
     def testExecuteQueryErr(self):
-        q = dalq.DALQuery("http://localhost:%d/err" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/err".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
             q.execute()
             self.fail("failed to raise exception for syntax error")
-        except dalq.DALQueryError, e:
+        except dalq.DALQueryError as e:
             self.assertEquals(e.label, "ERROR")
             self.assertEquals(str(e), "Forced Fail")
-        except dalq.DALServiceError, e:
+        except dalq.DALServiceError as e:
             self.fail("wrong exception raised: DALServiceError: " + str(e))
-        except Exception, e:
+        except Exception as e:
             self.fail("wrong exception raised: " + str(type(e)))
 
 
