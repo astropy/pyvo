@@ -34,23 +34,28 @@ def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
     """
     execute a simple query to the VAO registry.  
 
-    :Args:
-      *keywords*:  a string giving a single term or a python list 
-                     of terms to match to registry records.  
-      *servicetype*: the service type to restrict results to; 
-                     allowed values include 'catalog' (synonyms: 
-                     'scs', 'conesearch'), 'image' (synonym: 'sia'), 
-                     'spectrum' (synonym: 'ssa'). 'service' (a generic
-                     service). 'table' (synonyms: 'tap', 'database').
-      *waveband*:  the name of a desired waveband; resources returned 
-                     will be restricted to those that indicate as having
-                     data in that waveband.  Allowed, case-insensitive 
-                     values include 'Radio', 'Millimeter', 'Infrared'
-                     (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
-                     (synonym: 'Xray').
-      *sqlpred*:   an SQL WHERE predicate (without the leading "WHERE") 
-                     that further contrains the search against supported 
-                     keywords.
+    Parameters
+    ----------
+    keywords : str or list of str
+       a string giving a single term or a python list 
+       of terms to match to registry records.  
+    servicetype : str
+       the service type to restrict results to; 
+       allowed values include 'catalog' (synonyms: 
+       'scs', 'conesearch'), 'image' (synonym: 'sia'), 
+       'spectrum' (synonym: 'ssa'). 'service' (a generic
+       service). 'table' (synonyms: 'tap', 'database').
+    waveband : str
+       the name of a desired waveband; resources returned 
+       will be restricted to those that indicate as having
+       data in that waveband.  Allowed, case-insensitive 
+       values include 'Radio', 'Millimeter', 'Infrared'
+       (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
+       (synonym: 'Xray').
+    sqlpred : str
+       an SQL WHERE predicate (without the leading "WHERE") 
+       that further contrains the search against supported 
+       keywords.
 
     The result will be a RegistryResults instance.  
     """
@@ -68,12 +73,14 @@ class RegistryService(dalq.DALService):
     def __init__(self, baseurl=None, resmeta=None, version="1.0"):
         """
         connect to an STScI registry at the given URL
-        :Args:
-           *baseurl*:  the base URL for submitting search queries to the 
-                         service.  If None, it will default to the STScI 
-                         public registry
-           *resmeta*:  an optional dictionary of properties about the 
-                         service
+        Parameters
+        ----------
+        baseurl : str
+           the base URL for submitting search queries to the 
+           service.  If None, it will default to the STScI 
+           public registry
+        resmeta : str
+           an optional dictionary of properties about the service
         """
         if not baseurl:  baseurl = self.STSCI_REGISTRY_BASEURL
         if not baseurl.endswith("/"): baseurl += "/"
@@ -88,23 +95,28 @@ class RegistryService(dalq.DALService):
         execute a simple registry search of the specified
         keywords. 
 
-        :Args:
-          *keywords*:  a string giving a single term or a python list 
-                         of terms to match to registry records.  
-          *servicetype:  the service type to restrict results to; 
-                         allowed values include 'catalog' (synonyms: 
-                         'scs', 'conesearch'), 'image' (synonym: 'sia'), 
-                         'spectrum' (synonym: 'ssa'). 'service' (a generic
-                         service). 'table' (synonyms: 'tap', 'database').
-          *waveband*:  the name of a desired waveband; resources returned 
-                         will be restricted to those that indicate as having
-                         data in that waveband.  Allowed, case-insensitive 
-                         values include 'Radio', 'Millimeter', 'Infrared'
-                         (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
-                         (synonym: 'Xray').
-          *sqlpred*:   an SQL WHERE predicate (without the leading "WHERE") 
-                         that further contrains the search against supported 
-                         keywords.
+        Parameters
+        ----------
+       keywords
+          a string giving a single term or a python list 
+          of terms to match to registry records.  
+       servicetype : str
+          the service type to restrict results to; 
+          allowed values include 'catalog' (synonyms: 
+          'scs', 'conesearch'), 'image' (synonym: 'sia'), 
+          'spectrum' (synonym: 'ssa'). 'service' (a generic
+          service). 'table' (synonyms: 'tap', 'database').
+       waveband : str
+          the name of a desired waveband; resources returned 
+          will be restricted to those that indicate as having
+          data in that waveband.  Allowed, case-insensitive 
+          values include 'Radio', 'Millimeter', 'Infrared'
+          (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
+          (synonym: 'Xray').
+       sqlpred : str
+          an SQL WHERE predicate (without the leading "WHERE") 
+          that further contrains the search against supported 
+          keywords.
 
         The result will be a RegistryResults instance.  
         """
@@ -117,7 +129,11 @@ class RegistryService(dalq.DALService):
         """
         Resolve the identifier against the registry, returning a
         resource record.  
-        @param ivoid          the IVOA Identifier of the resource
+
+        Parameters
+        ----------
+        ivoid : str
+            the IVOA Identifier of the resource
         """
         srch = self.create_query()
         srch.addpredicate("identifier='{0}'".format(ivoid))
@@ -129,25 +145,31 @@ class RegistryService(dalq.DALService):
         """
         create a RegistryQuery object that can be refined or saved
         before submitting.  
-        :Args:
-          *keywords*:  a string giving a single term or a python list 
-                         of terms to match to registry records.  
-          *servicetype:  the service type to restrict results to; 
-                         allowed values include 'catalog' (synonyms: 
-                         'table', 'scs', 'conesearch', 'ConeSearch'), 
-                         'image' (synonym: 'sia', 'SimpleImageAccess'), 
-                         'spectrum' (synonym: 'ssa', 'ssap', 
-                         'SimpleSpectralAccess'). 
-                         'database' (synonyms: 'tap','TableAccess').
-          *waveband*:  the name of a desired waveband; resources returned 
-                         will be restricted to those that indicate as having
-                         data in that waveband.  Allowed, case-insensitive 
-                         values include 'Radio', 'Millimeter', 'Infrared'
-                         (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
-                         (synonym: 'Xray').
-          *sqlpred*:   an SQL WHERE predicate (without the leading "WHERE") 
-                         that further contrains the search against supported 
-                         keywords.
+
+        Parameters
+        ----------
+        keywords : str
+           a string giving a single term or a python list 
+           of terms to match to registry records.  
+        servicetype : str
+           the service type to restrict results to; 
+           allowed values include 'catalog' (synonyms: 
+           'table', 'scs', 'conesearch', 'ConeSearch'), 
+           'image' (synonym: 'sia', 'SimpleImageAccess'), 
+           'spectrum' (synonym: 'ssa', 'ssap', 
+           'SimpleSpectralAccess'). 
+           'database' (synonyms: 'tap','TableAccess').
+        waveband : str
+           the name of a desired waveband; resources returned 
+           will be restricted to those that indicate as having
+           data in that waveband.  Allowed, case-insensitive 
+           values include 'Radio', 'Millimeter', 'Infrared'
+           (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
+           (synonym: 'Xray').
+        sqlpred : str
+           an SQL WHERE predicate (without the leading "WHERE") 
+           that further contrains the search against supported 
+           keywords.
         """
         srch = RegistryQuery(self._baseurl)
         if sqlpred:
@@ -203,15 +225,17 @@ class RegistryQuery(dalq.DALQuery):
         """
         create the query instance
 
-        :Args:
-           *baseurl*:     the base URL for the VAO registry.  If None, it will
-                            be set to the public VAO registry at STScI.
-           *orKeywords*:  if True, keyword constraints will by default be 
-                            OR-ed together; that is, a resource that matches 
-                            any of the keywords will be returned.  If FALSE,
-                            the keywords will be AND-ed, thus requiring a 
-                            resource to match all the keywords.  
-           
+        Parameters
+        ----------
+        baseurl : str
+           the base URL for the VAO registry.  If None, it will
+           be set to the public VAO registry at STScI.
+        orKeywords : bool
+           if True, keyword constraints will by default be 
+           OR-ed together; that is, a resource that matches 
+           any of the keywords will be returned.  If FALSE,
+           the keywords will be AND-ed, thus requiring a 
+           resource to match all the keywords.  
         """
         if not baseurl:  baseurl = RegistryService.STSCI_REGISTRY_BASEURL
         super(RegistryQuery, self).__init__(baseurl, "vaoreg", version)
@@ -239,9 +263,13 @@ class RegistryQuery(dalq.DALQuery):
         keyword can in fact be a phrase--a sequence of words; in this
         case the sequence of words must appear verbatim in the record
         for that record to be matched. 
-        @param keywords  either a single keyword phrase (as a string) 
-                           or a list of keyword phrases to add to the 
-                           query.  
+
+        Parameters
+        ----------
+        keywords : str or list of str  
+            either a single keyword phrase (as a string) 
+            or a list of keyword phrases to add to the 
+            query.  
         """
         if isinstance(keywords, str):
             keywords = [keywords]
@@ -252,9 +280,13 @@ class RegistryQuery(dalq.DALQuery):
         remove the given keyword or keywords from the query.  A
         keyword can in fact be a phrase--a sequence of words; in this
         case, the phrase will be remove.  
-        @param keywords  either a single keyword phrase (as a string) 
-                           or a list of keyword phrases to remove from
-                           the query.  
+
+        Parameters
+        ----------
+        keywords : str or list of str    
+            either a single keyword phrase (as a string) 
+            or a list of keyword phrases to remove from
+            the query.  
         """
         if isinstance(keywords, str):
             keywords = [keywords]
@@ -273,8 +305,12 @@ class RegistryQuery(dalq.DALQuery):
         the keywords are OR-ed, returned records will match at 
         least one of the keywords.  When they are AND-ed, the 
         records will match all of the keywords provided.  
-        @param ored   true, if the keywords should be OR-ed; false,
-                        if they should be AND-ed.
+
+        Parameters
+        ----------
+        ored : bool   
+            true, if the keywords should be OR-ed; false,
+            if they should be AND-ed.
         """
         self._orKw = ored
 
@@ -388,11 +424,14 @@ class RegistryQuery(dalq.DALQuery):
         """
         submit the query and return the results as an AstroPy votable instance
 
-        :Raises:
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALFormatError*:  for errors parsing the VOTable response
-           *DALQueryError*:   for errors in the input query syntax
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALFormatError
+           for errors parsing the VOTable response
+        DALQueryError
+           for errors in the input query syntax
         """
         out = dalq.DALQuery.execute_votable(self)
         res = dalq.DALResults(out)
@@ -417,12 +456,15 @@ class RegistryQuery(dalq.DALQuery):
         """
         submit the query and return the results as a RegistryResults
         instance.  
-        @throws RegistryServiceError   for errors connecting to or 
-                    communicating with the service
-        @throws RegistryQueryError     if the service responds with 
-                    an error, including a query syntax error.  A 
-                    syntax error should only occur if the query 
-                    query contains non-sensical predicates.
+
+        Raises
+        ------
+        RegistryServiceError   
+            for errors connecting to or communicating with the service
+        RegistryQueryError     
+            if the service responds with an error, including a query syntax 
+            error.  A syntax error should only occur if the query contains 
+            non-sensical predicates.
         """
         return RegistryResults(self.execute_votable(), self.getqueryurl())
 
@@ -430,10 +472,12 @@ class RegistryQuery(dalq.DALQuery):
         """
         submit the query and return the raw VOTable XML as a file stream
 
-        :Raises:
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALQueryError*:   for errors in the input query syntax
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors in the input query syntax
         """
         try:
             url = self.getqueryurl()
@@ -507,7 +551,8 @@ class RegistryQuery(dalq.DALQuery):
         the current query.  This function can be overridden to change
         how keyword searches are implemented.  
 
-        :Args:
+        Parameters
+        ----------
           *keywords*  a python list of the keywords
           *ored*      if True, the keywords should be ORed together; 
                           otherwise, they should be ANDed
@@ -546,7 +591,11 @@ class RegistryResults(dalq.DALResults):
         """
         return all the attributes of a resource record with the given index
         as SimpleResource instance (a dictionary-like object).
-        @param index  the zero-based index of the record
+
+        Parameters
+        ----------
+        index  : int
+            the zero-based index of the record
         """
         return SimpleResource(self, index)
 
@@ -557,14 +606,20 @@ class RegistryResults(dalq.DALResults):
         This implementation is aware of how lists of strings are encoded 
         and will return a python list of strings accordingly.
 
-        :Args:
-           *name*:   the name of the attribute (column)
-           *index*:  the zero-based index of the record
+        Parameters
+        ----------
+        name : str
+           the name of the attribute (column)
+        index : int
+           the zero-based index of the record
 
-        :Raises:
-           IndexError  if index is negative or equal or larger than the 
-                         number of rows in the result table.
-           KeyError    if name is not a recognized column name
+        Raises
+        ------
+        IndexError
+            if index is negative or equal or larger than the 
+            number of rows in the result table.
+        KeyError
+            if name is not a recognized column name
         """
         out = super(RegistryResults, self).getvalue(name, index)
         if name in self._strarraycols:
@@ -589,13 +644,16 @@ class SimpleResource(dalq.Record):
     by returned via the keys() function.  For convenience, it also stores 
     key values as properties; these include:
 
-    :Properties:
-       *title*:       the title of the resource
-       *shortname*:   the resource's short name
-       *ivoid*:       the IVOA identifier for the resource (identifier will 
-                         also work)
-       *accessurl*:   when the resource is a service, the service's access 
-                         URL.
+    Properties
+    ----------
+    title : bytes
+       the title of the resource
+    shortname : bytes
+       the resource's short name
+    ivoid : bytes
+       the IVOA identifier for the resource (identifier will also work)
+    accessurl : str
+       when the resource is a service, the service's access URL.
     """
 
     def __init__(self, results, index):
@@ -734,9 +792,10 @@ class SimpleResource(dalq.Record):
         The arguments provided should be appropriate for the service that 
         the DAL service type would expect.  
 
-        :Raises:
-           *RuntimeError*:   if the resource does not describe a searchable
-                                service.
+        Raises
+        ------
+        RuntimeError
+           if the resource does not describe a searchable service.
         """
         service = _createService(self, False);
         if not service:
@@ -773,9 +832,12 @@ def split_str_array_cell(val, delim=None):
     of the encoded value as well.  This function converts the encoded value
     into a split tuple.
 
-    :Args:
-       *val*:     the original string value to split
-       *delim*:   the delimiter that separates the values; defaults to '#'
+    Parameters
+    ----------
+    val : str
+       the original string value to split
+    delim : str
+       the delimiter that separates the values; defaults to '#'
     """
     if not val: return val
 

@@ -159,7 +159,9 @@ class Cursor(Iter):
     def infos(self):
         """Return any INFO elements in the VOTable as a dictionary.
 
-        :Returns:
+        Returns
+        -------
+        dict :
             A dictionary with each element corresponding to a single INFO,
             representing the INFO as a name:value pair.
         """
@@ -168,7 +170,9 @@ class Cursor(Iter):
     def fetchone(self):
         """Return the next row of the query response table.
 
-        :Returns:
+        Returns
+        -------
+        tuple :
             The response is a tuple wherein each element is the value of the
             corresponding table field.  
         """
@@ -184,10 +188,14 @@ class Cursor(Iter):
     def fetchmany(self, size=None):
         """Fetch the next block of rows from the query result.
 
-        :Args:
-            *size*: The number of rows to return (default: cursor.arraysize).
+        Parameters
+        ----------
+        size : int
+            The number of rows to return (default: cursor.arraysize).
 
-        :Returns:
+        Returns
+        -------
+        list of tuples :
             A list of tuples, one per row.  An empty sequence is returned when
             no more rows are available.  If a DictCursor is used then the output
             consists of a list of dictionaries, one per row.
@@ -201,7 +209,9 @@ class Cursor(Iter):
     def fetchall(self):
         """Fetch all remaining rows from the result set.
 
-        :Returns:
+        Returns
+        -------
+        list of tuples :
             A list of tuples, one per row.  An empty sequence is returned when
             no more rows are available.  If a DictCursor is used then the output
             consists of a list of dictionaries, one per row.
@@ -214,10 +224,14 @@ class Cursor(Iter):
     def scroll(self, value, mode="relative"):
         """Move the row cursor.
 
-        :Args:
-            *value*: The number of rows to skip or the row number to position to.
-
-            *mode*: Either "relative" for a relative skip (default), or "absolute" to position to a row by its absolute index within the result set (zero indexed).
+        Parameters
+        ----------
+        value : str
+            The number of rows to skip or the row number to position to.
+        mode : str
+            Either "relative" for a relative skip (default), or "absolute" 
+            to position to a row by its absolute index within the result set 
+            (zero-indexed). 
         """
         if mode == "absolute":
             if value > 0:
