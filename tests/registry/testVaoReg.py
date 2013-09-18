@@ -301,16 +301,22 @@ class RegResultsTest(unittest.TestCase):
     def testGetValue(self):
         self.testCtor()
         v = self.r.getvalue("shortName", 0)
-        self.assert_(isinstance(v, str))
-        self.assertEquals(v, "J/MNRAS/333/100 [1]")
+        if sys.version_info[0] >= 3:
+            self.assert_(isinstance(v, bytes))
+        else:
+            self.assert_(isinstance(v, str))
+        self.assertEquals(v, b"J/MNRAS/333/100 [1]")
 
         v = self.r.getvalue("subject", 0)
         self.assert_(isinstance(v, tuple))
         self.assertEquals(len(v), 4)
-        self.assert_(isinstance(v[0], str))
-        self.assertEquals(v[0], "AGN")
-        self.assertEquals(v[1], "Galaxies")
-        self.assertEquals(v[3], "Spectroscopy")
+        if sys.version_info[0] >= 3:
+            self.assert_(isinstance(v[0], bytes))
+        else:
+            self.assert_(isinstance(v[0], str))
+        self.assertEquals(v[0], b"AGN")
+        self.assertEquals(v[1], b"Galaxies")
+        self.assertEquals(v[3], b"Spectroscopy")
 
     def testListVal(self):
         self.testCtor()
@@ -339,29 +345,29 @@ class SimpleResTest(unittest.TestCase):
 
     def testArbitraryCol(self):
         self.setrec(0)
-        self.assert_(self.r["description"].startswith("We use redshift determinations and spectral"))
+        self.assert_(self.r["description"].startswith(b"We use redshift determinations and spectral"))
 
     def testAttr(self):
-        self.assertEquals(self.r.shortname, "J/MNRAS/333/100 [1]")
+        self.assertEquals(self.r.shortname, b"J/MNRAS/333/100 [1]")
         self.assertEquals(self.r.title, 
-                          "Radio galaxies in the 2dFGRS (Magliocchetti+, 2002)")
-        self.assertEquals(self.r.ivoid, "ivo://CDS.VizieR/J/MNRAS/333/100#1")
+                          b"Radio galaxies in the 2dFGRS (Magliocchetti+, 2002)")
+        self.assertEquals(self.r.ivoid, b"ivo://CDS.VizieR/J/MNRAS/333/100#1")
         self.assertEquals(self.r.accessurl, 
            "http://vizier.u-strasbg.fr/cgi-bin/VizieR-2?-source=J/MNRAS/333/100")
-        self.assertEquals(self.r.publisher, "CDS")
-        self.assertEquals(self.r.tags, "Web Page")
+        self.assertEquals(self.r.publisher, b"CDS")
+        self.assertEquals(self.r.tags, b"Web Page")
 
         # pdb.set_trace()
         self.assert_(isinstance(self.r.subject, tuple))
         self.assertEquals(len(self.r.subject), 4)
-        self.assertEquals(self.r.subject[0], "AGN")
-        self.assertEquals(self.r.subject[1], "Galaxies")
-        self.assertEquals(self.r.subject[3], "Spectroscopy")
+        self.assertEquals(self.r.subject[0], b"AGN")
+        self.assertEquals(self.r.subject[1], b"Galaxies")
+        self.assertEquals(self.r.subject[3], b"Spectroscopy")
 
-        self.assertEquals(self.r.type[0], "Catalog")
-        self.assertEquals(self.r["interfaceClass"], "WebBrowser")
-        self.assertEquals(self.r.standardid, "")
-        self.assertEquals(self.r.capability, "")
+        self.assertEquals(self.r.type[0], b"Catalog")
+        self.assertEquals(self.r["interfaceClass"], b"WebBrowser")
+        self.assertEquals(self.r.standardid, b"")
+        self.assertEquals(self.r.capability, b"")
 
     def testListVal(self):
         self.assert_(isinstance(self.r.subject, tuple))
@@ -371,16 +377,16 @@ class SimpleResTest(unittest.TestCase):
 
     def testCap(self):
         self.setrec(2)
-        self.assertEquals(self.r.tags, "Catalog")
-        self.assertEquals(self.r.type[0], "Catalog")
-        self.assertEquals(self.r.standardid, "ivo://ivoa.net/std/ConeSearch")
-        self.assertEquals(self.r.capability, "ConeSearch")
+        self.assertEquals(self.r.tags, b"Catalog")
+        self.assertEquals(self.r.type[0], b"Catalog")
+        self.assertEquals(self.r.standardid, b"ivo://ivoa.net/std/ConeSearch")
+        self.assertEquals(self.r.capability, b"ConeSearch")
 
         self.setrec(3)
-        self.assertEquals(self.r.tags, "Images")
-        self.assertEquals(self.r.type[0], "Archive")
-        self.assertEquals(self.r.standardid, "ivo://ivoa.net/std/SIA")
-        self.assertEquals(self.r.capability, "SimpleImageAccess")
+        self.assertEquals(self.r.tags, b"Images")
+        self.assertEquals(self.r.type[0], b"Archive")
+        self.assertEquals(self.r.standardid, b"ivo://ivoa.net/std/SIA")
+        self.assertEquals(self.r.capability, b"SimpleImageAccess")
 
 
 

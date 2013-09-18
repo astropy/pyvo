@@ -703,8 +703,12 @@ class SimpleResource(dalq.Record):
         """
         the URL that can be used to access the service resource.  If the 
         resource is not a service, this will typically be blank.  
+
+        Note that this will always be returned as a native string--i.e. as 
+        unicode for Python 3 and as a byte-string for Python 2--making ready
+        to use as a URL with urllib functions.
         """
-        return self.get("accessURL")
+        return self._get_to_str("accessURL")
 
     def to_service(self):
         """
@@ -756,7 +760,7 @@ def _createService(resource, savemeta=False):
     except Exception:
         return None
 
-def split_str_array_cell(val, delim='#'):
+def split_str_array_cell(val, delim=None):
     """
     split an encoded string array value into a tuple.  The VAO registry's
     search service encodes string array values by delimiting the elements 
@@ -769,6 +773,15 @@ def split_str_array_cell(val, delim='#'):
        *delim*:   the delimiter that separates the values; defaults to '#'
     """
     if not val: return val
-    if val[0] == '#': val = val[1:]
-    if val[-1] == '#': val = val[:-1]
-    return tuple(val.split('#'))
+
+    if delim is None:
+        if dalq._is_python3 and isinstance(val, bytes):
+            delim = b"#"
+        elif isinstance(val, unicode):
+            delim = u"#"
+        else:
+            delim = "#"
+
+    if val[0:1] == delim: val = val[1:]
+    if val[-1:] == delim: val = val[:-1]
+    return tuple(val.split(delim))
