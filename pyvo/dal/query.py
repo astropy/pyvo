@@ -20,17 +20,30 @@ other externally defined table.  In this case there is no VO defined
 standard data model.  Usually the field names are used to uniquely
 identify table columns.
 """
+from __future__ import print_function, division
+
 __all__ = [ "ensure_baseurl", "DALAccessError", "DALProtocolError",
             "DALFormatError", "DALServiceError", "DALQueryError",
             "DALService", "DALQuery", "DALResults", "Record"]
 
-import copy, os, re, warnings, socket
+import sys
+import os
+import re
+import warnings
 from urllib2 import urlopen, URLError, HTTPError
 from urllib import quote_plus
 
-_mimetype_re = re.compile(r'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
+if sys.version_info[0] >= 3:
+    _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
+    _is_python3 = True
+else:
+    _mimetype_re = re.compile(r'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
+    _is_python3 = False
 
 def is_mime_type(val):
+    if _is_python3 and isinstance(val, str):
+        val = val.encode('utf-8')
+
     return bool(_mimetype_re.match(val))
  
 def ensure_baseurl(url):
@@ -119,7 +132,7 @@ class DALService(object):
                               other user errors detected by the service
            *DALFormatError*:  for errors parsing the VOTable response
         """
-        q = create_query(**keywords)
+        q = self.create_query(**keywords)
         return q.execute()
 
     def create_query(self, **keywords):
@@ -259,7 +272,7 @@ class DALQuery(object):
         try:
             url = self.getqueryurl()
             return urlopen(url)
-        except IOError, ex:
+        except IOError as ex:
             raise DALServiceError.from_except(ex, url, self.protocol, 
                                               self.version)
 
@@ -277,7 +290,7 @@ class DALQuery(object):
             return _votableparse(self.execute_stream().read)
         except DALAccessError:
             raise
-        except Exception, e:
+        except Exception as e:
             raise DALFormatError(e, self.getqueryurl(True), 
                                  protocol=self.protocol, version=self.version)
 
@@ -297,8 +310,9 @@ class DALQuery(object):
                       syntax
         """
         return ensure_baseurl(self.baseurl) + \
-            "&".join(map(lambda p: "%s=%s"%(p,self._paramtostr(self._param[p])),
-                         self._param.keys()))
+           "&".join(map(lambda p: "{0}={1}".format(
+                                            p,self._paramtostr(self._param[p])),
+                        self._param.keys()))
 
     def _paramtostr(self, pval):
         if isinstance(pval, tuple) or isinstance(pval, list):
@@ -593,6 +607,10 @@ class Iter(object):
         except IndexError:
             raise StopIteration()
 
+# Note: this is for Iter subclassess (i.e. .dbapi2.Cursor) and python3
+if _is_python3 and not hasattr(Iter, "next"):
+    setattr(Iter, "next", lambda self: self.__next__())
+
 class Record(object):
     """
     one record from a DAL query result.  The column values are accessible 
@@ -626,28 +644,28 @@ class Record(object):
         except KeyError:
             return default
 
+    def _get_to_str(self, key, default=None):
+        # Needed for python3 support, this will convert to a native string 
+        # if it is not already
+        try:
+            out = self.__getitem__(key)
+        except KeyError:
+            return default
+        if isinstance(out, str):
+            return out
+        if _is_python3: 
+            if isinstance(out, bytes):
+                out = out.decode('utf-8')
+        else:
+            if isinstance(out, unicode):
+                out = out.decode('utf-8')
+        return out
+
     def __contains__(self, key):
-        return self.has_key(key)
+        return key in self.rec.dtype.names
 
     def has_key(self, key):
-        return self.rec.dtype.names
-
-    def keys(self):
-        return tuple(self.iterkeys())
-    def items(self):
-        return tuple(self.iteritems())
-    def values(self):
-        return tuple(self.itervalues())
-
-    def iteritems(self):
-        for key in self.rec.dtype.names:
-            yield (key, self.__getitem__(key))
-    def iterkeys(self):
-        for key in self.rec.dtype.names:
-            yield key
-    def itervalues(self):
-        for key in self.rec.dtype.names:
-            yield self.__getitem__(key)
+        return self.__contains__(key)
 
     def fielddesc(self, name):
         """
@@ -667,11 +685,14 @@ class Record(object):
             if (fld.utype and "Access.Reference" in fld.utype) or \
                (fld.ucd   and "meta.dataset" in fld.ucd 
                           and "meta.ref.url" in fld.ucd):
-                return self[name]
+                out = self[name]
+                if _is_python3 and isinstance(out, bytes):
+                    out = out.decode('utf-8')
+                return out
         return None
 
     def getdataset(self, timeout=None):
-	"""
+        """
         Get the dataset described by this record from the server.
 
         :Args:
@@ -679,8 +700,8 @@ class Record(object):
                             connection with server before failing with an 
                             IOError (specifically, socket.timeout) exception
 
-	:Returns:
-	    A file-like object which may be read to retrieve the referenced 
+        :Returns:
+            A file-like object which may be read to retrieve the referenced 
             dataset.
 
         :Raises:
@@ -693,8 +714,8 @@ class Record(object):
                              is established.  (note: subclass of IOError)
             *IOError*:    if some other error occurs while establishing the 
                              data stream.
-	"""
-	url = self.getdataurl()
+        """
+        url = self.getdataurl()
         if not url:
             raise KeyError("no dataset access URL recognized in record")
         if timeout:
@@ -735,9 +756,9 @@ class Record(object):
         if not filename:
             filename = self.make_dataset_filename(dir)
 
+        inp = self.getdataset(timeout)
         try:
-            inp = self.getdataset(timeout)
-            with open(filename, 'w') as out:
+            with open(filename, 'wb') as out:
                 buf = inp.read(bufsize)
                 while buf:
                     out.write(buf)
@@ -771,9 +792,9 @@ class Record(object):
         if not dir:
           raise ValueError("make_dataset_filename(): no dir parameter provided")
         if not os.path.exists(dir):
-            raise IOError("%s: directory not found" % dir)
+            raise IOError("{0}: directory not found".format(dir))
         if not os.path.isdir(dir):
-            raise ValueError("%s: not a directory" % dir)
+            raise ValueError("{0}: not a directory".format(dir))
 
         if not base:
             base = self.suggest_dataset_basename()
@@ -783,7 +804,7 @@ class Record(object):
         # be efficient when writing a bunch of files into the same directory
         # in succession
         n = self._dsname_no
-        mkpath = lambda i: os.path.join(dir, "%s-%d.%s" % (base, n, ext))
+        mkpath = lambda i: os.path.join(dir, "{0}-{1}.{2}".format(base, n, ext))
         if n > 0:
             # find the last file written of the form, base-n.ext
             while n > 0 and not os.path.exists(mkpath(n)):
@@ -792,7 +813,7 @@ class Record(object):
             n += 1
         if n == 0:
             # never wrote a file of form, base-n.ext; try base.ext
-            path = os.path.join(dir, "%s.%s" % (base, ext))
+            path = os.path.join(dir, "{0}.{1}".format(base, ext))
             if not os.path.exists(path):
                 return path
             n += 1
@@ -826,9 +847,40 @@ class Record(object):
         # abstract; specialized for the different service types
         return default
 
-_image_mt_re = re.compile(r'^image/(\w+)')
-_text_mt_re = re.compile(r'^text/(\w+)')
-_votable_mt_re = re.compile(r'^(\w+)/(x-)?votable(\+\w+)?')
+# take care giving Record its dictionary functionality with attention to 
+# whether we are using Python 2 or 3.  
+def _record_iteritems(self):
+    for key in self.rec.dtype.names:
+        yield (key, self.__getitem__(key))
+def _record_iterkeys(self):
+    for key in self.rec.dtype.names:
+        yield key
+def _record_itervalues(self):
+    for key in self.rec.dtype.names:
+        yield self.__getitem__(key)
+
+if _is_python3:
+    setattr(Record, 'items', _record_iteritems)
+    setattr(Record, 'keys', _record_iterkeys)
+    setattr(Record, 'values', _record_itervalues)
+else:
+    setattr(Record, 'iteritems', _record_iteritems)
+    setattr(Record, 'iterkeys', _record_iterkeys)
+    setattr(Record, 'itervalues', _record_itervalues)
+    setattr(Record, 'items', lambda self: tuple(self.iteritems()))
+    setattr(Record, 'keys', lambda self: tuple(self.iterkeys()))
+    setattr(Record, 'values', lambda self: tuple(self.itervalues()))
+    
+
+
+if _is_python3:
+    _image_mt_re = re.compile(b'^image/(\w+)')
+    _text_mt_re = re.compile(b'^text/(\w+)')
+    _votable_mt_re = re.compile(b'^(\w+)/(x-)?votable(\+\w+)?')
+else:
+    _image_mt_re = re.compile(r'^image/(\w+)')
+    _text_mt_re = re.compile(r'^text/(\w+)')
+    _votable_mt_re = re.compile(r'^(\w+)/(x-)?votable(\+\w+)?')
 
 def mime2extension(mimetype, default=None):
     """
@@ -845,7 +897,7 @@ def mime2extension(mimetype, default=None):
       dat
 
     :Args:
-      *mimetype*:    the file MIME-type string to convert
+      *mimetype*:    the file MIME-type byte-string to convert
       *default*:     the default extension to return if one could not be 
                          recommended based on ``mimetype``.  By convention, 
                          this should not include a preceding '.'
@@ -855,10 +907,12 @@ def mime2extension(mimetype, default=None):
     """
     if not mimetype:  
         return default
+    if _is_python3 and isinstance(mimetype, str):
+        mimetype = mimetype.encode('utf-8')
 
-    if mimetype.endswith("/fits") or mimetype.endswith('/x-fits'):
+    if mimetype.endswith(b"/fits") or mimetype.endswith(b'/x-fits'):
         return "fits"
-    if mimetype == "image/jpeg":
+    if mimetype == b"image/jpeg":
         return "jpg"
 
     m = _votable_mt_re.match(mimetype)  # r'^(\w+)/(x-)?votable(\+\w+)'
@@ -867,12 +921,18 @@ def mime2extension(mimetype, default=None):
 
     m = _image_mt_re.match(mimetype)    # r'^image/(\w+)'
     if m:
-        return m.group(1).lower()
+        out = m.group(1).lower()
+        if _is_python3:
+            out = out.decode('utf-8')
+        return out
 
     m = _text_mt_re.match(mimetype)     # r'^text/(\w+)'
     if m:
-        if m.group(1) == 'html' or m.group(1) == 'xml':
-            return m.group(1)
+        if m.group(1) == b'html' or m.group(1) == b'xml':
+            out = m.group(1)
+            if _is_python3:
+                out = out.decode('utf-8')
+            return out
         return "txt"
 
     return default
@@ -897,7 +957,7 @@ class DALAccessError(Exception):
                           the error
         """
         if not reason: reason = self._defreason
-        Exception.__init__(self, reason)
+        super(DALAccessError, self).__init__(reason)
         self._reason = reason
         self._url = url
         self._protocol = protocol
@@ -905,11 +965,13 @@ class DALAccessError(Exception):
 
     @classmethod
     def _typeName(cls, exc):
-        return re.sub(r"'>$", '', re.sub(r"<type '.*\.", '', str(type(exc))))
+        return re.sub(r"'>$", '', 
+                      re.sub(r"<(type|class) '(.*\.)?", '', 
+                             str(type(exc))))
     def __str__(self):
         return self._reason
     def __repr__(self):
-        return "%s: %s" % (self._typeName(self), self._reason)
+        return "{0}: {1}".format(self._typeName(self), self._reason)
    
     @property
     def reason(self):
@@ -991,7 +1053,7 @@ class DALProtocolError(DALAccessError):
            *version*:   version of the protocol of the service that produced 
                           the error
         """
-        DALAccessError.__init__(self, reason, url, protocol, version)
+        super(DALProtocolError, self).__init__(reason, url, protocol, version)
         self._cause = cause
 
     @property
@@ -1031,8 +1093,10 @@ class DALFormatError(DALProtocolError):
                           the error
         """
         if cause and not reason:  
-            reason = "%s: %s" % (DALAccessError._typeName(cause), str(cause))
-        DALProtocolError.__init__(self, reason, cause, url, protocol, version)
+            reason = "{0}: {0}".format(DALAccessError._typeName(cause), 
+                                       str(cause))
+        super(DALFormatError, self).__init__(reason, cause, url, 
+                                             protocol, version)
 
 
 class DALServiceError(DALProtocolError):
@@ -1059,7 +1123,8 @@ class DALServiceError(DALProtocolError):
            *version*:   version of the protocol of the service that produced 
                           the error
         """
-        DALProtocolError.__init__(self, reason, cause, url, protocol, version)
+        super(DALServiceError, self).__init__(reason, cause, url, 
+                                              protocol, version)
         self._code = code
 
     @property
@@ -1107,7 +1172,8 @@ class DALServiceError(DALProtocolError):
             return DALServiceError(reason, cause=exc, url=url, 
                                    protocol=protocol, version=version)
         elif isinstance(exc, Exception):
-            return DALServiceError("%s: %s" % (cls._typeName(exc), str(exc)), 
+            return DALServiceError("{0}: {1}".format(cls._typeName(exc), 
+                                                     str(exc)), 
                                    cause=exc, url=url, 
                                    protocol=protocol, version=version)
         else:
@@ -1139,7 +1205,7 @@ class DALQueryError(DALAccessError):
            *version*:   version of the protocol of the service that produced 
                           the error
         """
-        DALAccessError.__init__(self, reason, url, protocol, version)
+        super(DALQueryError, self).__init__(reason, url, protocol, version)
         self._label = label
                           
     @property
@@ -1165,13 +1231,13 @@ def _votableparse(source, columns=None, invalid='mask', pedantic=False,
         import astropy.io.votable.tree as votabletree
         import astropy.io.votable.table as votabletable
         from astropy.utils.xml import iterparser
-        from astropy.io.votable.exceptions import W22
+        #from astropy.io.votable.exceptions import W22
         from astropy.io.votable.exceptions import W03,W06,W20,W21,W42,W46,W47,W49,E10
         for warning in (W03, W06, W20, W21, W42, W46, W47, W49, E10):
             warnings.simplefilter("ignore", warning)
 # MJG : 021913 - commented out to get CDS responses to work
 #        warnings.simplefilter("error", W22)
-    except ImportError, ex:
+    except ImportError:
         raise RuntimeError("astropy votable not available")
 
     invalid = invalid.lower()

@@ -30,9 +30,11 @@ For more complex queries, the SSAQuery class can be helpful which
 allows one to build up, tweak, and reuse a query.  The SSAService
 class can represent a specific service available at a URL endpoint.
 """
+from __future__ import print_function, division
 
 import numbers
 import re
+import sys
 from . import query
 
 __all__ = [ "search", "SSAService", "SSAQuery" ]
@@ -82,7 +84,7 @@ class SSAService(query.DALService):
            *resmeta*:  an optional dictionary of properties about the 
                          service
         """
-        query.DALService.__init__(self, baseurl, "ssa", version, resmeta)
+        super(SSAService, self).__init__(baseurl, "ssa", version, resmeta)
 
     def search(self, pos, size, format='all', **keywords):
         """
@@ -178,7 +180,7 @@ class SSAQuery(query.DALQuery):
         """
         initialize the query object with a baseurl and request type
         """
-        query.DALQuery.__init__(self, baseurl, "ssa", version)
+        super(SSAQuery, self).__init__(baseurl, "ssa", version)
         self.setparam("REQUEST", request)
         
     @property
@@ -291,9 +293,9 @@ class SSAQuery(query.DALQuery):
             dates = val.split("/")
         else:
             dates = [val]
-        for date in dates:
+        for _ in dates:
             if not(re.match("\d{4}$|\d{4}-\d{2}$|\d{4}-\d{2}-\d{2}$|" +
-                             "\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}$")):
+                             "\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}$"), date):
                 raise ValueError("time format not valid: " + val)
 
         self.setparam("TIME", val)
@@ -365,7 +367,7 @@ class SSAResults(query.DALResults):
         by directly applications; rather an instance is obtained from calling 
         a SSAQuery's execute().
         """
-        query.DALResults.__init__(self, votable, url, "ssa", "1.0")
+        super(SSAResults, self).__init__(votable, url, "ssa", "1.0")
         self._ssacols = {
 
             "ssa:Query.Score": self.fieldname_with_utype("ssa:Query.Score"),
@@ -552,7 +554,7 @@ class SSARecord(query.Record):
     """
 
     def __init__(self, results, index):
-        query.Record.__init__(self, results, index)
+        super(SSARecord, self).__init__(results, index)
         self._utypecols = results._ssacols
         self._names = results._recnames
 
@@ -604,14 +606,22 @@ class SSARecord(query.Record):
     def acref(self):
         """
         return the URL that can be used to retrieve the image
+
+        Note that this will always be returned as a native string--i.e. as 
+        unicode for Python 3 and as a byte-string for Python 2--making ready
+        to use as a URL with urllib functions.
         """
-        return self.get(self._names["acref"])
+        return self._get_to_str(self._names["acref"])
 
     def getdataurl(self):
         """
         return the URL contained in the access URL column which can be used 
         to retrieve the dataset described by this record.  None is returned
         if no such column exists.
+
+        Note that this will always be returned as a native string--i.e. as 
+        unicode for Python 3 and as a byte-string for Python 2--making ready
+        to use as a URL with urllib functions.
         """
         return self.acref
 
@@ -624,6 +634,9 @@ class SSARecord(query.Record):
         ``make_dataset_filename()``.
         """
         out = self.title
+        if query._is_python3 and isinstance(out, bytes):
+            out = out.decode('utf-8')
+
         if not out:
             out = "image"
         else:

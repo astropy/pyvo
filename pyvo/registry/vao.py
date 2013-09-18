@@ -19,10 +19,11 @@ and resource aliases), can be a more convenient interface.  The more
 basic interface provided here allows developers to code their own 
 interaction models.  
 """
+from __future__ import print_function, division
 
 from ..dal import query as dalq
 from ..dal import sia, ssa, sla, scs
-from urllib import quote_plus, urlopen, urlretrieve
+from urllib import quote_plus, urlopen
 import re
 
 import numpy.ma as _ma
@@ -77,7 +78,8 @@ class RegistryService(dalq.DALService):
         if not baseurl:  baseurl = self.STSCI_REGISTRY_BASEURL
         if not baseurl.endswith("/"): baseurl += "/"
 
-        dalq.DALService.__init__(self, baseurl, "vaoreg", version, resmeta)
+        super(RegistryService, self).__init__(baseurl, "vaoreg", 
+                                              version, resmeta)
 
 
     def search(self, keywords=None, servicetype=None, 
@@ -107,7 +109,7 @@ class RegistryService(dalq.DALService):
         The result will be a RegistryResults instance.  
         """
         srch = self.create_query(keywords, servicetype, waveband, sqlpred)
-        # print srch.getqueryurl()
+        # print(srch.getqueryurl())
         return srch.execute()
         
     
@@ -118,7 +120,7 @@ class RegistryService(dalq.DALService):
         @param ivoid          the IVOA Identifier of the resource
         """
         srch = self.create_query()
-        srch.addpredicate("identifier='%s'" % ivoid)
+        srch.addpredicate("identifier='{0}'".format(ivoid))
         res = srch.execute()
         return res.getrecord(0)
 
@@ -212,7 +214,7 @@ class RegistryQuery(dalq.DALQuery):
            
         """
         if not baseurl:  baseurl = RegistryService.STSCI_REGISTRY_BASEURL
-        dalq.DALQuery.__init__(self, baseurl, "vaoreg", version)
+        super(RegistryQuery, self).__init__(baseurl, "vaoreg", version)
         self._kw = []          # list of individual keyword phrases
         self._preds = []       # list of SQL predicates
         self._svctype = None
@@ -295,8 +297,7 @@ class RegistryQuery(dalq.DALQuery):
         if not val:
             raise ValueError("missing serviceType value");
         if len(val) < 2:
-            raise ValueError("unrecognized serviceType value: " + 
-                             serviceType);
+            raise ValueError("unrecognized serviceType value: " + val);
 
         # uncapitalize
         if val[0].upper() == val[0]:
@@ -404,7 +405,7 @@ class RegistryQuery(dalq.DALQuery):
 
         # filter out service types that don't match
         if self.servicetype:
-            cap = self._toCapConst(self.servicetype)
+            cap = self._toCapConst(self.servicetype).encode('utf-8')
             tbl.array = \
                 _ma.array(tbl.array.data[tbl.array.data['capabilityClass']==cap],
                      mask=tbl.array.mask[tbl.array.data['capabilityClass']==cap])
@@ -437,16 +438,21 @@ class RegistryQuery(dalq.DALQuery):
         try:
             url = self.getqueryurl()
             out = urlopen(url)
-            if out.info().gettype() == "text/plain":
+            if dalq._is_python3:
+                contenttype = out.info().get_content_type()
+            else:
+                contenttype = out.info().gettype()
+
+            if contenttype == "text/plain":
                 # Error message returned
                 self._raiseServiceError(out.read())
-            elif out.info().gettype() != "text/xml":
+            elif contenttype != "text/xml":
                 # Unexpected response
                 raise dalq.DALFormatError("Wrong response format: " + 
-                                          out.info().gettype())
+                                          contenttype)
             return out
 
-        except IOError, ex:
+        except IOError as ex:
             raise dalq.DALServiceError.from_except(ex, url)
 
     def _raiseServiceError(self, response):
@@ -461,22 +467,22 @@ class RegistryQuery(dalq.DALQuery):
         return the GET URL that will submit the query and return the 
         results as a VOTable
         """
-        url = "%s%s?%s" % (self._baseurl, self.SERVICE_NAME, 
-                           self.RESULTSET_TYPE_ARG)
+        url = "{0}{1}?{2}".format(self._baseurl, self.SERVICE_NAME, 
+                                  self.RESULTSET_TYPE_ARG)
 
         # this adds arbitrary parameters
         # if len(self.paramnames()) > 0:
         #    url += "&" + \
-        #     "&".join(map(lambda p: "%s=%s"%(p,self._paramtostr(self._param[p])),
+        #     "&".join(map(lambda p: "{0}={1}".format(p,self._paramtostr(self._param[p])),
         #                  self._param.keys()))
 
         if self._band:
-            url += "&waveband=%s" % self._band
+            url += "&waveband={0}".format(self._band)
         else:
             url += "&waveband="
 
         if self._svctype:
-            url += "&capability=%s" % self._toCapConst(self.servicetype)
+            url += "&capability={0}".format(self._toCapConst(self.servicetype))
         else:
             url += "&capability="
 
@@ -484,8 +490,9 @@ class RegistryQuery(dalq.DALQuery):
         if (self.keywords): 
             preds.append(self.keywords_to_predicate(self.keywords, self._orKw))
         if (preds):
-            url += "&predicate=%s" % \
-                quote_plus(" AND ".join(map(lambda p: "(%s)" % p, preds)))
+            url += "&predicate={0}".format(
+                quote_plus(" AND ".join(map(lambda p: "({0})".format(p), 
+                                            preds))))
         else:
             url += "&predicate="
 
@@ -515,7 +522,7 @@ class RegistryQuery(dalq.DALQuery):
         for kw in keywords:
             keyconst = []
             for col in textcols:
-                keyconst.append("%s LIKE '%%%s%%'" % (col, kw))
+                keyconst.append("{0} LIKE '%{1}%'".format(col, kw))
             const.append(" OR ".join(keyconst))
         return "("+conjunction.join(const)+")"
 
@@ -533,7 +540,7 @@ class RegistryResults(dalq.DALResults):
         by directly applications; rather an instance is obtained from calling 
         a SIAQuery's execute().
         """
-        dalq.DALResults.__init__(self, votable, url, "vaoreg", version)
+        super(RegistryResults, self).__init__(votable, url, "vaoreg", version)
 
     def getrecord(self, index):
         """
@@ -559,7 +566,7 @@ class RegistryResults(dalq.DALResults):
                          number of rows in the result table.
            KeyError    if name is not a recognized column name
         """
-        out = dalq.DALResults.getvalue(self, name, index)
+        out = super(RegistryResults, self).getvalue(name, index)
         if name in self._strarraycols:
             out = split_str_array_cell(out)
         return out
@@ -592,14 +599,14 @@ class SimpleResource(dalq.Record):
     """
 
     def __init__(self, results, index):
-        dalq.Record.__init__(self, results, index)
+        super(SimpleResource, self).__init__(results, index)
 
     def __getitem__(self, key):
         """
         return a resource metadatum value with a name given by key.  This
         version will split encoded string array values into tuples.
         """
-        out = dalq.Record.__getitem__(self, key)
+        out = super(SimpleResource, self).__getitem__(key)
         if key in RegistryResults._strarraycols:
             out = split_str_array_cell(out)
         return out
@@ -701,8 +708,12 @@ class SimpleResource(dalq.Record):
         """
         the URL that can be used to access the service resource.  If the 
         resource is not a service, this will typically be blank.  
+
+        Note that this will always be returned as a native string--i.e. as 
+        unicode for Python 3 and as a byte-string for Python 2--making ready
+        to use as a URL with urllib functions.
         """
-        return self.get("accessURL")
+        return self._get_to_str("accessURL")
 
     def to_service(self):
         """
@@ -729,7 +740,7 @@ class SimpleResource(dalq.Record):
         """
         service = _createService(self, False);
         if not service:
-            raise RuntimeError("resource, %s, is not a searchable service" % self.shortname)
+            raise RuntimeError("resource, {0}, is not a searchable service".format(self.shortname))
 
         return service.search(*args, **keys)
 
@@ -751,10 +762,10 @@ def _createService(resource, savemeta=False):
     try:
         if serviceCls:
             return serviceCls(resource.accessurl, meta)
-    except Exception, ex:
+    except Exception:
         return None
 
-def split_str_array_cell(val, delim='#'):
+def split_str_array_cell(val, delim=None):
     """
     split an encoded string array value into a tuple.  The VAO registry's
     search service encodes string array values by delimiting the elements 
@@ -767,6 +778,15 @@ def split_str_array_cell(val, delim='#'):
        *delim*:   the delimiter that separates the values; defaults to '#'
     """
     if not val: return val
-    if val[0] == '#': val = val[1:]
-    if val[-1] == '#': val = val[:-1]
-    return tuple(val.split('#'))
+
+    if delim is None:
+        if dalq._is_python3 and isinstance(val, bytes):
+            delim = b"#"
+        elif isinstance(val, unicode):
+            delim = u"#"
+        else:
+            delim = "#"
+
+    if val[0:1] == delim: val = val[1:]
+    if val[-1:] == delim: val = val[:-1]
+    return tuple(val.split(delim))
