@@ -318,7 +318,7 @@ class DALQuery(object):
 
         Parameters
         ----------
-        lax : str
+        lax : bool
            if False (default), a DALQueryError exception will be 
            raised if the current set of parameters cannot be 
            used to form a legal query.  This implementation does 
