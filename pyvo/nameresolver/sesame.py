@@ -199,24 +199,6 @@ class SesameQuery(object):
         self._baseurl = val
 
     @property
-    def ignorecache(self):
-        """
-        boolean value indicating whether the sesame service's cache should 
-        be ignored.  If true, the requested databases will be queried 
-        directly for data; if false, the cache will be checked for an answer 
-        first.
-        """
-        return self._ignorecache;
-    @ignorecache.setter
-    def ignorecache(self, val):
-        if isinstance(val, int):
-            val = bool(val)
-        if not isinstance(val, bool):
-            raise TypeError("ignorecache requires bool or int, got: " + 
-                            type(val))
-        self._ignorecache = val
-
-    @property
     def dbs(self):
         """
         the database selection argument.  This is a sequence of any of the 
@@ -272,7 +254,7 @@ class SesameQuery(object):
         if isinstance(tf, int):
             tf = bool(tf)
         if not isinstance(tf, bool):
-            raise TypeError("fluxes requires bool or int, got: " + 
+            raise TypeError("ignorecache requires bool or int, got: " + 
                             type(tf))
 
         if '~' in self._dbs:
