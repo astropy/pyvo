@@ -42,7 +42,7 @@ class RegExecuteTest(unittest.TestCase):
     def testExecuteWave(self):
         q = reg.RegistryQuery()
         # pdb.set_trace()
-        q.waveband = "optical"
+        q.waveband = "millimeter"
         r = q.execute()
         self.assert_(r.size > 0)
 
@@ -64,7 +64,10 @@ class RegExecuteTest(unittest.TestCase):
         q = reg.RegistryQuery()
         q.servicetype = "ssa"
         x = q.execute_raw()
-        self.assert_(isinstance(x, str))
+        if sys.version_info[0] >= 3:
+            self.assert_(isinstance(x, bytes))
+        else:
+            self.assert_(isinstance(x, str))
         self.assert_(x.startswith(b"<?xml"))
 
 class RegResolveTest(unittest.TestCase):

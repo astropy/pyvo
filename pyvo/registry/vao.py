@@ -405,7 +405,7 @@ class RegistryQuery(dalq.DALQuery):
 
         # filter out service types that don't match
         if self.servicetype:
-            cap = self._toCapConst(self.servicetype)
+            cap = self._toCapConst(self.servicetype).encode('utf-8')
             tbl.array = \
                 _ma.array(tbl.array.data[tbl.array.data['capabilityClass']==cap],
                      mask=tbl.array.mask[tbl.array.data['capabilityClass']==cap])
@@ -438,13 +438,18 @@ class RegistryQuery(dalq.DALQuery):
         try:
             url = self.getqueryurl()
             out = urlopen(url)
-            if out.info().gettype() == "text/plain":
+            if dalq._is_python3:
+                contenttype = out.info().get_content_type()
+            else:
+                contenttype = out.info().gettype()
+
+            if contenttype == "text/plain":
                 # Error message returned
                 self._raiseServiceError(out.read())
-            elif out.info().gettype() != "text/xml":
+            elif contenttype != "text/xml":
                 # Unexpected response
                 raise dalq.DALFormatError("Wrong response format: " + 
-                                          out.info().gettype())
+                                          contenttype)
             return out
 
         except IOError as ex:
