@@ -3,16 +3,17 @@
 Tests for pyvo.nameresolver.sesame
 """
 from __future__ import print_function, division
+import pytest
 
 import os, sys, shutil, re, imp
-import unittest, pdb
+import unittest
 from urllib2 import URLError, HTTPError
 
 import pyvo.nameresolver.sesame as sesame
 import xml.etree.ElementTree as ET
+from astropy.utils.data import get_pkg_data_filename
 
-testdir = os.path.dirname(sys.argv[0])
-resultfile = "sesame.xml"
+resultfile = "data/sesame.xml"
 
 xmldecl = "<?xml version=\"1.0\"?>"
 
@@ -206,7 +207,7 @@ class ProperMotionTest(unittest.TestCase):
 class ObjectDataTest(unittest.TestCase):
 
     def setUp(self):
-        result = os.path.join(testdir, resultfile)
+        result = get_pkg_data_filename(resultfile)
         self.sesel = ET.parse(result).getroot()
 
     def selectResolver(self, target, which):
@@ -342,7 +343,7 @@ class ObjectDataTest(unittest.TestCase):
 class TargetTest(unittest.TestCase):
 
     def setUp(self):
-        result = os.path.join(testdir, resultfile)
+        result = get_pkg_data_filename(resultfile)
         self.sesel = ET.parse(result).getroot()
 
     def selectTarget(self, which):
