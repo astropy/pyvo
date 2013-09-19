@@ -4,7 +4,7 @@ Tests for pyvo.dal.sia
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp, glob
+import os, sys, shutil, re, imp, glob, tempfile
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -14,20 +14,13 @@ import pyvo.dal.dbapi2 as daldbapi
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
+from astropy.utils.data import get_pkg_data_filename
+from . import aTestSIAServer as testserve
 
-testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
-siaresultfile = "neat-sia.xml"
-errresultfile = "error-sia.xml"
-testserverport = 8081
-
-try:
-    t = "aTestSIAServer"
-    mod = imp.find_module(t, [testdir])
-    testserver = imp.load_module(t, mod[0], mod[1], mod[2])
-    testserver.testdir = testdir
-except ImportError as e:
-    sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+siaresultfile = "data/neat-sia.xml"
+errresultfile = "data/error-sia.xml"
+testserverport = 8084
+testserverport += 5
 
 class SIAServiceTest(unittest.TestCase):
 
@@ -342,7 +335,7 @@ class SIAQueryTest(unittest.TestCase):
 class SIAResultsTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, siaresultfile)
+        resultfile = get_pkg_data_filename(siaresultfile)
         self.tbl = votableparse(resultfile)
 
     def testCtor(self):
@@ -375,7 +368,7 @@ class SIAResultsTest(unittest.TestCase):
 class SIAResultsErrorTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, errresultfile)
+        resultfile = get_pkg_data_filename(errresultfile)
         self.tbl = votableparse(resultfile)
 
     def testError(self):
@@ -391,7 +384,7 @@ class SIARecordTest(unittest.TestCase):
     acref = "http://skyview.gsfc.nasa.gov/cgi-bin/images?position=0.0%2C0.0&survey=neat&pixels=300%2C300&sampler=Clip&size=1.0%2C1.0&projection=Tan&coordinates=J2000.0&return=FITS"
 
     def setUp(self):
-        resultfile = os.path.join(testdir, siaresultfile)
+        resultfile = get_pkg_data_filename(siaresultfile)
         self.tbl = votableparse(resultfile)
         self.result = sia.SIAResults(self.tbl)
         self.rec = self.result.getrecord(0)
@@ -416,6 +409,20 @@ class SIARecordTest(unittest.TestCase):
         self.assertEquals(self.rec.getdataurl(), self.acref)
 
 class SIAExecuteTest(unittest.TestCase):
+
+    srvr = None
+
+    @classmethod
+    def setup_class(cls):
+        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr.start()
+
+    @classmethod
+    def teardown_class(cls):
+        if cls.srvr.isAlive():
+            cls.srvr.shutdown()
+        if cls.srvr.isAlive():
+            print("prob")
 
     def testExecute(self):
         q = sia.SIAQuery("http://localhost:{0}/sia".format(testserverport))
@@ -457,18 +464,22 @@ class DatasetNameTest(unittest.TestCase):
     base = "testim"
 
     def setUp(self):
-        resultfile = os.path.join(testdir, siaresultfile)
+        resultfile = get_pkg_data_filename(siaresultfile)
         self.tbl = votableparse(resultfile)
         self.result = sia.SIAResults(self.tbl)
         self.rec = self.result.getrecord(0)
 
-        self.cleanfiles()
+        self.outdir = tempfile.mkdtemp()
 
     def tearDown(self):
-        self.cleanfiles()
+        shutil.rmtree(self.outdir)
 
-    def cleanfiles(self):
-        files = glob.glob(os.path.join(testdir, self.base+"*.*"))
+    def cleanfiles(self, tmpdir=None):
+        if not tmpdir:
+            tmpdir = self.outdir
+        if not os.path.isdir(tmpdir):
+            return
+        files = glob.glob(os.path.join(tmpdir, self.base+"*.*"))
         for f in files:
             os.remove(f)
 
@@ -489,44 +500,44 @@ class DatasetNameTest(unittest.TestCase):
                           self.rec.make_dataset_filename(base="goober", 
                                                          ext="jpg"))
                           
-        self.assertEquals(testdir+"/neat.fits", 
-                          self.rec.make_dataset_filename(testdir))
+        self.assertEquals(self.outdir+"/neat.fits", 
+                          self.rec.make_dataset_filename(self.outdir))
 
-        path = os.path.join(testdir,self.base+".fits")
+        path = os.path.join(self.outdir,self.base+".fits")
         self.assertFalse(os.path.exists(path))
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
-        path = os.path.join(testdir,self.base+"-1.fits")
+        path = os.path.join(self.outdir,self.base+"-1.fits")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
-        path = os.path.join(testdir,self.base+"-2.fits")
+        path = os.path.join(self.outdir,self.base+"-2.fits")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
-        path = os.path.join(testdir,self.base+"-3.fits")
+        path = os.path.join(self.outdir,self.base+"-3.fits")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
                          
         self.cleanfiles()
-        open(os.path.join(testdir,self.base+".fits"),'w').close()
-        path = os.path.join(testdir,self.base+"-1.fits")
+        open(os.path.join(self.outdir,self.base+".fits"),'w').close()
+        path = os.path.join(self.outdir,self.base+"-1.fits")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
-        open(os.path.join(testdir,self.base+"-1.fits"),'w').close()
-        open(os.path.join(testdir,self.base+"-2.fits"),'w').close()
-        open(os.path.join(testdir,self.base+"-3.fits"),'w').close()
-        path = os.path.join(testdir,self.base+"-4.fits")
+                          self.rec.make_dataset_filename(self.outdir, self.base))
+        open(os.path.join(self.outdir,self.base+"-1.fits"),'w').close()
+        open(os.path.join(self.outdir,self.base+"-2.fits"),'w').close()
+        open(os.path.join(self.outdir,self.base+"-3.fits"),'w').close()
+        path = os.path.join(self.outdir,self.base+"-4.fits")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
 
         self.cleanfiles()
-        self.assertEquals(os.path.join(testdir,self.base+".fits"),
-                          self.rec.make_dataset_filename(testdir, self.base))
+        self.assertEquals(os.path.join(self.outdir,self.base+".fits"),
+                          self.rec.make_dataset_filename(self.outdir, self.base))
 
 
 __all__ = "SIAServiceTest SIAQueryTest SIAResultsTest SIARecordTest SIAExecuteTest DatasetNameTest".split()
@@ -537,7 +548,17 @@ def suite():
     return unittest.TestSuite(tests)
 
 if __name__ == "__main__":
-    srvr = testserver.TestServer(testserverport)
+    try:
+        module = find_current_module(1, True)
+        pkgdir = os.path.dirname(module.__file__)
+        t = "aTestSIAServer"
+        mod = imp.find_module(t, [pkgdir])
+        testserve = imp.load_module(t, mod[0], mod[1], mod[2])
+    except ImportError as e:
+        sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+
+    srvr = testserve.TestServer(testserverport)
+
     try:
         srvr.start()
         unittest.main()
