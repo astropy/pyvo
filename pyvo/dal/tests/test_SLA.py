@@ -14,20 +14,13 @@ import pyvo.dal.dbapi2 as daldbapi
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
+from astropy.utils.data import get_pkg_data_filename
+from . import aTestSIAServer as testserve
 
-testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
-slaresultfile = "nrao-sla.xml"
-errresultfile = "error-sla.xml"
-testserverport = 8081
-
-try:
-    t = "aTestSIAServer"
-    mod = imp.find_module(t, [testdir])
-    testserver = imp.load_module(t, mod[0], mod[1], mod[2])
-    testserver.testdir = testdir
-except ImportError as e:
-    sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+slaresultfile = "data/nrao-sla.xml"
+errresultfile = "data/error-sla.xml"
+testserverport = 8084
+testserverport += 3
 
 class SLAServiceTest(unittest.TestCase):
 
@@ -123,7 +116,7 @@ class SLAQueryTest(unittest.TestCase):
 class SLAResultsTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, slaresultfile)
+        resultfile = get_pkg_data_filename(slaresultfile)
         self.tbl = votableparse(resultfile)
 
     def testCtor(self):
@@ -150,7 +143,7 @@ class SLAResultsTest(unittest.TestCase):
 class SLAResultsErrorTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, errresultfile)
+        resultfile = get_pkg_data_filename(errresultfile)
         self.tbl = votableparse(resultfile)
 
     def testError(self):
@@ -164,7 +157,7 @@ class SLAResultsErrorTest(unittest.TestCase):
 class SLARecordTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, slaresultfile)
+        resultfile = get_pkg_data_filename(slaresultfile)
         self.tbl = votableparse(resultfile)
         self.result = sla.SLAResults(self.tbl)
         self.rec = self.result.getrecord(0)
@@ -181,6 +174,20 @@ class SLARecordTest(unittest.TestCase):
         self.assertTrue(self.rec.final_level is None)
 
 class SLAExecuteTest(unittest.TestCase):
+
+    srvr = None
+
+    @classmethod
+    def setup_class(cls):
+        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr.start()
+
+    @classmethod
+    def teardown_class(cls):
+        if cls.srvr.isAlive():
+            cls.srvr.shutdown()
+        if cls.srvr.isAlive():
+            print("prob")
 
     def testExecute(self):
         q = sla.SLAQuery("http://localhost:{0}/sla".format(testserverport))
@@ -219,7 +226,17 @@ def suite():
     return unittest.TestSuite(tests)
 
 if __name__ == "__main__":
-    srvr = testserver.TestServer(testserverport)
+    try:
+        module = find_current_module(1, True)
+        pkgdir = os.path.dirname(module.__file__)
+        t = "aTestSIAServer"
+        mod = imp.find_module(t, [pkgdir])
+        testserve = imp.load_module(t, mod[0], mod[1], mod[2])
+    except ImportError as e:
+        sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+
+    srvr = testserve.TestServer(testserverport)
+
     try:
         srvr.start()
         unittest.main()
