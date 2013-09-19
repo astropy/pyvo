@@ -4,7 +4,6 @@
 Tests for pyvo.registry.vao
 """
 from __future__ import print_function, division
-import pytest
 
 import os, sys, shutil, re, imp
 import unittest, pdb
