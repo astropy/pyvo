@@ -110,8 +110,6 @@ class SesameQueryTest(unittest.TestCase):
 @remote_data
 class ResolveTest(unittest.TestCase):
 
-    pytestmark = pytest.mark.skipif("do_remote")
-
     def testDefault(self):
         odata = sesame.resolve("NGC4258")
         self.assertTrue(odata is not None)
@@ -190,8 +188,6 @@ class ResolveTest(unittest.TestCase):
 @remote_data
 class Object2posTest(unittest.TestCase):
 
-    pytestmark = pytest.mark.skipif("do_remote")
-
     def testDefault(self):
         pos = sesame.object2pos("NGC4258")
         self.assertTrue(pos is not None)
@@ -245,8 +241,6 @@ class Object2posTest(unittest.TestCase):
 
 @remote_data
 class Object2sexaposTest(unittest.TestCase):
-
-    pytestmark = pytest.mark.skipif("do_remote")
 
     def testDefault(self):
         pos = sesame.object2sexapos("NGC4258")
