@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Tests for pyvo.nameresolver.sesame
+Tests for pyvo.nameresolver.sesame requiring the network
 """
 from __future__ import print_function, division
 
@@ -10,11 +11,9 @@ from urllib2 import URLError, HTTPError
 
 import pyvo.nameresolver.sesame as sesame
 import xml.etree.ElementTree as ET
+from astropy.tests.helper import pytest, remote_data
+import pytest
 
-testdir = os.path.dirname(sys.argv[0])
-resultfile = "sesame.xml"
-
-xmldecl = "<?xml version=\"1.0\"?>"
 mirrors = ["cfa", "cds"]
 default_mirror = "cds"
 
@@ -23,6 +22,9 @@ if default_mirror in mirrors:
 alt_mirror = mirrors[0]
 sesame.set_default_endpoint(default_mirror)
 
+do_remote = False
+
+@remote_data
 class SesameQueryTest(unittest.TestCase):
 
     def testExecuteStream(self):
@@ -104,7 +106,11 @@ class SesameQueryTest(unittest.TestCase):
         self.assertTrue(odata is not None)
         self.assertEquals("{NGC} 4258", odata.oname)
 
+
+@remote_data
 class ResolveTest(unittest.TestCase):
+
+    pytestmark = pytest.mark.skipif("do_remote")
 
     def testDefault(self):
         odata = sesame.resolve("NGC4258")
@@ -181,7 +187,10 @@ class ResolveTest(unittest.TestCase):
 
         self.assertRaises(LookupError, sesame.resolve, "NGC4258", mirror="ncsa")
 
+@remote_data
 class Object2posTest(unittest.TestCase):
+
+    pytestmark = pytest.mark.skipif("do_remote")
 
     def testDefault(self):
         pos = sesame.object2pos("NGC4258")
@@ -234,7 +243,10 @@ class Object2posTest(unittest.TestCase):
         self.assertRaises(LookupError, sesame.object2pos, "NGC4258", 
                           mirror="ncsa")
 
+@remote_data
 class Object2sexaposTest(unittest.TestCase):
+
+    pytestmark = pytest.mark.skipif("do_remote")
 
     def testDefault(self):
         pos = sesame.object2sexapos("NGC4258")

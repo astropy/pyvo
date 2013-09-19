@@ -34,7 +34,7 @@ from ..dal.query import DALQueryError, DALFormatError, DALServiceError
 
 endpoints = { "cds": "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame",
               "cfa": "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame" }
-default_endpoint = endpoints["cfa"]
+default_endpoint = endpoints["cds"]
 
 def set_default_endpoint(name):
     """

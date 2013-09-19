@@ -398,7 +398,7 @@ class SesameQueryTest(unittest.TestCase):
     def testCtor(self):
         self.assertEquals(sesame.default_endpoint, self.query.baseurl)
         self.query = sesame.SesameQuery(sesame.endpoints["cfa"])
-        self.assertEquals(sesame.default_endpoint, self.query.baseurl)
+        self.assertEquals(sesame.endpoints["cfa"], self.query.baseurl)
 
     def testDbs(self):
         self.assertEquals("", self.query.dbs)
@@ -459,7 +459,7 @@ class SesameQueryTest(unittest.TestCase):
 class EndpointSetTest(unittest.TestCase):
 
     def testSetDef(self):
-        self.assertEquals(sesame.endpoints["cfa"], sesame.default_endpoint)
+        self.assertEquals(sesame.endpoints["cds"], sesame.default_endpoint)
 
         # pdb.set_trace()
         sesame.set_default_endpoint("cds")
