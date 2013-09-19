@@ -1,10 +1,11 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Tests for pyvo.dal.ssa
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp, glob
+import os, sys, shutil, re, imp, glob, tempfile
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -14,20 +15,15 @@ import pyvo.dal.dbapi2 as daldbapi
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
+from astropy.utils.data import get_pkg_data_filename
+from . import aTestSIAServer as testserve
 
 testdir = os.path.dirname(sys.argv[0])
 if not testdir:  testdir = "tests"
-ssaresultfile = "jhu-ssa.xml"
-errresultfile = "error-ssa.xml"
-testserverport = 8081
-
-try:
-    t = "aTestSIAServer"
-    mod = imp.find_module(t, [testdir])
-    testserver = imp.load_module(t, mod[0], mod[1], mod[2])
-    testserver.testdir = testdir
-except ImportError as e:
-    sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+ssaresultfile = "data/jhu-ssa.xml"
+errresultfile = "data/error-ssa.xml"
+testserverport = 8084
+testserverport += 4
 
 class SSAServiceTest(unittest.TestCase):
 
@@ -257,7 +253,7 @@ class SSAQueryTest(unittest.TestCase):
 class SSAResultsTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, ssaresultfile)
+        resultfile = get_pkg_data_filename(ssaresultfile)
         self.tbl = votableparse(resultfile)
 
     def testCtor(self):
@@ -290,7 +286,7 @@ class SSAResultsTest(unittest.TestCase):
 class SSAResultsErrorTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, errresultfile)
+        resultfile = get_pkg_data_filename(errresultfile)
         self.tbl = votableparse(resultfile)
 
     def testError(self):
@@ -306,7 +302,7 @@ class SSARecordTest(unittest.TestCase):
     acref = "http://vaosa-vm1.aoc.nrao.edu/ivoa-dal/JhuSsapServlet?REQUEST=getData&FORMAT=votable&PubDID=ivo%3A%2F%2Fjhu%2Fsdss%2Fdr6%2Fspec%2F2.5%2380442261170552832"
 
     def setUp(self):
-        resultfile = os.path.join(testdir, ssaresultfile)
+        resultfile = get_pkg_data_filename(ssaresultfile)
         self.tbl = votableparse(resultfile)
         self.result = ssa.SSAResults(self.tbl)
         self.rec = self.result.getrecord(0)
@@ -327,6 +323,20 @@ class SSARecordTest(unittest.TestCase):
         self.assertEquals(self.rec.getdataurl(), self.acref)
 
 class SSAExecuteTest(unittest.TestCase):
+
+    srvr = None
+
+    @classmethod
+    def setup_class(cls):
+        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr.start()
+
+    @classmethod
+    def teardown_class(cls):
+        if cls.srvr.isAlive():
+            cls.srvr.shutdown()
+        if cls.srvr.isAlive():
+            print("prob")
 
     def testExecute(self):
         q = ssa.SSAQuery("http://localhost:{0}/ssa".format(testserverport))
@@ -367,18 +377,22 @@ class DatasetNameTest(unittest.TestCase):
     base = "testspec"
 
     def setUp(self):
-        resultfile = os.path.join(testdir, ssaresultfile)
+        resultfile = get_pkg_data_filename(ssaresultfile)
         self.tbl = votableparse(resultfile)
         self.result = ssa.SSAResults(self.tbl)
         self.rec = self.result.getrecord(0)
 
-        self.cleanfiles()
+        self.outdir = tempfile.mkdtemp()
 
     def tearDown(self):
-        self.cleanfiles()
+        shutil.rmtree(self.outdir)
 
-    def cleanfiles(self):
-        files = glob.glob(os.path.join(testdir, self.base+"*.*"))
+    def cleanfiles(self, tmpdir=None):
+        if not tmpdir:
+            tmpdir = self.outdir
+        if not os.path.isdir(tmpdir):
+            return
+        files = glob.glob(os.path.join(tmpdir, self.base+"*.*"))
         for f in files:
             os.remove(f)
 
@@ -388,6 +402,7 @@ class DatasetNameTest(unittest.TestCase):
         self.assertEquals("xml", self.rec.suggest_extension("DAT"))
 
     def testMakeDatasetName(self):
+        self.assertTrue(os.path.isdir(self.outdir))
         self.assertEquals("./SDSS_J115923.80+005905.16_GALAXY.xml", 
                           self.rec.make_dataset_filename())
         self.assertEquals("./goober.xml", 
@@ -398,44 +413,44 @@ class DatasetNameTest(unittest.TestCase):
                           self.rec.make_dataset_filename(base="goober", 
                                                          ext="jpg"))
                           
-        self.assertEquals(testdir+"/SDSS_J115923.80+005905.16_GALAXY.xml", 
-                          self.rec.make_dataset_filename(testdir))
+        self.assertEquals(self.outdir+"/SDSS_J115923.80+005905.16_GALAXY.xml", 
+                          self.rec.make_dataset_filename(self.outdir))
 
-        path = os.path.join(testdir,self.base+".xml")
+        path = os.path.join(self.outdir,self.base+".xml")
         self.assertFalse(os.path.exists(path))
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
-        path = os.path.join(testdir,self.base+"-1.xml")
+        path = os.path.join(self.outdir,self.base+"-1.xml")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
-        path = os.path.join(testdir,self.base+"-2.xml")
+        path = os.path.join(self.outdir,self.base+"-2.xml")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
-        path = os.path.join(testdir,self.base+"-3.xml")
+        path = os.path.join(self.outdir,self.base+"-3.xml")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
                          
         self.cleanfiles()
-        open(os.path.join(testdir,self.base+".xml"),'w').close()
-        path = os.path.join(testdir,self.base+"-1.xml")
+        open(os.path.join(self.outdir,self.base+".xml"),'w').close()
+        path = os.path.join(self.outdir,self.base+"-1.xml")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
-        open(os.path.join(testdir,self.base+"-1.xml"),'w').close()
-        open(os.path.join(testdir,self.base+"-2.xml"),'w').close()
-        open(os.path.join(testdir,self.base+"-3.xml"),'w').close()
-        path = os.path.join(testdir,self.base+"-4.xml")
+                          self.rec.make_dataset_filename(self.outdir, self.base))
+        open(os.path.join(self.outdir,self.base+"-1.xml"),'w').close()
+        open(os.path.join(self.outdir,self.base+"-2.xml"),'w').close()
+        open(os.path.join(self.outdir,self.base+"-3.xml"),'w').close()
+        path = os.path.join(self.outdir,self.base+"-4.xml")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
 
         self.cleanfiles()
-        self.assertEquals(os.path.join(testdir,self.base+".xml"),
-                          self.rec.make_dataset_filename(testdir, self.base))
+        self.assertEquals(os.path.join(self.outdir,self.base+".xml"),
+                          self.rec.make_dataset_filename(self.outdir, self.base))
 
 
 
@@ -447,7 +462,17 @@ def suite():
     return unittest.TestSuite(tests)
 
 if __name__ == "__main__":
-    srvr = testserver.TestServer(testserverport)
+    try:
+        module = find_current_module(1, True)
+        pkgdir = os.path.dirname(module.__file__)
+        t = "aTestSIAServer"
+        mod = imp.find_module(t, [pkgdir])
+        testserve = imp.load_module(t, mod[0], mod[1], mod[2])
+    except ImportError as e:
+        sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+
+    srvr = testserve.TestServer(testserverport)
+
     try:
         srvr.start()
         unittest.main()
