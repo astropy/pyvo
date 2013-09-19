@@ -20,8 +20,9 @@ class LicenseTestCase(unittest.TestCase):
         self.assertTrue(
             len(filter(lambda ln: ln.startswith(license_ref_line), lines)) > 0,
             "{0} does not have license reference line".format(filename))
-        self.assertTrue(lines[0].startswith(license_ref_line),
-    "license reference line is not first line in {0}".format(license_ref_line))
+        self.assertTrue(lines[0].startswith(license_ref_line) or 
+                        lines[1].startswith(license_ref_line),
+    "license reference line is not 1st or 2nd line in {0}".format(license_ref_line))
 
     def testHasLicense(self):
         self.assertTrue(os.path.exists(license_file),
