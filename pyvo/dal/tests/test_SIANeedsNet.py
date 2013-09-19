@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Tests for pyvo.dal.sia
 """
@@ -12,9 +13,12 @@ import pyvo.dal.query as dalq
 import pyvo.dal.sia as sia
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
+from astropy.io.votable.tree import VOTableFile
+from astropy.tests.helper import pytest, remote_data
 
 neat = "http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=neat&"
 
+@remote_data
 class NeatSIAExecuteTest(unittest.TestCase):
 
     imfile = "testimg.fits"

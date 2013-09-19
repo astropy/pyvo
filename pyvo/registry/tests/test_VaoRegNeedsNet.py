@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Tests for pyvo.registry.vao module
+Tests for pyvo.registry.vao module requiring network access
 """
 from __future__ import print_function, division
 
@@ -12,7 +13,9 @@ import pyvo.dal.query as dalq
 import pyvo.registry.vao as reg
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
+from astropy.tests.helper import pytest, remote_data
 
+@remote_data
 class RegExecuteTest(unittest.TestCase):
 
     def testExecuteKW(self):
@@ -70,6 +73,7 @@ class RegExecuteTest(unittest.TestCase):
             self.assert_(isinstance(x, str))
         self.assert_(x.startswith(b"<?xml"))
 
+@remote_data
 class RegResolveTest(unittest.TestCase):
 
     def testResolve(self):
