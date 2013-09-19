@@ -15,20 +15,13 @@ import pyvo.dal.dbapi2 as daldbapi
 from astropy.io.votable.tree import VOTableFile
 from astropy.io.votable.exceptions import W22
 from pyvo.dal.query import _votableparse as votableparse
+from astropy.utils.data import get_pkg_data_filename
+from . import aTestSIAServer as testserve
 
-testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
-csresultfile = "twomass-cs.xml"
-errresultfile = "error-cs.xml"
-testserverport = 8081
-
-try:
-    t = "aTestSIAServer"
-    mod = imp.find_module(t, [testdir])
-    testserver = imp.load_module(t, mod[0], mod[1], mod[2])
-    testserver.testdir = testdir
-except ImportError as e:
-    sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+csresultfile = "data/twomass-cs.xml"
+errresultfile = "data/error-cs.xml"
+testserverport = 8084
+testserverport += 2
 
 class SCSServiceTest(unittest.TestCase):
 
@@ -147,7 +140,7 @@ class SCSQueryTest(unittest.TestCase):
 class CSResultsTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, csresultfile)
+        resultfile = get_pkg_data_filename(csresultfile)
         self.tbl = votableparse(resultfile)
 
     def testCtor(self):
@@ -173,7 +166,7 @@ class CSResultsTest(unittest.TestCase):
 class CSResultsErrorTest(unittest.TestCase):
 
     def testErrorVOTableInfo(self):
-        resultfile = os.path.join(testdir, errresultfile)
+        resultfile = get_pkg_data_filename(errresultfile)
         self.tbl = votableparse(resultfile)
         try:
             res = cs.SCSResults(self.tbl)
@@ -183,7 +176,7 @@ class CSResultsErrorTest(unittest.TestCase):
             self.assertEquals(ex.reason, "Forced Fail")
 
     def testErrorResourceInfo(self):
-        resultfile = os.path.join(testdir, "error3-cs.xml")
+        resultfile = get_pkg_data_filename("data/error3-cs.xml")
         self.tbl = votableparse(resultfile)
         try:
             res = cs.SCSResults(self.tbl)
@@ -193,7 +186,7 @@ class CSResultsErrorTest(unittest.TestCase):
             self.assertEquals(ex.reason, "Forced Fail")
 
     def testErrorParam(self):
-        resultfile = os.path.join(testdir, "error2-cs.xml")
+        resultfile = get_pkg_data_filename("data/error2-cs.xml")
         self.tbl = votableparse(resultfile)
         try:
             res = cs.SCSResults(self.tbl)
@@ -207,14 +200,14 @@ class CSResultsErrorTest(unittest.TestCase):
 #    def testErrorDefParam(self):
 #       Will not raise if VOTable version is 1.0
     def _testErrorDefParam(self):
-        resultfile = os.path.join(testdir, "error4-cs.xml")
+        resultfile = get_pkg_data_filename("error4-cs.xml")
         self.assertRaises(W22, votableparse, resultfile)
 
 
 class CSRecordTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, csresultfile)
+        resultfile = get_pkg_data_filename(csresultfile)
         self.tbl = votableparse(resultfile)
         self.result = cs.SCSResults(self.tbl)
         self.rec = self.result.getrecord(0)
@@ -231,6 +224,20 @@ class CSRecordTest(unittest.TestCase):
 
 class CSExecuteTest(unittest.TestCase):
     baseurl = "http://localhost:{0}/cs?"
+
+    srvr = None
+
+    @classmethod
+    def setup_class(cls):
+        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr.start()
+
+    @classmethod
+    def teardown_class(cls):
+        if cls.srvr.isAlive():
+            cls.srvr.shutdown()
+        if cls.srvr.isAlive():
+            print("prob")
 
     def testExecute(self):
         q = cs.SCSQuery(self.baseurl.format(testserverport))
@@ -271,7 +278,17 @@ def suite():
     return unittest.TestSuite(tests)
 
 if __name__ == "__main__":
-    srvr = testserver.TestServer(testserverport)
+    try:
+        module = find_current_module(1, True)
+        pkgdir = os.path.dirname(module.__file__)
+        t = "aTestSIAServer"
+        mod = imp.find_module(t, [pkgdir])
+        testserve = imp.load_module(t, mod[0], mod[1], mod[2])
+    except ImportError as e:
+        sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+
+    srvr = testserve.TestServer(testserverport)
+
     try:
         srvr.start()
         unittest.main()
