@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Tests for pyvo.registry.vao
 """
 from __future__ import print_function, division
+import pytest
 
 import os, sys, shutil, re, imp
 import unittest, pdb
@@ -12,10 +14,9 @@ import pyvo.dal.query as dalq
 import pyvo.registry.vao as reg
 from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
+from astropy.utils.data import get_pkg_data_filename
 
-testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
-regresultfile = "reg-short.xml"
+regresultfile = "data/reg-short.xml"
 
 
 class RegServiceTest(unittest.TestCase):
@@ -290,7 +291,7 @@ class RegResultsTest(unittest.TestCase):
 
     def setUp(self):
         # load a canned result file
-        resultfile = os.path.join(testdir, regresultfile)
+        resultfile = get_pkg_data_filename(regresultfile)
         self.tbl = votableparse(resultfile)
 
     def testCtor(self):
@@ -335,7 +336,7 @@ class RegResultsTest(unittest.TestCase):
 class SimpleResTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, regresultfile)
+        resultfile = get_pkg_data_filename(regresultfile)
         self.tbl = votableparse(resultfile)
         self.result =  reg.RegistryResults(self.tbl)
         self.setrec(0)
