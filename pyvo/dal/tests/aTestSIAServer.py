@@ -1,21 +1,24 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-a test DAL server for testing dal.query
+a test DAL server for testing pyvo.dal
 """
+from __future__ import print_function, division
+
 import os
 import sys
 import shutil
 import re
 import threading
+import socket
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from astropy.utils.data import get_pkg_data_filename
 
-testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
-siaresult = "neat-sia.xml"
-scsresult = "twomass-cs.xml"
-errresult = "error-sia.xml"
-ssaresult = "jhu-ssa.xml"
-slaresult = "nrao-sla.xml"
+siaresult = "data/neat-sia.xml"
+scsresult = "data/twomass-cs.xml"
+errresult = "data/error-sia.xml"
+ssaresult = "data/jhu-ssa.xml"
+slaresult = "data/nrao-sla.xml"
 
 class TestHandler(BaseHTTPRequestHandler):
 
@@ -36,9 +39,18 @@ class TestHandler(BaseHTTPRequestHandler):
             self.send_ssa()
         elif path == "/sla":
             self.send_sla()
+        elif path == "/shutdown":
+            self.send_empty()
+            # self.shutdown()
         else:
-            self.send_error(404)
-            self.end_headers()
+            try:
+                self.send_error(404)
+                self.end_headers()
+            except socket.error as ex:
+                if ex.errno != 104:
+                    print("Test Server: Detected socket error while serving "+
+                          path+": " + str(ex))
+                
 
     def send_path(self):
         self.send_response(200)
@@ -48,28 +60,35 @@ class TestHandler(BaseHTTPRequestHandler):
         self.wfile.write(self.path+"\n")
 
     def send_err(self):
-        self.send_file(os.path.join(testdir,errresult))
+        self.send_file(errresult)
 
     def send_sia(self):
-        self.send_file(os.path.join(testdir,siaresult))
+        self.send_file(siaresult)
 
     def send_scs(self):
-        self.send_file(os.path.join(testdir,scsresult))
+        self.send_file(scsresult)
 
     def send_ssa(self):
-        self.send_file(os.path.join(testdir,ssaresult))
+        self.send_file(ssaresult)
 
     def send_sla(self):
-        self.send_file(os.path.join(testdir,slaresult))
+        self.send_file(slaresult)
 
     def send_file(self, filename):
-        f = open(filename)
+        path = get_pkg_data_filename(filename)
+        f = open(path,'rb')
 
         self.send_response(200)
         self.send_header("Content-type", "text/xml")
         self.send_header("Content-Length", os.fstat(f.fileno())[6])
         self.end_headers()
         shutil.copyfileobj(f, self.wfile)
+
+    def send_empty(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/xml")
+        self.send_header("Content-Length", 0)
+        self.end_headers()
 
     def log_message(format, *args):
         pass
@@ -88,10 +107,12 @@ class TestServer(threading.Thread):
         self.httpd.timeout = self._timeout
         self.httpd.serve_forever()
 
-    def shutdown(self):
+    def shutdown(self, timeout=None):
+        if not timeout:
+            timeout = self._timeout+1
         if self.httpd:  
             self.httpd.shutdown()
-            self.join(self._timeout+1)
+            self.join(timeout)
             self.httpd = None
 
 def run():

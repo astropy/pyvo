@@ -19,11 +19,13 @@ that will be used is given  by the symbol ``default_endpoint``.  The
 function ``set_default_endpoint()`` will set the default endpoint given
 its name.  
 """
+from __future__ import print_function, division
+
 __all__ = [ "resolve", "object2pos", "object2sexapos", "set_default_endpoint",
             "SesameQuery", "ObjectData" ]
 
-import sys, os, re
-from urllib2 import urlopen, URLError, HTTPError
+import re
+from urllib2 import urlopen
 from urllib import quote_plus
 import xml.etree.ElementTree as ET
 from xml.parsers.expat import ExpatError
@@ -32,7 +34,7 @@ from ..dal.query import DALQueryError, DALFormatError, DALServiceError
 
 endpoints = { "cds": "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame",
               "cfa": "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame" }
-default_endpoint = endpoints["cfa"]
+default_endpoint = endpoints["cds"]
 
 def set_default_endpoint(name):
     """
@@ -52,24 +54,33 @@ def resolve(names, db="Simbad", include="", mirror=None):
     resolve one or more object names each to an ObjectData instance 
     containing metadata about the object.  
 
-    :Args:
-      *names*:   either a single object name (as a string) or a list of 
-                   object names (as in a list of strings).  
-      *db*       the object database to consult as a case-insennitive, 
-                   minimum match to one of ["Simbad", "NED", "Vizier"].  
-      *include*: extra data to include (if available) given either as a 
-                   string or list of stirngs.  If a value is a string, it 
-                   will be split into a list of words, where each should 
-                   be a case-insensitive, minimum match to one of "aliases" 
-                   (additional identifiers that the object is known by) or 
-                   "fluxes" (flux magnitudes).  
-      *mirror*:  Choose the service mirror by a name that is one of 
-                   "cds" or "cfa".  The default will be service
-                   pointed to by the modeule attribute, default_endpoint.
-                   (see also set_default_endpoint().)
-    :Return:
-       *ObjectData*:  if a single name was provided
-       *list* of ObjectData: if a list of names was given
+    Parameters
+    ----------
+    names : str or list of str
+        either a single object name (as a string) or a list of 
+        object names (as in a list of strings).  
+    db : str
+        the object database to consult as a case-insennitive, 
+        minimum match to one of ["Simbad", "NED", "Vizier"].  
+    include : str
+       strextra data to include (if available) given either as a 
+       string or list of stirngs.  If a value is a string, it 
+       will be split into a list of words, where each should 
+       be a case-insensitive, minimum match to one of "aliases" 
+       (additional identifiers that the object is known by) or 
+       "fluxes" (flux magnitudes).  
+    mirror : str
+       Choose the service mirror by a name that is one of 
+       "cds" or "cfa".  The default will be service
+       pointed to by the modeule attribute, default_endpoint.
+       (see also set_default_endpoint().)
+
+    Returns
+    -------
+    ObjectData
+       if a single name was provided or a 
+    list of ObjectData
+       if a list of names was given
     """
     baseurl = default_endpoint
     if mirror:
@@ -113,18 +124,26 @@ def object2pos(names, db="Simbad", mirror=None):
     """
     resolve one or more object names each to a position.
 
-    :Args:
-      *names*:   either a single object name (as a string) or a list of 
-                   object names (as in a list of strings).  
-      *db*       the object database to consult as a case-insennitive, 
-                   minimum match to one of ["Simbad", "NED", "Vizier"].  
-      *mirror*:  Choose the service mirror by a name that is one of 
-                   "cds" or "cfa".  The default will be service
-                   pointed to by the modeule attribute, default_endpoint.
-                   (see also set_default_endpoint().)
-    :Return:
-       *tuple*:  2-element floating point position if a single name was provided
-       *list* of tuples: if a list of names was given
+    Parameters
+    ----------
+    names : str
+       either a single object name (as a string) or a list of object names 
+       (as in a list of strings).  
+    db : str
+       the object database to consult as a case-insennitive, 
+       minimum match to one of ["Simbad", "NED", "Vizier"].  
+    mirror : str
+       Choose the service mirror by a name that is one of 
+       "cds" or "cfa".  The default will be service
+       pointed to by the modeule attribute, default_endpoint.
+       (see also set_default_endpoint().)
+
+    Returns
+    -------
+    tuple
+        2-element floating point position if a single name was provided
+    list of tuples 
+        if a list of names was given
     """
     targetdata = resolve(names, db, mirror=mirror)
     if isinstance(targetdata, list):
@@ -137,19 +156,26 @@ def object2sexapos(names, db="Simbad", mirror=None):
     resolve one or more object names each to a sesagesimal-formatted 
     position.
 
-    :Args:
-      *names*:   either a single object name (as a string) or a list of 
-                   object names (as in a list of strings).  
-      *db*       the object database to consult as a case-insennitive, 
-                   minimum match to one of ["Simbad", "NED", "Vizier"].  
-      *mirror*:  Choose the service mirror by a name that is one of 
-                   "cds" or "cfa".  The default will be service
-                   pointed to by the modeule attribute, default_endpoint.
-                   (see also set_default_endpoint().)
-    :Return:
-       *tuple*:  2-element floating point position if a single name was 
-                    provided
-       *list* of tuples: if a list of names was given
+    Parameters
+    ----------
+    names : str or list of str
+       either a single object name (as a string) or a list of 
+       object names (as in a list of strings).  
+    db : str
+       the object database to consult as a case-insennitive, 
+       minimum match to one of ["Simbad", "NED", "Vizier"].  
+    mirror : str
+       Choose the service mirror by a name that is one of 
+       "cds" or "cfa".  The default will be service
+       pointed to by the modeule attribute, default_endpoint.
+       (see also set_default_endpoint().)
+
+    Returns
+    -------
+    tuple
+       2-element floating point position if a single name was provided
+    list of tuples
+       if a list of names was given
     """
     targetdata = resolve(names, db, mirror=mirror)
     if isinstance(targetdata, list):
@@ -173,10 +199,12 @@ class SesameQuery(object):
         """
         initialize the query object with a baseurl
 
-        :Args:
-          *baseurl*:  the service endpoint.  If None, the value of the 
-                        module attribute, default_endpoint will be used.
-                        (see also set_default_endpoint().)
+        Parameters
+        ----------
+        baseurl : str
+            the service endpoint.  If None, the value of the 
+            module attribute, default_endpoint will be used.
+            (see also set_default_endpoint().)
         """
         if not baseurl:
             baseurl = default_endpoint
@@ -193,26 +221,8 @@ class SesameQuery(object):
         """
         return self._baseurl
     @baseurl.setter
-    def baseurl(self):
-        self._baseurl = baseurl
-
-    @property
-    def ignorecache(self):
-        """
-        boolean value indicating whether the sesame service's cache should 
-        be ignored.  If true, the requested databases will be queried 
-        directly for data; if false, the cache will be checked for an answer 
-        first.
-        """
-        return self._ignorecache;
-    @ignorecache.setter
-    def ignorecache(self, val):
-        if isinstance(val, int):
-            val = bool(val)
-        if not isinstance(val, bool):
-            raise TypeError("ignorecache requires bool or int, got: " + 
-                            type(val))
-        self._ignorecache = val
+    def baseurl(self, val):
+        self._baseurl = val
 
     @property
     def dbs(self):
@@ -220,10 +230,12 @@ class SesameQuery(object):
         the database selection argument.  This is a sequence of any of the 
         following characters, indicating which databases to query:
 
+           =    ================
            S    Simbad
            V    Vizier
            N    NED
            A    All of the above
+           =    ================
 
         Without ``A`` included, only the result from the database returning 
         a matched result will be returned.  A value preceded by a '~' 
@@ -270,7 +282,7 @@ class SesameQuery(object):
         if isinstance(tf, int):
             tf = bool(tf)
         if not isinstance(tf, bool):
-            raise TypeError("fluxes requires bool or int, got: " + 
+            raise TypeError("ignorecache requires bool or int, got: " + 
                             type(tf))
 
         if '~' in self._dbs:
@@ -372,23 +384,28 @@ class SesameQuery(object):
         return the GET URL that encodes the current query.  This is the 
         URL that the execute functions will use if called next.  
 
-        :Args:
-           *lax*:  if False (default), a DALQueryError exception will be 
-                      raised if the current set of parameters cannot be 
-                      used to form a legal query.  This implementation does 
-                      no syntax checking; thus, this argument is ignored.
-           *format*: a format code for the return results, overriding the 
-                      default XML format.  The value should be one or "x",
-                      "x4", "x2", "t".  The first three are different 
-                      versions of the XML formats, and "pc" is the default 
-                      percent-code format.  
-           *astext*  request results be returned with a MIME-type of 
-                      "text/plain", regardless of the format.
+        Parameters
+        ----------
+        lax : bool
+           if False (default), a DALQueryError exception will be 
+           raised if the current set of parameters cannot be 
+           used to form a legal query.  This implementation does 
+           no syntax checking; thus, this argument is ignored.
+        format : str
+           a format code for the return results, overriding the 
+           default XML format.  The value should be one or "x",
+           "x4", "x2", "t".  The first three are different 
+           versions of the XML formats, and "pc" is the default 
+           percent-code format.  
+        astext : bool
+           request results be returned with a MIME-type of 
+           text/plain", regardless of the format.
                       
                    
-        :Raises:
-           *DALQueryError*:   when lax=False, for errors in the input query 
-                      syntax
+        Raises
+        ------
+        DALQueryError
+           when lax=False, for errors in the input query syntax
         """
     
         if not lax:
@@ -396,16 +413,16 @@ class SesameQuery(object):
                                    c not in set(self.database_codes.values()), 
                          set(self._dbs))
             if len(bad) > 0:
-                raise DALQueryError(("database selection, %s, includes " +
-                                    "unrecognized databases: %s.") 
-                                    % (self._dbs, str(tuple(bad))))
+                raise DALQueryError(("database selection, {0}, includes " +
+                                    "unrecognized databases: {1}.").format(
+                                     self._dbs, str(tuple(bad))))
 
             bad = filter(lambda c: c not in set("IF"), 
                          set(self._opts))
             if len(bad) > 0:
-                raise DALQueryError(("options, %s, includes " +
-                                    "unrecognized items: %s.")
-                                    % (self._opts, str(tuple(bad))))
+                raise DALQueryError(("options, {0}, includes " +
+                                    "unrecognized items: {0}.").format(
+                                     self._opts, str(tuple(bad))))
 
             if format and format not in "x x2 x4 pc".split():
                 raise DALQueryError("unrecognized format: " + format)
@@ -436,28 +453,34 @@ class SesameQuery(object):
         """
         submit the query and return the raw file stream
 
-        :Args:
-           *format*: a format code for the return results, overriding the 
-                      default XML format.  The value should be one or "x",
-                      "x4", "x2", "t".  The first three are different 
-                      versions of the XML formats, and "pc" is the default 
-                      percent-code format.  
-           *astext*  request results be returned with a MIME-type of 
-                      "text/plain", regardless of the format.
-           *lax*:  if False (default), a DALQueryError exception will be 
-                      raised if the current set of parameters cannot be 
-                      used to form a legal query.  This implementation does 
-                      no syntax checking; thus, this argument is ignored.
+        Parameters
+        ----------
+        format : str
+           a format code for the return results, overriding the 
+           default XML format.  The value should be one or "x",
+           "x4", "x2", "t".  The first three are different 
+           versions of the XML formats, and "pc" is the default 
+           percent-code format.  
+        astext : bool
+           request results be returned with a MIME-type of 
+           "text/plain", regardless of the format.
+        lax : bool
+           if False (default), a DALQueryError exception will be 
+           raised if the current set of parameters cannot be 
+           used to form a legal query.  This implementation does 
+           no syntax checking; thus, this argument is ignored.
 
-        :Raises:
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALQueryError*:   for errors in the input query syntax
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors in the input query syntax
         """
         try:
             url = self.getqueryurl(lax, format, astext)
             return urlopen(url)
-        except IOError, ex:
+        except IOError as ex:
             raise DALServiceError.from_except(ex, url)
 
     def execute(self):
@@ -465,11 +488,14 @@ class SesameQuery(object):
         execute the query and return a list Target instances, one for 
         each requested target.  
 
-        :Raises:
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALQueryError*:   for errors in the input query syntax
-           *DALFormatError*:  if the XML response is corrupted
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors in the input query syntax
+        DALFormatError
+           if the XML response is corrupted
         """
         resp = self.execute_stream(lax=False)
         out = []
@@ -479,7 +505,7 @@ class SesameQuery(object):
                 raise DALServiceError("Unexpected output: " + ET.dump(root))
             for tel in root.findall('Target'):
                 out.append(Target(tel))
-        except ExpatError, e:
+        except ExpatError as e:
             raise DALFormatError(e)
 
         if len(out) == 0:
@@ -711,9 +737,12 @@ class ObjectData(object):
         return the decimal J2000 position as a 2-element tuple giving 
         right ascension and declination.  If None, a position 
         was not returned.  
-        :Raises:
-           *DALFormatError*:  if the position data is incomplete or otherwise
-                                 contains a formatting error
+
+        Raises
+        ------
+        DALFormatError
+           if the position data is incomplete or otherwise contains a 
+           formatting error
         """
         ra = self.get("jradeg")
         dec = self.get("jdedeg")
@@ -726,7 +755,7 @@ class ObjectData(object):
         try:
             return (float(ra), float(dec))
         except ValueError:
-            raise DALFormatError("Non-float given in (%s, %s)" % (ra, dec))
+            raise DALFormatError("Non-float given in ({0}, {1})".format(ra, dec))
         
     @property
     def pos(self):
@@ -763,13 +792,18 @@ class DocQuantity(object):
     an error, quality flag, and bibcode reference.  If the optional values are 
     not available, the attribute value will be None.
 
-    :Attributes:
-      *val*:      the decimal value in the units given by unit
-      *unit*:     the string unit
-      *error*:    the decimal error in the units given by unit
-      *qual*:     a quality code
-      *ref*:      a bibcode indicating the literature reference documenting
-                    this quantity
+    Properties
+    ----------
+    val : float
+       the decimal value in the units given by unit
+    unit : str
+       the string unit
+    error : float
+       the decimal error in the units given by unit
+    qual : str
+       a quality code
+    ref : str
+       a bibcode indicating the literature reference documenting this quantity
     """
 
     _unit_by_name = { "pm": "mas/yr", "Vel": "km/s", "z": "", "mag": "", 
@@ -785,20 +819,21 @@ class DocQuantity(object):
             d.append(item)
 
         if d[0] is None:
-            raise DALFormatError("%s: Missing quantity value" % etreeEl.tag)
+            raise DALFormatError("{0}: Missing quantity value".format(
+                                  etreeEl.tag))
             
         try:
             self.val = float(d[0])
         except ValueError:
-            raise DALFormatError("%s: non-decimal value: %s" 
-                                 % (etreeEl.tag, d[0]))
+            raise DALFormatError("{0}: non-decimal value: {1}".format(
+                                 etreeEl.tag, d[0]))
         self.error = d[1]
         if self.error is not None:
             try:
                 self.error = float(d[1])
             except ValueError:
-                raise DALFormatError("%s: non-decimal error: %s" 
-                                     % (etreeEl.tag, d[1]))
+                raise DALFormatError("{0}: non-decimal error: {0}".format(
+                                     etreeEl.tag, d[1]))
 
         self.unit = self._unit_by_name.get(etreeEl.tag)
         self.qual = d[2]
@@ -811,21 +846,24 @@ class DocQuantity(object):
         """
         convert the quantity to a string, showing the value, unit, and 
         optionally the error
-        :Args:
-          *showerr*:   if True, the error value will be included; the form
-                         will be "val +/- error unit".  If False, the error
-                         will be excluded, as in "val unit".  
+
+        Parameters
+        ----------
+        showerr : bool
+           if True, the error value will be included; the form
+           will be "val +/- error unit".  If False, the error
+           will be excluded, as in "val unit".  
         """
-        out = "%f" % self.val
+        out = "{0}".format(self.val)
         if showerr and self.error:
-            out += " +/- %f" % self.error
+            out += " +/- {0}".format(self.error)
         if self.unit:
-            out += " %s" % self.unit
+            out += " {0}".format(self.unit)
         return out
 
     def __repr__(self):
-        return "quant(%s, %s, %s, %s, %s)" % \
-            (self.val, self.unit, self.error, self.qual, self.ref)
+        return "quant({0}, {1}, {2}, {3}, {4})".format(
+            self.val, self.unit, self.error, self.qual, self.ref)
 
 class ProperMotion(DocQuantity):
     """
@@ -836,22 +874,32 @@ class ProperMotion(DocQuantity):
     a quality flag, and a bibcode reference.  If the optional values are 
     not available, the attribute value will be None.
 
-    :Attributes:
-      *val*:      the decimal vector magnitude in the units given by unit
-      *unit*:     the string unit
-      *error*:    the decimal error in the magnitude in the units given by unit
-      *qual*:     a quality code
-      *ref*:      a bibcode indicating the literature reference documenting
-                    this quantity
-      *pa*:       the vector position angle
-      *pmRA*:     the vector component along right ascension
-      *pmDE*:     the vector component along declination
-      *epmRA*:    the error in the vector component along right ascension
-      *epmDE*:    the error in the vector component along declination
+    Properties
+    ----------
+    val : float
+       the decimal vector magnitude in the units given by unit
+    unit : str
+       the string unit
+    error : float
+       the decimal error in the magnitude in the units given by unit
+    qual : str
+       a quality code
+    ref : str
+       a bibcode indicating the literature reference documenting this quantity
+    pa : float
+       the vector position angle
+    pmRA : float
+       the vector component along right ascension
+    pmDE : float
+       the vector component along declination
+    epmRA : float
+       the error in the vector component along right ascension
+    epmDE : float
+       the error in the vector component along declination
     """
 
     def __init__(self, etreeEl):
-        DocQuantity.__init__(self, etreeEl)
+        super(ProperMotion, self).__init__(etreeEl)
 
         d = []
         item = None
@@ -861,10 +909,10 @@ class ProperMotion(DocQuantity):
                 try:
                     item = float(item.text.strip())
                 except:
-                    raise DALFormatError("%s: non-decimal %s: %s" 
-                                         % (etreeEl.tag, tag, item))
+                    raise DALFormatError("{0}: non-decimal {0}: {1}".format(
+                                         etreeEl.tag, tag, item))
             elif tag in ["pm", "pmRA", "pmDE"]:
-                raise DALFormatError("%s: Missing %s" % (etreeEl.tag, tag))
+                raise DALFormatError("{0}: Missing {1}".format(etreeEl.tag, tag))
 
             d.append(item)
 
@@ -876,7 +924,7 @@ class ProperMotion(DocQuantity):
             
             
     def __repr__(self):
-        return "pm(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" % \
-            (self.val, self.unit, self.error, self.qual, self.ref,
+        return "pm({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})".format(
+             self.val, self.unit, self.error, self.qual, self.ref,
              self.pa, self.val_ra, self.val_dec, self.error_ra, self.error_dec)
 
