@@ -1,8 +1,11 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Tests for pyvo.dal.query
 """
-import os, sys, shutil, re, imp, glob
+from __future__ import print_function, division
+
+import os, sys, shutil, re, imp, glob, tempfile
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -11,20 +14,29 @@ import pyvo.dal.dbapi2 as daldbapi
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
+from astropy.utils.data import get_pkg_data_filename
+from . import aTestSIAServer as testserve
 
-testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
-siaresultfile = "neat-sia.xml"
-ssaresultfile = "jhu-ssa.xml"
-testserverport = 8081
+siaresultfile = "data/neat-sia.xml"
+ssaresultfile = "data/jhu-ssa.xml"
+testserverport = 8084
+testserverport += 1
 
-try:
-    t = "aTestSIAServer"
-    mod = imp.find_module(t, [testdir])
-    testserver = imp.load_module(t, mod[0], mod[1], mod[2])
-    testserver.testdir = testdir
-except ImportError, e:
-    print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+testserver = None
+
+# def setup_module(module):
+#     """
+#     module level setup: start test server
+#     """
+#     testserver = testserve.TestServer(testserverport)
+#     testserver.start()
+
+# def teardown_module(module):
+#     """
+#     shutdown the test server
+#     """
+#     if testserver and testserver.isAlive():
+#         testserver.shutdown()
 
 class DALAccessErrorTest(unittest.TestCase):
 
@@ -163,7 +175,7 @@ class DALQueryErrorTest(unittest.TestCase):
 class DALResultsTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, siaresultfile)
+        resultfile = get_pkg_data_filename(siaresultfile)
         self.tbl = votableparse(resultfile)
 
     def testCtor(self):
@@ -186,8 +198,8 @@ class DALResultsTest(unittest.TestCase):
         for i in xrange(len(names)):
             self.assert_(isinstance(names[i], str) or 
                          isinstance(names[i], unicode),
-                         "field name #%d not a string: %s" % (i,type(names[i]))) 
-            self.assert_(len(names[i]) > 0, "field name #%s is empty" % i)
+                 "field name #{0} not a string: {1}".format(i,type(names[i]))) 
+            self.assert_(len(names[i]) > 0, "field name #{0} is empty".format(i))
 
         fd = self.result.fielddesc()
         self.assert_(isinstance(fd, list))
@@ -212,8 +224,8 @@ class DALResultsTest(unittest.TestCase):
 
     def testValue(self):
         self.testCtor()
-        self.assertEquals(self.result.getvalue("Format", 0), "image/fits")
-        self.assertEquals(self.result.getvalue("Format", 1), "image/jpeg")
+        self.assertEquals(self.result.getvalue("Format", 0), b"image/fits")
+        self.assertEquals(self.result.getvalue("Format", 1), b"image/jpeg")
         self.assertEquals(self.result.getvalue("Dim", 0), 2)
         val = self.result.getvalue("Size", 0)
         self.assertEquals(len(val), 2)
@@ -262,7 +274,7 @@ class DALResultsTest(unittest.TestCase):
 class RecordTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, siaresultfile)
+        resultfile = get_pkg_data_filename(siaresultfile)
         self.tbl = votableparse(resultfile)
         self.result = dalq.DALResults(self.tbl)
         self.rec = self.result.getrecord(0)
@@ -274,7 +286,7 @@ class RecordTest(unittest.TestCase):
             self.assert_(name in reckeys, "Missing fieldname: "+name)
 
     def testValues(self):
-        self.assertEquals(self.rec["Format"], "image/fits")
+        self.assertEquals(self.rec["Format"], b"image/fits")
         self.assertEquals(self.rec["Dim"], 2)
         val = self.rec["Size"]
         self.assertEquals(len(val), 2)
@@ -289,6 +301,14 @@ class RecordTest(unittest.TestCase):
     def testSuggestExtension(self):
         self.assertEquals(self.rec.suggest_extension("goob"), "goob")
         self.assert_(self.rec.suggest_extension() is None)
+
+    def testHasKey(self):
+        self.assertEquals(self.rec["Format"], b"image/fits")
+        self.assertTrue(self.rec.has_key('Format'))
+        self.assertTrue('Format' in self.rec)
+        self.assertFalse(self.rec.has_key('Goober'))
+        self.assertFalse('Goober' in self.rec)
+
 
 class EnsureBaseURLTest(unittest.TestCase):
 
@@ -320,7 +340,6 @@ class MimeCheckTestCase(unittest.TestCase):
     def testBad(self):
         self.assertFalse(dalq.is_mime_type("image"))
         self.assertFalse(dalq.is_mime_type("image/votable/xml"))
-
 
 class DALServiceTest(unittest.TestCase):
 
@@ -471,20 +490,22 @@ class DALQueryTest(unittest.TestCase):
 
 class QueryExecuteTest(unittest.TestCase):
 
-    def setUp(self):
-        pass
-        # self.srvr = testserver.TestServer(testserverport)
-        # self.srvr.start()
+    srvr = None
 
-    def tearDown(self):
-        pass 
-        #if self.srvr.isAlive():
-        #    self.srvr.shutdown()
-        #if self.srvr.isAlive():
-        #    print "prob"
+    @classmethod
+    def setup_class(cls):
+        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr.start()
+
+    @classmethod
+    def teardown_class(cls):
+        if cls.srvr.isAlive():
+            cls.srvr.shutdown()
+        if cls.srvr.isAlive():
+            print("prob")
 
     def testExecute(self):
-        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         results = q.execute()
@@ -492,7 +513,7 @@ class QueryExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 2)
 
     def testExecuteStream(self):
-        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         strm = q.execute_stream()
@@ -500,87 +521,93 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_(hasattr(strm, "read"))
         results = strm.read()
         strm.close()
-        self.assert_(results.startswith("<?xml version="))
+        self.assert_(results.startswith(b"<?xml version="))
 
     def testExecuteRaw(self):
-        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         data = q.execute_raw()
         self.assert_(data is not None)
-        self.assert_(isinstance(data, unicode) or isinstance(data, str))
-        self.assert_(data.startswith("<?xml version="))
+        if sys.version_info[0] >= 3:
+            self.assert_(isinstance(data, str) or isinstance(data, bytes))
+        else:
+            self.assert_(isinstance(data, unicode) or isinstance(data, str))
+        self.assert_(data.startswith(b"<?xml version="))
 
     def testExecuteVotable(self):
-        q = dalq.DALQuery("http://localhost:%d/sia" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         results = q.execute_votable()
         self.assert_(isinstance(results, VOTableFile))
 
     def testExecuteServiceErr(self):
-        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute)
 
     def testExecuteRawServiceErr(self):
-        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute_raw)
 
     def testExecuteStreamServiceErr(self):
-        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
-            q.execute_raw()
+            q.execute_stream()
             self.fail("failed to raise exception on bad url")
-        except dalq.DALServiceError, e:
+        except dalq.DALServiceError as e:
             self.assertEquals(e.code, 404)
             self.assertEquals(e.reason, "Not Found")
             self.assert_(isinstance(e.cause, HTTPError))
-        except Exception, e:
+        except Exception as e:
             self.fail("wrong exception raised: " + str(type(e)))
 
 
     def testExecuteVotableServiceErr(self):
-        q = dalq.DALQuery("http://localhost:%d/goob" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute_votable)
 
     def testExecuteRawQueryErr(self):
-        q = dalq.DALQuery("http://localhost:%d/err" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/err".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         data = q.execute_raw()
         self.assert_(data is not None)
-        self.assert_(isinstance(data, unicode) or isinstance(data, str))
-        self.assert_(data.startswith("<?xml version="))
-        self.assert_('<INFO name="QUERY_STATUS" value="ERR' in data)
+        if sys.version_info[0] >= 3:
+            self.assert_(isinstance(data, str) or isinstance(data, bytes))
+        else:
+            self.assert_(isinstance(data, unicode) or isinstance(data, str))
+        self.assert_(data.startswith(b"<?xml version="))
+        self.assert_(b'<INFO name="QUERY_STATUS" value="ERR' in data)
 
     def testExecuteQueryErr(self):
-        q = dalq.DALQuery("http://localhost:%d/err" % testserverport)
+        q = dalq.DALQuery("http://localhost:{0}/err".format(testserverport))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
             q.execute()
             self.fail("failed to raise exception for syntax error")
-        except dalq.DALQueryError, e:
+        except dalq.DALQueryError as e:
             self.assertEquals(e.label, "ERROR")
             self.assertEquals(str(e), "Forced Fail")
-        except dalq.DALServiceError, e:
+        except dalq.DALServiceError as e:
             self.fail("wrong exception raised: DALServiceError: " + str(e))
-        except Exception, e:
+        except Exception as e:
             self.fail("wrong exception raised: " + str(type(e)))
 
 
 class CursorTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, ssaresultfile)
+        resultfile = get_pkg_data_filename(ssaresultfile)
         self.tbl = votableparse(resultfile)
 
     def testCtor(self):
@@ -652,18 +679,22 @@ class DatasetNameTest(unittest.TestCase):
     base = "testds"
 
     def setUp(self):
-        resultfile = os.path.join(testdir, siaresultfile)
+        resultfile = get_pkg_data_filename(siaresultfile)
         self.tbl = votableparse(resultfile)
         self.result = dalq.DALResults(self.tbl)
         self.rec = self.result.getrecord(0)
 
-        self.cleanfiles()
+        self.outdir = tempfile.mkdtemp()
 
     def tearDown(self):
-        self.cleanfiles()
+        shutil.rmtree(self.outdir)
 
-    def cleanfiles(self):
-        files = glob.glob(os.path.join(testdir, self.base+"*.*"))
+    def cleanfiles(self, tmpdir=None):
+        if not tmpdir:
+            tmpdir = self.outdir
+        if not os.path.isdir(tmpdir):
+            return
+        files = glob.glob(os.path.join(tmpdir, self.base+"*.*"))
         for f in files:
             os.remove(f)
 
@@ -688,6 +719,7 @@ class DatasetNameTest(unittest.TestCase):
         self.assertEquals("DAT", self.rec.suggest_extension("DAT"))
 
     def testMakeDatasetName(self):
+        self.assertTrue(os.path.isdir(self.outdir))
         self.assertEquals("./dataset.dat", self.rec.make_dataset_filename())
         self.assertEquals("./goober.dat", 
                           self.rec.make_dataset_filename(base="goober"))
@@ -697,44 +729,44 @@ class DatasetNameTest(unittest.TestCase):
                           self.rec.make_dataset_filename(base="goober", 
                                                          ext="fits"))
                           
-        self.assertEquals(testdir+"/dataset.dat", 
-                          self.rec.make_dataset_filename(testdir))
+        self.assertEquals(self.outdir+"/dataset.dat", 
+                          self.rec.make_dataset_filename(self.outdir))
 
-        path = os.path.join(testdir,self.base+".dat")
+        path = os.path.join(self.outdir,self.base+".dat")
         self.assertFalse(os.path.exists(path))
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
-        path = os.path.join(testdir,self.base+"-1.dat")
+        path = os.path.join(self.outdir,self.base+"-1.dat")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
-        path = os.path.join(testdir,self.base+"-2.dat")
+        path = os.path.join(self.outdir,self.base+"-2.dat")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
         open(path,'w').close()
         self.assertTrue(os.path.exists(path))
-        path = os.path.join(testdir,self.base+"-3.dat")
+        path = os.path.join(self.outdir,self.base+"-3.dat")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
                          
         self.cleanfiles()
-        open(os.path.join(testdir,self.base+".dat"),'w').close()
-        path = os.path.join(testdir,self.base+"-1.dat")
+        open(os.path.join(self.outdir,self.base+".dat"),'w').close()
+        path = os.path.join(self.outdir,self.base+"-1.dat")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
-        open(os.path.join(testdir,self.base+"-1.dat"),'w').close()
-        open(os.path.join(testdir,self.base+"-2.dat"),'w').close()
-        open(os.path.join(testdir,self.base+"-3.dat"),'w').close()
-        path = os.path.join(testdir,self.base+"-4.dat")
+                          self.rec.make_dataset_filename(self.outdir, self.base))
+        open(os.path.join(self.outdir,self.base+"-1.dat"),'w').close()
+        open(os.path.join(self.outdir,self.base+"-2.dat"),'w').close()
+        open(os.path.join(self.outdir,self.base+"-3.dat"),'w').close()
+        path = os.path.join(self.outdir,self.base+"-4.dat")
         self.assertEquals(path, 
-                          self.rec.make_dataset_filename(testdir, self.base))
+                          self.rec.make_dataset_filename(self.outdir, self.base))
 
         self.cleanfiles()
-        self.assertEquals(os.path.join(testdir,self.base+".dat"),
-                          self.rec.make_dataset_filename(testdir, self.base))
+        self.assertEquals(os.path.join(self.outdir,self.base+".dat"),
+                          self.rec.make_dataset_filename(self.outdir, self.base))
 
 
 __all__ = "DALAccessErrorTest DALServiceErrorTest DALQueryErrorTest RecordTest EnsureBaseURLTest DALServiceTest DALQueryTest QueryExecuteTest CursorTest DatasetNameTest".split()
@@ -745,7 +777,16 @@ def suite():
     return unittest.TestSuite(tests)
 
 if __name__ == "__main__":
-    srvr = testserver.TestServer(testserverport)
+    try:
+        module = find_current_module(1, True)
+        pkgdir = os.path.dirname(module.__file__)
+        t = "aTestSIAServer"
+        mod = imp.find_module(t, [pkgdir])
+        testserve = imp.load_module(t, mod[0], mod[1], mod[2])
+    except ImportError as e:
+        sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+
+    srvr = testserve.TestServer(testserverport)
     try:
         srvr.start()
         unittest.main()

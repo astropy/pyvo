@@ -48,7 +48,7 @@ of dataset services:
 
 * `Simple Image Access (SIA) <http://www.ivoa.net/documents/SIA/>`_ -- 
   a service for finding images
-* `Simple Spectral Access <http://www.ivoa.net/documents/SSA/> (SSA)`_
+* `Simple Spectral Access (SSA) <http://www.ivoa.net/documents/SSA/>`_
   -- a service for finding spectra
 
 The response is a table where each row is describes a single

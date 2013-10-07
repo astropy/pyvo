@@ -1,7 +1,10 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Tests for pyvo.dal.query
+Tests for pyvo.dal.sla
 """
+from __future__ import print_function, division
+
 import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
@@ -12,20 +15,13 @@ import pyvo.dal.dbapi2 as daldbapi
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
+from astropy.utils.data import get_pkg_data_filename
+from . import aTestSIAServer as testserve
 
-testdir = os.path.dirname(sys.argv[0])
-if not testdir:  testdir = "tests"
-slaresultfile = "nrao-sla.xml"
-errresultfile = "error-sla.xml"
-testserverport = 8081
-
-try:
-    t = "aTestSIAServer"
-    mod = imp.find_module(t, [testdir])
-    testserver = imp.load_module(t, mod[0], mod[1], mod[2])
-    testserver.testdir = testdir
-except ImportError, e:
-    print >> sys.stderr, "Can't find test server: aTestSIAServer.py:", str(e)
+slaresultfile = "data/nrao-sla.xml"
+errresultfile = "data/error-sla.xml"
+testserverport = 8084
+testserverport += 3
 
 class SLAServiceTest(unittest.TestCase):
 
@@ -121,7 +117,7 @@ class SLAQueryTest(unittest.TestCase):
 class SLAResultsTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, slaresultfile)
+        resultfile = get_pkg_data_filename(slaresultfile)
         self.tbl = votableparse(resultfile)
 
     def testCtor(self):
@@ -148,21 +144,21 @@ class SLAResultsTest(unittest.TestCase):
 class SLAResultsErrorTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, errresultfile)
+        resultfile = get_pkg_data_filename(errresultfile)
         self.tbl = votableparse(resultfile)
 
     def testError(self):
         try:
             res = sla.SLAResults(self.tbl)
             self.fail("Failed to detect error response")
-        except dalq.DALQueryError, ex:
+        except dalq.DALQueryError as ex:
             self.assertEquals(ex.label, "ERROR")
             self.assertEquals(ex.reason, "Forced Fail")
 
 class SLARecordTest(unittest.TestCase):
 
     def setUp(self):
-        resultfile = os.path.join(testdir, slaresultfile)
+        resultfile = get_pkg_data_filename(slaresultfile)
         self.tbl = votableparse(resultfile)
         self.result = sla.SLAResults(self.tbl)
         self.rec = self.result.getrecord(0)
@@ -171,24 +167,38 @@ class SLARecordTest(unittest.TestCase):
         self.assertEquals(self.rec._names["title"], "title")
 
     def testAttr(self):
-        self.assertEquals(self.rec.title, "JPL: CH2OHCOCH2OH v29=1 65(10,55)-65( 9,56)")
+        self.assertEquals(self.rec.title, b"JPL: CH2OHCOCH2OH v29=1 65(10,55)-65( 9,56)")
         self.assertAlmostEquals(self.rec.wavelength, 0.0026007993198247656)
-        self.assertEquals(self.rec.species_name, "Dihydroxyacetone")
+        self.assertEquals(self.rec.species_name, b"Dihydroxyacetone")
         self.assertTrue(self.rec.status is None)
         self.assertTrue(self.rec.initial_level is None)
         self.assertTrue(self.rec.final_level is None)
 
 class SLAExecuteTest(unittest.TestCase):
 
+    srvr = None
+
+    @classmethod
+    def setup_class(cls):
+        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr.start()
+
+    @classmethod
+    def teardown_class(cls):
+        if cls.srvr.isAlive():
+            cls.srvr.shutdown()
+        if cls.srvr.isAlive():
+            print("prob")
+
     def testExecute(self):
-        q = sla.SLAQuery("http://localhost:%d/sla" % testserverport)
+        q = sla.SLAQuery("http://localhost:{0}/sla".format(testserverport))
         q.wavelength = "0.00260075/0.00260080"
         results = q.execute()
         self.assert_(isinstance(results, sla.SLAResults))
         self.assertEquals(results.nrecs, 21)
 
     def testSearch(self):
-        srv = sla.SLAService("http://localhost:%d/sla" % testserverport)
+        srv = sla.SLAService("http://localhost:{0}/sla".format(testserverport))
         results = srv.search(wavelength="0.00260075/0.00260080")
         self.assert_(isinstance(results, sla.SLAResults))
         self.assertEquals(results.nrecs, 21)
@@ -199,13 +209,13 @@ class SLAExecuteTest(unittest.TestCase):
 
 
     def testSla(self):
-        results = sla.search("http://localhost:%d/sla" % testserverport,
+        results = sla.search("http://localhost:{0}/sla".format(testserverport),
                              wavelength="0.00260075/0.00260080")
         self.assert_(isinstance(results, sla.SLAResults))
         self.assertEquals(results.nrecs, 21)
 
     def testError(self):
-        srv = sla.SLAService("http://localhost:%d/err" % testserverport)
+        srv = sla.SLAService("http://localhost:{0}/err".format(testserverport))
         self.assertRaises(dalq.DALQueryError, srv.search, "0.00260075/0.00260080")
         
 
@@ -217,7 +227,17 @@ def suite():
     return unittest.TestSuite(tests)
 
 if __name__ == "__main__":
-    srvr = testserver.TestServer(testserverport)
+    try:
+        module = find_current_module(1, True)
+        pkgdir = os.path.dirname(module.__file__)
+        t = "aTestSIAServer"
+        mod = imp.find_module(t, [pkgdir])
+        testserve = imp.load_module(t, mod[0], mod[1], mod[2])
+    except ImportError as e:
+        sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+
+    srvr = testserve.TestServer(testserverport)
+
     try:
         srvr.start()
         unittest.main()

@@ -1,16 +1,19 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Tests for pyvo.nameresolver.sesame
 """
+from __future__ import print_function, division
+
 import os, sys, shutil, re, imp
-import unittest, pdb
+import unittest
 from urllib2 import URLError, HTTPError
 
 import pyvo.nameresolver.sesame as sesame
 import xml.etree.ElementTree as ET
+from astropy.utils.data import get_pkg_data_filename
 
-testdir = os.path.dirname(sys.argv[0])
-resultfile = "sesame.xml"
+resultfile = "data/sesame.xml"
 
 xmldecl = "<?xml version=\"1.0\"?>"
 
@@ -19,14 +22,14 @@ class DocQuantityTest(unittest.TestCase):
     xmldecl = "<?xml version=\"1.0\"?>"
 
     def makeQuantXML(self, tag, include="eqr"):
-        out = "%s<%s><v>447.89000</v>" % (self.xmldecl, tag)
+        out = "{0}<{1}><v>447.89000</v>".format(self.xmldecl, tag)
         if 'e' in include:
             out += "<e>2.99793</e>"
         if 'q' in include:
             out += "<q>A</q>"
         if 'r' in include:
             out += "<r>1991RC3.9.C...0000d</r>"
-        out += "</%s>" % tag
+        out += "</{0}>".format(tag)
         return out
 
     def makeQuantEl(self, tag="Vel", include="eqr"):
@@ -47,17 +50,17 @@ class DocQuantityTest(unittest.TestCase):
 
     def testToString(self):
         q = sesame.DocQuantity(self.makeQuantEl())
-        self.assertEquals("447.890000 km/s", q.to_string(False))
-        self.assertEquals("447.890000 +/- 2.997930 km/s", q.to_string(True))
-        self.assertEquals("447.890000 +/- 2.997930 km/s", str(q))
+        self.assertEquals("447.89 km/s", q.to_string(False))
+        self.assertEquals("447.89 +/- 2.99793 km/s", q.to_string(True))
+        self.assertEquals("447.89 +/- 2.99793 km/s", str(q))
 
         # pdb.set_trace()
         self.assertTrue(re.match(r'quant\((\S+,\s){4}\S+\)', repr(q)) is not None)
 
         q = sesame.DocQuantity(self.makeQuantEl(include=""))
-        self.assertEquals("447.890000 km/s", q.to_string(False))
-        self.assertEquals("447.890000 km/s", q.to_string(True))
-        self.assertEquals("447.890000 km/s", str(q))
+        self.assertEquals("447.89 km/s", q.to_string(False))
+        self.assertEquals("447.89 km/s", q.to_string(True))
+        self.assertEquals("447.89 km/s", str(q))
 
         self.assertTrue(re.match(r'quant\((\S+,\s){4}\S+\)', repr(q)) is not None)
 
@@ -102,7 +105,7 @@ class ProperMotionTest(unittest.TestCase):
 
     def makeQuantXML(self, include="eqr"):
         tag = "pm"
-        out = "%s<%s><v>3.44</v>" % (xmldecl, tag)
+        out = "{0}<{1}><v>3.44</v>".format(xmldecl, tag)
         if 'e' in include:
             out += "<e>0.28</e>"
         if 'q' in include:
@@ -117,7 +120,7 @@ class ProperMotionTest(unittest.TestCase):
         if 'e' in include:
             out += "<epmDE>0.2</epmDE>"
 
-        out += "</%s>" % tag
+        out += "</{0}>".format(tag)
         return out
 
     def makeQuantEl(self, include="eqr"):
@@ -126,17 +129,17 @@ class ProperMotionTest(unittest.TestCase):
 
     def testToString(self):
         q = sesame.ProperMotion(self.makeQuantEl())
-        self.assertEquals("3.440000 mas/yr", q.to_string(False))
-        self.assertEquals("3.440000 +/- 0.280000 mas/yr", q.to_string(True))
-        self.assertEquals("3.440000 +/- 0.280000 mas/yr", str(q))
+        self.assertEquals("3.44 mas/yr", q.to_string(False))
+        self.assertEquals("3.44 +/- 0.28 mas/yr", q.to_string(True))
+        self.assertEquals("3.44 +/- 0.28 mas/yr", str(q))
 
         # pdb.set_trace()
         self.assertTrue(re.match(r'pm\((\S+,\s){9}\S+\)', repr(q)) is not None)
 
         q = sesame.ProperMotion(self.makeQuantEl(include=""))
-        self.assertEquals("3.440000 mas/yr", q.to_string(False))
-        self.assertEquals("3.440000 mas/yr", q.to_string(True))
-        self.assertEquals("3.440000 mas/yr", str(q))
+        self.assertEquals("3.44 mas/yr", q.to_string(False))
+        self.assertEquals("3.44 mas/yr", q.to_string(True))
+        self.assertEquals("3.44 mas/yr", str(q))
 
         self.assertTrue(re.match(r'pm\((\S+,\s){9}\S+\)', repr(q)) is not None)
 
@@ -204,7 +207,7 @@ class ProperMotionTest(unittest.TestCase):
 class ObjectDataTest(unittest.TestCase):
 
     def setUp(self):
-        result = os.path.join(testdir, resultfile)
+        result = get_pkg_data_filename(resultfile)
         self.sesel = ET.parse(result).getroot()
 
     def selectResolver(self, target, which):
@@ -340,7 +343,7 @@ class ObjectDataTest(unittest.TestCase):
 class TargetTest(unittest.TestCase):
 
     def setUp(self):
-        result = os.path.join(testdir, resultfile)
+        result = get_pkg_data_filename(resultfile)
         self.sesel = ET.parse(result).getroot()
 
     def selectTarget(self, which):
@@ -395,7 +398,7 @@ class SesameQueryTest(unittest.TestCase):
     def testCtor(self):
         self.assertEquals(sesame.default_endpoint, self.query.baseurl)
         self.query = sesame.SesameQuery(sesame.endpoints["cfa"])
-        self.assertEquals(sesame.default_endpoint, self.query.baseurl)
+        self.assertEquals(sesame.endpoints["cfa"], self.query.baseurl)
 
     def testDbs(self):
         self.assertEquals("", self.query.dbs)
@@ -456,7 +459,7 @@ class SesameQueryTest(unittest.TestCase):
 class EndpointSetTest(unittest.TestCase):
 
     def testSetDef(self):
-        self.assertEquals(sesame.endpoints["cfa"], sesame.default_endpoint)
+        self.assertEquals(sesame.endpoints["cds"], sesame.default_endpoint)
 
         # pdb.set_trace()
         sesame.set_default_endpoint("cds")

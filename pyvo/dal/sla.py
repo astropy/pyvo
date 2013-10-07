@@ -22,8 +22,8 @@ For more complex queries, the SLAQuery class can be helpful which
 allows one to build up, tweak, and reuse a query.  The SLAService
 class can represent a specific service available at a URL endpoint.
 """
+from __future__ import print_function, division
 
-import numbers
 import re
 from . import query
 
@@ -34,23 +34,28 @@ def search(url, wavelength, **keywords):
     submit a simple SLA query that requests spectral lines within a 
     wavelength range
 
-    :Args:
-       *url*:         the base URL for the SLA service
-       *wavelength*:  a 2-element sequence giving the wavelength spectral 
-                         range to search in meters
-       **keywords:    additional parameters can be given via arbitrary 
-                         keyword arguments.  These can be either standard 
-                         parameters (with names drown from the 
-                         ``SSAQuery.std_parameters`` list) or paramters
-                         custom to the service.  Where there is overlap 
-                         with the parameters set by the other arguments to
-                         this function, these keywords will override.
+    Parameters
+    ----------
+    url : str
+       the base URL for the SLA service
+    wavelength : 2 element sequence of floats
+       a 2-element sequence giving the wavelength spectral range to search 
+       in meters
+    **keywords :
+       additional parameters can be given via arbitrary 
+       keyword arguments.  These can be either standard 
+       parameters (with names drown from the 
+       ``SSAQuery.std_parameters`` list) or paramters
+       custom to the service.  Where there is overlap 
+       with the parameters set by the other arguments to
+       this function, these keywords will override.
 
-        :Raises:
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALQueryError*:   if the service responds with 
-                              an error, including a query syntax error.  
+    Raises
+    ------
+    DALServiceError
+       for errors connecting to or communicating with the service
+    DALQueryError
+       if the service responds with an error, including a query syntax error.
     """
     service = SLAService(url)
     return service.search(wavelength, **keywords)
@@ -64,13 +69,14 @@ class SLAService(query.DALService):
         """
         instantiate an SLA service
 
-        :Args:
-           *baseurl*:  the base URL for submitting search queries to the 
-                         service.
-           *resmeta*:  an optional dictionary of properties about the 
-                         service
+        Parameters
+        ----------
+        baseurl : str
+           the base URL for submitting search queries to the service.
+        resmeta : dict
+           an optional dictionary of properties about the service
         """
-        query.DALService.__init__(self, baseurl, "sla", version, resmeta)
+        super(SLAService, self).__init__(baseurl, "sla", version, resmeta)
 
     def search(self, wavelength, format=None, **keywords):
         """
@@ -80,13 +86,15 @@ class SLAService(query.DALService):
         more complex queries, one should create an SLAQuery object via 
         create_query()
 
-        :Args:
-           *wavelength*: a 2-element sequence giving the wavelength spectral
-                           range to search in meters
-           *format*:     the spectral format(s) of interest. "metadata" 
-                           indicates that no spectra should be returned--only 
-                           an empty table with complete metadata.
-                           
+        Parameters
+        ----------
+        wavelength : 2-element sequence of floats
+           a 2-element sequence giving the wavelength spectral range to 
+           search in meters
+        format : str
+           the spectral format(s) of interest. "metadata" 
+           indicates that no spectra should be returned--only 
+           an empty table with complete metadata.
         """
         q = self.create_query(wavelength, format)
         return q.execute()
@@ -97,14 +105,20 @@ class SLAService(query.DALService):
         executed.  The input arguments will initialize the query with the 
         given values.
 
-        :Args:
-           *wavelength*: a 2-element tuple giving the wavelength spectral
-                           range to search in meters
-           *format*:     the spectral format(s) of interest. "metadata" indicates that no
-                           spectra should be returned--only an empty table with complete metadata.
+        Parameters
+        ----------
+        wavelength : 2-element sequence of floats
+           a 2-element tuple giving the wavelength spectral range to search 
+           in meters
+        format : str
+           the spectral format(s) of interest. "metadata" indicates that no
+           spectra should be returned--only an empty table with complete 
+           metadata.
 
-        :Returns: 
-           *SLAQuery*:  the query instance
+        Returns
+        -------
+        SLAQuery
+           the query instance
         """
         q = SLAQuery(self.baseurl, self.version)
         if wavelength is not None: q.wavelength = wavelength
@@ -129,7 +143,7 @@ class SLAQuery(query.DALQuery):
         """
         initialize the query object with a baseurl and request type
         """
-        query.DALQuery.__init__(self, baseurl, "sla", version)
+        super(SLAQuery, self).__init__(baseurl, "sla", version)
         self.setparam("REQUEST", request)
         
     @property
@@ -183,11 +197,12 @@ class SLAQuery(query.DALQuery):
         submit the query and return the results as a Results subclass instance.
         This implimentation returns an SSAResults instance
 
-        :Raises:
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALQueryError*:   if the service responds with 
-                              an error, including a query syntax error.  
+        Raises
+        ------
+        DALServiceError
+           strfor errors connecting to or communicating with the service
+        DALQueryError
+           if the service responds with an error, including a query syntax error
         """
         return SLAResults(self.execute_votable(), self.getqueryurl())
 
@@ -205,7 +220,7 @@ class SLAResults(query.DALResults):
         by directly applications; rather an instance is obtained from calling 
         a SLAQuery's execute().
         """
-        query.DALResults.__init__(self, votable, url, "sla", "1.0")
+        super(SLAResults, self).__init__(votable, url, "sla", "1.0")
         self._slacols = {
 
 
@@ -259,7 +274,7 @@ class SLARecord(query.Record):
     """
 
     def __init__(self, results, index):
-        query.Record.__init__(self, results, index)
+        super(SLARecord, self).__init__(results, index)
         self._utypecols = results._slacols
         self._names = results._recnames
 

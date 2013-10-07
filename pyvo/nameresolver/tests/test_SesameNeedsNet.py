@@ -1,19 +1,29 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Tests for pyvo.nameresolver.sesame
+Tests for pyvo.nameresolver.sesame requiring the network
 """
+from __future__ import print_function, division
+
 import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
 import pyvo.nameresolver.sesame as sesame
 import xml.etree.ElementTree as ET
+from astropy.tests.helper import pytest, remote_data
 
-testdir = os.path.dirname(sys.argv[0])
-resultfile = "sesame.xml"
+mirrors = ["cfa", "cds"]
+default_mirror = "cds"
 
-xmldecl = "<?xml version=\"1.0\"?>"
+if default_mirror in mirrors:
+    mirrors.remove(default_mirror)
+alt_mirror = mirrors[0]
+sesame.set_default_endpoint(default_mirror)
 
+do_remote = False
+
+@remote_data
 class SesameQueryTest(unittest.TestCase):
 
     def testExecuteStream(self):
@@ -34,10 +44,10 @@ class SesameQueryTest(unittest.TestCase):
         for line in strm:
             lines.append(line)
         strm.close()
-        self.assertTrue(lines[0].startswith('#'), 
-                        "unexpected first line: " + line[0])
-        self.assertTrue(lines[5].startswith('%'), 
-                        "unexpected mid-line: " + line[5])
+        self.assertTrue(lines[0].startswith(b'#'), 
+                        b"unexpected first line: " + lines[0])
+        self.assertTrue(lines[5].startswith(b'%'), 
+                        b"unexpected mid-line: " + lines[5])
 
         q.dbs = "GB"
         self.assertRaises(sesame.DALQueryError, q.execute_stream)
@@ -95,6 +105,8 @@ class SesameQueryTest(unittest.TestCase):
         self.assertTrue(odata is not None)
         self.assertEquals("{NGC} 4258", odata.oname)
 
+
+@remote_data
 class ResolveTest(unittest.TestCase):
 
     def testDefault(self):
@@ -172,6 +184,7 @@ class ResolveTest(unittest.TestCase):
 
         self.assertRaises(LookupError, sesame.resolve, "NGC4258", mirror="ncsa")
 
+@remote_data
 class Object2posTest(unittest.TestCase):
 
     def testDefault(self):
@@ -200,8 +213,8 @@ class Object2posTest(unittest.TestCase):
     def testDb(self):
         pos = sesame.object2pos("NGC4258", "V")
         self.assertTrue(pos is not None)
-        self.assertAlmostEquals(184.73, pos[0])
-        self.assertAlmostEquals(47.31, pos[1])
+        self.assertAlmostEquals(184.73, pos[0], places=2)
+        self.assertAlmostEquals(47.31, pos[1], places=2)
 
     def testMirror(self):
         pos = sesame.object2pos("NGC4258", mirror="cds")
@@ -225,6 +238,7 @@ class Object2posTest(unittest.TestCase):
         self.assertRaises(LookupError, sesame.object2pos, "NGC4258", 
                           mirror="ncsa")
 
+@remote_data
 class Object2sexaposTest(unittest.TestCase):
 
     def testDefault(self):

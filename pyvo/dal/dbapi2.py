@@ -3,7 +3,10 @@
 An implementation of the Database API v2.0 interface to DAL VOTable responses.
 This only supports read-only access.  
 """
+from __future__ import print_function, division
+
 from .query import Iter
+import sys
 
 apilevel = "2.0"
 threadsafety = 2
@@ -101,14 +104,14 @@ class Cursor(Iter):
     """
 
     def __init__(self, results):
-	"""Create a cursor instance.  The constructor is not typically called 
+        """Create a cursor instance.  The constructor is not typically called 
         by directly applications; rather an instance is obtained from calling a 
         DalQuery's execute().
-	"""
-        Iter.__init__(self, results)
-	self._description = self._mkdesc()
-	self._rowcount = self.resultset.nrecs
-	self._arraysize = 1
+        """
+        super(Cursor, self).__init__(results)
+        self._description = self._mkdesc()
+        self._rowcount = self.resultset.nrecs
+        self._arraysize = 1
 
     def _mkdesc(self):
         flds = self.resultset.fieldnames()
@@ -154,21 +157,25 @@ class Cursor(Iter):
         self._arraysize = value
 
     def infos(self):
-	"""Return any INFO elements in the VOTable as a dictionary.
+        """Return any INFO elements in the VOTable as a dictionary.
 
-	:Returns:
-	    A dictionary with each element corresponding to a single INFO,
-	    representing the INFO as a name:value pair.
-	"""
+        Returns
+        -------
+        dict :
+            A dictionary with each element corresponding to a single INFO,
+            representing the INFO as a name:value pair.
+        """
         return self.resultset._infos
 
     def fetchone(self):
-	"""Return the next row of the query response table.
+        """Return the next row of the query response table.
 
-	:Returns:
-	    The response is a tuple wherein each element is the value of the
-	    corresponding table field.  
-	"""
+        Returns
+        -------
+        tuple :
+            The response is a tuple wherein each element is the value of the
+            corresponding table field.  
+        """
         try:
             rec = self.next()
             out = []
@@ -177,53 +184,56 @@ class Cursor(Iter):
             return out
         except StopIteration:
             return None
-	
+        
     def fetchmany(self, size=None):
-	"""Fetch the next block of rows from the query result.
+        """Fetch the next block of rows from the query result.
 
-	:Args:
-	    *size*: The number of rows to return (default: cursor.arraysize).
+        Parameters
+        ----------
+        size : int
+            The number of rows to return (default: cursor.arraysize).
 
-	:Returns:
-	    A list of tuples, one per row.  An empty sequence is returned when
-	    no more rows are available.  If a DictCursor is used then the output
-	    consists of a list of dictionaries, one per row.
-	"""
-	if not size: size = self.arraysize
+        Returns
+        -------
+        list of tuples :
+            A list of tuples, one per row.  An empty sequence is returned when
+            no more rows are available.  If a DictCursor is used then the output
+            consists of a list of dictionaries, one per row.
+        """
+        if not size: size = self.arraysize
         out = []
-        for i in xrange(size):
+        for _ in xrange(size):
             out.append(self.fetchone())
         return out
 
     def fetchall(self):
-	"""Fetch all remaining rows from the result set.
+        """Fetch all remaining rows from the result set.
 
-	:Returns:
-	    A list of tuples, one per row.  An empty sequence is returned when
-	    no more rows are available.  If a DictCursor is used then the output
-	    consists of a list of dictionaries, one per row.
-	"""
+        Returns
+        -------
+        list of tuples :
+            A list of tuples, one per row.  An empty sequence is returned when
+            no more rows are available.  If a DictCursor is used then the output
+            consists of a list of dictionaries, one per row.
+        """
         out = []
-        for i in xrange(self._rowcount - self.pos):
+        for _ in xrange(self._rowcount - self.pos):
             out.append(self.fetchone())
         return out
 
-    def next(self):
-        """
-        Advance to the next row.  
-        A StopIteration exception is raised when there are no more rows.
-        """
-        return Iter.next(self)
-
     def scroll(self, value, mode="relative"):
-	"""Move the row cursor.
+        """Move the row cursor.
 
-	:Args:
-	    *value*: The number of rows to skip or the row number to position to.
-
-	    *mode*: Either "relative" for a relative skip (default), or "absolute" to position to a row by its absolute index within the result set (zero indexed).
-	"""
-	if mode == "absolute":
+        Parameters
+        ----------
+        value : str
+            The number of rows to skip or the row number to position to.
+        mode : str
+            Either "relative" for a relative skip (default), or "absolute" 
+            to position to a row by its absolute index within the result set 
+            (zero-indexed). 
+        """
+        if mode == "absolute":
             if value > 0:
                 self.pos = value
             else:
@@ -231,11 +241,11 @@ class Cursor(Iter):
         elif mode == "relative":
             self.pos += value
 
-    def close():
-	"""Close the cursor object and free all resources.  This implementation
+    def close(self):
+        """Close the cursor object and free all resources.  This implementation
         does nothing.  It is provided for compliance with the Python Database 
         API.  
-	"""
+        """
         # this can remain implemented as "pass" 
         pass
 
