@@ -292,10 +292,13 @@ class SIAQueryTest(unittest.TestCase):
         self.assertEquals(self.q.format, "image/fits,text/html")
         self.q.format = "image/fits text/html".split()
         self.assertEquals(self.q.format, "image/fits,text/html")
-        self.q.format = set("image/fits text/html".split())
-        self.assertEquals(self.q.format, "image/fits,text/html")
         self.q.format = tuple("image/fits text/html".split())
         self.assertEquals(self.q.format, "image/fits,text/html")
+        self.q.format = set("image/fits text/html".split())
+        fmts = self.q.format.split(',')
+        self.assertTrue("image/fits" in fmts)
+        self.assertTrue("text/html" in fmts)
+        self.assertEquals(len(fmts), 2)
 
     def _assertPropSetRaises(self, extype, obj, att, val):
         try:

@@ -395,7 +395,7 @@ class SIAQuery(query.DALQuery):
                 # can be a comma-separated list of MIME-types
                 self.format = val.split(',')
             elif not query.is_mime_type(val):
-                raise ValueError("Not a MIME-type of special value: " + val)
+                raise ValueError("Not a MIME-type or special value: " + val)
 
         elif hasattr(val, "__iter__"):
             # accept python iterables of MIME-types
