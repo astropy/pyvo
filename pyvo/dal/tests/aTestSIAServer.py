@@ -5,6 +5,9 @@ a test DAL server for testing pyvo.dal
 """
 from __future__ import print_function, division
 
+# this gets around a bug in astropy 0.2.4 (needed for python3 support)
+from ... import dal
+
 import os
 import sys
 import shutil

@@ -842,12 +842,15 @@ def split_str_array_cell(val, delim=None):
     if not val: return val
 
     if delim is None:
-        if dalq._is_python3 and isinstance(val, bytes):
-            delim = b"#"
-        elif isinstance(val, unicode):
-            delim = u"#"
+        dval = "'#'"
+        # we do the following because "u'#'" is not legal syntax in Python3
+        if dalq._is_python3:
+            if isinstance(val, bytes):
+                dval = "b'#'"
         else:
-            delim = "#"
+            if isinstance(val, unicode):
+                dval = "u'#'"
+        delim = eval(dval)
 
     if val[0:1] == delim: val = val[1:]
     if val[-1:] == delim: val = val[:-1]
