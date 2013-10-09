@@ -329,10 +329,16 @@ class DALQuery(object):
         DALQueryError
            when lax=False, for errors in the input query syntax
         """
+        # for readability,
+        # list parameters in the preferred order as listed in std_parameters;
+        # non-standard ones follow the standard ones.  
+        params  = [p for p in self.std_parameters if self._param.has_key(p)]
+        params += [p for p in self._param.keys() if p not in params]
+
         return ensure_baseurl(self.baseurl) + \
            "&".join(map(lambda p: "{0}={1}".format(
                                             p,self._paramtostr(self._param[p])),
-                        self._param.keys()))
+                        params))
 
     def _paramtostr(self, pval):
         if isinstance(pval, tuple) or isinstance(pval, list):

@@ -345,14 +345,14 @@ class SesameQuery(object):
         will be returned by the query.
         """
         bad = []
-        use = set()
+        use = []
         for arg in args:
             abr = arg.lower()
             db = filter(lambda d: d.startswith(abr), self.database_codes.keys())
             if len(db) != 1:
                 bad.append(arg)
-            else:
-                use.add(db[0])
+            elif db[0] not in use:
+                use.append(db[0])
 
         if len(bad) > 0:
             raise ValueError("Unrecognized or ambiguous database name(s): " + 

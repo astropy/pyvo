@@ -9,7 +9,7 @@ import os, sys, shutil, re, imp
 import unittest
 from urllib2 import URLError, HTTPError
 
-import pyvo.nameresolver.sesame as sesame
+from .. import sesame
 import xml.etree.ElementTree as ET
 from astropy.utils.data import get_pkg_data_filename
 
