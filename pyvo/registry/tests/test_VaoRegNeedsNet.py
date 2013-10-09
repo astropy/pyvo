@@ -9,8 +9,8 @@ import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
-import pyvo.dal.query as dalq
-import pyvo.registry.vao as reg
+from ...dal import query as dalq
+from .. import vao as reg
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
 from astropy.tests.helper import pytest, remote_data
