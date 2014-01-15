@@ -103,7 +103,7 @@ download them:
        print 'fetching', image.title
        image.cachedataset(dir='skyview_images')
 
-We might highlight now a few things that specific to the 
+We might highlight now a few things that are specific to the 
 :py:func:`~pyvo.imagesearch` function.  You can see that we control the
 format of the images that are selected and returned with the
 ``format`` argument.  To select a specific format, you give it a mime
@@ -147,7 +147,7 @@ accessing a service, keep in mind:
 
 * the problem may not be with your query or the PyVO software; it may
   be the remote service.
-* if you are access many services as part of a script, be sure to
+* if you are accessing many services as part of a script, be sure to
   catch exceptions to allow for graceful recovery.  
 
 
@@ -166,9 +166,9 @@ access the results.
 With the :py:func:`~pyvo.imagesearch` function, the results come in
 the form of an :py:class:`~pyvo.dal.sia.SIAResults` 
 class.  Most of its capabilities comes from the more general 
-:py:class:`~pyvo.dal.query.DALResults` which is common to all the
+:py:class:`~pyvo.dal.query.DALResults` class which is common to all the
 data access services.  It provides some public attributes and
-functions that can be helpful for interpreting.  Two attributes of
+functions that can be helpful for interpreting.  Four attributes of
 interest are:
 
 ==============================================  =========================================================
@@ -198,16 +198,16 @@ with the :py:meth:`~pyvo.dal.query.DALResults.fieldnames()` method:
 [u'Survey', u'Ra', u'Dec', u'Dim', u'Size', u'Scale', u'Format', u'PixFlags',
  u'URL', u'LogicalName']
 
-Most services let you control the amount of metadata you get back with
-the :py:attr:`~pyvo.dal.sia.SIAQuery.verbosity` parameter. (Passing
-``verbosity=3`` to :py:func:`~pyvo.imagesearch` will return all the
-columns the service has available.)
+Most image services let you control the amount of metadata you get
+back with the :py:attr:`~pyvo.dal.sia.SIAQuery.verbosity`
+parameter. (Passing ``verbosity=3`` to :py:func:`~pyvo.imagesearch`
+will return all the columns the service has available.)
 
 You can get more information about a column either 
 :py:meth:`~pyvo.dal.query.DALResults.getdesc` which returns the
 description of the column with a given name or 
 :py:meth:`~pyvo.dal.query.DALResults.fielddesc` which returns all of
-the column descriptions in a list in the order the appeared in the
+the column descriptions in a list in the order they appeared in the
 result.  
 
 >>> deccol = previews.getdesc('Dec')
@@ -293,7 +293,7 @@ As we saw in the previous section, you can iterate through a query
 results object to get at individual records.  These records are
 specialized for the particular type of service you queried, but there
 is some common behavior.  For example, for all data access services,
-the record behaves like an unmutable dictionary where the keys are the
+the record behaves like an immutable dictionary where the keys are the
 names of the columns from the result table:
 
 >>> first = previews[0]
@@ -393,14 +393,14 @@ When Things Go Wrong: Handling Errors
 -------------------------------------
 
 Whenever you access a service over the network, things can go wrong:
-you may loose your network connection, the remote site might go down,
+you may lose your network connection, the remote site might go down,
 the specific service may go down, and so on.  In the VO, access to
 some services can fail if the service is not sufficiently compliant
 with the underlying standard.  In all such cases, PyVO will throw a
 useful exception.  
 
 In other cases, a service might be mildly non-compliant, and so you
-may see numereous warning printed to your screen.  When this happens,
+may see numereous warnings printed to your screen.  When this happens,
 you will still have a result set you can work with; however, some of
 the data may not be fully available (e.g. with the proper Python
 type).  
@@ -472,7 +472,7 @@ Using Query Objects
 -------------------
 
 Internally, the data access search functions like
-py:func:`~pyvo.imagesearch` uses a special query class to execute the
+:py:func:`~pyvo.imagesearch` uses a special query class to execute the
 query.  This class can sometimes be useful at the query level.  Query
 classes are specialized to the type of service being accessed and have
 built-in knowledge the input parameters it accepts.  In the case of
@@ -540,7 +540,7 @@ or the  :py:attr:`~pyvo.dal.sia.SIAQuery.ra` and
 :py:attr:`~pyvo.dal.sia.SIAQuery.dec` properties.  Lesser used
 parameters or parameters that are custom to the service can be set and
 examined using the :py:meth:`~pyvo.dal.sia.SIAQuery.setparam` and 
-:py:meth:`~pyvo.dal.sia.SIAQuery.getparam` methods respectively.
+:py:meth:`~pyvo.dal.sia.SIAQuery.getparam` methods, respectively.
 
 You might note two other useful methods of the query class.  First is 
 :py:meth:`~pyvo.dal.sia.SIAQuery.getqueryurl`: this will print out the
@@ -553,7 +553,7 @@ This is often useful for debugging.  For instance, you can copy this
 url into your browser and view the VOTable results directly.  This
 method will do a validity check on the input parameters automatically
 by default, raising a :py:class:`~pyvo.dal.query.DALQueryError` if an
-issue is found.  You can pass ``las=True`` to bypass this check.
+issue is found.  You can pass ``lax=True`` to bypass this check.
 
 If you want to work with the service response directly, perhaps use
 your own parser, you can use the
@@ -562,7 +562,7 @@ it.  The result will be a file-like object that will stream the raw
 XML response from the service.  
 
 We end this examination with another example of how to create a query
-object: 
+object, using a Service instance: 
 
 .. code-block:: python
 
@@ -578,7 +578,7 @@ same provide by the :py:func:`~pyvo.imagesearch` function.  This is
 method is a feature of a *service class*, the topic of the next
 subsection.  
 
-.. _service-objects
+.. _service-objects:
 
 ---------------
 Service Objects
@@ -710,20 +710,20 @@ You can discover image services with queries to the VO registry (see
 :ref:`registry-access`).  Here, though, list a few service access URLs
 that can be used with the examples shown above.  
 
-NASA HEASARC SkyView Archive::
-    http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?
+NASA HEASARC SkyView Archive:
+    *http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?*
 
-Hubble Legacy Archive (HLA)::
-    http://hla.stsci.edu/cgi-bin/hlaSIAP.cgi?imagetype=best&inst=ACS,ACSGrism,WFC3,WFPC2,NICMOS,NICGRISM,COS,STIS,FOS,GHRS&proprietary=false&
+Hubble Legacy Archive (HLA):
+    *http://hla.stsci.edu/cgi-bin/hlaSIAP.cgi?imagetype=best&inst=ACS,ACSGrism,WFC3,WFPC2,NICMOS,NICGRISM,COS,STIS,FOS,GHRS&proprietary=false&*
 
 Digitized Sky Survey (DSS2)::
-    http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=dss2&
+    *http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=dss2&*
 
 NRAO VLA Sky Survey (NVSS)::
-    http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
+    *http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&*
 
 IRSA Two Micron All-Sky Survey (2MASS)::
-    http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=2mass&
+    *http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=2mass&*
 
 .. _data-access-ssa
 
@@ -768,7 +768,7 @@ for VOTable format:
 >>> len(spectra)
 36
 
-See the :py:attr:`pyvo.ssa.SSAQuery.format` for a full enumeration of
+See the :py:attr:`pyvo.dal.ssa.SSAQuery.format` for a full enumeration of
 the special format values.  
 
 Just like searching for images, you can iterate through your results
@@ -826,13 +826,13 @@ attribute                                   description
 :py:attr:`~pyvo.dal.ssa.SSARecord.title`    the name or identifier of the spectrum as given by
                                             the archive
 ------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.ssa.SSARecord.format`   the format of the spectrum
+:py:attr:`~pyvo.dal.ssa.SSARecord.format`   the format of the spectrum.
 ------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.sia.S@ARecord.dateobs`  the modified Julien date (MJD) of the mid-point of 
+:py:attr:`~pyvo.dal.ssa.SSARecord.dateobs`  the modified Julien date (MJD) of the mid-point of 
                                             the observational data that went into the image
                                             (optional)
 ------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.sia.SSARecord.instr`    the name of the instrument (or instruments) that 
+:py:attr:`~pyvo.dal.ssa.SSARecord.instr`    the name of the instrument (or instruments) that 
                                             produced the data that went into this image.
 ------------------------------------------  ---------------------------------------------------------
 :py:attr:`~pyvo.dal.sia.SIARecord.acref`    the URL that can be used to retrieve the image.  
@@ -847,6 +847,17 @@ query class (see :ref:`sia-query`) and service class (see
 :ref:`service-objects`). 
 
 The query class, :py:class:`~pyvo.dal.ssa.SSAQuery`, differs from its SIA
-conterpart in the search parameters it exposes as properties.  
+conterpart in the search parameters it exposes as properties:
 
 
+
+
+.. rubric:: Footnotes
+
+.. [#f1] *UCD* stands for *unified content descriptor*.  For more
+         information, see the 
+         `IVOA UCD standard <http://www.ivoa.net/Documents/latest/UCD.html>`_,
+         as well as the list of valid version 1+ UCDs on the 
+         `CDS UCD Info page <http://cds.u-strasbg.fr/w/doc/UCD/>`_.
+         Note that SIA version 1 uses the older style UCD1 labels
+         described `here <http://cdsweb.u-strasbg.fr/UCD/old/>`_.

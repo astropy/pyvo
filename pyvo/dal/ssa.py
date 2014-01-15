@@ -37,11 +37,11 @@ import re
 import sys
 from . import query
 
-__all__ = [ "search", "SSAService", "SSAQuery" ]
+__all__ = [ "search", "SSAService", "SSAQuery", "SSAResults", "SSARecord" ]
 
 def search(url, pos, size, format='all', **keywords):
     """
-    submit a simple SIA query that requests spectra overlapping a 
+    submit a simple SSA query that requests spectra overlapping a 
 
     Parameters
     ----------
@@ -67,12 +67,23 @@ def search(url, pos, size, format='all', **keywords):
        with the parameters set by the other arguments to
        this function, these keywords will override.
 
+    Returns
+    -------
+    SSAResults
+        a container holding a table of matching spectrum records 
+
     Raises
     ------
     DALServiceError
        for errors connecting to or communicating with the service
     DALQueryError
        if the service responds with an error, including a query syntax error.  
+
+    See Also
+    --------
+    SSAResults
+    pyvo.dal.query.DALServiceError
+    pyvo.dal.query.DALQueryError
     """
     service = SSAService(url)
     return service.search(pos, size, format, **keywords)
@@ -126,12 +137,23 @@ class SSAService(query.DALService):
            with the parameters set by the other arguments to
            this function, these keywords will override.
 
+        Returns
+        -------
+        SSAResults
+           a container holding a table of matching catalog records 
+
         Raises
         ------
         DALServiceError
            for errors connecting to or communicating with the service
         DALQueryError
            if the service responds with an error, including a query syntax error
+
+        See Also
+        --------
+        SSAResults
+        pyvo.dal.query.DALServiceError
+        pyvo.dal.query.DALQueryError
         """
         q = self.create_query(pos, size, format, **keywords)
         return q.execute()
@@ -169,6 +191,10 @@ class SSAService(query.DALService):
         -------
         SSAQuery  
             the query instance
+
+        See Also
+        --------
+        SSAQuery
         """
         q = SSAQuery(self.baseurl, self.version)
         if pos is not None: q.pos = pos
@@ -183,10 +209,26 @@ class SSAService(query.DALService):
 class SSAQuery(query.DALQuery):
     """
     a class for preparing an query to an SSA service.  Query constraints
-    are added via its service type-specific methods.  The various execute()
-    functions will submit the query and return the results.  
+    are added via its service type-specific properties and methods.  Once 
+    all the constraints are set, one of the various execute() functions 
+    can be called to submit the query and return the results.  
 
-    The base URL for the query can be changed via the baseurl property.
+    The base URL for the query, which controls where the query will be sent 
+    when one of the execute functions is called, is typically set at 
+    construction time; however, it can be updated later via the 
+    :py:attr:`~pyvo.dal.query.DALQuery.baseurl` to send a configured 
+    query to another service.  
+
+    In addition to the attributes described below, search parameters can be 
+    set generically by name via the 
+    :py:attr:`~pyvo.dal.query.DALQuery.setparam`() 
+    method.  The class attribute, ``std_parameters``, list the parameters 
+    defined by the SSA standard.  
+
+    The typical function for submitting the query is ``execute()``; however, 
+    alternate execute functions provide the response in different forms, 
+    allowing the caller to take greater control of the result processing.  
+
     """
     
     std_parameters = [ "REQUEST", "VERSION", "POS", "SIZE", "BAND", "TIME", 
@@ -288,7 +330,15 @@ class SSAQuery(query.DALQuery):
     @property
     def band(self):
         """
-        the spectral bandpass given in a range-list format
+        the spectral bandpass given in a range-list format in units of 
+        meters
+
+        Examples of proper format include:
+
+        =========================  =====================================
+        0.20/0.21.5                a wavelength range that includes 21cm
+        2.7E-7/0.13                a bandpass from optical to radio
+        =========================  =====================================
         """
         return self.getparam("BAND")
     @band.setter
@@ -303,6 +353,15 @@ class SSAQuery(query.DALQuery):
         """
         the time coverage given in a range-list format using a restricted
         subset of ISO 8601.
+
+        Examples of proper format include:
+
+        =========================  =====================================
+        2003/2009                  covers years 2003-09, inclusive
+        2003-02/2003-04            covers Feb. through April in 2003
+        2003-05-02/2010-09-21      covers a range of days 
+        2001-05-02T12:21:30/2010   provides second resolution
+        =========================  =====================================
         """
         return self.getparam("TIME")
     @time.setter
@@ -330,16 +389,18 @@ class SSAQuery(query.DALQuery):
         form of a commna-separated list of MIME-types or one of the following 
         special values. 
 
-        :Special Values:
-           all:  all formats available
-           compliant:  any SSA data model compliant format
-           native:  the native project specific format for the spectrum
-           graphic: any of the graphics formats: JPEG, PNG, GIF
-           votable: the SSA VOTable format
-           fits: the SSA-compliant FITS format
-           xml: the SSA native XML serialization
-           metadata: no images requested; only an empty table with fields
-                          properly specified
+        ========= =======================================================
+        **value** **meaning**
+        all       all formats available
+        compliant any SSA data model compliant format
+        native    the native project specific format for the spectrum
+        graphic   any of the graphics formats: JPEG, PNG, GIF
+        votable   the SSA VOTable format
+        fits      the SSA-compliant FITS format
+        xml       the SSA native XML serialization
+        metadata  no images requested; only an empty table with fields
+                  properly specified
+        ========= =======================================================
 
         """
         return self.getparam("FORMAT")
@@ -365,21 +426,72 @@ class SSAQuery(query.DALQuery):
         submit the query and return the results as a Results subclass instance.
         This implimentation returns an SSAResults instance
 
+        Returns
+        -------
+        SSAResults
+           a container holding a table of matching catalog records 
+
         Raises
         ------
         DALServiceError
            for errors connecting to or communicating with the service
         DALQueryError
            if the service responds with an error, including a query syntax error
+
+        See Also
+        --------
+        SSAResults
+        pyvo.dal.query.DALServiceError
+        pyvo.dal.query.DALQueryError
         """
         return SSAResults(self.execute_votable(), self.getqueryurl())
 
 
 class SSAResults(query.DALResults):
     """
-    Results from an SSA query.  It provides random access to records in 
-    the response.  Alternatively, it can provide results via a Cursor 
-    (compliant with the Python Database API) or an iterator.
+    The list of matching images resulting from a spectrum (SSA) query.  
+    Each record contains a set of metadata that describes an available
+    spectrum matching the query constraints.  The number of records in
+    the results is available via the :py:attr:`nrecs` attribute or by 
+    passing it to the Python built-in ``len()`` function.  
+
+    This class supports iterable semantics; thus, 
+    individual records (in the form of 
+    :py:class:`~pyvo.dal.ssa.SSARecord` instances) are typically
+    accessed by iterating over an ``SSAResults`` instance.  
+
+    >>> results = pyvo.spectrumsearch(url, pos=[12.24, -13.1], size=0.2)
+    >>> for spec in results:
+    ...     print("{0}: {1}".format(spec.title, spec.getdataurl()))
+
+    Alternatively, records can be accessed randomly via 
+    :py:meth:`getrecord` or through a Python Database API (v2)
+    Cursor (via :py:meth:`~pyvo.dal.query.DALResults.cursor`).  
+    Column-based data access is possible via the 
+    :py:meth:`~pyvo.dal.query.DALResults.getcolumn` method.  
+
+    ``SSAResults`` is essentially a wrapper around an Astropy 
+    :py:mod:`~astropy.io.votable` 
+    :py:class:`~astropy.io.votable.tree.Table` instance where the 
+    columns contain the various metadata describing the spectra.  
+    One can access that VOTable directly via the 
+    :py:attr:`~pyvo.dal.query.DALResults.votable` attribute.  Thus,
+    when one retrieves a whole column via 
+    :py:meth:`~pyvo.dal.query.DALResults.getcolumn`, the result is 
+    a Numpy array.  Alternatively, one can manipulate the results 
+    as an Astropy :py:class:`~astropy.table.table.Table` via the 
+    following conversion:
+
+    >>> table = results.votable.to_table()
+
+    ``SSAResults`` supports the array item operator ``[...]`` in a 
+    read-only context.  When the argument is numerical, the result 
+    is an 
+    :py:class:`~pyvo.dal.ssa.SSARecord` instance, representing the 
+    record at the position given by the numerical index.  If the 
+    argument is a string, it is interpreted as the name of a column,
+    and the data from the column matching that name is returned as 
+    a Numpy array.  
     """
 
     def __init__(self, votable, url=None):
@@ -565,6 +677,22 @@ class SSAResults(query.DALResults):
         instance's fieldNames() function: either the column IDs or name, if 
         the ID is not set.  The returned record has additional accessor 
         methods for getting at standard SSA response metadata (e.g. ra, dec).
+
+        Parameters
+        ----------
+        index : int
+           the integer index of the desired record where 0 returns the first 
+           record
+
+        Rerturns
+        --------
+        SSARecord
+           a distionary-like record containing the image metadata from
+           the requested record.
+
+        See Also
+        --------
+        SSARecord
         """
         return SSARecord(self, index)
 
@@ -572,6 +700,13 @@ class SSARecord(query.Record):
     """
     a dictionary-like container for data in a record from the results of an
     SSA query, describing an available spectrum.
+
+    The commonly accessed metadata which are stadardized by the SSA
+    protocol are available as attributes.  If the metadatum accessible
+    via an attribute is not available, the value of that attribute
+    will be None.  All metadata, including non-standard metadata, are 
+    acessible via the ``get(`` *key* ``)`` function (or the [*key*]
+    operator) where *key* is table column name.  
     """
 
     def __init__(self, results, index):
@@ -582,28 +717,28 @@ class SSARecord(query.Record):
     @property
     def ra(self):
         """
-        return the right ascension of the center of the image
+        return the right ascension of the center of the spectrum
         """
         return self.get(self._names["pos"])[0]
 
     @property
     def dec(self):
         """
-        return the declination of the center of the image
+        return the declination of the center of the spectrum
         """
         return self.get(self._names["pos"])[1]
 
     @property
     def title(self):
         """
-        return the title of the image
+        return the title of the spectrum
         """
         return self.get(self._names["title"])
 
     @property
     def format(self):
         """
-        return the title of the image
+        return the file format that this the spectrum is stored in
         """
         return self.get(self._names["format"])
 
@@ -611,7 +746,7 @@ class SSARecord(query.Record):
     def dateobs(self):
         """
         return the modified Julien date (MJD) of the mid-point of the 
-        observational data that went into the image
+        observational data that went into the spectrum
         """
         return self.get(self._names["dateobs"])
 
@@ -619,14 +754,14 @@ class SSARecord(query.Record):
     def instr(self):
         """
         return the name of the instrument (or instruments) that produced the 
-        data that went into this image.
+        data that went into this spectrum.
         """
         return self.get(self._names["instr"])
 
     @property
     def acref(self):
         """
-        return the URL that can be used to retrieve the image
+        return the URL that can be used to retrieve the spectrum.
 
         Note that this will always be returned as a native string--i.e. as 
         unicode for Python 3 and as a byte-string for Python 2--making ready
@@ -659,7 +794,7 @@ class SSARecord(query.Record):
             out = out.decode('utf-8')
 
         if not out:
-            out = "image"
+            out = "spectrum"
         else:
             out = re.sub(r'\s+', '_', out.strip())
         return out

@@ -28,7 +28,8 @@ import re
 
 import numpy.ma as _ma
 
-__all__ = [ "search", "RegistryService", "RegistryQuery" ]
+__all__ = [ "search", "RegistryService", "RegistryQuery", 
+                      "RegistryResults", "SimpleResource" ]
 
 def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
     """

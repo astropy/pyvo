@@ -1,7 +1,7 @@
 
-===============
-The pyvo Module
-===============
+================
+The pyvo Package
+================
 
 .. py:module:: pyvo
 
