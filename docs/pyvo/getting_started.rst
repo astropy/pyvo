@@ -227,23 +227,24 @@ Finally, the :py:mod:`pyvo` module makes available a set of exceptions
 that are thrown by the above functions when things go wrong.  These
 are described in the Data Access Queries section: 
 
-============================================  ==================================
+============================================  ===================================================================================
 :py:class:`~pyvo.dal.query.DALAccessError`    a base class for all failures while accessing a DAL service
 :py:class:`~pyvo.dal.query.DALProtocolError`  a base exception indicating that a DAL service responded in an erroneous way.  
 :py:class:`~pyvo.dal.query.DALFormatError`    an exception indicating that a DAL response contains fatal format errors.
 :py:class:`~pyvo.dal.query.DALServiceError`   an exception indicating a failure communicating with a DAL service.
 :py:class:`~pyvo.dal.query.DALQueryError`     an exception indicating an error by a working DAL service while processing a query.  
-============================================  ==================================
+============================================  ===================================================================================
+
 
 Finally, we will see in the next chapter that additional features are
 available in sub-modules, each associated with a different type of
 services.  This includes:
 
-================================  =========================================
-:py:mod:`~pyvo.dal.sia`           Classes for accessing image services
-:py:mod:`~pyvo.dal.ssa`           Classes for accessing spectrum services
-:py:mod:`~pyvo.dal.scs`           Classes for accessing catalog services
-:py:mod:`~pyvo.dal.sla`           Classes for accessing spectral line catalog services
-:py:mod:`~pyvo.dal.registry`      Classes for accessing the registry
-:py:mod:`~pyvo.dal.nameresolver`  Classes for accessing the nameresolver servicees
-================================  =========================================
+===========================  ====================================================
+:py:mod:`pyvo.dal.sia`       Classes for accessing image services
+:py:mod:`pyvo.dal.ssa`       Classes for accessing spectrum services
+:py:mod:`pyvo.dal.scs`       Classes for accessing catalog services
+:py:mod:`pyvo.dal.sla`       Classes for accessing spectral line catalog services
+:py:mod:`pyvo.registry`      Classes for accessing the registry
+:py:mod:`pyvo.nameresolver`  Classes for accessing the nameresolver servicees
+===========================  ====================================================

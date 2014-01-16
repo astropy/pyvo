@@ -533,17 +533,49 @@ they have in the same area of the sky:
            continue
        print "Found", len(images), "images"
 
-As you can see, the most commonly set query constraints are available
-as properties of the class.  As a convenience, you can either set the
-search position via the :py:attr:`pyvo.dal.sia.SIAQuery.pos` property
-or the  :py:attr:`~pyvo.dal.sia.SIAQuery.ra` and
-:py:attr:`~pyvo.dal.sia.SIAQuery.dec` properties.  Lesser used
+The most commonly set query constraints are available as mutable 
+properties of the class.  For :py:class:`~pyvo.dal.sia.SIAQuery`, the
+following properties are available for setting constraints:
+
+.. the length of a link in the table below makes the first column
+   larger than it needs to be; it can be effectively narrowed by 
+   making the second column super wide.  
+
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|                                                    :py:class:`~pyvo.dal.sia.SIAQuery` search constraint properties                                                                                        |
++=============================================+=============================================================================================================================================================+
+| :py:attr:`~pyvo.dal.sia.SIAQuery.pos`       | the center position of the search region given as a 2-element                                                                                               |
+|                                             | tuple denoting RA and declination                                                                                                                           |
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| :py:attr:`~pyvo.dal.sia.SIAQuery.ra`        | the right ascension part of the region's center position                                                                                                    |
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| :py:attr:`~pyvo.dal.sia.SIAQuery.dec`       | the declination part of the region's center position                                                                                                        |
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| :py:attr:`~pyvo.dal.sia.SIAQuery.size`      | the width and height of the search region given as a 2-element                                                                                              |
+|                                             | tuple                                                                                                                                                       |
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| :py:attr:`~pyvo.dal.sia.SIAQuery.intersect` | the image-region overlap constraint                                                                                                                         |
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| :py:attr:`~pyvo.dal.sia.SIAQuery.format`    | the desired format of the images to be returned                                                                                                             |
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| :py:attr:`~pyvo.dal.sia.SIAQuery.verbosity` | an integer indicating the amount of metadata (i.e. columns)                                                                                                 |
+|                                             | that will be returned by a query                                                                                                                            |
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+.. raw:: html
+
+   <br>
+   
+As a convenience, you can either set the search position via the 
+:py:attr:`SIAQuery.pos <pyvo.dal.sia.SIAQuery.pos>` property
+or the  :py:attr:`SIAQuery.ra <pyvo.dal.sia.SIAQuery.ra>` and
+:py:attr:`SIAQuery.dec <pyvo.dal.sia.SIAQuery.dec>` properties.  Lesser used
 parameters or parameters that are custom to the service can be set and
-examined using the :py:meth:`~pyvo.dal.sia.SIAQuery.setparam` and 
-:py:meth:`~pyvo.dal.sia.SIAQuery.getparam` methods, respectively.
+examined using the :py:meth:`~pyvo.dal.query.DALQuery.setparam` and 
+:py:meth:`~pyvo.dal.query.DALQuery.getparam` methods, respectively.
 
 You might note two other useful methods of the query class.  First is 
-:py:meth:`~pyvo.dal.sia.SIAQuery.getqueryurl`: this will print out the
+:py:meth:`~pyvo.dal.query.DALQuery.getqueryurl`: this will print out the
 query URL it will use when you execute it:
 
 >>> query.getqueryurl()
@@ -559,7 +591,8 @@ If you want to work with the service response directly, perhaps use
 your own parser, you can use the
 :py:meth:`~pyvo.dal.query.DALQuery.execute_stream` method to execute
 it.  The result will be a file-like object that will stream the raw
-XML response from the service.  
+XML response from the service.  Other ``execute_*`` functions are
+available to provide access to other forms of the output.  
 
 We end this examination with another example of how to create a query
 object, using a Service instance: 
@@ -814,29 +847,43 @@ In addition, the record provides properties that allow you to pick out
 key metadata about the spectrum regardless of what the column names
 are.  These include:
 
-==========================================  =========================================================
+.. the length of a link in the table below makes the first column
+   larger than it needs to be; it can be effectively narrowed by 
+   making the second column super wide.  
+
+==========================================  ==================================================================================================================
 attribute                                   description
-==========================================  =========================================================
+==========================================  ==================================================================================================================
 :py:attr:`~pyvo.dal.ssa.SSARecord.ra`       the IRCS right ascension of the center of the spectrum 
                                             in decimal degrees
-------------------------------------------  ---------------------------------------------------------
+------------------------------------------  ------------------------------------------------------------------------------------------------------------------
 :py:attr:`~pyvo.dal.ssa.SSARecord.dec`      the IRCS declination of the center of the spectrum
                                             in decimal degrees            
-------------------------------------------  ---------------------------------------------------------
+------------------------------------------  ------------------------------------------------------------------------------------------------------------------
 :py:attr:`~pyvo.dal.ssa.SSARecord.title`    the name or identifier of the spectrum as given by
                                             the archive
-------------------------------------------  ---------------------------------------------------------
+------------------------------------------  ------------------------------------------------------------------------------------------------------------------
 :py:attr:`~pyvo.dal.ssa.SSARecord.format`   the format of the spectrum.
-------------------------------------------  ---------------------------------------------------------
+------------------------------------------  ------------------------------------------------------------------------------------------------------------------
 :py:attr:`~pyvo.dal.ssa.SSARecord.dateobs`  the modified Julien date (MJD) of the mid-point of 
                                             the observational data that went into the image
                                             (optional)
-------------------------------------------  ---------------------------------------------------------
+------------------------------------------  ------------------------------------------------------------------------------------------------------------------
 :py:attr:`~pyvo.dal.ssa.SSARecord.instr`    the name of the instrument (or instruments) that 
                                             produced the data that went into this image.
-------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.sia.SIARecord.acref`    the URL that can be used to retrieve the image.  
-==========================================  =========================================================
+------------------------------------------  ------------------------------------------------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.acref`    the URL that can be used to retrieve the image
+                                            (equivalent to the output of 
+                                            :py:meth:`~pyvo.dal.sia.SIARecord.getdataurl`)
+==========================================  ==================================================================================================================
+
+.. raw:: html
+
+   <br>
+   
+Just like retrieving images, we can download individual spectrum
+datasets using the :py:meth:`~pyvo.dal.sia.SIARecord.getdataurl` 
+and :py:meth:`~pyvo.dal.sia.SIARecord.cachedataset`.  
 
 --------------------------
 Search and Service Classes
@@ -849,7 +896,61 @@ query class (see :ref:`sia-query`) and service class (see
 The query class, :py:class:`~pyvo.dal.ssa.SSAQuery`, differs from its SIA
 conterpart in the search parameters it exposes as properties:
 
+.. the length of a link in the table below makes the first column
+   larger than it needs to be; it can be effectively narrowed by 
+   making the second column super wide.  
 
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|                                                    :py:class:`~pyvo.dal.ssa.SSAQuery` search constraint properties                                                                                        |
++=============================================+=============================================================================================================================================================+
+| :py:attr:`~pyvo.dal.ssa.SSAQuery.pos`       | the center position of the circular search region given as a 2-element                                                                                      |
+|                                             | tuple denoting RA and declination                                                                                                                           |
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| :py:attr:`~pyvo.dal.ssa.SSAQuery.ra`        | the right ascension part of the region's center position                                                                                                    |
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| :py:attr:`~pyvo.dal.ssa.SSAQuery.dec`       | the declination part of the region's center position                                                                                                        |
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| :py:attr:`~pyvo.dal.ssa.SSAQuery.size`      | the diameter of the circular search region                                                                                                                  |
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| :py:attr:`~pyvo.dal.ssa.SSAQuery.time`      | the range of observation time to restrict spectra to                                                                                                        |
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| :py:attr:`~pyvo.dal.ssa.SSAQuery.format`    | the desired format of the images to be returned                                                                                                             |
++---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+.. raw:: html
+
+   <br>
+   
+The SSA service standard defines a large number of additional
+(optional) constraints that can be set via the 
+:py:meth:`~pyvo.dal.query.DALQuery.setparam` method.  The  
+:py:class:`~pyvo.dal.ssa.SSAQuery` documentation describes them all
+(see the :py:attr:`~pyvo.dal.query.DALQuery.std_parameters`
+attribute).  
+
+Note that there is also a Service class, 
+:py:class:`~pyvo.dal.ssa.SSAService`, for SSA services which act just
+like its SIA counterpart.  
+
+===================================================
+Searching Catalogs with Simple Cone Search Services
+===================================================
+
+-------------------------------
+The Simple Cone Search Function
+-------------------------------
+
+-----------------------------------
+The Cone Search Results and Records
+-----------------------------------
+
+--------------------------
+Search and Service Classes
+--------------------------
+
+================================================
+Spectral Line Transitions and Simple Line Access
+================================================
 
 
 .. rubric:: Footnotes
