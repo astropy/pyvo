@@ -28,7 +28,8 @@ import re
 
 import numpy.ma as _ma
 
-__all__ = [ "search", "RegistryService", "RegistryQuery" ]
+__all__ = [ "search", "RegistryService", "RegistryQuery", 
+                      "RegistryResults", "SimpleResource" ]
 
 def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
     """
@@ -37,14 +38,17 @@ def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
     Parameters
     ----------
     keywords : str or list of str
-       a string giving a single term or a python list 
-       of terms to match to registry records.  
+       keyword terms to match to registry records.  
+       Use this parameter to find resources related to a 
+       particular topic.
     servicetype : str
-       the service type to restrict results to; 
-       allowed values include 'catalog' (synonyms: 
-       'scs', 'conesearch'), 'image' (synonym: 'sia'), 
-       'spectrum' (synonym: 'ssa'). 'service' (a generic
-       service). 'table' (synonyms: 'tap', 'database').
+       the service type to restrict results to.
+       Allowed values include,
+       'catalog'  (synonyms: 'table', 'scs', 'conesearch', 'ConeSearch'), 
+       'image'    (synonyms: 'sia', 'SimpleImageAccess'), 
+       'spectrum' (synonyms: 'ssa', 'ssap', 'SimpleSpectralAccess'),
+       'line'     (synonyms: 'sla', 'slap', 'SimpleLineAccess')
+       'database' (synonyms: 'tap','TableAccess').
     waveband : str
        the name of a desired waveband; resources returned 
        will be restricted to those that indicate as having
@@ -57,7 +61,14 @@ def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
        that further contrains the search against supported 
        keywords.
 
-    The result will be a RegistryResults instance.  
+    Returns
+    -------
+    RegistryResults
+       a container holding a table of matching resource (e.g. services)
+
+    See Also
+    --------
+    RegistryResults
     """
     reg = RegistryService()
     return reg.search(keywords, servicetype, waveband, sqlpred)
@@ -97,28 +108,38 @@ class RegistryService(dalq.DALService):
 
         Parameters
         ----------
-       keywords
-          a string giving a single term or a python list 
-          of terms to match to registry records.  
-       servicetype : str
-          the service type to restrict results to; 
-          allowed values include 'catalog' (synonyms: 
-          'scs', 'conesearch'), 'image' (synonym: 'sia'), 
-          'spectrum' (synonym: 'ssa'). 'service' (a generic
-          service). 'table' (synonyms: 'tap', 'database').
-       waveband : str
-          the name of a desired waveband; resources returned 
-          will be restricted to those that indicate as having
-          data in that waveband.  Allowed, case-insensitive 
-          values include 'Radio', 'Millimeter', 'Infrared'
-          (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
-          (synonym: 'Xray').
-       sqlpred : str
-          an SQL WHERE predicate (without the leading "WHERE") 
-          that further contrains the search against supported 
-          keywords.
+        keywords : str or list of str
+           keyword terms to match to registry records.  
+           Use this parameter to find resources related to a 
+           particular topic.
+        servicetype : str
+           the service type to restrict results to.
+           Allowed values include,
+           'catalog'  (synonyms: 'table', 'scs', 'conesearch', 'ConeSearch'), 
+           'image'    (synonyms: 'sia', 'SimpleImageAccess'), 
+           'spectrum' (synonyms: 'ssa', 'ssap', 'SimpleSpectralAccess'),
+           'line'     (synonyms: 'sla', 'slap', 'SimpleLineAccess')
+           'database' (synonyms: 'tap','TableAccess').
+        waveband : str
+           the name of a desired waveband; resources returned 
+           will be restricted to those that indicate as having
+           data in that waveband.  Allowed, case-insensitive 
+           values include 'Radio', 'Millimeter', 'Infrared'
+           (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
+           (synonym: 'Xray').
+        sqlpred : str
+           an SQL WHERE predicate (without the leading "WHERE") 
+           that further contrains the search against supported 
+           keywords.
 
-        The result will be a RegistryResults instance.  
+        Returns
+        -------
+        RegistryResults
+           a container holding a table of matching resource (e.g. services)
+
+        See Also
+        --------
+        RegistryResults
         """
         srch = self.create_query(keywords, servicetype, waveband, sqlpred)
         # print(srch.getqueryurl())
@@ -153,11 +174,11 @@ class RegistryService(dalq.DALService):
            of terms to match to registry records.  
         servicetype : str
            the service type to restrict results to; 
-           allowed values include 'catalog' (synonyms: 
-           'table', 'scs', 'conesearch', 'ConeSearch'), 
-           'image' (synonym: 'sia', 'SimpleImageAccess'), 
-           'spectrum' (synonym: 'ssa', 'ssap', 
-           'SimpleSpectralAccess'). 
+           allowed values include, 
+           'catalog'  (synonyms: 'table', 'scs', 'conesearch', 'ConeSearch'), 
+           'image'    (synonyms: 'sia', 'SimpleImageAccess'), 
+           'spectrum' (synonyms: 'ssa', 'ssap', 'SimpleSpectralAccess'),
+           'line'     (synonyms: 'sla', 'slap', 'SimpleLineAccess')
            'database' (synonyms: 'tap','TableAccess').
         waveband : str
            the name of a desired waveband; resources returned 
@@ -170,6 +191,10 @@ class RegistryService(dalq.DALService):
            an SQL WHERE predicate (without the leading "WHERE") 
            that further contrains the search against supported 
            keywords.
+
+        See Also
+        --------
+        RegistryQuery
         """
         srch = RegistryQuery(self._baseurl)
         if sqlpred:
@@ -790,7 +815,18 @@ class SimpleResource(dalq.Record):
            self.to_service().search(*args, **keys)
 
         The arguments provided should be appropriate for the service that 
-        the DAL service type would expect.  
+        the DAL service type would expect.  See the documentation for the 
+        appropriate service type:
+
+        ============  =========================================
+        Service type  Use the argument syntax for
+        ============  =========================================
+        catalog       :py:meth:`pyvo.dal.scs.SCSService.search`
+        image         :py:meth:`pyvo.dal.sia.SIAService.search`
+        spectrum      :py:meth:`pyvo.dal.ssa.SSAService.search`
+        line          :py:meth:`pyvo.dal.sla.SLAService.search`
+        database      *not yet supported*
+        ============  =========================================
 
         Raises
         ------

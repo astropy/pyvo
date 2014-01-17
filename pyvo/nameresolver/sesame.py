@@ -51,8 +51,8 @@ def set_default_endpoint(name):
 
 def resolve(names, db="Simbad", include="", mirror=None):
     """
-    resolve one or more object names each to an ObjectData instance 
-    containing metadata about the object.  
+    resolve one or more object names each to an :class:`.ObjectData` 
+    instance containing metadata about the object.  
 
     Parameters
     ----------
@@ -78,9 +78,10 @@ def resolve(names, db="Simbad", include="", mirror=None):
     Returns
     -------
     ObjectData
-       if a single name was provided or a 
+       if a single name was provided, or a 
     list of ObjectData
-       if a list of names was given
+       if a list of names was given.  See :class:`.ObjectData` for details 
+       of the object's contents. 
     """
     baseurl = default_endpoint
     if mirror:
@@ -792,7 +793,7 @@ class DocQuantity(object):
     an error, quality flag, and bibcode reference.  If the optional values are 
     not available, the attribute value will be None.
 
-    Properties
+    Attributes
     ----------
     val : float
        the decimal value in the units given by unit

@@ -94,14 +94,15 @@ class DALService(object):
     @property
     def baseurl(self):
         """
-        the base URL to use for submitting queries (read-only)
+        the base URL identifying the location of the service and where 
+        queries are submitted (read-only)
         """
         return self._baseurl
 
     @property
     def protocol(self):
         """
-        The service protocol implemented by the service read-only).
+        The service protocol implemented by the service (read-only).
         """
         return self._protocol
 
@@ -129,12 +130,15 @@ class DALService(object):
         will be assumed to be understood by the service (i.e. there is no
         argument checking).  The response is a generic DALResults object.  
 
-        :Raises:
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALQueryError*:   for errors either in the input query syntax or 
-                              other user errors detected by the service
-           *DALFormatError*:  for errors parsing the VOTable response
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError  
+           for errors either in the input query syntax or other user errors 
+           detected by the service
+        DALFormatError  
+           for errors parsing the VOTable response
         """
         q = self.create_query(**keywords)
         return q.execute()
@@ -143,6 +147,11 @@ class DALService(object):
         """
         create a query object that constraints can be added to and then 
         executed.
+
+        Returns
+        -------
+        DALQuery
+           a generic query object
         """
         # this must be overridden to return a Query subclass appropriate for 
         # the service type
@@ -188,32 +197,36 @@ class DALQuery(object):
     @property
     def protocol(self):
         """
-        The service protocol which generated this query response (read-only).
+        The service protocol supported by this query object (read-only).
         """
         return self._protocol
 
     @property
     def version(self):
         """
-        The version of the service protocol which generated this query response
+        The version of the service protocol supported by this query object
         (read-only).
         """
         return self._version
 
     def setparam(self, name, val):
         """
-        add a parameter constraint to the query.
+        add a parameter constraint to the query.  The name can either be 
+        of a standard parameter (defined by the protocol standard; see 
+        std_parameters) or a custom parameter supported by the particular
+        service associated with the :py:attr:`baseurl`.  
 
         Parameters
         ----------
-         name : str
-            the name of the parameter.  This should be a name that 
-            is recognized by the service itself.  
-         val : any
-            the value for the constraint.  This value must meet the 
-            requirements set by the standard or by the service.  If 
-            the constraint consists of multiple values, it should be 
-            passed as a sequence.  
+        name : str
+           the name of the parameter.  This should be a name that 
+           is recognized by the service itself.  
+        val : any
+           the value for the constraint.  This value must meet the 
+           requirements set by the standard or by the service.  If 
+           the constraint consists of multiple values, it should be 
+           passed as a sequence.  
+
         """
         self._param[name] = val
 
@@ -294,6 +307,11 @@ class DALQuery(object):
         """
         submit the query and return the results as an AstroPy votable instance
 
+        Returns
+        -------
+        astropy.io.votable.tree.Table
+           an Astropy votable Table instance
+
         Raises
         ------
         DALServiceError
@@ -302,6 +320,13 @@ class DALQuery(object):
            for errors parsing the VOTable response
         DALQueryError
            for errors in the input query syntax
+
+        See Also
+        --------
+        astropy.io.votable
+        DALServiceError
+        DALFormatError
+        DALQueryError
         """
         try:
             return _votableparse(self.execute_stream().read)
@@ -316,6 +341,11 @@ class DALQuery(object):
         return the GET URL that encodes the current query.  This is the 
         URL that the execute functions will use if called next.  
 
+        Returns
+        -------
+        str
+           the encoded query URL
+
         Parameters
         ----------
         lax : bool
@@ -328,6 +358,11 @@ class DALQuery(object):
         ------
         DALQueryError
            when lax=False, for errors in the input query syntax
+
+        See Also
+        --------
+        DALQueryError
+
         """
         # for readability,
         # list parameters in the preferred order as listed in std_parameters;
@@ -376,6 +411,10 @@ class DALResults(object):
         ------
         DALFormatError
            if the response VOTable does not contain a response table
+
+        See Also
+        --------
+        DALFormatError
         """
         self._url = url
         self._protocol = protocol
@@ -574,17 +613,27 @@ class DALResults(object):
            the integer index of the desired record where 0 returns the first 
            record
 
+        Returns
+        -------
+        Record
+           a dictionary-like wrapper containing the result record metadata.
+
         Raises
         ------
         IndexError  
            if index is negative or equal or larger than the number of rows in 
            the result table.
+
+        See Also
+        --------
+        Record
         """
         return Record(self, index)
 
     def getvalue(self, name, index):
         """
         return the value of a record attribute--a value from a column and row.
+
         Parameters
         ----------
         name : str
@@ -606,14 +655,18 @@ class DALResults(object):
         """
         return the field description for the record attribute (column) with 
         the given name
+
         Parameters
         ----------
         name : str
            the name of the attribute (column), chosen from those in fieldnames()
 
-        :Returns:
-           object   with attributes (name, id, datatype, unit, ucd, utype,
-                      arraysize) which describe the column
+        Returns
+        -------
+        object   
+           with attributes (name, id, datatype, unit, ucd, utype, arraysize) 
+           which describe the column
+
         """
         if name not in self._fldnames:
             raise KeyError(name)
@@ -629,7 +682,7 @@ class DALResults(object):
     def cursor(self):
         """
         return a cursor that is compliant with the Python Database API's 
-        Cursor interface.
+        :class:`.Cursor` interface.  See PEP 249 for details.  
         """
         from .dbapi2 import Cursor
         return Cursor(self)
@@ -682,6 +735,19 @@ class Record(object):
             raise KeyError(key)
 
     def get(self, key, default=None):
+        """
+        return a metadata value.
+        This behaves just like the dictionary ``get()`` method.
+
+        Parameters
+        ----------
+        key : str
+           the name metadatum (which is the name of the column in the 
+           results table that it was extracted from)
+        default : any
+           the value to return if the record does not include a 
+           metadatum with the given key name.  
+        """
         try:
             return self.__getitem__(key)
         except KeyError:
@@ -738,10 +804,12 @@ class Record(object):
         """
         Get the dataset described by this record from the server.
 
-        :Args:
-            *timeout*:    the time in seconds to allow for a successful 
-                            connection with server before failing with an 
-                            IOError (specifically, socket.timeout) exception
+        Parameters
+        ----------
+        timeout : float   
+           the time in seconds to allow for a successful 
+           connection with server before failing with an 
+           IOError (specifically, socket.timeout) exception
 
         Returns
         -------
@@ -750,18 +818,18 @@ class Record(object):
 
         Raises
         ------
-         KeyError
-            if no datast access URL is included in the record
-         URLError
-            if the dataset access URL is invalid (note: subclass of IOError)
-         HTTPError
-            if an HTTP error occurs while accessing the dataset
-            (note: subclass of IOError)
-         socket.timeout  
-            if the timeout is exceeded before a connection is established.  
-            (note: subclass of IOError)
-         IOError
-            if some other error occurs while establishing the data stream.
+        KeyError
+           if no datast access URL is included in the record
+        URLError
+           if the dataset access URL is invalid (note: subclass of IOError)
+        HTTPError
+           if an HTTP error occurs while accessing the dataset
+           (note: subclass of IOError)
+        socket.timeout  
+           if the timeout is exceeded before a connection is established.  
+           (note: subclass of IOError)
+        IOError
+           if some other error occurs while establishing the data stream.
         """
         url = self.getdataurl()
         if not url:
