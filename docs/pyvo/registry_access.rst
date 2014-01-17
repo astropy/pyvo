@@ -246,8 +246,8 @@ Working with Service Objects from the Registry
 In the previous chapter, :ref:`data-access`, we introduced the
 *Service classes* (e.g. :py:class:`~pyvo.dal.sia.SIAService`).  These
 are classes whose instances represent a particular service, and its
-most important function is to provide remember the base URL for the
-service to allow us to query it without having to pass around the URL
+most important function is to remember the base URL for the
+service and allow us to query it without having to pass around the URL
 directly.  Further, in the section, :ref:`service-objects`, we saw how
 we can create service objects directly from a registry search record.
 Here's a refresher example, based on the NVSS example from the
@@ -265,10 +265,15 @@ previous section:
 'capabilityValidationLevel', 'interfaceClass', 'interfaceVersion', 
 'interfaceRole', 'accessURL', 'maxRadius', 'maxRecords', 'publisherID',
 'referenceURL') 
+>>> query = nvss.create_query(size=0.25, format="image/fits")
 
 Thus, not only does this service instance contain the base URL but it
 also includes all of the metadata from the registry that desribes the
-service.  
+service.  With this service object, we can either call its 
+:py:attr:`~pyvo.dal.sia.SIAService.search` function directly or 
+create query objects to get cutouts for a whole list of sources.  
+
+.. _registry-resolve:
 
 Retrieving a Service By Its Identifier
 --------------------------------------
@@ -343,5 +348,93 @@ with an underlying object.
 Tips for Accessing the Registry from Scripts 
 ============================================
 
+.. eventually we want to replace prose recipes with code (or built-in tools)
 
+As we've seen from the examples in this chapter, discovering and
+selecting services from the registry is often an interative process,
+particulary when you are not sure what you are looking for and you use
+the registry as a tool for exploration.  In this mode, you will find
+yourself reviewing registry search results by eye to focus in on those
+data collections and services of interest.  
+
+However, there are a few use cases where non-interactive registry
+queries--i.e., queries that you can run blindly from a script--work
+well:
+
+#. Taking an inventory of all data available for particular postion
+   and/or topic.
+#. Compiling a list of catalogs that include columns that contain particular
+   kinds of data.
+#. Recalling a service of set of services by their IVOA identifiers.
+#. Look for new catalogs or data collections related to a particular
+   topic and recently added to the VO.
+
+The Data Inventory
+------------------
+
+The :ref:`first example <getting-started-examples>` in the chapter, 
+:ref:`getting-started`, is an example of creating an inventory of a
+available data.  In that case, it was an inventory of available X-ray
+images of the Cas A supernova remnant.  We didn't actually download
+these images; instead, we created a table describing the images along
+with the URL for downloading them later, as desired.
+
+The Hunt for Measurements
+-------------------------
+
+You may be creating your own catalog of objects selected for a
+particular science study.  You may want to fill out the columns of
+your source table with attributes of interest, such as photometry
+measurements.  To do this, you'll need to find the catalogs that have
+this data.  One simple recipe for doing this would be:
+
+#. query the registry for all catalogs related to your science using
+   the ``keywords``, ``waveband``, and ``servicetype`` as applicable.  
+#. For each catalog found, run a metadata search (which just returns
+   an empty table).
+#. Search the columns of each table and find those where the name,
+   ucd, or utype attributes contain the string "mag".
+
+The selection of columns is somewhat crude for more detailed kinds of
+data.  Using the UCD label, it's possible to identify columns with
+particular kinds of magnitudes (e.g J, V, bolometric, etc.) as well as
+of other types of quantities, such as redshift.  See 
+the `CDS UCD Info page <http://cds.u-strasbg.fr/w/doc/UCD/>`_ for a
+list of ucds that you can look for.  
+
+Recalling a Favorite Service
+----------------------------
+
+In the previous section, :ref:`registry-resolve`, we discussed how one
+might create a list of favorite services which include their IVOA
+Identifiers.  Each can be resolved into a service object using the 
+:py:meth:`~pyvo.registry.vao.RegistryService.resolve2service` so that
+the service can be searched.  You may, for example, want to re-search
+a set of archives periodically to determine if it has any new data
+since the last time you checked.  
+
+Discovering New Additions to the VO
+-----------------------------------
+
+In a similar vein, you may be interested in knowing when new catalogs
+or data collections, particularly any related to a topic of interest,
+become available in VO.  Here's a recipe for a script that you would
+run periodically which can accomplish this: 
+
+#. Execute a registry query that looks for potentially interesting
+   catalogs and collections.  
+
+#. Extract the list of IVOA identifiers returned in the results.
+
+#. From disk, open the registry search results saved from the previous
+   run of the script and extract the identifiers.
+
+#. Compare the two lists of identifiers, finding those that appear in
+   the new results that are not in the previous results.  These represent
+   the new additions to the VO.
+
+#. Create a union of the two search result tables and save that as the
+   latest result.  
+
+#. Report the new additions.  
 
