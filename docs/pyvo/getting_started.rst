@@ -175,7 +175,7 @@ You might notice:
 25. We can download each image to a directory via the
     ``cachedataset()`` function.  
 
-.. _getting-started-pyvo
+.. _getting-started-pyvo:
 
 ===================================
 What's available in the pyvo Module

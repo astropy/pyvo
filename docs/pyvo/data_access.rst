@@ -775,7 +775,7 @@ circular region of the sky.  Nevertheless, the spectrum search API
 follows the same pattern as described in the previous section
 (:ref:`data-access-sia`).
 
-.. _ssa-func
+.. _ssa-func:
 
 ---------------------------
 The Spectra Search Function
@@ -820,7 +820,7 @@ to process the spectra:
        print "Downloading %s..." % spec.title
        spec.cachedataset(dir="cdfs-spectra")
 
-.. _ssa-rec
+.. _ssa-rec:
 
 ----------------------------
 Spectrum Results and Records

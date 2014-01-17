@@ -684,8 +684,8 @@ class SSAResults(query.DALResults):
            the integer index of the desired record where 0 returns the first 
            record
 
-        Rerturns
-        --------
+        Returns
+        -------
         SSARecord
            a distionary-like record containing the image metadata from
            the requested record.

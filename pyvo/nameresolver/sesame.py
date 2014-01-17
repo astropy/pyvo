@@ -793,7 +793,7 @@ class DocQuantity(object):
     an error, quality flag, and bibcode reference.  If the optional values are 
     not available, the attribute value will be None.
 
-    Properties
+    Attributes
     ----------
     val : float
        the decimal value in the units given by unit

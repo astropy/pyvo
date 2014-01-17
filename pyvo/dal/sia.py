@@ -411,18 +411,17 @@ class SIAQuery(query.DALQuery):
         """
         the desired format of the images to be returned.  This will be in 
         the form of a MIME-type (e.g. "image/fits") or one of the following 
-        special values.  (Lower case are accepted on setting.)
+        special values.  (Lower case are accepted when setting.)
 
-        Special Values
-        --------------
-        ALL :  
-           all formats available 
-        GRAPHIC :  
-           any graphical format (e.g. JPEG, PNG, GIF)
-        GRAPHIC-ALL :  
-           all graphical formats available
-        METADATA :  
-           no images reqested; only an empty table with fields properly specified
+        Special Values:
+
+        ===========  ====================================================
+        ALL          all formats available 
+        GRAPHIC      any graphical format (e.g. JPEG, PNG, GIF)
+        GRAPHIC-ALL  all graphical formats available
+        METADATA     no images reqested; only an empty table with fields 
+                     properly specified
+        ===========  ====================================================
 
         In addition, a value of "GRAPHIC-*fmt[,fmt]*" where *fmt* is graphical 
         format type (e.g. "jpeg", "png", "gif") indicates that a graphical 
@@ -644,8 +643,8 @@ class SIAResults(query.DALResults):
            the integer index of the desired record where 0 returns the first 
            record
 
-        Rerturns
-        --------
+        Returns
+        -------
         SIARecord
            a distionary-like record containing the image metadata from
            the requested record.
