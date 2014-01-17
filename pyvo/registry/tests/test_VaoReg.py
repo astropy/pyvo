@@ -9,10 +9,10 @@ import os, sys, shutil, re, imp
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
-import pyvo.dal.query as dalq
-import pyvo.registry.vao as reg
+from ...dal import query as dalq
+from .. import vao as reg
 from astropy.io.votable.tree import VOTableFile
-from pyvo.dal.query import _votableparse as votableparse
+from ...dal.query import _votableparse as votableparse
 from astropy.utils.data import get_pkg_data_filename
 
 regresultfile = "data/reg-short.xml"

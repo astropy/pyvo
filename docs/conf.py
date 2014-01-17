@@ -38,6 +38,11 @@ from astropy.sphinx.conf import *
 # directories to ignore when looking for source files.
 exclude_patterns.append('_templates')
 
+# Add any paths that contain templates here, relative to this directory.
+if 'templates_path' not in locals():  # in case parent conf.py defines it
+    templates_path = []
+templates_path.append('_templates')
+
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
 rst_epilog += """

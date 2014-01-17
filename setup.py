@@ -32,12 +32,26 @@ from astropy.setup_helpers import (register_commands, adjust_compiler,
                                    filter_packages, update_package_files,
                                    get_debug_option)
 from astropy.version_helpers import get_git_devstr, generate_version_py
-import pyvo
 
 # Set affiliated package-specific settings
 PACKAGENAME = 'pyvo'
 DESCRIPTION = 'Astropy affiliated package for accessing Virtual Observatory data and services'
-LONG_DESCRIPTION = pyvo.__doc__
+LONG_DESCRIPTION = """
+PyVO is a package providing access to remote data and services of the 
+Virtual observatory (VO) using Python.  
+
+The pyvo module currently provides these main capabilities:
+
+* find archives that provide particular data of a particular type and/or 
+  relates to a particular topic
+
+* search an archive for datasets of a particular type
+
+* do simple searches on catalogs or databases
+
+* get information about an object via its name
+"""
+
 AUTHOR = 'the Virtual Astronomical Observatory (VAO)'
 AUTHOR_EMAIL = 'rplante@ncsa.illinois.edu'
 LICENSE = 'BSD'

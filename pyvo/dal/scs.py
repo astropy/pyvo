@@ -27,24 +27,49 @@ import numbers
 from . import query
 from .query import DALQueryError
 
-__all__ = [ "search", "SCSResults", "SCSRecord", "SCSQuery", "SCSService" ]
+__all__ = [ "search", "SCSService", "SCSQuery", "SCSResults", "SCSRecord" ]
 
 def search(url, pos, radius=1.0, verbosity=2):
     """
     submit a simple Cone Search query that requests objects or observations
     whose positions fall within some distance from a search position.  
 
-    :Args:
-       *url*        the base URL of the query service.
-       *pos*:       a 2-element tuple containing the ICRS right ascension 
-                       and declination defining the position of the center 
-                       of the circular search region, in decimal degrees
-       *radius*:    the radius of the circular search region, in decimal 
-                       degrees
-       *verbosity*  an integer value that indicates the volume of columns
-                       to return in the result table.  0 means the minimum
-                       set of columsn, 3 means as many columns as are 
-                       available. 
+    Parameters
+    ----------
+    url : str
+        the base URL of the query service.
+    pos : 2-element tuple of floats
+        a 2-element tuple containing the ICRS right ascension 
+        and declination defining the position of the center 
+        of the circular search region, in decimal degrees
+    radius : float
+        the radius of the circular search region, in decimal 
+        degrees
+    verbosity : int
+        an integer value that indicates the volume of columns
+        to return in the result table.  0 means the minimum
+        set of columsn, and 3 means as many columns as are 
+        available. 
+
+    Returns
+    -------
+    SCSResults
+        a container holding a table of matching catalog records 
+
+    Raises
+    ------
+    DALServiceError
+       for errors connecting to or 
+       communicating with the service
+    DALQueryError
+       if the service responds with 
+       an error, including a query syntax error.  
+
+    See Also
+    --------
+    SCSResults
+    pyvo.dal.query.DALServiceError
+    pyvo.dal.query.DALQueryError
     """
     service = SCSService(url)
     return service.search(pos, radius, verbosity)
@@ -58,11 +83,13 @@ class SCSService(query.DALService):
         """
         instantiate a Cone Search service
 
-        :Args:
-           *baseurl*:  the base URL for submitting search queries to the 
-                         service.
-           *resmeta*:  an optional dictionary of properties about the 
-                         service
+        Parameters
+        ----------
+        baseurl : str
+           the base URL for submitting search queries to the 
+           service.
+        resmeta : dict
+           an optional dictionary of properties about the service
         """
         super(SCSService, self).__init__(baseurl, "scs", version, resmeta)
 
@@ -71,16 +98,39 @@ class SCSService(query.DALService):
         submit a simple Cone Search query that requests objects or observations
         whose positions fall within some distance from a search position.  
 
-        :Args:
-           *pos*:       a 2-element tuple containing the ICRS right ascension 
-                           and declination defining the position of the center 
-                           of the circular search region, in decimal degrees
-           *radius*:    the radius of the circular search region, in decimal 
-                           degrees
-           *verbosity*  an integer value that indicates the volume of columns
-                           to return in the result table.  0 means the minimum
-                           set of columsn, 3 means as many columns as are 
-                           available. 
+        Parameters
+        ----------
+        pos : 2-element tuple/list of floats
+           a 2-element tuple or list containing the ICRS right ascension 
+           and declination defining the position of the center 
+           of the circular search region, in decimal degrees
+        radius : float
+           the radius of the circular search region, in decimal degrees
+        verbosity : int
+           an integer value that indicates the volume of columns
+           to return in the result table.  0 means the minimum
+           set of columsn, 3 means as many columns as are 
+           available. 
+
+        Returns
+        -------
+        SCSResults
+            a container holding a table of matching catalog records 
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or 
+           communicating with the service
+        DALQueryError
+           if the service responds with 
+           an error, including a query syntax error.  
+
+        See Also
+        --------
+        SCSResults
+        pyvo.dal.query.DALServiceError
+        pyvo.dal.query.DALQueryError
         """
         q = self.create_query(pos, radius, verbosity)
         return q.execute()
@@ -91,16 +141,28 @@ class SCSService(query.DALService):
         executed.  The input arguments will initialize the query with the 
         given values.
 
-        :Args:
-           *pos*:       a 2-element tuple containing the ICRS right ascension 
-                           and declination defining the position of the center 
-                           of the circular search region, in decimal degrees
-           *radius*:    the radius of the circular search region, in decimal 
-                           degrees
-           *verbosity*  an integer value that indicates the volume of columns
-                           to return in the result table.  0 means the minimum
-                           set of columsn, 3 means as many columns as are 
-                           available. 
+        Parameters
+        ----------
+        pos : 2-element tuple/list of floats
+           a 2-element tuple or list containing the ICRS right ascension 
+           and declination defining the position of the center 
+           of the circular search region, in decimal degrees
+        radius : float
+           the radius of the circular search region, in decimal degrees
+        verbosity : int
+           an integer value that indicates the volume of columns
+           to return in the result table.  0 means the minimum
+           set of columsn, 3 means as many columns as are 
+           available. 
+
+        Returns
+        -------
+        SCSQuery
+           the query instance
+
+        See Also
+        --------
+        SCSQuery
         """
         if pos is not None and not isinstance(pos, tuple) and \
            not isinstance(pos, list):
@@ -118,8 +180,23 @@ class SCSQuery(query.DALQuery):
     are added via its service type-specific methods.  The various execute()
     functions will submit the query and return the results.  
 
-    The base URL for the query can be changed via the baseurl property.
+    The base URL for the query, which controls where the query will be sent 
+    when one of the execute functions is called, is typically set at 
+    construction time; however, it can be updated later via the 
+    :py:attr:`~pyvo.dal.query.DALQuery.baseurl` to send a configured 
+    query to another service.  
+
+    In addition to the search constraint attributes described below, search 
+    parameters can be set generically by name via the 
+    :py:meth:`~pyvo.dal.query.DALQuery.setparam`
+    method.  The class attribute, ``std_parameters``, list the parameters 
+    defined by the SCS standard.  
+
+    The typical function for submitting the query is ``execute()``; however, 
+    alternate execute functions provide the response in different forms, 
+    allowing the caller to take greater control of the result processing.  
     """
+    std_parameters = [ "RA", "DEC", "SR" ]
 
     def __init__(self, baseurl, version="1.0"):
         """
@@ -170,6 +247,10 @@ class SCSQuery(query.DALQuery):
 
     @property
     def pos(self):
+        """
+        the position (POS) constraint as a 2-element tuple denoting RA and dec
+        in decimal degrees.  This defaults to None.
+        """
         return (self.ra, self.dec)
     @pos.setter
     def pos(self, pair):
@@ -219,6 +300,11 @@ class SCSQuery(query.DALQuery):
 
     @property
     def verbosity(self):
+        """
+        a parameter for controling the volume of columns returned.
+        The value of 0 means the minimum set of columsn, 3 means as
+        many columns as are available. 
+        """
         return self.getparam("VERB")
     @verbosity.setter
     def verbosity(self, val):
@@ -233,13 +319,26 @@ class SCSQuery(query.DALQuery):
     def execute(self):
         """
         submit the query and return the results as a Results subclass instance.
-        This implimentation returns an SCSResults instance
+        This implementation returns an :py:class:`~pyvo.dal.scs.SCSResults`
+        instance
 
-        :Raises:
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALQueryError*:   if the service responds with 
-                              an error, including a query syntax error.  
+        Returns
+        -------
+        SCSResults
+            a container holding a table of matching catalog records 
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           if the service responds with an error, including a query syntax error.  
+
+        See Also
+        --------
+        SCSResults
+        pyvo.dal.query.DALServiceError
+        pyvo.dal.query.DALQueryError
         """
         return SCSResults(self.execute_votable(), self.getqueryurl(True))
 
@@ -247,11 +346,14 @@ class SCSQuery(query.DALQuery):
         """
         submit the query and return the results as an AstroPy votable instance
 
-        :Raises:
-           *DALServiceError*: for errors connecting to or 
-                              communicating with the service
-           *DALFormatError*:  for errors parsing the VOTable response
-           *DALQueryError*:   for errors in the input query syntax
+        Raises
+        ------
+        DALServiceError  
+           for errors connecting to or communicating with the service
+        DALFormatError  
+           for errors parsing the VOTable response
+        DALQueryError  
+           for errors in the input query syntax
         """
         try: 
             from astropy.io.votable.exceptions import W22
@@ -273,11 +375,13 @@ class SCSQuery(query.DALQuery):
         return the GET URL that encodes the current query.  This is the 
         URL that the execute functions will use if called next.  
 
-        :Args:
-           *lax*:  if False (default), a DALQueryError exception will be 
-                      raised if any required parameters (RA, DEC, or SR)
-                      are missing.  If True, no syntax checking will be 
-                      done.  
+        Parameters
+        ----------
+        lax : bool
+           if False (default), a DALQueryError exception will be 
+           raised if any required parameters (RA, DEC, or SR)
+           are missing.  If True, no syntax checking will be 
+           done.  
         """
         out = query.DALQuery.getqueryurl(self)
         if not lax:
@@ -291,9 +395,49 @@ class SCSQuery(query.DALQuery):
 
 class SCSResults(query.DALResults):
     """
-    Results from a Cone Search query.  It provides random access to records in 
-    the response.  Alternatively, it can provide results via a Cursor 
-    (compliant with the Python Database API) or an iterable.
+    The list of matching catalog records resulting from a catalog (SCS) query.  
+    Each record contains a set of metadata that describes a source or
+    observation within the requested circular region (i.e. a "cone").  The 
+    number of records in the results is available via the :py:attr:`nrecs` 
+    attribute or by passing it to the Python built-in ``len()`` function.  
+
+    This class supports iterable semantics; thus, 
+    individual records (in the form of 
+    :py:class:`~pyvo.dal.scs.SCSRecord` instances) are typically
+    accessed by iterating over an ``SCSResults`` instance.  
+
+    >>> results = pyvo.conesearch(url, pos=[12.24, -13.1], radius=0.1)
+    >>> for src in results:
+    ...     print("{0}: {1} {2}".format(src.id, src.ra, src.dec))
+
+    Alternatively, records can be accessed randomly via 
+    :py:meth:`getrecord` or through a Python Database API (v2)
+    Cursor (via :py:meth:`~pyvo.dal.query.DALResults.cursor`).  
+    Column-based data access is possible via the 
+    :py:meth:`~pyvo.dal.query.DALResults.getcolumn` method.  
+
+    ``SCSResults`` is essentially a wrapper around an Astropy 
+    :py:mod:`~astropy.io.votable` 
+    :py:class:`~astropy.io.votable.tree.Table` instance where the 
+    columns contain the various metadata describing the images.  
+    One can access that VOTable directly via the 
+    :py:attr:`~pyvo.dal.query.DALResults.votable` attribute.  Thus,
+    when one retrieves a whole column via 
+    :py:meth:`~pyvo.dal.query.DALResults.getcolumn`, the result is 
+    a Numpy array.  Alternatively, one can manipulate the results 
+    as an Astropy :py:class:`~astropy.table.table.Table` via the 
+    following conversion:
+
+    >>> table = results.votable.to_table()
+
+    ``SCSResults`` supports the array item operator ``[...]`` in a 
+    read-only context.  When the argument is numerical, the result 
+    is an 
+    :py:class:`~pyvo.dal.scs.SCSRecord` instance, representing the 
+    record at the position given by the numerical index.  If the 
+    argument is a string, it is interpreted as the name of a column,
+    and the data from the column matching that name is returned as 
+    a Numpy array.  
     """
 
     def __init__(self, votable, url=None, version="1.0"):
@@ -363,13 +507,34 @@ class SCSResults(query.DALResults):
         the ID is not set.  The returned record has additional accessor 
         methods for getting at stardard Cone Search response metadata (e.g. 
         ra, dec).
+
+        Parameters
+        ----------
+        index : int
+           the integer index of the desired record where 0 returns the first 
+           record
+
+        Returns
+        -------
+        SCSRecord
+           a distionary-like record containing the image metadata from
+           the requested record.
+
+        See Also
+        --------
+        SCSRecord
         """
         return SCSRecord(self, index)
 
 class SCSRecord(query.Record):
     """
     a dictionary-like container for data in a record from the results of an
-    Cone Search query, describing an available image.
+    Cone Search (SCS) query, describing a matching source or observation.
+
+    The commonly accessed metadata which are stadardized by the SCS
+    protocol are available as attributes.  All metadata, particularly
+    non-standard metadata, are acessible via the ``get(`` *key* ``)`` 
+    function (or the [*key*] operator) where *key* is table column name.  
     """
 
     def __init__(self, results, index):
