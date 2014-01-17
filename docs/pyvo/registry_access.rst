@@ -243,7 +243,101 @@ context.
 Working with Service Objects from the Registry
 ==============================================
 
-.. _reg-tips
+In the previous chapter, :ref:`data-access`, we introduced the
+*Service classes* (e.g. :py:class:`~pyvo.dal.sia.SIAService`).  These
+are classes whose instances represent a particular service, and its
+most important function is to provide remember the base URL for the
+service to allow us to query it without having to pass around the URL
+directly.  Further, in the section, :ref:`service-objects`, we saw how
+we can create service objects directly from a registry search record.
+Here's a refresher example, based on the NVSS example from the
+previous section:
+
+>>> nvss = colls[0].to_service()  # converts record to serviec object
+>>> nvss.baseurl
+'http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&'
+>>> nvss.shortname
+'NVSS'
+>>> nvss.info.keys()
+('tags', 'shortName', 'title', 'description', 'publisher', 'waveband',
+'identifier', 'updated', 'subject', 'type', 'contentLevel', 'regionOfRegard', 
+'version', 'resourceID', 'capabilityClass', 'capabilityStandardID', 
+'capabilityValidationLevel', 'interfaceClass', 'interfaceVersion', 
+'interfaceRole', 'accessURL', 'maxRadius', 'maxRecords', 'publisherID',
+'referenceURL') 
+
+Thus, not only does this service instance contain the base URL but it
+also includes all of the metadata from the registry that desribes the
+service.  
+
+Retrieving a Service By Its Identifier
+--------------------------------------
+
+Our discussion of service metadata offers an opportunity to highlight
+another important property, the service's *IVOA Identifier* (sometimes
+referred to as its *ivoid*).  This is a globally-unique identifier
+that takes the form of a 
+`URI <http://en.wikipedia.org/wiki/Uniform_resource_identifier>`_:
+
+>>> colls = vo.regsearch(keywords="NVSS", servicetype='image')
+>>> for coll in colls:
+...     print coll.identifier
+ivo://nasa.heasarc/skyview/nvss#1
+ivo://nasa.heasarc/skyview/sumss#1
+
+This identifier can be used to uniquely retrieve a service desription
+from the registry.  
+
+This is a good time to note that the registry has an associated
+service class, too: :py:class:`~pyvo.registry.vao.RegistryService`.
+It behaves much like other service classes (e.g. you can create
+:py:class:`~pyvo.registry.vao.RegistryQuery` instances from it with
+its :py:meth:`~pyvo.registry.vao.create_query` method), but it
+provides a :py:meth:`~pyvo.registry.vao.resolve2service` method that
+can resolve an IVOA identifier directly into a service object:
+
+>>> reg = vo.registry.RegistryService()
+>>> nvss = reg.resolve2service('ivo://nasa.heasarc/skyview/nvss#1')
+>>> nvss.title, nvss.baseurl
+('NVSS', 'http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&')
+>>> # search the service in one call
+>>> cutouts1 = nvss.search(pos=(148.8888, 69.065) size=0.2)
+>>> nvssq = nvss.create_query(size=0.2)  # or create a query object
+>>> nvss.pos = (350.85, 58.815)
+>>> cutouts2 = nvss.execute()
+
+If you want to keep a reference to a single service (say, as part of a
+list of favorite services), it is better to save the identifier than
+the base URL.  Over time, a service's base URL can change; however,
+the identifier will stay the same.  
+
+As we end this discussion of the service objects, you can hopefully
+see that there is a straight-forward chain of discovery classes that
+connect the registry down through to a dataset.  Spelled out in all
+its detail, it looks like this:
+
+.. code-block:: python
+
+   reg = vo.registry.RegistryService()         # RegistryService
+   rq = reg.create_query(keywords="NVSS", 
+                         servicetype='image')  # RegistryQuery
+   colls = rq.execute()                        # RegistryResults
+   nvss = colls[0]                             # SimpleResource
+   nvss = colls[0].to_service()                # SIAService
+   nq = nvss.create_query(pos=(350.85, 58.815),
+                          size=0.25, 
+                          format="image/fits") # SIAQuery
+   images = nq.execute()                       # SIAResults
+   firstim = images[0]                         # SIARecord
+   firstim.cachedataset()           # a FITS file saved to disk!
+
+Most of the time, it's not necessary to follow all these steps
+yourself, so there are functions and methods that provide syntactic
+shortcuts.  However, when you need some finer control over the
+process, it is possible to jump off the fast track and work directly
+with an underlying object.  
+
+.. _reg-tips:
 
 ============================================
 Tips for Accessing the Registry from Scripts 

@@ -639,7 +639,7 @@ You can get service instances from the results of a registry query:
 >>> hla.nrecs
 1
 >>> service = hla[0].to_service()
->>> service.description
+>>> service.info.description
 'The Hubble Space Telecope Legacy Archive (HLA) was developed at the Space Telescope Science Institute to optimize the science return from HST instruments. This resource is an image service which accesses all HLA observation data. The calibrated data is fully online with several forms of access including footprint visualization, composite images, extracted spectra and source lists.'
 
 You can search a service with its :py:meth:`~pyvo.dal.sia.SIAService.search`
@@ -657,6 +657,10 @@ method to create a query object:
 
    query = service.create_query()  # no search parameters are set
    query = service.create_query(size=0.1, format='image/fits')
+
+A Service Object that is embedded with metadata can be useful in some
+contexts such as a GUI application where you might want an object that
+represents a service to be self-describing.  
 
 --------------------------------------
 Summary of Common Data Access Features
