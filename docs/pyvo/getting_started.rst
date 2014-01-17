@@ -203,12 +203,18 @@ functions.  Four of the functions represent what's referred to as the
 * :py:func:`~pyvo.linesearch` -- search a remote spectral line database
   for data about emission lines.  
 
+We'll show you how to use these in the next chapter,
+:ref:`data-access`.  
+
 All the DAL search functions require a URL that represents the
 location of the service as its first argument.  If you don't the URL,
 you can look it up through a search of the VO Registry:
 
 * :py:func:`~pyvo.regsearch` -- search the VO Registry to find
   services and archives.  
+
+The Registry is discussed more in a subsequent chapter,
+:ref:`registry-access`. 
 
 The module also has functions that look up information about named
 objects in the sky, their positions being the most important.  There
@@ -223,9 +229,13 @@ are three functions available:
 * :py:func:`~pyvo.nameresolver.sesame.resolve` -- returns a container
   full of data about a source with a gien name.  
 
-Finally, the :py:mod:`pyvo` module makes available a set of exceptions
+For more information on name resolution, consult the chapter,
+:ref:`resolve-names`.  
+
+The :py:mod:`pyvo` module also makes available a set of exceptions
 that are thrown by the above functions when things go wrong.  These
-are described in the Data Access Queries section: 
+are described in the :ref:`data-access` chapter under the section,
+:ref:`data-access-exceptions`: 
 
 ============================================  ===================================================================================
 :py:class:`~pyvo.dal.query.DALAccessError`    a base class for all failures while accessing a DAL service
@@ -235,6 +245,9 @@ are described in the Data Access Queries section:
 :py:class:`~pyvo.dal.query.DALQueryError`     an exception indicating an error by a working DAL service while processing a query.  
 ============================================  ===================================================================================
 
+.. raw:: html
+
+   <br>
 
 Finally, we will see in the next chapter that additional features are
 available in sub-modules, each associated with a different type of

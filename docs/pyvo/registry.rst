@@ -1,4 +1,6 @@
 
+.. py:module:: pyvo.registry
+
 =========================
 The pyvo.registry Package
 =========================

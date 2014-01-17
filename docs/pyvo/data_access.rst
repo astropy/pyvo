@@ -129,10 +129,10 @@ A service may support more search parameters than just the ones names
 as arguments to the :py:func:`~pyvo.imagesearch` function.  Some
 parameters correspond to ones defined by the `SIA standard`_ but are
 used less often.  (The list of standard parameter names are listed in 
-:py:attr:`SIAResults.std_parameters`.)  The service may
-support its own custom parameters as well.  Arbitrary parameters can
-be included in the query by passing them as named keyword=value
-arguments to the function:
+:py:attr:`SIAResults.std_parameters <pyvo.dal.sia.SIAResults.std_parameters>`.)  
+The service may support its own custom parameters as well.  Arbitrary
+parameters can be included in the query by passing them as named
+keyword=value arguments to the function:
 
 >>> nvssims = vo.imagesearch(url, pos=(350.85, 58.815), size=0.2, survey='nvss')
 
@@ -153,9 +153,9 @@ accessing a service, keep in mind:
 
 .. _sia-results:
 
--------------------
-The Results Objects
--------------------
+------------------
+The Results Object
+------------------
 
 When you send a query to a VO data access service, it returns a table
 of matches in `VOTable <http://www.ivoa.net/documents/VOTable/>`_
@@ -484,7 +484,7 @@ and then execute it:
 
 .. code-block:: python
 
-   from pyvo.sia import SIAQuery
+   from pyvo.dal.sia import SIAQuery
 
    url = 'http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=dss2&'
    query = SIAQuery(url)
@@ -621,10 +621,10 @@ Each of the data access services have an associated Service class, a
 class that represents a specific service itself.  At a minimum, it
 will simply wrap a service's access URL; however, when created as a
 result of a registry query, service objects can also contain other
-metadata about the service (see `Discovering Services via the
-Registry`_).  In most cases, you won't need to work with service
-objects directly.  You may find them useful in scripts that have to
-manage many services in a session.  
+metadata about the service (see :ref:`registry-access`).  In most
+cases, you won't need to work with service objects directly.  You may
+find them useful in scripts that have to manage many services in a
+session.  
 
 Here's a simple way to create a service instance:
 
@@ -758,7 +758,7 @@ NRAO VLA Sky Survey (NVSS)::
 IRSA Two Micron All-Sky Survey (2MASS)::
     *http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=2mass&*
 
-.. _data-access-ssa
+.. _data-access-ssa:
 
 ======================
 Simple Spectrum Access
@@ -852,7 +852,7 @@ are.  These include:
    making the second column super wide.  
 
 ==========================================  ==================================================================================================================
-attribute                                   description
+property                                    description
 ==========================================  ==================================================================================================================
 :py:attr:`~pyvo.dal.ssa.SSARecord.ra`       the IRCS right ascension of the center of the spectrum 
                                             in decimal degrees
@@ -932,25 +932,167 @@ Note that there is also a Service class,
 :py:class:`~pyvo.dal.ssa.SSAService`, for SSA services which act just
 like its SIA counterpart.  
 
+.. _data-access-scs:
+
 ===================================================
 Searching Catalogs with Simple Cone Search Services
 ===================================================
+
+Owing in part to its simplicity, Simple Cone Search (SCS) services are
+the most prevalent of the data access services in the VO.  It is used
+to select records from source and observation catalogs.  That is, 
+each record in a cone-search-able catalog represents either a discreet
+source in the sky or an observation; consequently, each record has a
+postion associated with it.  A cone search of such a catalog returns
+all records that are within some given distance of a search position
+(i.e. that fall within a circle or "cone" on the sky).  
 
 -------------------------------
 The Simple Cone Search Function
 -------------------------------
 
+The :py:func:`~pyvo.conesearch` function can be used to submit
+position-based catalog queries.  Here's an example that selects guide
+stars from the Guide Start Catalog (v2.3) within 3 arcminutes of a
+position: 
+
+>>> url = 'http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&'
+>>> stars = vo.conesearch(url, pos=[161.265, -59.68], radius=0.05)
+>>> len(stars)
+525
+
+The results table (stored in ``stars`` in the above example) must have
+at least three columns:  a source or observation identifier, a right
+ascension, and a declination.  Typically though, it will include any
+number of other attributes of the source (we'll explore this in the
+next section).  The :py:func:`~pyvo.conesearch` function provides some
+coarse-grain control over how many columns are returned via its 
+``verbosity`` parameter.  It takes an integer value--1, 2, or 3.  If
+it is 1, the service will return the minimum set that the publisher
+has decided is sufficient for describing the source or observation.  A
+value of 3 returns all of the catalog's columns that are available.
+So, if you are mainly just interested in source positions (say, for
+example, to plot the sources over an image), you can set the
+``verbosity`` parameter to zero.  If are looking for specific
+characteristics of the sources, such as photometry measurements, then
+you probably want to set it to 3.  If you don't set it, the service is
+obligated to assume a value of 2.  
+
+Note that supporting the ``verbosity`` parameter is optional for a
+service; that is, the service is allowed to ignore the ``verbosity``
+value and return all of the available columms, regardless.  
+
 -----------------------------------
 The Cone Search Results and Records
 -----------------------------------
+
+The results that come back from a cone search are wrapped as an 
+:py:class:`~pyvo.dal.scs.SCSResults` object, and when we iterate
+through the results, each record is provided as an 
+:py:class:`~pyvo.dal.scs.SCSRecord` instance.  In addition to the
+required identifier, right ascension, and declination columns, the
+results table will have a number of other columns describing the
+source or observation.  Using the example from the previous section,
+we can see what information we have about our guide stars:
+
+>>> stars.fieldnames()
+[u'hstID', u'ra', u'dec', u'GSC1ID', u'raEpsilon', u'decEpsilon',
+u'epoch', u'FpgMag', u'JpgMag', u'NpgMag', u'UMag', u'BMag', u'VMag',
+u'RMag', u'IMag', u'JMag', u'HMag', u'KMag', u'FpgMagCode',
+u'JpgMagCode', u'NpgMagCode', u'UMagCode', u'BMagCode', u'VMagCode',
+u'RMagCode', u'IMagCode', u'JMagCode', u'HMagCode', u'KMagCode',
+u'FpgMagErr', u'JpgMagErr', u'NpgMagErr', u'UMagErr', u'BMagErr',
+u'VMagErr', u'RMagErr', u'IMagErr', u'JMagErr', u'HMagErr',
+u'KMagErr', u'class', u'sourceStatus', u'semiMajorAxis',
+u'positionangle', u'eccentricity', u'variableFlag', u'multipleFlag',
+u'distance'] 
+>>> stars.getdesc('IMag').description
+u'I band magnitude'
+
+For more information about inspecting the table header information,
+see the about section on :ref:`sia-results`.  
+
+Recall that the SCS standard does not mandate standardized column
+names (as discussed in the section about :ref:`sia-results`); thus,
+the columns will retain their original names from when they were first
+published.  The :py:class:`~pyvo.dal.scs.SCSRecord` class provides
+access to access to the three required columns (regardless of what
+they are called) as record properties:
+
+>>> star = stars[0]
+>>> (star.id, star.ra, star.dec) 
+('S4B0000701', 161.26477050781301, -59.6844291687012)
+
+In particular, those properties are:
+
+======================================  ==================================================================================================================
+property                                description
+======================================  ==================================================================================================================
+:py:attr:`~pyvo.dal.scs.SCSRecord.id`   the name or identifier of the spectrum as given by
+                                        the archive
+--------------------------------------  ------------------------------------------------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.scs.SCSRecord.ra`   the IRCS right ascension of the center of the spectrum 
+                                        in decimal degrees
+--------------------------------------  ------------------------------------------------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.scs.SCSRecord.dec`  the IRCS declination of the center of the spectrum
+                                        in decimal degrees            
+======================================  ==================================================================================================================
 
 --------------------------
 Search and Service Classes
 --------------------------
 
+Like the other data access services, SCS also has query and service
+classes (see :ref:`sia-query` and :ref:`service-objects`,
+respectively):  :py:class:`~pyvo.dal.scs.SCSQuery` and 
+:py:class:`~pyvo.dal.scs.SCSService`.  The search constraints that can
+be set as properties on an :py:class:`~pyvo.dal.scs.SCSQuery` instance
+are as follows:
+
+.. autosummary::
+
+   ~pyvo.dal.scs.SCSQuery.pos
+   ~pyvo.dal.scs.SCSQuery.ra
+   ~pyvo.dal.scs.SCSQuery.dec
+   ~pyvo.dal.scs.SCSQuery.radius
+   ~pyvo.dal.scs.SCSQuery.sr
+   ~pyvo.dal.scs.SCSQuery.verbosity
+
+
+.. _data-access-sla:
+
 ================================================
 Spectral Line Transitions and Simple Line Access
 ================================================
+
+If you do spectral line studies, you may on occasion need to consult a
+database of spectral line transitions.  For example, if you are
+planning spectral observations within an arbitrary bandpass window,
+you may need to determine what lines can appear there.  A few such
+databases are available in the VO as Spectral Line Access (SLA, or
+sometimes called SLAP) services.  
+
+Here's an example searching the Splatalogue database:
+
+>>> url = 'http://find.nrao.edu/splata-slap/slap'
+>>> lines = vo.linesearch(url, wavelength="0.2110/0.2120")
+>>> len(lines)
+54
+>>> for line in lines:
+...     print("{0}: {1}".format(line['molformula'], line.wavelength))
+...
+H(beta): 0.211086447683
+H: 0.211061133375
+g-CH3CH2OH: 0.211008648827
+He(beta): 0.211000464262
+
+
+.. note:: Because of their specialized nature, there are very few SLA
+          services available and the community's experience with them is
+          still low.  Consequently, you may experience service compliance
+          issues, and some of the features of the :py:mod:`pyvo.dal.sla` 
+          module may not work as expected with the currently available
+          services. 
 
 
 .. rubric:: Footnotes

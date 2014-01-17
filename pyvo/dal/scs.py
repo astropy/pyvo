@@ -48,7 +48,7 @@ def search(url, pos, radius=1.0, verbosity=2):
     verbosity : int
         an integer value that indicates the volume of columns
         to return in the result table.  0 means the minimum
-        set of columsn, 3 means as many columns as are 
+        set of columsn, and 3 means as many columns as are 
         available. 
 
     Returns
@@ -247,6 +247,10 @@ class SCSQuery(query.DALQuery):
 
     @property
     def pos(self):
+        """
+        the position (POS) constraint as a 2-element tuple denoting RA and dec
+        in decimal degrees.  This defaults to None.
+        """
         return (self.ra, self.dec)
     @pos.setter
     def pos(self, pair):
@@ -296,6 +300,11 @@ class SCSQuery(query.DALQuery):
 
     @property
     def verbosity(self):
+        """
+        a parameter for controling the volume of columns returned.
+        The value of 0 means the minimum set of columsn, 3 means as
+        many columns as are available. 
+        """
         return self.getparam("VERB")
     @verbosity.setter
     def verbosity(self, val):

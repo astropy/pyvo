@@ -137,12 +137,11 @@ class SIAService(query.DALService):
         Parameters
         ----------
         pos : 2-element tuple of floats
-           a 2-element tuple giving the ICRS RA and Dec of the 
-           center of the search region in decimal degrees
-        size : 2-element tuple of floats
-           a 2-element tuple giving the full rectangular size of 
-           the search region along the RA and Dec directions in 
-           decimal degrees
+           the ICRS RA and Dec of the center of the search region 
+           in decimal degrees
+        size : a float or a 2-element sequence of floats
+           the full rectangular size of the search region along the 
+           RA and Dec directions in decimal degrees
         format : str
            the image format(s) of interest.  "all" (default) 
            indicates all available formats; "graphic" indicates

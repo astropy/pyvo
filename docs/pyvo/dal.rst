@@ -1,4 +1,6 @@
 
+.. py:module:: pyvo.dal
+
 ********************
 The pyvo.dal Package
 ********************
