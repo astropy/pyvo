@@ -111,7 +111,7 @@ class SLAQueryTest(unittest.TestCase):
         self.testCtor()
         self.q.wavelength = "7.6e-6/1.e-5"
         qurl = self.q.getqueryurl()
-        self.assertEquals(qurl, self.baseurl+"?WAVELENGTH=7.6e-6%2F1.e-5&REQUEST=queryData")
+        self.assertEquals(qurl, self.baseurl+"?REQUEST=queryData&WAVELENGTH=7.6e-6%2F1.e-5")
 
 
 class SLAResultsTest(unittest.TestCase):
