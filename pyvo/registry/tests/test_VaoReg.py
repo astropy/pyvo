@@ -64,6 +64,40 @@ class RegServiceTest(unittest.TestCase):
         self.assertEquals(len(q.predicates), 1)
         self.assertEquals(q.predicates[0], "publisher like '%nrao%'")
 
+    def testCreateQueryWithOrkw(self):
+        self.testCtor()
+
+        q = self.srv.create_query(keywords=["galaxy", "AGN"])
+        self.assert_(isinstance(q, reg.RegistryQuery))
+        self.assertEquals(q.baseurl, reg.RegistryService.STSCI_REGISTRY_BASEURL)
+        self.assertEquals(len(q._param.keys()), 0)
+
+        self.assertEquals(len(q.keywords), 2)
+        self.assertEquals(q.keywords[0], "galaxy")
+        self.assertEquals(q.keywords[1], "AGN")
+        self.assertFalse(q.will_or_keywords())
+
+        qurl = q.getqueryurl()
+        self.assertTrue("+AND+%28title+" in qurl)
+        
+        q = self.srv.create_query(keywords=["galaxy", "AGN"], orkw=True)
+        self.assert_(isinstance(q, reg.RegistryQuery))
+        self.assertEquals(q.baseurl, reg.RegistryService.STSCI_REGISTRY_BASEURL)
+        self.assertEquals(len(q._param.keys()), 0)
+
+        self.assertEquals(len(q.keywords), 2)
+        self.assertEquals(q.keywords[0], "galaxy")
+        self.assertEquals(q.keywords[1], "AGN")
+        self.assertTrue(q.will_or_keywords())
+
+        qurl = q.getqueryurl()
+        self.assertTrue("+OR+%28title+" in qurl)
+
+        import pytest
+        self.assertRaises(ValueError, 
+                          self.srv.create_query, orkw=["galaxy", "AGN"])
+        
+
 class RegQueryTest(unittest.TestCase):
     
     def testCtor(self):
@@ -146,7 +180,7 @@ class RegQueryTest(unittest.TestCase):
         
     def testOrKeywords(self):
         self.testCtor()
-        self.assert_(self.q.will_or_keywords())
+        self.assert_(not self.q.will_or_keywords())
         self.q.or_keywords(False)
         self.assert_(not self.q.will_or_keywords())
         self.q.or_keywords(True)
@@ -274,11 +308,11 @@ class RegQueryTest(unittest.TestCase):
                 self.assert_(constraint in qurl, 
                          "Missing {0} constraint:\n{1}".format(constraint,qurl))
         self.assert_("+OR+shortName+" in qurl)
-        self.assert_("+OR+%28title+" in qurl,
+        self.assert_("+AND+%28title+" in qurl,
                      "unexpected predicate: " + qurl)
-        self.q.or_keywords(False)
+        self.q.or_keywords(True)
         qurl = self.q.getqueryurl()
-        self.assert_("+AND+%28title+" in qurl)
+        self.assert_("+OR+%28title+" in qurl)
 
         self.q.addpredicate("publisher like '%nrao%'")
         qurl = self.q.getqueryurl()
