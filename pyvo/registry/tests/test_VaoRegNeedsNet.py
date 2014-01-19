@@ -26,9 +26,10 @@ class RegExecuteTest(unittest.TestCase):
         s = r.size
         self.assert_(s > 0)
 
-        q.addkeywords("Gavazzi")
+        # confirm the AND's ability to reduce the number of results
+        q.addkeywords("Huang")
         r = q.execute()
-        self.assert_(r.size >= s)
+        self.assert_(r.size < s)
 
     def testExecuteSvc(self):
         q = reg.RegistryQuery()
