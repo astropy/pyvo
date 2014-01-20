@@ -43,9 +43,9 @@ class SCSServiceTest(unittest.TestCase):
         except AttributeError:
             pass
 
-        self.assertEquals(self.srv.description["title"], "Archive")
-        self.assertEquals(self.srv.description["shortName"], "arch")
-        self.srv.description["title"] = "Sir"
+        self.assertEquals(self.srv.info["title"], "Archive")
+        self.assertEquals(self.srv.info["shortName"], "arch")
+        self.srv.info["title"] = "Sir"
         self.assertEquals(self.res["title"], "Archive")
 
     def testCreateQuery(self):
