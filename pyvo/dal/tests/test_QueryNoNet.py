@@ -350,6 +350,17 @@ class DALServiceTest(unittest.TestCase):
         self.res = {"title": "Archive", "shortName": "arch"}
         self.srv = dalq.DALService(self.baseurl, "sga", "2.0", self.res)
 
+    def testCtorSimpleResource(self):
+        import pyvo.registry.vao as reg
+        regresultfile = \
+            get_pkg_data_filename("../../registry/tests/data/reg-short.xml")
+        res = dalq.DALResults(votableparse(regresultfile))
+        # import pytest; pytest.set_trace()
+        srv = dalq.DALService(self.baseurl, "sga", "3.0", 
+                              reg.SimpleResource(res, 0))
+        self.assertTrue(len(srv.info.keys()) > 0)
+        self.assertTrue(srv.info.get("title") is not None)
+
     def testProps(self):
         self.testCtor()
         self.assertEquals(self.srv.baseurl, self.baseurl)
@@ -371,17 +382,17 @@ class DALServiceTest(unittest.TestCase):
         except AttributeError:
             pass
 
-        self.assertEquals(self.srv.description["title"], "Archive")
-        self.assertEquals(self.srv.description["shortName"], "arch")
-        self.srv.description["title"] = "Sir"
+        self.assertEquals(self.srv.info["title"], "Archive")
+        self.assertEquals(self.srv.info["shortName"], "arch")
+        self.srv.info["title"] = "Sir"
         self.assertEquals(self.res["title"], "Archive")
 
     def testNoResmeta(self):
         srv = dalq.DALService(self.baseurl)
         self.assertEquals(srv.baseurl, self.baseurl)
-        self.assert_(srv.description is not None)
-        self.assert_(hasattr(srv.description, "get"))
-        self.assertEquals(len(srv.description.keys()), 0)
+        self.assert_(srv.info is not None)
+        self.assert_(hasattr(srv.info, "get"))
+        self.assertEquals(len(srv.info.keys()), 0)
 
     def testCreateQuery(self):
         self.testCtor()

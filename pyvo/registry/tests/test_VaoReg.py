@@ -34,9 +34,9 @@ class RegServiceTest(unittest.TestCase):
         except AttributeError:
             pass
 
-        self.assertEquals(self.srv.description["title"], "VAO Registry")
-        self.assertEquals(self.srv.description["shortName"], "vaoreg")
-        self.srv.description["title"] = "Sir"
+        self.assertEquals(self.srv.info["title"], "VAO Registry")
+        self.assertEquals(self.srv.info["shortName"], "vaoreg")
+        self.srv.info["title"] = "Sir"
         self.assertEquals(self.res["title"], "VAO Registry")
 
     def testCreateQuery(self):

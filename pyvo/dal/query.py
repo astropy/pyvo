@@ -84,12 +84,12 @@ class DALService(object):
         self._baseurl = baseurl
         self._protocol = protocol
         self._version = version
-        self._desc = {}
-        if resmeta and isinstance(resmeta, dict):
+        self._info = {}
+        if resmeta and hasattr(resmeta, "__getitem__"):
             # since this might be (rather, is likely) a Record object, we need 
             # to hand copy it (as the astropy votable bits won't deepcopy).
             for key in resmeta.keys():
-                self._desc[key] = resmeta[key]  # assuming immutable values
+                self._info[key] = resmeta[key]  # assuming immutable values
 
     @property
     def baseurl(self):
@@ -114,12 +114,12 @@ class DALService(object):
         return self._version
 
     @property
-    def description(self):
+    def info(self):
         """
         an optional dictionary of resource metadata that describes the 
         service.  This is generally information stored in a VO registry.  
         """
-        return self._desc
+        return self._info
 
     def search(self, **keywords):
         """
