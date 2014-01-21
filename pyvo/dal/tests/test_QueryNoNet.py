@@ -788,12 +788,15 @@ class FormatTest(unittest.TestCase):
                  ("A&amp;P",   "A&P"),
                  ("A &amp; P", "A & P"),
                  ("A &amp;amp;P", "A &amp;P"),
+                 ("-30&#176; ", "-30 deg "),
+                 ("-30\deg ", "-30 deg "),
                  ("I am. <br />", "I am. "),
                  ("I am; <br/> therefore", "I am;  therefore"),
                  ("I am;<br> therefore", "I am; therefore"),
                  ("<p>I am.</p><p>That's", "<p>I am.<p>That's"),
                  ("goes as $v ~ r$.", "goes as v ~ r."),
                  ("where $r$ is", "where r is"),
+                 ("$-45\deg$", "-45 deg"),
                  ("upwards of $1M per month ($10M per", 
                   "upwards of $1M per month ($10M per")        ]
 
