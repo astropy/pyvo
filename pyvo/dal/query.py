@@ -161,7 +161,7 @@ class DALService(object):
             q.setparam(key, keywords[key])
         return q
 
-    def describe(self, verbose=False, width=78, out=None):
+    def describe(self, verbose=False, width=78, file=None):
         """
         Print a summary description of this service.  
 
@@ -178,49 +178,49 @@ class DALService(object):
             as well.
         width : int
             Format the description with given character-width.
-        out : writable file-like object
+        file : writable file-like object
             If provided, write information to this output stream.
             Otherwise, it is written to standard out.  
         """
-        if not out:
-            out = sys.stdout
+        if not file:
+            file = sys.stdout
         print("{0} v{1} Service".format(self.protocol.upper(), self.version))
         if self.info.get("title"):
-            print(para_format_desc(self.info["title"]), file=out)
+            print(para_format_desc(self.info["title"]), file=file)
         if self.info.get("shortName"):
-            print("Short Name: " + self.info["shortName"], file=out)
+            print("Short Name: " + self.info["shortName"], file=file)
         if self.info.get("publisher"):
             print(para_format_desc("Publisher: " + self.info["publisher"]), 
-                  file=out)
+                  file=file)
         if self.info.get("identifier"):
-            print("IVOA Identifier: " + self.info["identifier"], file=out)
-        print("Base URL: " + self.baseurl, file=out)
+            print("IVOA Identifier: " + self.info["identifier"], file=file)
+        print("Base URL: " + self.baseurl, file=file)
 
         if self.info.get("description"):
-            print(file=out)
-            print(para_format_desc(self.info["description"]), file=out)
-            print(file=out)
+            print(file=file)
+            print(para_format_desc(self.info["description"]), file=file)
+            print(file=file)
 
         if self.info.get("subjects"):
             val = self.info.get("subjects")
             if not hasattr(val, "__getitem__"):
                 val = [val]
             val = (str(v) for v in val)
-            print(para_format_desc("Subjects: " + ", ".join(val)), file=out)
+            print(para_format_desc("Subjects: " + ", ".join(val)), file=file)
         if self.info.get("waveband"):
             val = self.info.get("waveband")
             if not hasattr(val, "__getitem__"):
                 val = [val]
             val = (str(v) for v in val)
             print(para_format_desc("Waveband Coverage: " + ", ".join(val)), 
-                  file=out)
+                  file=file)
 
         if verbose:
             if self.info.get("capabilityStandardID"):
                 print("StandardID: " + self.info["capabilityStandardID"], 
-                      file=out)
+                      file=file)
             if self.info.get("referenceURL"):
-                print("More info: " + self.info["referenceURL"], file=out)
+                print("More info: " + self.info["referenceURL"], file=file)
             
                                         
 
