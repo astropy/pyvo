@@ -161,6 +161,62 @@ class DALService(object):
             q.setparam(key, keywords[key])
         return q
 
+    def describe(self, verbose=False, width=78, out=None):
+        """
+        Print a summary description of this service.  
+
+        At a minimum, this will include the service protocol and 
+        base URL.  If there is metadata associated with this service, 
+        the summary will include other information, such as the 
+        service title and description.
+
+        Parameters
+        ----------
+        verbose : bool
+            If false (default), only user-oriented information is 
+            printed; if true, additional information will be printed
+            as well.
+        width : int
+            Format the description with given character-width.
+        out : writable file-like object
+            If provided, write information to this output stream.
+            Otherwise, it is written to standard out.  
+        """
+        print("{0} v{1} Service".format(self.protocol.upper(), self.version))
+        if self.info.get("title"):
+            print(para_format_desc(self.info["title"]))
+        if self.info.get("shortName"):
+            print("Short Name: " + self.info["shortName"])
+        if self.info.get("publisher"):
+            print(para_format_desc("Publisher: " + self.info["publisher"]))
+        if self.info.get("identifier"):
+            print("IVOA Identifier: " + self.info["identifier"])
+        print("Base URL: " + self.baseurl)
+
+        if self.info.get("description"):
+            print()
+            print(para_format_desc(self.info["description"]))
+            print()
+
+        if self.info.get("subjects"):
+            val = self.info.get("subjects")
+            if not hasattr(val, "__getitem__"):
+                val = [val]
+            val = (str(v) for v in val)
+            print(para_format_desc("Subjects: " + ", ".join(val)))
+        if self.info.get("waveband"):
+            val = self.info.get("waveband")
+            if not hasattr(val, "__getitem__"):
+                val = [val]
+            val = (str(v) for v in val)
+            print(para_format_desc("Waveband Coverage: " + ", ".join(val)))
+
+        if verbose:
+            if self.info.get("capabilityStandardID"):
+                print("StandardID: " + self.info["capabilityStandardID"])
+            if self.info.get("referenceURL"):
+                print("More info: " + self.info["referenceURL"])
+            
                                         
 
 class DALQuery(object):
@@ -1457,10 +1513,12 @@ def para_format_desc(text, width=78):
 
 _musubs = [ (re.compile(r"&lt;"), "<"),  (re.compile(r"&gt;"), ">"), 
             (re.compile(r"&amp;"), "&"), (re.compile(r"<br\s*/?>"), ''),
-            (re.compile(r"</p>"), ''),
+            (re.compile(r"</p>"), ''), (re.compile(r"&#176;"), " deg"),
             (re.compile(r"\$((?:[^\$]*[\*\+=/^_~><\\][^\$]*)|(?:\w+))\$"), 
-             r'\1')
+             r'\1'),
+            (re.compile(r"\\deg"), " deg"),
            ]
+_alink = re.compile(r'''<a .*href=(["])([^\1]*)(?:\1).*>\s*(\S.*\S)\s*</a>''')
 def deref_markup(text):
     """
     perform some substitutions of common markup suitable for text display.
@@ -1468,6 +1526,7 @@ def deref_markup(text):
     """
     for pat, repl in _musubs:
         text = pat.sub(repl, text)
+    text = _alink.sub(r"\3 <\2>", text)
     return text
 
     
