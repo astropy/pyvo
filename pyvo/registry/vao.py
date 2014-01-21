@@ -25,7 +25,6 @@ from ..dal import query as dalq
 from ..dal import sia, ssa, sla, scs
 from urllib import quote_plus, urlopen
 import re
-import textwrap
 
 import numpy.ma as _ma
 
@@ -920,44 +919,3 @@ def split_str_array_cell(val, delim=None):
     if val[-1:] == delim: val = val[:-1]
     return tuple(val.split(delim))
 
-_parasp = re.compile(r"(?:[ \t\r\f\v]*\n){2,}[ \t\r\f\v]*")
-_ptag = re.compile(r"\s*(?:<p\s*/?>)|(?:\\para(?:\\ )*)\s*")
-def para_format_desc(text, width=78):
-    """
-    format description text into paragraphs suiteable for display in the 
-    shell.  That is, the output will be one or more plain text paragraphs 
-    of the prescribed width (78 characters, the default).  The text will 
-    be split into separate paragraphs whwre there occurs (1) a two or more 
-    consecutive carriage return, (2) an HTMS paragraph tag, or (2) 
-    a LaTeX parabraph control sequence.  It will attempt other substitutions
-    of HTML and LaTeX markup that sometimes find their way into resource
-    descriptions.  
-    """
-    paras = _parasp.split(text)
-    for i in range(len(paras)):
-        para = paras.pop(0)
-        for p in _ptag.split(para):
-            if len(p) > 0:
-                p = "\n".join( (l.strip() for l in 
-                                (t for t in p.splitlines() if len(t) > 0)) )
-                paras.append(deref_markup(p))
-
-    return "\n\n".join( (textwrap.fill(p, width) for p in paras) )
-
-_musubs = [ (re.compile(r"&lt;"), "<"),  (re.compile(r"&gt;"), ">"), 
-            (re.compile(r"&amp;"), "&"), (re.compile(r"<br\s*/?>"), ''),
-            (re.compile(r"</p>"), ''),
-            (re.compile(r"\$((?:[^\$]*[\*\+=/^_~><\\][^\$]*)|(?:\w+))\$"), 
-             r'\1')
-           ]
-def deref_markup(text):
-    """
-    perform some substitutions of common markup suitable for text display.
-    This includes HTML escape sequence
-    """
-    for pat, repl in _musubs:
-        text = pat.sub(repl, text)
-    return text
-
-    
-        
