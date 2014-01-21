@@ -423,17 +423,7 @@ class SimpleResTest(unittest.TestCase):
         self.assertEquals(self.r.capability, b"SimpleImageAccess")
 
 
-
-
-
-
-
-class RegExecuteTest(unittest.TestCase):
-    pass
-
-
-
-__all__ = "RegServiceTest RegQueryTest RegResultsTest SimpleResTest RegExecuteTest".split()
+__all__ = "RegServiceTest RegQueryTest RegResultsTest SimpleResTest".split()
 def suite():
     tests = []
     for t in __all__:
