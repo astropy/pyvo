@@ -182,40 +182,45 @@ class DALService(object):
             If provided, write information to this output stream.
             Otherwise, it is written to standard out.  
         """
+        if not out:
+            out = sys.stdout
         print("{0} v{1} Service".format(self.protocol.upper(), self.version))
         if self.info.get("title"):
-            print(para_format_desc(self.info["title"]))
+            print(para_format_desc(self.info["title"]), file=out)
         if self.info.get("shortName"):
-            print("Short Name: " + self.info["shortName"])
+            print("Short Name: " + self.info["shortName"], file=out)
         if self.info.get("publisher"):
-            print(para_format_desc("Publisher: " + self.info["publisher"]))
+            print(para_format_desc("Publisher: " + self.info["publisher"]), 
+                  file=out)
         if self.info.get("identifier"):
-            print("IVOA Identifier: " + self.info["identifier"])
-        print("Base URL: " + self.baseurl)
+            print("IVOA Identifier: " + self.info["identifier"], file=out)
+        print("Base URL: " + self.baseurl, file=out)
 
         if self.info.get("description"):
-            print()
-            print(para_format_desc(self.info["description"]))
-            print()
+            print(file=out)
+            print(para_format_desc(self.info["description"]), file=out)
+            print(file=out)
 
         if self.info.get("subjects"):
             val = self.info.get("subjects")
             if not hasattr(val, "__getitem__"):
                 val = [val]
             val = (str(v) for v in val)
-            print(para_format_desc("Subjects: " + ", ".join(val)))
+            print(para_format_desc("Subjects: " + ", ".join(val)), file=out)
         if self.info.get("waveband"):
             val = self.info.get("waveband")
             if not hasattr(val, "__getitem__"):
                 val = [val]
             val = (str(v) for v in val)
-            print(para_format_desc("Waveband Coverage: " + ", ".join(val)))
+            print(para_format_desc("Waveband Coverage: " + ", ".join(val)), 
+                  file=out)
 
         if verbose:
             if self.info.get("capabilityStandardID"):
-                print("StandardID: " + self.info["capabilityStandardID"])
+                print("StandardID: " + self.info["capabilityStandardID"], 
+                      file=out)
             if self.info.get("referenceURL"):
-                print("More info: " + self.info["referenceURL"])
+                print("More info: " + self.info["referenceURL"], file=out)
             
                                         
 

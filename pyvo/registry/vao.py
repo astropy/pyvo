@@ -867,7 +867,7 @@ class SimpleResource(dalq.Record):
 
         return service.search(*args, **keys)
 
-    def describe(self, verbose=False, width=78, out=None):
+    def describe(self, verbose=False, width=78, file=None):
         """
         Print a summary description of this resource.  
 
@@ -905,37 +905,39 @@ class SimpleResource(dalq.Record):
                         restype = "Registry Search Service"
             elif self.get("interfaceClass") == "WebBrowser":
                 restype = "Web-page Based Service" 
-        print(restype)
-        print(dalq.para_format_desc(self.title))
-        print("Short Name: " + self.shortname)
-        print("Publisher: " + dalq.para_format_desc(self.publisher))
-        print("IVOA Identifier: " + self.identifier)
+        print(restype, file=file)
+        print(dalq.para_format_desc(self.title), file=file)
+        print("Short Name: " + self.shortname, file=file)
+        print("Publisher: " + dalq.para_format_desc(self.publisher), file=file)
+        print("IVOA Identifier: " + self.identifier, file=file)
         if self.accessurl:
-            print("Base URL: " + self.accessurl)
+            print("Base URL: " + self.accessurl, file=file)
 
         if self.description:
-            print()
-            print(dalq.para_format_desc(self.description))
-            print()
+            print(file=file)
+            print(dalq.para_format_desc(self.description), file=file)
+            print(file=file)
 
         if self.get("subjects"):
             val = self.get("subjects")
             if not hasattr(val, "__getitem__"):
                 val = [val]
             val = (str(v) for v in val)
-            print(dalq.para_format_desc("Subjects: " + ", ".join(val)))
+            print(dalq.para_format_desc("Subjects: " + ", ".join(val)), 
+                  file=file)
         if self.get("waveband"):
             val = self.get("waveband")
             if not hasattr(val, "__getitem__"):
                 val = [val]
             val = (str(v) for v in val)
-            print(dalq.para_format_desc("Waveband Coverage: " + ", ".join(val)))
+            print(dalq.para_format_desc("Waveband Coverage: " + ", ".join(val)),
+                  file=file)
 
         if verbose:
             if self.get("capabilityStandardID"):
-                print("StandardID: " + self["capabilityStandardID"])
+                print("StandardID: " + self["capabilityStandardID"], file=file)
             if self.get("referenceURL"):
-                print("More info: " + self["referenceURL"])
+                print("More info: " + self["referenceURL"], file=file)
             
 
 
