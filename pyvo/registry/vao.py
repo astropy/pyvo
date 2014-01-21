@@ -734,6 +734,7 @@ class SimpleResource(dalq.Record):
         --------
         SimpleResource.describe
         """
+        return self.get("description")
 
     @property
     def tags(self):
@@ -865,6 +866,83 @@ class SimpleResource(dalq.Record):
             raise RuntimeError("resource, {0}, is not a searchable service".format(self.shortname))
 
         return service.search(*args, **keys)
+
+    def describe(self, verbose=False, width=78, out=None):
+        """
+        Print a summary description of this resource.  
+
+        Parameters
+        ----------
+        verbose : bool
+            If false (default), only user-oriented information is 
+            printed; if true, additional information will be printed
+            as well.
+        width : int
+            Format the description with given character-width.
+        out : writable file-like object
+            If provided, write information to this output stream.
+            Otherwise, it is written to standard out.  
+        """
+        restype = "Generic Resource"
+        if self.get("interfaceClass"):
+            # it's a service of some kind
+            restype = "Custom Service"
+            stdid = self.get("capabilityStandardID")
+            if stdid:
+                if stdid.startswith("ivo://ivoa.net/std/ConeSearch"):
+                    restype = "Catalog Cone-search Service"
+                elif stdid.startswith("ivo://ivoa.net/std/SIA"):
+                    restype = "Image Data Service"
+                elif stdid.startswith("ivo://ivoa.net/std/SSA"):
+                    restype = "Spectrum Data Service"
+                elif stdid.startswith("ivo://ivoa.net/std/SLA"):
+                    restype = "Spectral Line Database Service"
+                elif stdid.startswith("ivo://ivoa.net/std/Registry"):
+                    restype = "Registry Service"
+                    if "Harvest" in self.get("capabilityClass"):
+                        restype = "Registry Harvest Service"
+                    elif "Search" in self.get("capabilityClass"):
+                        restype = "Registry Search Service"
+            elif self.get("interfaceClass") == "WebBrowser":
+                restype = "Web-page Based Service" 
+        print(restype)
+        print(dalq.para_format_desc(self.title))
+        print("Short Name: " + self.shortname)
+        print("Publisher: " + dalq.para_format_desc(self.publisher))
+        print("IVOA Identifier: " + self.identifier)
+        if self.accessurl:
+            print("Base URL: " + self.accessurl)
+
+        if self.description:
+            print()
+            print(dalq.para_format_desc(self.description))
+            print()
+
+        if self.get("subjects"):
+            val = self.get("subjects")
+            if not hasattr(val, "__getitem__"):
+                val = [val]
+            val = (str(v) for v in val)
+            print(dalq.para_format_desc("Subjects: " + ", ".join(val)))
+        if self.get("waveband"):
+            val = self.get("waveband")
+            if not hasattr(val, "__getitem__"):
+                val = [val]
+            val = (str(v) for v in val)
+            print(dalq.para_format_desc("Waveband Coverage: " + ", ".join(val)))
+
+        if verbose:
+            if self.get("capabilityStandardID"):
+                print("StandardID: " + self["capabilityStandardID"])
+            if self.get("referenceURL"):
+                print("More info: " + self["referenceURL"])
+            
+
+
+        
+
+                
+        
 
 _standardIDs = {
     "ivo://ivoa.net/std/ConeSearch":  scs.SCSService,
