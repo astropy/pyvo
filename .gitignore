@@ -17,6 +17,7 @@ pyvo/version.py
 # Sphinx
 _build
 _generated
+api
 
 # Packages/installer info
 *.egg
