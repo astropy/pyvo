@@ -63,7 +63,7 @@ set to further restrict the search results.
 
 With a catalog service, there is no dataset to download; instead one
 is simply searching a catalog for its records.  Currently, PyVO
-supports querying two types of dataset services: 
+supports querying two types of catalog services: 
 
 * `Simple Cone Search (SCS) <http://www.ivoa.net/documents/latest/ConeSearch.html>`_ 
   -- a service for searching a source catalog or an observation log.
