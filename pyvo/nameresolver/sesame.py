@@ -99,9 +99,9 @@ def resolve(names, db="Simbad", include="", mirror=None):
         opt = filter(lambda i: i.startswith(inc.lower()), 
                      "fluxes aliases".split())
         if len(opt) > 1:
-            raise ValueError("Ambiguos include parameter value: " + inc)
+            raise ValueError("Ambiguous include parameter value: " + inc)
         if len(opt) == 0:
-            raise ValueError("Unrecignized include parameter value: " + inc)
+            raise ValueError("Unrecognized include parameter value: " + inc)
         if opt[0] == "fluxes":
             q.fluxes = True
         elif opt[0] == "aliases":
