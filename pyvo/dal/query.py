@@ -34,6 +34,43 @@ import textwrap
 from urllib2 import urlopen, URLError, HTTPError
 from urllib import quote_plus
 
+# Structure to store parameters globally used by the objects in this module
+_params = {}
+
+def setparam(name,value):
+    """
+    Add a parameter to the query-global structure.
+    'name' is case-insensitive.
+    """
+    if not isinstance(name,str):
+        raise TypeError("cannot work a non-string parameter name")
+    _n = name
+    if _n.replace(' ','') is '':
+        raise ValueError("cannot accept an empty parameter name")
+    _params.update({name.lower():value})
+
+def getparam(name):
+    """
+    Read the value of a parameter. Return 'None' if it does not exist.
+    """
+    key = name.lower()
+    if _params.has_key(key):
+        return _params.get(key)
+    else:
+        return None
+
+def unsetparam(name):
+    """
+    Delete a parameter (name/value) from the set.
+    Return 'True' if succeed, 'False' otherwise.
+    """
+    key = name.lower()
+    if _params.has_key(key):
+        del _params[key]
+        return True
+    else:
+        return False
+
 if sys.version_info[0] >= 3:
     _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
     _is_python3 = True
@@ -359,9 +396,15 @@ class DALQuery(object):
         DALQueryError
            for errors in the input query syntax
         """
+        timeout = getparam('timeout')
+        if not timeout is None:
+            try:
+                ((timeout+0.0)*1)/1-0
+            except:
+                timeout = None
         try:
             url = self.getqueryurl()
-            return urlopen(url)
+            return urlopen(url,timeout=timeout)
         except IOError as ex:
             raise DALServiceError.from_except(ex, url, self.protocol, 
                                               self.version)
