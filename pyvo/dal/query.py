@@ -59,6 +59,59 @@ def ensure_baseurl(url):
     else:
         return url+'?'
 
+# Auxiliar function to verify whether a value is a number (or at least works as)
+def _is_number(value):
+    """
+    Verify whether 'value' is a numeric object. Returns a boolean.
+    """
+    try:
+        _v = ((value+0.0)*1)/1+0
+        return _v*0 == 0
+    except:
+        return False
+    
+# Structure to store global parameters used by the objects in this module
+_params = {}
+
+def setparam(name,value):
+    """
+    Add a parameter to the query-global structure. 'name' is case-insensitive.
+    
+    Parameters
+    ----------
+    "timeout" : float
+        'value' is the amount of seconds to wait for a response from the service.
+        
+    """
+    if not isinstance(name,str):
+        raise TypeError("cannot work a non-string parameter name")
+    _n = name
+    if _n.replace(' ','') is '':
+        raise ValueError("cannot accept an empty parameter name")
+    _params.update({name.lower():value})
+
+def getparam(name):
+    """
+    Read the value of a parameter. Return 'None' if it does not exist.
+    """
+    key = name.lower()
+    if _params.has_key(key):
+        return _params.get(key)
+    else:
+        return None
+
+def unsetparam(name):
+    """
+    Delete a parameter (name/value) from the set.
+    Return 'True' if succeed, 'False' otherwise.
+    """
+    key = name.lower()
+    if _params.has_key(key):
+        del _params[key]
+        return True
+    else:
+        return False
+
 class DALService(object):
     """
     an abstract base class representing a DAL service located a particular 
@@ -313,9 +366,16 @@ class DALQuery(object):
         """
         return self._param.keys()
 
-    def execute(self):
+    def execute(self,timeout=None):
         """
         submit the query and return the results as a Results subclass instance
+
+        Parameters
+        ----------
+        timeout : float   
+           the time in seconds to allow for a successful 
+           connection with server before failing with an 
+           IOError (specifically, socket.timeout) exception
 
         Raises
         ------
@@ -327,11 +387,18 @@ class DALQuery(object):
         DALFormatError  
            for errors parsing the VOTable response
         """
-        return DALResults(self.execute_votable(), self.getqueryurl(True))
+        return DALResults(self.execute_votable(timeout), self.getqueryurl(True))
 
-    def execute_raw(self):
+    def execute_raw(self,timeout=None):
         """
         submit the query and return the raw VOTable XML as a string.
+
+        Parameters
+        ----------
+        timeout : float   
+           the time in seconds to allow for a successful 
+           connection with server before failing with an 
+           IOError (specifically, socket.timeout) exception
 
         Raises
         ------
@@ -340,7 +407,7 @@ class DALQuery(object):
         DALQueryError
            for errors in the input query syntax
         """
-        f = self.execute_stream()
+        f = self.execute_stream(timeout)
         out = None
         try:
             out = f.read()
@@ -348,9 +415,16 @@ class DALQuery(object):
             f.close()
         return out
 
-    def execute_stream(self):
+    def execute_stream(self,timeout=None):
         """
         submit the query and return the raw VOTable XML as a file stream
+
+        Parameters
+        ----------
+        timeout : float   
+           the time in seconds to allow for a successful 
+           connection with server before failing with an 
+           IOError (specifically, socket.timeout) exception
 
         Raises
         ------
@@ -359,16 +433,29 @@ class DALQuery(object):
         DALQueryError
            for errors in the input query syntax
         """
+        timeout = getparam('timeout')
+        if not _is_number(timeout):
+            timeout = None
         try:
             url = self.getqueryurl()
-            return urlopen(url)
+            if timeout:
+                return urlopen(url, timeout=timeout)
+            else:
+                return urlopen(url)
         except IOError as ex:
             raise DALServiceError.from_except(ex, url, self.protocol, 
                                               self.version)
 
-    def execute_votable(self):
+    def execute_votable(self,timeout=None):
         """
         submit the query and return the results as an AstroPy votable instance
+
+        Parameters
+        ----------
+        timeout : float   
+           the time in seconds to allow for a successful 
+           connection with server before failing with an 
+           IOError (specifically, socket.timeout) exception
 
         Returns
         -------
@@ -392,7 +479,7 @@ class DALQuery(object):
         DALQueryError
         """
         try:
-            return _votableparse(self.execute_stream().read)
+            return _votableparse(self.execute_stream(timeout).read)
         except DALAccessError:
             raise
         except Exception as e:
@@ -897,6 +984,9 @@ class Record(object):
         url = self.getdataurl()
         if not url:
             raise KeyError("no dataset access URL recognized in record")
+        if not timeout is None:
+            if not _is_number(timeout):
+                timeout = None
         if timeout:
             return urlopen(url, timeout=timeout)
         else:
