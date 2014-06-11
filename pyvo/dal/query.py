@@ -34,13 +34,54 @@ import textwrap
 from urllib2 import urlopen, URLError, HTTPError
 from urllib import quote_plus
 
-# Structure to store parameters globally used by the objects in this module
+if sys.version_info[0] >= 3:
+    _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
+    _is_python3 = True
+else:
+    _mimetype_re = re.compile(r'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
+    _is_python3 = False
+
+def is_mime_type(val):
+    if _is_python3 and isinstance(val, str):
+        val = val.encode('utf-8')
+
+    return bool(_mimetype_re.match(val))
+ 
+def ensure_baseurl(url):
+    """
+    ensure a well formed DAL base URL that ends either with a '?' or a '&'
+    """
+    if '?' in url:
+        if url[-1] == '?' or url[-1] == '&':
+            return url
+        else:
+            return url+'&'
+    else:
+        return url+'?'
+
+# Auxiliar function to verify whether a value is a number (or at least works as)
+def _is_number(value):
+    """
+    Verify whether 'value' is a numeric object. Returns a boolean.
+    """
+    try:
+        _v = ((value+0.0)*1)/1+0
+        return _v*0 == 0
+    except:
+        return False
+    
+# Structure to store global parameters used by the objects in this module
 _params = {}
 
 def setparam(name,value):
     """
-    Add a parameter to the query-global structure.
-    'name' is case-insensitive.
+    Add a parameter to the query-global structure. 'name' is case-insensitive.
+    
+    Parameters
+    ----------
+    "timeout" : float
+        'value' is the amount of seconds to wait for a response from the service.
+        
     """
     if not isinstance(name,str):
         raise TypeError("cannot work a non-string parameter name")
@@ -70,31 +111,6 @@ def unsetparam(name):
         return True
     else:
         return False
-
-if sys.version_info[0] >= 3:
-    _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
-    _is_python3 = True
-else:
-    _mimetype_re = re.compile(r'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
-    _is_python3 = False
-
-def is_mime_type(val):
-    if _is_python3 and isinstance(val, str):
-        val = val.encode('utf-8')
-
-    return bool(_mimetype_re.match(val))
- 
-def ensure_baseurl(url):
-    """
-    ensure a well formed DAL base URL that ends either with a '?' or a '&'
-    """
-    if '?' in url:
-        if url[-1] == '?' or url[-1] == '&':
-            return url
-        else:
-            return url+'&'
-    else:
-        return url+'?'
 
 class DALService(object):
     """
@@ -350,9 +366,16 @@ class DALQuery(object):
         """
         return self._param.keys()
 
-    def execute(self):
+    def execute(self,timeout=None):
         """
         submit the query and return the results as a Results subclass instance
+
+        Parameters
+        ----------
+        timeout : float   
+           the time in seconds to allow for a successful 
+           connection with server before failing with an 
+           IOError (specifically, socket.timeout) exception
 
         Raises
         ------
@@ -364,11 +387,18 @@ class DALQuery(object):
         DALFormatError  
            for errors parsing the VOTable response
         """
-        return DALResults(self.execute_votable(), self.getqueryurl(True))
+        return DALResults(self.execute_votable(timeout), self.getqueryurl(True))
 
-    def execute_raw(self):
+    def execute_raw(self,timeout=None):
         """
         submit the query and return the raw VOTable XML as a string.
+
+        Parameters
+        ----------
+        timeout : float   
+           the time in seconds to allow for a successful 
+           connection with server before failing with an 
+           IOError (specifically, socket.timeout) exception
 
         Raises
         ------
@@ -377,7 +407,7 @@ class DALQuery(object):
         DALQueryError
            for errors in the input query syntax
         """
-        f = self.execute_stream()
+        f = self.execute_stream(timeout)
         out = None
         try:
             out = f.read()
@@ -385,9 +415,16 @@ class DALQuery(object):
             f.close()
         return out
 
-    def execute_stream(self):
+    def execute_stream(self,timeout=None):
         """
         submit the query and return the raw VOTable XML as a file stream
+
+        Parameters
+        ----------
+        timeout : float   
+           the time in seconds to allow for a successful 
+           connection with server before failing with an 
+           IOError (specifically, socket.timeout) exception
 
         Raises
         ------
@@ -397,11 +434,8 @@ class DALQuery(object):
            for errors in the input query syntax
         """
         timeout = getparam('timeout')
-        if not timeout is None:
-            try:
-                ((timeout+0.0)*1)/1-0
-            except:
-                timeout = None
+        if not _is_number(timeout):
+            timeout = None
         try:
             url = self.getqueryurl()
             return urlopen(url,timeout=timeout)
@@ -409,9 +443,16 @@ class DALQuery(object):
             raise DALServiceError.from_except(ex, url, self.protocol, 
                                               self.version)
 
-    def execute_votable(self):
+    def execute_votable(self,timeout=None):
         """
         submit the query and return the results as an AstroPy votable instance
+
+        Parameters
+        ----------
+        timeout : float   
+           the time in seconds to allow for a successful 
+           connection with server before failing with an 
+           IOError (specifically, socket.timeout) exception
 
         Returns
         -------
@@ -435,7 +476,7 @@ class DALQuery(object):
         DALQueryError
         """
         try:
-            return _votableparse(self.execute_stream().read)
+            return _votableparse(self.execute_stream(timeout).read)
         except DALAccessError:
             raise
         except Exception as e:
@@ -940,10 +981,10 @@ class Record(object):
         url = self.getdataurl()
         if not url:
             raise KeyError("no dataset access URL recognized in record")
-        if timeout:
-            return urlopen(url, timeout=timeout)
-        else:
-            return urlopen(url)
+        if not timeout is None:
+            if not _is_number(timeout):
+                timeout = None
+        return urlopen(url, timeout=timeout)
 
     def cachedataset(self, filename=None, dir=".", timeout=None, bufsize=524288):
         """
