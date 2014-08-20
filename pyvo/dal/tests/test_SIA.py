@@ -5,7 +5,7 @@ Tests for pyvo.dal.sia
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp, glob, tempfile
+import os, sys, shutil, re, imp, glob, tempfile, random
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -21,7 +21,8 @@ from . import aTestSIAServer as testserve
 siaresultfile = "data/neat-sia.xml"
 errresultfile = "data/error-sia.xml"
 testserverport = 8084
-testserverport += 50
+testserverport += 500
+testserverport += random.randint(0,99)
 
 class SIAServiceTest(unittest.TestCase):
 

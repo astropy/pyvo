@@ -5,7 +5,7 @@ Tests for pyvo.dal.scs
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp
+import os, sys, shutil, re, imp, random
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -22,7 +22,8 @@ from . import aTestSIAServer as testserve
 csresultfile = "data/twomass-cs.xml"
 errresultfile = "data/error-cs.xml"
 testserverport = 8084
-testserverport += 20
+testserverport += 200
+testserverport += random.randint(0,99)
 
 class SCSServiceTest(unittest.TestCase):
 

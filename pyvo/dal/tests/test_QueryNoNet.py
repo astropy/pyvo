@@ -5,7 +5,7 @@ Tests for pyvo.dal.query
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp, glob, tempfile
+import os, sys, shutil, re, imp, glob, tempfile, random
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -20,7 +20,8 @@ from . import aTestSIAServer as testserve
 siaresultfile = "data/neat-sia.xml"
 ssaresultfile = "data/jhu-ssa.xml"
 testserverport = 8084
-testserverport += 10
+testserverport += 100
+testserverport += random.randint(0,99)
 
 testserver = None
 

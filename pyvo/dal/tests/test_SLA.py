@@ -5,7 +5,7 @@ Tests for pyvo.dal.sla
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp
+import os, sys, shutil, re, imp, random
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -21,7 +21,8 @@ from . import aTestSIAServer as testserve
 slaresultfile = "data/nrao-sla.xml"
 errresultfile = "data/error-sla.xml"
 testserverport = 8084
-testserverport += 30
+testserverport += 300
+testserverport += random.randint(0,99)
 
 class SLAServiceTest(unittest.TestCase):
 

@@ -5,7 +5,7 @@ Tests for pyvo.dal.ssa
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp, glob, tempfile
+import os, sys, shutil, re, imp, glob, tempfile, random
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -23,7 +23,8 @@ if not testdir:  testdir = "tests"
 ssaresultfile = "data/jhu-ssa.xml"
 errresultfile = "data/error-ssa.xml"
 testserverport = 8084
-testserverport += 40
+testserverport += 400
+testserverport += random.randint(0,99)
 
 class SSAServiceTest(unittest.TestCase):
 
