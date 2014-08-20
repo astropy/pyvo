@@ -38,31 +38,35 @@ class TestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = re.split(r'\?', self.path, 1)[0]
 
-        if path.startswith("/path"):
-            self.send_path()
-        elif path.startswith("/dal/"):
-            self.send_file(path[len("/dal/"):])
-        elif path.startswith("/err"):
-            self.send_err()
-        elif path == "/sia":
-            self.send_sia()
-        elif path == "/cs":
-            self.send_scs()
-        elif path == "/ssa":
-            self.send_ssa()
-        elif path == "/sla":
-            self.send_sla()
-        elif path == "/shutdown":
-            self.send_empty()
-            # self.shutdown()
-        else:
-            try:
-                self.send_error(404)
-                self.end_headers()
-            except socket.error as ex:
-                if ex.errno != 104:
-                    print("Test Server: Detected socket error while serving "+
-                          path+": " + str(ex))
+        try:
+            if path.startswith("/path"):
+                self.send_path()
+            elif path.startswith("/dal/"):
+                self.send_file(path[len("/dal/"):])
+            elif path.startswith("/err"):
+                self.send_err()
+            elif path == "/sia":
+                self.send_sia()
+            elif path == "/cs":
+                self.send_scs()
+            elif path == "/ssa":
+                self.send_ssa()
+            elif path == "/sla":
+                self.send_sla()
+            elif path == "/shutdown":
+                self.send_empty()
+                # self.shutdown()
+            else:
+                try:
+                    self.send_error(404)
+                    self.end_headers()
+                except socket.error as ex:
+                    if ex.errno != 104:
+                        print("Test Server: Detected socket error while serving "+
+                              path+": " + str(ex))
+        except Exception as ex:
+            print("Test Server failure (port="+str(self._port)+"): "+str(ex))
+            raise RuntimeError("test server error ("+type(ex)+"): "+str(ex))
                 
 
     def send_path(self):
