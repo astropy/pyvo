@@ -5,7 +5,7 @@ Tests for pyvo.dal.query
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp, glob, tempfile
+import os, sys, shutil, re, imp, glob, tempfile, random
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -20,7 +20,8 @@ from . import aTestSIAServer as testserve
 siaresultfile = "data/neat-sia.xml"
 ssaresultfile = "data/jhu-ssa.xml"
 testserverport = 8084
-testserverport += 1
+testserverport += 100
+testserverport += random.randint(0,99)
 
 testserver = None
 
@@ -505,7 +506,7 @@ class QueryExecuteTest(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
-        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr = testserve.get_server(testserverport)
         cls.srvr.start()
 
     @classmethod
@@ -516,7 +517,7 @@ class QueryExecuteTest(unittest.TestCase):
             print("prob")
 
     def testExecute(self):
-        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         results = q.execute()
@@ -524,7 +525,7 @@ class QueryExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 2)
 
     def testExecuteStream(self):
-        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         strm = q.execute_stream()
@@ -535,7 +536,7 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_(results.startswith(b"<?xml version="))
 
     def testExecuteRaw(self):
-        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         data = q.execute_raw()
@@ -547,26 +548,26 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_(data.startswith(b"<?xml version="))
 
     def testExecuteVotable(self):
-        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         results = q.execute_votable()
         self.assert_(isinstance(results, VOTableFile))
 
     def testExecuteServiceErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute)
 
     def testExecuteRawServiceErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute_raw)
 
     def testExecuteStreamServiceErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
@@ -581,13 +582,13 @@ class QueryExecuteTest(unittest.TestCase):
 
 
     def testExecuteVotableServiceErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute_votable)
 
     def testExecuteRawQueryErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/err".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/err".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         data = q.execute_raw()
@@ -600,7 +601,7 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_(b'<INFO name="QUERY_STATUS" value="ERR' in data)
 
     def testExecuteQueryErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/err".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/err".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
@@ -881,7 +882,7 @@ if __name__ == "__main__":
     except ImportError as e:
         sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
 
-    srvr = testserve.TestServer(testserverport)
+    srvr = testserve.get_server(testserverport)
     try:
         srvr.start()
         unittest.main()

@@ -5,7 +5,7 @@ Tests for pyvo.dal.scs
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp
+import os, sys, shutil, re, imp, random
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -22,7 +22,8 @@ from . import aTestSIAServer as testserve
 csresultfile = "data/twomass-cs.xml"
 errresultfile = "data/error-cs.xml"
 testserverport = 8084
-testserverport += 2
+testserverport += 200
+testserverport += random.randint(0,99)
 
 class SCSServiceTest(unittest.TestCase):
 
@@ -230,7 +231,7 @@ class CSExecuteTest(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
-        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr = testserve.get_server(testserverport)
         cls.srvr.start()
 
     @classmethod
@@ -241,7 +242,7 @@ class CSExecuteTest(unittest.TestCase):
             print("prob")
 
     def testExecute(self):
-        q = cs.SCSQuery(self.baseurl.format(testserverport))
+        q = cs.SCSQuery(self.baseurl.format(self.srvr.port))
         q.ra = 0.0
         q.dec = 0.0
         q.radius = 0.25
@@ -250,7 +251,7 @@ class CSExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 2)
 
     def testSearch(self):
-        srv = cs.SCSService(self.baseurl.format(testserverport))
+        srv = cs.SCSService(self.baseurl.format(self.srvr.port))
         results = srv.search(pos=(0.0, 0.0), radius=0.25)
         self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.nrecs, 2)
@@ -265,7 +266,7 @@ class CSExecuteTest(unittest.TestCase):
 
     def testConesearch(self):
         # pdb.set_trace()
-        results = cs.search(self.baseurl.format(testserverport), 
+        results = cs.search(self.baseurl.format(self.srvr.port), 
                             pos=(0.0, 0.0), radius=0.25)
         self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.nrecs, 2)
