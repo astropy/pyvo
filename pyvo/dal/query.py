@@ -438,7 +438,10 @@ class DALQuery(object):
             timeout = None
         try:
             url = self.getqueryurl()
-            return urlopen(url,timeout=timeout)
+            if timeout:
+                return urlopen(url, timeout=timeout)
+            else:
+                return urlopen(url)
         except IOError as ex:
             raise DALServiceError.from_except(ex, url, self.protocol, 
                                               self.version)
@@ -984,7 +987,10 @@ class Record(object):
         if not timeout is None:
             if not _is_number(timeout):
                 timeout = None
-        return urlopen(url, timeout=timeout)
+        if timeout:
+            return urlopen(url, timeout=timeout)
+        else:
+            return urlopen(url)
 
     def cachedataset(self, filename=None, dir=".", timeout=None, bufsize=524288):
         """
