@@ -339,7 +339,7 @@ class SSAExecuteTest(unittest.TestCase):
             print("prob")
 
     def testExecute(self):
-        q = ssa.SSAQuery("http://localhost:{0}/ssa".format(testserverport))
+        q = ssa.SSAQuery("http://localhost:{0}/ssa".format(self.srvr.port))
         q.pos = (0, 0)
         q.size = 1.0
         q.format = "all"
@@ -348,7 +348,7 @@ class SSAExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 35)
 
     def testSearch(self):
-        srv = ssa.SSAService("http://localhost:{0}/ssa".format(testserverport))
+        srv = ssa.SSAService("http://localhost:{0}/ssa".format(self.srvr.port))
         results = srv.search(pos=(0,0), size=1.0)
         self.assert_(isinstance(results, ssa.SSAResults))
         self.assertEquals(results.nrecs, 35)
@@ -362,13 +362,13 @@ class SSAExecuteTest(unittest.TestCase):
 
 
     def testSsa(self):
-        results = ssa.search("http://localhost:{0}/ssa".format(testserverport),
+        results = ssa.search("http://localhost:{0}/ssa".format(self.srvr.port),
                              pos=(0,0), size=1.0)
         self.assert_(isinstance(results, ssa.SSAResults))
         self.assertEquals(results.nrecs, 35)
 
     def testError(self):
-        srv = ssa.SSAService("http://localhost:{0}/err".format(testserverport))
+        srv = ssa.SSAService("http://localhost:{0}/err".format(self.srvr.port))
         self.assertRaises(dalq.DALQueryError, srv.search, (0.0,0.0), 1.0)
         
 

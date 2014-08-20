@@ -429,7 +429,7 @@ class SIAExecuteTest(unittest.TestCase):
             print("prob")
 
     def testExecute(self):
-        q = sia.SIAQuery("http://localhost:{0}/sia".format(testserverport))
+        q = sia.SIAQuery("http://localhost:{0}/sia".format(self.srvr.port))
         q.pos = (0, 0)
         q.size = (1.0, 1.0)
         q.format = "all"
@@ -438,7 +438,7 @@ class SIAExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 2)
 
     def testSearch(self):
-        srv = sia.SIAService("http://localhost:{0}/sia".format(testserverport))
+        srv = sia.SIAService("http://localhost:{0}/sia".format(self.srvr.port))
         results = srv.search(pos=(0,0), size=(1.0,1.0))
         self.assert_(isinstance(results, sia.SIAResults))
         self.assertEquals(results.nrecs, 2)
@@ -453,13 +453,13 @@ class SIAExecuteTest(unittest.TestCase):
 
 
     def testSia(self):
-        results = sia.search("http://localhost:{0}/sia".format(testserverport),
+        results = sia.search("http://localhost:{0}/sia".format(self.srvr.port),
                              pos=(0,0), size=(1.0,1.0))
         self.assert_(isinstance(results, sia.SIAResults))
         self.assertEquals(results.nrecs, 2)
 
     def testError(self):
-        srv = sia.SIAService("http://localhost:{0}/err".format(testserverport))
+        srv = sia.SIAService("http://localhost:{0}/err".format(self.srvr.port))
         self.assertRaises(dalq.DALQueryError, srv.search, (0.0,0.0), 1.0)
         
 
