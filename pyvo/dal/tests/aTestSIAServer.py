@@ -107,7 +107,7 @@ class TestServer(threading.Thread):
 
 
     def run(self):
-        # disable_internet.turn_on_internet(True)
+        disable_internet.turn_on_internet(True)
         self.httpd = HTTPServer(('', self._port), TestHandler)
         self.httpd.timeout = self._timeout
         self.httpd.serve_forever()
