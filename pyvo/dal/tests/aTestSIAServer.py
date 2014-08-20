@@ -16,7 +16,13 @@ import threading
 import socket
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from astropy.utils.data import get_pkg_data_filename
-from astropy.tests import disable_internet
+
+try:
+    from astropy.tests.disable_internet import turn_on_internet,turn_off_internet
+except:
+    # for astropy ver < 0.4
+    def turn_on_internet(verbose=False): pass
+    def turn_off_internet(verbose=False): pass
 
 siaresult = "data/neat-sia.xml"
 scsresult = "data/twomass-cs.xml"
@@ -107,7 +113,7 @@ class TestServer(threading.Thread):
 
 
     def run(self):
-        disable_internet.turn_on_internet(True)
+        turn_on_internet(True)
         self.httpd = HTTPServer(('', self._port), TestHandler)
         self.httpd.timeout = self._timeout
         self.httpd.serve_forever()
@@ -119,7 +125,7 @@ class TestServer(threading.Thread):
             self.httpd.shutdown()
             self.join(timeout)
             self.httpd = None
-        disable_internet.turn_off_internet(True)
+        turn_off_internet(True)
 
 def run():
     httpd = HTTPServer(('', 8081), TestHandler)
