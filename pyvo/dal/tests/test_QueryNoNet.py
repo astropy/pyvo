@@ -20,7 +20,7 @@ from . import aTestSIAServer as testserve
 siaresultfile = "data/neat-sia.xml"
 ssaresultfile = "data/jhu-ssa.xml"
 testserverport = 8084
-testserverport += 1
+testserverport += 10
 
 testserver = None
 
@@ -505,7 +505,7 @@ class QueryExecuteTest(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
-        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr = testserve.get_server(testserverport)
         cls.srvr.start()
 
     @classmethod

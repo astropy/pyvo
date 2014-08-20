@@ -22,7 +22,7 @@ from . import aTestSIAServer as testserve
 csresultfile = "data/twomass-cs.xml"
 errresultfile = "data/error-cs.xml"
 testserverport = 8084
-testserverport += 2
+testserverport += 20
 
 class SCSServiceTest(unittest.TestCase):
 
@@ -230,7 +230,7 @@ class CSExecuteTest(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
-        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr = testserve.get_server(testserverport)
         cls.srvr.start()
 
     @classmethod

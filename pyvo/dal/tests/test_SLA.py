@@ -21,7 +21,7 @@ from . import aTestSIAServer as testserve
 slaresultfile = "data/nrao-sla.xml"
 errresultfile = "data/error-sla.xml"
 testserverport = 8084
-testserverport += 3
+testserverport += 30
 
 class SLAServiceTest(unittest.TestCase):
 
@@ -180,7 +180,7 @@ class SLAExecuteTest(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
-        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr = testserve.get_server(testserverport)
         cls.srvr.start()
 
     @classmethod

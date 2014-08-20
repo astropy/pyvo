@@ -23,7 +23,7 @@ if not testdir:  testdir = "tests"
 ssaresultfile = "data/jhu-ssa.xml"
 errresultfile = "data/error-ssa.xml"
 testserverport = 8084
-testserverport += 4
+testserverport += 40
 
 class SSAServiceTest(unittest.TestCase):
 
@@ -328,7 +328,7 @@ class SSAExecuteTest(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
-        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr = testserve.get_server(testserverport)
         cls.srvr.start()
 
     @classmethod

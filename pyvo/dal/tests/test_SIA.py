@@ -21,7 +21,7 @@ from . import aTestSIAServer as testserve
 siaresultfile = "data/neat-sia.xml"
 errresultfile = "data/error-sia.xml"
 testserverport = 8084
-testserverport += 5
+testserverport += 50
 
 class SIAServiceTest(unittest.TestCase):
 
@@ -418,7 +418,7 @@ class SIAExecuteTest(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
-        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr = testserve.get_server(testserverport)
         cls.srvr.start()
 
     @classmethod
