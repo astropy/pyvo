@@ -157,7 +157,6 @@ class TestServer(threading.Thread):
         try:
             self.httpd.serve_forever()
             self._log("Started server")
-            self._log("tada")
         except Exception as ex:
             self._log("Problem starting server: " + str(ex))
 
