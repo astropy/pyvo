@@ -5,7 +5,7 @@ Tests for pyvo.dal.scs
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp, random
+import os, sys, shutil, re, imp, random, time
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -22,8 +22,8 @@ from . import aTestSIAServer as testserve
 csresultfile = "data/twomass-cs.xml"
 errresultfile = "data/error-cs.xml"
 testserverport = 8084
-testserverport += 200
-testserverport += random.randint(0,99)
+testserverport += 20
+testserverport += random.randint(0,9)
 
 class SCSServiceTest(unittest.TestCase):
 
@@ -233,6 +233,7 @@ class CSExecuteTest(unittest.TestCase):
     def setup_class(cls):
         cls.srvr = testserve.get_server(testserverport)
         cls.srvr.start()
+        time.sleep(0.5)
 
     @classmethod
     def teardown_class(cls):

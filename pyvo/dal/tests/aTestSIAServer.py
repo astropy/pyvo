@@ -15,6 +15,7 @@ import re
 import threading
 import socket
 import urllib2
+import traceback as tb
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from astropy.utils.data import get_pkg_data_filename
 
@@ -34,6 +35,10 @@ ssaresult = "data/jhu-ssa.xml"
 slaresult = "data/nrao-sla.xml"
 
 class TestHandler(BaseHTTPRequestHandler):
+
+    def __init__(self, request, client_address, server, port=None):
+        BaseHTTPRequestHandler.__init__(self,request, client_address, server)
+        self._port = port
 
     def do_GET(self):
         path = re.split(r'\?', self.path, 1)[0]
@@ -65,7 +70,7 @@ class TestHandler(BaseHTTPRequestHandler):
                         print("Test Server: Detected socket error while serving "+
                               path+": " + str(ex))
         except Exception as ex:
-            print("Test Server failure (port="+str(self._port)+"): "+str(ex))
+            self.log("Test Server failure: "+str(ex))
             raise RuntimeError("test server error ("+type(ex)+"): "+str(ex))
                 
 
@@ -107,8 +112,9 @@ class TestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", 0)
         self.end_headers()
 
-    def log_message(format, *args):
-        pass
+    def log(self, message):
+        _log(message, self.port)
+        
 
 _ports_in_use = []
 
@@ -120,6 +126,8 @@ class TestServer(threading.Thread):
             port = find_available_port()
         self._reserve_port(port)
         self._port = port
+        _ensure_logfile()
+        self._log("port reserved")
         self._timeout = timeout
         self.httpd = None
         self.internet_init_off = INTERNET_OFF
@@ -138,11 +146,19 @@ class TestServer(threading.Thread):
     def port(self):
         return self._port
 
+    def _log(self, message=""):
+        _log(message, self._port)
+
     def run(self):
         turn_on_internet(True)
         self.httpd = HTTPServer(('', self._port), TestHandler)
         self.httpd.timeout = self._timeout
-        self.httpd.serve_forever()
+
+        try:
+            self.httpd.serve_forever()
+            self._log("Started server")
+        except Exception as ex:
+            self._log("Problem starting server: " + str(ex))
 
     def shutdown(self, timeout=None):
         if not timeout:
@@ -178,11 +194,40 @@ def find_available_port(baseport=8081, limit=8181, step=1):
         if port not in _ports_in_use and not server_running(port):
             return port
         port += step
+    return port
 
 def get_server(baseport=8081, limit=8181, step=1):
     return TestServer(find_available_port(baseport, limit, step))
 
-        
+# _logfile = "/tmp/pyvo/testserver.log_" + str(os.getpid())
+_logfile = None
+def _ensure_logfile():
+    global _logfile
+    if not _logfile: return
+    
+    if not os.path.exists(_logfile):
+        if not os.path.exists(os.path.dirname(_logfile)):
+            os.makedirs(os.path.dirname(_logfile))
+        with open(_logfile, "wa") as log:
+            pass
+        if not os.path.exists(_logfile):
+            print("Failed to create logfile: "+os.path.abspath(_logfile))
+        else:
+            print("created logfile: "+os.path.abspath(_logfile))
+
+def _log(message="", port=None):
+    if not _logfile: return
+
+    with open(_logfile, "a") as log:
+        if port is not None:
+            log.write("port=")
+            log.write(str(port))
+            if message:
+                log.write(": ")
+        log.write(message)
+        log.write("\n")
+        log.flush()
+        log.close()
 
 if __name__ == "__main__":
     run()

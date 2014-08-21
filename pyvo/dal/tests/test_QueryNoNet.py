@@ -5,7 +5,7 @@ Tests for pyvo.dal.query
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp, glob, tempfile, random
+import os, sys, shutil, re, imp, glob, tempfile, random, time
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -20,8 +20,8 @@ from . import aTestSIAServer as testserve
 siaresultfile = "data/neat-sia.xml"
 ssaresultfile = "data/jhu-ssa.xml"
 testserverport = 8084
-testserverport += 100
-testserverport += random.randint(0,99)
+testserverport += 10
+testserverport += random.randint(0,9)
 
 testserver = None
 
@@ -508,6 +508,7 @@ class QueryExecuteTest(unittest.TestCase):
     def setup_class(cls):
         cls.srvr = testserve.get_server(testserverport)
         cls.srvr.start()
+        time.sleep(0.5)
 
     @classmethod
     def teardown_class(cls):
