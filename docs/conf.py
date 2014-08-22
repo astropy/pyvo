@@ -25,14 +25,31 @@
 # Thus, any C-extensions that are needed to build the documentation will *not*
 # be accessible, and the documentation will not build correctly.
 
+import datetime
+import os
+import sys
+
 # Load all of the global Astropy configuration
-from astropy.sphinx.conf import *
+from astropy_helpers.sphinx.conf import *
+
+# Get configuration information from setup.cfg
+from distutils import config
+conf = config.ConfigParser()
+conf.read([os.path.join(os.path.dirname(__file__), '..', 'setup.cfg')])
+setup_cfg = dict(conf.items('metadata'))
 
 
 # -- General configuration ----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-#needs_sphinx = '1.1'
+# needs_sphinx = '1.2'
+# astropy_helpers sets 1.2 as the required default; forcing 1.1 seems to 
+# work fine, but this may need to change
+needs_sphinx = '1.1'    
+
+# To perform a Sphinx version check that needs to be more specific than
+# major.minor, call `check_sphinx_version("x.y.z")` here.
+# check_sphinx_version("1.2.1")
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -51,20 +68,22 @@ rst_epilog += """
 # -- Project information ------------------------------------------------------
 
 # This does not *have* to match the package name, but typically does
-project = u'PyVO'
-author = u'Virtual Astronomical Observatory (VAO)'
-copyright = u'2013, ' + author
+project = setup_cfg['package_name']
+author = setup_cfg['author']
+copyright = '{0}, {1}'.format(
+    datetime.datetime.now().year, setup_cfg['author'])
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 
-import pyvo
-# The short X.Y version.
-version = pyvo.__version__.split('-', 1)[0]
-# The full version, including alpha/beta/rc tags.
-release = pyvo.__version__
+__import__(setup_cfg['package_name'])
+package = sys.modules[setup_cfg['package_name']]
 
+# The short X.Y version.
+version = package.__version__.split('-', 1)[0]
+# The full version, including alpha/beta/rc tags.
+release = package.__version__
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -122,16 +141,16 @@ man_pages = [('index', project.lower(), project + u' Documentation',
 
 # -- Options for the edit_on_github extension ----------------------------------------
 
-extensions += ['astropy.sphinx.ext.edit_on_github']
+if eval(setup_cfg.get('edit_on_github')):
+    extensions += ['astropy.sphinx.ext.edit_on_github']
 
-# Don't import the module as "version" or it will override the
-# "version" configuration parameter
-from pyvo import version as versionmod
-edit_on_github_project = "pyvirtobs/pyvo"
-if versionmod.release:
-    edit_on_github_branch = "v" + versionmod.version
-else:
-    edit_on_github_branch = "master"
+    versionmod = __import__(setup_cfg['package_name'] + '.version')
+    edit_on_github_project = setup_cfg['github_project']
+    if versionmod.release:
+        edit_on_github_branch = "v" + versionmod.version
+    else:
+        edit_on_github_branch = "master"
 
-edit_on_github_source_root = ""
-edit_on_github_doc_root = "docs"
+    edit_on_github_source_root = ""
+    edit_on_github_doc_root = "docs"
+
