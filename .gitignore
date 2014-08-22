@@ -1,9 +1,8 @@
 # Compiled files
-*.py[cod]
+*.py[co]
 *.a
 *.o
 *.so
-*.pyd
 __pycache__
 
 # Ignore .c files by default to avoid including generated code. If you want to
@@ -11,8 +10,12 @@ __pycache__
 *.c
 
 # Other generated files
+*/version.py
+*/cython_version.py
+htmlcov
+.coverage
+cover
 MANIFEST
-pyvo/version.py
 
 # Sphinx
 _build
@@ -41,9 +44,6 @@ distribute-*.tar.gz
 .project
 .pydevproject
 .settings
-.coverage
-cover
-htmlcov
 
 # Mac OSX
 .DS_Store
