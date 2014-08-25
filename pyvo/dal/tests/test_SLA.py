@@ -5,7 +5,7 @@ Tests for pyvo.dal.sla
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp
+import os, sys, shutil, re, imp, random, time
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -21,7 +21,8 @@ from . import aTestSIAServer as testserve
 slaresultfile = "data/nrao-sla.xml"
 errresultfile = "data/error-sla.xml"
 testserverport = 8084
-testserverport += 3
+testserverport += 30
+testserverport += random.randint(0,9)
 
 class SLAServiceTest(unittest.TestCase):
 
@@ -180,8 +181,9 @@ class SLAExecuteTest(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
-        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr = testserve.get_server(testserverport)
         cls.srvr.start()
+        time.sleep(0.5)
 
     @classmethod
     def teardown_class(cls):
@@ -191,14 +193,14 @@ class SLAExecuteTest(unittest.TestCase):
             print("prob")
 
     def testExecute(self):
-        q = sla.SLAQuery("http://localhost:{0}/sla".format(testserverport))
+        q = sla.SLAQuery("http://localhost:{0}/sla".format(self.srvr.port))
         q.wavelength = "0.00260075/0.00260080"
         results = q.execute()
         self.assert_(isinstance(results, sla.SLAResults))
         self.assertEquals(results.nrecs, 21)
 
     def testSearch(self):
-        srv = sla.SLAService("http://localhost:{0}/sla".format(testserverport))
+        srv = sla.SLAService("http://localhost:{0}/sla".format(self.srvr.port))
         results = srv.search(wavelength="0.00260075/0.00260080")
         self.assert_(isinstance(results, sla.SLAResults))
         self.assertEquals(results.nrecs, 21)
@@ -209,13 +211,13 @@ class SLAExecuteTest(unittest.TestCase):
 
 
     def testSla(self):
-        results = sla.search("http://localhost:{0}/sla".format(testserverport),
+        results = sla.search("http://localhost:{0}/sla".format(self.srvr.port),
                              wavelength="0.00260075/0.00260080")
         self.assert_(isinstance(results, sla.SLAResults))
         self.assertEquals(results.nrecs, 21)
 
     def testError(self):
-        srv = sla.SLAService("http://localhost:{0}/err".format(testserverport))
+        srv = sla.SLAService("http://localhost:{0}/err".format(self.srvr.port))
         self.assertRaises(dalq.DALQueryError, srv.search, "0.00260075/0.00260080")
         
 
