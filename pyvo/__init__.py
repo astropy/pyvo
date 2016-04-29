@@ -154,7 +154,7 @@ if not _ASTROPY_SETUP_:
 # make sure we have astropy
 import astropy.io.votable
 from . import registry
-from .dal import ssa, sia, sla, scs
+from .dal import ssa, sia, sla, scs, tap
 
 from .registry import search as regsearch
 from .dal import imagesearch, spectrumsearch, conesearch, linesearch
