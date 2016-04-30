@@ -19,6 +19,7 @@ class TAPService(query.DALService):
     """
 
     _capabilities = None
+    _uploads = {}
 
     def __init__(self, baseurl):
         """
@@ -57,6 +58,10 @@ class TAPService(query.DALService):
             self._capabilities = vosi.parse_capabilities(r.text)
         return self._capabilities
 
+    def add_upload_file(self, tablename, filename):
+        #TODO: perhaps prevent upload when not supported
+        self._uploads[tablename] = filename
+
     def run_sync(self, query, language = "ADQL"):
         """
         runs sync query and returns its result
@@ -68,23 +73,31 @@ class TAPService(query.DALService):
         language : str
             The query language
         """
-        q = TAPQuery(self._baseurl, self._version, language)
+        q = TAPQuery(self._baseurl, self._version, language, self._uploads)
         q.setparam("REQUEST", "doQuery")
         q.setparam("LANG", language)
+
         if isinstance(query, dict):
             for k, v in query:
-                q.setparam(k, v)
+                q.setparam(k.upper(), v)
         else:
             q.setparam("QUERY", query)
+
+        if self._uploads:
+            upload_param = ';'.join(
+                ['{0},param:{0}'.format(k) for k in self._uploads])
+            q.setparam("UPLOAD", upload_param)
 
         return q.execute()
 
 class TAPQuery(query.DALQuery):
-    def __init__(self, baseurl, version="1.0", language = "ADQL"):
+    def __init__(self, baseurl, version="1.0", language = "ADQL",
+        uploads = None):
         """
         initialize the query object with a baseurl
         """
         self._language = language
+        self._uploads = uploads
         super(TAPQuery, self).__init__(baseurl, "tap")
 
     def getqueryurl(self, lax = False):
@@ -104,7 +117,12 @@ class TAPQuery(query.DALQuery):
 
         try:
             url = self.getqueryurl()
-            r = requests.post(url, params = self._param, stream = True)
+
+            files = {k: open(v) for k, v in self._uploads.items()}
+
+            r = requests.post(url, params = self._param, stream = True,
+                files = files)
+
             return r.raw
         except IOError as ex:
             raise DALServiceError.from_except(ex, url, self.protocol,
