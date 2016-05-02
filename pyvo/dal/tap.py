@@ -63,6 +63,9 @@ class TAPService(query.DALService):
         self._uploads[tablename] = filename
 
     def _run(self, q, query):
+        """
+        sets query parameters
+        """
         q.setparam("REQUEST", "doQuery")
         q.setparam("LANG", q._language)
 
@@ -95,7 +98,7 @@ class TAPService(query.DALService):
 
     def run_async(self, query, language = "ADQL"):
         """
-        runs async query and returns its result
+        runs async query and returns a TAPQueryAsync object
 
         Parameters
         ----------
@@ -158,6 +161,7 @@ class TAPQueryAsync(TAPQuery):
         self._job.update(vosi.parse_job(r))
 
     def get_job(self):
+        #keep it up to date
         self._update()
         return getattr(self, "_job", {})
 
@@ -197,6 +201,8 @@ class TAPQueryAsync(TAPQuery):
             return r.raw
         except IOError as ex:
             self._update()
+
+            # we propably got a 404 because query error. raise with error msg
             if self._job["phase"] == "ERROR":
                 raise DALQueryError(self._job.get("message", ""), "Error",
                     url, self.protocol, self.version)
