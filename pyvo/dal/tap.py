@@ -75,12 +75,15 @@ class TAPService(query.DALService):
         else:
             q.setparam("QUERY", query)
 
+        if q._maxrec:
+            q.setparam("MAXREC", q._maxrec)
+
         if self._uploads:
             upload_param = ';'.join(
                 ['{0},param:{0}'.format(k) for k in self._uploads])
             q.setparam("UPLOAD", upload_param)
 
-    def run_sync(self, query, language = "ADQL"):
+    def run_sync(self, query, language = "ADQL", maxrec = None):
         """
         runs sync query and returns its result
 
@@ -91,12 +94,13 @@ class TAPService(query.DALService):
         language : str
             The query language
         """
-        q = TAPQuery(self._baseurl, self._version, language, self._uploads)
+        q = TAPQuery(self._baseurl, self._version, language, maxrec,
+            self._uploads)
         self._run(q, query)
 
         return q.execute()
 
-    def run_async(self, query, language = "ADQL"):
+    def run_async(self, query, language = "ADQL", maxrec = None):
         """
         runs async query and returns a TAPQueryAsync object
 
@@ -107,19 +111,21 @@ class TAPService(query.DALService):
         language : str
             The query language
         """
-        q = TAPQueryAsync(self._baseurl, self._version, language, self._uploads)
+        q = TAPQueryAsync(self._baseurl, self._version, language, maxrec,
+            self._uploads)
         self._run(q, query)
         q.submit()
         return q
 
 class TAPQuery(query.DALQuery):
-    def __init__(self, baseurl, version="1.0", language = "ADQL",
+    def __init__(self, baseurl, version="1.0", language = "ADQL", maxrec = None,
         uploads = None):
         """
         initialize the query object with a baseurl
         """
         self._language = language
         self._uploads = uploads
+        self._maxrec = maxrec
         super(TAPQuery, self).__init__(baseurl, "tap")
 
     def getqueryurl(self, lax = False):
