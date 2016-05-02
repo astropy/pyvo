@@ -189,3 +189,43 @@ def parse_capabilities(data):
 	parser = _CapabilitiesParser()
 	parser.parseString(data)
 	return parser.getResult()
+
+class _JobParser(plainxml.StartEndHandler):
+	def __init__(self):
+		plainxml.StartEndHandler.__init__(self)
+		self.job = {}
+
+	def _end_jobId(self, name, attrs, content):
+		self.job["jobId"] = content.strip()
+
+	def _end_ownerId(self, name, attrs, content):
+		self.job["ownerId"] = content.strip()
+
+	def _end_phase(self, name, attrs, content):
+		self.job["phase"] = content.strip()
+
+	def _end_quote(self, name, attrs, content):
+		self.job["quote"] = content.strip()
+
+	def _end_startTime(self, name, attrs, content):
+		self.job["startTime"] = content.strip()
+
+	def _end_endTime(self, name, attrs, content):
+		self.job["endTime"] = content.strip()
+
+	def _end_executionDuration(self, name, attrs, content):
+		self.job["executionDuration"] = content.strip()
+
+	def _end_destruction(self, name, attrs, content):
+		self.job["destruction"] = content.strip()
+
+	def _end_message(self, name, attrs, content):
+		self.job["message"] = content.strip() 
+
+	def getResult(self):
+		return self.job
+
+def parse_job(data):
+	parser = _JobParser()
+	parser.parseString(data)
+	return parser.getResult()

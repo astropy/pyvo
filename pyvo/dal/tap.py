@@ -8,7 +8,7 @@ import requests
 import xml.etree.ElementTree as ET
 
 from . import query
-from .query import DALServiceError
+from .query import DALServiceError, DALQueryError
 from ..tools import vosi
 
 __all__ = ["TAPService", "TAPQuery"]
@@ -62,6 +62,21 @@ class TAPService(query.DALService):
         #TODO: perhaps prevent upload when not supported
         self._uploads[tablename] = filename
 
+    def _run(self, q, query):
+        q.setparam("REQUEST", "doQuery")
+        q.setparam("LANG", q._language)
+
+        if isinstance(q, dict):
+            for k, v in query:
+                q.setparam(k.upper(), v)
+        else:
+            q.setparam("QUERY", query)
+
+        if self._uploads:
+            upload_param = ';'.join(
+                ['{0},param:{0}'.format(k) for k in self._uploads])
+            q.setparam("UPLOAD", upload_param)
+
     def run_sync(self, query, language = "ADQL"):
         """
         runs sync query and returns its result
@@ -74,21 +89,25 @@ class TAPService(query.DALService):
             The query language
         """
         q = TAPQuery(self._baseurl, self._version, language, self._uploads)
-        q.setparam("REQUEST", "doQuery")
-        q.setparam("LANG", language)
-
-        if isinstance(query, dict):
-            for k, v in query:
-                q.setparam(k.upper(), v)
-        else:
-            q.setparam("QUERY", query)
-
-        if self._uploads:
-            upload_param = ';'.join(
-                ['{0},param:{0}'.format(k) for k in self._uploads])
-            q.setparam("UPLOAD", upload_param)
+        self._run(q, query)
 
         return q.execute()
+
+    def run_async(self, query, language = "ADQL"):
+        """
+        runs async query and returns its result
+
+        Parameters
+        ----------
+        query : str, dict
+            The query string
+        language : str
+            The query language
+        """
+        q = TAPQueryAsync(self._baseurl, self._version, language, self._uploads)
+        self._run(q, query)
+        q.submit()
+        return q
 
 class TAPQuery(query.DALQuery):
     def __init__(self, baseurl, version="1.0", language = "ADQL",
@@ -103,6 +122,16 @@ class TAPQuery(query.DALQuery):
     def getqueryurl(self, lax = False):
         return '{}/sync'.format(self._baseurl)
 
+    def _submit(self):
+        url = self.getqueryurl()
+
+        files = {k: open(v) for k, v in self._uploads.items()}
+
+        r = requests.post(url, params = self._param, stream = True,
+            files = files)
+
+        return r.raw
+
     def execute_stream(self):
         """
         submit the query and return the raw VOTable XML as a file stream
@@ -116,14 +145,60 @@ class TAPQuery(query.DALQuery):
         """
 
         try:
-            url = self.getqueryurl()
+            return self._submit()
+        except IOError as ex:
+            raise DALServiceError.from_except(ex, url, self.protocol,
+                self.version)
 
-            files = {k: open(v) for k, v in self._uploads.items()}
+class TAPQueryAsync(TAPQuery):
+    def _update(self):
+        url = self.getqueryurl()
 
-            r = requests.post(url, params = self._param, stream = True,
-                files = files)
+        r = requests.get(url).text
+        self._job.update(vosi.parse_job(r))
 
+    def get_job(self):
+        self._update()
+        return getattr(self, "_job", {})
+
+    def getqueryurl(self, lax = False):
+        if getattr(self, "_job", None) is not None and "jobId" in self._job:
+            return '{0}/async/{1}'.format(self._baseurl, self._job["jobId"])
+        return '{}/async'.format(self._baseurl)
+
+    def submit(self):
+        r = self._submit().read()
+        self._job = vosi.parse_job(r)
+
+    def run(self):
+        r = requests.post('{}/phase'.format(self.getqueryurl()),
+            params = {"PHASE": "RUN"})
+
+    def abort(self):
+        r = requests.post('{}/phase'.format(self.getqueryurl()),
+            params = {"PHASE": "ABORT"})
+
+    def execute_stream(self):
+        """
+        get the result and return the raw VOTable XML as a file stream
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors in the input query syntax
+        """
+        url = '{0}/results/result'.format(self.getqueryurl())
+
+        try:
+            r = requests.get(url, stream = True)
+            r.raise_for_status()
             return r.raw
         except IOError as ex:
+            self._update()
+            if self._job["phase"] == "ERROR":
+                raise DALQueryError(self._job.get("message", ""), "Error",
+                    url, self.protocol, self.version)
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
