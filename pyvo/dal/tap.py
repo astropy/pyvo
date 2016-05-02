@@ -6,6 +6,8 @@ from __future__ import print_function, division
 
 import requests
 import xml.etree.ElementTree as ET
+from datetime import datetime
+import time
 
 from . import query
 from .query import DALServiceError, DALQueryError
@@ -19,7 +21,6 @@ class TAPService(query.DALService):
     """
 
     _capabilities = None
-    _uploads = {}
 
     def __init__(self, baseurl):
         """
@@ -78,12 +79,7 @@ class TAPService(query.DALService):
         if q._maxrec:
             q.setparam("MAXREC", q._maxrec)
 
-        if self._uploads:
-            upload_param = ';'.join(
-                ['{0},param:{0}'.format(k) for k in self._uploads])
-            q.setparam("UPLOAD", upload_param)
-
-    def run_sync(self, query, language = "ADQL", maxrec = None):
+    def run_sync(self, query, language = "ADQL", maxrec = None, uploads = None):
         """
         runs sync query and returns its result
 
@@ -94,13 +90,13 @@ class TAPService(query.DALService):
         language : str
             The query language
         """
-        q = TAPQuery(self._baseurl, self._version, language, maxrec,
-            self._uploads)
+        q = TAPQuery(self._baseurl, self._version, language, maxrec, uploads)
         self._run(q, query)
 
         return q.execute()
 
-    def run_async(self, query, language = "ADQL", maxrec = None):
+    def run_async(self, query, language = "ADQL", maxrec = None,
+        uploads = None):
         """
         runs async query and returns a TAPQueryAsync object
 
@@ -112,7 +108,7 @@ class TAPService(query.DALService):
             The query language
         """
         q = TAPQueryAsync(self._baseurl, self._version, language, maxrec,
-            self._uploads)
+            uploads)
         self._run(q, query)
         q.submit()
         return q
@@ -126,12 +122,21 @@ class TAPQuery(query.DALQuery):
         self._language = language
         self._uploads = uploads
         self._maxrec = maxrec
+
         super(TAPQuery, self).__init__(baseurl, "tap")
+
+        if self._uploads:
+            upload_param = ';'.join(
+            ['{0},param:{0}'.format(k) for k in self._uploads])
+            self.setparam("UPLOAD", upload_param)
 
     def getqueryurl(self, lax = False):
         return '{}/sync'.format(self._baseurl)
 
     def _submit(self):
+        """
+        does the actual request
+        """
         url = self.getqueryurl()
 
         files = {k: open(v) for k, v in self._uploads.items()}
@@ -161,6 +166,9 @@ class TAPQuery(query.DALQuery):
 
 class TAPQueryAsync(TAPQuery):
     def _update(self):
+        """
+        updates job infos
+        """
         url = self.getqueryurl()
 
         r = requests.get(url).text
@@ -176,17 +184,94 @@ class TAPQueryAsync(TAPQuery):
             return '{0}/async/{1}'.format(self._baseurl, self._job["jobId"])
         return '{}/async'.format(self._baseurl)
 
+    @property
+    def phase(self):
+        self._update()
+        return self._job["phase"]
+
+    @property
+    def execution_duration(self):
+        self._update()
+        return self._job["executionDuration"]
+
+    @execution_duration.setter
+    def execution_duration(self, value):
+        r = requests.post("{}/executionduration".format(self.getqueryurl()),
+            params = {"EXECUTIONDURATION": str(value)})
+        self._job["executionDuration"] = value
+
+    @property
+    def destruction(self):
+        self._update()
+        return self._job["destruction"]
+
+    @destruction.setter
+    def destruction(self, value):
+        try:
+            #is string? easier to ask for forgiveness
+            value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+        except:
+            pass
+
+        r = requests.post("{}/destruction".format(self.getqueryurl()),
+            params = {"DESTRUCTION": value.strftime("%Y-%m-%dT%H:%M:%SZ")})
+        self._job["destruction"] = value
+
+    @property
+    def quote(self):
+        self._update()
+        return self._job["quote"]
+
+    @property
+    def owner(self):
+        self._update()
+        return self._job["owner"]
+
     def submit(self):
         r = self._submit().read()
         self._job = vosi.parse_job(r)
 
-    def run(self):
+    def start(self):
         r = requests.post('{}/phase'.format(self.getqueryurl()),
             params = {"PHASE": "RUN"})
 
     def abort(self):
         r = requests.post('{}/phase'.format(self.getqueryurl()),
             params = {"PHASE": "ABORT"})
+
+    def run(self):
+        self.start()
+        self.wait(["COMPLETED", "ABORTED", "ERROR"])
+        self.raise_if_error()
+
+    def wait(self, phases, interval = 1, increment = 1.2, giveup_after = None):
+        attempts = 0
+        url = self.getqueryurl()
+
+        while True:
+            cur_phase = self.phase
+            if cur_phase in phases:
+                break
+            time.sleep(interval)
+            poll_interval = min(120, interval * increment)
+            attempts += 1
+            if giveup_after and attempts > giveup_after:
+                raise DALServiceError(
+                    "None of the states in {0} were reached in time.".format(
+                    repr(phases)), url, protocol = self.protocol,
+                    version = self.version
+                )
+
+    def delete(self):
+        r = requests.post(self.getqueryurl(), params = {"ACTION": "DELETE"})
+
+    def raise_if_error(self):
+        phase = self.phase
+        url = self.getqueryurl()
+
+        if phase in ["ERROR", "ABORTED"]:
+            raise DALQueryError(self._job.get("message", "Query was aborted."),
+                phase, url, self.protocol, self.version)
 
     def execute_stream(self):
         """
@@ -209,8 +294,6 @@ class TAPQueryAsync(TAPQuery):
             self._update()
 
             # we propably got a 404 because query error. raise with error msg
-            if self._job["phase"] == "ERROR":
-                raise DALQueryError(self._job.get("message", ""), "Error",
-                    url, self.protocol, self.version)
+            self.raise_if_error()
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
