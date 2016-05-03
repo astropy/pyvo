@@ -59,10 +59,6 @@ class TAPService(query.DALService):
             self._capabilities = vosi.parse_capabilities(r.text)
         return self._capabilities
 
-    def add_upload_file(self, tablename, filename):
-        #TODO: perhaps prevent upload when not supported
-        self._uploads[tablename] = filename
-
     def _run(self, q, query):
         """
         sets query parameters
