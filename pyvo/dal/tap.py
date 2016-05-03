@@ -38,7 +38,7 @@ class TAPService(query.DALService):
         resmeta : dict
            an optional dictionary of properties about the service
         """
-        super(TAPService, self).__init__(baseurl, "tap")
+        super(TAPService, self).__init__(baseurl, "tap", "1.0")
 
     @property
     def capabilities(self):
@@ -116,10 +116,10 @@ class TAPQuery(query.DALQuery):
         initialize the query object with a baseurl
         """
         self._language = language
-        self._uploads = uploads
+        self._uploads = uploads or {}
         self._maxrec = maxrec
 
-        super(TAPQuery, self).__init__(baseurl, "tap")
+        super(TAPQuery, self).__init__(baseurl, "tap", version)
 
         if self._uploads:
             upload_param = ';'.join(
@@ -139,7 +139,6 @@ class TAPQuery(query.DALQuery):
 
         r = requests.post(url, params = self._param, stream = True,
             files = files)
-
         return r.raw
 
     def execute_stream(self):
@@ -153,6 +152,7 @@ class TAPQuery(query.DALQuery):
         DALQueryError
            for errors in the input query syntax
         """
+        url = self.getqueryurl()
 
         try:
             return self._submit()
@@ -161,6 +161,8 @@ class TAPQuery(query.DALQuery):
                 self.version)
 
 class TAPQueryAsync(TAPQuery):
+    _job = {}
+
     def _update(self):
         """
         updates job infos
@@ -173,12 +175,16 @@ class TAPQueryAsync(TAPQuery):
     def get_job(self):
         #keep it up to date
         self._update()
-        return getattr(self, "_job", {})
+        return self._job
 
     def getqueryurl(self, lax = False):
         if getattr(self, "_job", None) is not None and "jobId" in self._job:
             return '{0}/async/{1}'.format(self._baseurl, self._job["jobId"])
         return '{}/async'.format(self._baseurl)
+
+    @property
+    def jobId(self):
+        return self._job.get("jobId", None)
 
     @property
     def phase(self):
