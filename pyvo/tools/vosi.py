@@ -1,3 +1,5 @@
+from datetime import datetime
+import dateutil.parser
 from . import plainxml
 
 def _pruneAttrNS(attrs):
@@ -217,10 +219,10 @@ class _JobParser(plainxml.StartEndHandler):
 		self.job["executionDuration"] = content.strip()
 
 	def _end_destruction(self, name, attrs, content):
-		self.job["destruction"] = content.strip()
+		self.job["destruction"] = dateutil.parser.parse(content.strip())
 
 	def _end_message(self, name, attrs, content):
-		self.job["message"] = content.strip() 
+		self.job["message"] = content.strip()
 
 	def getResult(self):
 		return self.job
