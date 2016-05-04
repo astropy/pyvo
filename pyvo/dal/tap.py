@@ -141,6 +141,23 @@ class TAPQuery(query.DALQuery):
             files = files)
         return r.raw
 
+    def execute(self):
+        """
+        submit the query and return the results as a Results subclass instance
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors either in the input query syntax or
+           other user errors detected by the service
+        DALFormatError
+           for errors parsing the VOTable response
+        """
+        return TAPResults(self.execute_votable(), self.getqueryurl(True))
+
+
     def execute_stream(self):
         """
         submit the query and return the raw VOTable XML as a file stream
@@ -299,3 +316,12 @@ class TAPQueryAsync(TAPQuery):
             self.raise_if_error()
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
+
+class TAPResults(query.DALResults):
+    @property
+    def infos(self):
+        return getattr(self, "_infos", {})
+
+    @property
+    def query_status(self):
+        return getattr(self, "_infos", {}).get("QUERY_STATUS", None)
