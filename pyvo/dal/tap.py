@@ -59,6 +59,28 @@ class TAPService(query.DALService):
             self._capabilities = vosi.parse_capabilities(r.text)
         return self._capabilities
 
+    def maxrec(self, language):
+        try:
+            for capa in self.capabilities:
+                if "outputLimit" in capa:
+                    for lang in capa["languages"]:
+                        if lang.get("name", None) == language:
+                            return capa["outputLimit"]["default"]["value"]
+        except KeyError, e:
+            return 0
+        return 0
+
+    def hardlimit(self, language):
+        try:
+            for capa in self.capabilities:
+                if "outputLimit" in capa:
+                    for lang in capa["languages"]:
+                        if lang.get("name", None) == language:
+                            return capa["outputLimit"]["hard"]["value"]
+        except KeyError, e:
+            return 0
+        return 0
+
     def _run(self, q, query):
         """
         sets query parameters
