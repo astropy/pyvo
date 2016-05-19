@@ -5,7 +5,7 @@ A module for accessing remote source and observation catalogs
 from __future__ import print_function, division
 
 import requests
-import xml.etree.ElementTree as ET
+from astropy.io.votable.tree import VOTableFile, Resource, Table
 from datetime import datetime
 import time
 
@@ -13,7 +13,7 @@ from . import query
 from .query import DALServiceError, DALQueryError
 from ..tools import vosi
 
-__all__ = ["TAPService", "TAPQuery"]
+__all__ = ["TAPService", "TAPQuery", "TAPQueryAsync", "TAPResults"]
 
 class TAPService(query.DALService):
     """
@@ -30,19 +30,12 @@ class TAPService(query.DALService):
         ----------
         baseurl :  str
            the base URL that should be used for forming queries to the service.
-        protocol : str
-           The protocol implemented by the service, e.g., "scs", "sia",
-           "ssa", and so forth.
-        version : str
-           The protocol version, e.g, "1.0", "1.2", "2.0".
-        resmeta : dict
-           an optional dictionary of properties about the service
         """
         super(TAPService, self).__init__(baseurl, "tap", "1.0")
 
     @property
     def capabilities(self):
-        """returns a service property.
+        """returns capabilities as a nested dictionary
 
         Known keys include:
 
@@ -59,27 +52,40 @@ class TAPService(query.DALService):
             self._capabilities = vosi.parse_capabilities(r.text)
         return self._capabilities
 
-    def maxrec(self, language):
+    @property
+    def maxrec(self):
+        """
+        the default output limit.
+
+        Raises
+        ------
+        DALServiceError
+            if the property is not exposed by the service
+        """
         try:
             for capa in self.capabilities:
                 if "outputLimit" in capa:
-                    for lang in capa["languages"]:
-                        if lang.get("name", None) == language:
-                            return capa["outputLimit"]["default"]["value"]
-        except KeyError, e:
-            return 0
-        return 0
+                    return capa["outputLimit"]["default"]["value"]
+        except KeyError:
+            pass
+        raise DALServiceError("Default limit not exposed by the service")
 
     def hardlimit(self, language):
+        """
+        the hard output limit.
+
+        Raises
+        ------
+        DALServiceError
+            if the property is not exposed by the service
+        """
         try:
             for capa in self.capabilities:
                 if "outputLimit" in capa:
-                    for lang in capa["languages"]:
-                        if lang.get("name", None) == language:
-                            return capa["outputLimit"]["hard"]["value"]
-        except KeyError, e:
-            return 0
-        return 0
+                    return capa["outputLimit"]["hard"]["value"]
+        except KeyError:
+            pass
+        raise DALServiceError("Hard limit not exposed by the service")
 
     def _run(self, q, query):
         """
@@ -104,9 +110,22 @@ class TAPService(query.DALService):
         Parameters
         ----------
         query : str, dict
-            The query string
+            The query string / parameters
         language : str
             The query language
+        maxrec : int
+            The amount of records to fetch
+        uploads : dict
+            Files to upload. Uses table name as key and file name as value
+
+        Returns
+        -------
+        TAPResults
+            the query result
+
+        See Also
+        --------
+        TAPResults
         """
         q = TAPQuery(self._baseurl, self._version, language, maxrec, uploads)
         self._run(q, query)
@@ -116,14 +135,27 @@ class TAPService(query.DALService):
     def run_async(self, query, language = "ADQL", maxrec = None,
         uploads = None):
         """
-        runs async query and returns a TAPQueryAsync object
+        initialize async query and returns a TAPQueryAsync object
 
         Parameters
         ----------
         query : str, dict
-            The query string
+            the query string / parameters
         language : str
-            The query language
+            the query language
+        maxrec : int
+            the amount of records to fetch
+        uploads : dict
+            Files to upload. Uses table name as key and file name as value
+
+        Returns
+        -------
+        TAPQueryAsync
+            the query instance
+
+        See Also
+        --------
+        TAPQueryAsync
         """
         q = TAPQueryAsync(self._baseurl, self._version, language, maxrec,
             uploads)
@@ -135,7 +167,20 @@ class TAPQuery(query.DALQuery):
     def __init__(self, baseurl, version="1.0", language = "ADQL", maxrec = None,
         uploads = None):
         """
-        initialize the query object with a baseurl
+        initialize the query object with the given parameters
+
+        Parameters
+        ----------
+        baseurl : str
+            the TAP baseurl
+        version : str
+            the version string
+        language : str
+            the query language. defaults to ADQL
+        maxrec : int
+            the amount of records to fetch
+        uploads : dict
+            Files to upload. Uses table name as key and file name as value
         """
         self._language = language
         self._uploads = uploads or {}
@@ -145,7 +190,7 @@ class TAPQuery(query.DALQuery):
 
         if self._uploads:
             upload_param = ';'.join(
-            ['{0},param:{0}'.format(k) for k in self._uploads])
+                ['{0},param:{0}'.format(k) for k in self._uploads])
             self.setparam("UPLOAD", upload_param)
 
     def getqueryurl(self, lax = False):
@@ -211,7 +256,8 @@ class TAPQueryAsync(TAPQuery):
         r = requests.get(url).text
         self._job.update(vosi.parse_job(r))
 
-    def get_job(self):
+    @property
+    def job(self):
         #keep it up to date
         self._update()
         return self._job
@@ -223,31 +269,59 @@ class TAPQueryAsync(TAPQuery):
 
     @property
     def jobId(self):
-        return self._job.get("jobId", None)
+        """
+        returns the job id
+        """
+        return self._job["jobId"]
 
     @property
     def phase(self):
+        """
+        returns the current query phase
+        """
         self._update()
         return self._job["phase"]
 
     @property
     def execution_duration(self):
+        """
+        returns the maximum execution duration
+        """
         self._update()
         return self._job["executionDuration"]
 
     @execution_duration.setter
     def execution_duration(self, value):
+        """
+        sets the maximum execution duration
+
+        Parameters
+        ----------
+        value : int
+            seconds after the query execution is aborted
+        """
         r = requests.post("{}/executionduration".format(self.getqueryurl()),
             params = {"EXECUTIONDURATION": str(value)})
         self._job["executionDuration"] = value
 
     @property
     def destruction(self):
+        """
+        return the datetime after the job results are deleted automatically
+        """
         self._update()
         return self._job["destruction"]
 
     @destruction.setter
     def destruction(self, value):
+        """
+        sets the datetime after the job results are deleted automatically
+
+        Parameters
+        ----------
+        value : datetime
+            datetime after the job results are deleted automatically
+        """
         try:
             #is string? easier to ask for forgiveness
             value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
@@ -260,32 +334,69 @@ class TAPQueryAsync(TAPQuery):
 
     @property
     def quote(self):
+        """
+        returns estimated runtime
+        """
         self._update()
         return self._job["quote"]
 
     @property
     def owner(self):
+        """
+        returns the job owner (if applicable)
+        """
         self._update()
         return self._job["owner"]
 
     def submit(self):
+        """
+        submits the job
+        """
         r = self._submit().read()
         self._job = vosi.parse_job(r)
 
     def start(self):
+        """
+        starts the job
+        """
         r = requests.post('{}/phase'.format(self.getqueryurl()),
             params = {"PHASE": "RUN"})
 
     def abort(self):
+        """
+        aborts the job
+        """
         r = requests.post('{}/phase'.format(self.getqueryurl()),
             params = {"PHASE": "ABORT"})
 
     def run(self):
+        """
+        starts the job and wait for its result
+        """
         self.start()
         self.wait(["COMPLETED", "ABORTED", "ERROR"])
         self.raise_if_error()
 
     def wait(self, phases, interval = 1, increment = 1.2, giveup_after = None):
+        """
+        waits for the job to reach the given phases.
+
+        Parameters
+        ----------
+        phases : list
+            phases to wait for
+        interval : int
+            poll interval in seconds. defaults to 1
+        increment : float
+            poll interval increments. defaults to 1.2
+        giveup_after : int
+            raise an :py:class`~pyvo.dal.query.DALServiceError` after n seconds
+
+        Raises
+        ------
+        DALServiceError
+            if the timeout is exceeded
+        """
         attempts = 0
         url = self.getqueryurl()
 
@@ -304,9 +415,20 @@ class TAPQueryAsync(TAPQuery):
                 )
 
     def delete(self):
+        """
+        deletes the job. this object will become invalid.
+        """
         r = requests.post(self.getqueryurl(), params = {"ACTION": "DELETE"})
 
     def raise_if_error(self):
+        """
+        raise a exception if theres an error
+
+        Raises
+        ------
+        DALQueryError
+            if theres an error
+        """
         phase = self.phase
         url = self.getqueryurl()
 
@@ -342,8 +464,32 @@ class TAPQueryAsync(TAPQuery):
 class TAPResults(query.DALResults):
     @property
     def infos(self):
+        """
+        return the info element as dictionary
+        """
         return getattr(self, "_infos", {})
 
     @property
     def query_status(self):
+        """
+        return the query status
+        """
         return getattr(self, "_infos", {}).get("QUERY_STATUS", None)
+
+    def save(self, outfile):
+        """
+        saves the votable to outfile
+        
+        Parameters
+        ----------
+        outfile : str
+            destination filename
+        """
+        votf = VOTableFile()
+        table = self.votable
+        resource = Resource()
+
+        resource.tables.append(table)
+        votf.resources.append(resource)
+
+        votf.to_xml(outfile)
