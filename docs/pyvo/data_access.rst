@@ -23,7 +23,10 @@ Four types of data access services are currently supported by PyVO:
   sky.  
 * `Simple Line Access (SLAP) <http://www.ivoa.net/documents/SLAP/>`_ 
   -- a service for finding data about spectral lines, including their
-  rest frequencies. 
+  rest frequencies.
+* `Table Access Protocol (TAP) <http://www.ivoa.net/documents/TAP/>`_
+  -- a service for accessing remote source and observation catalogs.
+
 
 The sub-sections below look at the PyVO interface for each type of
 service in more detail.  You will find the interfaces have a common
@@ -1096,7 +1099,22 @@ He(beta): 0.211000464262
           still low.  Consequently, you may experience service compliance
           issues, and some of the features of the :py:mod:`pyvo.dal.sla` 
           module may not work as expected with the currently available
-          services. 
+          services.
+
+
+=====================================
+Observation Catalogs and Table Access
+=====================================
+The Table Access Protocol allows to access astronomical catalogs, including
+their metadata.
+
+Here's a simple example accessing and saving the upcoming gaia data:
+
+>>> import pyvo as vo
+>>> tap = vo.tap.TAPService("http://gaia.esac.esa.int/tap-server/tap")
+>>> query = "SELECT TOP 200 * FROM tgas_source"
+>>> res = tap.run_sync(query)
+>>> res.save("votable.xml")
 
 
 .. rubric:: Footnotes
