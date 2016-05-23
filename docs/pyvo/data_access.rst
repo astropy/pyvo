@@ -1142,7 +1142,8 @@ The following example calculates the total proper motion:
 >>> res.append_column(pmtot, name = "pmtot")
 >>> res.save("votable.xml")
 
-.. note:: Detailed information on doing calculations can be found here:
+.. note:: Detailed information on doing calculations can be found in the
+          astropy Documentation:
 
           `<http://docs.astropy.org/en/stable/index.html>`_
 
