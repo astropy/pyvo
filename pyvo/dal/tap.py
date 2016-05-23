@@ -23,7 +23,7 @@ class TAPService(query.DALService):
 
     _capabilities = None
 
-    def __init__(self, baseurl):
+    def __init__(self, baseurl, resmeta = None):
         """
         instantiate a Tablee Access Protocol service
 
@@ -32,7 +32,7 @@ class TAPService(query.DALService):
         baseurl :  str
            the base URL that should be used for forming queries to the service.
         """
-        super(TAPService, self).__init__(baseurl, "tap", "1.0")
+        super(TAPService, self).__init__(baseurl, "tap", "1.0", resmeta)
 
     @property
     def capabilities(self):
@@ -132,6 +132,9 @@ class TAPService(query.DALService):
         self._run(q, query)
 
         return q.execute()
+
+    #alias for service discovery
+    search = run_sync
 
     def run_async(self, query, language = "ADQL", maxrec = None,
         uploads = None):
