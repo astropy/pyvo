@@ -6,6 +6,7 @@ from __future__ import print_function, division
 
 import requests
 from astropy.io.votable.tree import VOTableFile, Resource, Table
+from astropy.table import Column
 from datetime import datetime
 import time
 
@@ -476,10 +477,20 @@ class TAPResults(query.DALResults):
         """
         return getattr(self, "_infos", {}).get("QUERY_STATUS", None)
 
+    def getcolumn(self, name):
+        col = super(TAPResults, self).getcolumn(name)
+        field = self.votable.get_field_by_id_or_name(name)
+        try:
+            #append unit
+            return col * field.unit
+        except (ValueError, TypeError):
+            #return unchanged
+            return col
+
     def save(self, outfile):
         """
         saves the votable to outfile
-        
+
         Parameters
         ----------
         outfile : str
@@ -493,3 +504,23 @@ class TAPResults(query.DALResults):
         votf.resources.append(resource)
 
         votf.to_xml(outfile)
+
+    def append_column(self, data, **kwargs):
+        """
+        appends another column to the votable
+        """
+        if "length" not in kwargs:
+            kwargs["length"] = len(data)
+        if "dtype" not in kwargs:
+            kwargs["dtype"] = data.dtype
+
+        ucd = kwargs.pop("ucd", None)
+
+        table = self.votable.to_table()
+
+        table.add_column(Column(data, **kwargs))
+        self._fldnames.append(kwargs["name"])
+
+        self.votable = Table.from_table(self.votable, table)# ???
+
+        self.votable.get_field_by_id_or_name(kwargs["name"]).ucd = ucd

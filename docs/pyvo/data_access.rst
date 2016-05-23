@@ -1102,9 +1102,9 @@ He(beta): 0.211000464262
           services.
 
 
-=====================================
-Observation Catalogs and Table Access
-=====================================
+============
+Table Access
+============
 The Table Access Protocol allows to access astronomical catalogs, including
 their metadata.
 
@@ -1112,9 +1112,39 @@ Here's a simple example accessing and saving the upcoming gaia data:
 
 >>> import pyvo as vo
 >>> tap = vo.tap.TAPService("http://gaia.esac.esa.int/tap-server/tap")
->>> query = "SELECT TOP 200 * FROM tgas_source"
+>>> query = "SELECT TOP 200 source_id, ra, dec, pmra, pmdec FROM tgas_source"
 >>> res = tap.run_sync(query)
 >>> res.save("votable.xml")
+
+You can get a list of fields and their metadata the following way:
+
+>>> for fn in res.fielddesc():
+...   print(fn)
+...
+<FIELD ID="source_id" datatype="long" name="source_id" ucd="meta.id;meta.main"/>
+<FIELD ID="ra" datatype="double" name="ra" ucd="pos.eq.ra;meta.main" unit="Angle[deg]" utype="Char.SpatialAxis.Coverage.Location.Coord.Position2D.Value2.C1"/>
+<FIELD ID="dec" datatype="double" name="dec" ucd="pos.eq.dec;meta.main" unit="Angle[deg]" utype="Char.SpatialAxis.Coverage.Location.Coord.Position2D.Value2.C2"/>
+<FIELD ID="pmra" datatype="double" name="pmra" ucd="pos.pm;pos.eq.ra" unit="Angular Velocity[mas/year]"/>
+<FIELD ID="pmdec" datatype="double" name="pmdec" ucd="pos.pm;pos.eq.dec" unit="Angular Velocity[mas/year]"/>
+
+
+It is also possible to access and work with whole columns as numpy array.
+
+The following example calculates the total proper motion:
+
+>>> import numpy as np
+>>> import astropy.units as u
+>>> pmra = res.getcolumn("pmra")
+>>> pmdec = res.getcolumn("pmdec")
+>>>
+>>> pmtot = np.sqrt(pmra ** 2 + pmdec ** 2) * u.mas / u.year
+>>>
+>>> res.append_column(pmtot, name = "pmtot")
+>>> res.save("votable.xml")
+
+.. note:: Detailed information on doing calculations can be found here:
+
+          `<http://docs.astropy.org/en/stable/index.html>`_
 
 
 .. rubric:: Footnotes
