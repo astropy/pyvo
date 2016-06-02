@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from datetime import datetime
 import dateutil.parser
 from . import plainxml
