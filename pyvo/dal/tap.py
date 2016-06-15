@@ -16,6 +16,34 @@ from ..tools import vosi
 
 __all__ = ["TAPService", "TAPQuery", "TAPQueryAsync", "TAPResults"]
 
+def search(url, query, language = "ADQL", maxrec = None, uploads = None):
+    """
+    submit a Table Access query that returns rows matching the criteria given.
+
+    Parameters
+    ----------
+    url : str
+        the base URL of the query service.
+    query : str, dict
+        The query string / parameters
+
+    Returns
+    -------
+    TAPResults
+        a container holding a table of matching catalog records
+
+    Raises
+    ------
+    DALServiceError
+        for errors connecting to or
+        communicating with the service.
+    DALQueryError
+        if the service responds with
+        an error, including a query syntax error.
+    """
+    service = TAPService(url)
+    return service.search(query, language, maxrec, uploads)
+
 class TAPService(query.DALService):
     """
     a representation of a Table Access Protocol service

@@ -158,6 +158,7 @@ from .dal import ssa, sia, sla, scs, tap
 
 from .registry import search as regsearch
 from .dal import imagesearch, spectrumsearch, conesearch, linesearch
+from .dal import tablesearch
 from .dal import DALAccessError, DALProtocolError, DALFormatError,   \
                  DALServiceError, DALQueryError
 
