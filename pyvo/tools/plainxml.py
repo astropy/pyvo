@@ -245,3 +245,6 @@ def traverseETree(eTree):
 		for gc in traverseETree(child):
 			yield gc
 	yield eTree
+
+def _pruneAttrNS(attrs):
+	return dict((k.split(":")[-1], v) for k,v in attrs.items())

@@ -1,10 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from datetime import datetime
-import dateutil.parser
 from . import plainxml
-
-def _pruneAttrNS(attrs):
-	return dict((k.split(":")[-1], v) for k,v in attrs.items())
 
 class _CapabilitiesParser(plainxml.StartEndHandler):
 # VOSI; each capability is a dict with at least a key interfaces.
@@ -31,7 +26,7 @@ class _CapabilitiesParser(plainxml.StartEndHandler):
 		self.curCap = None
 
 	def _start_interface(self, name, attrs):
-		attrs = _pruneAttrNS(attrs)
+		attrs = plainxml._pruneAttrNS(attrs)
 		self.curInterface = {"type": attrs["type"], "role": attrs.get("role")}
 
 	def _end_interface(self,name, attrs, content):
@@ -57,7 +52,7 @@ class _CapabilitiesParser(plainxml.StartEndHandler):
 		self.curLang = None
 
 	def _start_languageFeatures(self, name, attrs):
-		attrs = _pruneAttrNS(attrs)
+		attrs = plainxml._pruneAttrNS(attrs)
 		self.curLanguageFeatures = {
 			"type": attrs["type"],
 			"features": []
@@ -89,7 +84,7 @@ class _CapabilitiesParser(plainxml.StartEndHandler):
 		self.curOutputFormat = None
 
 	def _start_uploadMethod(self, name, attrs):
-		attrs = _pruneAttrNS(attrs)
+		attrs = plainxml._pruneAttrNS(attrs)
 		self.curCap["uploadMethods"].append(attrs["ivo-id"])
 
 	def _end_uploadMethod(self, name, attrs, content):
@@ -190,45 +185,5 @@ class _CapabilitiesParser(plainxml.StartEndHandler):
 
 def parse_capabilities(data):
 	parser = _CapabilitiesParser()
-	parser.parseString(data)
-	return parser.getResult()
-
-class _JobParser(plainxml.StartEndHandler):
-	def __init__(self):
-		plainxml.StartEndHandler.__init__(self)
-		self.job = {}
-
-	def _end_jobId(self, name, attrs, content):
-		self.job["jobId"] = content.strip()
-
-	def _end_ownerId(self, name, attrs, content):
-		self.job["ownerId"] = content.strip()
-
-	def _end_phase(self, name, attrs, content):
-		self.job["phase"] = content.strip()
-
-	def _end_quote(self, name, attrs, content):
-		self.job["quote"] = content.strip()
-
-	def _end_startTime(self, name, attrs, content):
-		self.job["startTime"] = content.strip()
-
-	def _end_endTime(self, name, attrs, content):
-		self.job["endTime"] = content.strip()
-
-	def _end_executionDuration(self, name, attrs, content):
-		self.job["executionDuration"] = content.strip()
-
-	def _end_destruction(self, name, attrs, content):
-		self.job["destruction"] = dateutil.parser.parse(content.strip())
-
-	def _end_message(self, name, attrs, content):
-		self.job["message"] = content.strip()
-
-	def getResult(self):
-		return self.job
-
-def parse_job(data):
-	parser = _JobParser()
 	parser.parseString(data)
 	return parser.getResult()

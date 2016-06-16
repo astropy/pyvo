@@ -12,7 +12,7 @@ import time
 
 from . import query
 from .query import DALServiceError, DALQueryError
-from ..tools import vosi
+from ..tools import vosi, uws
 
 __all__ = ["TAPService", "TAPQuery", "TAPQueryAsync", "TAPResults"]
 
@@ -286,7 +286,7 @@ class TAPQueryAsync(TAPQuery):
         url = self.getqueryurl()
 
         r = requests.get(url).text
-        self._job.update(vosi.parse_job(r))
+        self._job.update(uws.parse_job(r))
 
     @property
     def job(self):
@@ -385,7 +385,7 @@ class TAPQueryAsync(TAPQuery):
         submits the job
         """
         r = self._submit().read()
-        self._job = vosi.parse_job(r)
+        self._job = uws.parse_job(r)
 
     def start(self):
         """
