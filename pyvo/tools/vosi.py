@@ -183,7 +183,7 @@ class _CapabilitiesParser(plainxml.StartEndHandler):
 	def getResult(self):
 		return self.capabilities
 
-def parse_capabilities(data):
+def parse_capabilities(stream):
 	parser = _CapabilitiesParser()
-	parser.parseString(data)
+	parser.parse(stream)
 	return parser.getResult()

@@ -77,8 +77,9 @@ class TAPService(query.DALService):
                 }
         """
         if self._capabilities is None:
-            r = requests.get('{0}/capabilities'.format(self._baseurl))
-            self._capabilities = vosi.parse_capabilities(r.text)
+            r = requests.get(
+                '{0}/capabilities'.format(self._baseurl), stream = True)
+            self._capabilities = vosi.parse_capabilities(r.raw)
         return self._capabilities
 
     @property
