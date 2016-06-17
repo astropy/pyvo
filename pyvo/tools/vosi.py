@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from . import plainxml
+from collections import OrderedDict
+import StringIO
 
 class _CapabilitiesParser(plainxml.StartEndHandler):
 # VOSI; each capability is a dict with at least a key interfaces.
@@ -187,3 +189,87 @@ def parse_capabilities(stream):
 	parser = _CapabilitiesParser()
 	parser.parse(stream)
 	return parser.getResult()
+
+
+class _TablesParser(plainxml.StartEndHandler):
+	def __init__(self):
+		plainxml.StartEndHandler.__init__(self)
+		self.tables = _TableDict()
+
+	def _start_schema(self, name, attrs):
+		self.curSchema = ""
+
+	def _end_schema(self, name, attrs, content):
+		self.curSchema = None
+
+	def _start_table(self, name, attrs):
+		self.curTable = _Table()
+
+	def _end_table(self, name, attrs, content):
+		# table names should be exposed the same way they are accessed in ADQL
+		fqtn = ".".join((self.curSchema, self.curTable.name))
+		self.curTable._fqdn = fqtn
+		self.curTable._schema = self.curSchema
+		self.tables[fqtn] = self.curTable
+		self.curTable = None
+
+	def _start_column(self, name, attrs):
+		self.curColumn = _Column()
+
+	def _end_column(self, name, attrs, content):
+		self.curTable[self.curColumn.name] = _Column()
+		self.curColumn = None
+
+	def _end_name(self, name, attrs, content):
+		content = content.strip()
+
+		if getattr(self, "curColumn", None) is not None:
+			self.curColumn._name = content
+		elif getattr(self, "curTable", None) is not None:
+			# return the last tuple from dot notation
+			self.curTable._name = content.split(".")[-1]
+		elif getattr(self, "curSchema", None) is not None:
+			self.curSchema = content
+
+	def getResult(self):
+		return self.tables
+
+def parse_tables(stream):
+	parser = _TablesParser()
+	parser.parse(stream)
+	return parser.getResult()
+
+class _TableDict(OrderedDict):
+	def __str__(self):
+		return "\n".join(str(t) for t in self.values())
+
+class _Table(OrderedDict):
+	def __init__(self):
+		super(_Table, self).__init__()
+		self._schema = None
+		self._name = None
+
+	def __str__(self):
+		io = StringIO.StringIO()
+		io.write("{0}.{1}\n".format(self.schema, self.name))
+
+		for k, v in self.items():
+			io.write("\t{0}\n".format(k))
+
+		return io.getvalue()
+
+	@property
+	def name(self):
+		return self._name
+
+	@property
+	def schema(self):
+		return self._schema
+
+class _Column(object):
+	def __str__(self):
+		return self.name
+
+	@property
+	def name(self):
+		return self._name

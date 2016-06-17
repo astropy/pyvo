@@ -50,6 +50,7 @@ class TAPService(query.DALService):
     """
 
     _capabilities = None
+    _tables = None
 
     def __init__(self, baseurl, resmeta = None):
         """
@@ -81,6 +82,16 @@ class TAPService(query.DALService):
                 '{0}/capabilities'.format(self._baseurl), stream = True)
             self._capabilities = vosi.parse_capabilities(r.raw)
         return self._capabilities
+
+    @property
+    def tables(self):
+        """
+        returns tables as a flat OrderedDict
+        """
+        if self._tables is None:
+            r = requests.get('{0}/tables'.format(self._baseurl), stream = True)
+            self._tables = vosi.parse_tables(r.raw)
+        return self._tables
 
     @property
     def maxrec(self):
