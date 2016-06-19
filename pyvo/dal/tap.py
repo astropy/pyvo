@@ -111,7 +111,8 @@ class TAPService(query.DALService):
             pass
         raise DALServiceError("Default limit not exposed by the service")
 
-    def hardlimit(self, language):
+    @property
+    def hardlimit(self):
         """
         the hard output limit.
 
