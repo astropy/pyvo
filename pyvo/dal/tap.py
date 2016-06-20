@@ -247,7 +247,13 @@ class TAPQuery(query.DALQuery):
         """
         url = self.getqueryurl()
 
-        files = {k: open(v) for k, v in self._uploads.items()}
+        def _fileobj(s):
+            try:
+                s = open(s)
+            finally:
+                return s
+
+        files = {k: _fileobj(v) for k, v in self._uploads.items()}
 
         r = requests.post(url, params = self._param, stream = True,
             files = files)
