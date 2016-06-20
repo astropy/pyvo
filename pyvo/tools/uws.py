@@ -37,7 +37,7 @@ class _JobParser(plainxml.StartEndHandler):
 	def getResult(self):
 		return self.job
 
-def parse_job(data):
+def parse_job(stream):
 	parser = _JobParser()
-	parser.parseString(data)
+	parser.parse(stream)
 	return parser.getResult()

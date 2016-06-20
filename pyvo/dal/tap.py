@@ -251,7 +251,7 @@ class TAPQuery(query.DALQuery):
 
         r = requests.post(url, params = self._param, stream = True,
             files = files)
-        return r.raw
+        return r
 
     def execute(self):
         """
@@ -284,7 +284,7 @@ class TAPQuery(query.DALQuery):
         url = self.getqueryurl()
 
         try:
-            return self._submit()
+            return self._submit().raw
         except IOError as ex:
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
@@ -298,8 +298,13 @@ class TAPQueryAsync(TAPQuery):
         """
         url = self.getqueryurl()
 
-        r = requests.get(url).text
-        self._job.update(uws.parse_job(r))
+        try:
+            r = requests.get(url, stream = True)
+            r.raise_for_status()
+        except request.exceptions.RequestException as ex:
+            raise DALServiceError.from_except(ex, url, self.protocol,
+                self.version)
+        self._job.update(uws.parse_job(r.raw))
 
     @property
     def job(self):
@@ -345,8 +350,15 @@ class TAPQueryAsync(TAPQuery):
         value : int
             seconds after the query execution is aborted
         """
-        r = requests.post("{}/executionduration".format(self.getqueryurl()),
-            params = {"EXECUTIONDURATION": str(value)})
+        url = self.getqueryurl()
+
+        try:
+            r = requests.post("{}/executionduration".format(url),
+                params = {"EXECUTIONDURATION": str(value)})
+            r.raise_for_status()
+        except request.exceptions.RequestException as ex:
+            raise DALServiceError.from_except(ex, url, self.protocol,
+                self.version)
         self._job["executionDuration"] = value
 
     @property
@@ -373,8 +385,15 @@ class TAPQueryAsync(TAPQuery):
         except:
             pass
 
-        r = requests.post("{}/destruction".format(self.getqueryurl()),
-            params = {"DESTRUCTION": value.strftime("%Y-%m-%dT%H:%M:%SZ")})
+        url = self.getqueryurl()
+
+        try:
+            r = requests.post("{}/destruction".format(url),
+                params = {"DESTRUCTION": value.strftime("%Y-%m-%dT%H:%M:%SZ")})
+            r.raise_for_status()
+        except request.exceptions.RequestException as ex:
+            raise DALServiceError.from_except(ex, url, self.protocol,
+                self.version)
         self._job["destruction"] = value
 
     @property
@@ -397,8 +416,8 @@ class TAPQueryAsync(TAPQuery):
         """
         submits the job
         """
-        r = self._submit().read()
-        self._job = uws.parse_job(r)
+        r = self._submit()
+        self._job = uws.parse_job(r.raw)
 
     def start(self):
         """
@@ -411,8 +430,15 @@ class TAPQueryAsync(TAPQuery):
         """
         aborts the job
         """
-        r = requests.post('{}/phase'.format(self.getqueryurl()),
-            params = {"PHASE": "ABORT"})
+        url = self.getqueryurl()
+
+        try:
+            r = requests.post('{}/phase'.format(self.getqueryurl()),
+                params = {"PHASE": "ABORT"})
+            r.raise_for_status()
+        except request.exceptions.RequestException as ex:
+            raise DALServiceError.from_except(ex, url, self.protocol,
+                self.version)
 
     def run(self):
         """
@@ -463,7 +489,14 @@ class TAPQueryAsync(TAPQuery):
         """
         deletes the job. this object will become invalid.
         """
-        r = requests.post(self.getqueryurl(), params = {"ACTION": "DELETE"})
+        url = self.getqueryurl()
+        try:
+            r = requests.post(url, params = {"ACTION": "DELETE"})
+            r.raise_for_status()
+        except request.exceptions.RequestException as ex:
+            raise DALServiceError.from_except(ex, url, self.protocol,
+                self.version)
+
 
     def raise_if_error(self):
         """
