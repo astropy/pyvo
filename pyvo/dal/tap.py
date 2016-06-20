@@ -425,12 +425,21 @@ class TAPQueryAsync(TAPQuery):
         r = self._submit()
         self._job = uws.parse_job(r.raw)
 
+        return self
+
     def start(self):
         """
         starts the job
         """
-        r = requests.post('{}/phase'.format(self.getqueryurl()),
-            params = {"PHASE": "RUN"})
+        try:
+            r = requests.post('{}/phase'.format(self.getqueryurl()),
+                params = {"PHASE": "RUN"})
+            r.raise_for_status()
+        except request.exceptions.RequestException as ex:
+            raise DALServiceError.from_except(ex, url, self.protocol,
+                self.version)
+
+        return self
 
     def abort(self):
         """
@@ -446,6 +455,8 @@ class TAPQueryAsync(TAPQuery):
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
 
+        return self
+
     def run(self):
         """
         starts the job and wait for its result
@@ -453,6 +464,8 @@ class TAPQueryAsync(TAPQuery):
         self.start()
         self.wait(["COMPLETED", "ABORTED", "ERROR"])
         self.raise_if_error()
+
+        return self
 
     def wait(self, phases, interval = 1, increment = 1.2, giveup_after = None):
         """
@@ -491,6 +504,8 @@ class TAPQueryAsync(TAPQuery):
                     version = self.version
                 )
 
+        return self
+
     def delete(self):
         """
         deletes the job. this object will become invalid.
@@ -502,7 +517,6 @@ class TAPQueryAsync(TAPQuery):
         except request.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
-
 
     def raise_if_error(self):
         """
@@ -532,6 +546,10 @@ class TAPQueryAsync(TAPQuery):
            for errors in the input query syntax
         """
         url = '{0}/results/result'.format(self.getqueryurl())
+
+        if self.phase != "COMPLETED":
+            raise DALServiceError(
+                "Can not get the result because the query isn't completed.")
 
         try:
             r = requests.get(url, stream = True)
