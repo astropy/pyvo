@@ -1105,28 +1105,53 @@ He(beta): 0.211000464262
 ============
 Table Access
 ============
-The Table Access Protocol allows to access astronomical catalogs, including
-their metadata, with variable search parameters and more.
+The Table Access Protocol allows dynamic access to astronomical catalogs,
+including their metadata.
 
------------------------------------
+It permits the usage of variable and dynamic search parameters. For example,
+you can search a catalog for stars within a certain radial velocity.
+
+-------------------
+Performing searches
+-------------------
+>>> import pyvo as vo
+>>> url = "http://dc.g-vo.org/tap"
+>>> query = "SELECT raj2000, dej2000, rv FROM rave.main WHERE rv BETWEEN 40 AND 70"
+>>> rows = vo.tablesearch(url, query)
+>>> for row in rows:
+...   print("{0} {1} {2}".format(row["raj2000"], row["dej2000"], row["rv"]))
+
+---------------------------------
 Capabilities and service metadata
------------------------------------
-Coming soon.
+---------------------------------
+>>> service = TAPService(url)
+>>> print(service.capabilities)
+>>> print(str(service.tables))
 
-----------
-Running Queries
-----------
-Coming soon.
+Infos can be restricted to one table using dict semantics:
+
+>>> print(str(service.tables["rave.main"]))
 
 -------
 Uploads
 -------
-Coming soon.
+Any file-like object can be used as upload parameter.
+
+>>> tap.run_sync(query, uploads = {'t1': open('/path/to/votable.xml')})
+
+Your upload can be referenced using 'TAP_UPLOAD.t1' as table name
 
 ---------------------
-Working with the data
+Asynchronous queries
 ---------------------
-Coming soon.
+Asynchronous queries don't need an active TCP connection, as they run in the
+background. This is useful for running time-consuming queries and/or unstable
+Internet connections.
+
+From the caller's perspective, they are nearly the same as synchronous queries,
+except that they need to run and executed manually.
+
+>>> rows = tap.run_async(query).run().execute()
 
 .. rubric:: Footnotes
 
