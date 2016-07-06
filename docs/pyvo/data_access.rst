@@ -1112,16 +1112,18 @@ It permits the usage of variable and dynamic search parameters. For example,
 you can search a catalog for stars within a certain radial velocity.
 
 In order to access a catalog, one needs to build a
-:py:class:`~pyvo.dal.tap.TAPQuery` object with the corresponding url first,
+:py:class:`~pyvo.dal.tap.TAPService` object with the corresponding URL first,
 before a search can be performed.
 
 >>> import pyvo as vo
 >>> url = "http://dc.g-vo.org/tap"
 >>> service = vo.dal.TAPService(url)
 
--------------------
-Performing searches
--------------------
+---------------
+Running queries
+---------------
+To start a query, the run method of the service needs to be invoked:
+
 >>> query = "SELECT TOP 5 raj2000, dej2000, rv FROM rave.main WHERE rv BETWEEN 40 AND 70"
 >>> result = service.run_sync(query)
 >>> for row in result:
@@ -1132,6 +1134,13 @@ Performing searches
 53.863 -15.60930556 40.0
 58.36320833 -2.98438889 40.0
 164.00508333 -26.09277778 40.0
+
+.. note:: refer to :py:func:`~pyvo.dal.tap.search` for optional parameters.
+
+.. note::
+         There is also a shortcut for this:
+
+         >>> result = vo.tablesearch(url, query)
 
 --------------------
 Asynchronous queries
@@ -1144,17 +1153,17 @@ From the caller's perspective, they are nearly the same as synchronous queries,
 except that they return a :py:class:`~pyvo.dal.tap.TAPQueryAsync` object instead
 of a result.
 
->>> query = service.run_async(query)
->>> print(query.jobId)
+>>> job = service.run_async(query)
+>>> print(job.jobId)
 1sEa5g
->>> print(query.phase)
+>>> print(job.phase)
 RUN
 
 In the simplest case, one does call :py:class:`~pyvo.dal.tap.TAPQueryAsync.wait`
 followed by :py:class:`~pyvo.dal.tap.TAPQueryAsync.fetch`, to get the result
 
->>> query.wait()
->>> result = query.fetch()
+>>> job.wait()
+>>> result = job.fetch()
 >>> for row in result:
 ...   print("{0} {1} {2}".format(row["raj2000"], row["dej2000"], row["rv"]))
 ...
@@ -1195,6 +1204,13 @@ There are two types of service metadata:
 Infos can be restricted to one table using dict semantics:
 
 >>> print(str(service.tables["rave.main"]))
+
+Some of the capabilities are available as properties:
+
+.. autosummary::
+
+   ~pyvo.dal.tap.TAPService.maxrec
+   ~pyvo.dal.tap.TAPService.hardlimit
 
 -------
 Uploads

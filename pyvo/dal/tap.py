@@ -26,6 +26,13 @@ def search(url, query, language = "ADQL", maxrec = None, uploads = None):
         the base URL of the query service.
     query : str, dict
         The query string / parameters
+    language : str
+        specifies the query language, default ADQL.
+        useful for services which allow to use the backend query language.
+    maxrec : int
+        specifies the maximum records to return. defaults to the service default
+    uploads : dict
+        a mapping from table names to file like objects containing a votable
 
     Returns
     -------
@@ -154,11 +161,12 @@ class TAPService(query.DALService):
         query : str, dict
             The query string / parameters
         language : str
-            The query language
+            specifies the query language, default ADQL.
+            useful for services which allow to use the backend query language.
         maxrec : int
-            The amount of records to fetch
+            specifies the maximum records to return. defaults to the service default
         uploads : dict
-            Files to upload. Uses table name as key and file name as value
+            a mapping from table names to file like objects containing a votable
 
         Returns
         -------
@@ -187,11 +195,12 @@ class TAPService(query.DALService):
         query : str, dict
             the query string / parameters
         language : str
-            the query language
+            specifies the query language, default ADQL.
+            useful for services which allow to use the backend query language.
         maxrec : int
-            the amount of records to fetch
+            specifies the maximum records to return. defaults to the service default
         uploads : dict
-            Files to upload. Uses table name as key and file name as value
+            a mapping from table names to file like objects containing a votable
 
         Returns
         -------
