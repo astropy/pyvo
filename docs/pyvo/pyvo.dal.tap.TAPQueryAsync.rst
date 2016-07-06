@@ -19,6 +19,7 @@ TAPQueryAsync
    
       ~TAPQueryAsync.destruction
       ~TAPQueryAsync.execution_duration
+      ~TAPQueryAsync.job
       ~TAPQueryAsync.jobId
       ~TAPQueryAsync.owner
       ~TAPQueryAsync.phase
@@ -37,10 +38,9 @@ TAPQueryAsync
       ~TAPQueryAsync.abort
       ~TAPQueryAsync.delete
       ~TAPQueryAsync.execute_stream
-      ~TAPQueryAsync.get_job
+      ~TAPQueryAsync.fetch
       ~TAPQueryAsync.getqueryurl
       ~TAPQueryAsync.raise_if_error
-      ~TAPQueryAsync.run
       ~TAPQueryAsync.start
       ~TAPQueryAsync.submit
       ~TAPQueryAsync.wait
@@ -56,6 +56,7 @@ TAPQueryAsync
    
    .. autoattribute:: destruction
    .. autoattribute:: execution_duration
+   .. autoattribute:: job
    .. autoattribute:: jobId
    .. autoattribute:: owner
    .. autoattribute:: phase
@@ -73,10 +74,9 @@ TAPQueryAsync
    .. automethod:: abort
    .. automethod:: delete
    .. automethod:: execute_stream
-   .. automethod:: get_job
+   .. automethod:: fetch
    .. automethod:: getqueryurl
    .. automethod:: raise_if_error
-   .. automethod:: run
    .. automethod:: start
    .. automethod:: submit
    .. automethod:: wait

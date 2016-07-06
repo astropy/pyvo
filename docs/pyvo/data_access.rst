@@ -1111,19 +1111,83 @@ including their metadata.
 It permits the usage of variable and dynamic search parameters. For example,
 you can search a catalog for stars within a certain radial velocity.
 
+In order to access a catalog, one needs to build a
+:py:class:`~pyvo.dal.tap.TAPQuery` object with the corresponding url first,
+before a search can be performed.
+
+>>> import pyvo as vo
+>>> url = "http://dc.g-vo.org/tap"
+>>> service = vo.dal.TAPService(url)
+
 -------------------
 Performing searches
 -------------------
->>> import pyvo as vo
->>> url = "http://dc.g-vo.org/tap"
->>> query = "SELECT raj2000, dej2000, rv FROM rave.main WHERE rv BETWEEN 40 AND 70"
->>> rows = vo.tablesearch(url, query)
->>> for row in rows:
+>>> query = "SELECT TOP 5 raj2000, dej2000, rv FROM rave.main WHERE rv BETWEEN 40 AND 70"
+>>> result = service.run_sync(query)
+>>> for row in result:
 ...   print("{0} {1} {2}".format(row["raj2000"], row["dej2000"], row["rv"]))
+...
+319.03904167 -20.19277778 40.0
+343.12045833 -16.03422222 40.0
+53.863 -15.60930556 40.0
+58.36320833 -2.98438889 40.0
+164.00508333 -26.09277778 40.0
+
+--------------------
+Asynchronous queries
+--------------------
+Asynchronous queries don't need an active TCP connection, as they run in the
+background. This is useful for running time-consuming queries and/or unstable
+Internet connections.
+
+From the caller's perspective, they are nearly the same as synchronous queries,
+except that they return a :py:class:`~pyvo.dal.tap.TAPQueryAsync` object instead
+of a result.
+
+>>> query = service.run_async(query)
+>>> print(query.jobId)
+1sEa5g
+>>> print(query.phase)
+RUN
+
+In the simplest case, one does call :py:class:`~pyvo.dal.tap.TAPQueryAsync.wait`
+followed by :py:class:`~pyvo.dal.tap.TAPQueryAsync.fetch`, to get the result
+
+>>> query.wait()
+>>> result = query.fetch()
+>>> for row in result:
+...   print("{0} {1} {2}".format(row["raj2000"], row["dej2000"], row["rv"]))
+...
+319.03904167 -20.19277778 40.0
+343.12045833 -16.03422222 40.0
+53.863 -15.60930556 40.0
+58.36320833 -2.98438889 40.0
+164.00508333 -26.09277778 40.0
+
+Additionally, there are several job control and related methods:
+
+.. autosummary::
+
+   ~pyvo.dal.tap.TAPQueryAsync.jobId
+   ~pyvo.dal.tap.TAPQueryAsync.phase
+   ~pyvo.dal.tap.TAPQueryAsync.execution_duration
+   ~pyvo.dal.tap.TAPQueryAsync.destruction
+   ~pyvo.dal.tap.TAPQueryAsync.quote
+   ~pyvo.dal.tap.TAPQueryAsync.owner
+   ~pyvo.dal.tap.TAPQueryAsync.submit
+   ~pyvo.dal.tap.TAPQueryAsync.start
+   ~pyvo.dal.tap.TAPQueryAsync.abort
+   ~pyvo.dal.tap.TAPQueryAsync.wait
+   ~pyvo.dal.tap.TAPQueryAsync.raise_if_error
 
 ---------------------------------
 Capabilities and service metadata
 ---------------------------------
+There are two types of service metadata:
+
+* Capabilities, which describe the different interfaces and available functions.
+* Tables, which contains a listing of the actual tables.
+
 >>> service = TAPService(url)
 >>> print(service.capabilities)
 >>> print(str(service.tables))
@@ -1135,23 +1199,15 @@ Infos can be restricted to one table using dict semantics:
 -------
 Uploads
 -------
-Any file-like object can be used as upload parameter.
+Uploads allow to use the result of other queries as input.
+A common use case are positional crossmatches using data from different
+catalogs.
 
->>> tap.run_sync(query, uploads = {'t1': open('/path/to/votable.xml')})
+Any file-like object containing a votable can be used as upload parameter.
 
-Your upload can be referenced using 'TAP_UPLOAD.t1' as table name
+>>> service.run_sync(query, uploads = {'t1': open('/path/to/votable.xml')})
 
----------------------
-Asynchronous queries
----------------------
-Asynchronous queries don't need an active TCP connection, as they run in the
-background. This is useful for running time-consuming queries and/or unstable
-Internet connections.
-
-From the caller's perspective, they are nearly the same as synchronous queries,
-except that they need to run and executed manually.
-
->>> rows = tap.run_async(query).run().execute()
+Your upload can be referenced using 'TAP_UPLOAD.t1' as table name.
 
 .. rubric:: Footnotes
 

@@ -205,8 +205,7 @@ class TAPService(query.DALService):
         q = TAPQueryAsync(self._baseurl, self._version, language, maxrec,
             uploads)
         self._run(q, query)
-        q.submit()
-        return q
+        return q.submit().start()
 
 class TAPQuery(query.DALQuery):
     def __init__(self, baseurl, version="1.0", language = "ADQL", maxrec = None,
@@ -370,7 +369,8 @@ class TAPQueryAsync(TAPQuery):
     @property
     def destruction(self):
         """
-        return the datetime after the job results are deleted automatically
+        return the datetime after which the job results are deleted
+        automatically
         """
         self._update()
         return self._job["destruction"]
@@ -378,12 +378,12 @@ class TAPQueryAsync(TAPQuery):
     @destruction.setter
     def destruction(self, value):
         """
-        sets the datetime after the job results are deleted automatically
+        sets the datetime after which the job results are deleted automatically
 
         Parameters
         ----------
         value : datetime
-            datetime after the job results are deleted automatically
+            datetime after which the job results are deleted automatically
         """
         try:
             #is string? easier to ask for forgiveness
@@ -457,17 +457,8 @@ class TAPQueryAsync(TAPQuery):
 
         return self
 
-    def run(self):
-        """
-        starts the job and wait for its result
-        """
-        self.start()
-        self.wait(["COMPLETED", "ABORTED", "ERROR"])
-        self.raise_if_error()
-
-        return self
-
-    def wait(self, phases, interval = 1, increment = 1.2, giveup_after = None):
+    def wait(self, phases = ["COMPLETED", "ABORTED", "ERROR"], interval = 1,
+        increment = 1.2, giveup_after = None):
         """
         waits for the job to reach the given phases.
 
@@ -495,7 +486,7 @@ class TAPQueryAsync(TAPQuery):
             if cur_phase in phases:
                 break
             time.sleep(interval)
-            poll_interval = min(120, interval * increment)
+            interval = min(120, interval * increment)
             attempts += 1
             if giveup_after and attempts > giveup_after:
                 raise DALServiceError(
@@ -533,6 +524,14 @@ class TAPQueryAsync(TAPQuery):
         if phase in ["ERROR", "ABORTED"]:
             raise DALQueryError(self._job.get("message", "Query was aborted."),
                 phase, url, self.protocol, self.version)
+
+    def fetch(self):
+        """
+        This method is an alias for execute, as it is technically the same
+        (fetching the votable), but doesnt fit logically (the query is already
+        executed at this point)
+        """
+        return self.execute()
 
     def execute_stream(self):
         """
