@@ -334,14 +334,14 @@ class TAPQueryAsync(TAPQuery):
     @property
     def jobId(self):
         """
-        returns the job id
+        the job id
         """
         return self._job["jobId"]
 
     @property
     def phase(self):
         """
-        returns the current query phase
+        the current query phase.
         """
         self._update()
         return self._job["phase"]
@@ -349,7 +349,7 @@ class TAPQueryAsync(TAPQuery):
     @property
     def execution_duration(self):
         """
-        returns the maximum execution duration
+        maximum execution duration. Changeable
         """
         self._update()
         return self._job["executionDuration"]
@@ -357,7 +357,7 @@ class TAPQueryAsync(TAPQuery):
     @execution_duration.setter
     def execution_duration(self, value):
         """
-        sets the maximum execution duration
+        maximum execution duration. Changeable
 
         Parameters
         ----------
@@ -378,8 +378,8 @@ class TAPQueryAsync(TAPQuery):
     @property
     def destruction(self):
         """
-        return the datetime after which the job results are deleted
-        automatically
+        datetime after which the job results are deleted automatically.
+        Changeable
         """
         self._update()
         return self._job["destruction"]
@@ -387,7 +387,8 @@ class TAPQueryAsync(TAPQuery):
     @destruction.setter
     def destruction(self, value):
         """
-        sets the datetime after which the job results are deleted automatically
+        datetime after which the job results are deleted automatically.
+        Changeable
 
         Parameters
         ----------
@@ -414,7 +415,7 @@ class TAPQueryAsync(TAPQuery):
     @property
     def quote(self):
         """
-        returns estimated runtime
+        estimated runtime
         """
         self._update()
         return self._job["quote"]
@@ -422,7 +423,7 @@ class TAPQueryAsync(TAPQuery):
     @property
     def owner(self):
         """
-        returns the job owner (if applicable)
+        job owner (if applicable)
         """
         self._update()
         return self._job["owner"]
@@ -438,7 +439,7 @@ class TAPQueryAsync(TAPQuery):
 
     def start(self):
         """
-        starts the job
+        starts the job / change phase to RUN
         """
         try:
             r = requests.post('{}/phase'.format(self.getqueryurl()),
@@ -452,7 +453,7 @@ class TAPQueryAsync(TAPQuery):
 
     def abort(self):
         """
-        aborts the job
+        aborts the job / change phase to ABORT
         """
         url = self.getqueryurl()
 
