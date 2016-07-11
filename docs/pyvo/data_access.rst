@@ -15,17 +15,17 @@ Four types of data access services are currently supported by PyVO:
 * `Simple Image Access (SIA) <http://www.ivoa.net/documents/SIA/>`_ -- 
   an interface for finding images in an archive
 * `Simple Spectral Access (SSA) <http://www.ivoa.net/documents/SSA/>`_
-  -- a service for finding spectra in an archive
+  -- finding spectra in an archive
 * `Simple Cone Search (SCS) <http://www.ivoa.net/documents/latest/ConeSearch.html>`_ 
-  -- an inteface for searching a remote source catalog or an observation log.
+  -- for searching within a remote source catalog or an observation log.
   In particular, you can ask such for all sources or observations
   whose positions within some distance of a particular position of the
   sky.  
 * `Simple Line Access (SLAP) <http://www.ivoa.net/documents/SLAP/>`_ 
-  -- a service for finding data about spectral lines, including their
+  -- finding data about spectral lines, including their
   rest frequencies.
-* `Table Access Protocol (TAP) <http://www.ivoa.net/documents/TAP/>`_
-  -- a service for accessing remote source and observation catalogs.
+* `Table Access Protocol (TAP)`_
+  -- accessing remote source and observation catalogs.
 
 
 The sub-sections below look at the PyVO interface for each type of
@@ -1102,18 +1102,26 @@ He(beta): 0.211000464262
           services.
 
 
-============
-Table Access
-============
-The Table Access Protocol allows dynamic access to astronomical catalogs,
-including their metadata.
+===========================
+Table Access Protocol (TAP)
+===========================
 
-It permits the usage of variable and dynamic search parameters. For example,
-you can search a catalog for stars within a certain radial velocity.
+The Table Access Protocol supports querying remote astronomical databases
+using SQL-like languages.  It also provides facilities for discovering
+metadata for the tables and facilities on the remote side.
 
-In order to access a catalog, one needs to build a
-:py:class:`~pyvo.dal.tap.TAPService` object with the corresponding URL first,
-before a search can be performed.
+Combined with a capability for uploading table to the remote service,
+TAP enables complex query patterns including joins of multiple local
+and remote data sources.
+
+In order to access a TAP service, one needs to build a
+:py:class:`~pyvo.dal.tap.TAPService` object with the TAP service's
+access URL (see ??? for more information on how
+to determine these from within a program).
+
+..
+  TODO: Hier muss eine Referenz rein auf eine Registry-Suche nach
+  TAP-Diensten
 
 >>> import pyvo as vo
 >>> url = "http://dc.g-vo.org/tap"
@@ -1122,7 +1130,8 @@ before a search can be performed.
 ---------------
 Running queries
 ---------------
-To start a query, the run method of the service needs to be invoked:
+
+To start a query, call the ``run_sync`` method of the service object:
 
 >>> query = "SELECT TOP 5 raj2000, dej2000, rv FROM rave.main WHERE rv BETWEEN 40 AND 70"
 >>> result = service.run_sync(query)
@@ -1135,18 +1144,28 @@ To start a query, the run method of the service needs to be invoked:
 58.36320833 -2.98438889 40.0
 164.00508333 -26.09277778 40.0
 
+..
+	TODO: dal.tap.search gibt es wohl nicht.  Wo soll das hinzeigen?
+
 .. note:: refer to :py:func:`~pyvo.dal.tap.search` for optional parameters.
 
 .. note::
-         There is also a shortcut for this:
+         There is also a shortcut for building the service object and
+         calling its ``run_sync`` method in one go if you do not need
+         the service object again:
 
          >>> result = vo.tablesearch(url, query)
+
+         On repeated queries to the same service, this convenience
+         has a significant performance penalty.
 
 --------------------
 Asynchronous queries
 --------------------
-Asynchronous queries don't need an active TCP connection, as they run in the
-background. This is useful for running time-consuming queries and/or unstable
+
+Asynchronous queries do not need an active TCP connection while being
+executed.
+This is useful for running time-consuming queries and/or via unstable
 Internet connections.
 
 From the caller's perspective, they are nearly the same as synchronous queries,
@@ -1159,8 +1178,16 @@ of a result.
 >>> print(job.phase)
 RUN
 
-In the simplest case, one does call :py:class:`~pyvo.dal.tap.TAPQueryAsync.wait`
-followed by :py:class:`~pyvo.dal.tap.TAPQueryAsync.fetch`, to get the result
+..
+  TODO: Gibt es auch eine Art, einen Job in PENDING zu bekommen?  Das wäre 
+  m.E. schon wichtig
+
+In the typical case, one simply calls the :py:class:`~pyvo.dal.tap.TAPQueryAsync.wait`
+method.  This will block until the remote job has finished (by
+being completed or aborted, or by causing an error condition).
+If the job's ``phase`` is ``COMPLETED`` after ``wait`` has returned,
+the job's result can be retrieved by calling
+:py:class:`~pyvo.dal.tap.TAPQueryAsync.fetch`:
 
 >>> job.wait()
 >>> result = job.fetch()
@@ -1173,7 +1200,14 @@ followed by :py:class:`~pyvo.dal.tap.TAPQueryAsync.fetch`, to get the result
 58.36320833 -2.98438889 40.0
 164.00508333 -26.09277778 40.0
 
-Additionally, there are several job control and related methods:
+Here is a list of the relevant attributes and methods of TAPQueryAsync:
+
+..
+  TODO: Ich fände es weit besser, wenn das Ding AsyncTAPJob heißen würde
+  -- gibt es einen guten Grund, den nicht so zu nennen?
+
+..
+  TODO: Was ist submit? Was ist start?  Was ist der Unterschied?
 
 .. autosummary::
 
@@ -1192,6 +1226,7 @@ Additionally, there are several job control and related methods:
 ---------------------------------
 Capabilities and service metadata
 ---------------------------------
+
 There are two types of service metadata:
 
 * Capabilities, which describe the different interfaces and available functions.
@@ -1199,13 +1234,24 @@ There are two types of service metadata:
 
 >>> service = TAPService(url)
 >>> print(service.capabilities)
->>> print(str(service.tables))
+>>> print(service.tables.keys())
 
-Infos can be restricted to one table using dict semantics:
+The keys within tables are the fully qualified table names as they can
+be used in queries.  To inspect the column metadata for a table, see its
+name's value in the tables dictionary.
 
 >>> print(str(service.tables["rave.main"]))
 
-Some of the capabilities are available as properties:
+.. note::
+         Some TAP services have tables metadata of several megabytes.
+         Hence, accessing ``.tables`` may incur a significant price.
+         Expert may be better of pulling necessary metadata from
+         ``TAP_SCHEMA`` by standard TAP means.
+
+
+The structure of ``service.capabilities`` should be considered an
+implementation detail at this point.  It is preferable to access the
+information through properties on service instead:
 
 .. autosummary::
 
@@ -1220,6 +1266,17 @@ A common use case are positional crossmatches using data from different
 catalogs.
 
 Any file-like object containing a votable can be used as upload parameter.
+
+..
+  TODO: hier wärs eigentlich richtig nett, wenn man auch ganz normale
+  astropy-Tabellen nehmen könnte.  Das ist dann sowas wie
+  from cStringIO import StringIO
+  f = StringIO()
+  astropy_table.write(output=f, format="votable")
+  (und dann f verwenden).  run_X kann ja einfach die values von uploads
+  durchgehen, und wenn es etwas findet, das keine read()-methode hat,
+  kann es das probieren.  Oder so.
+
 
 >>> service.run_sync(query, uploads = {'t1': open('/path/to/votable.xml')})
 
