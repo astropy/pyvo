@@ -9,7 +9,7 @@ from .sia import SIAService, SIAQuery, SIARecord
 from .ssa import SSAService, SSAQuery, SSARecord
 from .sla import SLAService, SLAQuery, SLARecord
 from .scs import SCSService, SCSQuery, SCSRecord
-from .tap import TAPService, TAPQuery, TAPQueryAsync
+from .tap import TAPService, TAPQuery, AsyncTAPJob
 
 from .query import *
 

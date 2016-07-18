@@ -5,6 +5,7 @@ A module for accessing remote source and observation catalogs
 from __future__ import print_function, division
 
 import requests
+import astropy
 from astropy.io.votable.tree import VOTableFile, Resource, Table
 from astropy.table import Column
 from datetime import datetime
@@ -14,7 +15,7 @@ from . import query
 from .query import DALServiceError, DALQueryError
 from ..tools import vosi, uws
 
-__all__ = ["TAPService", "TAPQuery", "TAPQueryAsync", "TAPResults"]
+__all__ = ["TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
 
 def search(url, query, language = "ADQL", maxrec = None, uploads = None):
     """
@@ -185,10 +186,17 @@ class TAPService(query.DALService):
     #alias for service discovery
     search = run_sync
 
+    def _run_async(self, query, language = "ADQL", maxrec = None,
+        uploads = None):
+        q = AsyncTAPJob(self._baseurl, self._version, language, maxrec,
+            uploads)
+        self._run(q, query)
+        return q
+
     def run_async(self, query, language = "ADQL", maxrec = None,
         uploads = None):
         """
-        initialize async query and returns a TAPQueryAsync object
+        submit and start a async query and returns a AsyncTAPJob object
 
         Parameters
         ----------
@@ -204,17 +212,44 @@ class TAPService(query.DALService):
 
         Returns
         -------
-        TAPQueryAsync
+        AsyncTAPJob
             the query instance
 
         See Also
         --------
-        TAPQueryAsync
+        AsyncTAPJob
         """
-        q = TAPQueryAsync(self._baseurl, self._version, language, maxrec,
-            uploads)
-        self._run(q, query)
+        q = self._run_async(query, language, maxrec)
         return q.submit().start()
+
+    def submit_job(self, query, language = "ADQL", maxrec = None,
+        uploads = None):
+        """
+        submit a async query without starting it and returns a AsyncTAPJob
+        object
+
+        Parameters
+        ----------
+        query : str, dict
+            the query string / parameters
+        language : str
+            specifies the query language, default ADQL.
+            useful for services which allow to use the backend query language.
+        maxrec : int
+            specifies the maximum records to return. defaults to the service default
+        uploads : dict
+            a mapping from table names to file like objects containing a votable
+
+        Returns
+        -------
+        AsyncTAPJob
+            the query instance
+
+        See Also
+        --------
+        AsyncTAPJob
+        """
+        return self._run_async(query, language, maxrec)
 
 class TAPQuery(query.DALQuery):
     def __init__(self, baseurl, version="1.0", language = "ADQL", maxrec = None,
@@ -256,6 +291,11 @@ class TAPQuery(query.DALQuery):
         url = self.getqueryurl()
 
         def _fileobj(s):
+            if type(s) == astropy.table.table.Table:
+                from cStringIO import StringIO
+                f = StringIO()
+                s.write(output = f, format = "votable")
+                return f
             try:
                 s = open(s)
             finally:
@@ -303,7 +343,7 @@ class TAPQuery(query.DALQuery):
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
 
-class TAPQueryAsync(TAPQuery):
+class AsyncTAPJob(TAPQuery):
     _job = {}
 
     def _update(self):
@@ -341,7 +381,7 @@ class TAPQueryAsync(TAPQuery):
     @property
     def phase(self):
         """
-        the current query phase.
+        the current query phase. One of
         """
         self._update()
         return self._job["phase"]
@@ -430,14 +470,14 @@ class TAPQueryAsync(TAPQuery):
 
     def submit(self):
         """
-        submits the job
+        submits the job to the server.
         """
         r = self._submit()
         self._job = uws.parse_job(r.raw)
 
         return self
 
-    def start(self):
+    def run(self):
         """
         starts the job / change phase to RUN
         """

@@ -1,11 +1,11 @@
 
 
-TAPQueryAsync
-==========================
+AsyncTAPJob
+========================
 
 .. currentmodule:: pyvo.dal.tap
 
-.. autoclass:: TAPQueryAsync
+.. autoclass:: AsyncTAPJob
    :show-inheritance:
 
    
@@ -17,13 +17,13 @@ TAPQueryAsync
 
    .. autosummary::
    
-      ~TAPQueryAsync.destruction
-      ~TAPQueryAsync.execution_duration
-      ~TAPQueryAsync.job
-      ~TAPQueryAsync.jobId
-      ~TAPQueryAsync.owner
-      ~TAPQueryAsync.phase
-      ~TAPQueryAsync.quote
+      ~AsyncTAPJob.destruction
+      ~AsyncTAPJob.execution_duration
+      ~AsyncTAPJob.job
+      ~AsyncTAPJob.jobId
+      ~AsyncTAPJob.owner
+      ~AsyncTAPJob.phase
+      ~AsyncTAPJob.quote
 
    
    
@@ -35,15 +35,15 @@ TAPQueryAsync
 
    .. autosummary::
    
-      ~TAPQueryAsync.abort
-      ~TAPQueryAsync.delete
-      ~TAPQueryAsync.execute_stream
-      ~TAPQueryAsync.fetch
-      ~TAPQueryAsync.getqueryurl
-      ~TAPQueryAsync.raise_if_error
-      ~TAPQueryAsync.start
-      ~TAPQueryAsync.submit
-      ~TAPQueryAsync.wait
+      ~AsyncTAPJob.abort
+      ~AsyncTAPJob.delete
+      ~AsyncTAPJob.execute_stream
+      ~AsyncTAPJob.fetch
+      ~AsyncTAPJob.getqueryurl
+      ~AsyncTAPJob.raise_if_error
+      ~AsyncTAPJob.start
+      ~AsyncTAPJob.submit
+      ~AsyncTAPJob.wait
 
    
    
