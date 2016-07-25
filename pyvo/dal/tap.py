@@ -57,6 +57,7 @@ class TAPService(query.DALService):
     a representation of a Table Access Protocol service
     """
 
+    _availability = (None, None)
     _capabilities = None
     _tables = None
 
@@ -70,6 +71,28 @@ class TAPService(query.DALService):
            the base URL that should be used for forming queries to the service.
         """
         super(TAPService, self).__init__(baseurl, "tap", "1.0", resmeta)
+
+    @property
+    def availability(self):
+        """returns availability as a tuple in the following form:
+        [0] : bool
+            whether the service is available or not
+        [1] : datetime
+            the time since the server is running
+        """
+        if self._availability == (None, None):
+            r = requests.get(
+                '{0}/availability'.format(self._baseurl), stream = True)
+            self._availability = vosi.parse_availability(r.raw)
+        return self._availability
+
+    @property
+    def available(self):
+        return self.availability[0]
+
+    @property
+    def up_since(self):
+        return self.availability[1]
 
     @property
     def capabilities(self):

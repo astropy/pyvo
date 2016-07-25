@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from . import plainxml
+import datetime
 from collections import OrderedDict
 import StringIO
 
@@ -273,3 +274,28 @@ class _Column(object):
 	@property
 	def name(self):
 		return self._name
+
+class _AvailabiliyParser(plainxml.StartEndHandler):
+	def __init__(self):
+		plainxml.StartEndHandler.__init__(self)
+
+		self.available = False
+		self.up_since = None
+
+	def _end_available(self, name, attrs, content):
+		content = content.strip()
+		self.available = content == "true"
+
+	def _end_upSince(self, name, attrs, content):
+		content = content.strip()
+
+		self.up_since = datetime.datetime.strptime(
+			content, "%Y-%m-%dT%H:%M:%SZ")
+
+	def getResult(self):
+		return (self.available, self.up_since)
+
+def parse_availability(stream):
+	parser = _AvailabiliyParser()
+	parser.parse(stream)
+	return parser.getResult()

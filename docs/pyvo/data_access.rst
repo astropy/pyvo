@@ -1216,12 +1216,17 @@ Here is a list of the relevant attributes and methods of AsyncTAPJob:
 Capabilities and service metadata
 ---------------------------------
 
-There are two types of service metadata:
+There are three types of service metadata:
 
+* Availability, if and since the service is running.
 * Capabilities, which describe the different interfaces and available functions.
 * Tables, which contains a listing of the actual tables.
 
 >>> service = TAPService(url)
+>>> print(service.available)
+True
+>>> print(service.up_since)
+datetime.datetime(2000, 0, 0, 0, 0, 0)
 >>> print(service.capabilities)
 >>> print(service.tables.keys())
 
