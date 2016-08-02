@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import unicode_literals
 from . import plainxml
 import datetime
 from collections import OrderedDict
@@ -218,7 +219,7 @@ class _TablesParser(plainxml.StartEndHandler):
 		self.curColumn = _Column()
 
 	def _end_column(self, name, attrs, content):
-		self.curTable[self.curColumn.name] = _Column()
+		self.curTable[self.curColumn.name] = self.curColumn
 		self.curColumn = None
 
 	def _end_name(self, name, attrs, content):
@@ -232,6 +233,30 @@ class _TablesParser(plainxml.StartEndHandler):
 		elif getattr(self, "curSchema", None) is not None:
 			self.curSchema = content
 
+	def _end_description(self, name, attrs, content):
+		content = content.strip()
+
+		if getattr(self, "curColumn", None) is not None:
+			self.curColumn._description = content
+
+	def _end_ucd(self, name, attrs, content):
+		content = content.strip()
+
+		if getattr(self, "curColumn", None) is not None:
+			self.curColumn._ucd = content
+
+	def _end_dataType(self, name, attrs, content):
+		content = content.strip()
+
+		if getattr(self, "curColumn", None) is not None:
+			self.curColumn._data_type = content
+
+	def _end_unit(self, name, attrs, content):
+		content = content.strip()
+
+		if getattr(self, "curColumn", None) is not None:
+			self.curColumn._unit = content
+
 	def getResult(self):
 		return self.tables
 
@@ -242,7 +267,7 @@ def parse_tables(stream):
 
 class _TableDict(OrderedDict):
 	def __str__(self):
-		return "\n".join(str(t) for t in self.values())
+		return "\n".join(unicode(t) for t in self.values())
 
 class _Table(OrderedDict):
 	def __init__(self):
@@ -255,7 +280,10 @@ class _Table(OrderedDict):
 		io.write("{0}.{1}\n".format(self.schema, self.name))
 
 		for k, v in self.items():
-			io.write("\t{0}\n".format(k))
+			s = "\n".join(
+				map(lambda x: "\t{0}".format(x),
+					unicode(v).split("\n")[:-1]))
+			io.write(unicode("{0}\n".format(s)))
 
 		return io.getvalue()
 
@@ -268,12 +296,37 @@ class _Table(OrderedDict):
 		return self._schema
 
 class _Column(object):
+	def __init__(self):
+		self._name = ""
+		self._ucd = ""
+		self._data_type = ""
+		self._unit = ""
+		self._description = ""
+
 	def __str__(self):
-		return self.name
+		ret = "{0} {1} {2} {3}\n\t{4}\n".format(
+			self.name, self.ucd, self.data_type, self.unit, self.description)
+		return ret
 
 	@property
 	def name(self):
 		return self._name
+
+	@property
+	def ucd(self):
+		return self._ucd
+
+	@property
+	def data_type(self):
+		return self._data_type
+
+	@property
+	def unit(self):
+		return self._unit
+
+	@property
+	def description(self):
+		return self._description
 
 class _AvailabiliyParser(plainxml.StartEndHandler):
 	def __init__(self):
