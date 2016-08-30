@@ -582,7 +582,7 @@ class Target(object):
         available.
         """
         dbn = dbname.lower()
-        db = filter(lambda d: d.startswith(dbn), self._lookup.keys())
+        db = filter(lambda d: ("="+dbn) in d.lower(), self._lookup.keys())
         if len(db) == 0: return None
         if len(db) > 1:
             raise LookupError("Ambiguous database name: " + dbname)
