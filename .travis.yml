@@ -11,8 +11,9 @@ env:
         - ASTROPY_REPO_HOME=http://github.com/astropy/astropy
         - ASTROPY_REPO_FILE_HOME=${ASTROPY_REPO_HOME}/raw/master
 
-    # try all python versions with the latest stable numpy and astropy
-    - ASTROPY_VERSION=stable NUMPY_VERSION=1.9 SETUP_CMD='test' 
+    matrix:
+        # try all python versions with the latest stable numpy and astropy
+        - ASTROPY_VERSION=stable NUMPY_VERSION=1.9 SETUP_CMD='test' 
 
 matrix:
     include:
