@@ -50,7 +50,7 @@ install:
    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip -q install matplotlib; fi
 
    - if [[ $ASTROPY_VERSION == stable ]]; then pip -q install astropy; fi
-   - if [[ $ASTROPY_VERSION == development ]]; then pip -q install git+http://github.com/astropy/astropy.git#egg=astropy; fi
+   - if [[ $ASTROPY_VERSION == development ]]; then pip install git+http://github.com/astropy/astropy.git#egg=astropy; fi
    - if [[ $ASTROPY_VERSION == v* ]]; then pip -q install astropy==${ASTROPY_VERSION:1}; fi
 
 script:
