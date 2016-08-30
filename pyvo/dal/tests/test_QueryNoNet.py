@@ -72,7 +72,8 @@ class DALServiceErrorTest(unittest.TestCase):
     url = "http://localhost/"
 
     def testProperties4(self):
-        c = HTTPError("http://localhost/", self.code, self.msg, None, None)
+        c = HTTPError("http://localhost/", self.code, self.msg, None,
+                      open("/dev/null"))
         e = dalq.DALServiceError(self.msg, self.code, c, self.url)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.cause is c)

@@ -2,7 +2,6 @@ language: python
 
 python:
     - 2.7
-    - 3.2
     - 3.3
     - 3.4
     - 3.5
@@ -15,7 +14,7 @@ matrix:
     include:
         #- python: 2.7
         #  # opdeps needed because the matplotlib sphinx extension requires them
-        #  env: ASTROPY_VERSION=development NUMPY_VERSION=1.7.1 SETUP_CMD='build_sphinx -w -n'
+        #  env: ASTROPY_VERSION=development NUMPY_VERSION=1.9 SETUP_CMD='build_sphinx -w -n'
 
         ## try alternate numpy versions with the latest stable astropy
         #- python: 2.7
@@ -28,7 +27,7 @@ matrix:
 
         # try latest developer version of astropy
         - python: 2.7
-          env: ASTROPY_VERSION=development NUMPY_VERSION=1.7.1 SETUP_CMD='test'
+          env: ASTROPY_VERSION=development NUMPY_VERSION=1.9 SETUP_CMD='test'
         #- python: 3.3
         #  env: ASTROPY_VERSION=development NUMPY_VERSION=1.7.1 SETUP_CMD='test'
 
@@ -52,6 +51,7 @@ install:
 
    - if [[ $ASTROPY_VERSION == stable ]]; then pip -q install astropy; fi
    - if [[ $ASTROPY_VERSION == development ]]; then pip -q install git+http://github.com/astropy/astropy.git#egg=astropy; fi
+   - if [[ $ASTROPY_VERSION == v* ]]; then pip -q install astropy==${ASTROPY_VERSION:1}; fi
 
 script:
    - python setup.py test
