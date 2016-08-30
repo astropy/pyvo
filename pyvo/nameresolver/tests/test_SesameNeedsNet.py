@@ -95,15 +95,18 @@ class SesameQueryTest(unittest.TestCase):
         self.assertTrue(isinstance(r, list))
         self.assertEquals(3, len(r))
 
+        # Note: Vizier, NED resolvers appear no longer to be working from CDS
         target = r[0]
-        self.assertEquals(2, len(target.responses))
+        # self.assertEquals(2, len(target.responses))
+        self.assertEquals(1, len(target.responses))
         self.assertTrue(target.resolved)
         odata = target.according_to("sim")
         self.assertTrue(odata is not None)
         self.assertEquals("M 106", odata.oname)
         odata = target.according_to("viz")
-        self.assertTrue(odata is not None)
-        self.assertEquals("{NGC} 4258", odata.oname)
+        self.assertTrue(odata is None)
+        # self.assertTrue(odata is not None)
+        # self.assertEquals("{NGC} 4258", odata.oname)
 
 
 @remote_data
@@ -113,14 +116,14 @@ class ResolveTest(unittest.TestCase):
         odata = sesame.resolve("NGC4258")
         self.assertTrue(odata is not None)
         self.assertFalse(isinstance(odata, list))
-        self.assertTrue(odata.resolver_name.startswith("S=Simbad"))
+        self.assertTrue(odata.resolver_name.startswith("Sc=Simbad"))
         self.assertEquals("M 106", odata.oname)
         self.assertTrue("otype" in odata.keys())
 
         odata = sesame.resolve(["NGC4258", "M51"])
         self.assertTrue(odata is not None)
         self.assertTrue(isinstance(odata, list))
-        self.assertTrue(odata[1].resolver_name.startswith("S=Simbad"))
+        self.assertTrue(odata[1].resolver_name.startswith("Sc=Simbad"))
         self.assertEquals("M 106", odata[0].oname)
         self.assertEquals("M  51", odata[1].oname)
         self.assertTrue("otype" in odata[0].keys())
@@ -172,13 +175,13 @@ class ResolveTest(unittest.TestCase):
     def testMirror(self):
         odata = sesame.resolve("NGC4258", mirror="cds")
         self.assertTrue(odata is not None)
-        self.assertTrue(odata.resolver_name.startswith("S=Simbad"))
+        self.assertTrue(odata.resolver_name.startswith("Sc=Simbad"))
         self.assertEquals("M 106", odata.oname)
         self.assertTrue("otype" in odata.keys())
 
         odata = sesame.resolve("NGC4258", mirror="cfa")
         self.assertTrue(odata is not None)
-        self.assertTrue(odata.resolver_name.startswith("S=Simbad"))
+        self.assertTrue(odata.resolver_name.startswith("Sc=Simbad"))
         self.assertEquals("M 106", odata.oname)
         self.assertTrue("otype" in odata.keys())
 
