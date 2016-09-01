@@ -36,11 +36,6 @@ matrix:
         #- python: 3.3
         #  env: ASTROPY_VERSION=development NUMPY_VERSION=1.7.1 SETUP_CMD='test'
 
-        # try pyvo with different releases of astropy
-        # the last version that supported python 2.6
-        - python: 2.6
-          env: ASTROPY_VERSION=v1.1.2 NUMPY_VERSION=1.7.1 SETUP_CMD='test'
-
 before_install:
    # We do this to make sure we get the dependencies so pip works below
    - sudo apt-get update -qq
