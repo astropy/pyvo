@@ -13,7 +13,7 @@ env:
 
     matrix:
         # try all python versions with the latest stable numpy and astropy
-        - ASTROPY_VERSION=stable NUMPY_VERSION=1.9 SETUP_CMD='test' 
+        - ASTROPY_VERSION=stable NUMPY_VERSION=1.9 REQUESTS_VERSION=2.9.1 SETUP_CMD='test' 
 
 matrix:
     include:
@@ -23,16 +23,16 @@ matrix:
 
         ## try alternate numpy versions with the latest stable astropy
         #- python: 2.7
-        #  env: ASTROPY_VERSION=stable NUMPY_VERSION=1.6.2 SETUP_CMD='test'
+        #  env: ASTROPY_VERSION=stable NUMPY_VERSION=1.6.2 REQUESTS_VERSION=2.9.1 SETUP_CMD='test'
         #- python: 2.7
-        #  env: ASTROPY_VERSION=stable NUMPY_VERSION=1.5.1 SETUP_CMD='test'
+        #  env: ASTROPY_VERSION=stable NUMPY_VERSION=1.5.1 REQUESTS_VERSION=2.9.1 SETUP_CMD='test'
         #- python: 3.2
-        #  env: ASTROPY_VERSION=stable NUMPY_VERSION=1.6.2 SETUP_CMD='test'
+        #  env: ASTROPY_VERSION=stable NUMPY_VERSION=1.6.2 REQUESTS_VERSION=2.9.1 SETUP_CMD='test'
         # numpy < 1.6 does not work on py 3.x
 
         # try latest developer version of astropy
         - python: 2.7
-          env: ASTROPY_VERSION=development NUMPY_VERSION=1.9 SETUP_CMD='test'
+          env: ASTROPY_VERSION=development NUMPY_VERSION=1.9 REQUESTS_VERSION=2.9.1 SETUP_CMD='test'
         #- python: 3.3
         #  env: ASTROPY_VERSION=development NUMPY_VERSION=1.7.1 SETUP_CMD='test'
 
@@ -45,7 +45,9 @@ before_install:
 install:
    - export PYTHONIOENCODING=UTF8 # just in case
    - pip -q install --upgrade "numpy==$NUMPY_VERSION" 
-   - pip -q install --upgrade Cython
+   - pip -q install --upgrade "requests==$REQUESTS_VERSION"
+   - pip -q install --upgrade Cython 
+   - pip -q install python-dateutil
    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip -q install sphinx==1.1.3; fi
    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip -q install matplotlib; fi
 
@@ -59,4 +61,3 @@ install:
 
 script:
    - python setup.py test
-

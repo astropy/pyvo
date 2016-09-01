@@ -63,7 +63,7 @@ set to further restrict the search results.
 
 With a catalog service, there is no dataset to download; instead one
 is simply searching a catalog for its records.  Currently, PyVO
-supports querying two types of catalog services: 
+supports querying three types of catalog services: 
 
 * `Simple Cone Search (SCS) <http://www.ivoa.net/documents/latest/ConeSearch.html>`_ 
   -- a service for searching a source catalog or an observation log.
@@ -73,6 +73,9 @@ supports querying two types of catalog services:
 * `Simple Line Access (SLAP) <http://www.ivoa.net/documents/SLAP/>`_ 
   -- a service for finding data about spectral lines, including their
   rest frequencies. 
+* `Table Access Protocol (TAP) <http://www.ivoa.net/documents/TAP/>`_
+  -- a service for flexible access to source catalogs using custom search
+  parameters.
 
 In all DAL search results, the archive can provide a rich set of
 metadata that describe whatever it is that is being searched for.  The

@@ -589,7 +589,7 @@ class DALResults(object):
         """
         the number of records returned in this result (read-only)
         """
-        return self.votable.nrows
+        return len(self.votable.to_table())
 
     def __len__(self):
         """

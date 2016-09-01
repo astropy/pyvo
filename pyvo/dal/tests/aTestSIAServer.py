@@ -20,7 +20,7 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from astropy.utils.data import get_pkg_data_filename
 
 try:
-    from astropy.tests.disable_internet import (turn_on_internet, 
+    from astropy.tests.disable_internet import (turn_on_internet,
                                                 turn_off_internet, INTERNET_OFF)
 except:
     # for astropy ver < 0.4
@@ -33,6 +33,10 @@ scsresult = "data/twomass-cs.xml"
 errresult = "data/error-sia.xml"
 ssaresult = "data/jhu-ssa.xml"
 slaresult = "data/nrao-sla.xml"
+tapresult = "data/arihip-tap.xml"
+tapresultasync = "data/arihip-tap-async.xml"
+tapresultasyncget = "data/arihip-tap-async-get.xml"
+tapresultasyncresult = "data/arihip-tap-async-result.xml"
 
 class TestHandler(BaseHTTPRequestHandler):
 
@@ -58,6 +62,10 @@ class TestHandler(BaseHTTPRequestHandler):
                 self.send_ssa()
             elif path == "/sla":
                 self.send_sla()
+            elif path == "/tap/async/3bLj5O":
+                self.send_tap_async_get()
+            elif path == "/tap/async/3bLj5O/results/result":
+                self.send_tap_async_result()
             elif path == "/shutdown":
                 self.send_empty()
                 # self.shutdown()
@@ -72,7 +80,24 @@ class TestHandler(BaseHTTPRequestHandler):
         except Exception as ex:
             self.log("Test Server failure: "+str(ex))
             raise RuntimeError("test server error ("+type(ex)+"): "+str(ex))
-                
+
+    def do_POST(self):
+        path = re.split(r'\?', self.path, 1)[0]
+
+        if path == "/tap/sync":
+            self.send_tap()
+        elif path == "/tap/async":
+            self.send_tap_async()
+        elif path == "/tap/async/3bLj5O":
+            self.send_tap_async()
+        elif path == "/tap/async/3bLj5O/phase":
+            self.send_303("/tap/async/3bLj5O")
+
+    def send_303(self, location):
+        self.send_response(303)
+        self.send_header("Location", location)
+        self.end_headers()
+        self.wfile.write(location + "\n")
 
     def send_path(self):
         self.send_response(200)
@@ -96,6 +121,18 @@ class TestHandler(BaseHTTPRequestHandler):
     def send_sla(self):
         self.send_file(slaresult)
 
+    def send_tap(self):
+        self.send_file(tapresult)
+
+    def send_tap_async(self):
+        self.send_file(tapresultasync)
+
+    def send_tap_async_get(self):
+        self.send_file(tapresultasyncget)
+
+    def send_tap_async_result(self):
+        self.send_file(tapresultasyncresult)
+
     def send_file(self, filename):
         path = get_pkg_data_filename(filename)
         f = open(path,'rb')
@@ -114,7 +151,7 @@ class TestHandler(BaseHTTPRequestHandler):
 
     def log(self, message):
         _log(message, self.port)
-        
+
 
 _ports_in_use = []
 
@@ -163,7 +200,7 @@ class TestServer(threading.Thread):
     def shutdown(self, timeout=None):
         if not timeout:
             timeout = self._timeout+1
-        if self.httpd:  
+        if self.httpd:
             self.httpd.shutdown()
             self.join(timeout)
             self.httpd = None
@@ -182,7 +219,7 @@ def server_running(port=8081):
     url = "http://localhost:{0}/path".format(port)
     try:
         strm = urllib2.urlopen(url);
-        if strm.getcode() < 1: 
+        if strm.getcode() < 1:
             return False
         return True
     except IOError:
@@ -204,7 +241,7 @@ _logfile = None
 def _ensure_logfile():
     global _logfile
     if not _logfile: return
-    
+
     if not os.path.exists(_logfile):
         if not os.path.exists(os.path.dirname(_logfile)):
             os.makedirs(os.path.dirname(_logfile))
@@ -231,5 +268,3 @@ def _log(message="", port=None):
 
 if __name__ == "__main__":
     run()
-
-

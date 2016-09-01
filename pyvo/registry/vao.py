@@ -22,7 +22,7 @@ interaction models.
 from __future__ import print_function, division
 
 from ..dal import query as dalq
-from ..dal import sia, ssa, sla, scs
+from ..dal import sia, ssa, sla, scs, tap
 from urllib import quote_plus, urlopen
 import re
 
@@ -951,6 +951,7 @@ _standardIDs = {
     "ivo://ivoa.net/std/SIA":  sia.SIAService,
     "ivo://ivoa.net/std/SSA":  ssa.SSAService,
     "ivo://ivoa.net/std/SLAP":  sla.SLAService,
+    "ivo://ivoa.net/std/TAP":  tap.TAPService,
 }
 
 def _createService(resource, savemeta=False):
@@ -998,4 +999,3 @@ def split_str_array_cell(val, delim=None):
     if val[0:1] == delim: val = val[1:]
     if val[-1:] == delim: val = val[:-1]
     return tuple(val.split(delim))
-

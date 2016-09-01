@@ -17,6 +17,4 @@ sub-modules :py:mod:`~pyvo.dal.scs`, :py:mod:`~pyvo.dal.sia`,
 .. include:: sia.rst
 .. include:: ssa.rst
 .. include:: sla.rst
-
-  
-
+.. include:: tap.rst
