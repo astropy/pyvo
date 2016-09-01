@@ -324,7 +324,7 @@ class TAPQuery(query.DALQuery):
             finally:
                 return s
 
-        files = {k: _fileobj(v) for k, v in self._uploads.items()}
+        files = dict((k, _fileobj(v)) for (k, v) in self._uploads.items())
 
         r = requests.post(url, params = self._param, stream = True,
             files = files)
