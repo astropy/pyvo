@@ -27,8 +27,8 @@ Source code can be found on GitHub at:
 
 This implementation requires the following prerequisite packages:
 
-* numpy (1.6.0 or later)
-* astropy (0.2 or later)
+* numpy (any version between 1.6.0 and 1.7.1, inclusive)
+* astropy (any version between 0.2 and 1.1.2, inclusive)
 
 These must be installed before install PyVO.
 
