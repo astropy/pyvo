@@ -74,7 +74,7 @@ class TAPRunTest(unittest.TestCase):
         s = tap.TAPService("http://localhost:{0}/tap".format(self.srvr.port))
         q = s.run_async(query)
 
-        self.assert_(isinstance(q, tap.TAPQueryAsync))
+        self.assert_(isinstance(q, tap.AsyncTAPJob))
 
         q.run()
 
