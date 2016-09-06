@@ -13,10 +13,10 @@ PyVO was developed with contributions from the following developers:
 
 Contributor's Name   | Affiliations   | GitHub identity
 ---------------------|----------------|-------------------
-Stefan Becker |  | funbaker
+Stefan Becker | Heidelberg Univ. | funbaker
 Thomas Boch | CDS | tboch
 Carlos Brandt | Universita di Roma La Sapienza | chbrandt
-Markus Demleitner | Heidelburg Univ. | msdemlei
+Markus Demleitner | Heidelberg Univ. | msdemlei
 Christoph Deil | MPI for Nuclear Physics | cdeil
 Mike Fitzpatrick | NOAO |
 Matthew Graham | Caltech | doccosmos
