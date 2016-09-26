@@ -318,6 +318,7 @@ class TAPQuery(query.DALQuery):
                 from cStringIO import StringIO
                 f = StringIO()
                 s.write(output = f, format = "votable")
+                f.seek(0)
                 return f
             try:
                 s = open(s)
