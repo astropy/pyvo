@@ -242,7 +242,7 @@ class TAPService(query.DALService):
         --------
         AsyncTAPJob
         """
-        q = self._run_async(query, language, maxrec)
+        q = self._run_async(query, language, maxrec, uploads)
         return q.submit().run()
 
     def submit_job(self, query, language = "ADQL", maxrec = None,
@@ -272,7 +272,7 @@ class TAPService(query.DALService):
         --------
         AsyncTAPJob
         """
-        return self._run_async(query, language, maxrec)
+        return self._run_async(query, language, maxrec, uploads)
 
 class TAPQuery(query.DALQuery):
     def __init__(self, baseurl, version="1.0", language = "ADQL", maxrec = None,
