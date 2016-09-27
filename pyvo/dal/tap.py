@@ -219,7 +219,7 @@ class TAPService(query.DALService):
     def run_async(self, query, language = "ADQL", maxrec = None,
         uploads = None):
         """
-        submit and start a async query and returns a AsyncTAPJob object
+        runs async query and returns its result
 
         Parameters
         ----------
@@ -238,12 +238,24 @@ class TAPService(query.DALService):
         AsyncTAPJob
             the query instance
 
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors either in the input query syntax or
+           other user errors detected by the service
+        DALFormatError
+           for errors parsing the VOTable response
+
         See Also
         --------
         AsyncTAPJob
         """
         q = self._run_async(query, language, maxrec, uploads)
-        return q.submit().run()
+        q = q.submit().run().wait()
+        q.raise_if_error()
+        return q.fetch()
 
     def submit_job(self, query, language = "ADQL", maxrec = None,
         uploads = None):
@@ -272,7 +284,7 @@ class TAPService(query.DALService):
         --------
         AsyncTAPJob
         """
-        return self._run_async(query, language, maxrec, uploads)
+        return self._run_async(query, language, maxrec, uploads).submit()
 
 class TAPQuery(query.DALQuery):
     def __init__(self, baseurl, version="1.0", language = "ADQL", maxrec = None,

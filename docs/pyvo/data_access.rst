@@ -1167,25 +1167,27 @@ From the caller's perspective, they are nearly the same as synchronous queries,
 except that they return a :py:class:`~pyvo.dal.tap.AsyncTAPJob` object instead
 of a result.
 
->>> job = service.run_async(query)
+>>> job = service.submit_job(query)
 >>> print(job.jobId)
 1sEa5g
 >>> print(job.phase)
-RUN
+PENDING
 
 ..
   note::
-        use :py:class:`~pyvo.dal.tap.TAPService.submit_job` instead, if you
-        don't want to start the job yet (leave it in PENDING)
+        use :py:class:`~pyvo.dal.tap.TAPService.run_async` instead, if you
+        don't want to start the job manually (return the result object directly)
 
 In the typical case, one simply calls the :py:class:`~pyvo.dal.tap.AsyncTAPJob.wait`
 method.  This will block until the remote job has finished (by
 being completed or aborted, or by causing an error condition).
-If the job's ``phase`` is ``COMPLETED`` after ``wait`` has returned,
+If the job's ``phase`` is ``COMPLETED`` after ``wait`` has returned (one can
+check that by calling :py:class:`~pyvo.dal.tap.AsyncTAPJob.raise_if_error`),
 the job's result can be retrieved by calling
 :py:class:`~pyvo.dal.tap.AsyncTAPJob.fetch`:
 
 >>> job.wait()
+>>> job.raise_if_error()
 >>> result = job.fetch()
 >>> for row in result:
 ...   print("{0} {1} {2}".format(row["raj2000"], row["dej2000"], row["rv"]))
