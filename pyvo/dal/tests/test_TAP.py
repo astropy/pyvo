@@ -73,13 +73,8 @@ class TAPRunTest(unittest.TestCase):
         query = "SELECT TOP 1 1+1 AS result FROM arihip.main"
 
         s = tap.TAPService("http://localhost:{0}/tap".format(self.srvr.port))
-        q = s.run_async(query)
 
-        self.assert_(isinstance(q, tap.AsyncTAPJob))
-
-        q.run()
-
-        r = q.execute()
+        r = s.run_async(query)
 
         self.assert_(isinstance(r, tap.TAPResults))
         self.assert_(r.query_status == "OVERFLOW")
@@ -100,13 +95,8 @@ class TAPRunTest(unittest.TestCase):
         query = "SELECT * FROM TAP_UPLOAD.t1"
 
         s = tap.TAPService("http://localhost:{0}/tap".format(self.srvr.port))
-        q = s.run_async(query, uploads = {'t1': open(tapresultfile)})
 
-        self.assert_(isinstance(q, tap.AsyncTAPJob))
-
-        q.run()
-
-        r = q.execute()
+        r = s.run_async(query, uploads = {'t1': open(tapresultfile)})
 
         self.assert_(isinstance(r, tap.TAPResults))
         self.assert_(r.query_status == "OVERFLOW")
