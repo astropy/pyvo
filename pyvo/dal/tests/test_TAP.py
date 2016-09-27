@@ -8,6 +8,7 @@ from __future__ import print_function, division
 import os, sys, shutil, re, imp, glob, tempfile, random, time
 import unittest, pdb
 from urllib2 import URLError, HTTPError
+import os.path
 
 import pyvo.dal.query as dalq
 import pyvo.dal.tap as tap
@@ -18,7 +19,7 @@ from pyvo.dal.query import _votableparse as votableparse
 from astropy.utils.data import get_pkg_data_filename
 from . import aTestSIAServer as testserve
 
-tapresultfile = "data/arihip-tap.xml"
+tapresultfile = os.path.join(os.path.dirname(__file__), "data/arihip-tap.xml")
 errresultfile = "data/error-tap.xml"
 uploadfile = "data/upload-tap.xml"
 testserverport = 8084
@@ -72,13 +73,30 @@ class TAPRunTest(unittest.TestCase):
         query = "SELECT TOP 1 1+1 AS result FROM arihip.main"
 
         s = tap.TAPService("http://localhost:{0}/tap".format(self.srvr.port))
-        q = s.run_async(query)
 
-        self.assert_(isinstance(q, tap.AsyncTAPJob))
+        r = s.run_async(query)
 
-        q.run()
+        self.assert_(isinstance(r, tap.TAPResults))
+        self.assert_(r.query_status == "OVERFLOW")
+        self.assert_(len(r) == 1)
 
-        r = q.execute()
+    def testRunSyncUpload(self):
+        query = "SELECT * FROM TAP_UPLOAD.t1"
+
+        s = tap.TAPService("http://localhost:{0}/tap".format(self.srvr.port))
+
+        r = s.run_sync(query, uploads = {'t1': open(tapresultfile)})
+
+        self.assert_(isinstance(r, tap.TAPResults))
+        self.assert_(r.query_status == "OVERFLOW")
+        self.assert_(len(r) == 1)
+
+    def testRunAsyncUpload(self):
+        query = "SELECT * FROM TAP_UPLOAD.t1"
+
+        s = tap.TAPService("http://localhost:{0}/tap".format(self.srvr.port))
+
+        r = s.run_async(query, uploads = {'t1': open(tapresultfile)})
 
         self.assert_(isinstance(r, tap.TAPResults))
         self.assert_(r.query_status == "OVERFLOW")
