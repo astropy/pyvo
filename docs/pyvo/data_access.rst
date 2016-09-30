@@ -1261,12 +1261,23 @@ Uploads allow to use the result of other queries as input.
 A common use case are positional crossmatches using data from different
 catalogs.
 
-Any file-like object containing a votable can be used as upload parameter.
+File uploads are specified using the `uploads` parameter, which is a dict of
+tablename: uri.
 
-.. TODO:
-        Make it possible to use astropy tables as input. Somethings not working.
+>>> service.run_sync(query, uploads = {'t1': 'http://example.org/votable.xml'})
 
->>> service.run_sync(query, uploads = {'t1': open('/path/to/votable.xml')})
+Alternatively content can be a tuple containing (type, source).
+
+Possible type/source combinations are:
+
+- uri : a uri pointing to a votable in the world wide web. This has the
+  advantage that the processing server can download the dataset directly.
+- inline : a file-like object, astropy table or local path string to be
+  uploaded.
+
+>>> service.run_sync(query, uploads = {'t1': ('inline', open('/path/to/votable.xml'))})
+>>> service.run_sync(query, uploads = {'t1': ('inline', result.votable.to_table())})
+>>> service.run_sync(query, uploads = {'t1': ('inline', '/path/to/votable.xml')})
 
 Your upload can be referenced using 'TAP_UPLOAD.t1' as table name.
 

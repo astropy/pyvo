@@ -305,15 +305,25 @@ class TAPQuery(query.DALQuery):
         uploads : dict
             Files to upload. Uses table name as key and file name as value
         """
+        def fix_upload(upload):
+            if type(upload) is not tuple:
+                upload = ('uri', upload)
+            return upload
+
         self._language = language
         self._uploads = uploads or {}
+        self._uploads = {k: fix_upload(v) for k, v in self._uploads.items()}
         self._maxrec = maxrec
 
         super(TAPQuery, self).__init__(baseurl, "tap", version)
 
         if self._uploads:
             upload_param = ';'.join(
-                ['{0},param:{0}'.format(k) for k in self._uploads])
+                ['{0},{1}{2}'.format(
+                    k,
+                    'param:' if v[0] == 'inline' else '',
+                    v[1] if v[0] == 'uri' else k
+                ) for k, v in self._uploads.items()])
             self.setparam("UPLOAD", upload_param)
 
     def getqueryurl(self, lax = False):
@@ -337,7 +347,8 @@ class TAPQuery(query.DALQuery):
             finally:
                 return s
 
-        files = dict((k, _fileobj(v)) for (k, v) in self._uploads.items())
+        files = {k: _fileobj(v[1]) for k, v in filter(
+            lambda x: x[1][0] == 'inline', self._uploads.items())}
 
         r = requests.post(url, params = self._param, stream = True,
             files = files)
@@ -391,7 +402,7 @@ class AsyncTAPJob(TAPQuery):
         try:
             r = requests.get(url, stream = True)
             r.raise_for_status()
-        except request.exceptions.RequestException as ex:
+        except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
         self._job.update(uws.parse_job(r.raw))
@@ -446,7 +457,7 @@ class AsyncTAPJob(TAPQuery):
             r = requests.post("{}/executionduration".format(url),
                 params = {"EXECUTIONDURATION": str(value)})
             r.raise_for_status()
-        except request.exceptions.RequestException as ex:
+        except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
         self._job["executionDuration"] = value
@@ -483,7 +494,7 @@ class AsyncTAPJob(TAPQuery):
             r = requests.post("{}/destruction".format(url),
                 params = {"DESTRUCTION": value.strftime("%Y-%m-%dT%H:%M:%SZ")})
             r.raise_for_status()
-        except request.exceptions.RequestException as ex:
+        except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
         self._job["destruction"] = value
@@ -517,11 +528,13 @@ class AsyncTAPJob(TAPQuery):
         """
         starts the job / change phase to RUN
         """
+        url = self.getqueryurl()
+
         try:
             r = requests.post('{}/phase'.format(self.getqueryurl()),
                 params = {"PHASE": "RUN"})
             r.raise_for_status()
-        except request.exceptions.RequestException as ex:
+        except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
 
@@ -537,7 +550,7 @@ class AsyncTAPJob(TAPQuery):
             r = requests.post('{}/phase'.format(self.getqueryurl()),
                 params = {"PHASE": "ABORT"})
             r.raise_for_status()
-        except request.exceptions.RequestException as ex:
+        except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
 
@@ -591,7 +604,7 @@ class AsyncTAPJob(TAPQuery):
         try:
             r = requests.post(url, params = {"ACTION": "DELETE"})
             r.raise_for_status()
-        except request.exceptions.RequestException as ex:
+        except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
 
