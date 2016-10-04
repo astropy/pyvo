@@ -515,6 +515,14 @@ class AsyncTAPJob(TAPQuery):
         self._update()
         return self._job["owner"]
 
+    @property
+    def results(self):
+        return self._job["results"]
+
+    @property
+    def first_result(self):
+        return self.results.values()[0]
+
     def submit(self):
         """
         submits the job to the server.
@@ -632,6 +640,10 @@ class AsyncTAPJob(TAPQuery):
         """
         return self.execute()
 
+    def execute(self):
+        return TAPResults(self.execute_votable(), self.getqueryurl(True),
+            result_uri=self.first_result)
+
     def execute_stream(self):
         """
         get the result and return the raw VOTable XML as a file stream
@@ -662,6 +674,11 @@ class AsyncTAPJob(TAPQuery):
                 self.version)
 
 class TAPResults(query.DALResults):
+    def __init__(self, votable, url=None, protocol="TAP", version="1.0",
+        result_uri=None):
+        super(TAPResults, self).__init__(votable, url, protocol, version)
+        self._result_uri = result_uri
+
     @property
     def infos(self):
         """
@@ -675,6 +692,10 @@ class TAPResults(query.DALResults):
         return the query status
         """
         return getattr(self, "_infos", {}).get("QUERY_STATUS", None)
+
+    @property
+    def result_uri(self):
+        return self._result_uri
 
     def getcolumn(self, name):
         col = super(TAPResults, self).getcolumn(name)

@@ -34,6 +34,15 @@ class _JobParser(plainxml.StartEndHandler):
 	def _end_message(self, name, attrs, content):
 		self.job["message"] = content.strip()
 
+	def _start_results(self, name, attrs):
+		if not self.job.get("results", None):
+			self.job["results"] = dict()
+
+	def _start_result(self, name, attrs):
+		id = attrs["id"]
+		href = attrs["xlink:href"]
+		self.job["results"][id] = href
+
 	def getResult(self):
 		return self.job
 
