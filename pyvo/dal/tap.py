@@ -308,6 +308,8 @@ class TAPQuery(query.DALQuery):
         def fix_upload(upload):
             if type(upload) is not tuple:
                 upload = ('uri', upload)
+            if type(upload[1]) == TAPResults:
+                upload = ('uri', upload[1].result_uri)
             return upload
 
         self._language = language
