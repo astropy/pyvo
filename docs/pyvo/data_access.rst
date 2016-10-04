@@ -1161,7 +1161,8 @@ Asynchronous queries
 Asynchronous queries do not need an active TCP connection while being
 executed.
 This is useful for running time-consuming queries and/or via unstable
-Internet connections.
+Internet connections. It also allows to retrieve the query result from an uri,
+which is handy for crossmatches etc.
 
 From the caller's perspective, they are nearly the same as synchronous queries,
 except that they return a :py:class:`~pyvo.dal.tap.AsyncTAPJob` object instead
@@ -1261,12 +1262,27 @@ Uploads allow to use the result of other queries as input.
 A common use case are positional crossmatches using data from different
 catalogs.
 
-Any file-like object containing a votable can be used as upload parameter.
+File uploads are specified using the `uploads` parameter, which is a dict of
+tablename: uri.
 
-.. TODO:
-        Make it possible to use astropy tables as input. Somethings not working.
+>>> service.run_sync(query, uploads = {'t1': 'http://example.org/votable.xml'})
 
->>> service.run_sync(query, uploads = {'t1': open('/path/to/votable.xml')})
+Alternatively content can be a tuple containing (type, source).
+
+Possible type/source combinations are:
+
+- uri : the default. a uri pointing to a votable in the world wide web, or a
+  result from an asynchronous query. This has the advantage that the processing
+  server can download the dataset directly.
+- inline : a file-like object, astropy table or local path string to be
+  uploaded.
+
+>>> service.run_sync(query, uploads = {'t1': ('uri', 'http://example.org/votable.xml')})
+>>> service.run_sync(query, uploads = {'t1': ('uri', result)})
+
+>>> service.run_sync(query, uploads = {'t1': ('inline', open('/path/to/votable.xml'))})
+>>> service.run_sync(query, uploads = {'t1': ('inline', result.votable.to_table())})
+>>> service.run_sync(query, uploads = {'t1': ('inline', '/path/to/votable.xml')})
 
 Your upload can be referenced using 'TAP_UPLOAD.t1' as table name.
 
