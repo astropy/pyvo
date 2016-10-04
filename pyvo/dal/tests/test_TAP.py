@@ -85,7 +85,7 @@ class TAPRunTest(unittest.TestCase):
 
         s = tap.TAPService("http://localhost:{0}/tap".format(self.srvr.port))
 
-        r = s.run_sync(query, uploads = {'t1': open(tapresultfile)})
+        r = s.run_sync(query, uploads = {'t1': ('inline', open(tapresultfile))})
 
         self.assert_(isinstance(r, tap.TAPResults))
         self.assert_(r.query_status == "OVERFLOW")
@@ -96,7 +96,8 @@ class TAPRunTest(unittest.TestCase):
 
         s = tap.TAPService("http://localhost:{0}/tap".format(self.srvr.port))
 
-        r = s.run_async(query, uploads = {'t1': open(tapresultfile)})
+        r = s.run_async(query,
+            uploads = {'t1': ('inline', open(tapresultfile))})
 
         self.assert_(isinstance(r, tap.TAPResults))
         self.assert_(r.query_status == "OVERFLOW")
