@@ -182,8 +182,8 @@ class TAPService(query.DALService):
 
         Parameters
         ----------
-        query : str, dict
-            The query string / parameters
+        query : str
+            The query
         language : str
             specifies the query language, default ADQL.
             useful for services which allow to use the backend query language.
@@ -518,11 +518,17 @@ class AsyncTAPJob(TAPQuery):
         return self._job["owner"]
 
     @property
-    def results(self):
+    def result_uris(self):
+        """
+        a list of the last result uri's
+        """
         return self._job["results"]
 
     @property
-    def first_result(self):
+    def result_uri(self):
+        """
+        the first result uri
+        """
         return self.results.values()[0]
 
     def submit(self):
