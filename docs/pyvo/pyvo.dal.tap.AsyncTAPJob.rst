@@ -24,6 +24,9 @@ AsyncTAPJob
       ~AsyncTAPJob.owner
       ~AsyncTAPJob.phase
       ~AsyncTAPJob.quote
+      ~AsyncTAPJob.result_uri
+      ~AsyncTAPJob.result_uris
+      ~AsyncTAPJob.url
 
    
    
@@ -37,11 +40,12 @@ AsyncTAPJob
    
       ~AsyncTAPJob.abort
       ~AsyncTAPJob.delete
+      ~AsyncTAPJob.execute
       ~AsyncTAPJob.execute_stream
       ~AsyncTAPJob.fetch
       ~AsyncTAPJob.getqueryurl
       ~AsyncTAPJob.raise_if_error
-      ~AsyncTAPJob.start
+      ~AsyncTAPJob.run
       ~AsyncTAPJob.submit
       ~AsyncTAPJob.wait
 
@@ -61,6 +65,9 @@ AsyncTAPJob
    .. autoattribute:: owner
    .. autoattribute:: phase
    .. autoattribute:: quote
+   .. autoattribute:: result_uri
+   .. autoattribute:: result_uris
+   .. autoattribute:: url
 
    
    
@@ -73,11 +80,12 @@ AsyncTAPJob
    
    .. automethod:: abort
    .. automethod:: delete
+   .. automethod:: execute
    .. automethod:: execute_stream
    .. automethod:: fetch
    .. automethod:: getqueryurl
    .. automethod:: raise_if_error
-   .. automethod:: start
+   .. automethod:: run
    .. automethod:: submit
    .. automethod:: wait
 

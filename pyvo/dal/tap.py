@@ -182,8 +182,8 @@ class TAPService(query.DALService):
 
         Parameters
         ----------
-        query : str, dict
-            The query string / parameters
+        query : str
+            The query
         language : str
             specifies the query language, default ADQL.
             useful for services which allow to use the backend query language.
@@ -397,7 +397,7 @@ class AsyncTAPJob(TAPQuery):
 
     def _update(self):
         """
-        updates job infos
+        updates local job infos with remote values
         """
         url = self.getqueryurl()
 
@@ -408,9 +408,13 @@ class AsyncTAPJob(TAPQuery):
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
         self._job.update(uws.parse_job(r.raw))
+        pass
 
     @property
     def job(self):
+        """
+        all up-to-date uws job infos as dictionary
+        """
         #keep it up to date
         self._update()
         return self._job
@@ -419,6 +423,12 @@ class AsyncTAPJob(TAPQuery):
         if getattr(self, "_job", None) is not None and "jobId" in self._job:
             return '{0}/async/{1}'.format(self._baseurl, self._job["jobId"])
         return '{}/async'.format(self._baseurl)
+
+    @property
+    def url(self):
+        if getattr(self, "_job", None) is not None and "jobId" in self._job:
+            return '{0}/async/{1}'.format(self._baseurl, self._job["jobId"])
+        return None
 
     @property
     def jobId(self):
@@ -430,7 +440,7 @@ class AsyncTAPJob(TAPQuery):
     @property
     def phase(self):
         """
-        the current query phase. One of
+        the current query phase
         """
         self._update()
         return self._job["phase"]
@@ -438,7 +448,7 @@ class AsyncTAPJob(TAPQuery):
     @property
     def execution_duration(self):
         """
-        maximum execution duration. Changeable
+        maximum execution duration. read-write
         """
         self._update()
         return self._job["executionDuration"]
@@ -446,7 +456,7 @@ class AsyncTAPJob(TAPQuery):
     @execution_duration.setter
     def execution_duration(self, value):
         """
-        maximum execution duration. Changeable
+        maximum execution duration. read-write
 
         Parameters
         ----------
@@ -468,7 +478,7 @@ class AsyncTAPJob(TAPQuery):
     def destruction(self):
         """
         datetime after which the job results are deleted automatically.
-        Changeable
+        read-write
         """
         self._update()
         return self._job["destruction"]
@@ -477,7 +487,7 @@ class AsyncTAPJob(TAPQuery):
     def destruction(self, value):
         """
         datetime after which the job results are deleted automatically.
-        Changeable
+        read-write
 
         Parameters
         ----------
@@ -518,12 +528,18 @@ class AsyncTAPJob(TAPQuery):
         return self._job["owner"]
 
     @property
-    def results(self):
+    def result_uris(self):
+        """
+        a list of the last result uri's
+        """
         return self._job["results"]
 
     @property
-    def first_result(self):
-        return self.results.values()[0]
+    def result_uri(self):
+        """
+        the first result uri
+        """
+        return self.result_uris.values()[0]
 
     def submit(self):
         """
@@ -567,7 +583,7 @@ class AsyncTAPJob(TAPQuery):
         return self
 
     def wait(self, phases = ["COMPLETED", "ABORTED", "ERROR"], interval = 1,
-        increment = 1.2, giveup_after = None):
+        increment = 1.2, giveup_after = None, timeout = None):
         """
         waits for the job to reach the given phases.
 
@@ -575,11 +591,13 @@ class AsyncTAPJob(TAPQuery):
         ----------
         phases : list
             phases to wait for
-        interval : int
+        interval : float
             poll interval in seconds. defaults to 1
         increment : float
             poll interval increments. defaults to 1.2
         giveup_after : int
+            raise an :py:class`~pyvo.dal.query.DALServiceError` after n tries
+        timeout : float
             raise an :py:class`~pyvo.dal.query.DALServiceError` after n seconds
 
         Raises
@@ -590,6 +608,8 @@ class AsyncTAPJob(TAPQuery):
         attempts = 0
         url = self.getqueryurl()
 
+        start_time = time.time()
+
         while True:
             cur_phase = self.phase
             if cur_phase in phases:
@@ -597,7 +617,10 @@ class AsyncTAPJob(TAPQuery):
             time.sleep(interval)
             interval = min(120, interval * increment)
             attempts += 1
-            if giveup_after and attempts > giveup_after:
+            if any((
+                giveup_after and attempts > giveup_after,
+                timeout and start_time + timeout < time.time() 
+            )):
                 raise DALServiceError(
                     "None of the states in {0} were reached in time.".format(
                     repr(phases)), url, protocol = self.protocol,
@@ -644,7 +667,7 @@ class AsyncTAPJob(TAPQuery):
 
     def execute(self):
         return TAPResults(self.execute_votable(), self.getqueryurl(True),
-            result_uri=self.first_result)
+            result_uri=self.result_uri)
 
     def execute_stream(self):
         """
@@ -698,51 +721,3 @@ class TAPResults(query.DALResults):
     @property
     def result_uri(self):
         return self._result_uri
-
-    def getcolumn(self, name):
-        col = super(TAPResults, self).getcolumn(name)
-        field = self.votable.get_field_by_id_or_name(name)
-        try:
-            #append unit
-            return col * field.unit
-        except (ValueError, TypeError):
-            #return unchanged
-            return col
-
-    def save(self, outfile):
-        """
-        saves the votable to outfile
-
-        Parameters
-        ----------
-        outfile : str
-            destination filename
-        """
-        votf = VOTableFile()
-        table = self.votable
-        resource = Resource()
-
-        resource.tables.append(table)
-        votf.resources.append(resource)
-
-        votf.to_xml(outfile)
-
-    def append_column(self, data, **kwargs):
-        """
-        appends another column to the votable
-        """
-        if "length" not in kwargs:
-            kwargs["length"] = len(data)
-        if "dtype" not in kwargs:
-            kwargs["dtype"] = data.dtype
-
-        ucd = kwargs.pop("ucd", None)
-
-        table = self.votable.to_table()
-
-        table.add_column(Column(data, **kwargs))
-        self._fldnames.append(kwargs["name"])
-
-        self.votable = Table.from_table(self.votable, table)# ???
-
-        self.votable.get_field_by_id_or_name(kwargs["name"]).ucd = ucd

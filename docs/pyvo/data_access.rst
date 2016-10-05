@@ -1131,10 +1131,17 @@ access URL.
 Running queries
 ---------------
 
-To start a query, call the ``run_sync`` :py:class:`~pyvo.dal.tap.TAPService.run_sync` method of the service object:
+To start a query, call the :py:class:`~pyvo.dal.tap.TAPService.run_sync` method of the service object:
 
 >>> query = "SELECT TOP 5 raj2000, dej2000, rv FROM rave.main WHERE rv BETWEEN 40 AND 70"
 >>> result = service.run_sync(query)
+
+.. note::
+  Many services set a low default value for the MAXREC parameter. You can
+  override it with:
+
+  >>> result = service.run_sync(query, maxrec=1000000)
+
 >>> for row in result:
 ...   print("{0} {1} {2}".format(row["raj2000"], row["dej2000"], row["rv"]))
 ...
@@ -1164,7 +1171,7 @@ This is useful for running time-consuming queries and/or via unstable
 Internet connections. It also allows to retrieve the query result from an uri,
 which is handy for crossmatches etc.
 
-From the caller's perspective, they are nearly the same as synchronous queries,
+They have nearly the same functionality as synchronous queries,
 except that they return a :py:class:`~pyvo.dal.tap.AsyncTAPJob` object instead
 of a result.
 
@@ -1176,8 +1183,8 @@ PENDING
 
 ..
   note::
-        use :py:class:`~pyvo.dal.tap.TAPService.run_async` instead, if you
-        don't want to start the job manually (return the result object directly)
+        if you want to get the result directly, run
+        :py:class:`~pyvo.dal.tap.TAPService.run_async` instead.
 
 In the typical case, one simply calls the :py:class:`~pyvo.dal.tap.AsyncTAPJob.wait`
 method.  This will block until the remote job has finished (by
@@ -1187,7 +1194,7 @@ check that by calling :py:class:`~pyvo.dal.tap.AsyncTAPJob.raise_if_error`),
 the job's result can be retrieved by calling
 :py:class:`~pyvo.dal.tap.AsyncTAPJob.fetch`:
 
->>> job.wait()
+>>> job.start().wait()
 >>> job.raise_if_error()
 >>> result = job.fetch()
 >>> for row in result:
@@ -1198,6 +1205,10 @@ the job's result can be retrieved by calling
 53.863 -15.60930556 40.0
 58.36320833 -2.98438889 40.0
 164.00508333 -26.09277778 40.0
+
+.. note::
+  call  :py:class:`~pyvo.dal.tap.AsyncTAPJob.result_uri` to obtain the uri under
+  which the result is available
 
 Here is a list of the relevant attributes and methods of AsyncTAPJob:
 
