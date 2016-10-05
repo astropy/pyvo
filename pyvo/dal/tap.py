@@ -408,6 +408,7 @@ class AsyncTAPJob(TAPQuery):
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
         self._job.update(uws.parse_job(r.raw))
+        pass
 
     @property
     def job(self):
@@ -419,6 +420,12 @@ class AsyncTAPJob(TAPQuery):
         if getattr(self, "_job", None) is not None and "jobId" in self._job:
             return '{0}/async/{1}'.format(self._baseurl, self._job["jobId"])
         return '{}/async'.format(self._baseurl)
+
+    @property
+    def url(self):
+        if getattr(self, "_job", None) is not None and "jobId" in self._job:
+            return '{0}/async/{1}'.format(self._baseurl, self._job["jobId"])
+        return None
 
     @property
     def jobId(self):
