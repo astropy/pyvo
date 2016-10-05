@@ -529,7 +529,7 @@ class AsyncTAPJob(TAPQuery):
         """
         the first result uri
         """
-        return self.results.values()[0]
+        return self.result_uris.values()[0]
 
     def submit(self):
         """
@@ -657,7 +657,7 @@ class AsyncTAPJob(TAPQuery):
 
     def execute(self):
         return TAPResults(self.execute_votable(), self.getqueryurl(True),
-            result_uri=self.first_result)
+            result_uri=self.result_uri)
 
     def execute_stream(self):
         """
