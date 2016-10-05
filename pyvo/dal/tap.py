@@ -397,7 +397,7 @@ class AsyncTAPJob(TAPQuery):
 
     def _update(self):
         """
-        updates job infos
+        updates local job infos with remote values
         """
         url = self.getqueryurl()
 
@@ -412,6 +412,9 @@ class AsyncTAPJob(TAPQuery):
 
     @property
     def job(self):
+        """
+        all up-to-date uws job infos as dictionary
+        """
         #keep it up to date
         self._update()
         return self._job
@@ -437,7 +440,7 @@ class AsyncTAPJob(TAPQuery):
     @property
     def phase(self):
         """
-        the current query phase. One of
+        the current query phase
         """
         self._update()
         return self._job["phase"]
@@ -445,7 +448,7 @@ class AsyncTAPJob(TAPQuery):
     @property
     def execution_duration(self):
         """
-        maximum execution duration. Changeable
+        maximum execution duration. read-write
         """
         self._update()
         return self._job["executionDuration"]
@@ -453,7 +456,7 @@ class AsyncTAPJob(TAPQuery):
     @execution_duration.setter
     def execution_duration(self, value):
         """
-        maximum execution duration. Changeable
+        maximum execution duration. read-write
 
         Parameters
         ----------
@@ -475,7 +478,7 @@ class AsyncTAPJob(TAPQuery):
     def destruction(self):
         """
         datetime after which the job results are deleted automatically.
-        Changeable
+        read-write
         """
         self._update()
         return self._job["destruction"]
@@ -484,7 +487,7 @@ class AsyncTAPJob(TAPQuery):
     def destruction(self, value):
         """
         datetime after which the job results are deleted automatically.
-        Changeable
+        read-write
 
         Parameters
         ----------
