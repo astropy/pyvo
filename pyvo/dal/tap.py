@@ -573,7 +573,7 @@ class AsyncTAPJob(TAPQuery):
         return self
 
     def wait(self, phases = ["COMPLETED", "ABORTED", "ERROR"], interval = 1,
-        increment = 1.2, giveup_after = None):
+        increment = 1.2, giveup_after = None, timeout = None):
         """
         waits for the job to reach the given phases.
 
@@ -581,11 +581,13 @@ class AsyncTAPJob(TAPQuery):
         ----------
         phases : list
             phases to wait for
-        interval : int
+        interval : inttimeouttimeout
             poll interval in seconds. defaults to 1
         increment : float
             poll interval increments. defaults to 1.2
-        giveup_after : int
+        giveup_after : float
+            raise an :py:class`~pyvo.dal.query.DALServiceError` after n tries
+        timeout : float
             raise an :py:class`~pyvo.dal.query.DALServiceError` after n seconds
 
         Raises
@@ -596,6 +598,8 @@ class AsyncTAPJob(TAPQuery):
         attempts = 0
         url = self.getqueryurl()
 
+        start_time = time.time()
+
         while True:
             cur_phase = self.phase
             if cur_phase in phases:
@@ -603,7 +607,10 @@ class AsyncTAPJob(TAPQuery):
             time.sleep(interval)
             interval = min(120, interval * increment)
             attempts += 1
-            if giveup_after and attempts > giveup_after:
+            if any((
+                giveup_after and attempts > float(giveup_after),
+                timeout and start_time + float(timeout) < time.time() 
+            )):
                 raise DALServiceError(
                     "None of the states in {0} were reached in time.".format(
                     repr(phases)), url, protocol = self.protocol,
