@@ -721,13 +721,3 @@ class TAPResults(query.DALResults):
     @property
     def result_uri(self):
         return self._result_uri
-
-    def getcolumn(self, name):
-        col = super(TAPResults, self).getcolumn(name)
-        field = self.votable.get_field_by_id_or_name(name)
-        try:
-            #append unit
-            return col * field.unit
-        except (ValueError, TypeError):
-            #return unchanged
-            return col
