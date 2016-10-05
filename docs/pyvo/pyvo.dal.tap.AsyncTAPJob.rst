@@ -26,6 +26,7 @@ AsyncTAPJob
       ~AsyncTAPJob.quote
       ~AsyncTAPJob.result_uri
       ~AsyncTAPJob.result_uris
+      ~AsyncTAPJob.url
 
    
    
@@ -66,6 +67,7 @@ AsyncTAPJob
    .. autoattribute:: quote
    .. autoattribute:: result_uri
    .. autoattribute:: result_uris
+   .. autoattribute:: url
 
    
    
