@@ -89,7 +89,7 @@ class TAPService(query.DALService):
         baseurl :  str
            the base URL that should be used for forming queries to the service.
         """
-        super(TAPService, self).__init__(baseurl, "tap", "1.0")
+        super(TAPService, self).__init__(baseurl, "TAP", "1.0")
 
     @property
     def availability(self):
@@ -245,10 +245,10 @@ class TAPService(query.DALService):
         --------
         AsyncTAPJob
         """
-        q = AsyncTAPJob.create(self.baseurl, query, language, maxrec, uploads)
-        q = q.run().wait()
-        q.raise_if_error()
-        return q.fetch()
+        job = AsyncTAPJob.create(self.baseurl, query, language, maxrec, uploads)
+        job = job.run().wait()
+        job.raise_if_error()
+        return job.fetch()
 
     def submit_job(self, query, language = "ADQL", maxrec = None,
         uploads = None):
@@ -281,9 +281,29 @@ class TAPService(query.DALService):
             uploads)
 
 
-class BaseTAPQuery(query.DALQuery):
-    def _init_params(self, query, language="ADQL", maxrec=None, uploads=None):
+class TAPQuery(query.DALQuery):
+    def __init__(self, baseurl, query, mode="sync", language="ADQL", maxrec = None,
+        uploads = None):
+        """
+        initialize the query object with the given parameters
+
+        Parameters
+        ----------
+        baseurl : str
+            the TAP baseurl
+        version : str
+            the version string
+        language : str
+            the query language. defaults to ADQL
+        maxrec : int
+            the amount of records to fetch
+        uploads : dict
+            Files to upload. Uses table name as key and file name as value
+        """
+        super(TAPQuery, self).__init__(baseurl, "TAP", "1.0")
+
         self._query = query
+        self._mode = mode if mode in ("sync", "async") else "sync"
         self._language = language
         self._uploads = uploads or {}
         self._uploads = {k: _fix_upload(v) for k, v in self._uploads.items()}
@@ -307,43 +327,8 @@ class BaseTAPQuery(query.DALQuery):
                 ) for k, v in self._uploads.items()])
             self.setparam("UPLOAD", upload_param)
 
-    def _submit(self):
-        """
-        does the actual request
-        """
-        url = self.getqueryurl()
-
-        files = {k: _fileobj(v[1]) for k, v in filter(
-            lambda x: x[1][0] == 'inline', self._uploads.items())}
-
-        r = requests.post(url, params = self._param, stream = True,
-            files = files)
-        return r
-
-class TAPQuery(BaseTAPQuery):
-    def __init__(self, baseurl, query, language="ADQL", maxrec = None,
-        uploads = None):
-        """
-        initialize the query object with the given parameters
-
-        Parameters
-        ----------
-        baseurl : str
-            the TAP baseurl
-        version : str
-            the version string
-        language : str
-            the query language. defaults to ADQL
-        maxrec : int
-            the amount of records to fetch
-        uploads : dict
-            Files to upload. Uses table name as key and file name as value
-        """
-        super(TAPQuery, self).__init__(baseurl, "tap", "1.0")
-        self._init_params(maxrec, uploads)
-
     def getqueryurl(self, lax = False):
-        return '{}/sync'.format(self.baseurl)
+        return '{0}/{1}'.format(self.baseurl, self._mode)
 
     def execute(self):
         """
@@ -373,15 +358,33 @@ class TAPQuery(BaseTAPQuery):
         DALQueryError
            for errors in the input query syntax
         """
+        if self._mode != "sync":
+            raise DALServiceError(
+                "Cannot execute a non-synchronous query."
+                " Use `AsyncTAPJob.create` instead")
+
         url = self.getqueryurl()
 
         try:
-            return self._submit().raw
+            return self.submit().raw
         except IOError as ex:
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
 
-class AsyncTAPJob(BaseTAPQuery):
+    def submit(self):
+        """
+        does the actual request
+        """
+        url = self.getqueryurl()
+
+        files = {k: _fileobj(v[1]) for k, v in filter(
+            lambda x: x[1][0] == 'inline', self._uploads.items())}
+
+        r = requests.post(url, params = self._param, stream = True,
+            files = files)
+        return r
+
+class AsyncTAPJob(object):
     _job = {}
  
     @classmethod
@@ -404,34 +407,34 @@ class AsyncTAPJob(BaseTAPQuery):
         uploads : dict
             a mapping from table names to file like objects containing a votable
         """
-        job = cls(baseurl)
-        job._init_params(query, language=language, maxrec=maxrec,
+        query = TAPQuery(
+            baseurl, query, mode="async", language=language, maxrec=maxrec,
             uploads=uploads)
-        return job.submit()
+        response = query.submit()
+        job = cls(response.url)
+        return job
 
-    def __init__(self, joburl):
+    def __init__(self, url):
         """
         initialize the query object with the given parameters
 
         Parameters
         ----------
-        joburl : str
+        url : str
             the job url
         """
-        self._baseurl = joburl
+        self._url = url
         self._update()
 
     def _update(self):
         """
         updates local job infos with remote values
         """
-        url = self.getqueryurl()
-
         try:
-            r = requests.get(url, stream = True)
+            r = requests.get(self.url, stream = True)
             r.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            raise DALServiceError.from_except(ex, url, self.protocol,
+            raise DALServiceError.from_except(ex, self.url, self.protocol,
                 self.version)
         self._job.update(uws.parse_job(r.raw))
         pass
@@ -445,14 +448,12 @@ class AsyncTAPJob(BaseTAPQuery):
         self._update()
         return self._job
 
-    def getqueryurl(self, lax = False):
-        return self.baseurl
-
     @property
     def url(self):
-        if getattr(self, "_job", None) is not None and "jobId" in self._job:
-            return '{0}/async/{1}'.format(self.baseurl, self._job["jobId"])
-        return None
+        """
+        the job url
+        """
+        return self._url
 
     @property
     def jobId(self):
@@ -487,15 +488,12 @@ class AsyncTAPJob(BaseTAPQuery):
         value : int
             seconds after the query execution is aborted
         """
-        url = self.getqueryurl()
-
         try:
-            r = requests.post("{}/executionduration".format(url),
+            r = requests.post("{}/executionduration".format(self.url),
                 params = {"EXECUTIONDURATION": str(value)})
             r.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            raise DALServiceError.from_except(ex, url, self.protocol,
-                self.version)
+            raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
         self._job["executionDuration"] = value
 
     @property
@@ -524,15 +522,12 @@ class AsyncTAPJob(BaseTAPQuery):
         except:
             pass
 
-        url = self.getqueryurl()
-
         try:
-            r = requests.post("{}/destruction".format(url),
+            r = requests.post("{}/destruction".format(self.url),
                 params = {"DESTRUCTION": value.strftime("%Y-%m-%dT%H:%M:%SZ")})
             r.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            raise DALServiceError.from_except(ex, url, self.protocol,
-                self.version)
+            raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
         self._job["destruction"] = value
 
     @property
@@ -563,31 +558,21 @@ class AsyncTAPJob(BaseTAPQuery):
         """
         the first result uri
         """
-        return self.result_uris.values()[0]
-
-    def submit(self):
-        """
-        submits the job to the server.
-        """
-        r = self._submit()
-        self.baseurl = r.url
-        self._job = uws.parse_job(r.raw)
-
-        return self
+        try:
+            return iter(self.result_uris.values()).next()
+        except StopIteration:
+            return None
 
     def run(self):
         """
         starts the job / change phase to RUN
         """
-        url = self.getqueryurl()
-
         try:
-            r = requests.post('{}/phase'.format(self.getqueryurl()),
+            r = requests.post('{}/phase'.format(self.url),
                 params = {"PHASE": "RUN"})
             r.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            raise DALServiceError.from_except(ex, url, self.protocol,
-                self.version)
+            raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
 
         return self
 
@@ -595,14 +580,12 @@ class AsyncTAPJob(BaseTAPQuery):
         """
         aborts the job / change phase to ABORT
         """
-        url = self.getqueryurl()
-
         try:
-            r = requests.post('{}/phase'.format(self.getqueryurl()),
+            r = requests.post('{}/phase'.format(self.url),
                 params = {"PHASE": "ABORT"})
             r.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            raise DALServiceError.from_except(ex, url, self.protocol,
+            raise DALServiceError.from_except(ex, self.url, self.protocol,
                 self.version)
 
         return self
@@ -631,8 +614,6 @@ class AsyncTAPJob(BaseTAPQuery):
             if the timeout is exceeded
         """
         attempts = 0
-        url = self.getqueryurl()
-
         start_time = time.time()
 
         while True:
@@ -648,9 +629,7 @@ class AsyncTAPJob(BaseTAPQuery):
             )):
                 raise DALServiceError(
                     "None of the states in {0} were reached in time.".format(
-                    repr(phases)), url, protocol = self.protocol,
-                    version = self.version
-                )
+                    repr(phases)), self.url, "TAP", "1.0")
 
         return self
 
@@ -658,13 +637,11 @@ class AsyncTAPJob(BaseTAPQuery):
         """
         deletes the job. this object will become invalid.
         """
-        url = self.getqueryurl()
         try:
-            r = requests.post(url, params = {"ACTION": "DELETE"})
+            r = requests.post(self.url, params = {"ACTION": "DELETE"})
             r.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            raise DALServiceError.from_except(ex, url, self.protocol,
-                self.version)
+            raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
 
     def raise_if_error(self):
         """
@@ -675,12 +652,10 @@ class AsyncTAPJob(BaseTAPQuery):
         DALQueryError
             if theres an error
         """
-        phase = self.phase
-        url = self.getqueryurl()
-
-        if phase in ["ERROR", "ABORTED"]:
-            raise DALQueryError(self._job.get("message", "Query was aborted."),
-                phase, url, self.protocol, self.version)
+        if self.phase in ["ERROR", "ABORTED"]:
+            raise DALQueryError(
+                self._job.get("message", "Query was aborted."),
+                self.phase, self.url, "TAP", "1.0")
 
     def fetch(self):
         """
@@ -688,47 +663,19 @@ class AsyncTAPJob(BaseTAPQuery):
         (fetching the votable), but doesnt fit logically (the query is already
         executed at this point)
         """
-        return self.execute()
-
-    def execute(self):
-        return TAPResults(self.execute_votable(), self.getqueryurl(True),
-            result_uri=self.result_uri)
-
-    def execute_stream(self):
-        """
-        get the result and return the raw VOTable XML as a file stream
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError
-           for errors in the input query syntax
-        """
-        url = '{0}/results/result'.format(self.getqueryurl())
-
-        if self.phase != "COMPLETED":
-            raise DALServiceError(
-                "Can not get the result because the query isn't completed.")
-
         try:
-            r = requests.get(url, stream = True)
-            r.raise_for_status()
-            return r.raw
+            response = requests.get(self.result_uri, stream = True)
+            response.raise_for_status()
         except IOError as ex:
             self._update()
-
             # we propably got a 404 because query error. raise with error msg
             self.raise_if_error()
-            raise DALServiceError.from_except(ex, url, self.protocol,
-                self.version)
+            raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
+
+        return TAPResults(
+            query._votableparse(response.raw.read), self.result_uri, "TAP", "1.0")
 
 class TAPResults(query.DALResults):
-    def __init__(self, votable, url=None, protocol="TAP", version="1.0",
-        result_uri=None):
-        super(TAPResults, self).__init__(votable, url, protocol, version)
-        self._result_uri = result_uri
-
     @property
     def infos(self):
         """
@@ -742,7 +689,3 @@ class TAPResults(query.DALResults):
         return the query status
         """
         return getattr(self, "_infos", {}).get("QUERY_STATUS", None)
-
-    @property
-    def result_uri(self):
-        return self._result_uri
