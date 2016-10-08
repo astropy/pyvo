@@ -17,6 +17,25 @@ from ..tools import vosi, uws
 
 __all__ = ["TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
 
+def _fix_upload(upload):
+    if type(upload) is not tuple:
+        upload = ('uri', upload)
+    if type(upload[1]) == TAPResults:
+        upload = ('uri', upload[1].result_uri)
+    return upload
+
+def _fileobj(s):
+    if type(s) == astropy.table.table.Table:
+        from cStringIO import StringIO
+        f = StringIO()
+        s.write(output = f, format = "votable")
+        f.seek(0)
+        return f
+    try:
+        s = open(s)
+    finally:
+        return s
+
 def search(url, query, language = "ADQL", maxrec = None, uploads = None):
     """
     submit a Table Access query that returns rows matching the criteria given.
@@ -61,7 +80,7 @@ class TAPService(query.DALService):
     _capabilities = None
     _tables = None
 
-    def __init__(self, baseurl, resmeta = None):
+    def __init__(self, baseurl):
         """
         instantiate a Tablee Access Protocol service
 
@@ -70,7 +89,7 @@ class TAPService(query.DALService):
         baseurl :  str
            the base URL that should be used for forming queries to the service.
         """
-        super(TAPService, self).__init__(baseurl, "tap", "1.0", resmeta)
+        super(TAPService, self).__init__(baseurl, "tap", "1.0")
 
     @property
     def availability(self):
@@ -82,7 +101,7 @@ class TAPService(query.DALService):
         """
         if self._availability == (None, None):
             r = requests.get(
-                '{0}/availability'.format(self._baseurl), stream = True)
+                '{0}/availability'.format(self.baseurl), stream = True)
             self._availability = vosi.parse_availability(r.raw)
         return self._availability
 
@@ -110,7 +129,7 @@ class TAPService(query.DALService):
         """
         if self._capabilities is None:
             r = requests.get(
-                '{0}/capabilities'.format(self._baseurl), stream = True)
+                '{0}/capabilities'.format(self.baseurl), stream = True)
             self._capabilities = vosi.parse_capabilities(r.raw)
         return self._capabilities
 
@@ -120,7 +139,7 @@ class TAPService(query.DALService):
         returns tables as a flat OrderedDict
         """
         if self._tables is None:
-            r = requests.get('{0}/tables'.format(self._baseurl), stream = True)
+            r = requests.get('{0}/tables'.format(self.baseurl), stream = True)
             self._tables = vosi.parse_tables(r.raw)
         return self._tables
 
@@ -160,22 +179,6 @@ class TAPService(query.DALService):
             pass
         raise DALServiceError("Hard limit not exposed by the service")
 
-    def _run(self, q, query):
-        """
-        sets query parameters
-        """
-        q.setparam("REQUEST", "doQuery")
-        q.setparam("LANG", q._language)
-
-        if isinstance(q, dict):
-            for k, v in query:
-                q.setparam(k.upper(), v)
-        else:
-            q.setparam("QUERY", query)
-
-        if q._maxrec:
-            q.setparam("MAXREC", q._maxrec)
-
     def run_sync(self, query, language = "ADQL", maxrec = None, uploads = None):
         """
         runs sync query and returns its result
@@ -201,23 +204,13 @@ class TAPService(query.DALService):
         --------
         TAPResults
         """
-        q = TAPQuery(self._baseurl, self._version, language, maxrec, uploads)
-        self._run(q, query)
-
+        q = TAPQuery(self.baseurl, query, language, maxrec, uploads)
         return q.execute()
 
     #alias for service discovery
     search = run_sync
 
-    def _run_async(self, query, language = "ADQL", maxrec = None,
-        uploads = None):
-        q = AsyncTAPJob(self._baseurl, self._version, language, maxrec,
-            uploads)
-        self._run(q, query)
-        return q
-
-    def run_async(self, query, language = "ADQL", maxrec = None,
-        uploads = None):
+    def run_async(self, query, language="ADQL", maxrec=None, uploads=None):
         """
         runs async query and returns its result
 
@@ -235,7 +228,7 @@ class TAPService(query.DALService):
 
         Returns
         -------
-        AsyncTAPJob
+        TAPResult
             the query instance
 
         Raises
@@ -252,8 +245,8 @@ class TAPService(query.DALService):
         --------
         AsyncTAPJob
         """
-        q = self._run_async(query, language, maxrec, uploads)
-        q = q.submit().run().wait()
+        q = AsyncTAPJob.create(self.baseurl, query, language, maxrec, uploads)
+        q = q.run().wait()
         q.raise_if_error()
         return q.fetch()
 
@@ -265,7 +258,7 @@ class TAPService(query.DALService):
 
         Parameters
         ----------
-        query : str, dict
+        query : str
             the query string / parameters
         language : str
             specifies the query language, default ADQL.
@@ -284,10 +277,51 @@ class TAPService(query.DALService):
         --------
         AsyncTAPJob
         """
-        return self._run_async(query, language, maxrec, uploads).submit()
+        return AsyncTAPJob.create(self.baseurl, query, language, maxrec,
+            uploads)
 
-class TAPQuery(query.DALQuery):
-    def __init__(self, baseurl, version="1.0", language = "ADQL", maxrec = None,
+
+class BaseTAPQuery(query.DALQuery):
+    def _init_params(self, query, language="ADQL", maxrec=None, uploads=None):
+        self._query = query
+        self._language = language
+        self._uploads = uploads or {}
+        self._uploads = {k: _fix_upload(v) for k, v in self._uploads.items()}
+        self._maxrec = maxrec
+
+        self.setparam("REQUEST", "doQuery")
+        self.setparam("LANG", language)
+
+        if isinstance(query, dict):
+            for k, v in query:
+                self.setparam(k.upper(), v)
+        elif query:
+            self.setparam("QUERY", query)
+
+        if self._uploads:
+            upload_param = ';'.join(
+                ['{0},{1}{2}'.format(
+                    k,
+                    'param:' if v[0] == 'inline' else '',
+                    v[1] if v[0] == 'uri' else k
+                ) for k, v in self._uploads.items()])
+            self.setparam("UPLOAD", upload_param)
+
+    def _submit(self):
+        """
+        does the actual request
+        """
+        url = self.getqueryurl()
+
+        files = {k: _fileobj(v[1]) for k, v in filter(
+            lambda x: x[1][0] == 'inline', self._uploads.items())}
+
+        r = requests.post(url, params = self._param, stream = True,
+            files = files)
+        return r
+
+class TAPQuery(BaseTAPQuery):
+    def __init__(self, baseurl, query, language="ADQL", maxrec = None,
         uploads = None):
         """
         initialize the query object with the given parameters
@@ -305,56 +339,11 @@ class TAPQuery(query.DALQuery):
         uploads : dict
             Files to upload. Uses table name as key and file name as value
         """
-        def fix_upload(upload):
-            if type(upload) is not tuple:
-                upload = ('uri', upload)
-            if type(upload[1]) == TAPResults:
-                upload = ('uri', upload[1].result_uri)
-            return upload
-
-        self._language = language
-        self._uploads = uploads or {}
-        self._uploads = {k: fix_upload(v) for k, v in self._uploads.items()}
-        self._maxrec = maxrec
-
-        super(TAPQuery, self).__init__(baseurl, "tap", version)
-
-        if self._uploads:
-            upload_param = ';'.join(
-                ['{0},{1}{2}'.format(
-                    k,
-                    'param:' if v[0] == 'inline' else '',
-                    v[1] if v[0] == 'uri' else k
-                ) for k, v in self._uploads.items()])
-            self.setparam("UPLOAD", upload_param)
+        super(TAPQuery, self).__init__(baseurl, "tap", "1.0")
+        self._init_params(maxrec, uploads)
 
     def getqueryurl(self, lax = False):
-        return '{}/sync'.format(self._baseurl)
-
-    def _submit(self):
-        """
-        does the actual request
-        """
-        url = self.getqueryurl()
-
-        def _fileobj(s):
-            if type(s) == astropy.table.table.Table:
-                from cStringIO import StringIO
-                f = StringIO()
-                s.write(output = f, format = "votable")
-                f.seek(0)
-                return f
-            try:
-                s = open(s)
-            finally:
-                return s
-
-        files = {k: _fileobj(v[1]) for k, v in filter(
-            lambda x: x[1][0] == 'inline', self._uploads.items())}
-
-        r = requests.post(url, params = self._param, stream = True,
-            files = files)
-        return r
+        return '{}/sync'.format(self.baseurl)
 
     def execute(self):
         """
@@ -392,8 +381,45 @@ class TAPQuery(query.DALQuery):
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
 
-class AsyncTAPJob(TAPQuery):
+class AsyncTAPJob(BaseTAPQuery):
     _job = {}
+ 
+    @classmethod
+    def create(cls, baseurl, query, language="ADQL", maxrec = None,
+        uploads = None):
+        """
+        creates a async tap job on the server unter `baseurl`
+
+        Parameters
+        ----------
+        baseurl : str
+            the TAP baseurl
+        query : str
+            the query string
+        language : str
+            specifies the query language, default ADQL.
+            useful for services which allow to use the backend query language.
+        maxrec : int
+            specifies the maximum records to return. defaults to the service default
+        uploads : dict
+            a mapping from table names to file like objects containing a votable
+        """
+        job = cls(baseurl)
+        job._init_params(query, language=language, maxrec=maxrec,
+            uploads=uploads)
+        return job.submit()
+
+    def __init__(self, joburl):
+        """
+        initialize the query object with the given parameters
+
+        Parameters
+        ----------
+        joburl : str
+            the job url
+        """
+        self._baseurl = joburl
+        self._update()
 
     def _update(self):
         """
@@ -420,14 +446,12 @@ class AsyncTAPJob(TAPQuery):
         return self._job
 
     def getqueryurl(self, lax = False):
-        if getattr(self, "_job", None) is not None and "jobId" in self._job:
-            return '{0}/async/{1}'.format(self._baseurl, self._job["jobId"])
-        return '{}/async'.format(self._baseurl)
+        return self.baseurl
 
     @property
     def url(self):
         if getattr(self, "_job", None) is not None and "jobId" in self._job:
-            return '{0}/async/{1}'.format(self._baseurl, self._job["jobId"])
+            return '{0}/async/{1}'.format(self.baseurl, self._job["jobId"])
         return None
 
     @property
@@ -546,6 +570,7 @@ class AsyncTAPJob(TAPQuery):
         submits the job to the server.
         """
         r = self._submit()
+        self.baseurl = r.url
         self._job = uws.parse_job(r.raw)
 
         return self
