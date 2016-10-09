@@ -36,7 +36,7 @@ def _fileobj(s):
     finally:
         return s
 
-def search(url, query, language = "ADQL", maxrec = None, uploads = None):
+def search(url, query, language="ADQL", maxrec=None, uploads=None):
     """
     submit a Table Access query that returns rows matching the criteria given.
 
@@ -179,7 +179,7 @@ class TAPService(query.DALService):
             pass
         raise DALServiceError("Hard limit not exposed by the service")
 
-    def run_sync(self, query, language = "ADQL", maxrec = None, uploads = None):
+    def run_sync(self, query, language="ADQL", maxrec=None, uploads=None):
         """
         runs sync query and returns its result
 
@@ -204,7 +204,9 @@ class TAPService(query.DALService):
         --------
         TAPResults
         """
-        q = TAPQuery(self.baseurl, query, language, maxrec, uploads)
+        q = TAPQuery(
+            self.baseurl, query, language=language, maxrec=maxrec,
+            uploads=uploads)
         return q.execute()
 
     #alias for service discovery
@@ -248,10 +250,11 @@ class TAPService(query.DALService):
         job = AsyncTAPJob.create(self.baseurl, query, language, maxrec, uploads)
         job = job.run().wait()
         job.raise_if_error()
-        return job.fetch()
+        result = job.fetch()
 
-    def submit_job(self, query, language = "ADQL", maxrec = None,
-        uploads = None):
+        return result
+
+    def submit_job(self, query, language="ADQL", maxrec=None, uploads=None):
         """
         submit a async query without starting it and returns a AsyncTAPJob
         object
@@ -282,8 +285,8 @@ class TAPService(query.DALService):
 
 
 class TAPQuery(query.DALQuery):
-    def __init__(self, baseurl, query, mode="sync", language="ADQL", maxrec = None,
-        uploads = None):
+    def __init__(self, baseurl, query, mode="sync", language="ADQL",
+        maxrec=None, uploads = None):
         """
         initialize the query object with the given parameters
 
@@ -590,8 +593,9 @@ class AsyncTAPJob(object):
 
         return self
 
-    def wait(self, phases = ["COMPLETED", "ABORTED", "ERROR"], interval = 1,
-        increment = 1.2, giveup_after = None, timeout = None):
+    def wait(
+        self, phases={"COMPLETED", "ABORTED", "ERROR"}, interval=1.0,
+        increment=1.2, giveup_after=None, timeout=None):
         """
         waits for the job to reach the given phases.
 
@@ -643,6 +647,8 @@ class AsyncTAPJob(object):
         except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
 
+        self._url = None
+
     def raise_if_error(self):
         """
         raise a exception if theres an error
@@ -659,9 +665,7 @@ class AsyncTAPJob(object):
 
     def fetch(self):
         """
-        This method is an alias for execute, as it is technically the same
-        (fetching the votable), but doesnt fit logically (the query is already
-        executed at this point)
+        returns the result votable if query is finished
         """
         try:
             response = requests.get(self.result_uri, stream = True)
@@ -673,7 +677,8 @@ class AsyncTAPJob(object):
             raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
 
         return TAPResults(
-            query._votableparse(response.raw.read), self.result_uri, "TAP", "1.0")
+            query._votableparse(
+                response.raw.read), self.result_uri, "TAP", "1.0")
 
 class TAPResults(query.DALResults):
     @property
