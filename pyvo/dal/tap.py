@@ -294,8 +294,10 @@ class TAPQuery(query.DALQuery):
         ----------
         baseurl : str
             the TAP baseurl
-        version : str
-            the version string
+        query : str
+            the query string / parameters
+        mode : str
+            the query mode (sync | async). default "sync"
         language : str
             the query language. defaults to ADQL
         maxrec : int
@@ -419,7 +421,7 @@ class AsyncTAPJob(object):
 
     def __init__(self, url):
         """
-        initialize the query object with the given parameters
+        initialize the job object with the given url and fetch the remote values
 
         Parameters
         ----------

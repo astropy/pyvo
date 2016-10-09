@@ -9,6 +9,8 @@ AsyncTAPJob
    :show-inheritance:
 
    
+     
+   
 
    
    
@@ -39,14 +41,11 @@ AsyncTAPJob
    .. autosummary::
    
       ~AsyncTAPJob.abort
+      ~AsyncTAPJob.create
       ~AsyncTAPJob.delete
-      ~AsyncTAPJob.execute
-      ~AsyncTAPJob.execute_stream
       ~AsyncTAPJob.fetch
-      ~AsyncTAPJob.getqueryurl
       ~AsyncTAPJob.raise_if_error
       ~AsyncTAPJob.run
-      ~AsyncTAPJob.submit
       ~AsyncTAPJob.wait
 
    
@@ -79,14 +78,11 @@ AsyncTAPJob
 
    
    .. automethod:: abort
+   .. automethod:: create
    .. automethod:: delete
-   .. automethod:: execute
-   .. automethod:: execute_stream
    .. automethod:: fetch
-   .. automethod:: getqueryurl
    .. automethod:: raise_if_error
    .. automethod:: run
-   .. automethod:: submit
    .. automethod:: wait
 
    

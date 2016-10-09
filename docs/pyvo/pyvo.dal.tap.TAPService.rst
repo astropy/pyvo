@@ -19,7 +19,13 @@ TAPService
 
    .. autosummary::
    
+      ~TAPService.availability
+      ~TAPService.available
       ~TAPService.capabilities
+      ~TAPService.hardlimit
+      ~TAPService.maxrec
+      ~TAPService.tables
+      ~TAPService.up_since
 
    
    
@@ -31,10 +37,10 @@ TAPService
 
    .. autosummary::
    
-      ~TAPService.hardlimit
-      ~TAPService.maxrec
       ~TAPService.run_async
       ~TAPService.run_sync
+      ~TAPService.search
+      ~TAPService.submit_job
 
    
    
@@ -45,7 +51,13 @@ TAPService
    .. rubric:: Attributes Documentation
 
    
+   .. autoattribute:: availability
+   .. autoattribute:: available
    .. autoattribute:: capabilities
+   .. autoattribute:: hardlimit
+   .. autoattribute:: maxrec
+   .. autoattribute:: tables
+   .. autoattribute:: up_since
 
    
    
@@ -56,10 +68,10 @@ TAPService
    .. rubric:: Methods Documentation
 
    
-   .. automethod:: hardlimit
-   .. automethod:: maxrec
    .. automethod:: run_async
    .. automethod:: run_sync
+   .. automethod:: search
+   .. automethod:: submit_job
 
    
    
