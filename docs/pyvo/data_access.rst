@@ -1225,7 +1225,6 @@ Here is a list of the relevant attributes and methods of AsyncTAPJob:
    ~pyvo.dal.tap.AsyncTAPJob.destruction
    ~pyvo.dal.tap.AsyncTAPJob.quote
    ~pyvo.dal.tap.AsyncTAPJob.owner
-   ~pyvo.dal.tap.AsyncTAPJob.submit
    ~pyvo.dal.tap.AsyncTAPJob.run
    ~pyvo.dal.tap.AsyncTAPJob.abort
    ~pyvo.dal.tap.AsyncTAPJob.wait
