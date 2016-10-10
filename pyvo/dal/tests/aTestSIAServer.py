@@ -87,7 +87,7 @@ class TestHandler(BaseHTTPRequestHandler):
         if path == "/tap/sync":
             self.send_tap()
         elif path == "/tap/async":
-            self.send_tap_async()
+            self.send_303("/tap/async/3bLj5O")
         elif path == "/tap/async/3bLj5O":
             self.send_tap_async()
         elif path == "/tap/async/3bLj5O/phase":

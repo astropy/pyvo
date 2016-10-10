@@ -439,8 +439,7 @@ class AsyncTAPJob(object):
             r = requests.get(self.url, stream = True)
             r.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            raise DALServiceError.from_except(ex, self.url, self.protocol,
-                self.version)
+            raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
         self._job.update(uws.parse_job(r.raw))
         pass
 
