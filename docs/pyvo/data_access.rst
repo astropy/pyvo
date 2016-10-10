@@ -1118,11 +1118,6 @@ In order to access a TAP service, one needs to build a
 :py:class:`~pyvo.dal.tap.TAPService` object with the TAP service's
 access URL.
 
-.. note::
-          visit http://dc.g-vo.org/wirr/q/ui and click "Quickstart" in the
-          upper left corner for more information about how to find services.
-
-
 >>> import pyvo as vo
 >>> url = "http://dc.g-vo.org/tap"
 >>> service = vo.dal.TAPService(url)
@@ -1181,10 +1176,17 @@ of a result.
 >>> print(job.phase)
 PENDING
 
-..
-  note::
-        if you want to get the result directly, run
-        :py:class:`~pyvo.dal.tap.TAPService.run_async` instead.
+This will create the job on the server, but doesn't start it yet.
+
+>>> job.run()
+
+.. note::
+  You can obtain the job url with :py:class:`~pyvo.dal.tap.AsyncTAPJob.url`.
+  This url can be used to re-attach the job at a later point
+
+  >>> job = vo.dal.AsyncTAPJob(joburl)
+  >>> print(job.phase)
+  RUN
 
 In the typical case, one simply calls the :py:class:`~pyvo.dal.tap.AsyncTAPJob.wait`
 method.  This will block until the remote job has finished (by
@@ -1206,9 +1208,12 @@ the job's result can be retrieved by calling
 58.36320833 -2.98438889 40.0
 164.00508333 -26.09277778 40.0
 
-.. note::
-  call  :py:class:`~pyvo.dal.tap.AsyncTAPJob.result_uri` to obtain the uri under
-  which the result is available
+..
+  note::
+        if you want to get the result directly, run
+        :py:class:`~pyvo.dal.tap.TAPService.run_async` instead.
+
+The result url can be obtained with :py:class:`~pyvo.dal.tap.TAPResults.queryurl`
 
 Here is a list of the relevant attributes and methods of AsyncTAPJob:
 
@@ -1220,7 +1225,6 @@ Here is a list of the relevant attributes and methods of AsyncTAPJob:
    ~pyvo.dal.tap.AsyncTAPJob.destruction
    ~pyvo.dal.tap.AsyncTAPJob.quote
    ~pyvo.dal.tap.AsyncTAPJob.owner
-   ~pyvo.dal.tap.AsyncTAPJob.submit
    ~pyvo.dal.tap.AsyncTAPJob.run
    ~pyvo.dal.tap.AsyncTAPJob.abort
    ~pyvo.dal.tap.AsyncTAPJob.wait

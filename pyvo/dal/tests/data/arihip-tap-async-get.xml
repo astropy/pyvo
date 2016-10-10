@@ -18,6 +18,6 @@
     <uws:parameter id="upload"/>
   </uws:parameters>
   <uws:results>
-    <uws:result id="result" xlink:href="http://localhost/tap/3bLj5O/results/result"/>
+    <uws:result id="result" xlink:href="http://localhost:8084/tap/async/3bLj5O/results/result"/>
   </uws:results>
 </uws:job>

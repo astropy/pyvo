@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.2 http://vo.ari.uni-heidelberg.de/docs/schemata/VOTable-1.2.xsd">
   <RESOURCE type="results">
-    <INFO name="server" value="http://localhost:8080"/>
+    <INFO name="server" value="http://localhost:8084"/>
     <INFO name="query" value="SELECT 1 + 1 AS result FROM arihip.main LIMIT 1"/>
     <INFO name="src_res" value="Contains traces from resource arihip/q"> The catalogue ARIHIP has been constructed by selecting the 'best
 data' for a given star from combinations of HIPPARCOS data with Boss'

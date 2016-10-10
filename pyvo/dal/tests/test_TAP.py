@@ -23,12 +23,10 @@ tapresultfile = os.path.join(os.path.dirname(__file__), "data/arihip-tap.xml")
 errresultfile = "data/error-tap.xml"
 uploadfile = "data/upload-tap.xml"
 testserverport = 8084
-testserverport += 50
-testserverport += random.randint(0,9)
 
 class TAPServiceTest(unittest.TestCase):
 
-    baseurl = "http://localhost/sia"
+    baseurl = "http://localhost/tap"
 
     def testCtor(self):
         self.srv = tap.TAPService(self.baseurl)
@@ -37,7 +35,7 @@ class TAPServiceTest(unittest.TestCase):
         self.testCtor()
 
         self.assertEquals(self.srv.baseurl, self.baseurl)
-        self.assertEquals(self.srv.protocol, "tap")
+        self.assertEquals(self.srv.protocol, "TAP")
         try:
             self.srv.baseurl = "towel"
             self.fail("baseurl not read-only")

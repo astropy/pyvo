@@ -26,6 +26,7 @@ TAPQuery
       ~TAPQuery.execute
       ~TAPQuery.execute_stream
       ~TAPQuery.getqueryurl
+      ~TAPQuery.submit
 
    
    
@@ -43,6 +44,7 @@ TAPQuery
    .. automethod:: execute
    .. automethod:: execute_stream
    .. automethod:: getqueryurl
+   .. automethod:: submit
 
    
    
