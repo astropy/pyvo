@@ -5,7 +5,7 @@ Tests for pyvo.dal.query
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp, glob, tempfile
+import os, sys, shutil, re, imp, glob, tempfile, random, time
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -20,7 +20,8 @@ from . import aTestSIAServer as testserve
 siaresultfile = "data/neat-sia.xml"
 ssaresultfile = "data/jhu-ssa.xml"
 testserverport = 8084
-testserverport += 1
+testserverport += 10
+testserverport += random.randint(0,9)
 
 testserver = None
 
@@ -71,7 +72,8 @@ class DALServiceErrorTest(unittest.TestCase):
     url = "http://localhost/"
 
     def testProperties4(self):
-        c = HTTPError("http://localhost/", self.code, self.msg, None, None)
+        c = HTTPError("http://localhost/", self.code, self.msg, None,
+                      open("/dev/null"))
         e = dalq.DALServiceError(self.msg, self.code, c, self.url)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.cause is c)
@@ -89,7 +91,8 @@ class DALServiceErrorTest(unittest.TestCase):
         self.assert_(e.code is None)
 
     def testProperties3(self):
-        c = HTTPError("http://localhost/", self.code, self.msg, None, None)
+        c = HTTPError("http://localhost/", self.code, self.msg, None,
+                      open("/dev/null"))
         e = dalq.DALServiceError(self.msg, self.code, c)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.cause is c)
@@ -119,7 +122,8 @@ class DALServiceErrorTest(unittest.TestCase):
 
     def testFromExceptHTTP(self):
         url = "http://localhost/"
-        c = HTTPError(url, self.code, self.msg, None, None)
+        c = HTTPError("http://localhost/", self.code, self.msg, None,
+                      open("/dev/null"))
         e = dalq.DALServiceError.from_except(c)
         self.assertEquals(self.msg, e.reason)
         self.assert_(e.cause is c)
@@ -350,6 +354,17 @@ class DALServiceTest(unittest.TestCase):
         self.res = {"title": "Archive", "shortName": "arch"}
         self.srv = dalq.DALService(self.baseurl, "sga", "2.0", self.res)
 
+    def testCtorSimpleResource(self):
+        import pyvo.registry.vao as reg
+        regresultfile = \
+            get_pkg_data_filename("../../registry/tests/data/reg-short.xml")
+        res = dalq.DALResults(votableparse(regresultfile))
+        # import pytest; pytest.set_trace()
+        srv = dalq.DALService(self.baseurl, "sga", "3.0", 
+                              reg.SimpleResource(res, 0))
+        self.assertTrue(len(srv.info.keys()) > 0)
+        self.assertTrue(srv.info.get("title") is not None)
+
     def testProps(self):
         self.testCtor()
         self.assertEquals(self.srv.baseurl, self.baseurl)
@@ -371,17 +386,17 @@ class DALServiceTest(unittest.TestCase):
         except AttributeError:
             pass
 
-        self.assertEquals(self.srv.description["title"], "Archive")
-        self.assertEquals(self.srv.description["shortName"], "arch")
-        self.srv.description["title"] = "Sir"
+        self.assertEquals(self.srv.info["title"], "Archive")
+        self.assertEquals(self.srv.info["shortName"], "arch")
+        self.srv.info["title"] = "Sir"
         self.assertEquals(self.res["title"], "Archive")
 
     def testNoResmeta(self):
         srv = dalq.DALService(self.baseurl)
         self.assertEquals(srv.baseurl, self.baseurl)
-        self.assert_(srv.description is not None)
-        self.assert_(hasattr(srv.description, "get"))
-        self.assertEquals(len(srv.description.keys()), 0)
+        self.assert_(srv.info is not None)
+        self.assert_(hasattr(srv.info, "get"))
+        self.assertEquals(len(srv.info.keys()), 0)
 
     def testCreateQuery(self):
         self.testCtor()
@@ -494,8 +509,9 @@ class QueryExecuteTest(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
-        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr = testserve.get_server(testserverport)
         cls.srvr.start()
+        time.sleep(0.5)
 
     @classmethod
     def teardown_class(cls):
@@ -505,7 +521,7 @@ class QueryExecuteTest(unittest.TestCase):
             print("prob")
 
     def testExecute(self):
-        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         results = q.execute()
@@ -513,7 +529,7 @@ class QueryExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 2)
 
     def testExecuteStream(self):
-        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         strm = q.execute_stream()
@@ -524,7 +540,7 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_(results.startswith(b"<?xml version="))
 
     def testExecuteRaw(self):
-        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         data = q.execute_raw()
@@ -536,26 +552,26 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_(data.startswith(b"<?xml version="))
 
     def testExecuteVotable(self):
-        q = dalq.DALQuery("http://localhost:{0}/sia".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         results = q.execute_votable()
         self.assert_(isinstance(results, VOTableFile))
 
     def testExecuteServiceErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute)
 
     def testExecuteRawServiceErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute_raw)
 
     def testExecuteStreamServiceErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
@@ -570,13 +586,13 @@ class QueryExecuteTest(unittest.TestCase):
 
 
     def testExecuteVotableServiceErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/goob".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute_votable)
 
     def testExecuteRawQueryErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/err".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/err".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         data = q.execute_raw()
@@ -589,7 +605,7 @@ class QueryExecuteTest(unittest.TestCase):
         self.assert_(b'<INFO name="QUERY_STATUS" value="ERR' in data)
 
     def testExecuteQueryErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/err".format(testserverport))
+        q = dalq.DALQuery("http://localhost:{0}/err".format(self.srvr.port))
         q.setparam("foo", "bar")
         # pdb.set_trace()
         try:
@@ -768,8 +784,92 @@ class DatasetNameTest(unittest.TestCase):
         self.assertEquals(os.path.join(self.outdir,self.base+".dat"),
                           self.rec.make_dataset_filename(self.outdir, self.base))
 
+class FormatTest(unittest.TestCase):
 
-__all__ = "DALAccessErrorTest DALServiceErrorTest DALQueryErrorTest RecordTest EnsureBaseURLTest DALServiceTest DALQueryTest QueryExecuteTest CursorTest DatasetNameTest".split()
+    subtests = [ ("d &lt; 10", "d < 10"),
+                 ("t&lt;0",    "t<0"),
+                 ("d &gt; 10", "d > 10"),
+                 ("t&gt;0",    "t>0"),
+                 ("A&amp;P",   "A&P"),
+                 ("A &amp; P", "A & P"),
+                 ("A &amp;amp;P", "A &amp;P"),
+                 ("-30&#176; ", "-30 deg "),
+                 ("-30\deg ", "-30 deg "),
+                 ("I am. <br />", "I am. "),
+                 ("I am; <br/> therefore", "I am;  therefore"),
+                 ("I am;<br> therefore", "I am; therefore"),
+                 ("<p>I am.</p><p>That's", "<p>I am.<p>That's"),
+                 ("goes as $v ~ r$.", "goes as v ~ r."),
+                 ("where $r$ is", "where r is"),
+                 ("$-45\deg$", "-45 deg"),
+                 ("upwards of $1M per month ($10M per", 
+                  "upwards of $1M per month ($10M per")        ]
+
+    splittests = [ "one\n\ntwo", "one<p>two", "one <p/> two", "one\para two" ]
+
+    def test_simple_sub(self):
+        for orig, trx in self.subtests:
+            self.assertEquals(dalq.deref_markup(orig), trx)
+
+    def test_mixed_sub(self):
+        inp = """At t&gt;0, the drop goes as $1/r^2$. <br> This shows"""
+        out = """At t>0, the drop goes as 1/r^2.  This shows"""
+        self.assertEquals(dalq.deref_markup(inp), out);
+
+    def test_fill(self):
+        inp = """
+The quick brown 
+fox jumped over 
+the lazy dogs.
+"""
+        out = """The quick brown fox jumped over the
+lazy dogs."""
+
+        self.assertEquals(dalq.para_format_desc(inp, 38), out)
+
+    def test_para_detect(self):
+        for t in self.splittests:
+            self.assertEquals(dalq.para_format_desc(t), "one\n\ntwo")
+
+
+    def test_para_format(self):
+        inp = """This tests the paragraph formatting functionality that 
+                 will be used to disply resource descriptions.  This is not 
+                 meant for display purpoes only.
+
+                 It must be able to handle to handle multiple paragrasphs.  
+                 The normal delimiter is a pair of consecutive new-line 
+                 charactere, but other markup will be recognized as well,
+                 e.g. "&lt;p&gt;".  <p> Formatting must be succeesful for 
+                 $n$ paragraphs where $n > 1$.  It should even work on $n^2$ 
+                 paragraphs."""
+
+        out = """This tests the paragraph formatting
+functionality that will be used to
+disply resource descriptions.  This is
+not meant for display purpoes only.
+
+It must be able to handle to handle
+multiple paragrasphs. The normal
+delimiter is a pair of consecutive new-
+line charactere, but other markup will
+be recognized as well, e.g. "<p>".
+
+Formatting must be succeesful for n
+paragraphs where n > 1.  It should even
+work on n^2 paragraphs."""
+
+        text = dalq.para_format_desc(inp, 40)
+        if text != out:
+            for i in range(len(text)):
+                if text[i] != out[i]:
+                    print("format different from expected starting with: "+
+                          text[i:])
+                    break
+        self.assertEquals(text, out, "Incorrect formatting.")
+                          
+                 
+__all__ = "DALAccessErrorTest DALServiceErrorTest DALQueryErrorTest RecordTest EnsureBaseURLTest DALServiceTest DALQueryTest QueryExecuteTest CursorTest DatasetNameTest FormatTest".split()
 def suite():
     tests = []
     for t in __all__:
@@ -786,10 +886,11 @@ if __name__ == "__main__":
     except ImportError as e:
         sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
 
-    srvr = testserve.TestServer(testserverport)
+    srvr = testserve.get_server(testserverport)
     try:
         srvr.start()
         unittest.main()
     finally:
         if srvr.isAlive():
             srvr.shutdown()
+

@@ -229,6 +229,29 @@ helpful, as well.  This name is meant to be short--16 characters or
 fewer; consequently, the value is often includes the abbreviation for the
 project or observatory that produced the collection or catalog.  
 
+A selection of the resource metadata, including the title, shortname,
+publisher, and desription, can be printed out in a summary form with
+the :py:meth:`~pyvo.registry.vao.SimpleResource.describe` function.  
+
+.. code-block:: python
+
+   >>> nvss.describe()
+   Image Data Service
+   NVSS
+   Short Name: NVSS [1]
+   Publisher: NASA/GSFC HEASARC
+   IVOA Identifier: ivo://nasa.heasarc/skyview/nvss#1
+   Base URL: http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
+
+   The NRAO VLA Sky Survey is currently underway at the VLA and data is made
+   available to the public as soon as processed. <i> SkyView </i> has copied the
+   ...
+   <http://skyview.gsfc.nasa.gov/images/high_res_radio.jpg>. This map shows
+   coverage on an Aitoff projection of the sky in equatorial coordinates.
+
+   Waveband Coverage: Radio
+
+
 As the examples in this chapter suggest, queries to the registry are
 often done interactively.  You will find the need to review the
 results by eye, to further refine the collections and catalogs that

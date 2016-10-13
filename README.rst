@@ -65,35 +65,23 @@ containing this file.
 EXAMPLES
 ********
 
-The scripts directory contains instructive examples of the use of pyvo.
+Many instructive examples can be found in the PyVO User's Manual
+(http://pyvo.readthedocs.org).  Additional examples can be found in
+the scripts directory.
+
 
 **********
 UNIT TESTS
 **********
 
-The PyVO unit tests have not yet been integrated into the py.test
-framework used by Astropy.  (They currently use the standard unittest
-module.)  Unit tests are contained in the tests subdirectory.  Before 
-running a test, be sure that the directory containing the tests
-subdirectory (.) is in your PYTHONPATH (along with astropy and
-numpy).  Then, to run a particular unit test script, type:
+PyVO uses the Astropy framework for unit tests which is built into the
+setup script.  To run the tests, type:
 
-   python tests/path-to-script.py
+    python setup.py test
 
-For example:
+This will run all unit tests that do not require a network
+connection.  To run all tests, including those that access the
+network, add the --remote-data (-R) option:
 
-   python tests/dal/testSIA.py
-
-If the script contains the string "NeedsNet" in its name, it requirs
-access to the network to work properly.  All other files do not
-require the network, working off of local input files our local
-services executed locally on-the-fly.  
-
-A few files aggregate the running of tests from several individual
-unit test files.  In particular:
-
-  testNoNet.py -- runs all unit tests that do not require access to
-                  the network to work.  
-  testNeedsNet.py -- all tests that require the network to work in
-                  order to complete.  
+    python setup.py test -R
 

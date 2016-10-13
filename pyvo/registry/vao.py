@@ -22,7 +22,7 @@ interaction models.
 from __future__ import print_function, division
 
 from ..dal import query as dalq
-from ..dal import sia, ssa, sla, scs
+from ..dal import sia, ssa, sla, scs, tap
 from urllib import quote_plus, urlopen
 import re
 
@@ -101,7 +101,7 @@ class RegistryService(dalq.DALService):
 
 
     def search(self, keywords=None, servicetype=None, 
-               waveband=None, sqlpred=None):
+               waveband=None, orkw=False, sqlpred=None):
         """
         execute a simple registry search of the specified
         keywords. 
@@ -127,6 +127,12 @@ class RegistryService(dalq.DALService):
            values include 'Radio', 'Millimeter', 'Infrared'
            (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
            (synonym: 'Xray').
+        orkw : bool
+           If true, the keywords will be OR-ed together,
+           and returned records will match at least one of 
+           the keywords.  If false (default), the keywords qill 
+           be AND-ed, requiring the returned records to to 
+           match all of the keywords.  
         sqlpred : str
            an SQL WHERE predicate (without the leading "WHERE") 
            that further contrains the search against supported 
@@ -141,7 +147,7 @@ class RegistryService(dalq.DALService):
         --------
         RegistryResults
         """
-        srch = self.create_query(keywords, servicetype, waveband, sqlpred)
+        srch = self.create_query(keywords, servicetype, waveband, orkw, sqlpred)
         # print(srch.getqueryurl())
         return srch.execute()
         
@@ -162,7 +168,7 @@ class RegistryService(dalq.DALService):
         return res.getrecord(0)
 
     def create_query(self, keywords=None, servicetype=None, 
-                     waveband=None, sqlpred=None):
+                     waveband=None, orkw=False, sqlpred=None):
         """
         create a RegistryQuery object that can be refined or saved
         before submitting.  
@@ -187,6 +193,12 @@ class RegistryService(dalq.DALService):
            values include 'Radio', 'Millimeter', 'Infrared'
            (synonym: 'IR'), 'Optical', 'UV', 'EUV', 'X-ray' 
            (synonym: 'Xray').
+        orkw : bool
+           If true, the keywords will be OR-ed together,
+           and returned records will match at least one of 
+           the keywords.  If false (default), the keywords qill 
+           be AND-ed, requiring the returned records to to 
+           match all of the keywords.  
         sqlpred : str
            an SQL WHERE predicate (without the leading "WHERE") 
            that further contrains the search against supported 
@@ -205,6 +217,11 @@ class RegistryService(dalq.DALService):
             srch.servicetype = servicetype
         if keywords:
             srch.addkeywords(keywords)
+        if isinstance(orkw, bool):
+            srch.or_keywords(orkw)
+        elif orkw is not None:
+            raise ValueError("create_query: orkw parameter not a bool: " +
+                             str(orkw))
         return srch
 
 class RegistryQuery(dalq.DALQuery):
@@ -246,7 +263,7 @@ class RegistryQuery(dalq.DALQuery):
                      "simpleSpectralAccess": "SimpleSpectralAccess"  }
                      
 
-    def __init__(self, baseurl=None, orKeywords=True, version="1.0"):
+    def __init__(self, baseurl=None, orKeywords=False, version="1.0"):
         """
         create the query instance
 
@@ -337,13 +354,13 @@ class RegistryQuery(dalq.DALQuery):
             true, if the keywords should be OR-ed; false,
             if they should be AND-ed.
         """
+        if not isinstance(ored, bool):
+            raise ValueError("RegistryQuery.or_keyword: value not a bool")
         self._orKw = ored
 
     def will_or_keywords(self):
         """
-        set true if the keywords will be OR-ed or AND-ed together
-        in the query.  True is returned if the keywords will be 
-        OR-ed.  
+        Return true if the keywords will be OR-ed.  
         """
         return self._orKw
 
@@ -709,6 +726,17 @@ class SimpleResource(dalq.Record):
         return self.get("shortName")
 
     @property
+    def description(self):
+        """
+        the textual description of the resource.  
+
+        See Also
+        --------
+        SimpleResource.describe
+        """
+        return self.get("description")
+
+    @property
     def tags(self):
         """
         a user-friendly label for the resource
@@ -839,11 +867,91 @@ class SimpleResource(dalq.Record):
 
         return service.search(*args, **keys)
 
+    def describe(self, verbose=False, width=78, file=None):
+        """
+        Print a summary description of this resource.  
+
+        Parameters
+        ----------
+        verbose : bool
+            If false (default), only user-oriented information is 
+            printed; if true, additional information will be printed
+            as well.
+        width : int
+            Format the description with given character-width.
+        out : writable file-like object
+            If provided, write information to this output stream.
+            Otherwise, it is written to standard out.  
+        """
+        restype = "Generic Resource"
+        if self.get("interfaceClass"):
+            # it's a service of some kind
+            restype = "Custom Service"
+            stdid = self.get("capabilityStandardID")
+            if stdid:
+                if stdid.startswith("ivo://ivoa.net/std/ConeSearch"):
+                    restype = "Catalog Cone-search Service"
+                elif stdid.startswith("ivo://ivoa.net/std/SIA"):
+                    restype = "Image Data Service"
+                elif stdid.startswith("ivo://ivoa.net/std/SSA"):
+                    restype = "Spectrum Data Service"
+                elif stdid.startswith("ivo://ivoa.net/std/SLA"):
+                    restype = "Spectral Line Database Service"
+                elif stdid.startswith("ivo://ivoa.net/std/Registry"):
+                    restype = "Registry Service"
+                    if "Harvest" in self.get("capabilityClass"):
+                        restype = "Registry Harvest Service"
+                    elif "Search" in self.get("capabilityClass"):
+                        restype = "Registry Search Service"
+            elif self.get("interfaceClass") == "WebBrowser":
+                restype = "Web-page Based Service" 
+        print(restype, file=file)
+        print(dalq.para_format_desc(self.title), file=file)
+        print("Short Name: " + self.shortname, file=file)
+        print("Publisher: " + dalq.para_format_desc(self.publisher), file=file)
+        print("IVOA Identifier: " + self.identifier, file=file)
+        if self.accessurl:
+            print("Base URL: " + self.accessurl, file=file)
+
+        if self.description:
+            print(file=file)
+            print(dalq.para_format_desc(self.description), file=file)
+            print(file=file)
+
+        if self.get("subjects"):
+            val = self.get("subjects")
+            if not hasattr(val, "__getitem__"):
+                val = [val]
+            val = (str(v) for v in val)
+            print(dalq.para_format_desc("Subjects: " + ", ".join(val)), 
+                  file=file)
+        if self.get("waveband"):
+            val = self.get("waveband")
+            if not hasattr(val, "__getitem__"):
+                val = [val]
+            val = (str(v) for v in val)
+            print(dalq.para_format_desc("Waveband Coverage: " + ", ".join(val)),
+                  file=file)
+
+        if verbose:
+            if self.get("capabilityStandardID"):
+                print("StandardID: " + self["capabilityStandardID"], file=file)
+            if self.get("referenceURL"):
+                print("More info: " + self["referenceURL"], file=file)
+            
+
+
+        
+
+                
+        
+
 _standardIDs = {
     "ivo://ivoa.net/std/ConeSearch":  scs.SCSService,
     "ivo://ivoa.net/std/SIA":  sia.SIAService,
     "ivo://ivoa.net/std/SSA":  ssa.SSAService,
     "ivo://ivoa.net/std/SLAP":  sla.SLAService,
+    "ivo://ivoa.net/std/TAP":  tap.TAPService,
 }
 
 def _createService(resource, savemeta=False):

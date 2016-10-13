@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href='/static/xsl/tap-job-to-html.xsl' type='text/xsl'?>
+<uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/UWS/v1.0 http://vo.ari.uni-heidelberg.de/docs/schemata/uws-1.0.xsd">
+  <uws:jobId>3bLj5O</uws:jobId>
+  <uws:ownerId xsi:nil="true"/>
+  <uws:phase>COMPLETED</uws:phase>
+  <uws:quote>2016-05-03T10:54:03Z</uws:quote>
+  <uws:startTime xsi:nil="true"/>
+  <uws:endTime xsi:nil="true"/>
+  <uws:executionDuration>3600</uws:executionDuration>
+  <uws:destruction>2016-05-05T10:54:03Z</uws:destruction>
+  <uws:parameters>
+    <uws:parameter id="format">None</uws:parameter>
+    <uws:parameter id="lang">ADQL</uws:parameter>
+    <uws:parameter id="maxrec">None</uws:parameter>
+    <uws:parameter id="query">SELECT TOP 1 1+1 AS result FROM arihip.main</uws:parameter>
+    <uws:parameter id="request">doQuery</uws:parameter>
+    <uws:parameter id="upload"/>
+  </uws:parameters>
+  <uws:results>
+    <uws:result id="result" xlink:href="http://localhost:8084/tap/async/3bLj5O/results/result"/>
+  </uws:results>
+</uws:job>

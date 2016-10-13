@@ -99,9 +99,9 @@ def resolve(names, db="Simbad", include="", mirror=None):
         opt = filter(lambda i: i.startswith(inc.lower()), 
                      "fluxes aliases".split())
         if len(opt) > 1:
-            raise ValueError("Ambiguos include parameter value: " + inc)
+            raise ValueError("Ambiguous include parameter value: " + inc)
         if len(opt) == 0:
-            raise ValueError("Unrecignized include parameter value: " + inc)
+            raise ValueError("Unrecognized include parameter value: " + inc)
         if opt[0] == "fluxes":
             q.fluxes = True
         elif opt[0] == "aliases":
@@ -531,7 +531,7 @@ class Target(object):
             self._lookup[keys[1].lower()] = resolves[-1]
         self._responses = tuple(resolves)
 
-    _res_name_pat = re.compile(r'^(\w)=(\w+)')
+    _res_name_pat = re.compile(r'^(\w+)=(\w+)')
     def _parse_resolver_name(self, label):
         m = self._res_name_pat.match(label)
         if m:
@@ -582,7 +582,7 @@ class Target(object):
         available.
         """
         dbn = dbname.lower()
-        db = filter(lambda d: d.startswith(dbn), self._lookup.keys())
+        db = filter(lambda d: d.lower().startswith(dbn), self._lookup.keys())
         if len(db) == 0: return None
         if len(db) > 1:
             raise LookupError("Ambiguous database name: " + dbname)

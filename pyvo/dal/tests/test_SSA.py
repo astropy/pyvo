@@ -5,7 +5,7 @@ Tests for pyvo.dal.ssa
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp, glob, tempfile
+import os, sys, shutil, re, imp, glob, tempfile, random, time
 import unittest, pdb
 from urllib2 import URLError, HTTPError
 
@@ -23,7 +23,8 @@ if not testdir:  testdir = "tests"
 ssaresultfile = "data/jhu-ssa.xml"
 errresultfile = "data/error-ssa.xml"
 testserverport = 8084
-testserverport += 4
+testserverport += 40
+testserverport += random.randint(0,9)
 
 class SSAServiceTest(unittest.TestCase):
 
@@ -44,9 +45,9 @@ class SSAServiceTest(unittest.TestCase):
         except AttributeError:
             pass
 
-        self.assertEquals(self.srv.description["title"], "Archive")
-        self.assertEquals(self.srv.description["shortName"], "arch")
-        self.srv.description["title"] = "Sir"
+        self.assertEquals(self.srv.info["title"], "Archive")
+        self.assertEquals(self.srv.info["shortName"], "arch")
+        self.srv.info["title"] = "Sir"
         self.assertEquals(self.res["title"], "Archive")
 
     def testCreateQuery(self):
@@ -328,8 +329,9 @@ class SSAExecuteTest(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
-        cls.srvr = testserve.TestServer(testserverport)
+        cls.srvr = testserve.get_server(testserverport)
         cls.srvr.start()
+        time.sleep(0.5)
 
     @classmethod
     def teardown_class(cls):
@@ -339,7 +341,7 @@ class SSAExecuteTest(unittest.TestCase):
             print("prob")
 
     def testExecute(self):
-        q = ssa.SSAQuery("http://localhost:{0}/ssa".format(testserverport))
+        q = ssa.SSAQuery("http://localhost:{0}/ssa".format(self.srvr.port))
         q.pos = (0, 0)
         q.size = 1.0
         q.format = "all"
@@ -348,7 +350,7 @@ class SSAExecuteTest(unittest.TestCase):
         self.assertEquals(results.nrecs, 35)
 
     def testSearch(self):
-        srv = ssa.SSAService("http://localhost:{0}/ssa".format(testserverport))
+        srv = ssa.SSAService("http://localhost:{0}/ssa".format(self.srvr.port))
         results = srv.search(pos=(0,0), size=1.0)
         self.assert_(isinstance(results, ssa.SSAResults))
         self.assertEquals(results.nrecs, 35)
@@ -362,13 +364,13 @@ class SSAExecuteTest(unittest.TestCase):
 
 
     def testSsa(self):
-        results = ssa.search("http://localhost:{0}/ssa".format(testserverport),
+        results = ssa.search("http://localhost:{0}/ssa".format(self.srvr.port),
                              pos=(0,0), size=1.0)
         self.assert_(isinstance(results, ssa.SSAResults))
         self.assertEquals(results.nrecs, 35)
 
     def testError(self):
-        srv = ssa.SSAService("http://localhost:{0}/err".format(testserverport))
+        srv = ssa.SSAService("http://localhost:{0}/err".format(self.srvr.port))
         self.assertRaises(dalq.DALQueryError, srv.search, (0.0,0.0), 1.0)
         
 

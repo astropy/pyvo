@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.2 http://vo.ari.uni-heidelberg.de/docs/schemata/VOTable-1.2.xsd">
+  <RESOURCE type="results">
+    <INFO name="server" value="http://localhost:8084"/>
+    <INFO name="query" value="SELECT 1 + 1 AS result FROM arihip.main LIMIT 1"/>
+    <INFO name="src_res" value="Contains traces from resource arihip/q"> The catalogue ARIHIP has been constructed by selecting the 'best
+data' for a given star from combinations of HIPPARCOS data with Boss'
+GC and/or the Tycho-2 catalogue as well as the FK6. It provides 'best
+data' for 90 842 stars with a typical mean error of 0.89 mas/year
+(about a factor of 1.3 better than Hipparcos for this sample of
+stars).</INFO>
+    <INFO name="src_table" value="Contains traces from table arihip.main"/>
+    <INFO name="QUERY_STATUS" value="OK">Query successful</INFO>
+    <TABLE name="main">
+      <INFO name="source" value="2001VeARI..40....1W; http://www/datenbanken/arihip/catalog.html"/>
+      <FIELD ID="result" datatype="short" name="result" ucd="">
+        <DESCRIPTION> -- *TAINTED*: the value was operated on in a way that unit and ucd may be severely wrong</DESCRIPTION>
+        <VALUES null="-32768"/>
+      </FIELD>
+      <DATA>
+        <BINARY>
+          <STREAM encoding="base64">AAI=
+</STREAM>
+        </BINARY>
+      </DATA>
+    </TABLE>
+    <INFO name="QUERY_STATUS" value="OVERFLOW"/>
+  </RESOURCE>
+</VOTABLE>
