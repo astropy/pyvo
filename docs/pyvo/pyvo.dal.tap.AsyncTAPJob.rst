@@ -43,7 +43,7 @@ AsyncTAPJob
       ~AsyncTAPJob.abort
       ~AsyncTAPJob.create
       ~AsyncTAPJob.delete
-      ~AsyncTAPJob.fetch
+      ~AsyncTAPJob.fetch_result
       ~AsyncTAPJob.raise_if_error
       ~AsyncTAPJob.run
       ~AsyncTAPJob.wait
@@ -80,7 +80,7 @@ AsyncTAPJob
    .. automethod:: abort
    .. automethod:: create
    .. automethod:: delete
-   .. automethod:: fetch
+   .. automethod:: fetch_result
    .. automethod:: raise_if_error
    .. automethod:: run
    .. automethod:: wait

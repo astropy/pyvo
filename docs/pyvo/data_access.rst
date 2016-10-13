@@ -1198,7 +1198,7 @@ the job's result can be retrieved by calling
 
 >>> job.wait()
 >>> job.raise_if_error()
->>> result = job.fetch()
+>>> result = job.fetch_result()
 >>> for row in result:
 ...   print("{0} {1} {2}".format(row["raj2000"], row["dej2000"], row["rv"]))
 ...
@@ -1229,6 +1229,7 @@ Here is a list of the relevant attributes and methods of AsyncTAPJob:
    ~pyvo.dal.tap.AsyncTAPJob.abort
    ~pyvo.dal.tap.AsyncTAPJob.wait
    ~pyvo.dal.tap.AsyncTAPJob.raise_if_error
+   ~pyvo.dal.tap.AsyncTAPJob.fetch_result
 
 ---------------------------------
 Capabilities and service metadata

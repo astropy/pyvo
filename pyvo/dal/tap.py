@@ -663,7 +663,7 @@ class AsyncTAPJob(object):
                 self._job.get("message", "Query was aborted."),
                 self.phase, self.url, "TAP", "1.0")
 
-    def fetch(self):
+    def fetch_result(self):
         """
         returns the result votable if query is finished
         """
