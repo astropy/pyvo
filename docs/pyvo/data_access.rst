@@ -1196,7 +1196,7 @@ check that by calling :py:class:`~pyvo.dal.tap.AsyncTAPJob.raise_if_error`),
 the job's result can be retrieved by calling
 :py:class:`~pyvo.dal.tap.AsyncTAPJob.fetch`:
 
->>> job.start().wait()
+>>> job.wait()
 >>> job.raise_if_error()
 >>> result = job.fetch()
 >>> for row in result:
