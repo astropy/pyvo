@@ -62,7 +62,7 @@ The pyvo module currently provides these main capabilities:
 builtins._ASTROPY_PACKAGE_NAME_ = PACKAGENAME
 
 # VERSION should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
-VERSION = '0.2.4'
+VERSION = '0.3'
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION

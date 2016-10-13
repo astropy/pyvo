@@ -365,8 +365,7 @@ class TAPQuery(query.DALQuery):
         """
         if self._mode != "sync":
             raise DALServiceError(
-                "Cannot execute a non-synchronous query."
-                " Use `AsyncTAPJob.create` instead")
+                "Cannot execute a non-synchronous query. Use submit instead")
 
         url = self.getqueryurl()
 
