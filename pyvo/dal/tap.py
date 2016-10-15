@@ -6,7 +6,7 @@ from __future__ import print_function, division
 
 import requests
 import astropy
-from astropy.io.votable.tree import VOTableFile, Resource, Table
+import functools
 from astropy.table import Column
 from datetime import datetime
 import time
@@ -386,6 +386,7 @@ class TAPQuery(query.DALQuery):
 
         r = requests.post(url, params = self._param, stream = True,
             files = files)
+        r.raw.read = functools.partial(r.raw.read, decode_content=True)
         return r
 
 class AsyncTAPJob(object):
