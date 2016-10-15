@@ -6,7 +6,7 @@ from __future__ import print_function, division
 
 import requests
 import astropy
-from astropy.io.votable.tree import VOTableFile, Resource, Table
+import functools
 from astropy.table import Column
 from datetime import datetime
 import time
@@ -250,7 +250,7 @@ class TAPService(query.DALService):
         job = AsyncTAPJob.create(self.baseurl, query, language, maxrec, uploads)
         job = job.run().wait()
         job.raise_if_error()
-        result = job.fetch()
+        result = job.fetch_result()
 
         return result
 
@@ -384,8 +384,9 @@ class TAPQuery(query.DALQuery):
         files = {k: _fileobj(v[1]) for k, v in filter(
             lambda x: x[1][0] == 'inline', self._uploads.items())}
 
-        r = requests.post(url, params = self._param, stream = True,
+        r = requests.post(url, data = self._param, stream = True,
             files = files)
+        r.raw.read = functools.partial(r.raw.read, decode_content=True)
         return r
 
 class AsyncTAPJob(object):
@@ -493,7 +494,7 @@ class AsyncTAPJob(object):
         """
         try:
             r = requests.post("{}/executionduration".format(self.url),
-                params = {"EXECUTIONDURATION": str(value)})
+                data = {"EXECUTIONDURATION": str(value)})
             r.raise_for_status()
         except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
@@ -527,7 +528,7 @@ class AsyncTAPJob(object):
 
         try:
             r = requests.post("{}/destruction".format(self.url),
-                params = {"DESTRUCTION": value.strftime("%Y-%m-%dT%H:%M:%SZ")})
+                data = {"DESTRUCTION": value.strftime("%Y-%m-%dT%H:%M:%SZ")})
             r.raise_for_status()
         except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
@@ -572,7 +573,7 @@ class AsyncTAPJob(object):
         """
         try:
             r = requests.post('{}/phase'.format(self.url),
-                params = {"PHASE": "RUN"})
+                data = {"PHASE": "RUN"})
             r.raise_for_status()
         except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
@@ -585,7 +586,7 @@ class AsyncTAPJob(object):
         """
         try:
             r = requests.post('{}/phase'.format(self.url),
-                params = {"PHASE": "ABORT"})
+                data = {"PHASE": "ABORT"})
             r.raise_for_status()
         except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url, self.protocol,
@@ -642,7 +643,7 @@ class AsyncTAPJob(object):
         deletes the job. this object will become invalid.
         """
         try:
-            r = requests.post(self.url, params = {"ACTION": "DELETE"})
+            r = requests.post(self.url, data = {"ACTION": "DELETE"})
             r.raise_for_status()
         except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
