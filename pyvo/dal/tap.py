@@ -250,7 +250,7 @@ class TAPService(query.DALService):
         job = AsyncTAPJob.create(self.baseurl, query, language, maxrec, uploads)
         job = job.run().wait()
         job.raise_if_error()
-        result = job.fetch()
+        result = job.fetch_result()
 
         return result
 
