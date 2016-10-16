@@ -1270,6 +1270,7 @@ information through properties on service instead:
 
    ~pyvo.dal.tap.TAPService.maxrec
    ~pyvo.dal.tap.TAPService.hardlimit
+   ~pyvo.dal.tap.TAPService.upload_methods
 
 -------
 Uploads
@@ -1295,6 +1296,10 @@ Possible type/source combinations are:
 
 >>> service.run_sync(query, uploads = {'t1': ('uri', 'http://example.org/votable.xml')})
 >>> service.run_sync(query, uploads = {'t1': ('uri', result)})
+
+.. note::
+  To check if the service supports the desired URI scheme, evaluate the value of
+  :py:class:`~pyvo.dal.tap.TAPService.upload_methods`
 
 >>> service.run_sync(query, uploads = {'t1': ('inline', open('/path/to/votable.xml'))})
 >>> service.run_sync(query, uploads = {'t1': ('inline', result.table)})

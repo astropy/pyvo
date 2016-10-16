@@ -185,6 +185,17 @@ class TAPService(query.DALService):
             pass
         raise DALServiceError("Hard limit not exposed by the service")
 
+    @property
+    def upload_methods(self):
+        """
+        a list of upload methods in form of IVOA identifiers
+        """
+        _upload_methods = []
+        for capa in self.capabilities:
+            if "uploadMethods" in capa:
+                _upload_methods += capa["uploadMethods"]
+        return _upload_methods
+
     def run_sync(self, query, language="ADQL", maxrec=None, uploads=None):
         """
         runs sync query and returns its result
