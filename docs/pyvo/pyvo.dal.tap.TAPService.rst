@@ -26,6 +26,7 @@ TAPService
       ~TAPService.maxrec
       ~TAPService.tables
       ~TAPService.up_since
+      ~TAPService.upload_methods
 
    
    
@@ -58,6 +59,7 @@ TAPService
    .. autoattribute:: maxrec
    .. autoattribute:: tables
    .. autoattribute:: up_since
+   .. autoattribute:: upload_methods
 
    
    
