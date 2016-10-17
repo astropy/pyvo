@@ -591,6 +591,13 @@ class DALResults(object):
         """
         return len(self.votable.to_table())
 
+    @property
+    def table(self):
+        """
+        the astropy table object
+        """
+        return self.votable.to_table()
+
     def __len__(self):
         """
         return the value of the nrecs property
