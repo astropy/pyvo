@@ -107,10 +107,16 @@ class TAPService(query.DALService):
 
     @property
     def available(self):
+        """
+        True if the service is available, False otherwise
+        """
         return self.availability[0]
 
     @property
     def up_since(self):
+        """
+        datetime the service was started
+        """
         return self.availability[1]
 
     @property
