@@ -572,6 +572,7 @@ class AsyncTAPJob(object):
         """
         a list of the last result uri's
         """
+        self.raise_if_error()
         return self._job["results"]
 
     @property
