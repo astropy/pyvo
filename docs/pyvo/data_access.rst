@@ -1302,7 +1302,7 @@ Possible type/source combinations are:
   :py:class:`~pyvo.dal.tap.TAPService.upload_methods`
 
 >>> service.run_sync(query, uploads = {'t1': ('inline', open('/path/to/votable.xml'))})
->>> service.run_sync(query, uploads = {'t1': ('inline', result.votable.to_table())})
+>>> service.run_sync(query, uploads = {'t1': ('inline', result.table)})
 >>> service.run_sync(query, uploads = {'t1': ('inline', '/path/to/votable.xml')})
 
 Your upload can be referenced using 'TAP_UPLOAD.t1' as table name.
