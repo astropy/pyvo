@@ -5,6 +5,8 @@ import datetime
 from collections import OrderedDict
 import StringIO
 
+from astropy.table import Table, Column
+
 class _CapabilitiesParser(plainxml.StartEndHandler):
 # VOSI; each capability is a dict with at least a key interfaces.
 # each interface is a dict with key type (namespace prefix not expanded;
@@ -196,7 +198,7 @@ def parse_capabilities(stream):
 class _TablesParser(plainxml.StartEndHandler):
 	def __init__(self):
 		plainxml.StartEndHandler.__init__(self)
-		self.tables = _TableDict()
+		self.tables = OrderedDict()
 
 	def _start_schema(self, name, attrs):
 		self.curSchema = ""
@@ -205,18 +207,15 @@ class _TablesParser(plainxml.StartEndHandler):
 		self.curSchema = None
 
 	def _start_table(self, name, attrs):
-		self.curTable = _Table()
+		self.curTable = Table()
 
 	def _end_table(self, name, attrs, content):
-		# table names should be exposed the same way they are accessed in ADQL
-		fqtn = ".".join((self.curSchema, self.curTable.name))
-		self.curTable._fqdn = fqtn
-		self.curTable._schema = self.curSchema
-		self.tables[fqtn] = self.curTable
+		table_name = self.curTable.meta["name"]
+		self.tables[table_name] = self.curTable
 		self.curTable = None
 
 	def _start_column(self, name, attrs):
-		self.curColumn = _Column()
+		self.curColumn = Column()
 
 	def _end_column(self, name, attrs, content):
 		self.curTable[self.curColumn.name] = self.curColumn
@@ -226,10 +225,10 @@ class _TablesParser(plainxml.StartEndHandler):
 		content = content.strip()
 
 		if getattr(self, "curColumn", None) is not None:
-			self.curColumn._name = content
+			self.curColumn.name = content
 		elif getattr(self, "curTable", None) is not None:
 			# return the last tuple from dot notation
-			self.curTable._name = content.split(".")[-1]
+			self.curTable.meta["name"] = content
 		elif getattr(self, "curSchema", None) is not None:
 			self.curSchema = content
 
@@ -237,96 +236,36 @@ class _TablesParser(plainxml.StartEndHandler):
 		content = content.strip()
 
 		if getattr(self, "curColumn", None) is not None:
-			self.curColumn._description = content
+			self.curColumn.description = content
 
 	def _end_ucd(self, name, attrs, content):
 		content = content.strip()
 
 		if getattr(self, "curColumn", None) is not None:
-			self.curColumn._ucd = content
+			self.curColumn.meta["ucd"] = content
 
 	def _end_dataType(self, name, attrs, content):
 		content = content.strip()
 
 		if getattr(self, "curColumn", None) is not None:
-			self.curColumn._data_type = content
+			self.curColumn.meta["data_type"] = content
+			# TODO: dtype mapping
 
 	def _end_unit(self, name, attrs, content):
 		content = content.strip()
 
 		if getattr(self, "curColumn", None) is not None:
-			self.curColumn._unit = content
+			self.curColumn.unit = content
 
 	def getResult(self):
 		return self.tables
+
 
 def parse_tables(stream):
 	parser = _TablesParser()
 	parser.parse(stream)
 	return parser.getResult()
 
-class _TableDict(OrderedDict):
-	def __str__(self):
-		return "\n".join(unicode(t) for t in self.values())
-
-class _Table(OrderedDict):
-	def __init__(self):
-		super(_Table, self).__init__()
-		self._schema = None
-		self._name = None
-
-	def __str__(self):
-		io = StringIO.StringIO()
-		io.write("{0}.{1}\n".format(self.schema, self.name))
-
-		for k, v in self.items():
-			s = "\n".join(
-				map(lambda x: "\t{0}".format(x),
-					unicode(v).split("\n")[:-1]))
-			io.write(unicode("{0}\n".format(s)))
-
-		return io.getvalue()
-
-	@property
-	def name(self):
-		return self._name
-
-	@property
-	def schema(self):
-		return self._schema
-
-class _Column(object):
-	def __init__(self):
-		self._name = ""
-		self._ucd = ""
-		self._data_type = ""
-		self._unit = ""
-		self._description = ""
-
-	def __str__(self):
-		ret = "{0} {1} {2} {3}\n\t{4}\n".format(
-			self.name, self.ucd, self.data_type, self.unit, self.description)
-		return ret
-
-	@property
-	def name(self):
-		return self._name
-
-	@property
-	def ucd(self):
-		return self._ucd
-
-	@property
-	def data_type(self):
-		return self._data_type
-
-	@property
-	def unit(self):
-		return self._unit
-
-	@property
-	def description(self):
-		return self._description
 
 class _AvailabiliyParser(plainxml.StartEndHandler):
 	def __init__(self):
