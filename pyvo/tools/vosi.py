@@ -3,9 +3,9 @@ from __future__ import unicode_literals
 from . import plainxml
 import datetime
 from collections import OrderedDict
-import StringIO
-
 from astropy.table import Table, Column
+from astropy.io.votable.converters import get_converter
+import numpy as np
 
 class _CapabilitiesParser(plainxml.StartEndHandler):
 # VOSI; each capability is a dict with at least a key interfaces.
@@ -215,47 +215,64 @@ class _TablesParser(plainxml.StartEndHandler):
 		self.curTable = None
 
 	def _start_column(self, name, attrs):
-		self.curColumn = Column()
+		self.inColumn = True
 
 	def _end_column(self, name, attrs, content):
-		self.curTable[self.curColumn.name] = self.curColumn
-		self.curColumn = None
+		column = Column(
+			name = self.curColumn, dtype = self.curDtype,
+			description = self.curDescription,
+			unit = getattr(self, "curUnit", None))
+		column.meta["ucd"] = self.curUcd
+		column.meta["datatype"] = self.curDatatype
+		column.meta["arraysize"] = self.curArraysize
+		self.curTable[self.curColumn] = column
+		self.inColumn = False
 
 	def _end_name(self, name, attrs, content):
 		content = content.strip()
 
-		if getattr(self, "curColumn", None) is not None:
-			self.curColumn.name = content
+		if getattr(self, "inColumn", False):
+			self.curColumn = content
 		elif getattr(self, "curTable", None) is not None:
-			# return the last tuple from dot notation
 			self.curTable.meta["name"] = content
-		elif getattr(self, "curSchema", None) is not None:
-			self.curSchema = content
 
 	def _end_description(self, name, attrs, content):
 		content = content.strip()
 
-		if getattr(self, "curColumn", None) is not None:
-			self.curColumn.description = content
+		if getattr(self, "inColumn", False):
+			self.curDescription = content
 
 	def _end_ucd(self, name, attrs, content):
 		content = content.strip()
 
-		if getattr(self, "curColumn", None) is not None:
-			self.curColumn.meta["ucd"] = content
+		if getattr(self, "inColumn", False):
+			self.curUcd = content
 
 	def _end_dataType(self, name, attrs, content):
 		content = content.strip()
 
-		if getattr(self, "curColumn", None) is not None:
-			self.curColumn.meta["data_type"] = content
-			# TODO: dtype mapping
+		class _values(object):
+			null = None
+
+		class _field(object):
+			datatype = content
+			arraysize = attrs.get("arraysize") if content in (
+				"char", "unicodeChar") else None
+			precision = None
+			width = None
+			values = _values()
+
+
+		converter = get_converter(_field())
+		self.curDtype = np.dtype(converter.format)
+		self.curDatatype = content
+		self.curArraysize = attrs.get("arraysize")
 
 	def _end_unit(self, name, attrs, content):
 		content = content.strip()
 
-		if getattr(self, "curColumn", None) is not None:
-			self.curColumn.unit = content
+		if getattr(self, "inColumn", False):
+			self.curUnit = content
 
 	def getResult(self):
 		return self.tables
