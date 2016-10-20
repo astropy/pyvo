@@ -1,3 +1,7 @@
+0.4.1 (unreleased)
+------------------
+* fix a bug where maxrec wasn't send to the server
+
 0.4 (unreleased)
 ----------------
 * Use astropy tables for table metadata
