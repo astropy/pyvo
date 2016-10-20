@@ -102,6 +102,10 @@ class TAPService(query.DALService):
         if self._availability == (None, None):
             r = requests.get(
                 '{0}/availability'.format(self.baseurl), stream = True)
+
+            # requests doesn't decode the content by default
+            r.raw.read = functools.partial(r.raw.read, decode_content=True)
+
             self._availability = vosi.parse_availability(r.raw)
         return self._availability
 
@@ -136,6 +140,10 @@ class TAPService(query.DALService):
         if self._capabilities is None:
             r = requests.get(
                 '{0}/capabilities'.format(self.baseurl), stream = True)
+
+            # requests doesn't decode the content by default
+            r.raw.read = functools.partial(r.raw.read, decode_content=True)
+
             self._capabilities = vosi.parse_capabilities(r.raw)
         return self._capabilities
 
@@ -146,6 +154,10 @@ class TAPService(query.DALService):
         """
         if self._tables is None:
             r = requests.get('{0}/tables'.format(self.baseurl), stream = True)
+
+            # requests doesn't decode the content by default
+            r.raw.read = functools.partial(r.raw.read, decode_content=True)
+
             self._tables = vosi.parse_tables(r.raw)
         return self._tables
 
@@ -403,6 +415,7 @@ class TAPQuery(query.DALQuery):
 
         r = requests.post(url, data = self._param, stream = True,
             files = files)
+        # requests doesn't decode the content by default
         r.raw.read = functools.partial(r.raw.read, decode_content=True)
         return r
 
@@ -457,8 +470,11 @@ class AsyncTAPJob(object):
             r.raise_for_status()
         except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
+        
+        # requests doesn't decode the content by default
+        r.raw.read = functools.partial(r.raw.read, decode_content=True)
+
         self._job.update(uws.parse_job(r.raw))
-        pass
 
     @property
     def job(self):
