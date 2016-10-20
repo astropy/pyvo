@@ -346,6 +346,9 @@ class TAPQuery(query.DALQuery):
         self.setparam("REQUEST", "doQuery")
         self.setparam("LANG", language)
 
+        if maxrec:
+            self.setparam("MAXREC", maxrec)
+
         if isinstance(query, dict):
             for k, v in query:
                 self.setparam(k.upper(), v)
