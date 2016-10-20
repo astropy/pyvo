@@ -1250,10 +1250,12 @@ datetime.datetime(2000, 0, 0, 0, 0, 0)
 >>> print(service.tables.keys())
 
 The keys within tables are the fully qualified table names as they can
-be used in queries.  To inspect the column metadata for a table, see its
-name's value in the tables dictionary.
+be used in queries.  To inspect the column metadata for a table, see the column
+property of a give table.
 
->>> print(str(service.tables["rave.main"]))
+>>> service.tables["rave.main"].columns
+
+See also http://docs.astropy.org/en/stable/table/index.html.
 
 .. note::
          Some TAP services have tables metadata of several megabytes.

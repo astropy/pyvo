@@ -3,7 +3,9 @@ from __future__ import unicode_literals
 from . import plainxml
 import datetime
 from collections import OrderedDict
-import StringIO
+from astropy.table import Table, Column
+from astropy.io.votable.converters import get_converter
+import numpy as np
 
 class _CapabilitiesParser(plainxml.StartEndHandler):
 # VOSI; each capability is a dict with at least a key interfaces.
@@ -196,7 +198,7 @@ def parse_capabilities(stream):
 class _TablesParser(plainxml.StartEndHandler):
 	def __init__(self):
 		plainxml.StartEndHandler.__init__(self)
-		self.tables = _TableDict()
+		self.tables = OrderedDict()
 
 	def _start_schema(self, name, attrs):
 		self.curSchema = ""
@@ -205,128 +207,82 @@ class _TablesParser(plainxml.StartEndHandler):
 		self.curSchema = None
 
 	def _start_table(self, name, attrs):
-		self.curTable = _Table()
+		self.curTable = Table()
 
 	def _end_table(self, name, attrs, content):
-		# table names should be exposed the same way they are accessed in ADQL
-		fqtn = ".".join((self.curSchema, self.curTable.name))
-		self.curTable._fqdn = fqtn
-		self.curTable._schema = self.curSchema
-		self.tables[fqtn] = self.curTable
+		table_name = self.curTable.meta["name"]
+		self.tables[table_name] = self.curTable
 		self.curTable = None
 
 	def _start_column(self, name, attrs):
-		self.curColumn = _Column()
+		self.inColumn = True
 
 	def _end_column(self, name, attrs, content):
-		self.curTable[self.curColumn.name] = self.curColumn
-		self.curColumn = None
+		column = Column(
+			name = self.curColumn, dtype = self.curDtype,
+			description = self.curDescription,
+			unit = getattr(self, "curUnit", None))
+		column.meta["ucd"] = self.curUcd
+		column.meta["datatype"] = self.curDatatype
+		column.meta["arraysize"] = self.curArraysize
+		self.curTable[self.curColumn] = column
+		self.inColumn = False
 
 	def _end_name(self, name, attrs, content):
 		content = content.strip()
 
-		if getattr(self, "curColumn", None) is not None:
-			self.curColumn._name = content
+		if getattr(self, "inColumn", False):
+			self.curColumn = content
 		elif getattr(self, "curTable", None) is not None:
-			# return the last tuple from dot notation
-			self.curTable._name = content.split(".")[-1]
-		elif getattr(self, "curSchema", None) is not None:
-			self.curSchema = content
+			self.curTable.meta["name"] = content
 
 	def _end_description(self, name, attrs, content):
 		content = content.strip()
 
-		if getattr(self, "curColumn", None) is not None:
-			self.curColumn._description = content
+		if getattr(self, "inColumn", False):
+			self.curDescription = content
 
 	def _end_ucd(self, name, attrs, content):
 		content = content.strip()
 
-		if getattr(self, "curColumn", None) is not None:
-			self.curColumn._ucd = content
+		if getattr(self, "inColumn", False):
+			self.curUcd = content
 
 	def _end_dataType(self, name, attrs, content):
 		content = content.strip()
 
-		if getattr(self, "curColumn", None) is not None:
-			self.curColumn._data_type = content
+		class _values(object):
+			null = None
+
+		class _field(object):
+			datatype = content
+			arraysize = attrs.get("arraysize") if content in (
+				"char", "unicodeChar") else None
+			precision = None
+			width = None
+			values = _values()
+
+
+		converter = get_converter(_field())
+		self.curDtype = np.dtype(converter.format)
+		self.curDatatype = content
+		self.curArraysize = attrs.get("arraysize")
 
 	def _end_unit(self, name, attrs, content):
 		content = content.strip()
 
-		if getattr(self, "curColumn", None) is not None:
-			self.curColumn._unit = content
+		if getattr(self, "inColumn", False):
+			self.curUnit = content
 
 	def getResult(self):
 		return self.tables
+
 
 def parse_tables(stream):
 	parser = _TablesParser()
 	parser.parse(stream)
 	return parser.getResult()
 
-class _TableDict(OrderedDict):
-	def __str__(self):
-		return "\n".join(unicode(t) for t in self.values())
-
-class _Table(OrderedDict):
-	def __init__(self):
-		super(_Table, self).__init__()
-		self._schema = None
-		self._name = None
-
-	def __str__(self):
-		io = StringIO.StringIO()
-		io.write("{0}.{1}\n".format(self.schema, self.name))
-
-		for k, v in self.items():
-			s = "\n".join(
-				map(lambda x: "\t{0}".format(x),
-					unicode(v).split("\n")[:-1]))
-			io.write(unicode("{0}\n".format(s)))
-
-		return io.getvalue()
-
-	@property
-	def name(self):
-		return self._name
-
-	@property
-	def schema(self):
-		return self._schema
-
-class _Column(object):
-	def __init__(self):
-		self._name = ""
-		self._ucd = ""
-		self._data_type = ""
-		self._unit = ""
-		self._description = ""
-
-	def __str__(self):
-		ret = "{0} {1} {2} {3}\n\t{4}\n".format(
-			self.name, self.ucd, self.data_type, self.unit, self.description)
-		return ret
-
-	@property
-	def name(self):
-		return self._name
-
-	@property
-	def ucd(self):
-		return self._ucd
-
-	@property
-	def data_type(self):
-		return self._data_type
-
-	@property
-	def unit(self):
-		return self._unit
-
-	@property
-	def description(self):
-		return self._description
 
 class _AvailabiliyParser(plainxml.StartEndHandler):
 	def __init__(self):
