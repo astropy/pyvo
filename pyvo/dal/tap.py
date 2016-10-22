@@ -385,7 +385,7 @@ class TAPQuery(query.DALQuery):
                 ) for k, v in self._uploads.items()])
             self.setparam("UPLOAD", upload_param)
 
-    def getqueryurl(self, lax = False):
+    def getqueryurl(self):
         return '{0}/{1}'.format(self.baseurl, self._mode)
 
     def execute(self):
@@ -402,7 +402,7 @@ class TAPQuery(query.DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return self.RESULTS_CLASS(self.execute_votable(), self.getqueryurl(True))
+        return self.RESULTS_CLASS(self.execute_votable(), self.getqueryurl())
 
 
     def execute_stream(self):

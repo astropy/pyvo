@@ -340,7 +340,7 @@ class SCSQuery(query.DALQuery):
         pyvo.dal.query.DALServiceError
         pyvo.dal.query.DALQueryError
         """
-        return SCSResults(self.execute_votable(), self.getqueryurl(True))
+        return SCSResults(self.execute_votable(), self.getqueryurl())
 
     def execute_votable(self):
         """
@@ -370,28 +370,6 @@ class SCSQuery(query.DALQuery):
         except Exception as e:
             raise query.DALFormatError(e, self.getqueryurl())
 
-    def getqueryurl(self, lax=False):
-        """
-        return the GET URL that encodes the current query.  This is the 
-        URL that the execute functions will use if called next.  
-
-        Parameters
-        ----------
-        lax : bool
-           if False (default), a DALQueryError exception will be 
-           raised if any required parameters (RA, DEC, or SR)
-           are missing.  If True, no syntax checking will be 
-           done.  
-        """
-        out = query.DALQuery.getqueryurl(self)
-        if not lax:
-            if self.ra is None:
-                raise DALQueryError("Query is missing an RA parameter", url=out)
-            if self.dec is None:
-                raise DALQueryError("Query is missing a DEC parameter", url=out)
-            if self.sr is None:
-                raise DALQueryError("Query is missing an SR parameter", url=out)
-        return out
 
 class SCSResults(query.DALResults):
     """

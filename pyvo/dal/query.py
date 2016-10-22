@@ -22,7 +22,7 @@ identify table columns.
 """
 from __future__ import print_function, division
 
-__all__ = [ "ensure_baseurl", "DALAccessError", "DALProtocolError",
+__all__ = ["DALAccessError", "DALProtocolError",
             "DALFormatError", "DALServiceError", "DALQueryError",
             "DALService", "DALQuery", "DALResults", "Record"]
 
@@ -31,8 +31,8 @@ import os
 import re
 import warnings
 import textwrap
-from urllib2 import urlopen, URLError, HTTPError
-from urllib import quote_plus
+import requests
+import functools
 
 if sys.version_info[0] >= 3:
     _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
@@ -46,18 +46,6 @@ def is_mime_type(val):
         val = val.encode('utf-8')
 
     return bool(_mimetype_re.match(val))
- 
-def ensure_baseurl(url):
-    """
-    ensure a well formed DAL base URL that ends either with a '?' or a '&'
-    """
-    if '?' in url:
-        if url[-1] == '?' or url[-1] == '&':
-            return url
-        else:
-            return url+'&'
-    else:
-        return url+'?'
 
 class DALService(object):
     """
@@ -360,11 +348,27 @@ class DALQuery(object):
            for errors in the input query syntax
         """
         try:
-            url = self.getqueryurl()
-            return urlopen(url)
+            return self.submit().raw
         except IOError as ex:
             raise DALServiceError.from_except(ex, url, self.protocol, 
                                               self.version)
+
+    def submit(self):
+        """
+        does the actual request
+        """
+        def urlify_param(param):
+            if type(param) in (list, tuple):
+                return ",".join(map(str, param))
+            else:
+                return param
+
+        url = self.getqueryurl()
+        params = {k: urlify_param(v) for k, v in self._param.items()}
+
+        r = requests.get(url, params = params, stream = True)
+        r.raw.read = functools.partial(r.raw.read, decode_content=True)
+        return r
 
     def execute_votable(self):
         """
@@ -396,10 +400,10 @@ class DALQuery(object):
         except DALAccessError:
             raise
         except Exception as e:
-            raise DALFormatError(e, self.getqueryurl(True), 
+            raise DALFormatError(e, self.getqueryurl(), 
                                  protocol=self.protocol, version=self.version)
 
-    def getqueryurl(self, lax=False):
+    def getqueryurl(self):
         """
         return the GET URL that encodes the current query.  This is the 
         URL that the execute functions will use if called next.  
@@ -427,21 +431,7 @@ class DALQuery(object):
         DALQueryError
 
         """
-        # for readability,
-        # list parameters in the preferred order as listed in std_parameters;
-        # non-standard ones follow the standard ones.  
-        params  = [p for p in self.std_parameters if self._param.has_key(p)]
-        params += [p for p in self._param.keys() if p not in params]
-
-        return ensure_baseurl(self.baseurl) + \
-           "&".join(map(lambda p: "{0}={1}".format(
-                                            p,self._paramtostr(self._param[p])),
-                        params))
-
-    def _paramtostr(self, pval):
-        if isinstance(pval, tuple) or isinstance(pval, list):
-            return ",".join(map(lambda p: quote_plus(str(p)), pval))
-        return quote_plus(str(pval))
+        return self.baseurl
         
 
 class DALResults(object):
@@ -1321,29 +1311,13 @@ class DALServiceError(DALProtocolError):
         create and return DALServiceError exception appropriate
         for the given exception that represents the underlying cause.
         """
-        if isinstance(exc, HTTPError):
+        if isinstance(exc, requests.exceptions.RequestException):
             # python 2.7 has message as reason attribute; 2.6, msg
-            reason = (hasattr(exc, 'reason') and exc.reason) or exc.msg
-            if isinstance(reason, IOError):
-                reason = reason.strerror
-            elif not isinstance(reason, str):
-                reason = str(reason)
+            message = str(exc.message)
+            code = exc.response and exc.response.status_code
 
-            if not url: 
-                if hasattr(exc, 'url'):
-                    url = exc.url
-                else:
-                    url = exc.filename
-            return DALServiceError(reason, exc.code, exc, url, protocol, version)
-        elif isinstance(exc, URLError):
-            reason = exc.reason
-            if isinstance(reason, IOError):
-                reason = reason.strerror
-            elif not isinstance(reason, str):
-                reason = str(reason)
-
-            return DALServiceError(reason, cause=exc, url=url, 
-                                   protocol=protocol, version=version)
+            return DALServiceError(
+                message, code, exc, url, protocol, version)
         elif isinstance(exc, Exception):
             return DALServiceError("{0}: {1}".format(cls._typeName(exc), 
                                                      str(exc)), 

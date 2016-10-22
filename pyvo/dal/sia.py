@@ -736,10 +736,6 @@ class SIARecord(query.Record):
     def acref(self):
         """
         the URL that can be used to retrieve the image
-
-        Note that this will always be returned as a native string--i.e. as 
-        unicode for Python 3 and as a byte-string for Python 2--making ready
-        to use as a URL with urllib functions.
         """
         return self.get_str(self._names["acref"])
 
@@ -748,10 +744,6 @@ class SIARecord(query.Record):
         return the URL contained in the access URL column which can be used 
         to retrieve the dataset described by this record.  None is returned
         if no such column exists.
-
-        Note that this will always be returned as a native string--i.e. as 
-        unicode for Python 3 and as a byte-string for Python 2--making ready
-        to use as a URL with urllib functions.
         """
         return self.acref
 
