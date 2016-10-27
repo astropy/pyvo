@@ -36,6 +36,9 @@ def _fileobj(s):
     finally:
         return s
 
+def escape(query):
+    return str(query).replace("'", "''")
+
 def search(url, query, language="ADQL", maxrec=None, uploads=None):
     """
     submit a Table Access query that returns rows matching the criteria given.
