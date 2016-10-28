@@ -12,7 +12,7 @@ application can use the information in the record to access the
 resource directly.  Most often, the resource is a data service that
 can be queried for individual datasets of interest.  
 
-This module provides basic, low-level access to the RegTAP Registry using
+This module provides basic, low-level access to the RegTAP Registries using
 standardized TAP-based services.
 """
 from __future__ import print_function, division
@@ -99,21 +99,20 @@ def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
     
     if waveband:
         joins.add("rr.resource")
-        wheres.append("1 = ivo_hashlist_has('{}', waveband)".format(waveband))
+        wheres.append("1 = ivo_hashlist_has('{}', waveband)".format(
+            tap.escape(waveband)))
+
+    if sqlpred:
+        wheres.append(sqlpred)
 
     query = """SELECT *
     FROM rr.capability
     {}
     {}
-    {}
-    """
-
-    query = query.format(
+    """.format(
         ''.join("NATURAL JOIN {} ".format(j) for j in joins),
-        ("WHERE " if wheres else "") + " AND ".join(wheres),
-        sqlpred if sqlpred else ""
+        ("WHERE " if wheres else "") + " AND ".join(wheres)
     )
-    print (query)
 
     service = tap.TAPService(REGISTRY_BASEURL)
     return service.run_sync(query, maxrec=service.hardlimit)
