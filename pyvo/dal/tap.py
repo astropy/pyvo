@@ -316,7 +316,25 @@ class TAPService(query.DALService):
             uploads)
 
 
+class TAPResults(query.DALResults):
+    @property
+    def infos(self):
+        """
+        return the info element as dictionary
+        """
+        return getattr(self, "_infos", {})
+
+    @property
+    def query_status(self):
+        """
+        return the query status
+        """
+        return getattr(self, "_infos", {}).get("QUERY_STATUS", None)
+
+
 class TAPQuery(query.DALQuery):
+    RESULTS_CLASS = TAPResults
+
     def __init__(self, baseurl, query, mode="sync", language="ADQL",
         maxrec=None, uploads = None):
         """
@@ -384,7 +402,7 @@ class TAPQuery(query.DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return TAPResults(self.execute_votable(), self.getqueryurl(True))
+        return self.RESULTS_CLASS(self.execute_votable(), self.getqueryurl(True))
 
 
     def execute_stream(self):
@@ -720,18 +738,3 @@ class AsyncTAPJob(object):
         return TAPResults(
             query._votableparse(response.raw.read), self.result_uri,
             "TAP", "1.0")
-
-class TAPResults(query.DALResults):
-    @property
-    def infos(self):
-        """
-        return the info element as dictionary
-        """
-        return getattr(self, "_infos", {})
-
-    @property
-    def query_status(self):
-        """
-        return the query status
-        """
-        return getattr(self, "_infos", {}).get("QUERY_STATUS", None)

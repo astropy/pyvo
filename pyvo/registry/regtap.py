@@ -3,12 +3,12 @@
 a module for basic VO Registry interactions.  
 
 A VO registry is a database of VO resources--data collections and
-services--that are available for VO applications.  Typically, it is 
-aware of the resources from all over the world.  A registry can find 
+services--that are available for VO applications.  Typically, it is
+aware of the resources from all over the world.  A registry can find
 relevent data collections and services through search
 queries--typically, subject-based.  The registry responds with a list
-of records describing matching resources.  With a record in hand, the 
-application can use the information in the record to access the 
+of records describing matching resources.  With a record in hand, the
+application can use the information in the record to access the
 resource directly.  Most often, the resource is a data service that
 can be queried for individual datasets of interest.  
 
@@ -16,13 +16,13 @@ This module provides basic, low-level access to the RegTAP Registries using
 standardized TAP-based services.
 """
 from __future__ import print_function, division
-from ..dal import tap, query as dalq
+from ..dal import scs, sia, ssa, sla, tap, query as dalq
 
-__all__ = ["search"]
+__all__ = ["search", "RegistryResource", "RegistryResults", "ivoid2service"]
 
 REGISTRY_BASEURL = "http://dc.g-vo.org/tap"
 
-def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
+def search(keywords=None, servicetype=None, waveband=None):
     """
     execute a simple query to the RegTAP registry.
 
@@ -35,10 +35,10 @@ def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
     servicetype : str
        the service type to restrict results to.
        Allowed values include
-       'scs', 
+       'conesearch', 
        'sia' ,
        'ssa',
-       'sla',
+       'slap',
        'tap'
     waveband : str
        the name of a desired waveband; resources returned 
@@ -52,10 +52,6 @@ def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
        'euv',
        'x-ray'
        'gamma-ray'
-    sqlpred : str
-       an SQL WHERE predicate (without the leading "WHERE") 
-       that further contrains the search against supported 
-       keywords.
 
     Returns
     -------
@@ -66,11 +62,12 @@ def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
     --------
     RegistryResults
     """
-    if not any((keywords, servicetype, waveband, sqlpred)):
+    if not any((keywords, servicetype, waveband)):
         raise dalq.DALQueryError(
             "No search parameters passed to registry search")
 
     joins = set(["rr.interface"])
+    joins = set(["rr.resource"])
     wheres = list()
 
     if keywords:
@@ -90,10 +87,10 @@ def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
         wheres.append("intf_type = 'vs:paramhttp'")
     else:
         wheres.append("""(
-            standard_id LIKE 'ivo://ivoa.net/std/scs%' OR
+            standard_id LIKE 'ivo://ivoa.net/std/conesearch%' OR
             standard_id LIKE 'ivo://ivoa.net/std/sia%' OR
             standard_id LIKE 'ivo://ivoa.net/std/ssa%' OR
-            standard_id LIKE 'ivo://ivoa.net/std/sla%' OR
+            standard_id LIKE 'ivo://ivoa.net/std/slap%' OR
             standard_id LIKE 'ivo://ivoa.net/std/tap%'
         )""")
     
@@ -102,10 +99,7 @@ def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
         wheres.append("1 = ivo_hashlist_has('{}', waveband)".format(
             tap.escape(waveband)))
 
-    if sqlpred:
-        wheres.append(sqlpred)
-
-    query = """SELECT *
+    query = """SELECT DISTINCT rr.interface.*, rr.capability.*, rr.resource.*
     FROM rr.capability
     {}
     {}
@@ -115,4 +109,294 @@ def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
     )
 
     service = tap.TAPService(REGISTRY_BASEURL)
-    return service.run_sync(query, maxrec=service.hardlimit)
+    query = tap.TAPQuery(service.baseurl, query, maxrec=service.hardlimit)
+    query.RESULTS_CLASS = RegistryResults
+    return query.execute()
+
+
+class RegistryResults(tap.TAPResults):
+    """
+    an iterable set of results from a registry query. Each record is
+    returned as RegistryResultse
+    """
+    def __init__(self, votable, url=None, version="1.0"):
+        """
+        initialize the results.  This constructor is not typically called
+        by directly applications; rather an instance is obtained from calling
+        a SIAQuery's execute().
+        """
+        super(RegistryResults, self).__init__(votable, url, "regtap", version)
+
+    def getrecord(self, index):
+        """
+        return all the attributes of a resource record with the given index
+        as SimpleResource instance (a dictionary-like object).
+
+        Parameters
+        ----------
+        index  : int
+            the zero-based index of the record
+        """
+        return RegistryResource(self, index)
+
+
+class RegistryResource(dalq.Record):
+    """
+    a dictionary for the resource metadata returned in one record of a
+    registry query.
+
+    A SimpleResource acts as a dictionary, so in general, all attributes can
+    be accessed by name via the [] operator, and the attribute names can
+    by returned via the keys() function.  For convenience, it also stores
+    key values as properties; these include:
+
+    Properties
+    ----------
+    title : bytes
+       the title of the resource
+    shortname : bytes
+       the resource's short name
+    ivoid : bytes
+       the IVOA identifier for the resource (identifier will also work)
+    accessurl : str
+       when the resource is a service, the service's access URL.
+    """
+    @property
+    def ivoid(self):
+        """
+        the IVOA identifier for the resource.
+        """
+        return self.get("ivoid")
+
+    @property
+    def res_type(self):
+        """
+        the resource types that characterize this resource.
+        """
+        return self.get("res_type")
+
+    @property
+    def short_name(self):
+        """
+        the short name for the resource
+        """
+        return self.get("short_name")
+
+    @property
+    def res_title(self):
+        """
+        the title of the resource
+        """
+        return self.get("res_title", None)
+
+    @property
+    def content_levels(self):
+        """
+        a list of content level labels that describe the intended audience
+        for this resource.
+        """
+        return self.get("content_level", "").split("#")
+
+    @property
+    def res_description(self):
+        """
+        the textual description of the resource.
+
+        See Also
+        --------
+        SimpleResource.describe
+        """
+        return self.get("res_description")
+
+    @property
+    def reference_url(self):
+        """
+        URL pointing to a human-readable document describing this resource.
+        """
+        return self.get("reference_url")
+
+    @property
+    def creators(self):
+        """
+        The creator(s) of the resource
+        in the ordergiven by the resource record author
+        """
+        return self.get("creator_seq", "").split(";")
+
+    @property
+    def content_types(self):
+        """
+        list of natures or genres of the content of the resource.
+        """
+        return self.get("content_type").split("#")
+
+    @property
+    def source_format(self):
+        """
+        The format of source_value.
+        """
+        return self.get("source_format")
+
+    @property
+    def region_of_regard(self):
+        """
+        numeric value representing the angle, given in decimal degrees,
+        by which a positional query against this resource should be "blurred"
+        in order to get an appropriate match.
+        """
+        return float(self.get("region_of_regard", "0"))
+
+    @property
+    def waveband(self):
+        """
+        a list of names of the wavebands that the resource provides data for
+        """
+        return self.get("waveband", "").split("#")
+
+    @property
+    def access_url(self):
+        """
+        the URL that can be used to access the service resource.
+        """
+        return self.get("access_url")
+
+    @property
+    def standard_id(self):
+        """
+        the IVOA standard identifier
+        """
+        return self.get("standard_id")
+
+    @property
+    def service(self):
+        """
+        return an appropriate DALService subclass for this resource that
+        can be used to search the resource.  Return None if the resource is
+        not a recognized DAL service.  Currently, only Conesearch, SIA, SSA,
+        and SLA services are supported.
+        """
+        if not self.access_url:
+            return None
+
+        for key, value in {
+            "ivo://ivoa.net/std/tap":  scs.SCSService,
+            "ivo://ivoa.net/std/sia":  sia.SIAService,
+            "ivo://ivoa.net/std/ssa":  ssa.SSAService,
+            "ivo://ivoa.net/std/sla":  sla.SLAService,
+            "ivo://ivoa.net/std/tap":  tap.TAPService,
+        }.items():
+            if self.standard_id in key:
+                return value(self.access_url)
+
+        return None
+
+    def search(self, *args, **keys):
+        """
+        assuming this resource refers to a searchable service, execute a
+        search against the resource.  This is equivalent to:
+
+           self.to_service().search(*args, **keys)
+
+        The arguments provided should be appropriate for the service that
+        the DAL service type would expect.  See the documentation for the
+        appropriate service type:
+
+        ============  =========================================
+        Service type  Use the argument syntax for
+        ============  =========================================
+        catalog       :py:meth:`pyvo.dal.scs.SCSService.search`
+        image         :py:meth:`pyvo.dal.sia.SIAService.search`
+        spectrum      :py:meth:`pyvo.dal.ssa.SSAService.search`
+        line          :py:meth:`pyvo.dal.sla.SLAService.search`
+        database      *not yet supported*
+        ============  =========================================
+
+        Raises
+        ------
+        RuntimeError
+           if the resource does not describe a searchable service.
+        """
+        if not self.service:
+            raise dalq.DALServiceError(
+                "resource, {0}, is not a searchable service".format(
+                    self.shortname))
+
+        return self.service.search(*args, **keys)
+
+    def describe(self, verbose=False, width=78, file=None):
+        """
+        Print a summary description of this resource.  
+
+        Parameters
+        ----------
+        verbose : bool
+            If false (default), only user-oriented information is 
+            printed; if true, additional information will be printed
+            as well.
+        width : int
+            Format the description with given character-width.
+        out : writable file-like object
+            If provided, write information to this output stream.
+            Otherwise, it is written to standard out.  
+        """
+        restype = "Custom Service"
+        stdid = self.get("standard_id").lower()
+        if stdid:
+            if stdid.startswith("ivo://ivoa.net/std/conesearch"):
+                restype = "Catalog Cone-search Service"
+            elif stdid.startswith("ivo://ivoa.net/std/sia"):
+                restype = "Image Data Service"
+            elif stdid.startswith("ivo://ivoa.net/std/ssa"):
+                restype = "Spectrum Data Service"
+            elif stdid.startswith("ivo://ivoa.net/std/slap"):
+                restype = "Spectral Line Database Service"
+            elif stdid.startswith("ivo://ivoa.net/std/tap"):
+                restype = "Table Access Protocol Service"
+
+        print(restype, file=file)
+        print(dalq.para_format_desc(self.res_title), file=file)
+        print("Short Name: " + self.short_name, file=file)
+        #print("Publisher: " + dalq.para_format_desc(self.publisher), file=file)
+        print("IVOA Identifier: " + self.ivoid, file=file)
+        if self.access_url:
+            print("Base URL: " + self.access_url, file=file)
+
+        if self.res_description:
+            print(file=file)
+            print(dalq.para_format_desc(self.res_description), file=file)
+            print(file=file)
+
+        if self.short_name:
+            print(dalq.para_format_desc("Subjects: {}".format(self.short_name)),
+                  file=file)
+        if self.waveband:
+            val = (str(v) for v in self.waveband)
+            print(dalq.para_format_desc("Waveband Coverage: " + ", ".join(val)),
+                  file=file)
+
+        if verbose:
+            if self.standard_id:
+                print("StandardID: " + self.standard_id, file=file)
+            if self.reference_url:
+                print("More info: " + self.reference_url, file=file)
+
+def ivoid2service(ivoid):
+    service = tap.TAPService(REGISTRY_BASEURL)
+    results = service.run_sync("""
+        SELECT DISTINCT access_url, standard_id FROM rr.capability
+        NATURAL JOIN rr.interface
+        WHERE ivoid = '{}'
+    """.format(tap.escape(ivoid)))
+
+    for result in results:
+        for ivo, cls in {
+            "ivo://ivoa.net/std/tap":  scs.SCSService,
+            "ivo://ivoa.net/std/sia":  sia.SIAService,
+            "ivo://ivoa.net/std/ssa":  ssa.SSAService,
+            "ivo://ivoa.net/std/sla":  sla.SLAService,
+            "ivo://ivoa.net/std/tap":  tap.TAPService,
+        }.items():
+            if result["standard_id"] in ivo:
+                return cls(result["access_url"])
+
+    return None

@@ -777,7 +777,7 @@ class Iter(object):
 if _is_python3 and not hasattr(Iter, "next"):
     setattr(Iter, "next", lambda self: self.__next__())
 
-class Record(object):
+class Record(dict):
     """
     one record from a DAL query result.  The column values are accessible 
     as dictionary items.  It also provides special added functions for 
@@ -790,61 +790,16 @@ class Record(object):
         if not self._fdesc: 
             self._fdesc = {}
 
-        self.rec = results.votable.array.data[index]
         if fielddesc is None:
             for fld in results.fieldnames():
                 self._fdesc[fld] = results.getdesc(fld)
 
-    def __len__(self):
-        return len(self.rec.dtype.names)
+        super(Record, self).__init__()
 
-    def __getitem__(self, key):
-        try:
-            return self.rec.__getitem__(key)
-        except IndexError:
-            raise KeyError(key)
-
-    def get(self, key, default=None):
-        """
-        return a metadata value.
-        This behaves just like the dictionary ``get()`` method.
-
-        Parameters
-        ----------
-        key : str
-           the name metadatum (which is the name of the column in the 
-           results table that it was extracted from)
-        default : any
-           the value to return if the record does not include a 
-           metadatum with the given key name.  
-        """
-        try:
-            return self.__getitem__(key)
-        except KeyError:
-            return default
-
-    def _get_to_str(self, key, default=None):
-        # Needed for python3 support, this will convert to a native string 
-        # if it is not already
-        try:
-            out = self.__getitem__(key)
-        except KeyError:
-            return default
-        if isinstance(out, str):
-            return out
-        if _is_python3: 
-            if isinstance(out, bytes):
-                out = out.decode('utf-8')
-        else:
-            if isinstance(out, unicode):
-                out = out.decode('utf-8')
-        return out
-
-    def __contains__(self, key):
-        return key in self.rec.dtype.names
-
-    def has_key(self, key):
-        return self.__contains__(key)
+        self.update(zip(
+            results.fieldnames(),
+            results.votable.array.data[index]
+        ))
 
     def fielddesc(self, name):
         """
@@ -1046,32 +1001,6 @@ class Record(object):
         """
         # abstract; specialized for the different service types
         return default
-
-# take care giving Record its dictionary functionality with attention to 
-# whether we are using Python 2 or 3.  
-def _record_iteritems(self):
-    for key in self.rec.dtype.names:
-        yield (key, self.__getitem__(key))
-def _record_iterkeys(self):
-    for key in self.rec.dtype.names:
-        yield key
-def _record_itervalues(self):
-    for key in self.rec.dtype.names:
-        yield self.__getitem__(key)
-
-if _is_python3:
-    setattr(Record, 'items', _record_iteritems)
-    setattr(Record, 'keys', _record_iterkeys)
-    setattr(Record, 'values', _record_itervalues)
-else:
-    setattr(Record, 'iteritems', _record_iteritems)
-    setattr(Record, 'iterkeys', _record_iterkeys)
-    setattr(Record, 'itervalues', _record_itervalues)
-    setattr(Record, 'items', lambda self: tuple(self.iteritems()))
-    setattr(Record, 'keys', lambda self: tuple(self.iterkeys()))
-    setattr(Record, 'values', lambda self: tuple(self.itervalues()))
-    
-
 
 if _is_python3:
     _image_mt_re = re.compile(b'^image/(\w+)')

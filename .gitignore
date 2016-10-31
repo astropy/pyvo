@@ -47,3 +47,6 @@ distribute-*.tar.gz
 
 # Mac OSX
 .DS_Store
+
+# ipython
+.ipynb_checkpoints
