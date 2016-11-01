@@ -767,7 +767,7 @@ class SSARecord(query.Record):
         unicode for Python 3 and as a byte-string for Python 2--making ready
         to use as a URL with urllib functions.
         """
-        return self._get_to_str(self._names["acref"])
+        return self.get(self._names["acref"])
 
     def getdataurl(self):
         """
