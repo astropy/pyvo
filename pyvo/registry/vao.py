@@ -824,7 +824,7 @@ class SimpleResource(dalq.Record):
         unicode for Python 3 and as a byte-string for Python 2--making ready
         to use as a URL with urllib functions.
         """
-        return self._get_to_str("accessURL")
+        return self.get("accessURL")
 
     def to_service(self):
         """
