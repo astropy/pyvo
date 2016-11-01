@@ -801,6 +801,23 @@ class Record(dict):
             results.votable.array.data[index]
         ))
 
+    def get_str(self, key, default=None):
+        # Needed for python3 support, this will convert to a native string 
+        # if it is not already
+        try:
+            out = self.__getitem__(key)
+        except KeyError:
+            return default
+        if isinstance(out, str):
+            return out
+        if _is_python3: 
+            if isinstance(out, bytes):
+                out = out.decode('utf-8')
+        else:
+            if isinstance(out, unicode):
+                out = out.decode('utf-8')
+        return out
+
     def fielddesc(self, name):
         """
         return an object with attributes (name, id, datatype, unit, ucd, 
