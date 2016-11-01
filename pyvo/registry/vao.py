@@ -28,6 +28,9 @@ import re
 
 import numpy.ma as _ma
 
+import warnings
+warnings.warn("VAO Registry is deprecated", DeprecationWarning)
+
 __all__ = [ "search", "RegistryService", "RegistryQuery", 
                       "RegistryResults", "SimpleResource" ]
 

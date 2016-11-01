@@ -364,66 +364,9 @@ class RegResultsTest(unittest.TestCase):
         for i in xrange(4):
             rec = self.r.getrecord(0)
             self.assert_(isinstance(rec, reg.SimpleResource))
-        
-
-class SimpleResTest(unittest.TestCase):
-
-    def setUp(self):
-        resultfile = get_pkg_data_filename(regresultfile)
-        self.tbl = votableparse(resultfile)
-        self.result =  reg.RegistryResults(self.tbl)
-        self.setrec(0)
-
-    def setrec(self, i):
-        self.r = self.result.getrecord(i)
-
-    def testArbitraryCol(self):
-        self.setrec(0)
-        self.assert_(self.r["description"].startswith(b"We use redshift determinations and spectral"))
-
-    def testAttr(self):
-        self.assertEquals(self.r.shortname, b"J/MNRAS/333/100 [1]")
-        self.assertEquals(self.r.title, 
-                          b"Radio galaxies in the 2dFGRS (Magliocchetti+, 2002)")
-        self.assertEquals(self.r.ivoid, b"ivo://CDS.VizieR/J/MNRAS/333/100#1")
-        self.assertEquals(self.r.accessurl, 
-           "http://vizier.u-strasbg.fr/cgi-bin/VizieR-2?-source=J/MNRAS/333/100")
-        self.assertEquals(self.r.publisher, b"CDS")
-        self.assertEquals(self.r.tags, b"Web Page")
-
-        # pdb.set_trace()
-        self.assert_(isinstance(self.r.subject, tuple))
-        self.assertEquals(len(self.r.subject), 4)
-        self.assertEquals(self.r.subject[0], b"AGN")
-        self.assertEquals(self.r.subject[1], b"Galaxies")
-        self.assertEquals(self.r.subject[3], b"Spectroscopy")
-
-        self.assertEquals(self.r.type[0], b"Catalog")
-        self.assertEquals(self.r["interfaceClass"], b"WebBrowser")
-        self.assertEquals(self.r.standardid, b"")
-        self.assertEquals(self.r.capability, b"")
-
-    def testListVal(self):
-        self.assert_(isinstance(self.r.subject, tuple))
-        self.assert_(isinstance(self.r.waveband, tuple))
-        self.assert_(isinstance(self.r.type, tuple))
-        self.assert_(isinstance(self.r.contentlevel, tuple))
-
-    def testCap(self):
-        self.setrec(2)
-        self.assertEquals(self.r.tags, b"Catalog")
-        self.assertEquals(self.r.type[0], b"Catalog")
-        self.assertEquals(self.r.standardid, b"ivo://ivoa.net/std/ConeSearch")
-        self.assertEquals(self.r.capability, b"ConeSearch")
-
-        self.setrec(3)
-        self.assertEquals(self.r.tags, b"Images")
-        self.assertEquals(self.r.type[0], b"Archive")
-        self.assertEquals(self.r.standardid, b"ivo://ivoa.net/std/SIA")
-        self.assertEquals(self.r.capability, b"SimpleImageAccess")
 
 
-__all__ = "RegServiceTest RegQueryTest RegResultsTest SimpleResTest".split()
+__all__ = "RegServiceTest RegQueryTest RegResultsTest".split()
 def suite():
     tests = []
     for t in __all__:
