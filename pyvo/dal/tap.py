@@ -424,7 +424,7 @@ class TAPQuery(query.DALQuery):
 
         try:
             return self.submit().raw
-        except IOError as ex:
+        except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, url, self.protocol,
                 self.version)
 
@@ -439,6 +439,7 @@ class TAPQuery(query.DALQuery):
 
         r = requests.post(url, data = self._param, stream = True,
             files = files)
+        r.raise_for_status()
         # requests doesn't decode the content by default
         r.raw.read = functools.partial(r.raw.read, decode_content=True)
         return r
