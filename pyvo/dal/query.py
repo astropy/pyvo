@@ -1313,8 +1313,7 @@ class DALServiceError(DALProtocolError):
         for the given exception that represents the underlying cause.
         """
         if isinstance(exc, requests.exceptions.RequestException):
-            # python 2.7 has message as reason attribute; 2.6, msg
-            message = str(exc.message)
+            message = str(exc)
             code = exc.response.status_code
 
             return DALServiceError(
