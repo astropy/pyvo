@@ -16,7 +16,7 @@ import pyvo.dal.dbapi2 as daldbapi
 from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
 from astropy.utils.data import get_pkg_data_filename
-from . import aTestSIAServer as testserve
+from . import aTestDALServer as testserve
 
 testdir = os.path.dirname(sys.argv[0])
 if not testdir:  testdir = "tests"
@@ -68,11 +68,11 @@ class SSAServiceTest(unittest.TestCase):
         self.assertEquals(q.size, 1.0)
         self.assertEquals(q.format, "all")
 
-        qurl = q.getqueryurl()
-        self.assert_("REQUEST=queryData" in qurl)
-        self.assert_("POS=0,0" in qurl)
-        self.assert_("SIZE=1.0" in qurl)
-        self.assert_("FORMAT=all" in qurl)
+        self.assertEquals(q._param["REQUEST"], "queryData")
+        self.assertAlmostEquals(q._param["POS"][0], 0.0)
+        self.assertAlmostEquals(q._param["POS"][1], 0.0)
+        self.assertAlmostEquals(q._param["SIZE"], 1.0)
+        self.assertEquals(q._param["FORMAT"], "all")
 
     def testCreateQueryWithKws(self):
         self.testCtor()
@@ -85,13 +85,10 @@ class SSAServiceTest(unittest.TestCase):
         self.assertEquals(q.size, 1.0)
         self.assertEquals(len(q._param.keys()), 4)
         self.assertAlmostEquals(q.getparam('APERTURE'), 0.00028)
-
-        qurl = q.getqueryurl()
-        self.assert_("REQUEST=queryData" in qurl)
-        self.assert_("POS=0,0" in qurl)
-        self.assert_("SIZE=1.0" in qurl)
-        self.assertTrue("APERTURE=0.00028" in qurl, 
-                        "unexpected APERTURE format: "+qurl)
+        self.assertEquals(q._param["REQUEST"], "queryData")
+        self.assertAlmostEquals(q._param["POS"][0], 0.0)
+        self.assertAlmostEquals(q._param["POS"][1], 0.0)
+        self.assertAlmostEquals(q._param["SIZE"], 1.0)
 
         q = self.srv.create_query(pos=(0,0), size=1.0, format="all", 
                                   APERTURE=0.00028)
@@ -104,15 +101,11 @@ class SSAServiceTest(unittest.TestCase):
         self.assertEquals(q.format, "all")
         self.assertAlmostEquals(q.getparam('APERTURE'), 0.00028)
 
-        qurl = q.getqueryurl()
-        self.assert_("REQUEST=queryData" in qurl)
-        self.assert_("POS=0,0" in qurl)
-        self.assert_("SIZE=1.0" in qurl)
-        self.assert_("FORMAT=all" in qurl)
-        self.assertTrue("APERTURE=0.00028" in qurl, 
-                        "unexpected APERTURE format: "+qurl)
-
-        
+        self.assertEquals(q._param["REQUEST"], "queryData")
+        self.assertAlmostEquals(q._param["POS"][0], 0.0)
+        self.assertAlmostEquals(q._param["POS"][1], 0.0)
+        self.assertAlmostEquals(q._param["SIZE"], 1.0)
+        self.assertEquals(q._param["FORMAT"], "all")
 
 
 class SSAQueryTest(unittest.TestCase):
@@ -243,12 +236,13 @@ class SSAQueryTest(unittest.TestCase):
         self.q.ra = 102.5511
         self.q.dec = 24.312
         qurl = self.q.getqueryurl()
-        self.assertEquals(qurl, self.baseurl+"?REQUEST=queryData&POS=102.5511,24.312")
+        self.assertEquals(qurl, self.baseurl)
 
         self.q.size = 1.0
         qurl = self.q.getqueryurl()
-        self.assert_("POS=102.5511,24.312" in qurl)
-        self.assert_("SIZE=1.0" in qurl)
+        self.assertAlmostEquals(self.q._param["POS"][0], 102.5511)
+        self.assertAlmostEquals(self.q._param["POS"][1], 24.312)
+        self.assertAlmostEquals(self.q._param["SIZE"], 1.0)
 
 
 class SSAResultsTest(unittest.TestCase):
@@ -355,13 +349,6 @@ class SSAExecuteTest(unittest.TestCase):
         self.assert_(isinstance(results, ssa.SSAResults))
         self.assertEquals(results.nrecs, 35)
 
-        qurl = results.queryurl
-        # print(qurl)
-        self.assert_("REQUEST=queryData" in qurl)
-        self.assert_("POS=0,0" in qurl)
-        self.assert_("SIZE=1.0" in qurl)
-        self.assert_("FORMAT=all" in qurl)
-
 
     def testSsa(self):
         results = ssa.search("http://localhost:{0}/ssa".format(self.srvr.port),
@@ -467,11 +454,11 @@ if __name__ == "__main__":
     try:
         module = find_current_module(1, True)
         pkgdir = os.path.dirname(module.__file__)
-        t = "aTestSIAServer"
+        t = "aTestDALServer"
         mod = imp.find_module(t, [pkgdir])
         testserve = imp.load_module(t, mod[0], mod[1], mod[2])
     except ImportError as e:
-        sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+        sys.stderr.write("Can't find test server: aTestDALServer.py:"+str(e))
 
     srvr = testserve.TestServer(testserverport)
 

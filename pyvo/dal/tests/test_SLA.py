@@ -16,7 +16,7 @@ import pyvo.dal.dbapi2 as daldbapi
 from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
 from astropy.utils.data import get_pkg_data_filename
-from . import aTestSIAServer as testserve
+from . import aTestDALServer as testserve
 
 slaresultfile = "data/nrao-sla.xml"
 errresultfile = "data/error-sla.xml"
@@ -65,8 +65,8 @@ class SLAServiceTest(unittest.TestCase):
         self.assertEquals(q.wavelength, "7.6e-6/1.e-5")
 
         qurl = q.getqueryurl()
-        self.assert_("REQUEST=queryData" in qurl)
-        self.assert_("WAVELENGTH=7.6e-6%2F1.e-5" in qurl)
+        self.assertEquals(q._param["REQUEST"], "queryData")
+        self.assertEquals(q._param["WAVELENGTH"], "7.6e-6/1.e-5")
         
 
 class SLAQueryTest(unittest.TestCase):
@@ -112,7 +112,7 @@ class SLAQueryTest(unittest.TestCase):
         self.testCtor()
         self.q.wavelength = "7.6e-6/1.e-5"
         qurl = self.q.getqueryurl()
-        self.assertEquals(qurl, self.baseurl+"?REQUEST=queryData&WAVELENGTH=7.6e-6%2F1.e-5")
+        self.assertEquals(qurl, self.baseurl)
 
 
 class SLAResultsTest(unittest.TestCase):
@@ -205,11 +205,6 @@ class SLAExecuteTest(unittest.TestCase):
         self.assert_(isinstance(results, sla.SLAResults))
         self.assertEquals(results.nrecs, 21)
 
-        qurl = results.queryurl
-        self.assert_("REQUEST=queryData" in qurl)
-        self.assert_("WAVELENGTH=0.00260075%2F0.00260080" in qurl)
-
-
     def testSla(self):
         results = sla.search("http://localhost:{0}/sla".format(self.srvr.port),
                              wavelength="0.00260075/0.00260080")
@@ -232,11 +227,11 @@ if __name__ == "__main__":
     try:
         module = find_current_module(1, True)
         pkgdir = os.path.dirname(module.__file__)
-        t = "aTestSIAServer"
+        t = "aTestDALServer"
         mod = imp.find_module(t, [pkgdir])
         testserve = imp.load_module(t, mod[0], mod[1], mod[2])
     except ImportError as e:
-        sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+        sys.stderr.write("Can't find test server: aTestDALServer.py:"+str(e))
 
     srvr = testserve.TestServer(testserverport)
 

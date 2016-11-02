@@ -7,7 +7,6 @@ from __future__ import print_function, division
 
 import os, sys, shutil, re, imp, random, time
 import unittest, pdb
-from urllib2 import URLError, HTTPError
 
 import pyvo.dal.query as dalq
 from pyvo.dal import scs as cs
@@ -17,7 +16,7 @@ from astropy.io.votable.tree import VOTableFile
 from astropy.io.votable.exceptions import W22
 from pyvo.dal.query import _votableparse as votableparse
 from astropy.utils.data import get_pkg_data_filename
-from . import aTestSIAServer as testserve
+from . import aTestDALServer as testserve
 
 csresultfile = "data/twomass-cs.xml"
 errresultfile = "data/error-cs.xml"
@@ -69,12 +68,6 @@ class SCSServiceTest(unittest.TestCase):
         self.assertEquals(q.radius,  1.0)
         self.assertEquals(q.verbosity, 2)
 
-        qurl = q.getqueryurl()
-        self.assert_("RA=0.0" in qurl)
-        self.assert_("DEC=0.0" in qurl)
-        self.assert_("SR=1.0" in qurl)
-        self.assert_("VERB=2" in qurl)
-
 
 class SCSQueryTest(unittest.TestCase):
 
@@ -121,22 +114,17 @@ class SCSQueryTest(unittest.TestCase):
             
     def testCreateURL(self):
         self.testCtor()
+        self.assertEquals(self.q.getqueryurl(), self.baseurl)
+
         self.q.ra = 102.5511
-        qurl = self.q.getqueryurl(lax=True)
-        self.assertEquals(qurl, self.baseurl+"?RA=102.5511")
-
-        self.assertRaises(dalq.DALQueryError, self.q.getqueryurl)
-
         self.q.dec = 24.312
         self.q.radius = 0.1
-        qurl = self.q.getqueryurl()
-        self.assert_("RA=102.5511" in qurl)
-        self.assert_("DEC=24.312" in qurl)
-        self.assert_("SR=0.1" in qurl)
+        self.assertAlmostEquals(self.q._param["RA"], 102.5511)
+        self.assertAlmostEquals(self.q._param["DEC"], 24.312)
+        self.assertAlmostEquals(self.q._param["SR"], 0.1)
 
         self.q.sr = 0.05
-        qurl = self.q.getqueryurl()
-        self.assert_("SR=0.05" in qurl)
+        self.assertAlmostEquals(self.q._param["SR"], 0.05)
 
 
 class CSResultsTest(unittest.TestCase):
@@ -257,13 +245,6 @@ class CSExecuteTest(unittest.TestCase):
         self.assert_(isinstance(results, cs.SCSResults))
         self.assertEquals(results.nrecs, 2)
 
-        qurl = results.queryurl
-        # print(qurl)
-        self.assert_("RA=0.0" in qurl)
-        self.assert_("DEC=0.0" in qurl)
-        self.assert_("SR=0.25" in qurl)
-        self.assert_("VERB=2" in qurl)
-
 
     def testConesearch(self):
         # pdb.set_trace()
@@ -284,11 +265,11 @@ if __name__ == "__main__":
     try:
         module = find_current_module(1, True)
         pkgdir = os.path.dirname(module.__file__)
-        t = "aTestSIAServer"
+        t = "aTestDALServer"
         mod = imp.find_module(t, [pkgdir])
         testserve = imp.load_module(t, mod[0], mod[1], mod[2])
     except ImportError as e:
-        sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+        sys.stderr.write("Can't find test server: aTestDALServer.py:"+str(e))
 
     srvr = testserve.TestServer(testserverport)
 

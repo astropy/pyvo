@@ -315,7 +315,7 @@ class DALQuery(object):
         DALFormatError  
            for errors parsing the VOTable response
         """
-        return DALResults(self.execute_votable(), self.getqueryurl(True))
+        return DALResults(self.execute_votable(), self.getqueryurl())
 
     def execute_raw(self):
         """
@@ -349,9 +349,9 @@ class DALQuery(object):
         """
         try:
             return self.submit().raw
-        except IOError as ex:
-            raise DALServiceError.from_except(ex, url, self.protocol, 
-                                              self.version)
+        except requests.RequestException as ex:
+            raise DALServiceError.from_except(
+                ex, self.getqueryurl(), self.protocol, self.version)
 
     def submit(self):
         """
@@ -367,6 +367,7 @@ class DALQuery(object):
         params = {k: urlify_param(v) for k, v in self._param.items()}
 
         r = requests.get(url, params = params, stream = True)
+        r.raise_for_status()
         r.raw.read = functools.partial(r.raw.read, decode_content=True)
         return r
 
@@ -1314,7 +1315,7 @@ class DALServiceError(DALProtocolError):
         if isinstance(exc, requests.exceptions.RequestException):
             # python 2.7 has message as reason attribute; 2.6, msg
             message = str(exc.message)
-            code = exc.response and exc.response.status_code
+            code = exc.response.status_code
 
             return DALServiceError(
                 message, code, exc, url, protocol, version)

@@ -7,7 +7,6 @@ from __future__ import print_function, division
 
 import os, sys, shutil, re, imp, glob, tempfile, random, time
 import unittest, pdb
-from urllib2 import URLError, HTTPError
 
 import pyvo.dal.query as dalq
 import pyvo.dal.dbapi2 as daldbapi
@@ -15,7 +14,8 @@ import pyvo.dal.dbapi2 as daldbapi
 from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
 from astropy.utils.data import get_pkg_data_filename
-from . import aTestSIAServer as testserve
+from . import aTestDALServer as testserve
+import requests
 
 siaresultfile = "data/neat-sia.xml"
 ssaresultfile = "data/jhu-ssa.xml"
@@ -71,34 +71,6 @@ class DALServiceErrorTest(unittest.TestCase):
     code = 404
     url = "http://localhost/"
 
-    def testProperties4(self):
-        c = HTTPError("http://localhost/", self.code, self.msg, None,
-                      open("/dev/null"))
-        e = dalq.DALServiceError(self.msg, self.code, c, self.url)
-        self.assertEquals(self.msg, e.reason)
-        self.assert_(e.cause is c)
-        self.assertEquals(self.code, e.code)
-        self.assertEquals(self.url, e.url)
-
-        del e.cause 
-        self.assert_(e.cause is None)
-        e.cause = c
-        self.assert_(e.cause is c)
-
-        e.code = 505
-        self.assertEquals(505, e.code)
-        del e.code
-        self.assert_(e.code is None)
-
-    def testProperties3(self):
-        c = HTTPError("http://localhost/", self.code, self.msg, None,
-                      open("/dev/null"))
-        e = dalq.DALServiceError(self.msg, self.code, c)
-        self.assertEquals(self.msg, e.reason)
-        self.assert_(e.cause is c)
-        self.assertEquals(self.code, e.code)
-        self.assert_(e.url is None)
-
     def testProperties2(self):
         e = dalq.DALServiceError(self.msg, self.code)
         self.assertEquals(self.msg, e.reason)
@@ -119,25 +91,6 @@ class DALServiceErrorTest(unittest.TestCase):
         self.assert_(e.cause is None)
         self.assert_(e.code is None)
         self.assert_(e.url is None)
-
-    def testFromExceptHTTP(self):
-        url = "http://localhost/"
-        c = HTTPError("http://localhost/", self.code, self.msg, None,
-                      open("/dev/null"))
-        e = dalq.DALServiceError.from_except(c)
-        self.assertEquals(self.msg, e.reason)
-        self.assert_(e.cause is c)
-        self.assertEquals(self.code, e.code)
-        self.assertEquals(url, e.url)
-
-    def testFromExceptURL(self):
-        url = "http://localhost/"
-        c = URLError(self.msg)
-        e = dalq.DALServiceError.from_except(c, url)
-        self.assertEquals(self.msg, e.reason)
-        self.assert_(e.cause is c)
-        self.assert_(e.code is None)
-        self.assertEquals(url, e.url)
 
     def testFromExcept(self):
         c = RuntimeError(self.msg)
@@ -313,24 +266,6 @@ class RecordTest(unittest.TestCase):
         self.assertFalse(self.rec.has_key('Goober'))
         self.assertFalse('Goober' in self.rec)
 
-
-class EnsureBaseURLTest(unittest.TestCase):
-
-    def testFix(self):
-        self.assertEquals(dalq.ensure_baseurl("http://localhost")[-1], '?')
-        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia")[-1], '?')
-        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat")[-1], '&')
-        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat&usecache=yes")[-1], '&')
-
-        self.assertEquals(dalq.ensure_baseurl("http://localhost?"), 
-                          "http://localhost?")
-        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?"), 
-                          "http://localhost/sia?")
-        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat&"), 
-                          "http://localhost/sia?cat=neat&")
-        self.assertEquals(dalq.ensure_baseurl("http://localhost/sia?cat=neat&usecache=yes&"), 
-                          "http://localhost/sia?cat=neat&usecache=yes&")
-
 class MimeCheckTestCase(unittest.TestCase):
     
     def testGood(self):
@@ -464,43 +399,6 @@ class DALQueryTest(unittest.TestCase):
         self.assertEquals(len(self.query.paramnames()), 1)
         self.assertEquals(self.query.getparam("DEC"), -13.49677)
         self.assert_(self.query.getparam("RA") is None)
-
-    def testQueryURL(self):
-        self.testCtor()
-        self.query.setparam("RA", 51.235)
-        qurl = self.query.getqueryurl()
-        self.assertEquals(qurl, self.baseurl+'?RA=51.235')
-
-        self.query.setparam("DEC", -13.49677)
-        qurl = self.query.getqueryurl()
-        self.assert_(qurl == self.baseurl+'?RA=51.235&DEC=-13.49677' or
-                     qurl == self.baseurl+'?DEC=-13.49677&RA=51.235')
-
-        self.query.setparam("SR", "1.0")
-        qurl = self.query.getqueryurl()
-        self.assert_(qurl == self.baseurl+'?RA=51.235&SR=1.0&DEC=-13.49677' or
-                     qurl == self.baseurl+'?DEC=-13.49677&SR=1.0&RA=51.235' or 
-                     qurl == self.baseurl+'?RA=51.235&DEC=-13.49677&SR=1.0' or
-                     qurl == self.baseurl+'?DEC=-13.49677&RA=51.235&SR=1.0' or 
-                     qurl == self.baseurl+'?SR=1.0&DEC=-13.49677&RA=51.235' or 
-                     qurl == self.baseurl+'?SR=1.0&RA=51.235&DEC=-13.49677')
-
-    def testEncode(self):
-        self.testCtor()
-        self.query.setparam("NaMe", "a val")
-        qurl = self.query.getqueryurl()
-        self.assertEquals(qurl, self.baseurl+'?NaMe=a+val')
-        
-        self.testCtor()
-        self.query.setparam("NaMe", "a+val")
-        qurl = self.query.getqueryurl()
-        self.assertEquals(qurl, self.baseurl+'?NaMe=a%2Bval')
-
-    def testEncodeList(self):
-        self.testCtor()
-        self.query.setparam("POS", (5.231, -13.441))
-        qurl = self.query.getqueryurl()
-        self.assertEquals(qurl, self.baseurl+'?POS=5.231,-13.441')
         
 
 class QueryExecuteTest(unittest.TestCase):
@@ -579,8 +477,8 @@ class QueryExecuteTest(unittest.TestCase):
             self.fail("failed to raise exception on bad url")
         except dalq.DALServiceError as e:
             self.assertEquals(e.code, 404)
-            self.assertEquals(e.reason, "Not Found")
-            self.assert_(isinstance(e.cause, HTTPError))
+            self.assertIn("Not Found", e.reason)
+            self.assert_(isinstance(e.cause, requests.RequestException))
         except Exception as e:
             self.fail("wrong exception raised: " + str(type(e)))
 
@@ -880,11 +778,11 @@ if __name__ == "__main__":
     try:
         module = find_current_module(1, True)
         pkgdir = os.path.dirname(module.__file__)
-        t = "aTestSIAServer"
+        t = "aTestDALServer"
         mod = imp.find_module(t, [pkgdir])
         testserve = imp.load_module(t, mod[0], mod[1], mod[2])
     except ImportError as e:
-        sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+        sys.stderr.write("Can't find test server: aTestDALServer.py:"+str(e))
 
     srvr = testserve.get_server(testserverport)
     try:

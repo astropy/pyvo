@@ -16,7 +16,7 @@ import pyvo.dal.dbapi2 as daldbapi
 from astropy.io.votable.tree import VOTableFile
 from pyvo.dal.query import _votableparse as votableparse
 from astropy.utils.data import get_pkg_data_filename
-from . import aTestSIAServer as testserve
+from . import aTestDALServer as testserve
 
 siaresultfile = "data/neat-sia.xml"
 errresultfile = "data/error-sia.xml"
@@ -69,12 +69,13 @@ class SIAServiceTest(unittest.TestCase):
         self.assertEquals(q.intersect, "OVERLAPS")
         self.assertEquals(q.verbosity, 2)
 
-        qurl = q.getqueryurl()
-        self.assert_("POS=0,0" in qurl)
-        self.assert_("SIZE=1.0,1.0" in qurl)
-        self.assert_("FORMAT=ALL" in qurl)
-        self.assert_("INTERSECT=OVERLAPS" in qurl)
-        self.assert_("VERB=2" in qurl)
+        self.assertAlmostEquals(q._param["POS"][0], 0.0)
+        self.assertAlmostEquals(q._param["POS"][1], 0.0)
+        self.assertAlmostEquals(q._param["SIZE"][0], 1.0)
+        self.assertAlmostEquals(q._param["SIZE"][1], 1.0)
+        self.assertEquals(q._param["FORMAT"], "ALL")
+        self.assertEquals(q._param["INTERSECT"], "OVERLAPS")
+        self.assertEquals(q._param["VERB"], 2)
 
     def testCreateQueryWithKws(self):
         self.testCtor()
@@ -83,11 +84,10 @@ class SIAServiceTest(unittest.TestCase):
 
         q.pos = (0, 0)
         q.size = (1.0, 1.0)
-        qurl = q.getqueryurl()
-        self.assert_("POS=0,0" in qurl)
-        self.assert_("SIZE=1.0,1.0" in qurl)
-        self.assertTrue("CDELT=0.00028" in qurl, 
-                        "unexpected CDELT format: "+qurl)
+        self.assertAlmostEquals(q._param["POS"][0], 0.0)
+        self.assertAlmostEquals(q._param["POS"][1], 0.0)
+        self.assertAlmostEquals(q._param["SIZE"][0], 1.0)
+        self.assertAlmostEquals(q._param["SIZE"][1], 1.0)
 
         q = self.srv.create_query(pos=(0,0), size=(1.0,1.0), format="all", 
                                   intersect="overlaps", verbosity=2, 
@@ -102,12 +102,6 @@ class SIAServiceTest(unittest.TestCase):
         self.assertEquals(q.intersect, "OVERLAPS")
         self.assertEquals(q.verbosity, 2)
         self.assertAlmostEquals(q.getparam('CDELT'), 0.00028)
-
-        qurl = q.getqueryurl()
-        self.assert_("POS=0,0" in qurl)
-        self.assert_("SIZE=1.0,1.0" in qurl)
-        self.assertTrue("CDELT=0.00028" in qurl, 
-                        "unexpected CDELT format: "+qurl)
 
 
 class SIAQueryTest(unittest.TestCase):
@@ -326,15 +320,8 @@ class SIAQueryTest(unittest.TestCase):
             
     def testCreateURL(self):
         self.testCtor()
-        self.q.ra = 102.5511
-        self.q.dec = 24.312
         qurl = self.q.getqueryurl()
-        self.assertEquals(qurl, self.baseurl+"?POS=102.5511,24.312")
-
-        self.q.size = (1.0, 1.0)
-        qurl = self.q.getqueryurl()
-        self.assert_("POS=102.5511,24.312" in qurl)
-        self.assert_("SIZE=1.0,1.0" in qurl)
+        self.assertEquals(qurl, self.baseurl)
 
 
 class SIAResultsTest(unittest.TestCase):
@@ -445,15 +432,6 @@ class SIAExecuteTest(unittest.TestCase):
         self.assert_(isinstance(results, sia.SIAResults))
         self.assertEquals(results.nrecs, 2)
 
-        qurl = results.queryurl
-        # print(qurl)
-        self.assert_("POS=0,0" in qurl)
-        self.assert_("SIZE=1.0,1.0" in qurl)
-        self.assert_("FORMAT=ALL" in qurl)
-        self.assert_("INTERSECT=OVERLAPS" in qurl)
-        self.assert_("VERB=2" in qurl)
-
-
     def testSia(self):
         results = sia.search("http://localhost:{0}/sia".format(self.srvr.port),
                              pos=(0,0), size=(1.0,1.0))
@@ -557,11 +535,11 @@ if __name__ == "__main__":
     try:
         module = find_current_module(1, True)
         pkgdir = os.path.dirname(module.__file__)
-        t = "aTestSIAServer"
+        t = "aTestDALServer"
         mod = imp.find_module(t, [pkgdir])
         testserve = imp.load_module(t, mod[0], mod[1], mod[2])
     except ImportError as e:
-        sys.stderr.write("Can't find test server: aTestSIAServer.py:"+str(e))
+        sys.stderr.write("Can't find test server: aTestDALServer.py:"+str(e))
 
     srvr = testserve.TestServer(testserverport)
 
