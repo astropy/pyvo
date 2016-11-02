@@ -28,12 +28,12 @@ import re
 
 import numpy.ma as _ma
 
-import warnings
-warnings.warn("VAO Registry is deprecated", DeprecationWarning)
+from astropy.utils.decorators import deprecated
 
 __all__ = [ "search", "RegistryService", "RegistryQuery", 
                       "RegistryResults", "SimpleResource" ]
 
+@deprecated("0.5")
 def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
     """
     execute a simple query to the VAO registry.  
@@ -77,6 +77,7 @@ def search(keywords=None, servicetype=None, waveband=None, sqlpred=None):
     return reg.search(keywords, servicetype, waveband, sqlpred)
 
 
+@deprecated("0.5")
 class RegistryService(dalq.DALService):
     """
     a class for submitting searches to the VAO registry.  
@@ -227,6 +228,8 @@ class RegistryService(dalq.DALService):
                              str(orkw))
         return srch
 
+
+@deprecated("0.5")
 class RegistryQuery(dalq.DALQuery):
     """
     a representation of a registry query that can be built up over
@@ -616,6 +619,8 @@ class RegistryQuery(dalq.DALQuery):
             const.append(" OR ".join(keyconst))
         return "("+conjunction.join(const)+")"
 
+
+@deprecated("0.5")
 class RegistryResults(dalq.DALResults):
     """
     an iterable set of results from a registry query.  Each record is
@@ -679,6 +684,7 @@ class RegistryResults(dalq.DALResults):
         return self.votable.nrows    
 
 
+@deprecated("0.5")
 class SimpleResource(dalq.Record):
     """
     a dictionary for the resource metadata returned in one record of a 
