@@ -16,11 +16,12 @@ This module provides basic, low-level access to the RegTAP Registries using
 standardized TAP-based services.
 """
 from __future__ import print_function, division
+import os
 from ..dal import scs, sia, ssa, sla, tap, query as dalq
 
 __all__ = ["search", "RegistryResource", "RegistryResults", "ivoid2service"]
 
-REGISTRY_BASEURL = "http://dc.g-vo.org/tap"
+REGISTRY_BASEURL = os.environ.get("IVOA_REGISTRY") or "http://dc.g-vo.org/tap"
 
 def search(keywords=None, servicetype=None, waveband=None):
     """
