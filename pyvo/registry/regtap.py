@@ -279,7 +279,7 @@ class RegistryResource(dalq.Record):
             return None
 
         for key, value in {
-            "ivo://ivoa.net/std/tap":  scs.SCSService,
+            "ivo://ivoa.net/std/conesearch":  scs.SCSService,
             "ivo://ivoa.net/std/sia":  sia.SIAService,
             "ivo://ivoa.net/std/ssa":  ssa.SSAService,
             "ivo://ivoa.net/std/sla":  sla.SLAService,
@@ -390,7 +390,7 @@ def ivoid2service(ivoid):
 
     for result in results:
         for ivo, cls in {
-            "ivo://ivoa.net/std/tap":  scs.SCSService,
+            "ivo://ivoa.net/std/conesearch":  scs.SCSService,
             "ivo://ivoa.net/std/sia":  sia.SIAService,
             "ivo://ivoa.net/std/ssa":  ssa.SSAService,
             "ivo://ivoa.net/std/sla":  sla.SLAService,
