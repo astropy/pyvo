@@ -13,8 +13,10 @@ from .tap import TAPService, TAPQuery, AsyncTAPJob
 
 from .query import *
 
-__all__ = [ "imagesearch", "spectrumsearch", "linesearch", "consesearch",
-            "SIAService", "SSAService", "SLAService", "SCSService",
-            "SIAResults", "SSAResults", "SLAResults", "SCSResults",
-            "SIARecord",  "SSARecord",  "SLARecord",  "SCSRecord",
-            "DALResults" ]
+__all__ = [
+    "imagesearch", "spectrumsearch", "linesearch", "consesearch", "tablesearch"
+    "SIAService", "SSAService", "SLAService", "SCSService",
+    "SIAResults", "SSAResults", "SLAResults", "SCSResults",
+    "SIARecord",  "SSARecord",  "SLARecord",  "SCSRecord",
+    "TAPService", "TAPQuery", "AsyncTAPJob"
+    "DALResults" ]

@@ -15,7 +15,8 @@ from . import query
 from .query import DALServiceError, DALQueryError
 from ..tools import vosi, uws
 
-__all__ = ["TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
+__all__ = ["search", "escape",
+    "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
 
 def _fix_upload(upload):
     if type(upload) is not tuple:
@@ -36,8 +37,11 @@ def _fileobj(s):
     finally:
         return s
 
-def escape(query):
-    return str(query).replace("'", "''")
+def escape(term):
+    """
+    escapes a term for use in ADQL
+    """
+    return str(term).replace("'", "''")
 
 def search(url, query, language="ADQL", maxrec=None, uploads=None):
     """
@@ -96,7 +100,11 @@ class TAPService(query.DALService):
 
     @property
     def availability(self):
-        """returns availability as a tuple in the following form:
+        """
+        returns availability as a tuple in the following form:
+
+        Returns
+        -------
         [0] : bool
             whether the service is available or not
         [1] : datetime

@@ -16,7 +16,7 @@ The pyvo module currently provides these main capabilities:
 
 * do simple searches on catalogs or databases
 
-  *  conesearch(), linesearch()
+  *  conesearch(), linesearch(), tablesearch()
 
 * get information about an object via its name
 
@@ -157,12 +157,13 @@ from . import registry
 from .dal import ssa, sia, sla, scs, tap
 
 from .registry import search as regsearch
-from .dal import imagesearch, spectrumsearch, conesearch, linesearch
-from .dal import tablesearch
-from .dal import DALAccessError, DALProtocolError, DALFormatError,   \
-                 DALServiceError, DALQueryError
+from .dal import (
+    imagesearch, spectrumsearch, conesearch, linesearch, tablesearch,
+    DALAccessError, DALProtocolError, DALFormatError, DALServiceError,
+    DALQueryError)
 
 from .nameresolver import *
 
-__all__ = [ "imagesearch", "spectrumsearch", "conesearch", "linesearch", 
-            "regsearch", "resolve", "object2pos", "object2sexapos" ]
+__all__ = [
+    "imagesearch", "spectrumsearch", "conesearch", "linesearch", "tablesearch",
+    "regsearch", "resolve", "object2pos", "object2sexapos" ]

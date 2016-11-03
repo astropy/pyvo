@@ -57,7 +57,7 @@ def search(url, pos, size, format='all', intersect="overlaps", verbosity=2,
        graphical images (e.g. jpeg, png, gif; not FITS); 
        "metadata" indicates that no images should be 
        returned--only an empty table with complete metadata;
-       "image/*" indicates a particular image format where * can 
+       "image/\*" indicates a particular image format where \* can 
        have values like "fits", "jpeg", "png", etc. 
     intersect : str
        a case-insensitive token indicating how the returned images should 
@@ -148,7 +148,7 @@ class SIAService(query.DALService):
            graphical images (e.g. jpeg, png, gif; not FITS); 
            "metadata" indicates that no images should be 
            returned--only an empty table with complete metadata;
-           "image/*" indicates a particular image format where 
+           "image/\*" indicates a particular image format where 
            * can have values like "fits", "jpeg", "png", etc. 
         intersect : str
            a token indicating how the returned images should 
@@ -220,7 +220,7 @@ class SIAService(query.DALService):
            graphical images (e.g. jpeg, png, gif; not FITS); 
            "metadata" indicates that no images should be 
            returned--only an empty table with complete metadata;
-           "image/*" indicates a particular image format where 
+           "image/\*" indicates a particular image format where 
            * can have values like "fits", "jpeg", "png", etc. 
         intersect : str
            a token indicating how the returned images should 

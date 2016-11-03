@@ -849,7 +849,7 @@ class SimpleResource(dalq.Record):
         assuming this resource refers to a searchable service, execute a 
         search against the resource.  This is equivalent to:
 
-           self.to_service().search(*args, **keys)
+        >>> self.to_service().search(*args, **keys)
 
         The arguments provided should be appropriate for the service that 
         the DAL service type would expect.  See the documentation for the 
