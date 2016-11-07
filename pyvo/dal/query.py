@@ -868,9 +868,13 @@ class Record(dict):
         if not url:
             raise KeyError("no dataset access URL recognized in record")
         if timeout:
-            return urlopen(url, timeout=timeout)
+            r = requests.get(url, stream = True, timeout = timeout)
         else:
-            return urlopen(url)
+            r = requests.get(url, stream = True)
+
+        r.raise_for_status()
+        r.raw.read = functools.partial(r.raw.read, decode_content=True)
+        return r.raw
 
     def cachedataset(self, filename=None, dir=".", timeout=None, bufsize=524288):
         """
