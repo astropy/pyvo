@@ -225,9 +225,9 @@ class CSExecuteTest(unittest.TestCase):
 
     @classmethod
     def teardown_class(cls):
-        if cls.srvr.isAlive():
-            cls.srvr.shutdown()
-        if cls.srvr.isAlive():
+        if cls.srvr.is_alive():
+            cls.srvr.terminate()
+        if cls.srvr.is_alive():
             print("prob")
 
     def testExecute(self):
@@ -277,5 +277,5 @@ if __name__ == "__main__":
         srvr.start()
         unittest.main()
     finally:
-        if srvr.isAlive():
-            srvr.shutdown()
+        if srvr.is_alive():
+            srvr.terminate()
