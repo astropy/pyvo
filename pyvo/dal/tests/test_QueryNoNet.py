@@ -34,10 +34,10 @@ testserver = None
 
 # def teardown_module(module):
 #     """
-#     shutdown the test server
+#     terminate the test server
 #     """
-#     if testserver and testserver.isAlive():
-#         testserver.shutdown()
+#     if testserver and testserver.is_alive():
+#         testserver.terminate()
 
 class DALAccessErrorTest(unittest.TestCase):
 
@@ -413,9 +413,9 @@ class QueryExecuteTest(unittest.TestCase):
 
     @classmethod
     def teardown_class(cls):
-        if cls.srvr.isAlive():
-            cls.srvr.shutdown()
-        if cls.srvr.isAlive():
+        if cls.srvr.is_alive():
+            cls.srvr.terminate()
+        if cls.srvr.is_alive():
             print("prob")
 
     def testExecute(self):
@@ -477,7 +477,7 @@ class QueryExecuteTest(unittest.TestCase):
             self.fail("failed to raise exception on bad url")
         except dalq.DALServiceError as e:
             self.assertEquals(e.code, 404)
-            self.assertIn("Not Found", e.reason)
+            self.assertIn("not found", e.reason.lower())
             self.assert_(isinstance(e.cause, requests.RequestException))
         except Exception as e:
             self.fail("wrong exception raised: " + str(type(e)))
@@ -789,6 +789,6 @@ if __name__ == "__main__":
         srvr.start()
         unittest.main()
     finally:
-        if srvr.isAlive():
-            srvr.shutdown()
+        if srvr.is_alive():
+            srvr.terminate()
 

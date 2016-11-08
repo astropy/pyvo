@@ -51,10 +51,8 @@ class TAPRunTest(unittest.TestCase):
 
     @classmethod
     def teardown_class(cls):
-        if cls.srvr.isAlive():
-            cls.srvr.shutdown()
-        if cls.srvr.isAlive():
-            print("prob")
+        if cls.srvr.is_alive():
+            cls.srvr.terminate()
 
     def testRunSync(self):
         query = "SELECT TOP 1 1+1 AS result FROM arihip.main"
@@ -125,5 +123,5 @@ if __name__ == "__main__":
         srvr.start()
         unittest.main()
     finally:
-        if srvr.isAlive():
-            srvr.shutdown()
+        if srvr.is_alive():
+            srvr.terminate()
