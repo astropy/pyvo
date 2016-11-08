@@ -1318,7 +1318,10 @@ class DALServiceError(DALProtocolError):
         """
         if isinstance(exc, requests.exceptions.RequestException):
             message = str(exc)
-            code = exc.response.status_code
+            try:
+                code = exc.response.status_code
+            except AttributeError:
+                code = 0
 
             return DALServiceError(
                 message, code, exc, url, protocol, version)
