@@ -10,7 +10,7 @@ from __future__ import print_function, division
 
 import os
 import multiprocessing
-import urllib2
+import requests
 from flask import Flask, render_template, request, redirect
 
 try:
@@ -79,11 +79,9 @@ class PortProcess(multiprocessing.Process):
 def server_running(port=8081):
     url = "http://localhost:{0}/path".format(port)
     try:
-        strm = urllib2.urlopen(url);
-        if strm.getcode() < 1:
-            return False
+        r = requests.get(url)
         return True
-    except IOError:
+    except requests.exceptions.ConnectionError:
         return False
 
 def find_available_port(baseport=8081, limit=8181, step=1):

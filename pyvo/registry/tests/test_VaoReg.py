@@ -7,7 +7,6 @@ from __future__ import print_function, division
 
 import os, sys, shutil, re, imp
 import unittest, pdb
-from urllib2 import URLError, HTTPError
 
 from ...dal import query as dalq
 from .. import vao as reg

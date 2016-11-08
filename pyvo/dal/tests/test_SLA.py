@@ -7,7 +7,6 @@ from __future__ import print_function, division
 
 import os, sys, shutil, re, imp, random, time
 import unittest, pdb
-from urllib2 import URLError, HTTPError
 
 import pyvo.dal.query as dalq
 import pyvo.dal.sla as sla
