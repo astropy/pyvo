@@ -74,11 +74,12 @@ def search(keywords=None, servicetype=None, waveband=None):
     if keywords:
         joins.add("rr.res_subject")
         joins.add("rr.resource")
-        wheres.extend(["({})".format(" OR ".join("""
-            1=ivo_nocasematch(res_subject, '%{0}%') OR
-            1=ivo_hasword(res_description, '{0}') OR
-            1=ivo_hasword(res_title, '{0}')
-            """.format(tap.escape(keyword)) for keyword in keywords
+        wheres.extend(["({})".format(" AND ".join("""
+            (
+                1=ivo_nocasematch(res_subject, '%{0}%') OR
+                1=ivo_hasword(res_description, '{0}') OR
+                1=ivo_hasword(res_title, '{0}')
+            )""".format(tap.escape(keyword)) for keyword in keywords
         ))])
     
     if servicetype:
