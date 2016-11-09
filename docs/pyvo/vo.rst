@@ -18,9 +18,9 @@ data discovery and retrieval.
 
 It is typically not necessary to understand the details of the VO
 standards or the underlying architecture of the VO in order to use PyVO
-and access remote data; feel free to skip to the section on "Getting
-Started".  However, if you are completely new to the concepts of the
-VO, or you encounter something you don't understand, you can read on
+and access remote data; feel free to skip to the section on
+:ref:`getting-started`. However, if you are completely new to the concepts of
+the VO, or you encounter something you don't understand, you can read on
 for an overview of VO services.  
 
 .. _about-data-disc:
