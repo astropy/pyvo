@@ -23,6 +23,15 @@ __all__ = ["search", "RegistryResource", "RegistryResults", "ivoid2service"]
 
 REGISTRY_BASEURL = os.environ.get("IVOA_REGISTRY") or "http://dc.g-vo.org/tap"
 
+_service_type_map = {
+    "image": "sia",
+    "spectrum": "ssa",
+    "scs": "conesearch",
+    "line": "slap",
+    "sla": "slap",
+    "table": "tap"
+}
+
 def search(keywords=None, servicetype=None, waveband=None):
     """
     execute a simple query to the RegTAP registry.
@@ -83,6 +92,8 @@ def search(keywords=None, servicetype=None, waveband=None):
         ))])
     
     if servicetype:
+        servicetype = _service_type_map.get(servicetype, servicetype)
+
         joins.add("rr.interface")
         wheres.append("standard_id LIKE 'ivo://ivoa.net/std/{}%'".format(
             tap.escape(servicetype)))
