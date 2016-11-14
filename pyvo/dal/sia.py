@@ -107,166 +107,219 @@ def search(url, pos, size, format='all', intersect="overlaps", verbosity=2,
     service = SIAService(url)
     return service.search(pos, size, format, intersect, verbosity, **keywords)
 
-class SIAService(query.DALService):
+class SIARecord(query.Record):
     """
-    a representation of an SIA service
+    a dictionary-like container for data in a record from the results of an
+    image (SIA) search, describing an available image.  
+
+    The commonly accessed metadata which are stadardized by the SIA
+    protocol are available as attributes.  If the metadatum accessible
+    via an attribute is not available, the value of that attribute
+    will be None.  All metadata, including non-standard metadata, are 
+    acessible via the ``get(`` *key* ``)`` function (or the [*key*]
+    operator) where *key* is table column name.  
     """
 
-    def __init__(self, baseurl, resmeta=None, version="1.0"):
+    def __init__(self, results, index):
+        super(SIARecord, self).__init__(results, index)
+        self._ucdcols = results._siacols
+        self._names = results._recnames
+
+    @property
+    def ra(self):
         """
-        instantiate an SIA service
-
-        Parameters
-        ----------
-        baseurl : str
-           the base URL for submitting search queries to the service.
-        resmeta : str
-           an optional dictionary of properties about the service
+        return the right ascension of the center of the image
         """
-        super(SIAService, self).__init__(baseurl, "sia", version, resmeta)
+        return self.get(self._names["ra"])
 
-    def search(self, pos, size, format='all', intersect="overlaps", verbosity=2,
-               **keywords):
+    @property
+    def dec(self):
         """
-        submit a simple SIA query to this service with the given constraints.  
-
-        This method is provided for a simple but typical SIA queries.  For 
-        more complex queries, one should create an SIAQuery object via 
-        create_query()
-
-        Parameters
-        ----------
-        pos : 2-element tuple of floats
-           the ICRS RA and Dec of the center of the search region 
-           in decimal degrees
-        size : a float or a 2-element sequence of floats
-           the full rectangular size of the search region along the 
-           RA and Dec directions in decimal degrees
-        format : str
-           the image format(s) of interest.  "all" (default) 
-           indicates all available formats; "graphic" indicates
-           graphical images (e.g. jpeg, png, gif; not FITS); 
-           "metadata" indicates that no images should be 
-           returned--only an empty table with complete metadata;
-           "image/\*" indicates a particular image format where 
-           * can have values like "fits", "jpeg", "png", etc. 
-        intersect : str
-           a token indicating how the returned images should 
-           intersect with the search region; recognized values include:
-
-           ========= ======================================================
-           COVERS    select images that completely cover the search region
-           ENCLOSED  select images that are complete enclosed by the region
-           OVERLAPS  select any image that overlaps with the search region
-           CENTER    select images whose center is within the search region
-           ========= ======================================================
-
-        verbosity : str
-           an integer value that indicates the volume of columns
-           to return in the result table.  0 means the minimum
-           set of columsn, 3 means as many columns as are 
-           available.  
-        **keywords :    
-           additional parameters can be given via arbitrary 
-           keyword arguments.  These can be either standard 
-           parameters (with names drown from the 
-           ``SIAQuery.std_parameters`` list) or paramters
-           custom to the service.  Where there is overlap 
-           with the parameters set by the other arguments to
-           this function, these keywords will override.
-
-        Returns
-        -------
-        SIAResults
-           a container holding a table of matching catalog records 
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError
-           if the service responds with an error, including a query syntax 
-           error.  
-
-        See Also
-        --------
-        SIAResults
-        pyvo.dal.query.DALServiceError
-        pyvo.dal.query.DALQueryError
+        return the declination of the center of the image
         """
-        q = self.create_query(pos, size, format, intersect, verbosity, 
-                              **keywords)
-        return q.execute()
+        return self.get(self._names["dec"])
 
-    def create_query(self, pos=None, size=None, format=None, intersect=None, 
-                     verbosity=None, **keywords):
+    @property
+    def title(self):
         """
-        create a query object that constraints can be added to and then 
-        executed.  The input arguments will initialize the query with the 
-        given values.
-
-        Parameters
-        ----------
-        pos : 2-element tuple of floats
-           a 2-element tuple giving the ICRS RA and Dec of the 
-           center of the search region in decimal degrees
-        size : 2-element tuple of floats
-           a 2-element tuple giving the full rectangular size of 
-           the search region along the RA and Dec directions in 
-           decimal degrees
-        format : str
-           the image format(s) of interest.  "all" indicates 
-           all available formats; "graphic" indicates
-           graphical images (e.g. jpeg, png, gif; not FITS); 
-           "metadata" indicates that no images should be 
-           returned--only an empty table with complete metadata;
-           "image/\*" indicates a particular image format where 
-           * can have values like "fits", "jpeg", "png", etc. 
-        intersect : str
-           a token indicating how the returned images should 
-           intersect with the search region; recognized values include:
-
-           ========= ======================================================
-           COVERS    select images that completely cover the search region
-           ENCLOSED  select images that are complete enclosed by the region
-           OVERLAPS  select any image that overlaps with the search region
-           CENTER    select images whose center is within the search region
-           ========= ======================================================
-
-        verbosity : int   
-           an integer value that indicates the volume of columns
-           to return in the result table.  0 means the minimum
-           set of columsn, 3 means as many columns as are 
-           available.  
-        **keywords :   
-           additional parameters can be given via arbitrary 
-           keyword arguments.  These can be either standard 
-           parameters (with names drown from the 
-           ``SIAQuery.std_parameters`` list) or paramters
-           custom to the service.  Where there is overlap 
-           with the parameters set by the other arguments to
-           this function, these keywords will override.
-
-        Returns
-        -------
-        SIAQuery
-           the query instance
-
-        See Also
-        --------
-        SIAQuery
+        the title of the image
         """
-        q = SIAQuery(self.baseurl, self.version)
-        if pos is not None: q.pos = pos
-        if size is not None: q.size = size
-        if format: q.format = format
-        if intersect: q.intersect = intersect
-        if verbosity is not None: q.verbosity = verbosity
+        return self.get(self._names["title"])
 
-        for key in keywords.keys():
-            q.setparam(key, keywords[key])
+    @property
+    def format(self):
+        """
+        the format of the image
+        """
+        return self.get(self._names["format"])
 
-        return q
+    @property
+    def dateobs(self):
+        """
+        the modified Julien date (MJD) of the mid-point of the 
+        observational data that went into the image
+        """
+        return self.get(self._names["dateobs"])
+
+    @property
+    def naxes(self):
+        """
+        the number of axes in this image.  
+        """
+        return self.get(self._names["naxes"])
+
+    @property
+    def naxis(self):
+        """
+        the lengths of the sides along each axis, in pixels, as 
+        a sequence
+        """
+        return tuple(self.get(self._names["naxis"]))
+
+    @property
+    def instr(self):
+        """
+        the name of the instrument (or instruments) that produced the 
+        data that went into this image.
+        """
+        return self.get(self._names["instr"])
+
+    @property
+    def acref(self):
+        """
+        the URL that can be used to retrieve the image
+        """
+        return self.get_str(self._names["acref"])
+
+    def getdataurl(self):
+        """
+        return the URL contained in the access URL column which can be used 
+        to retrieve the dataset described by this record.  None is returned
+        if no such column exists.
+        """
+        return self.acref
+
+    def suggest_dataset_basename(self):
+        """
+        return a default base filename that the dataset available via 
+        ``getdataset()`` can be saved as.  This function is 
+        specialized for a particular service type this record originates from
+        so that it can be used by ``cachedataset()`` via 
+        ``make_dataset_filename()``.
+        """
+        out = self.title
+        if query._is_python3 and isinstance(out, bytes):
+            out = out.decode('utf-8')
+
+        if not out:
+            out = "image"
+        else:
+            out = re.sub(r'\s+', '_', out.strip())
+        return out
+
+    def suggest_extension(self, default=None):
+        """
+        returns a recommended filename extension for the dataset described 
+        by this record.  Typically, this would look at the column describing 
+        the format and choose an extension accordingly.  
+        """
+        return query.mime2extension(self.format, default)
+
+
+class SIAResults(query.DALResults):
+    """
+    The list of matching images resulting from an image (SIA) query.  
+    Each record contains a set of metadata that describes an available
+    image matching the query constraints.  The number of records in
+    the results is available via the :py:attr:`nrecs` attribute or by 
+    passing it to the Python built-in ``len()`` function.  
+
+    This class supports iterable semantics; thus, 
+    individual records (in the form of 
+    :py:class:`~pyvo.dal.sia.SIARecord` instances) are typically
+    accessed by iterating over an ``SIAResults`` instance.  
+
+    >>> results = pyvo.imagesearch(url, pos=[12.24, -13.1], size=0.1)
+    >>> for image in results:
+    ...     print("{0}: {1}".format(image.title, title.getdataurl()))
+
+    Alternatively, records can be accessed randomly via 
+    :py:meth:`getrecord` or through a Python Database API (v2)
+    Cursor (via :py:meth:`~pyvo.dal.query.DALResults.cursor`).  
+    Column-based data access is possible via the 
+    :py:meth:`~pyvo.dal.query.DALResults.getcolumn` method.  
+
+    ``SIAResults`` is essentially a wrapper around an Astropy 
+    :py:mod:`~astropy.io.votable` 
+    :py:class:`~astropy.io.votable.tree.Table` instance where the 
+    columns contain the various metadata describing the images.  
+    One can access that VOTable directly via the 
+    :py:attr:`~pyvo.dal.query.DALResults.votable` attribute.  Thus,
+    when one retrieves a whole column via 
+    :py:meth:`~pyvo.dal.query.DALResults.getcolumn`, the result is 
+    a Numpy array.  Alternatively, one can manipulate the results 
+    as an Astropy :py:class:`~astropy.table.table.Table` via the 
+    following conversion:
+
+    >>> table = results.votable.to_table()
+
+    ``SIAResults`` supports the array item operator ``[...]`` in a 
+    read-only context.  When the argument is numerical, the result 
+    is an 
+    :py:class:`~pyvo.dal.sia.SIARecord` instance, representing the 
+    record at the position given by the numerical index.  If the 
+    argument is a string, it is interpreted as the name of a column,
+    and the data from the column matching that name is returned as 
+    a Numpy array.  
+    """
+
+    RECORD_CLASS = SIARecord
+
+    def __init__(self, votable, url=None):
+        """
+        initialize the cursor.  This constructor is not typically called 
+        by directly applications; rather an instance is obtained from calling 
+        a SIAQuery's execute().
+        """
+        super(SIAResults, self).__init__(votable, url, "sia", "1.0")
+        self._siacols = { 
+            "VOX:Image_Title": self.fieldname_with_ucd("VOX:Image_Title"),
+            "INST_ID": self.fieldname_with_ucd("INST_ID"),
+            "VOX:Image_MJDateObs": self.fieldname_with_ucd("VOX:Image_MJDateObs"),
+            "POS_EQ_RA_MAIN":  self.fieldname_with_ucd("POS_EQ_RA_MAIN"),
+            "POS_EQ_DEC_MAIN": self.fieldname_with_ucd("POS_EQ_DEC_MAIN"),
+            "VOX:Image_Naxes": self.fieldname_with_ucd("VOX:Image_Naxes"),
+            "VOX:Image_Naxis": self.fieldname_with_ucd("VOX:Image_Naxis"),
+            "VOX:Image_Scale": self.fieldname_with_ucd("VOX:Image_Scale"),
+            "VOX:Image_Format": self.fieldname_with_ucd("VOX:Image_Format"),
+            "VOX:STC_CoordRefFrame": self.fieldname_with_ucd("VOX:STC_CoordRefFrame"),
+            "VOX:STC_CoordEquinox": self.fieldname_with_ucd("VOX:STC_CoordEquinox"),
+            "VOX:WCS_CoordProjection": self.fieldname_with_ucd("VOX:WCS_CoordProjection"),
+            "VOX:WCS_CoordRefPixel": self.fieldname_with_ucd("VOX:WCS_CoordRefPixel"),
+            "VOX:WCS_CoordRefValue": self.fieldname_with_ucd("VOX:WCS_CoordRefValue"),
+            "VOX:WCS_CDMatrix": self.fieldname_with_ucd("VOX:WCS_CDMatrix"),
+            "VOX:BandPass_ID": self.fieldname_with_ucd("VOX:BandPass_ID"),
+            "VOX:BandPass_Unit": self.fieldname_with_ucd("VOX:BandPass_Unit"),
+            "VOX:BandPass_RefValue": self.fieldname_with_ucd("VOX:BandPass_RefValue"),
+            "VOX:BandPass_HiLimit": self.fieldname_with_ucd("VOX:BandPass_HiLimit"),
+            "VOX:BandPass_LoLimit": self.fieldname_with_ucd("VOX:BandPass_LoLimit"),
+            "VOX:Image_PixFlags": self.fieldname_with_ucd("VOX:Image_PixFlags"),
+            "VOX:Image_AccessReference": self.fieldname_with_ucd("VOX:Image_AccessReference"),
+            "VOX:Image_AccessRefTTL": self.fieldname_with_ucd("VOX:Image_AccessRefTTL"),
+            "VOX:Image_FileSize": self.fieldname_with_ucd("VOX:Image_FileSize")
+
+            }
+        self._recnames = { "title":   self._siacols["VOX:Image_Title"],
+                           "ra":      self._siacols["POS_EQ_RA_MAIN"],
+                           "dec":     self._siacols["POS_EQ_DEC_MAIN"],
+                           "instr":   self._siacols["INST_ID"],
+                           "dateobs": self._siacols["VOX:Image_MJDateObs"],
+                           "format":  self._siacols["VOX:Image_Format"],
+                           "naxes":   self._siacols["VOX:Image_Naxes"],
+                           "naxis":   self._siacols["VOX:Image_Naxis"],
+                           "acref":   self._siacols["VOX:Image_AccessReference"]
+                           }
+
 
 class SIAQuery(query.DALQuery):
     """
@@ -292,6 +345,9 @@ class SIAQuery(query.DALQuery):
 
 
     """
+
+    RESULTS_CLASS = SIAResults
+
     std_parameters = [ "POS", "SIZE", "INTERSECT", "NAXIS", "CFRAME",
                        "EQUINOX", "CRPIX", "CRVAL", "CDELT", "ROTANG", 
                        "PROJ", "FORMAT", "VERB" ]
@@ -509,11 +565,75 @@ class SIAQuery(query.DALQuery):
         self.unsetparam("VERB")
 
 
-    def execute(self):
+class SIAService(query.DALService):
+    """
+    a representation of an SIA service
+    """
+
+    QUERY_CLASS = SIAQuery
+
+    def __init__(self, baseurl, resmeta=None, version="1.0"):
         """
-        submit the query and return the results as a Results subclass instance.
-        This implimentation returns an :py:class:`~pyvo.dal.sia.SIAResults` 
-        instance
+        instantiate an SIA service
+
+        Parameters
+        ----------
+        baseurl : str
+           the base URL for submitting search queries to the service.
+        resmeta : str
+           an optional dictionary of properties about the service
+        """
+        super(SIAService, self).__init__(baseurl, "sia", version, resmeta)
+
+    def search(self, pos, size, format='all', intersect="overlaps", verbosity=2,
+               **keywords):
+        """
+        submit a simple SIA query to this service with the given constraints.  
+
+        This method is provided for a simple but typical SIA queries.  For 
+        more complex queries, one should create an SIAQuery object via 
+        create_query()
+
+        Parameters
+        ----------
+        pos : 2-element tuple of floats
+           the ICRS RA and Dec of the center of the search region 
+           in decimal degrees
+        size : a float or a 2-element sequence of floats
+           the full rectangular size of the search region along the 
+           RA and Dec directions in decimal degrees
+        format : str
+           the image format(s) of interest.  "all" (default) 
+           indicates all available formats; "graphic" indicates
+           graphical images (e.g. jpeg, png, gif; not FITS); 
+           "metadata" indicates that no images should be 
+           returned--only an empty table with complete metadata;
+           "image/\*" indicates a particular image format where 
+           * can have values like "fits", "jpeg", "png", etc. 
+        intersect : str
+           a token indicating how the returned images should 
+           intersect with the search region; recognized values include:
+
+           ========= ======================================================
+           COVERS    select images that completely cover the search region
+           ENCLOSED  select images that are complete enclosed by the region
+           OVERLAPS  select any image that overlaps with the search region
+           CENTER    select images whose center is within the search region
+           ========= ======================================================
+
+        verbosity : str
+           an integer value that indicates the volume of columns
+           to return in the result table.  0 means the minimum
+           set of columsn, 3 means as many columns as are 
+           available.  
+        **keywords :    
+           additional parameters can be given via arbitrary 
+           keyword arguments.  These can be either standard 
+           parameters (with names drown from the 
+           ``SIAQuery.std_parameters`` list) or paramters
+           custom to the service.  Where there is overlap 
+           with the parameters set by the other arguments to
+           this function, these keywords will override.
 
         Returns
         -------
@@ -534,243 +654,76 @@ class SIAQuery(query.DALQuery):
         pyvo.dal.query.DALServiceError
         pyvo.dal.query.DALQueryError
         """
-        return SIAResults(self.execute_votable(), self.getqueryurl())
+        q = self.create_query(pos, size, format, intersect, verbosity, 
+                              **keywords)
+        return q.execute()
 
-
-class SIAResults(query.DALResults):
-    """
-    The list of matching images resulting from an image (SIA) query.  
-    Each record contains a set of metadata that describes an available
-    image matching the query constraints.  The number of records in
-    the results is available via the :py:attr:`nrecs` attribute or by 
-    passing it to the Python built-in ``len()`` function.  
-
-    This class supports iterable semantics; thus, 
-    individual records (in the form of 
-    :py:class:`~pyvo.dal.sia.SIARecord` instances) are typically
-    accessed by iterating over an ``SIAResults`` instance.  
-
-    >>> results = pyvo.imagesearch(url, pos=[12.24, -13.1], size=0.1)
-    >>> for image in results:
-    ...     print("{0}: {1}".format(image.title, title.getdataurl()))
-
-    Alternatively, records can be accessed randomly via 
-    :py:meth:`getrecord` or through a Python Database API (v2)
-    Cursor (via :py:meth:`~pyvo.dal.query.DALResults.cursor`).  
-    Column-based data access is possible via the 
-    :py:meth:`~pyvo.dal.query.DALResults.getcolumn` method.  
-
-    ``SIAResults`` is essentially a wrapper around an Astropy 
-    :py:mod:`~astropy.io.votable` 
-    :py:class:`~astropy.io.votable.tree.Table` instance where the 
-    columns contain the various metadata describing the images.  
-    One can access that VOTable directly via the 
-    :py:attr:`~pyvo.dal.query.DALResults.votable` attribute.  Thus,
-    when one retrieves a whole column via 
-    :py:meth:`~pyvo.dal.query.DALResults.getcolumn`, the result is 
-    a Numpy array.  Alternatively, one can manipulate the results 
-    as an Astropy :py:class:`~astropy.table.table.Table` via the 
-    following conversion:
-
-    >>> table = results.votable.to_table()
-
-    ``SIAResults`` supports the array item operator ``[...]`` in a 
-    read-only context.  When the argument is numerical, the result 
-    is an 
-    :py:class:`~pyvo.dal.sia.SIARecord` instance, representing the 
-    record at the position given by the numerical index.  If the 
-    argument is a string, it is interpreted as the name of a column,
-    and the data from the column matching that name is returned as 
-    a Numpy array.  
-    """
-
-    def __init__(self, votable, url=None):
+    def create_query(self, pos=None, size=None, format=None, intersect=None, 
+                     verbosity=None, **keywords):
         """
-        initialize the cursor.  This constructor is not typically called 
-        by directly applications; rather an instance is obtained from calling 
-        a SIAQuery's execute().
-        """
-        super(SIAResults, self).__init__(votable, url, "sia", "1.0")
-        self._siacols = { 
-            "VOX:Image_Title": self.fieldname_with_ucd("VOX:Image_Title"),
-            "INST_ID": self.fieldname_with_ucd("INST_ID"),
-            "VOX:Image_MJDateObs": self.fieldname_with_ucd("VOX:Image_MJDateObs"),
-            "POS_EQ_RA_MAIN":  self.fieldname_with_ucd("POS_EQ_RA_MAIN"),
-            "POS_EQ_DEC_MAIN": self.fieldname_with_ucd("POS_EQ_DEC_MAIN"),
-            "VOX:Image_Naxes": self.fieldname_with_ucd("VOX:Image_Naxes"),
-            "VOX:Image_Naxis": self.fieldname_with_ucd("VOX:Image_Naxis"),
-            "VOX:Image_Scale": self.fieldname_with_ucd("VOX:Image_Scale"),
-            "VOX:Image_Format": self.fieldname_with_ucd("VOX:Image_Format"),
-            "VOX:STC_CoordRefFrame": self.fieldname_with_ucd("VOX:STC_CoordRefFrame"),
-            "VOX:STC_CoordEquinox": self.fieldname_with_ucd("VOX:STC_CoordEquinox"),
-            "VOX:WCS_CoordProjection": self.fieldname_with_ucd("VOX:WCS_CoordProjection"),
-            "VOX:WCS_CoordRefPixel": self.fieldname_with_ucd("VOX:WCS_CoordRefPixel"),
-            "VOX:WCS_CoordRefValue": self.fieldname_with_ucd("VOX:WCS_CoordRefValue"),
-            "VOX:WCS_CDMatrix": self.fieldname_with_ucd("VOX:WCS_CDMatrix"),
-            "VOX:BandPass_ID": self.fieldname_with_ucd("VOX:BandPass_ID"),
-            "VOX:BandPass_Unit": self.fieldname_with_ucd("VOX:BandPass_Unit"),
-            "VOX:BandPass_RefValue": self.fieldname_with_ucd("VOX:BandPass_RefValue"),
-            "VOX:BandPass_HiLimit": self.fieldname_with_ucd("VOX:BandPass_HiLimit"),
-            "VOX:BandPass_LoLimit": self.fieldname_with_ucd("VOX:BandPass_LoLimit"),
-            "VOX:Image_PixFlags": self.fieldname_with_ucd("VOX:Image_PixFlags"),
-            "VOX:Image_AccessReference": self.fieldname_with_ucd("VOX:Image_AccessReference"),
-            "VOX:Image_AccessRefTTL": self.fieldname_with_ucd("VOX:Image_AccessRefTTL"),
-            "VOX:Image_FileSize": self.fieldname_with_ucd("VOX:Image_FileSize")
-
-            }
-        self._recnames = { "title":   self._siacols["VOX:Image_Title"],
-                           "ra":      self._siacols["POS_EQ_RA_MAIN"],
-                           "dec":     self._siacols["POS_EQ_DEC_MAIN"],
-                           "instr":   self._siacols["INST_ID"],
-                           "dateobs": self._siacols["VOX:Image_MJDateObs"],
-                           "format":  self._siacols["VOX:Image_Format"],
-                           "naxes":   self._siacols["VOX:Image_Naxes"],
-                           "naxis":   self._siacols["VOX:Image_Naxis"],
-                           "acref":   self._siacols["VOX:Image_AccessReference"]
-                           }
-        
-    def getrecord(self, index):
-        """
-        return an SIA result record that follows dictionary semantics.  
-        The keys of the dictionary are those returned by this
-        instance's fieldNames() function: either the column IDs or name, if 
-        the ID is not set.  The returned record has additional accessor 
-        methods for getting at stardard SIA response metadata (e.g. ra, dec).
+        create a query object that constraints can be added to and then 
+        executed.  The input arguments will initialize the query with the 
+        given values.
 
         Parameters
         ----------
-        index : int
-           the integer index of the desired record where 0 returns the first 
-           record
+        pos : 2-element tuple of floats
+           a 2-element tuple giving the ICRS RA and Dec of the 
+           center of the search region in decimal degrees
+        size : 2-element tuple of floats
+           a 2-element tuple giving the full rectangular size of 
+           the search region along the RA and Dec directions in 
+           decimal degrees
+        format : str
+           the image format(s) of interest.  "all" indicates 
+           all available formats; "graphic" indicates
+           graphical images (e.g. jpeg, png, gif; not FITS); 
+           "metadata" indicates that no images should be 
+           returned--only an empty table with complete metadata;
+           "image/\*" indicates a particular image format where 
+           * can have values like "fits", "jpeg", "png", etc. 
+        intersect : str
+           a token indicating how the returned images should 
+           intersect with the search region; recognized values include:
+
+           ========= ======================================================
+           COVERS    select images that completely cover the search region
+           ENCLOSED  select images that are complete enclosed by the region
+           OVERLAPS  select any image that overlaps with the search region
+           CENTER    select images whose center is within the search region
+           ========= ======================================================
+
+        verbosity : int   
+           an integer value that indicates the volume of columns
+           to return in the result table.  0 means the minimum
+           set of columsn, 3 means as many columns as are 
+           available.  
+        **keywords :   
+           additional parameters can be given via arbitrary 
+           keyword arguments.  These can be either standard 
+           parameters (with names drown from the 
+           ``SIAQuery.std_parameters`` list) or paramters
+           custom to the service.  Where there is overlap 
+           with the parameters set by the other arguments to
+           this function, these keywords will override.
 
         Returns
         -------
-        SIARecord
-           a distionary-like record containing the image metadata from
-           the requested record.
+        SIAQuery
+           the query instance
 
         See Also
         --------
-        SIARecord
+        SIAQuery
         """
-        return SIARecord(self, index)
+        q = self.QUERY_CLASS(self.baseurl, self.version)
+        if pos is not None: q.pos = pos
+        if size is not None: q.size = size
+        if format: q.format = format
+        if intersect: q.intersect = intersect
+        if verbosity is not None: q.verbosity = verbosity
 
-class SIARecord(query.Record):
-    """
-    a dictionary-like container for data in a record from the results of an
-    image (SIA) search, describing an available image.  
+        for key in keywords.keys():
+            q.setparam(key, keywords[key])
 
-    The commonly accessed metadata which are stadardized by the SIA
-    protocol are available as attributes.  If the metadatum accessible
-    via an attribute is not available, the value of that attribute
-    will be None.  All metadata, including non-standard metadata, are 
-    acessible via the ``get(`` *key* ``)`` function (or the [*key*]
-    operator) where *key* is table column name.  
-    """
-
-    def __init__(self, results, index):
-        super(SIARecord, self).__init__(results, index)
-        self._ucdcols = results._siacols
-        self._names = results._recnames
-
-    @property
-    def ra(self):
-        """
-        return the right ascension of the center of the image
-        """
-        return self.get(self._names["ra"])
-
-    @property
-    def dec(self):
-        """
-        return the declination of the center of the image
-        """
-        return self.get(self._names["dec"])
-
-    @property
-    def title(self):
-        """
-        the title of the image
-        """
-        return self.get(self._names["title"])
-
-    @property
-    def format(self):
-        """
-        the format of the image
-        """
-        return self.get(self._names["format"])
-
-    @property
-    def dateobs(self):
-        """
-        the modified Julien date (MJD) of the mid-point of the 
-        observational data that went into the image
-        """
-        return self.get(self._names["dateobs"])
-
-    @property
-    def naxes(self):
-        """
-        the number of axes in this image.  
-        """
-        return self.get(self._names["naxes"])
-
-    @property
-    def naxis(self):
-        """
-        the lengths of the sides along each axis, in pixels, as 
-        a sequence
-        """
-        return tuple(self.get(self._names["naxis"]))
-
-    @property
-    def instr(self):
-        """
-        the name of the instrument (or instruments) that produced the 
-        data that went into this image.
-        """
-        return self.get(self._names["instr"])
-
-    @property
-    def acref(self):
-        """
-        the URL that can be used to retrieve the image
-        """
-        return self.get_str(self._names["acref"])
-
-    def getdataurl(self):
-        """
-        return the URL contained in the access URL column which can be used 
-        to retrieve the dataset described by this record.  None is returned
-        if no such column exists.
-        """
-        return self.acref
-
-    def suggest_dataset_basename(self):
-        """
-        return a default base filename that the dataset available via 
-        ``getdataset()`` can be saved as.  This function is 
-        specialized for a particular service type this record originates from
-        so that it can be used by ``cachedataset()`` via 
-        ``make_dataset_filename()``.
-        """
-        out = self.title
-        if query._is_python3 and isinstance(out, bytes):
-            out = out.decode('utf-8')
-
-        if not out:
-            out = "image"
-        else:
-            out = re.sub(r'\s+', '_', out.strip())
-        return out
-
-    def suggest_extension(self, default=None):
-        """
-        returns a recommended filename extension for the dataset described 
-        by this record.  Typically, this would look at the column describing 
-        the format and choose an extension accordingly.  
-        """
-        return query.mime2extension(self.format, default)
-
-        
+        return q
