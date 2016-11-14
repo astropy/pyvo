@@ -78,10 +78,124 @@ def search(url, query, language="ADQL", maxrec=None, uploads=None):
     service = TAPService(url)
     return service.search(query, language, maxrec, uploads)
 
+class TAPResults(query.DALResults):
+    @property
+    def infos(self):
+        """
+        return the info element as dictionary
+        """
+        return getattr(self, "_infos", {})
+
+    @property
+    def query_status(self):
+        """
+        return the query status
+        """
+        return getattr(self, "_infos", {}).get("QUERY_STATUS", None)
+
+
+class TAPQuery(query.DALQuery):
+    RESULTS_CLASS = TAPResults
+
+    def __init__(self, baseurl, query, mode="sync", language="ADQL",
+        maxrec=None, uploads = None):
+        """
+        initialize the query object with the given parameters
+
+        Parameters
+        ----------
+        baseurl : str
+            the TAP baseurl
+        query : str
+            the query string / parameters
+        mode : str
+            the query mode (sync | async). default "sync"
+        language : str
+            the query language. defaults to ADQL
+        maxrec : int
+            the amount of records to fetch
+        uploads : dict
+            Files to upload. Uses table name as key and file name as value
+        """
+        super(TAPQuery, self).__init__(baseurl, "TAP", "1.0")
+
+        self._query = query
+        self._mode = mode if mode in ("sync", "async") else "sync"
+        self._language = language
+        self._uploads = uploads or {}
+        self._uploads = {k: _fix_upload(v) for k, v in self._uploads.items()}
+        self._maxrec = maxrec
+
+        self.setparam("REQUEST", "doQuery")
+        self.setparam("LANG", language)
+
+        if maxrec:
+            self.setparam("MAXREC", maxrec)
+
+        if isinstance(query, dict):
+            for k, v in query:
+                self.setparam(k.upper(), v)
+        elif query:
+            self.setparam("QUERY", query)
+
+        if self._uploads:
+            upload_param = ';'.join(
+                ['{0},{1}{2}'.format(
+                    k,
+                    'param:' if v[0] == 'inline' else '',
+                    v[1] if v[0] == 'uri' else k
+                ) for k, v in self._uploads.items()])
+            self.setparam("UPLOAD", upload_param)
+
+    def getqueryurl(self):
+        return '{0}/{1}'.format(self.baseurl, self._mode)
+
+    def execute_stream(self):
+        """
+        submit the query and return the raw VOTable XML as a file stream
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors in the input query syntax
+        """
+        if self._mode != "sync":
+            raise DALServiceError(
+                "Cannot execute a non-synchronous query. Use submit instead")
+
+        url = self.getqueryurl()
+
+        try:
+            return self.submit().raw
+        except requests.RequestException as ex:
+            raise DALServiceError.from_except(ex, url, self.protocol,
+                self.version)
+
+    def submit(self):
+        """
+        does the actual request
+        """
+        url = self.getqueryurl()
+
+        files = {k: _fileobj(v[1]) for k, v in filter(
+            lambda x: x[1][0] == 'inline', self._uploads.items())}
+
+        r = requests.post(url, data = self._param, stream = True,
+            files = files)
+        r.raise_for_status()
+        # requests doesn't decode the content by default
+        r.raw.read = functools.partial(r.raw.read, decode_content=True)
+        return r
+
+
 class TAPService(query.DALService):
     """
     a representation of a Table Access Protocol service
     """
+
+    QUERY_CLASS = TAPQuery
 
     _availability = (None, None)
     _capabilities = None
@@ -244,7 +358,7 @@ class TAPService(query.DALService):
         --------
         TAPResults
         """
-        q = TAPQuery(
+        q = self.QUERY_CLASS(
             self.baseurl, query, language=language, maxrec=maxrec,
             uploads=uploads)
         return q.execute()
@@ -324,134 +438,6 @@ class TAPService(query.DALService):
             uploads)
 
 
-class TAPResults(query.DALResults):
-    @property
-    def infos(self):
-        """
-        return the info element as dictionary
-        """
-        return getattr(self, "_infos", {})
-
-    @property
-    def query_status(self):
-        """
-        return the query status
-        """
-        return getattr(self, "_infos", {}).get("QUERY_STATUS", None)
-
-
-class TAPQuery(query.DALQuery):
-    RESULTS_CLASS = TAPResults
-
-    def __init__(self, baseurl, query, mode="sync", language="ADQL",
-        maxrec=None, uploads = None):
-        """
-        initialize the query object with the given parameters
-
-        Parameters
-        ----------
-        baseurl : str
-            the TAP baseurl
-        query : str
-            the query string / parameters
-        mode : str
-            the query mode (sync | async). default "sync"
-        language : str
-            the query language. defaults to ADQL
-        maxrec : int
-            the amount of records to fetch
-        uploads : dict
-            Files to upload. Uses table name as key and file name as value
-        """
-        super(TAPQuery, self).__init__(baseurl, "TAP", "1.0")
-
-        self._query = query
-        self._mode = mode if mode in ("sync", "async") else "sync"
-        self._language = language
-        self._uploads = uploads or {}
-        self._uploads = {k: _fix_upload(v) for k, v in self._uploads.items()}
-        self._maxrec = maxrec
-
-        self.setparam("REQUEST", "doQuery")
-        self.setparam("LANG", language)
-
-        if maxrec:
-            self.setparam("MAXREC", maxrec)
-
-        if isinstance(query, dict):
-            for k, v in query:
-                self.setparam(k.upper(), v)
-        elif query:
-            self.setparam("QUERY", query)
-
-        if self._uploads:
-            upload_param = ';'.join(
-                ['{0},{1}{2}'.format(
-                    k,
-                    'param:' if v[0] == 'inline' else '',
-                    v[1] if v[0] == 'uri' else k
-                ) for k, v in self._uploads.items()])
-            self.setparam("UPLOAD", upload_param)
-
-    def getqueryurl(self):
-        return '{0}/{1}'.format(self.baseurl, self._mode)
-
-    def execute(self):
-        """
-        submit the query and return the results as a Results subclass instance
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError
-           for errors either in the input query syntax or
-           other user errors detected by the service
-        DALFormatError
-           for errors parsing the VOTable response
-        """
-        return self.RESULTS_CLASS(self.execute_votable(), self.getqueryurl())
-
-
-    def execute_stream(self):
-        """
-        submit the query and return the raw VOTable XML as a file stream
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError
-           for errors in the input query syntax
-        """
-        if self._mode != "sync":
-            raise DALServiceError(
-                "Cannot execute a non-synchronous query. Use submit instead")
-
-        url = self.getqueryurl()
-
-        try:
-            return self.submit().raw
-        except requests.RequestException as ex:
-            raise DALServiceError.from_except(ex, url, self.protocol,
-                self.version)
-
-    def submit(self):
-        """
-        does the actual request
-        """
-        url = self.getqueryurl()
-
-        files = {k: _fileobj(v[1]) for k, v in filter(
-            lambda x: x[1][0] == 'inline', self._uploads.items())}
-
-        r = requests.post(url, data = self._param, stream = True,
-            files = files)
-        r.raise_for_status()
-        # requests doesn't decode the content by default
-        r.raw.read = functools.partial(r.raw.read, decode_content=True)
-        return r
-
 class AsyncTAPJob(object):
     _job = {}
  
@@ -475,7 +461,7 @@ class AsyncTAPJob(object):
         uploads : dict
             a mapping from table names to file like objects containing a votable
         """
-        query = TAPQuery(
+        query = TAPService.QUERY_CLASS(
             baseurl, query, mode="async", language=language, maxrec=maxrec,
             uploads=uploads)
         response = query.submit()

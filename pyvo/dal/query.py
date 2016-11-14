@@ -47,393 +47,252 @@ def is_mime_type(val):
 
     return bool(_mimetype_re.match(val))
 
-class DALService(object):
+class Record(dict):
     """
-    an abstract base class representing a DAL service located a particular 
-    endpoint.
-    """
-
-    def __init__(self, baseurl, protocol=None, version=None, resmeta=None):
-        """
-        instantiate the service connecting it to a base URL
-
-        Parameters
-        ----------
-        baseurl :  str 
-           the base URL that should be used for forming queries to the service.
-        protocol : str
-           The protocol implemented by the service, e.g., "scs", "sia",
-           "ssa", and so forth.
-        version : str
-           The protocol version, e.g, "1.0", "1.2", "2.0".
-        resmeta : dict
-           a dictionary containing resource metadata describing the 
-           service.  This is usually provided a registry record.
-        """
-        self._baseurl = baseurl
-        self._protocol = protocol
-        self._version = version
-        self._info = {}
-        if resmeta and hasattr(resmeta, "__getitem__"):
-            # since this might be (rather, is likely) a Record object, we need 
-            # to hand copy it (as the astropy votable bits won't deepcopy).
-            for key in resmeta.keys():
-                self._info[key] = resmeta[key]  # assuming immutable values
-
-    @property
-    def baseurl(self):
-        """
-        the base URL identifying the location of the service and where 
-        queries are submitted (read-only)
-        """
-        return self._baseurl
-
-    @property
-    def protocol(self):
-        """
-        The service protocol implemented by the service (read-only).
-        """
-        return self._protocol
-
-    @property
-    def version(self):
-        """
-        The version of the service protocol implemented by the service read-only).
-        """
-        return self._version
-
-    @property
-    def info(self):
-        """
-        an optional dictionary of resource metadata that describes the 
-        service.  This is generally information stored in a VO registry.  
-        """
-        return self._info
-
-    def search(self, **keywords):
-        """
-        send a search query to this service.  
-
-        This implementation has no knowledge of the type of service being 
-        queried.  The query parameters are given as arbitrary keywords which 
-        will be assumed to be understood by the service (i.e. there is no
-        argument checking).  The response is a generic DALResults object.  
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError  
-           for errors either in the input query syntax or other user errors 
-           detected by the service
-        DALFormatError  
-           for errors parsing the VOTable response
-        """
-        q = self.create_query(**keywords)
-        return q.execute()
-
-    def create_query(self, **keywords):
-        """
-        create a query object that constraints can be added to and then 
-        executed.
-
-        Returns
-        -------
-        DALQuery
-           a generic query object
-        """
-        # this must be overridden to return a Query subclass appropriate for 
-        # the service type
-        q = DALQuery(self.baseurl, self.protocol, self.version)
-        for key in keywords.keys():
-            q.setparam(key, keywords[key])
-        return q
-
-    def describe(self, verbose=False, width=78, file=None):
-        """
-        Print a summary description of this service.  
-
-        At a minimum, this will include the service protocol and 
-        base URL.  If there is metadata associated with this service, 
-        the summary will include other information, such as the 
-        service title and description.
-
-        Parameters
-        ----------
-        verbose : bool
-            If false (default), only user-oriented information is 
-            printed; if true, additional information will be printed
-            as well.
-        width : int
-            Format the description with given character-width.
-        file : writable file-like object
-            If provided, write information to this output stream.
-            Otherwise, it is written to standard out.  
-        """
-        if not file:
-            file = sys.stdout
-        print("{0} v{1} Service".format(self.protocol.upper(), self.version))
-        if self.info.get("title"):
-            print(para_format_desc(self.info["title"]), file=file)
-        if self.info.get("shortName"):
-            print("Short Name: " + self.info["shortName"], file=file)
-        if self.info.get("publisher"):
-            print(para_format_desc("Publisher: " + self.info["publisher"]), 
-                  file=file)
-        if self.info.get("identifier"):
-            print("IVOA Identifier: " + self.info["identifier"], file=file)
-        print("Base URL: " + self.baseurl, file=file)
-
-        if self.info.get("description"):
-            print(file=file)
-            print(para_format_desc(self.info["description"]), file=file)
-            print(file=file)
-
-        if self.info.get("subjects"):
-            val = self.info.get("subjects")
-            if not hasattr(val, "__getitem__"):
-                val = [val]
-            val = (str(v) for v in val)
-            print(para_format_desc("Subjects: " + ", ".join(val)), file=file)
-        if self.info.get("waveband"):
-            val = self.info.get("waveband")
-            if not hasattr(val, "__getitem__"):
-                val = [val]
-            val = (str(v) for v in val)
-            print(para_format_desc("Waveband Coverage: " + ", ".join(val)), 
-                  file=file)
-
-        if verbose:
-            if self.info.get("capabilityStandardID"):
-                print("StandardID: " + self.info["capabilityStandardID"], 
-                      file=file)
-            if self.info.get("referenceURL"):
-                print("More info: " + self.info["referenceURL"], file=file)
-            
-                                        
-
-class DALQuery(object):
-    """
-    a class for preparing a query to a particular service.  Query constraints
-    are typically added via its service type-specific methods; however, they 
-    can be added generically (including custom parameters) via the setparam()
-    function.  The various execute() functions will submit the query and 
-    return the results.  
-
-    The base URL for the query can be changed via the baseurl property.
+    one record from a DAL query result.  The column values are accessible 
+    as dictionary items.  It also provides special added functions for 
+    accessing the dataset the record corresponds to.  Subclasses may provide
+    additional functions for access to service type-specific data.
     """
 
-    std_parameters = [ ]
+    def __init__(self, results, index, fielddesc=None):
+        self._fdesc = fielddesc
+        if not self._fdesc: 
+            self._fdesc = {}
 
-    def __init__(self, baseurl, protocol=None, version=None):
-        """
-        initialize the query object with a baseurl
-        """
-        self._baseurl = baseurl
-        self._protocol = protocol
-        self._version = version
-        self._param = { }
+        if fielddesc is None:
+            for fld in results.fieldnames():
+                self._fdesc[fld] = results.getdesc(fld)
 
-    @property
-    def baseurl(self):
-        """
-        the base URL that this query will be sent to when one of the 
-        execute functions is called. 
-        """
-        return self._baseurl
-    @baseurl.setter
-    def baseurl(self, baseurl):
-        self._baseurl = baseurl
+        super(Record, self).__init__()
 
-    @property
-    def protocol(self):
-        """
-        The service protocol supported by this query object (read-only).
-        """
-        return self._protocol
+        self.update(zip(
+            results.fieldnames(),
+            results.votable.array.data[index]
+        ))
 
-    @property
-    def version(self):
-        """
-        The version of the service protocol supported by this query object
-        (read-only).
-        """
-        return self._version
-
-    def setparam(self, name, val):
-        """
-        add a parameter constraint to the query.  The name can either be 
-        of a standard parameter (defined by the protocol standard; see 
-        std_parameters) or a custom parameter supported by the particular
-        service associated with the :py:attr:`baseurl`.  
-
-        Parameters
-        ----------
-        name : str
-           the name of the parameter.  This should be a name that 
-           is recognized by the service itself.  
-        val : any
-           the value for the constraint.  This value must meet the 
-           requirements set by the standard or by the service.  If 
-           the constraint consists of multiple values, it should be 
-           passed as a sequence.  
-
-        """
-        self._param[name] = val
-
-    def unsetparam(self, name):
-        """
-        unset the parameter constraint having the given name (if it is set)
-        """
-        if name in self._param.keys():
-            del self._param[name]
-
-    def getparam(self, name):
-        """
-        return the current value of the parameter with the given name or None
-        if it is not set.
-        """
-        return self._param.get(name)
-
-    def paramnames(self):
-        """
-        return the names of the parameters set so far
-        """
-        return self._param.keys()
-
-    def execute(self):
-        """
-        submit the query and return the results as a Results subclass instance
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError   
-           for errors either in the input query syntax or 
-           other user errors detected by the service
-        DALFormatError  
-           for errors parsing the VOTable response
-        """
-        return DALResults(self.execute_votable(), self.getqueryurl())
-
-    def execute_raw(self):
-        """
-        submit the query and return the raw VOTable XML as a string.
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError
-           for errors in the input query syntax
-        """
-        f = self.execute_stream()
-        out = None
+    def get_str(self, key, default=None):
+        # Needed for python3 support, this will convert to a native string 
+        # if it is not already
         try:
-            out = f.read()
-        finally:
-            f.close()
+            out = self.__getitem__(key)
+        except KeyError:
+            return default
+        if isinstance(out, str):
+            return out
+        if _is_python3: 
+            if isinstance(out, bytes):
+                out = out.decode('utf-8')
+        else:
+            if isinstance(out, unicode):
+                out = out.decode('utf-8')
         return out
 
-    def execute_stream(self):
+    def fielddesc(self, name):
         """
-        submit the query and return the raw VOTable XML as a file stream
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError
-           for errors in the input query syntax
+        return an object with attributes (name, id, datatype, unit, ucd, 
+        utype, arraysize) that describe the record attribute with the given 
+        name.  
         """
-        try:
-            return self.submit().raw
-        except requests.RequestException as ex:
-            raise DALServiceError.from_except(
-                ex, self.getqueryurl(), self.protocol, self.version)
+        return self._fdesc[name]
 
-    def submit(self):
+    def getdataurl(self):
         """
-        does the actual request
+        return the URL contained in the access URL column which can be used 
+        to retrieve the dataset described by this record.  None is returned
+        if no such column exists.
         """
-        def urlify_param(param):
-            if type(param) in (list, tuple):
-                return ",".join(map(str, param))
-            else:
-                return param
+        for name,fld in self._fdesc.iteritems():
+            if (fld.utype and "Access.Reference" in fld.utype) or \
+               (fld.ucd   and "meta.dataset" in fld.ucd 
+                          and "meta.ref.url" in fld.ucd):
+                out = self[name]
+                if _is_python3 and isinstance(out, bytes):
+                    out = out.decode('utf-8')
+                return out
+        return None
 
-        url = self.getqueryurl()
-        params = {k: urlify_param(v) for k, v in self._param.items()}
-
-        r = requests.get(url, params = params, stream = True)
-        r.raise_for_status()
-        r.raw.read = functools.partial(r.raw.read, decode_content=True)
-        return r
-
-    def execute_votable(self):
+    def getdataset(self, timeout=None):
         """
-        submit the query and return the results as an AstroPy votable instance
-
-        Returns
-        -------
-        astropy.io.votable.tree.Table
-           an Astropy votable Table instance
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALFormatError
-           for errors parsing the VOTable response
-        DALQueryError
-           for errors in the input query syntax
-
-        See Also
-        --------
-        astropy.io.votable
-        DALServiceError
-        DALFormatError
-        DALQueryError
-        """
-        try:
-            return _votableparse(self.execute_stream().read)
-        except DALAccessError:
-            raise
-        except Exception as e:
-            raise DALFormatError(e, self.getqueryurl(), 
-                                 protocol=self.protocol, version=self.version)
-
-    def getqueryurl(self):
-        """
-        return the GET URL that encodes the current query.  This is the 
-        URL that the execute functions will use if called next.  
-
-        Returns
-        -------
-        str
-           the encoded query URL
+        Get the dataset described by this record from the server.
 
         Parameters
         ----------
-        lax : bool
-           if False (default), a DALQueryError exception will be 
-           raised if the current set of parameters cannot be 
-           used to form a legal query.  This implementation does 
-           no syntax checking; thus, this argument is ignored.
+        timeout : float   
+           the time in seconds to allow for a successful 
+           connection with server before failing with an 
+           IOError (specifically, socket.timeout) exception
+
+        Returns
+        -------
+            A file-like object which may be read to retrieve the referenced 
+            dataset.
 
         Raises
         ------
-        DALQueryError
-           when lax=False, for errors in the input query syntax
-
-        See Also
-        --------
-        DALQueryError
-
+        KeyError
+           if no datast access URL is included in the record
+        URLError
+           if the dataset access URL is invalid (note: subclass of IOError)
+        HTTPError
+           if an HTTP error occurs while accessing the dataset
+           (note: subclass of IOError)
+        socket.timeout  
+           if the timeout is exceeded before a connection is established.  
+           (note: subclass of IOError)
+        IOError
+           if some other error occurs while establishing the data stream.
         """
-        return self.baseurl
-        
+        url = self.getdataurl()
+        if not url:
+            raise KeyError("no dataset access URL recognized in record")
+        if timeout:
+            r = requests.get(url, stream = True, timeout = timeout)
+        else:
+            r = requests.get(url, stream = True)
+
+        r.raise_for_status()
+        r.raw.read = functools.partial(r.raw.read, decode_content=True)
+        return r.raw
+
+    def cachedataset(self, filename=None, dir=".", timeout=None, bufsize=524288):
+        """
+        retrieve the dataset described by this record and write it out to 
+        a file with the given name.  If the file already exists, it will be
+        over-written.
+
+        Parameters
+        ----------
+        filename : str
+           the name of the file to write dataset to.  If the
+           value represents a relative path, it will be taken
+           to be relative to the value of the ``dir`` 
+           parameter.  If None, a default name is attempted 
+           based on the record title and format.  
+        dir : str
+           the directory to write the file into.  This value
+           will be ignored if filename is an absolute path.
+        timeout : int
+           the time in seconds to allow for a successful 
+           connection with server before failing with an 
+           IOError (specifically, socket.timeout) exception
+        bufsize : int
+           a buffer size in bytes for copying the data to disk 
+           (default: 0.5 MB)
+
+        Raises
+        ------
+        KeyError
+            if no datast access URL is included in the record
+        URLError
+           if the dataset access URL is invalid
+        HTTPError
+           if an HTTP error occurs while accessing the dataset
+        socket.timeout
+           if the timeout is exceeded before a connection is established.  
+           (note: subclass of IOError)
+        IOError
+            if an error occurs while writing out the dataset
+        """
+        if not bufsize: bufsize = 524288
+
+        if not filename:
+            filename = self.make_dataset_filename(dir)
+
+        inp = self.getdataset(timeout)
+        try:
+            with open(filename, 'wb') as out:
+                buf = inp.read(bufsize)
+                while buf:
+                    out.write(buf)
+                    buf = inp.read(bufsize)
+        finally:
+            inp.close()
+
+    _dsname_no = 0  # used by make_dataset_filename
+
+    def make_dataset_filename(self, dir=".", base=None, ext=None):
+        """
+        create a viable pathname in a given directory for saving the dataset
+        available via getdataset().  The pathname that is returned is 
+        guaranteed not to already exist (under single-threaded conditions).  
+
+        This implementation will first try combining the base name with the 
+        file extension (with a dot).  If this file already exists in the 
+        directory, a name that appends an integer suffix ("-#") to the base
+        before joining with the extension will be tried.  The integer will
+        be incremented until a non-existent filename is created.
+
+        Parameters
+        ----------
+        dir : str
+           the directory to save the dataset under.  This must already exist.
+        base : str
+           a basename to use to as the base of the filename.  If 
+           None, the result of ``suggest_dataset_basename()``
+           will be used.
+        ext : str
+           the filename extension to use.  If None, the result of 
+           ``suggest_extension()`` will be used.
+        """
+        if not dir:
+          raise ValueError("make_dataset_filename(): no dir parameter provided")
+        if not os.path.exists(dir):
+            raise IOError("{0}: directory not found".format(dir))
+        if not os.path.isdir(dir):
+            raise ValueError("{0}: not a directory".format(dir))
+
+        if not base:
+            base = self.suggest_dataset_basename()
+        if not ext:
+            ext = self.suggest_extension("dat")
+
+        # be efficient when writing a bunch of files into the same directory
+        # in succession
+        n = self._dsname_no
+        mkpath = lambda i: os.path.join(dir, "{0}-{1}.{2}".format(base, n, ext))
+        if n > 0:
+            # find the last file written of the form, base-n.ext
+            while n > 0 and not os.path.exists(mkpath(n)):
+                n -= 1
+        if n > 0:
+            n += 1
+        if n == 0:
+            # never wrote a file of form, base-n.ext; try base.ext
+            path = os.path.join(dir, "{0}.{1}".format(base, ext))
+            if not os.path.exists(path):
+                return path
+            n += 1
+        # find next available name
+        while os.path.exists(mkpath(n)):
+            n += 1
+        self._dsname_no = n
+        return mkpath(n)
+                
+
+    def suggest_dataset_basename(self):
+        """
+        return a default base filename that the dataset available via 
+        ``getdataset()`` can be saved as.  This function is 
+        specialized for a particular service type this record originates from
+        so that it can be used by ``cachedataset()`` via 
+        ``make_dataset_filename()``.
+        """
+        # abstract; specialized for the different service types
+        return "dataset"
+
+    def suggest_extension(self, default=None):
+        """
+        returns a recommended filename extension for the dataset described 
+        by this record.  Typically, this would look at the column describing 
+        the format and choose an extension accordingly.  This function is 
+        specialized for a particular service type this record originates from
+        so that it can be used by ``cachedataset()`` via 
+        ``make_dataset_filename()``.
+        """
+        # abstract; specialized for the different service types
+        return default
+
 
 class DALResults(object):
     """
@@ -441,6 +300,8 @@ class DALResults(object):
     the response.  Alternatively, it can provide results via a Cursor 
     (compliant with the Python Database API) or an iterable.
     """
+
+    RECORD_CLASS = Record
 
     def __init__(self, votable, url=None, protocol=None, version=None):
         """
@@ -689,7 +550,7 @@ class DALResults(object):
         --------
         Record
         """
-        return Record(self, index)
+        return self.RECORD_CLASS(self, index)
 
     def getvalue(self, name, index):
         """
@@ -748,6 +609,398 @@ class DALResults(object):
         from .dbapi2 import Cursor
         return Cursor(self)
 
+
+class DALQuery(object):
+    """
+    a class for preparing a query to a particular service.  Query constraints
+    are typically added via its service type-specific methods; however, they 
+    can be added generically (including custom parameters) via the setparam()
+    function.  The various execute() functions will submit the query and 
+    return the results.  
+
+    The base URL for the query can be changed via the baseurl property.
+    """
+
+    RESULTS_CLASS = DALResults
+
+    std_parameters = [ ]
+
+    def __init__(self, baseurl, protocol=None, version=None):
+        """
+        initialize the query object with a baseurl
+        """
+        self._baseurl = baseurl
+        self._protocol = protocol
+        self._version = version
+        self._param = { }
+
+    @property
+    def baseurl(self):
+        """
+        the base URL that this query will be sent to when one of the 
+        execute functions is called. 
+        """
+        return self._baseurl
+    @baseurl.setter
+    def baseurl(self, baseurl):
+        self._baseurl = baseurl
+
+    @property
+    def protocol(self):
+        """
+        The service protocol supported by this query object (read-only).
+        """
+        return self._protocol
+
+    @property
+    def version(self):
+        """
+        The version of the service protocol supported by this query object
+        (read-only).
+        """
+        return self._version
+
+    def setparam(self, name, val):
+        """
+        add a parameter constraint to the query.  The name can either be 
+        of a standard parameter (defined by the protocol standard; see 
+        std_parameters) or a custom parameter supported by the particular
+        service associated with the :py:attr:`baseurl`.  
+
+        Parameters
+        ----------
+        name : str
+           the name of the parameter.  This should be a name that 
+           is recognized by the service itself.  
+        val : any
+           the value for the constraint.  This value must meet the 
+           requirements set by the standard or by the service.  If 
+           the constraint consists of multiple values, it should be 
+           passed as a sequence.  
+
+        """
+        self._param[name] = val
+
+    def unsetparam(self, name):
+        """
+        unset the parameter constraint having the given name (if it is set)
+        """
+        if name in self._param.keys():
+            del self._param[name]
+
+    def getparam(self, name):
+        """
+        return the current value of the parameter with the given name or None
+        if it is not set.
+        """
+        return self._param.get(name)
+
+    def paramnames(self):
+        """
+        return the names of the parameters set so far
+        """
+        return self._param.keys()
+
+    def execute(self):
+        """
+        submit the query and return the results as a Results subclass instance
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError   
+           for errors either in the input query syntax or 
+           other user errors detected by the service
+        DALFormatError  
+           for errors parsing the VOTable response
+        """
+        return self.RESULTS_CLASS(self.execute_votable(), self.getqueryurl())
+
+    def execute_raw(self):
+        """
+        submit the query and return the raw VOTable XML as a string.
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors in the input query syntax
+        """
+        f = self.execute_stream()
+        out = None
+        try:
+            out = f.read()
+        finally:
+            f.close()
+        return out
+
+    def execute_stream(self):
+        """
+        submit the query and return the raw VOTable XML as a file stream
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors in the input query syntax
+        """
+        try:
+            return self.submit().raw
+        except requests.RequestException as ex:
+            raise DALServiceError.from_except(
+                ex, self.getqueryurl(), self.protocol, self.version)
+
+    def submit(self):
+        """
+        does the actual request
+        """
+        def urlify_param(param):
+            if type(param) in (list, tuple):
+                return ",".join(map(str, param))
+            else:
+                return param
+
+        url = self.getqueryurl()
+        params = {k: urlify_param(v) for k, v in self._param.items()}
+
+        r = requests.get(url, params = params, stream = True)
+        r.raise_for_status()
+        r.raw.read = functools.partial(r.raw.read, decode_content=True)
+        return r
+
+    def execute_votable(self):
+        """
+        submit the query and return the results as an AstroPy votable instance
+
+        Returns
+        -------
+        astropy.io.votable.tree.Table
+           an Astropy votable Table instance
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALFormatError
+           for errors parsing the VOTable response
+        DALQueryError
+           for errors in the input query syntax
+
+        See Also
+        --------
+        astropy.io.votable
+        DALServiceError
+        DALFormatError
+        DALQueryError
+        """
+        try:
+            return _votableparse(self.execute_stream().read)
+        except DALAccessError:
+            raise
+        except Exception as e:
+            raise DALFormatError(e, self.getqueryurl(), 
+                                 protocol=self.protocol, version=self.version)
+
+    def getqueryurl(self):
+        """
+        return the GET URL that encodes the current query.  This is the 
+        URL that the execute functions will use if called next.  
+
+        Returns
+        -------
+        str
+           the encoded query URL
+
+        Parameters
+        ----------
+        lax : bool
+           if False (default), a DALQueryError exception will be 
+           raised if the current set of parameters cannot be 
+           used to form a legal query.  This implementation does 
+           no syntax checking; thus, this argument is ignored.
+
+        Raises
+        ------
+        DALQueryError
+           when lax=False, for errors in the input query syntax
+
+        See Also
+        --------
+        DALQueryError
+
+        """
+        return self.baseurl
+
+
+class DALService(object):
+    """
+    an abstract base class representing a DAL service located a particular 
+    endpoint.
+    """
+
+    QUERY_CLASS = DALQuery
+
+    def __init__(self, baseurl, protocol=None, version=None, resmeta=None):
+        """
+        instantiate the service connecting it to a base URL
+
+        Parameters
+        ----------
+        baseurl :  str 
+           the base URL that should be used for forming queries to the service.
+        protocol : str
+           The protocol implemented by the service, e.g., "scs", "sia",
+           "ssa", and so forth.
+        version : str
+           The protocol version, e.g, "1.0", "1.2", "2.0".
+        resmeta : dict
+           a dictionary containing resource metadata describing the 
+           service.  This is usually provided a registry record.
+        """
+        self._baseurl = baseurl
+        self._protocol = protocol
+        self._version = version
+        self._info = {}
+        if resmeta and hasattr(resmeta, "__getitem__"):
+            # since this might be (rather, is likely) a Record object, we need 
+            # to hand copy it (as the astropy votable bits won't deepcopy).
+            for key in resmeta.keys():
+                self._info[key] = resmeta[key]  # assuming immutable values
+
+    @property
+    def baseurl(self):
+        """
+        the base URL identifying the location of the service and where 
+        queries are submitted (read-only)
+        """
+        return self._baseurl
+
+    @property
+    def protocol(self):
+        """
+        The service protocol implemented by the service (read-only).
+        """
+        return self._protocol
+
+    @property
+    def version(self):
+        """
+        The version of the service protocol implemented by the service read-only).
+        """
+        return self._version
+
+    @property
+    def info(self):
+        """
+        an optional dictionary of resource metadata that describes the 
+        service.  This is generally information stored in a VO registry.  
+        """
+        return self._info
+
+    def search(self, **keywords):
+        """
+        send a search query to this service.  
+
+        This implementation has no knowledge of the type of service being 
+        queried.  The query parameters are given as arbitrary keywords which 
+        will be assumed to be understood by the service (i.e. there is no
+        argument checking).  The response is a generic DALResults object.  
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError  
+           for errors either in the input query syntax or other user errors 
+           detected by the service
+        DALFormatError  
+           for errors parsing the VOTable response
+        """
+        q = self.create_query(**keywords)
+        return q.execute()
+
+    def create_query(self, **keywords):
+        """
+        create a query object that constraints can be added to and then 
+        executed.
+
+        Returns
+        -------
+        DALQuery
+           a generic query object
+        """
+        # this must be overridden to return a Query subclass appropriate for 
+        # the service type
+        q = self.QUERY_CLASS(self.baseurl, self.protocol, self.version)
+        for key in keywords.keys():
+            q.setparam(key, keywords[key])
+        return q
+
+    def describe(self, verbose=False, width=78, file=None):
+        """
+        Print a summary description of this service.  
+
+        At a minimum, this will include the service protocol and 
+        base URL.  If there is metadata associated with this service, 
+        the summary will include other information, such as the 
+        service title and description.
+
+        Parameters
+        ----------
+        verbose : bool
+            If false (default), only user-oriented information is 
+            printed; if true, additional information will be printed
+            as well.
+        width : int
+            Format the description with given character-width.
+        file : writable file-like object
+            If provided, write information to this output stream.
+            Otherwise, it is written to standard out.  
+        """
+        if not file:
+            file = sys.stdout
+        print("{0} v{1} Service".format(self.protocol.upper(), self.version))
+        if self.info.get("title"):
+            print(para_format_desc(self.info["title"]), file=file)
+        if self.info.get("shortName"):
+            print("Short Name: " + self.info["shortName"], file=file)
+        if self.info.get("publisher"):
+            print(para_format_desc("Publisher: " + self.info["publisher"]), 
+                  file=file)
+        if self.info.get("identifier"):
+            print("IVOA Identifier: " + self.info["identifier"], file=file)
+        print("Base URL: " + self.baseurl, file=file)
+
+        if self.info.get("description"):
+            print(file=file)
+            print(para_format_desc(self.info["description"]), file=file)
+            print(file=file)
+
+        if self.info.get("subjects"):
+            val = self.info.get("subjects")
+            if not hasattr(val, "__getitem__"):
+                val = [val]
+            val = (str(v) for v in val)
+            print(para_format_desc("Subjects: " + ", ".join(val)), file=file)
+        if self.info.get("waveband"):
+            val = self.info.get("waveband")
+            if not hasattr(val, "__getitem__"):
+                val = [val]
+            val = (str(v) for v in val)
+            print(para_format_desc("Waveband Coverage: " + ", ".join(val)), 
+                  file=file)
+
+        if verbose:
+            if self.info.get("capabilityStandardID"):
+                print("StandardID: " + self.info["capabilityStandardID"], 
+                      file=file)
+            if self.info.get("referenceURL"):
+                print("More info: " + self.info["referenceURL"], file=file)
+
+
 class Iter(object):
     def __init__(self, res):
         self.resultset = res
@@ -767,252 +1020,6 @@ class Iter(object):
 # Note: this is for Iter subclassess (i.e. .dbapi2.Cursor) and python3
 if _is_python3 and not hasattr(Iter, "next"):
     setattr(Iter, "next", lambda self: self.__next__())
-
-class Record(dict):
-    """
-    one record from a DAL query result.  The column values are accessible 
-    as dictionary items.  It also provides special added functions for 
-    accessing the dataset the record corresponds to.  Subclasses may provide
-    additional functions for access to service type-specific data.
-    """
-
-    def __init__(self, results, index, fielddesc=None):
-        self._fdesc = fielddesc
-        if not self._fdesc: 
-            self._fdesc = {}
-
-        if fielddesc is None:
-            for fld in results.fieldnames():
-                self._fdesc[fld] = results.getdesc(fld)
-
-        super(Record, self).__init__()
-
-        self.update(zip(
-            results.fieldnames(),
-            results.votable.array.data[index]
-        ))
-
-    def get_str(self, key, default=None):
-        # Needed for python3 support, this will convert to a native string 
-        # if it is not already
-        try:
-            out = self.__getitem__(key)
-        except KeyError:
-            return default
-        if isinstance(out, str):
-            return out
-        if _is_python3: 
-            if isinstance(out, bytes):
-                out = out.decode('utf-8')
-        else:
-            if isinstance(out, unicode):
-                out = out.decode('utf-8')
-        return out
-
-    def fielddesc(self, name):
-        """
-        return an object with attributes (name, id, datatype, unit, ucd, 
-        utype, arraysize) that describe the record attribute with the given 
-        name.  
-        """
-        return self._fdesc[name]
-
-    def getdataurl(self):
-        """
-        return the URL contained in the access URL column which can be used 
-        to retrieve the dataset described by this record.  None is returned
-        if no such column exists.
-        """
-        for name,fld in self._fdesc.iteritems():
-            if (fld.utype and "Access.Reference" in fld.utype) or \
-               (fld.ucd   and "meta.dataset" in fld.ucd 
-                          and "meta.ref.url" in fld.ucd):
-                out = self[name]
-                if _is_python3 and isinstance(out, bytes):
-                    out = out.decode('utf-8')
-                return out
-        return None
-
-    def getdataset(self, timeout=None):
-        """
-        Get the dataset described by this record from the server.
-
-        Parameters
-        ----------
-        timeout : float   
-           the time in seconds to allow for a successful 
-           connection with server before failing with an 
-           IOError (specifically, socket.timeout) exception
-
-        Returns
-        -------
-            A file-like object which may be read to retrieve the referenced 
-            dataset.
-
-        Raises
-        ------
-        KeyError
-           if no datast access URL is included in the record
-        URLError
-           if the dataset access URL is invalid (note: subclass of IOError)
-        HTTPError
-           if an HTTP error occurs while accessing the dataset
-           (note: subclass of IOError)
-        socket.timeout  
-           if the timeout is exceeded before a connection is established.  
-           (note: subclass of IOError)
-        IOError
-           if some other error occurs while establishing the data stream.
-        """
-        url = self.getdataurl()
-        if not url:
-            raise KeyError("no dataset access URL recognized in record")
-        if timeout:
-            r = requests.get(url, stream = True, timeout = timeout)
-        else:
-            r = requests.get(url, stream = True)
-
-        r.raise_for_status()
-        r.raw.read = functools.partial(r.raw.read, decode_content=True)
-        return r.raw
-
-    def cachedataset(self, filename=None, dir=".", timeout=None, bufsize=524288):
-        """
-        retrieve the dataset described by this record and write it out to 
-        a file with the given name.  If the file already exists, it will be
-        over-written.
-
-        Parameters
-        ----------
-        filename : str
-           the name of the file to write dataset to.  If the
-           value represents a relative path, it will be taken
-           to be relative to the value of the ``dir`` 
-           parameter.  If None, a default name is attempted 
-           based on the record title and format.  
-        dir : str
-           the directory to write the file into.  This value
-           will be ignored if filename is an absolute path.
-        timeout : int
-           the time in seconds to allow for a successful 
-           connection with server before failing with an 
-           IOError (specifically, socket.timeout) exception
-        bufsize : int
-           a buffer size in bytes for copying the data to disk 
-           (default: 0.5 MB)
-
-        Raises
-        ------
-        KeyError
-            if no datast access URL is included in the record
-        URLError
-           if the dataset access URL is invalid
-        HTTPError
-           if an HTTP error occurs while accessing the dataset
-        socket.timeout
-           if the timeout is exceeded before a connection is established.  
-           (note: subclass of IOError)
-        IOError
-            if an error occurs while writing out the dataset
-        """
-        if not bufsize: bufsize = 524288
-
-        if not filename:
-            filename = self.make_dataset_filename(dir)
-
-        inp = self.getdataset(timeout)
-        try:
-            with open(filename, 'wb') as out:
-                buf = inp.read(bufsize)
-                while buf:
-                    out.write(buf)
-                    buf = inp.read(bufsize)
-        finally:
-            inp.close()
-
-    _dsname_no = 0  # used by make_dataset_filename
-
-    def make_dataset_filename(self, dir=".", base=None, ext=None):
-        """
-        create a viable pathname in a given directory for saving the dataset
-        available via getdataset().  The pathname that is returned is 
-        guaranteed not to already exist (under single-threaded conditions).  
-
-        This implementation will first try combining the base name with the 
-        file extension (with a dot).  If this file already exists in the 
-        directory, a name that appends an integer suffix ("-#") to the base
-        before joining with the extension will be tried.  The integer will
-        be incremented until a non-existent filename is created.
-
-        Parameters
-        ----------
-        dir : str
-           the directory to save the dataset under.  This must already exist.
-        base : str
-           a basename to use to as the base of the filename.  If 
-           None, the result of ``suggest_dataset_basename()``
-           will be used.
-        ext : str
-           the filename extension to use.  If None, the result of 
-           ``suggest_extension()`` will be used.
-        """
-        if not dir:
-          raise ValueError("make_dataset_filename(): no dir parameter provided")
-        if not os.path.exists(dir):
-            raise IOError("{0}: directory not found".format(dir))
-        if not os.path.isdir(dir):
-            raise ValueError("{0}: not a directory".format(dir))
-
-        if not base:
-            base = self.suggest_dataset_basename()
-        if not ext:
-            ext = self.suggest_extension("dat")
-
-        # be efficient when writing a bunch of files into the same directory
-        # in succession
-        n = self._dsname_no
-        mkpath = lambda i: os.path.join(dir, "{0}-{1}.{2}".format(base, n, ext))
-        if n > 0:
-            # find the last file written of the form, base-n.ext
-            while n > 0 and not os.path.exists(mkpath(n)):
-                n -= 1
-        if n > 0:
-            n += 1
-        if n == 0:
-            # never wrote a file of form, base-n.ext; try base.ext
-            path = os.path.join(dir, "{0}.{1}".format(base, ext))
-            if not os.path.exists(path):
-                return path
-            n += 1
-        # find next available name
-        while os.path.exists(mkpath(n)):
-            n += 1
-        self._dsname_no = n
-        return mkpath(n)
-                
-
-    def suggest_dataset_basename(self):
-        """
-        return a default base filename that the dataset available via 
-        ``getdataset()`` can be saved as.  This function is 
-        specialized for a particular service type this record originates from
-        so that it can be used by ``cachedataset()`` via 
-        ``make_dataset_filename()``.
-        """
-        # abstract; specialized for the different service types
-        return "dataset"
-
-    def suggest_extension(self, default=None):
-        """
-        returns a recommended filename extension for the dataset described 
-        by this record.  Typically, this would look at the column describing 
-        the format and choose an extension accordingly.  This function is 
-        specialized for a particular service type this record originates from
-        so that it can be used by ``cachedataset()`` via 
-        ``make_dataset_filename()``.
-        """
-        # abstract; specialized for the different service types
-        return default
 
 if _is_python3:
     _image_mt_re = re.compile(b'^image/(\w+)')
