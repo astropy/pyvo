@@ -433,9 +433,8 @@ class SSAQuery(query.DALQuery):
     query to another service.  
 
     In addition to the attributes described below, search parameters can be 
-    set generically by name via the 
-    :py:attr:`~pyvo.dal.query.DALQuery.setparam`() 
-    method.  The class attribute, ``std_parameters``, list the parameters 
+    set generically by name via dict semantic.
+    The class attribute, ``std_parameters``, list the parameters 
     defined by the SSA standard.  
 
     The typical function for submitting the query is ``execute()``; however, 
@@ -458,7 +457,7 @@ class SSAQuery(query.DALQuery):
         initialize the query object with a baseurl and request type
         """
         super(SSAQuery, self).__init__(baseurl, "ssa", version)
-        self.setparam("REQUEST", request)
+        self["REQUEST"] = request
         
     @property
     def pos(self):
@@ -466,7 +465,7 @@ class SSAQuery(query.DALQuery):
         the position (POS) constraint as a 2-element tuple denoting RA and 
         declination in decimal degrees.  This defaults to None.
         """
-        return self.getparam("POS")
+        return self.get("POS")
     @pos.setter
     def pos(self, pair):
         # do a check on the input
@@ -492,10 +491,10 @@ class SSAQuery(query.DALQuery):
             pair = (pair[0]-360.0, pair[1])
 
 
-        self.setparam("POS", pair)
+        self["POS"] = pair
     @pos.deleter
     def pos(self):
-        self.unsetparam('POS')
+        del self['POS']
 
     @property
     def ra(self):
@@ -528,7 +527,7 @@ class SSAQuery(query.DALQuery):
         """
         the diameter of the search region specified in decimal degrees
         """
-        return self.getparam("SIZE")
+        return self.get("SIZE")
     @size.setter
     def size(self, val):
         if val is not None:
@@ -537,10 +536,10 @@ class SSAQuery(query.DALQuery):
             if val <= 0.0 or val > 180.0:
                 raise ValueError("size constraint out-of-range: " + str(val))
 
-        self.setparam("SIZE", val)
+        self["SIZE"] = val
     @size.deleter
     def size(self):
-        self.unsetparam("SIZE")
+        del self["SIZE"]
 
     @property
     def band(self):
@@ -555,13 +554,13 @@ class SSAQuery(query.DALQuery):
         2.7E-7/0.13                a bandpass from optical to radio
         =========================  =====================================
         """
-        return self.getparam("BAND")
+        return self.get("BAND")
     @band.setter
     def band(self, val):
-        self.setparam("BAND", val)
+        self["BAND"] = val
     @band.deleter
     def band(self):
-        self.unsetparam("BAND")
+        del self["BAND"]
 
     @property
     def time(self):
@@ -578,7 +577,7 @@ class SSAQuery(query.DALQuery):
         2001-05-02T12:21:30/2010   provides second resolution
         =========================  =====================================
         """
-        return self.getparam("TIME")
+        return self.get("TIME")
     @time.setter
     def time(self, val):
         # check the format:
@@ -592,10 +591,10 @@ class SSAQuery(query.DALQuery):
                              "\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}$"), date):
                 raise ValueError("time format not valid: " + val)
 
-        self.setparam("TIME", val)
+        self["TIME"] = val
     @time.deleter
     def time(self):
-        self.unsetparam("TIME")
+        del self["TIME"]
 
     @property
     def format(self):
@@ -618,7 +617,7 @@ class SSAQuery(query.DALQuery):
         ========= =======================================================
 
         """
-        return self.getparam("FORMAT")
+        return self.get("FORMAT")
     @format.setter
     def format(self, val):
         # check values
@@ -630,10 +629,10 @@ class SSAQuery(query.DALQuery):
                          "fits", "xml", "metadata"]: 
                 raise ValueError("format type not valid: " + f)
 
-        self.setparam("FORMAT", val)
+        self["FORMAT"] = val
     @format.deleter
     def format(self):
-        self.unsetparam("FORMAT")
+        del self["FORMAT"]
 
 
 class SSAService(query.DALService):
@@ -751,7 +750,6 @@ class SSAService(query.DALService):
         if size is not None: q.size = size
         if format: q.format = format
 
-        for key in keywords.keys():
-            q.setparam(key, keywords[key])
+        q.update(keywords)
 
         return q

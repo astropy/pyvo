@@ -35,7 +35,7 @@ class NeatSIAExecuteTest(unittest.TestCase):
         q.pos = (0, 0)
         q.size = (1.0, 1.0)
         q.format = "all"
-        q.setparam("NAXIS", (75, 75))
+        q["NAXIS"] = (75, 75)
         results = q.execute()
         self.assert_(isinstance(results, sia.SIAResults))
         self.assertEquals(results.nrecs, 5)

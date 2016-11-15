@@ -610,13 +610,11 @@ class DALResults(object):
         return Cursor(self)
 
 
-class DALQuery(object):
+class DALQuery(dict):
     """
     a class for preparing a query to a particular service.  Query constraints
-    are typically added via its service type-specific methods; however, they 
-    can be added generically (including custom parameters) via the setparam()
-    function.  The various execute() functions will submit the query and 
-    return the results.  
+    are added via its service type-specific methods. The various execute()
+    functions will submit the query and return the results.  
 
     The base URL for the query can be changed via the baseurl property.
     """
@@ -632,7 +630,6 @@ class DALQuery(object):
         self._baseurl = baseurl
         self._protocol = protocol
         self._version = version
-        self._param = { }
 
     @property
     def baseurl(self):
@@ -659,47 +656,6 @@ class DALQuery(object):
         (read-only).
         """
         return self._version
-
-    def setparam(self, name, val):
-        """
-        add a parameter constraint to the query.  The name can either be 
-        of a standard parameter (defined by the protocol standard; see 
-        std_parameters) or a custom parameter supported by the particular
-        service associated with the :py:attr:`baseurl`.  
-
-        Parameters
-        ----------
-        name : str
-           the name of the parameter.  This should be a name that 
-           is recognized by the service itself.  
-        val : any
-           the value for the constraint.  This value must meet the 
-           requirements set by the standard or by the service.  If 
-           the constraint consists of multiple values, it should be 
-           passed as a sequence.  
-
-        """
-        self._param[name] = val
-
-    def unsetparam(self, name):
-        """
-        unset the parameter constraint having the given name (if it is set)
-        """
-        if name in self._param.keys():
-            del self._param[name]
-
-    def getparam(self, name):
-        """
-        return the current value of the parameter with the given name or None
-        if it is not set.
-        """
-        return self._param.get(name)
-
-    def paramnames(self):
-        """
-        return the names of the parameters set so far
-        """
-        return self._param.keys()
 
     def execute(self):
         """
@@ -764,7 +720,7 @@ class DALQuery(object):
                 return param
 
         url = self.getqueryurl()
-        params = {k: urlify_param(v) for k, v in self._param.items()}
+        params = {k: urlify_param(v) for k, v in self.items()}
 
         r = requests.get(url, params = params, stream = True)
         r.raise_for_status()
@@ -935,8 +891,7 @@ class DALService(object):
         # this must be overridden to return a Query subclass appropriate for 
         # the service type
         q = self.QUERY_CLASS(self.baseurl, self.protocol, self.version)
-        for key in keywords.keys():
-            q.setparam(key, keywords[key])
+        q.update(keywords)
         return q
 
     def describe(self, verbose=False, width=78, file=None):

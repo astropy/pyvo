@@ -53,14 +53,14 @@ class SCSServiceTest(unittest.TestCase):
         q = self.srv.create_query()
         self.assert_(isinstance(q, cs.SCSQuery))
         self.assertEquals(q.baseurl, self.baseurl)
-        self.assertEquals(len(q._param.keys()), 0)
+        self.assertEquals(len(q.keys()), 0)
 
     def testCreateQueryWithArgs(self):
         self.testCtor()
         q = self.srv.create_query(pos=(0.0, 0.0), radius=1.0, verbosity=2)
         self.assert_(isinstance(q, cs.SCSQuery))
         self.assertEquals(q.baseurl, self.baseurl)
-        self.assertEquals(len(q._param.keys()), 4)
+        self.assertEquals(len(q.keys()), 4)
 
         self.assertEquals(q.ra,  0.0)
         self.assertEquals(q.dec, 0.0)
@@ -119,12 +119,12 @@ class SCSQueryTest(unittest.TestCase):
         self.q.ra = 102.5511
         self.q.dec = 24.312
         self.q.radius = 0.1
-        self.assertAlmostEquals(self.q._param["RA"], 102.5511)
-        self.assertAlmostEquals(self.q._param["DEC"], 24.312)
-        self.assertAlmostEquals(self.q._param["SR"], 0.1)
+        self.assertAlmostEquals(self.q["RA"], 102.5511)
+        self.assertAlmostEquals(self.q["DEC"], 24.312)
+        self.assertAlmostEquals(self.q["SR"], 0.1)
 
         self.q.sr = 0.05
-        self.assertAlmostEquals(self.q._param["SR"], 0.05)
+        self.assertAlmostEquals(self.q["SR"], 0.05)
 
 
 class CSResultsTest(unittest.TestCase):
