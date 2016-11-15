@@ -334,9 +334,8 @@ class SIAQuery(query.DALQuery):
     query to another service.  
 
     In addition to the search constraint attributes described below, search 
-    parameters can be set generically by name via the 
-    :py:meth:`~pyvo.dal.query.DALQuery.setparam`
-    method.  The class attribute, ``std_parameters``, list the parameters 
+    parameters can be set generically by name via dict semantics.
+    The class attribute, ``std_parameters``, list the parameters 
     defined by the SIA standard.  
 
     The typical function for submitting the query is ``execute()``; however, 
@@ -367,7 +366,7 @@ class SIAQuery(query.DALQuery):
         the position (POS) constraint as a 2-element tuple denoting RA and 
         declination in decimal degrees.  This defaults to None.
         """
-        return self.getparam("POS")
+        return self.get("POS")
     @pos.setter
     def pos(self, pair):
         # do a check on the input
@@ -393,10 +392,10 @@ class SIAQuery(query.DALQuery):
             pair = (pair[0]-360.0, pair[1])
 
 
-        self.setparam("POS", pair)
+        self["POS"] = pair
     @pos.deleter
     def pos(self):
-        self.unsetparam('POS')
+        del self['POS']
 
     @property
     def ra(self):
@@ -431,7 +430,7 @@ class SIAQuery(query.DALQuery):
         along the right-ascension and declination directions, measured in 
         decimal degrees.  
         """
-        return self.getparam("SIZE")
+        return self.get("SIZE")
     @size.setter
     def size(self, val):
         # do a check on the input
@@ -457,10 +456,10 @@ class SIAQuery(query.DALQuery):
             raise ValueError("ra size out-of-range: " + str(val[1]))
 
         # do check on val; convert single number to a pair
-        self.setparam("SIZE", val)
+        self["SIZE"] = val
     @size.deleter
     def size(self):
-        self.unsetparam("SIZE")
+        del self["SIZE"]
 
     @property
     def format(self):
@@ -483,7 +482,7 @@ class SIAQuery(query.DALQuery):
         format type (e.g. "jpeg", "png", "gif") indicates that a graphical 
         format is desired with a preference for _fmt_ in the order given.
         """
-        return self.getparam("FORMAT")
+        return self.get("FORMAT")
     @format.setter
     def format(self, val):
         if isinstance(val, str):
@@ -501,7 +500,7 @@ class SIAQuery(query.DALQuery):
         elif hasattr(val, "__iter__"):
             # accept python iterables of MIME-types
             if len(val) == 0:
-                self.unsetparam("FORMAT")
+                del self["FORMAT"]
                 return
             elif len(val) == 1:
                 self.format = list(val)[0]
@@ -512,10 +511,10 @@ class SIAQuery(query.DALQuery):
                                  "(bad values: " + ','.join(bad) + ')')
             val = ','.join(val)
 
-        self.setparam("FORMAT", val)
+        self["FORMAT"] = val
     @format.deleter
     def format(self):
-        self.unsetparam("FORMAT")
+        del self["FORMAT"]
 
     @property
     def intersect(self):
@@ -531,7 +530,7 @@ class SIAQuery(query.DALQuery):
         CENTER    select images whose center is within the search region
         ========= ======================================================
         """
-        return self.getparam("INTERSECT")
+        return self.get("INTERSECT")
     @intersect.setter
     def intersect(self, val):
         if not isinstance(val, str):
@@ -541,10 +540,10 @@ class SIAQuery(query.DALQuery):
         if val not in self.allowed_intersects:
             raise ValueError("unrecogized intersect value: " + val)
 
-        self.setparam("INTERSECT", val)
+        self["INTERSECT"] = val
     @intersect.deleter
     def intersect(self):
-        self.unsetparam("INTERSECT")
+        del self["INTERSECT"]
 
     @property
     def verbosity(self):
@@ -553,16 +552,16 @@ class SIAQuery(query.DALQuery):
         be returned by a query where 0 is the minimum amount and 3 is the 
         maximum available.
         """
-        return self.getparam("VERB")
+        return self.get("VERB")
     @verbosity.setter
     def verbosity(self, val):
         # do a check on val
         if not isinstance(val, int):
             raise ValueError("verbosity value not an integer: " + val)
-        self.setparam("VERB", val)
+        self["VERB"] = val
     @verbosity.deleter
     def verbosity(self):
-        self.unsetparam("VERB")
+        del self["VERB"]
 
 
 class SIAService(query.DALService):
@@ -723,7 +722,6 @@ class SIAService(query.DALService):
         if intersect: q.intersect = intersect
         if verbosity is not None: q.verbosity = verbosity
 
-        for key in keywords.keys():
-            q.setparam(key, keywords[key])
+        q.update(keywords)
 
         return q

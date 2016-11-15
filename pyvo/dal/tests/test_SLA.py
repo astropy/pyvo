@@ -52,20 +52,20 @@ class SLAServiceTest(unittest.TestCase):
         q = self.srv.create_query()
         self.assert_(isinstance(q, sla.SLAQuery))
         self.assertEquals(q.baseurl, self.baseurl)
-        self.assertEquals(len(q._param.keys()), 1)
+        self.assertEquals(len(q.keys()), 1)
 
     def testCreateQueryWithArgs(self):
         self.testCtor()
         q = self.srv.create_query(wavelength="7.6e-6/1.e-5")
         self.assert_(isinstance(q, sla.SLAQuery))
         self.assertEquals(q.baseurl, self.baseurl)
-        self.assertEquals(len(q._param.keys()), 2)
+        self.assertEquals(len(q.keys()), 2)
 
         self.assertEquals(q.wavelength, "7.6e-6/1.e-5")
 
         qurl = q.getqueryurl()
-        self.assertEquals(q._param["REQUEST"], "queryData")
-        self.assertEquals(q._param["WAVELENGTH"], "7.6e-6/1.e-5")
+        self.assertEquals(q["REQUEST"], "queryData")
+        self.assertEquals(q["WAVELENGTH"], "7.6e-6/1.e-5")
         
 
 class SLAQueryTest(unittest.TestCase):

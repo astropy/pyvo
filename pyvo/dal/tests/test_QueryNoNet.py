@@ -348,9 +348,9 @@ class DALServiceTest(unittest.TestCase):
         self.assertEquals(q.baseurl, self.baseurl)
         self.assertEquals(q.protocol, self.srv.protocol)
         self.assertEquals(q.version, self.srv.version)
-        self.assertAlmostEquals(q.getparam('RA'), 12.045)
-        self.assertAlmostEquals(q.getparam('DEC'), -13.08)
-        self.assertAlmostEquals(q.getparam('SR'), 0.01)
+        self.assertAlmostEquals(q.get('RA'), 12.045)
+        self.assertAlmostEquals(q.get('DEC'), -13.08)
+        self.assertAlmostEquals(q.get('SR'), 0.01)
 
 
 
@@ -361,7 +361,7 @@ class DALQueryTest(unittest.TestCase):
 
     def testCtor(self):
         self.query = dalq.DALQuery(self.baseurl, "sga", "2.0")
-        self.assert_(self.query.getparam("format") is None)
+        self.assert_(self.query.get("format") is None)
 
     def testProps(self):
         self.testCtor()
@@ -375,30 +375,27 @@ class DALQueryTest(unittest.TestCase):
 
     def testParam(self):
         self.testCtor()
-        self.assertEquals(len(self.query.paramnames()), 0,
+        self.assertEquals(len(self.query.keys()), 0,
                           "param set should be empty: " + 
-                          str(self.query.paramnames()))
-        self.assert_(self.query.getparam("RA") is None)
+                          str(self.query.keys()))
+        self.assert_(self.query.get("RA") is None)
 
-        self.query.setparam("RA", 51.235)
-        self.assertEquals(len(self.query.paramnames()), 1)
-        self.assertEquals(self.query.getparam("RA"), 51.235)
+        self.query["RA"] = 51.235
+        self.assertEquals(len(self.query.keys()), 1)
+        self.assertEquals(self.query.get("RA"), 51.235)
 
-        self.query.setparam("RA", 127.235)
-        self.assertEquals(len(self.query.paramnames()), 1)
-        self.assertEquals(self.query.getparam("RA"), 127.235)
+        self.query["RA"] = 127.235
+        self.assertEquals(len(self.query.keys()), 1)
+        self.assertEquals(self.query.get("RA"), 127.235)
 
-        self.query.setparam("DEC", -13.49677)
-        self.assertEquals(len(self.query.paramnames()), 2)
-        self.assertEquals(self.query.getparam("DEC"), -13.49677)
+        self.query["DEC"] = -13.49677
+        self.assertEquals(len(self.query.keys()), 2)
+        self.assertEquals(self.query.get("DEC"), -13.49677)
 
-        self.query.unsetparam("FORMAT")
-        self.assertEquals(len(self.query.paramnames()), 2)
-
-        self.query.unsetparam("RA")
-        self.assertEquals(len(self.query.paramnames()), 1)
-        self.assertEquals(self.query.getparam("DEC"), -13.49677)
-        self.assert_(self.query.getparam("RA") is None)
+        del self.query["RA"]
+        self.assertEquals(len(self.query.keys()), 1)
+        self.assertEquals(self.query.get("DEC"), -13.49677)
+        self.assert_(self.query.get("RA") is None)
         
 
 class QueryExecuteTest(unittest.TestCase):
@@ -420,7 +417,7 @@ class QueryExecuteTest(unittest.TestCase):
 
     def testExecute(self):
         q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
-        q.setparam("foo", "bar")
+        q["foo"] = "bar"
         # pdb.set_trace()
         results = q.execute()
         self.assert_(isinstance(results, dalq.DALResults))
@@ -428,7 +425,7 @@ class QueryExecuteTest(unittest.TestCase):
 
     def testExecuteStream(self):
         q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
-        q.setparam("foo", "bar")
+        q["foo"] = "bar"
         # pdb.set_trace()
         strm = q.execute_stream()
         self.assert_(strm is not None)
@@ -439,7 +436,7 @@ class QueryExecuteTest(unittest.TestCase):
 
     def testExecuteRaw(self):
         q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
-        q.setparam("foo", "bar")
+        q["foo"] = "bar"
         # pdb.set_trace()
         data = q.execute_raw()
         self.assert_(data is not None)
@@ -451,26 +448,26 @@ class QueryExecuteTest(unittest.TestCase):
 
     def testExecuteVotable(self):
         q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
-        q.setparam("foo", "bar")
+        q["foo"] = "bar"
         # pdb.set_trace()
         results = q.execute_votable()
         self.assert_(isinstance(results, VOTableFile))
 
     def testExecuteServiceErr(self):
         q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
-        q.setparam("foo", "bar")
+        q["foo"] = "bar"
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute)
 
     def testExecuteRawServiceErr(self):
         q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
-        q.setparam("foo", "bar")
+        q["foo"] = "bar"
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute_raw)
 
     def testExecuteStreamServiceErr(self):
         q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
-        q.setparam("foo", "bar")
+        q["foo"] = "bar"
         # pdb.set_trace()
         try:
             q.execute_stream()
@@ -485,13 +482,13 @@ class QueryExecuteTest(unittest.TestCase):
 
     def testExecuteVotableServiceErr(self):
         q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
-        q.setparam("foo", "bar")
+        q["foo"] = "bar"
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute_votable)
 
     def testExecuteRawQueryErr(self):
         q = dalq.DALQuery("http://localhost:{0}/err".format(self.srvr.port))
-        q.setparam("foo", "bar")
+        q["foo"] = "bar"
         # pdb.set_trace()
         data = q.execute_raw()
         self.assert_(data is not None)
@@ -504,7 +501,7 @@ class QueryExecuteTest(unittest.TestCase):
 
     def testExecuteQueryErr(self):
         q = dalq.DALQuery("http://localhost:{0}/err".format(self.srvr.port))
-        q.setparam("foo", "bar")
+        q["foo"] = "bar"
         # pdb.set_trace()
         try:
             q.execute()

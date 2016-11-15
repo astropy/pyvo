@@ -231,9 +231,8 @@ class SLAQuery(query.DALQuery):
     query to another service.  
 
     In addition to the search constraint attributes described below, search 
-    parameters can be set generically by name via the 
-    :py:meth:`~pyvo.dal.query.DALQuery.setparam`
-    method.  The class attribute, ``std_parameters``, list the parameters 
+    parameters can be set generically by name via the dict semantics.
+    The class attribute, ``std_parameters``, list the parameters 
     defined by the SLA standard.  
 
     The typical function for submitting the query is ``execute()``; however, 
@@ -253,7 +252,7 @@ class SLAQuery(query.DALQuery):
         initialize the query object with a baseurl and request type
         """
         super(SLAQuery, self).__init__(baseurl, "sla", version)
-        self.setparam("REQUEST", request)
+        self["REQUEST"] = request
         
     @property
     def wavelength(self):
@@ -267,7 +266,7 @@ class SLAQuery(query.DALQuery):
         2.7E-7/0.13                a bandpass from optical to radio
         =========================  =====================================
         """
-        return self.getparam("WAVELENGTH")
+        return self.get("WAVELENGTH")
     @wavelength.setter
     def wavelength(self, val):
         regex = "\\d+\\.?\\d*([eE][-+]?\\d+)?/?\\d*\\.?\\d*([eE][-+]?\\d+)?$"
@@ -275,10 +274,10 @@ class SLAQuery(query.DALQuery):
            if re.match(regex, part) is None:
                raise ValueError("range syntax is wrong")
         
-        self.setparam("WAVELENGTH", val)
+        self["WAVELENGTH"] = val
     @wavelength.deleter
     def wavelength(self):
-        self.unsetparam("WAVELENGTH")
+        del self["WAVELENGTH"]
 
     @property
     def format(self):
@@ -288,7 +287,7 @@ class SLAQuery(query.DALQuery):
         When set to the special value of "metadata", all other constraints
         will be ignored and an empty result will be returned.  
         """
-        return self.getparam("FORMAT")
+        return self.get("FORMAT")
     @format.setter
     def format(self, val):
         # check values
@@ -298,10 +297,10 @@ class SLAQuery(query.DALQuery):
             if f not in ["metadata"]:
                 raise ValueError("format type not valid: " + f)
 
-        self.setparam("FORMAT", val)
+        self["FORMAT"] = val
     @format.deleter
     def format(self):
-        self.unsetparam("FORMAT")
+        del self["FORMAT"]
 
 
 class SLAService(query.DALService):

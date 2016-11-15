@@ -235,9 +235,8 @@ class SCSQuery(query.DALQuery):
     query to another service.  
 
     In addition to the search constraint attributes described below, search 
-    parameters can be set generically by name via the 
-    :py:meth:`~pyvo.dal.query.DALQuery.setparam`
-    method.  The class attribute, ``std_parameters``, list the parameters 
+    parameters can be set generically by name via dict semantics.
+    The class attribute, ``std_parameters``, list the parameters 
     defined by the SCS standard.  
 
     The typical function for submitting the query is ``execute()``; however, 
@@ -260,7 +259,7 @@ class SCSQuery(query.DALQuery):
         """
         the right ascension part of the position constraint (default: None).
         """
-        return self.getparam("RA")
+        return self.get("RA")
     @ra.setter
     def ra(self, val):
         if val is not None:
@@ -271,17 +270,17 @@ class SCSQuery(query.DALQuery):
             while val >= 360.0:
                 val = val - 360.0
 
-        self.setparam("RA", val)
+        self["RA"] = val
     @ra.deleter
     def ra(self):
-        self.unsetparam("RA")
+        del self["RA"]
 
     @property
     def dec(self):
         """
         the declination part of the position constraint (default: None).
         """
-        return self.getparam("DEC")
+        return self.get("DEC")
     @dec.setter
     def dec(self, val):
         if val is not None:
@@ -290,10 +289,10 @@ class SCSQuery(query.DALQuery):
             if val < -90.0 or val > 90.0:
                 raise ValueError("dec constraint out-of-range: " + str(val))
 
-        self.setparam("DEC", val)
+        self["DEC"] = val
     @dec.deleter
     def dec(self):
-        self.unsetparam("DEC")
+        del self["DEC"]
 
     @property
     def pos(self):
@@ -321,7 +320,7 @@ class SCSQuery(query.DALQuery):
         """
         the radius of the circular (cone) search region.
         """
-        return self.getparam("SR")
+        return self.get("SR")
     @radius.setter
     def radius(self, val):
         if val is not None:
@@ -330,10 +329,10 @@ class SCSQuery(query.DALQuery):
             if val <= 0.0 or val > 180.0:
                 raise ValueError("sr constraint out-of-range: " + val)
 
-        self.setparam("SR", val)
+        self["SR"] = val
     @radius.deleter
     def radius(self):
-        self.unsetparam("SR")
+        del self["SR"]
 
     @property
     def sr(self):
@@ -355,16 +354,16 @@ class SCSQuery(query.DALQuery):
         The value of 0 means the minimum set of columsn, 3 means as
         many columns as are available. 
         """
-        return self.getparam("VERB")
+        return self.get("VERB")
     @verbosity.setter
     def verbosity(self, val):
         # do a check on val
         if not isinstance(val, int):
             raise ValueError("verbosity value not an integer: " + val)
-        self.setparam("VERB", val)
+        self["VERB"] = val
     @verbosity.deleter
     def verbosity(self):
-        self.unsetparam("VERB")
+        del self["VERB"]
 
     def execute_votable(self):
         """

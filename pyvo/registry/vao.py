@@ -562,12 +562,6 @@ class RegistryQuery(dalq.DALQuery):
         url = "{0}{1}?{2}".format(self._baseurl, self.SERVICE_NAME, 
                                   self.RESULTSET_TYPE_ARG)
 
-        # this adds arbitrary parameters
-        # if len(self.paramnames()) > 0:
-        #    url += "&" + \
-        #     "&".join(map(lambda p: "{0}={1}".format(p,self._paramtostr(self._param[p])),
-        #                  self._param.keys()))
-
         if self._band:
             url += "&waveband={0}".format(self._band)
         else:

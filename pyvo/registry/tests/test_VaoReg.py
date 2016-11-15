@@ -43,7 +43,7 @@ class RegServiceTest(unittest.TestCase):
         q = self.srv.create_query()
         self.assert_(isinstance(q, reg.RegistryQuery))
         self.assertEquals(q.baseurl, reg.RegistryService.STSCI_REGISTRY_BASEURL)
-        self.assertEquals(len(q._param.keys()), 0)
+        self.assertEquals(len(q.keys()), 0)
 
     def testCreateQueryWithArgs(self):
         self.testCtor()
@@ -52,7 +52,7 @@ class RegServiceTest(unittest.TestCase):
                                   sqlpred="publisher like '%nrao%'")
         self.assert_(isinstance(q, reg.RegistryQuery))
         self.assertEquals(q.baseurl, reg.RegistryService.STSCI_REGISTRY_BASEURL)
-        self.assertEquals(len(q._param.keys()), 0)
+        self.assertEquals(len(q.keys()), 0)
 
         self.assertEquals(q.waveband, "Radio")
         self.assertEquals(q.servicetype, "sia")
@@ -69,7 +69,7 @@ class RegServiceTest(unittest.TestCase):
         q = self.srv.create_query(keywords=["galaxy", "AGN"])
         self.assert_(isinstance(q, reg.RegistryQuery))
         self.assertEquals(q.baseurl, reg.RegistryService.STSCI_REGISTRY_BASEURL)
-        self.assertEquals(len(q._param.keys()), 0)
+        self.assertEquals(len(q.keys()), 0)
 
         self.assertEquals(len(q.keywords), 2)
         self.assertEquals(q.keywords[0], "galaxy")
@@ -82,7 +82,7 @@ class RegServiceTest(unittest.TestCase):
         q = self.srv.create_query(keywords=["galaxy", "AGN"], orkw=True)
         self.assert_(isinstance(q, reg.RegistryQuery))
         self.assertEquals(q.baseurl, reg.RegistryService.STSCI_REGISTRY_BASEURL)
-        self.assertEquals(len(q._param.keys()), 0)
+        self.assertEquals(len(q.keys()), 0)
 
         self.assertEquals(len(q.keywords), 2)
         self.assertEquals(q.keywords[0], "galaxy")

@@ -54,57 +54,57 @@ class SSAServiceTest(unittest.TestCase):
         q = self.srv.create_query()
         self.assert_(isinstance(q, ssa.SSAQuery))
         self.assertEquals(q.baseurl, self.baseurl)
-        self.assertEquals(len(q._param.keys()), 1)
+        self.assertEquals(len(q.keys()), 1)
 
     def testCreateQueryWithArgs(self):
         self.testCtor()
         q = self.srv.create_query(pos=(0,0), size=1.0, format="all")
         self.assert_(isinstance(q, ssa.SSAQuery))
         self.assertEquals(q.baseurl, self.baseurl)
-        self.assertEquals(len(q._param.keys()), 4)
+        self.assertEquals(len(q.keys()), 4)
 
         self.assertEquals(q.pos, (0,0))
         self.assertEquals(q.size, 1.0)
         self.assertEquals(q.format, "all")
 
-        self.assertEquals(q._param["REQUEST"], "queryData")
-        self.assertAlmostEquals(q._param["POS"][0], 0.0)
-        self.assertAlmostEquals(q._param["POS"][1], 0.0)
-        self.assertAlmostEquals(q._param["SIZE"], 1.0)
-        self.assertEquals(q._param["FORMAT"], "all")
+        self.assertEquals(q["REQUEST"], "queryData")
+        self.assertAlmostEquals(q["POS"][0], 0.0)
+        self.assertAlmostEquals(q["POS"][1], 0.0)
+        self.assertAlmostEquals(q["SIZE"], 1.0)
+        self.assertEquals(q["FORMAT"], "all")
 
     def testCreateQueryWithKws(self):
         self.testCtor()
         q = self.srv.create_query(APERTURE=0.00028)
-        self.assertAlmostEquals(0.00028, q.getparam("APERTURE"))
+        self.assertAlmostEquals(0.00028, q["APERTURE"])
 
         q.pos = (0,0)
         q.size = 1.0
         self.assertEquals(q.pos, (0,0))
         self.assertEquals(q.size, 1.0)
-        self.assertEquals(len(q._param.keys()), 4)
-        self.assertAlmostEquals(q.getparam('APERTURE'), 0.00028)
-        self.assertEquals(q._param["REQUEST"], "queryData")
-        self.assertAlmostEquals(q._param["POS"][0], 0.0)
-        self.assertAlmostEquals(q._param["POS"][1], 0.0)
-        self.assertAlmostEquals(q._param["SIZE"], 1.0)
+        self.assertEquals(len(q.keys()), 4)
+        self.assertAlmostEquals(q['APERTURE'], 0.00028)
+        self.assertEquals(q["REQUEST"], "queryData")
+        self.assertAlmostEquals(q["POS"][0], 0.0)
+        self.assertAlmostEquals(q["POS"][1], 0.0)
+        self.assertAlmostEquals(q["SIZE"], 1.0)
 
         q = self.srv.create_query(pos=(0,0), size=1.0, format="all", 
                                   APERTURE=0.00028)
         self.assert_(isinstance(q, ssa.SSAQuery))
         self.assertEquals(q.baseurl, self.baseurl)
-        self.assertEquals(len(q._param.keys()), 5)
+        self.assertEquals(len(q.keys()), 5)
 
         self.assertEquals(q.pos, (0,0))
         self.assertEquals(q.size, 1.0)
         self.assertEquals(q.format, "all")
-        self.assertAlmostEquals(q.getparam('APERTURE'), 0.00028)
+        self.assertAlmostEquals(q['APERTURE'], 0.00028)
 
-        self.assertEquals(q._param["REQUEST"], "queryData")
-        self.assertAlmostEquals(q._param["POS"][0], 0.0)
-        self.assertAlmostEquals(q._param["POS"][1], 0.0)
-        self.assertAlmostEquals(q._param["SIZE"], 1.0)
-        self.assertEquals(q._param["FORMAT"], "all")
+        self.assertEquals(q["REQUEST"], "queryData")
+        self.assertAlmostEquals(q["POS"][0], 0.0)
+        self.assertAlmostEquals(q["POS"][1], 0.0)
+        self.assertAlmostEquals(q["SIZE"], 1.0)
+        self.assertEquals(q["FORMAT"], "all")
 
 
 class SSAQueryTest(unittest.TestCase):
@@ -239,9 +239,9 @@ class SSAQueryTest(unittest.TestCase):
 
         self.q.size = 1.0
         qurl = self.q.getqueryurl()
-        self.assertAlmostEquals(self.q._param["POS"][0], 102.5511)
-        self.assertAlmostEquals(self.q._param["POS"][1], 24.312)
-        self.assertAlmostEquals(self.q._param["SIZE"], 1.0)
+        self.assertAlmostEquals(self.q["POS"][0], 102.5511)
+        self.assertAlmostEquals(self.q["POS"][1], 24.312)
+        self.assertAlmostEquals(self.q["SIZE"], 1.0)
 
 
 class SSAResultsTest(unittest.TestCase):

@@ -126,17 +126,16 @@ class TAPQuery(query.DALQuery):
         self._uploads = {k: _fix_upload(v) for k, v in self._uploads.items()}
         self._maxrec = maxrec
 
-        self.setparam("REQUEST", "doQuery")
-        self.setparam("LANG", language)
+        self["REQUEST"] = "doQuery"
+        self["LANG"] = language
 
         if maxrec:
-            self.setparam("MAXREC", maxrec)
+            self["MAXREC"] = maxrec
 
         if isinstance(query, dict):
-            for k, v in query:
-                self.setparam(k.upper(), v)
-        elif query:
-            self.setparam("QUERY", query)
+            self.update(query)
+        else:
+            self["QUERY"] = query
 
         if self._uploads:
             upload_param = ';'.join(
@@ -145,7 +144,7 @@ class TAPQuery(query.DALQuery):
                     'param:' if v[0] == 'inline' else '',
                     v[1] if v[0] == 'uri' else k
                 ) for k, v in self._uploads.items()])
-            self.setparam("UPLOAD", upload_param)
+            self["UPLOAD"] = upload_param
 
     def getqueryurl(self):
         return '{0}/{1}'.format(self.baseurl, self._mode)
@@ -182,7 +181,7 @@ class TAPQuery(query.DALQuery):
         files = {k: _fileobj(v[1]) for k, v in filter(
             lambda x: x[1][0] == 'inline', self._uploads.items())}
 
-        r = requests.post(url, data = self._param, stream = True,
+        r = requests.post(url, data = self, stream = True,
             files = files)
         r.raise_for_status()
         # requests doesn't decode the content by default

@@ -52,7 +52,7 @@ class SIAServiceTest(unittest.TestCase):
         q = self.srv.create_query()
         self.assert_(isinstance(q, sia.SIAQuery))
         self.assertEquals(q.baseurl, self.baseurl)
-        self.assertEquals(len(q._param.keys()), 0)
+        self.assertEquals(len(q.keys()), 0)
 
     def testCreateQueryWithArgs(self):
         self.testCtor()
@@ -60,7 +60,7 @@ class SIAServiceTest(unittest.TestCase):
                                   intersect="overlaps", verbosity=2)
         self.assert_(isinstance(q, sia.SIAQuery))
         self.assertEquals(q.baseurl, self.baseurl)
-        self.assertEquals(len(q._param.keys()), 5)
+        self.assertEquals(len(q.keys()), 5)
 
         self.assertEquals(q.pos, (0,0))
         self.assertEquals(q.size, (1.0,1.0))
@@ -68,39 +68,39 @@ class SIAServiceTest(unittest.TestCase):
         self.assertEquals(q.intersect, "OVERLAPS")
         self.assertEquals(q.verbosity, 2)
 
-        self.assertAlmostEquals(q._param["POS"][0], 0.0)
-        self.assertAlmostEquals(q._param["POS"][1], 0.0)
-        self.assertAlmostEquals(q._param["SIZE"][0], 1.0)
-        self.assertAlmostEquals(q._param["SIZE"][1], 1.0)
-        self.assertEquals(q._param["FORMAT"], "ALL")
-        self.assertEquals(q._param["INTERSECT"], "OVERLAPS")
-        self.assertEquals(q._param["VERB"], 2)
+        self.assertAlmostEquals(q["POS"][0], 0.0)
+        self.assertAlmostEquals(q["POS"][1], 0.0)
+        self.assertAlmostEquals(q["SIZE"][0], 1.0)
+        self.assertAlmostEquals(q["SIZE"][1], 1.0)
+        self.assertEquals(q["FORMAT"], "ALL")
+        self.assertEquals(q["INTERSECT"], "OVERLAPS")
+        self.assertEquals(q["VERB"], 2)
 
     def testCreateQueryWithKws(self):
         self.testCtor()
         q = self.srv.create_query(CDELT=0.00028)
-        self.assertAlmostEquals(0.00028, q.getparam("CDELT"))
+        self.assertAlmostEquals(0.00028, q["CDELT"])
 
         q.pos = (0, 0)
         q.size = (1.0, 1.0)
-        self.assertAlmostEquals(q._param["POS"][0], 0.0)
-        self.assertAlmostEquals(q._param["POS"][1], 0.0)
-        self.assertAlmostEquals(q._param["SIZE"][0], 1.0)
-        self.assertAlmostEquals(q._param["SIZE"][1], 1.0)
+        self.assertAlmostEquals(q["POS"][0], 0.0)
+        self.assertAlmostEquals(q["POS"][1], 0.0)
+        self.assertAlmostEquals(q["SIZE"][0], 1.0)
+        self.assertAlmostEquals(q["SIZE"][1], 1.0)
 
         q = self.srv.create_query(pos=(0,0), size=(1.0,1.0), format="all", 
                                   intersect="overlaps", verbosity=2, 
                                   CDELT=0.00028)
         self.assert_(isinstance(q, sia.SIAQuery))
         self.assertEquals(q.baseurl, self.baseurl)
-        self.assertEquals(len(q._param.keys()), 6)
+        self.assertEquals(len(q.keys()), 6)
 
         self.assertEquals(q.pos, (0,0))
         self.assertEquals(q.size, (1.0,1.0))
         self.assertEquals(q.format, "ALL")
         self.assertEquals(q.intersect, "OVERLAPS")
         self.assertEquals(q.verbosity, 2)
-        self.assertAlmostEquals(q.getparam('CDELT'), 0.00028)
+        self.assertAlmostEquals(q['CDELT'], 0.00028)
 
 
 class SIAQueryTest(unittest.TestCase):
