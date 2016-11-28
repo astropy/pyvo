@@ -71,13 +71,19 @@ results.)
 
 Other types of services via the ``servicetype`` parameter:
 
-| set ``servicetype`` to... | ...to find:
-| ------------------------- | -------------------------------------
-| sia                       | Simple Image Access (SIA) services
-| ssa                       | Simple Spectral Access (SSA) services
-| conesearch                | Simple Cone Search (SCS) services
-| slap                      | Simple Line Access (SLA) services
-| tap                       | Table Access Protocol (TAP) services
++---------------------------+----------------------------------------+
+| set ``servicetype`` to... | ...to find:                            |
++===========================+========================================+
+| sia                       | Simple Image Access (SIA) services     |
++---------------------------+----------------------------------------+
+| ssa                       | Simple Spectral Access (SSA) services  |
++---------------------------+----------------------------------------+
+| conesearch                | Simple Cone Search (SCS) services      |
++---------------------------+----------------------------------------+
+| slap                      | Simple Line Access (SLA) services      |
++---------------------------+----------------------------------------+
+| tap                       | Table Access Protocol (TAP) services   |
++---------------------------+----------------------------------------+
 
 .. raw:: html
 
