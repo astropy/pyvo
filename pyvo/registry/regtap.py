@@ -398,8 +398,14 @@ class RegistryResults(tap.TAPResults):
             raise dalq.DALFormatError(
                 "Servicetypes are not unique")
 
-        return itertools.chain(
-            resource.service.search(*args, **kwargs) for resource in self)
+        def _iter():
+            for resource in self:
+                try:
+                    yield resource.service.search(*args, **kwargs)
+                except:
+                    pass
+
+        return itertools.chain(_iter())
 
 def ivoid2service(ivoid):
     service = tap.TAPService(REGISTRY_BASEURL)
