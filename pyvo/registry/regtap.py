@@ -17,6 +17,8 @@ standardized TAP-based services.
 """
 from __future__ import print_function, division
 import os
+import functools
+import itertools
 from ..dal import scs, sia, ssa, sla, tap, query as dalq
 
 __all__ = ["search", "RegistryResource", "RegistryResults", "ivoid2service"]
@@ -123,34 +125,10 @@ def search(keywords=None, servicetype=None, waveband=None):
 
     service = tap.TAPService(REGISTRY_BASEURL)
     query = tap.TAPQuery(service.baseurl, query, maxrec=service.hardlimit)
-    query.RESULTS_CLASS = RegistryResults
+    # init RegistryResults with servicetype
+    query.RESULTS_CLASS = functools.partial(
+        RegistryResults, servicetype=servicetype)
     return query.execute()
-
-
-class RegistryResults(tap.TAPResults):
-    """
-    an iterable set of results from a registry query. Each record is
-    returned as RegistryResultse
-    """
-    def __init__(self, votable, url=None, version="1.0"):
-        """
-        initialize the results.  This constructor is not typically called
-        by directly applications; rather an instance is obtained from calling
-        a SIAQuery's execute().
-        """
-        super(RegistryResults, self).__init__(votable, url, "regtap", version)
-
-    def getrecord(self, index):
-        """
-        return all the attributes of a resource record with the given index
-        as SimpleResource instance (a dictionary-like object).
-
-        Parameters
-        ----------
-        index  : int
-            the zero-based index of the record
-        """
-        return RegistryResource(self, index)
 
 
 class RegistryResource(dalq.Record):
@@ -308,7 +286,7 @@ class RegistryResource(dalq.Record):
         assuming this resource refers to a searchable service, execute a
         search against the resource.  This is equivalent to:
 
-           self.to_service().search(*args, **keys)
+           self.service.search(*args, **keys)
 
         The arguments provided should be appropriate for the service that
         the DAL service type would expect.  See the documentation for the
@@ -392,6 +370,42 @@ class RegistryResource(dalq.Record):
                 print("StandardID: " + self.standard_id, file=file)
             if self.reference_url:
                 print("More info: " + self.reference_url, file=file)
+
+
+class RegistryResults(tap.TAPResults):
+    """
+    an iterable set of results from a registry query. Each record is
+    returned as RegistryResource
+    """
+
+    RECORD_CLASS = RegistryResource
+
+    def __init__(self, votable, url=None, version="1.0", servicetype=None):
+        """
+        initialize the results.  This constructor is not typically called
+        by directly applications; rather an instance is obtained from calling
+        search()
+        """
+        super(RegistryResults, self).__init__(votable, url, "regtap", version)
+        self._servicetype = servicetype
+
+    def search(self, *args, **kwargs):
+        """
+        calls search on the services with the parameters given.
+        returns an iterator yielding all the results.
+        """
+        if not self._servicetype:
+            raise dalq.DALFormatError(
+                "Servicetypes are not unique")
+
+        def _iter():
+            for resource in self:
+                try:
+                    yield resource.service.search(*args, **kwargs)
+                except:
+                    pass
+
+        return itertools.chain(_iter())
 
 def ivoid2service(ivoid):
     service = tap.TAPService(REGISTRY_BASEURL)
