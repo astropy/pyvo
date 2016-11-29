@@ -28,7 +28,12 @@ import re
 
 import numpy.ma as _ma
 
-from astropy.utils.decorators import deprecated
+try:
+	from astropy.utils.decorators import deprecated
+except ImportError:
+	def deprecated(version):
+		return lambda f: f
+
 
 __all__ = [ "search", "RegistryService", "RegistryQuery", 
                       "RegistryResults", "SimpleResource" ]

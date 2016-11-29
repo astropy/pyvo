@@ -1,3 +1,22 @@
+# An example script that does a registry query (first argument to main,
+# here "standard stars") and then runs cone searches (RA, DEC, SRC
+# taken from the command line in that order) against them until the
+# first returns a result.  That result is then broadcast to all SAMP
+# clients.
+#
+# Usage example: Start TOPCAT, then run
+#
+# python serialquery.py 314 27.1 2
+#
+# After a short while you should see a result table in TOPCAT.
+#
+# Disclaimer: Of course, this isn't how you should write a command line
+# interface.
+#
+# This file has been put in the public domain by the authors,
+# Markus Demleitner <msdemlei@ari.uni-heidelberg.de> and 
+# Stefan Becker <sbecker@ari.uni-heidelberg.de>.
+
 import contextlib
 import os
 import sys
@@ -57,9 +76,9 @@ def broadcast(astropy_table):
 			time.sleep(2)  # hack: give other clients time to pick our table up
 
 
-def main(ra, dec, sr):
+def main(query_terms, ra, dec, sr):
 	for resource in regtap.search(
-		keywords=["standard stars"], servicetype="image"
+		keywords=[query_terms], servicetype="image"
 	):
 		print(resource.res_title)
 		result = resource.service.search((ra, dec), sr)
@@ -74,5 +93,5 @@ def main(ra, dec, sr):
 
 if __name__=="__main__":
 	# serialquery.py RA DEC SR
-	main(*[float(v) for v in sys.argv[1:]])
+	main("standard stars", *[float(v) for v in sys.argv[1:]])
 
