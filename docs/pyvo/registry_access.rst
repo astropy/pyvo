@@ -160,22 +160,22 @@ using our NVSS example from the previous section,
 
 Some of the more useful items are available as properties:
 
-=========================================================   ================================================================================================================================================================================================================================================================
-:py:attr:`~pyvo.registry.regtap.RegistryResource.ivoid`            the IVOA identifier for the resource.
-:py:attr:`~pyvo.registry.regtap.RegistryResource.res_type`         the resource types that characterize this resource.
-:py:attr:`~pyvo.registry.regtap.RegistryResource.short_name`       the short name for the resource 
-:py:attr:`~pyvo.registry.regtap.RegistryResource.res_title   `     the title of the resource
-:py:attr:`~pyvo.registry.regtap.RegistryResource.content_levels`   a list of content level labels that describe the intended audience for this resource.
-:py:attr:`~pyvo.registry.regtap.RegistryResource.res_description`  the textual description of the resource.
-:py:attr:`~pyvo.registry.regtap.RegistryResource.reference_url     URL pointing to a human-readable document describing this resource.
-:py:attr:`~pyvo.registry.regtap.RegistryResource.creators`         The creator(s) of the resource in the ordergiven by the resource record author
-:py:attr:`~pyvo.registry.regtap.RegistryResource.content_types`    the IVOA identifier of the service standard it supports
-:py:attr:`~pyvo.registry.regtap.RegistryResource.source_format`    the format of source_value.
-:py:attr:`~pyvo.registry.regtap.RegistryResource.region_of_regard` numeric value representing the angle, given in decimal degrees, by which a positional query against this resource should be "blurred" in order to get an appropriate match.
-:py:attr:`~pyvo.registry.regtap.RegistryResource.waveband`         a list of names of the wavebands that the resource provides data for
-:py:attr:`~pyvo.registry.regtap.RegistryResource.access_url        the URL that can be used to access the service resource
-:py:attr:`~pyvo.registry.regtap.RegistryResource.standard_id       the IVOA standard identifier
-=========================================================   ================================================================================================================================================================================================================================================================
+==================================================================  ==========================================================================================================================================================================
+:py:attr:`~pyvo.registry.regtap.RegistryResource.ivoid`             the IVOA identifier for the resource.
+:py:attr:`~pyvo.registry.regtap.RegistryResource.res_type`          the resource types that characterize this resource.
+:py:attr:`~pyvo.registry.regtap.RegistryResource.short_name`        the short name for the resource 
+:py:attr:`~pyvo.registry.regtap.RegistryResource.res_title`         the title of the resource
+:py:attr:`~pyvo.registry.regtap.RegistryResource.content_levels`    a list of content level labels that describe the intended audience for this resource.
+:py:attr:`~pyvo.registry.regtap.RegistryResource.res_description`   the textual description of the resource.
+:py:attr:`~pyvo.registry.regtap.RegistryResource.reference_url`     URL pointing to a human-readable document describing this resource.
+:py:attr:`~pyvo.registry.regtap.RegistryResource.creators`          The creator(s) of the resource in the ordergiven by the resource record author
+:py:attr:`~pyvo.registry.regtap.RegistryResource.content_types`     the IVOA identifier of the service standard it supports
+:py:attr:`~pyvo.registry.regtap.RegistryResource.source_format`     the format of source_value.
+:py:attr:`~pyvo.registry.regtap.RegistryResource.region_of_regard`  numeric value representing the angle, given in decimal degrees, by which a positional query against this resource should be "blurred" in order to get an appropriate match.
+:py:attr:`~pyvo.registry.regtap.RegistryResource.waveband`          a list of names of the wavebands that the resource provides data for
+:py:attr:`~pyvo.registry.regtap.RegistryResource.access_url`        the URL that can be used to access the service resource
+:py:attr:`~pyvo.registry.regtap.RegistryResource.standard_id`       the IVOA standard identifier
+==================================================================  ==========================================================================================================================================================================
 
 .. raw:: html
 
@@ -202,6 +202,7 @@ desription, can be printed out in a summary form with
 the :py:meth:`~pyvo.registry.regtap.RegistryResource.describe` function.
 
 .. code-block:: python
+
     >>> nvss.describe()
     Image Data Service
     NVSS
