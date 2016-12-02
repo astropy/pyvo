@@ -25,7 +25,7 @@ The most common use of the registry is to find archives with
 :ref:`VO data access services <data-access>`, and the simplest way
 to do this is to use the 
 :py:func:`~pyvo.regsearch` function.  For example, to find data
-collections that contain searchable X-ray images:
+collections that contain searchable infrared images:
 
 >>> services = vo.regsearch(servicetype='sia', waveband='infrared')
 >>> len(services)
