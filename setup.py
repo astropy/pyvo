@@ -5,7 +5,6 @@ import glob
 import os
 import sys
 
-import ah_bootstrap
 from setuptools import setup
 
 #A dirty hack to get around some early import/configurations ambiguities
@@ -62,7 +61,7 @@ The pyvo module currently provides these main capabilities:
 builtins._ASTROPY_PACKAGE_NAME_ = PACKAGENAME
 
 # VERSION should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
-VERSION = '0.5.0'
+VERSION = '0.5.0+001'
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION
