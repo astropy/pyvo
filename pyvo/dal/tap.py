@@ -729,6 +729,8 @@ class AsyncTAPJob(object):
             self.raise_if_error()
             raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
 
+        response.raw.read = functools.partial(
+            response.raw.read, decode_content=True)
         return TAPResults(
             query._votableparse(response.raw.read), self.result_uri,
             "TAP", "1.0")
