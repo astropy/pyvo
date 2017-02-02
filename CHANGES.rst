@@ -1,3 +1,7 @@
+0.5.1
+----------------
+* fix content decoding related error in async result handling
+
 0.5
 ----------------
 * added a RegTAP interface
