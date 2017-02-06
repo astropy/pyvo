@@ -33,7 +33,7 @@ class _CapabilitiesParser(plainxml.StartEndHandler):
 
 	def _start_interface(self, name, attrs):
 		attrs = plainxml._pruneAttrNS(attrs)
-		self.curInterface = {"type": attrs["type"], "role": attrs.get("role")}
+		self.curInterface = {"type": attrs.get("type"), "role": attrs.get("role")}
 
 	def _end_interface(self,name, attrs, content):
 		self.curCap["interfaces"].append(self.curInterface)
