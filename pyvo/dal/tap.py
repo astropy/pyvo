@@ -117,6 +117,8 @@ class TAPQuery(query.DALQuery):
         uploads : dict
             Files to upload. Uses table name as key and file name as value
         """
+        baseurl = baseurl.rstrip("?")
+
         super(TAPQuery, self).__init__(baseurl, "TAP", "1.0")
 
         self._query = query
