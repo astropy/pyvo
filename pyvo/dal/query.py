@@ -619,6 +619,8 @@ class DALQuery(dict):
 
     RESULTS_CLASS = DALResults
 
+    _ex = None
+
     std_parameters = [ ]
 
     def __init__(self, baseurl, protocol=None, version=None):
@@ -701,11 +703,16 @@ class DALQuery(dict):
         DALQueryError
            for errors in the input query syntax
         """
+        r = self.submit()
+
         try:
-            return self.submit().raw
+            r.raise_for_status()
         except requests.RequestException as ex:
-            raise DALServiceError.from_except(
-                ex, self.getqueryurl(), self.protocol, self.version)
+            # save for later use
+            # TODO: maybe expose a raise_if_error def for DALQUery?
+            self._ex = ex
+        finally:
+            return r.raw
 
     def submit(self):
         """
@@ -721,7 +728,6 @@ class DALQuery(dict):
         params = {k: urlify_param(v) for k, v in self.items()}
 
         r = requests.get(url, params = params, stream = True)
-        r.raise_for_status()
         r.raw.read = functools.partial(r.raw.read, decode_content=True)
         return r
 
@@ -755,8 +761,16 @@ class DALQuery(dict):
         except DALAccessError:
             raise
         except Exception as e:
-            raise DALFormatError(e, self.getqueryurl(), 
-                                 protocol=self.protocol, version=self.version)
+            if self._ex:
+                e = self._ex
+                raise DALServiceError(
+                    str(e), e.response.status_code, e, self.getqueryurl(),
+                    self.protocol, self.version)
+            else:
+                raise DALServiceError.from_except(
+                    str(e), self.getqueryurl(),
+                    protocol=self.protocol, version=self.version)
+
 
     def getqueryurl(self):
         """

@@ -166,13 +166,7 @@ class TAPQuery(query.DALQuery):
             raise DALServiceError(
                 "Cannot execute a non-synchronous query. Use submit instead")
 
-        url = self.getqueryurl()
-
-        try:
-            return self.submit().raw
-        except requests.RequestException as ex:
-            raise DALServiceError.from_except(ex, url, self.protocol,
-                self.version)
+        return super(TAPQuery, self).execute_stream()
 
     def submit(self):
         """
@@ -185,7 +179,6 @@ class TAPQuery(query.DALQuery):
 
         r = requests.post(url, data = self, stream = True,
             files = files)
-        r.raise_for_status()
         # requests doesn't decode the content by default
         r.raw.read = functools.partial(r.raw.read, decode_content=True)
         return r
@@ -264,8 +257,14 @@ class TAPService(query.DALService):
                 }
         """
         if self._capabilities is None:
-            r = requests.get(
-                '{0}/capabilities'.format(self.baseurl), stream = True)
+            capa_url = '{0}/capabilities'.format(self.baseurl)
+            r = requests.get(capa_url, stream = True)
+
+            try:
+                r.raise_for_status()
+            except requests.RequestException as e:
+                raise DALServiceError.from_except(
+                    e, capa_url, protocol=self.protocol, version=self.version)
 
             # requests doesn't decode the content by default
             r.raw.read = functools.partial(r.raw.read, decode_content=True)
@@ -725,7 +724,7 @@ class AsyncTAPJob(object):
         try:
             response = requests.get(self.result_uri, stream = True)
             response.raise_for_status()
-        except IOError as ex:
+        except requests.RequestException as ex:
             self._update()
             # we propably got a 404 because query error. raise with error msg
             self.raise_if_error()
