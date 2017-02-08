@@ -1,3 +1,7 @@
+0.5.2
+----------------
+Remove trailing ? from query urls
+
 0.5.1
 ----------------
 * fix content decoding related error in async result handling

@@ -627,7 +627,7 @@ class DALQuery(dict):
         """
         initialize the query object with a baseurl
         """
-        self._baseurl = baseurl
+        self._baseurl = baseurl.rstrip("?")
         self._protocol = protocol
         self._version = version
 
