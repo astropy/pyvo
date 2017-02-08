@@ -345,10 +345,8 @@ class DALResults(object):
                                  url=self._url)
         self._fldnames = []
         for field in self.fielddesc():
-            if field.ID:
-                self._fldnames.append(field.ID)
-            else:
-                self._fldnames.append(field.name)
+            self._fldnames.append(field.name)
+
         if len(self._fldnames) == 0:
             raise DALFormatError(reason="response table missing column " +
                                  "descriptions.", url=self._url,
