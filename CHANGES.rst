@@ -1,6 +1,7 @@
 0.5.2
 ----------------
 Remove trailing ? from query urls
+VOTable fieldnames are now gathered from names only instead of ID and name
 
 0.5.1
 ----------------
