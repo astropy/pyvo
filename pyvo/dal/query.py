@@ -619,6 +619,8 @@ class DALQuery(dict):
 
     RESULTS_CLASS = DALResults
 
+    _ex = None
+
     std_parameters = [ ]
 
     def __init__(self, baseurl, protocol=None, version=None):
@@ -692,20 +694,19 @@ class DALQuery(dict):
 
     def execute_stream(self):
         """
-        submit the query and return the raw VOTable XML as a file stream
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError
-           for errors in the input query syntax
+        Submit the query and return the raw VOTable XML as a file stream.
+        No exceptions are raised here because non-2xx responses might still
+        contain payload.
         """
+        r = self.submit()
+
         try:
-            return self.submit().raw
+            r.raise_for_status()
         except requests.RequestException as ex:
-            raise DALServiceError.from_except(
-                ex, self.getqueryurl(), self.protocol, self.version)
+            # save for later use
+            self._ex = ex
+        finally:
+            return r.raw
 
     def submit(self):
         """
@@ -721,13 +722,14 @@ class DALQuery(dict):
         params = {k: urlify_param(v) for k, v in self.items()}
 
         r = requests.get(url, params = params, stream = True)
-        r.raise_for_status()
         r.raw.read = functools.partial(r.raw.read, decode_content=True)
         return r
 
     def execute_votable(self):
         """
-        submit the query and return the results as an AstroPy votable instance
+        Submit the query and return the results as an AstroPy votable instance.
+        As this is the level where qualified error messages are available,
+        they are raised here instead of in the underlying execute_stream.
 
         Returns
         -------
@@ -755,8 +757,15 @@ class DALQuery(dict):
         except DALAccessError:
             raise
         except Exception as e:
-            raise DALFormatError(e, self.getqueryurl(), 
-                                 protocol=self.protocol, version=self.version)
+            if self._ex:
+                e = self._ex
+                raise DALServiceError(
+                    str(e), e.response.status_code, e, self.getqueryurl(),
+                    self.protocol, self.version)
+            else:
+                raise DALServiceError.from_except(
+                    e, self.getqueryurl(), self.protocol, self.version)
+
 
     def getqueryurl(self):
         """

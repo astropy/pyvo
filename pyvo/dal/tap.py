@@ -117,6 +117,8 @@ class TAPQuery(query.DALQuery):
         uploads : dict
             Files to upload. Uses table name as key and file name as value
         """
+        baseurl = baseurl.rstrip("?")
+
         super(TAPQuery, self).__init__(baseurl, "TAP", "1.0")
 
         self._query = query
@@ -164,13 +166,7 @@ class TAPQuery(query.DALQuery):
             raise DALServiceError(
                 "Cannot execute a non-synchronous query. Use submit instead")
 
-        url = self.getqueryurl()
-
-        try:
-            return self.submit().raw
-        except requests.RequestException as ex:
-            raise DALServiceError.from_except(ex, url, self.protocol,
-                self.version)
+        return super(TAPQuery, self).execute_stream()
 
     def submit(self):
         """
@@ -183,7 +179,6 @@ class TAPQuery(query.DALQuery):
 
         r = requests.post(url, data = self, stream = True,
             files = files)
-        r.raise_for_status()
         # requests doesn't decode the content by default
         r.raw.read = functools.partial(r.raw.read, decode_content=True)
         return r
@@ -224,8 +219,15 @@ class TAPService(query.DALService):
             the time since the server is running
         """
         if self._availability == (None, None):
-            r = requests.get(
-                '{0}/availability'.format(self.baseurl), stream = True)
+            avail_url = '{0}/availability'.format(self.baseurl)
+
+            r = requests.get(avail_url, stream=True)
+
+            try:
+                r.raise_for_status()
+            except requests.RequestException as e:
+                raise DALServiceError.from_except(
+                    e, avail_url, protocol=self.protocol, version=self.version)
 
             # requests doesn't decode the content by default
             r.raw.read = functools.partial(r.raw.read, decode_content=True)
@@ -262,8 +264,14 @@ class TAPService(query.DALService):
                 }
         """
         if self._capabilities is None:
-            r = requests.get(
-                '{0}/capabilities'.format(self.baseurl), stream = True)
+            capa_url = '{0}/capabilities'.format(self.baseurl)
+            r = requests.get(capa_url, stream=True)
+
+            try:
+                r.raise_for_status()
+            except requests.RequestException as e:
+                raise DALServiceError.from_except(
+                    e, capa_url, protocol=self.protocol, version=self.version)
 
             # requests doesn't decode the content by default
             r.raw.read = functools.partial(r.raw.read, decode_content=True)
@@ -277,7 +285,15 @@ class TAPService(query.DALService):
         returns tables as a flat OrderedDict
         """
         if self._tables is None:
-            r = requests.get('{0}/tables'.format(self.baseurl), stream = True)
+            tables_url = '{0}/tables'.format(self.baseurl)
+
+            r = requests.get(tables_url, stream=True)
+
+            try:
+                r.raise_for_status()
+            except requests.RequestException as e:
+                raise DALServiceError.from_except(
+                    e, tables_url, protocol=self.protocol, version=self.version)
 
             # requests doesn't decode the content by default
             r.raw.read = functools.partial(r.raw.read, decode_content=True)
@@ -713,7 +729,7 @@ class AsyncTAPJob(object):
         """
         if self.phase in ["ERROR", "ABORTED"]:
             raise DALQueryError(
-                self._job.get("message", "Query was aborted."),
+                self._job.get("message", "Unknown Query Error"),
                 self.phase, self.url, "TAP", "1.0")
 
     def fetch_result(self):
@@ -723,7 +739,7 @@ class AsyncTAPJob(object):
         try:
             response = requests.get(self.result_uri, stream = True)
             response.raise_for_status()
-        except IOError as ex:
+        except requests.RequestException as ex:
             self._update()
             # we propably got a 404 because query error. raise with error msg
             self.raise_if_error()
