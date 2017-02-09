@@ -1,5 +1,5 @@
 # Compiled files
-*.py[co]
+*.py[cod]
 *.a
 *.o
 *.so
@@ -14,13 +14,20 @@ __pycache__
 */cython_version.py
 htmlcov
 .coverage
-cover
 MANIFEST
+.ipynb_checkpoints
 
 # Sphinx
-_build
-_generated
-api
+docs/api
+docs/_build
+
+# Eclipse editor project files
+.project
+.pydevproject
+.settings
+
+# Pycharm editor project files
+.idea
 
 # Packages/installer info
 *.egg
@@ -39,7 +46,7 @@ distribute-*.tar.gz
 # Other
 .cache
 .tox
-.*.swp
+.*.sw[op]
 *~
 .project
 .pydevproject
