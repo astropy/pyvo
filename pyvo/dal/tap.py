@@ -219,8 +219,15 @@ class TAPService(query.DALService):
             the time since the server is running
         """
         if self._availability == (None, None):
-            r = requests.get(
-                '{0}/availability'.format(self.baseurl), stream = True)
+            avail_url = '{0}/availability'.format(self.baseurl)
+
+            r = requests.get(avail_url, stream=True)
+
+            try:
+                r.raise_for_status()
+            except requests.RequestException as e:
+                raise DALServiceError.from_except(
+                    e, avail_url, protocol=self.protocol, version=self.version)
 
             # requests doesn't decode the content by default
             r.raw.read = functools.partial(r.raw.read, decode_content=True)
@@ -258,7 +265,7 @@ class TAPService(query.DALService):
         """
         if self._capabilities is None:
             capa_url = '{0}/capabilities'.format(self.baseurl)
-            r = requests.get(capa_url, stream = True)
+            r = requests.get(capa_url, stream=True)
 
             try:
                 r.raise_for_status()
@@ -278,7 +285,15 @@ class TAPService(query.DALService):
         returns tables as a flat OrderedDict
         """
         if self._tables is None:
-            r = requests.get('{0}/tables'.format(self.baseurl), stream = True)
+            tables_url = '{0}/tables'.format(self.baseurl)
+
+            r = requests.get(tables_url, stream=True)
+
+            try:
+                r.raise_for_status()
+            except requests.RequestException as e:
+                raise DALServiceError.from_except(
+                    e, tables_url, protocol=self.protocol, version=self.version)
 
             # requests doesn't decode the content by default
             r.raw.read = functools.partial(r.raw.read, decode_content=True)
@@ -714,7 +729,7 @@ class AsyncTAPJob(object):
         """
         if self.phase in ["ERROR", "ABORTED"]:
             raise DALQueryError(
-                self._job.get("message", "Query was aborted."),
+                self._job.get("message", "Unknown Query Error"),
                 self.phase, self.url, "TAP", "1.0")
 
     def fetch_result(self):

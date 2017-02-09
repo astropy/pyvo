@@ -694,14 +694,9 @@ class DALQuery(dict):
 
     def execute_stream(self):
         """
-        submit the query and return the raw VOTable XML as a file stream
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError
-           for errors in the input query syntax
+        Submit the query and return the raw VOTable XML as a file stream.
+        No exceptions are raised here because non-2xx responses might still
+        contain payload.
         """
         r = self.submit()
 
@@ -709,7 +704,6 @@ class DALQuery(dict):
             r.raise_for_status()
         except requests.RequestException as ex:
             # save for later use
-            # TODO: maybe expose a raise_if_error def for DALQUery?
             self._ex = ex
         finally:
             return r.raw
@@ -733,7 +727,9 @@ class DALQuery(dict):
 
     def execute_votable(self):
         """
-        submit the query and return the results as an AstroPy votable instance
+        Submit the query and return the results as an AstroPy votable instance.
+        As this is the level where qualified error messages are available,
+        they are raised here instead of in the underlying execute_stream.
 
         Returns
         -------
@@ -768,8 +764,7 @@ class DALQuery(dict):
                     self.protocol, self.version)
             else:
                 raise DALServiceError.from_except(
-                    str(e), self.getqueryurl(),
-                    protocol=self.protocol, version=self.version)
+                    e, self.getqueryurl(), self.protocol, self.version)
 
 
     def getqueryurl(self):

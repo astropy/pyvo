@@ -459,27 +459,6 @@ class QueryExecuteTest(unittest.TestCase):
         # pdb.set_trace()
         self.assertRaises(dalq.DALServiceError, q.execute)
 
-    def testExecuteRawServiceErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
-        q["foo"] = "bar"
-        # pdb.set_trace()
-        self.assertRaises(dalq.DALServiceError, q.execute_raw)
-
-    def testExecuteStreamServiceErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
-        q["foo"] = "bar"
-        # pdb.set_trace()
-        try:
-            q.execute_stream()
-            self.fail("failed to raise exception on bad url")
-        except dalq.DALServiceError as e:
-            self.assertEquals(e.code, 404)
-            self.assertIn("not found", e.reason.lower())
-            self.assert_(isinstance(e.cause, requests.RequestException))
-        except Exception as e:
-            self.fail("wrong exception raised: " + str(type(e)))
-
-
     def testExecuteVotableServiceErr(self):
         q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
         q["foo"] = "bar"
