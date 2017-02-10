@@ -32,7 +32,7 @@ env:
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - PIP_DEPENDENCIES='flask'
+        - PIP_DEPENDENCIES='requests python-dateutil flask'
         - EVENT_TYPE='pull_request push'
         - CONDA_DEPENDENCIES=''
         - CONDA_CHANNELS='astropy-ci-extras astropy'
@@ -101,7 +101,6 @@ matrix:
 install:
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
-    - pip install -r pip-requirements
 
 script:
    - $MAIN_CMD $SETUP_CMD
