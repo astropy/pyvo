@@ -105,7 +105,7 @@ class iterparse(object):
 				else:
 					self.close()
 					break
-			except expat.ExpatError, ex:
+			except expat.ExpatError as ex:
 				newEx = self.parseErrorClass(str(ex))
 				newEx.posInMsg = True  # see base.xmlstruct
 				newEx.inFile = getattr(self.source, "name", "(internal source)")
