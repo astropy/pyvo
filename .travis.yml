@@ -99,9 +99,9 @@ matrix:
           env: MAIN_CMD='pycodestyle packagename --count' SETUP_CMD=''
 
 install:
-    - pip install -r pip-requirements
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
+    - pip install -r pip-requirements
 
 script:
    - $MAIN_CMD $SETUP_CMD
