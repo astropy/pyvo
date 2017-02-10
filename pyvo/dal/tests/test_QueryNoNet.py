@@ -289,17 +289,6 @@ class DALServiceTest(unittest.TestCase):
         self.res = {"title": "Archive", "shortName": "arch"}
         self.srv = dalq.DALService(self.baseurl, "sga", "2.0", self.res)
 
-    def testCtorSimpleResource(self):
-        import pyvo.registry.vao as reg
-        regresultfile = \
-            get_pkg_data_filename("../../registry/tests/data/reg-short.xml")
-        res = dalq.DALResults(votableparse(regresultfile))
-        # import pytest; pytest.set_trace()
-        srv = dalq.DALService(self.baseurl, "sga", "3.0", 
-                              reg.SimpleResource(res, 0))
-        self.assertTrue(len(srv.info.keys()) > 0)
-        self.assertTrue(srv.info.get("title") is not None)
-
     def testProps(self):
         self.testCtor()
         self.assertEquals(self.srv.baseurl, self.baseurl)
