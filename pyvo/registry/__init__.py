@@ -2,10 +2,9 @@
 """
 a package for interacting with registries.  
 
-The vao module supports the VAO-specific (non-standard) restful interfaces.
-The recently added regtap module supports access to the IVOA Registries
+The regtap module supports access to the IVOA Registries
 """
-from . import regtap, vao
+from . import regtap
 
 search = regtap.search
 
