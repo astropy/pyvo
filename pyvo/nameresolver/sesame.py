@@ -24,9 +24,10 @@ from __future__ import print_function, division
 __all__ = [ "resolve", "object2pos", "object2sexapos", "set_default_endpoint",
             "SesameQuery", "ObjectData" ]
 
+from astropy.extern.six.moves.urllib.request import urlopen
+from astropy.extern.six.moves.urllib.parse import quote_plus
+
 import re
-from urllib2 import urlopen
-from urllib import quote_plus
 import xml.etree.ElementTree as ET
 from xml.parsers.expat import ExpatError
 
@@ -96,8 +97,8 @@ def resolve(names, db="Simbad", include="", mirror=None):
     if not isinstance(include, list):
         include = include.strip().split()
     for inc in include:
-        opt = filter(lambda i: i.startswith(inc.lower()), 
-                     "fluxes aliases".split())
+        opt = list(filter(lambda i: i.startswith(inc.lower()), 
+                     "fluxes aliases".split()))
         if len(opt) > 1:
             raise ValueError("Ambiguous include parameter value: " + inc)
         if len(opt) == 0:
@@ -288,7 +289,7 @@ class SesameQuery(object):
 
         if '~' in self._dbs:
             if not tf:
-                self._dbs = filter(lambda c: c != '~', self._dbs)
+                self._dbs = list(filter(lambda c: c != '~', self._dbs))
         elif tf:
             self._dbs = '~' + self._dbs
 
@@ -310,7 +311,7 @@ class SesameQuery(object):
                             type(tf))
         if 'I' in self._opts:
             if not tf:
-                self._opts = filter(lambda c: c != 'I', self._opts)
+                self._opts = list(filter(lambda c: c != 'I', self._opts))
         elif tf:
             self._opts += 'I'
 
@@ -332,7 +333,7 @@ class SesameQuery(object):
                             type(tf))
         if 'F' in self._opts:
             if not tf:
-                self._opts = filter(lambda c: c != 'F', self._opts)
+                self._opts = str(filter(lambda c: c != 'F', self._opts))
         elif tf:
             self._opts += 'F'
 
@@ -349,7 +350,7 @@ class SesameQuery(object):
         use = []
         for arg in args:
             abr = arg.lower()
-            db = filter(lambda d: d.startswith(abr), self.database_codes.keys())
+            db = list(filter(lambda d: d.startswith(abr), self.database_codes.keys()))
             if len(db) != 1:
                 bad.append(arg)
             elif db[0] not in use:
@@ -410,16 +411,16 @@ class SesameQuery(object):
         """
     
         if not lax:
-            bad = filter(lambda c: c != '~' and 
+            bad = list(filter(lambda c: c != '~' and 
                                    c not in set(self.database_codes.values()), 
-                         set(self._dbs))
+                         set(self._dbs)))
             if len(bad) > 0:
                 raise DALQueryError(("database selection, {0}, includes " +
                                     "unrecognized databases: {1}.").format(
                                      self._dbs, str(tuple(bad))))
 
-            bad = filter(lambda c: c not in set("IF"), 
-                         set(self._opts))
+            bad = list(filter(lambda c: c not in set("IF"), 
+                         set(self._opts)))
             if len(bad) > 0:
                 raise DALQueryError(("options, {0}, includes " +
                                     "unrecognized items: {0}.").format(
@@ -582,7 +583,7 @@ class Target(object):
         available.
         """
         dbn = dbname.lower()
-        db = filter(lambda d: d.lower().startswith(dbn), self._lookup.keys())
+        db = list(filter(lambda d: d.lower().startswith(dbn), self._lookup.keys()))
         if len(db) == 0: return None
         if len(db) > 1:
             raise LookupError("Ambiguous database name: " + dbname)

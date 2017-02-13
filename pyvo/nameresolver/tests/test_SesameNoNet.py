@@ -361,7 +361,7 @@ class TargetTest(unittest.TestCase):
             self.assertTrue(isinstance(res, sesame.ObjectData))
 
     def testResponses(self):
-        for t in xrange(1,4):
+        for t in range(1,4):
             target = sesame.Target(self.selectTarget(t))
 
             for res in target.responses:

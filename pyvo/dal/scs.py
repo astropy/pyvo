@@ -21,7 +21,8 @@ This module also features the SCSQuery class that provides an
 interface for building up and remembering a query.  The SCSService
 class can represent a specific service available at a URL endpoint.
 """
-from __future__ import print_function, division
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals)
 
 import numbers
 from . import query

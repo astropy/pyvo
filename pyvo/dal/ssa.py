@@ -30,11 +30,13 @@ For more complex queries, the SSAQuery class can be helpful which
 allows one to build up, tweak, and reuse a query.  The SSAService
 class can represent a specific service available at a URL endpoint.
 """
-from __future__ import print_function, division
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals)
 
 import numbers
 import re
 import sys
+from astropy.extern import six
 from . import query
 
 __all__ = [ "search", "SSAService", "SSAQuery", "SSAResults", "SSARecord" ]
@@ -175,7 +177,7 @@ class SSARecord(query.Record):
         ``make_dataset_filename()``.
         """
         out = self.title
-        if query._is_python3 and isinstance(out, bytes):
+        if type(out) == six.binary_type:
             out = out.decode('utf-8')
 
         if not out:

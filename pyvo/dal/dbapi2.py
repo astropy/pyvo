@@ -6,7 +6,10 @@ This only supports read-only access.
 from __future__ import print_function, division
 
 from .query import Iter
-import sys
+from astropy.extern import six
+
+if six.PY3:
+    StandardError = Exception
 
 apilevel = "2.0"
 threadsafety = 2
@@ -202,7 +205,7 @@ class Cursor(Iter):
         """
         if not size: size = self.arraysize
         out = []
-        for _ in xrange(size):
+        for _ in range(size):
             out.append(self.fetchone())
         return out
 
@@ -217,7 +220,7 @@ class Cursor(Iter):
             consists of a list of dictionaries, one per row.
         """
         out = []
-        for _ in xrange(self._rowcount - self.pos):
+        for _ in range(self._rowcount - self.pos):
             out.append(self.fetchone())
         return out
 

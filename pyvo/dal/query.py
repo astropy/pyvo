@@ -20,7 +20,8 @@ other externally defined table.  In this case there is no VO defined
 standard data model.  Usually the field names are used to uniquely
 identify table columns.
 """
-from __future__ import print_function, division
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals)
 
 __all__ = ["DALAccessError", "DALProtocolError",
             "DALFormatError", "DALServiceError", "DALQueryError",
@@ -34,15 +35,15 @@ import textwrap
 import requests
 import functools
 
-if sys.version_info[0] >= 3:
+from astropy.extern import six
+
+if six.PY3:
     _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
-    _is_python3 = True
 else:
     _mimetype_re = re.compile(r'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
-    _is_python3 = False
 
 def is_mime_type(val):
-    if _is_python3 and isinstance(val, str):
+    if type(val) == six.text_type:
         val = val.encode('utf-8')
 
     return bool(_mimetype_re.match(val))
@@ -78,14 +79,10 @@ class Record(dict):
             out = self.__getitem__(key)
         except KeyError:
             return default
-        if isinstance(out, str):
-            return out
-        if _is_python3: 
-            if isinstance(out, bytes):
-                out = out.decode('utf-8')
-        else:
-            if isinstance(out, unicode):
-                out = out.decode('utf-8')
+
+        if type(out) == six.binary_type:
+            out = out.decode('utf-8')
+
         return out
 
     def fielddesc(self, name):
@@ -102,12 +99,12 @@ class Record(dict):
         to retrieve the dataset described by this record.  None is returned
         if no such column exists.
         """
-        for name,fld in self._fdesc.iteritems():
+        for name,fld in self._fdesc.items():
             if (fld.utype and "Access.Reference" in fld.utype) or \
                (fld.ucd   and "meta.dataset" in fld.ucd 
                           and "meta.ref.url" in fld.ucd):
                 out = self[name]
-                if _is_python3 and isinstance(out, bytes):
+                if type(out) == six.binary_type:
                     out = out.decode('utf-8')
                 return out
         return None
@@ -971,7 +968,7 @@ class Iter(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         try:
             out = self.resultset.getrecord(self.pos)
             self.pos += 1
@@ -979,11 +976,13 @@ class Iter(object):
         except IndexError:
             raise StopIteration()
 
+    next = __next__
+
 # Note: this is for Iter subclassess (i.e. .dbapi2.Cursor) and python3
-if _is_python3 and not hasattr(Iter, "next"):
+if six.PY3 and not hasattr(Iter, "next"):
     setattr(Iter, "next", lambda self: self.__next__())
 
-if _is_python3:
+if six.PY3:
     _image_mt_re = re.compile(b'^image/(\w+)')
     _text_mt_re = re.compile(b'^text/(\w+)')
     _votable_mt_re = re.compile(b'^(\w+)/(x-)?votable(\+\w+)?')
@@ -1023,7 +1022,7 @@ def mime2extension(mimetype, default=None):
     """
     if not mimetype:  
         return default
-    if _is_python3 and isinstance(mimetype, str):
+    if type(mimetype) == six.text_type:
         mimetype = mimetype.encode('utf-8')
 
     if mimetype.endswith(b"/fits") or mimetype.endswith(b'/x-fits'):
@@ -1038,7 +1037,7 @@ def mime2extension(mimetype, default=None):
     m = _image_mt_re.match(mimetype)    # r'^image/(\w+)'
     if m:
         out = m.group(1).lower()
-        if _is_python3:
+        if six.PY3:
             out = out.decode('utf-8')
         return out
 
@@ -1046,7 +1045,7 @@ def mime2extension(mimetype, default=None):
     if m:
         if m.group(1) == b'html' or m.group(1) == b'xml':
             out = m.group(1)
-            if _is_python3:
+            if six.PY3:
                 out = out.decode('utf-8')
             return out
         return "txt"
@@ -1384,7 +1383,7 @@ def _votableparse(source, columns=None, invalid='mask', pedantic=False,
         'filename'     :     filename,
         'version_1_1_or_later': True   }
 
-    if filename is None and isinstance(source, basestring):
+    if filename is None and type(source) in six.string_types:
         config['filename'] = source
     if filename is None:
         config['filename'] = 'dal_query'
