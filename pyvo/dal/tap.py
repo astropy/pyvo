@@ -421,6 +421,7 @@ class TAPService(query.DALService):
         job = job.run().wait()
         job.raise_if_error()
         result = job.fetch_result()
+        job.delete()
 
         return result
 
