@@ -22,7 +22,8 @@ For more complex queries, the SLAQuery class can be helpful which
 allows one to build up, tweak, and reuse a query.  The SLAService
 class can represent a specific service available at a URL endpoint.
 """
-from __future__ import print_function, division
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals)
 
 import re
 from . import query

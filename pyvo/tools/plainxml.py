@@ -14,6 +14,7 @@ import weakref
 import xml.sax
 from xml.parsers import expat
 from xml.sax.handler import ContentHandler
+from astropy.extern import six
 
 class ErrorPosition(object):
 	"""A wrapper for an error position.
@@ -200,7 +201,7 @@ class StartEndHandler(ContentHandler):
 				"_end_%s"%name)(name, attrs, contents)
 		elif hasattr(self, "_defaultEnd"):
 			res = self._defaultEnd(name, attrs, contents)
-		if isinstance(res, basestring) and not suppress:
+		if type(res) in six.string_types and not suppress:
 			self.contentsStack[-1].append(res)
 
 	def characters(self, chars):

@@ -29,9 +29,11 @@ For more complex queries, the ``SIAQuery`` class can be helpful which
 allows one to build up, tweak, and reuse a query.  The ``SIAService``
 class can represent a specific service available at a URL endpoint.
 """
-from __future__ import print_function, division
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals)
 
 import numbers, re, sys
+from astropy.extern import six
 from . import query
 
 __all__ = [ "search", "SIAService", "SIAQuery", "SIAResults", "SIARecord" ]
@@ -208,7 +210,7 @@ class SIARecord(query.Record):
         ``make_dataset_filename()``.
         """
         out = self.title
-        if query._is_python3 and isinstance(out, bytes):
+        if type(out) == six.binary_type:
             out = out.decode('utf-8')
 
         if not out:
@@ -485,7 +487,7 @@ class SIAQuery(query.DALQuery):
         return self.get("FORMAT")
     @format.setter
     def format(self, val):
-        if isinstance(val, str):
+        if type(val) == six.text_type:
             uval = val.upper()
             if uval in ["ALL", "GRAPHIC", "GRAPHIC-ALL", "METADATA"]:
                 val = uval
@@ -505,7 +507,7 @@ class SIAQuery(query.DALQuery):
             elif len(val) == 1:
                 self.format = list(val)[0]
                 return
-            bad = filter(lambda f: not query.is_mime_type(f), val)
+            bad = list(filter(lambda f: not query.is_mime_type(f), val))
             if len(bad) > 0:
                 raise ValueError("format list can only contain MIME-types; " +
                                  "(bad values: " + ','.join(bad) + ')')
@@ -533,7 +535,7 @@ class SIAQuery(query.DALQuery):
         return self.get("INTERSECT")
     @intersect.setter
     def intersect(self, val):
-        if not isinstance(val, str):
+        if not type(val) == six.text_type:
             raise ValueError("intersect value not a string")
 
         val = val.upper()

@@ -3,7 +3,8 @@
 """
 Tests for pyvo.dal.query
 """
-from __future__ import print_function, division
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals)
 
 import os, sys, shutil, re, imp, glob, tempfile, random, time
 import unittest, pdb
@@ -152,7 +153,7 @@ class DALResultsTest(unittest.TestCase):
         names = self.result.fieldnames()
         self.assert_(isinstance(names, list))
         self.assertEquals(len(names), 10)
-        for i in xrange(len(names)):
+        for i in range(len(names)):
             self.assert_(isinstance(names[i], str) or 
                          isinstance(names[i], unicode),
                  "field name #{0} not a string: {1}".format(i,type(names[i]))) 
@@ -167,7 +168,7 @@ class DALResultsTest(unittest.TestCase):
             self.assert_(hasattr(fld,'ucd'))
             self.assert_(hasattr(fld,'datatype'))
 
-        for i in xrange(len(names)):
+        for i in range(len(names)):
             fld = self.result.getdesc(names[i])
             self.assert_(fld is fd[i])
 
@@ -261,10 +262,8 @@ class RecordTest(unittest.TestCase):
 
     def testHasKey(self):
         self.assertEquals(self.rec["Format"], b"image/fits")
-        self.assertTrue(self.rec.has_key('Format'))
-        self.assertTrue('Format' in self.rec)
-        self.assertFalse(self.rec.has_key('Goober'))
-        self.assertFalse('Goober' in self.rec)
+        self.assertTrue("Format" in self.rec)
+        self.assertFalse("Goober" in self.rec)
 
 class MimeCheckTestCase(unittest.TestCase):
     

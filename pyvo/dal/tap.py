@@ -2,7 +2,8 @@
 """
 A module for accessing remote source and observation catalogs
 """
-from __future__ import print_function, division
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals)
 
 import requests
 import astropy
@@ -631,7 +632,7 @@ class AsyncTAPJob(object):
         the first result uri
         """
         try:
-            return iter(self.result_uris.values()).next()
+            return next(iter(self.result_uris.values()))
         except StopIteration:
             return None
 

@@ -3,7 +3,8 @@
 """
 a test DAL server for testing pyvo.dal
 """
-from __future__ import print_function, division
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals)
 
 # this gets around a bug in astropy 0.2.4 (needed for python3 support)
 #from ... import dal
