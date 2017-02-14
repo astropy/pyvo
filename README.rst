@@ -9,6 +9,11 @@ PyVO
     :target: https://travis-ci.org/pyvirtobs/pyvo
     :alt: Travis Status
 
+.. image:: https://coveralls.io/repos/github/pyvirtobs/pyvo/badge.svg?branch=master
+    :target: https://coveralls.io/github/pyvirtobs/pyvo?branch=master
+    :alt: Coverage Status
+
+
 PyVO is a package providing access to remote data and services of the
 Virtual observatory (VO) using Python.
 
