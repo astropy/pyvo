@@ -59,11 +59,6 @@ matrix:
         - os: linux
           env: SETUP_CMD='test --coverage'
 
-        # Check for sphinx doc build warnings - we do this first because it
-        # may run for a long time
-        - os: linux
-          env: SETUP_CMD='build_docs -w'
-
         # Now try Astropy dev and LTS vesions with the latest 3.x and 2.7.
         - os: linux
           env: PYTHON_VERSION=2.7 ASTROPY_VERSION=development
@@ -80,8 +75,6 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=2.7
         - os: linux
-          env: PYTHON_VERSION=3.3 NUMPY_VERSION=1.11
-        - os: linux
           env: PYTHON_VERSION=3.4
         - os: linux
           env: PYTHON_VERSION=3.5
@@ -97,6 +90,15 @@ matrix:
         # (allow to fail unless your code completely compliant)
         - os: linux
           env: MAIN_CMD='pycodestyle pyvo --count' SETUP_CMD=''
+
+        # Check for sphinx doc build warnings
+        # (allow to fail because docs aren't in the right state yet')
+        - os: linux
+          env: SETUP_CMD='build_docs -w'
+
+        # Unresolvable conda dependencies
+        - os: linux
+          env: PYTHON_VERSION=3.3 NUMPY_VERSION=1.11
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
