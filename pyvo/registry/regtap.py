@@ -32,7 +32,7 @@ _service_type_map = {
     "table": "tap"
 }
 
-def search(keywords=None, servicetype=None, waveband=None):
+def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
     """
     execute a simple query to the RegTAP registry.
 
@@ -62,6 +62,12 @@ def search(keywords=None, servicetype=None, waveband=None):
        'euv',
        'x-ray'
        'gamma-ray'
+    datamodel : str
+        the name of the datamodel to search for; makes only sence in conjunction
+        with servicetype tap (or no servicetype).
+
+        See http://wiki.ivoa.net/twiki/bin/view/IVOA/IvoaDataModel for more
+        informations about data models.
 
     Returns
     -------
@@ -72,12 +78,11 @@ def search(keywords=None, servicetype=None, waveband=None):
     --------
     RegistryResults
     """
-    if not any((keywords, servicetype, waveband)):
+    if not any((keywords, servicetype, waveband, datamodel)):
         raise dalq.DALQueryError(
             "No search parameters passed to registry search")
 
-    joins = set(["rr.interface"])
-    joins = set(["rr.resource"])
+    joins = set(["rr.interface", "rr.resource"])
     wheres = list()
 
     if keywords:
@@ -112,6 +117,16 @@ def search(keywords=None, servicetype=None, waveband=None):
         wheres.append("1 = ivo_hashlist_has('{}', waveband)".format(
             tap.escape(waveband)))
 
+    if datamodel:
+        joins.add("rr.interface")
+        joins.add("rr.res_detail")
+
+        wheres.append("intf_type = 'vs:paramhttp'")
+        wheres.append("detail_xpath='/capability/dataModel/@ivo-id'")
+        wheres.append(
+            "1=ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/{0}%')".format(
+                tap.escape(datamodel)))
+
     query = """SELECT DISTINCT rr.interface.*, rr.capability.*, rr.resource.*
     FROM rr.capability
     {}
@@ -130,7 +145,7 @@ def search(keywords=None, servicetype=None, waveband=None):
 class RegistryResults(tap.TAPResults):
     """
     an iterable set of results from a registry query. Each record is
-    returned as RegistryResultse
+    returned as RegistryResults
     """
     def __init__(self, votable, url=None, version="1.0"):
         """
@@ -174,6 +189,9 @@ class RegistryResource(dalq.Record):
     accessurl : str
        when the resource is a service, the service's access URL.
     """
+
+    _service = None
+
     @property
     def ivoid(self):
         """
@@ -288,20 +306,18 @@ class RegistryResource(dalq.Record):
         not a recognized DAL service.  Currently, only Conesearch, SIA, SSA,
         and SLA services are supported.
         """
-        if not self.access_url:
-            return None
+        if self.access_url:
+            for key, value in {
+                "ivo://ivoa.net/std/conesearch":  scs.SCSService,
+                "ivo://ivoa.net/std/sia":  sia.SIAService,
+                "ivo://ivoa.net/std/ssa":  ssa.SSAService,
+                "ivo://ivoa.net/std/sla":  sla.SLAService,
+                "ivo://ivoa.net/std/tap":  tap.TAPService,
+            }.items():
+                if self.standard_id in key:
+                    self._service = value(self.access_url)
 
-        for key, value in {
-            "ivo://ivoa.net/std/conesearch":  scs.SCSService,
-            "ivo://ivoa.net/std/sia":  sia.SIAService,
-            "ivo://ivoa.net/std/ssa":  ssa.SSAService,
-            "ivo://ivoa.net/std/sla":  sla.SLAService,
-            "ivo://ivoa.net/std/tap":  tap.TAPService,
-        }.items():
-            if self.standard_id in key:
-                return value(self.access_url)
-
-        return None
+        return self._service
 
     def search(self, *args, **keys):
         """
@@ -332,7 +348,7 @@ class RegistryResource(dalq.Record):
         if not self.service:
             raise dalq.DALServiceError(
                 "resource, {0}, is not a searchable service".format(
-                    self.shortname))
+                    self.short_name))
 
         return self.service.search(*args, **keys)
 

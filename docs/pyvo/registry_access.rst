@@ -56,7 +56,7 @@ As you can gather, each record in the registry search results
 represents a different service (in this case, an image service).
 Included in the record is the all-important base URL for the service:
 
->>> services[0].accessurl
+>>> services[0].access_url
 'http://cda.harvard.edu/cxcsiap/queryImages?'
 
 However, it's not necessary to keep track of that URL because you can
@@ -125,6 +125,11 @@ Sydney University Molonglo Sky Survey
 Obviously, the first record is the NVSS image archive.  The SUMSS
 collection was matched as well because its description in the registry
 happens to include the string, "NVSS".  
+
+If you want to limit the search results to a certain datamodel, include the
+``datamodel`` parameter:
+
+>>> obscores = vo.regsearch(datamodel="obscore")
 
 .. _reg-results:
 
