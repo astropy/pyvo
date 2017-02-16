@@ -707,7 +707,7 @@ class AsyncTAPJob(object):
             cur_phase = self.phase
             if cur_phase in phases:
                 break
-            time.sleep(interval)
+            sleep(interval)
             interval = min(120, interval * increment)
             attempts += 1
             if any((
