@@ -1,3 +1,11 @@
+0.6 (unreleased)
+----------------
+* Using RegTAP as the only registry interface
+
+* Added a datamodel keyword to registry search
+
+* Using the six libray to address Python 2/3 compatibility issues
+
 0.5.2
 ----------------
 Remove trailing ? from query urls

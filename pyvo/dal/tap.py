@@ -6,14 +6,14 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
 import requests
-import astropy
-import functools
-from astropy.table import Column
+from functools import partial
+from astropy.table.table import Table
 from datetime import datetime
-import time
+from time import time, sleep
 
-from . import query
-from .query import DALServiceError, DALQueryError
+from .query import (
+    DALResults, DALQuery, DALService, DALServiceError, DALQueryError,
+    _votableparse)
 from ..tools import vosi, uws
 
 __all__ = ["search", "escape",
@@ -27,7 +27,7 @@ def _fix_upload(upload):
     return upload
 
 def _fileobj(s):
-    if type(s) == astropy.table.table.Table:
+    if type(s) == Table:
         from cStringIO import StringIO
         f = StringIO()
         s.write(output = f, format = "votable")
@@ -79,7 +79,7 @@ def search(url, query, language="ADQL", maxrec=None, uploads=None):
     service = TAPService(url)
     return service.search(query, language, maxrec, uploads)
 
-class TAPResults(query.DALResults):
+class TAPResults(DALResults):
     @property
     def infos(self):
         """
@@ -95,7 +95,7 @@ class TAPResults(query.DALResults):
         return getattr(self, "_infos", {}).get("QUERY_STATUS", None)
 
 
-class TAPQuery(query.DALQuery):
+class TAPQuery(DALQuery):
     RESULTS_CLASS = TAPResults
 
     def __init__(self, baseurl, query, mode="sync", language="ADQL",
@@ -108,7 +108,7 @@ class TAPQuery(query.DALQuery):
         baseurl : str
             the TAP baseurl
         query : str
-            the query string / parameters
+            the query string
         mode : str
             the query mode (sync | async). default "sync"
         language : str
@@ -116,18 +116,15 @@ class TAPQuery(query.DALQuery):
         maxrec : int
             the amount of records to fetch
         uploads : dict
-            Files to upload. Uses table name as key and file name as value
+            Files to upload. Uses table name as key and table content as value.
         """
         baseurl = baseurl.rstrip("?")
 
         super(TAPQuery, self).__init__(baseurl, "TAP", "1.0")
 
-        self._query = query
         self._mode = mode if mode in ("sync", "async") else "sync"
-        self._language = language
         self._uploads = uploads or {}
         self._uploads = {k: _fix_upload(v) for k, v in self._uploads.items()}
-        self._maxrec = maxrec
 
         self["REQUEST"] = "doQuery"
         self["LANG"] = language
@@ -135,10 +132,7 @@ class TAPQuery(query.DALQuery):
         if maxrec:
             self["MAXREC"] = maxrec
 
-        if isinstance(query, dict):
-            self.update(query)
-        else:
-            self["QUERY"] = query
+        self["QUERY"] = query
 
         if self._uploads:
             upload_param = ';'.join(
@@ -163,6 +157,8 @@ class TAPQuery(query.DALQuery):
         DALQueryError
            for errors in the input query syntax
         """
+
+        # theres nothing to execute in non-sync queries
         if self._mode != "sync":
             raise DALServiceError(
                 "Cannot execute a non-synchronous query. Use submit instead")
@@ -171,7 +167,9 @@ class TAPQuery(query.DALQuery):
 
     def submit(self):
         """
-        does the actual request
+        Does the request part of the TAP query.
+        This function is separated from response parsing because async queries
+        return no votable but behave like sync queries in terms of request.
         """
         url = self.getqueryurl()
 
@@ -181,11 +179,11 @@ class TAPQuery(query.DALQuery):
         r = requests.post(url, data = self, stream = True,
             files = files)
         # requests doesn't decode the content by default
-        r.raw.read = functools.partial(r.raw.read, decode_content=True)
+        r.raw.read = partial(r.raw.read, decode_content=True)
         return r
 
 
-class TAPService(query.DALService):
+class TAPService(DALService):
     """
     a representation of a Table Access Protocol service
     """
@@ -231,7 +229,7 @@ class TAPService(query.DALService):
                     e, avail_url, protocol=self.protocol, version=self.version)
 
             # requests doesn't decode the content by default
-            r.raw.read = functools.partial(r.raw.read, decode_content=True)
+            r.raw.read = partial(r.raw.read, decode_content=True)
 
             self._availability = vosi.parse_availability(r.raw)
         return self._availability
@@ -275,7 +273,7 @@ class TAPService(query.DALService):
                     e, capa_url, protocol=self.protocol, version=self.version)
 
             # requests doesn't decode the content by default
-            r.raw.read = functools.partial(r.raw.read, decode_content=True)
+            r.raw.read = partial(r.raw.read, decode_content=True)
 
             self._capabilities = vosi.parse_capabilities(r.raw)
         return self._capabilities
@@ -297,7 +295,7 @@ class TAPService(query.DALService):
                     e, tables_url, protocol=self.protocol, version=self.version)
 
             # requests doesn't decode the content by default
-            r.raw.read = functools.partial(r.raw.read, decode_content=True)
+            r.raw.read = partial(r.raw.read, decode_content=True)
 
             self._tables = vosi.parse_tables(r.raw)
         return self._tables
@@ -508,7 +506,7 @@ class AsyncTAPJob(object):
             raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
         
         # requests doesn't decode the content by default
-        r.raw.read = functools.partial(r.raw.read, decode_content=True)
+        r.raw.read = partial(r.raw.read, decode_content=True)
 
         self._job.update(uws.parse_job(r.raw))
 
@@ -689,7 +687,7 @@ class AsyncTAPJob(object):
             if the timeout is exceeded
         """
         attempts = 0
-        start_time = time.time()
+        start_time = time()
 
         while True:
             cur_phase = self.phase
@@ -700,7 +698,7 @@ class AsyncTAPJob(object):
             attempts += 1
             if any((
                 giveup_after and attempts > giveup_after,
-                timeout and start_time + timeout < time.time() 
+                timeout and start_time + timeout < time() 
             )):
                 raise DALServiceError(
                     "None of the states in {0} were reached in time.".format(
@@ -747,8 +745,8 @@ class AsyncTAPJob(object):
             self.raise_if_error()
             raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
 
-        response.raw.read = functools.partial(
+        response.raw.read = partial(
             response.raw.read, decode_content=True)
         return TAPResults(
-            query._votableparse(response.raw.read), self.result_uri,
+            _votableparse(response.raw.read), self.result_uri,
             "TAP", "1.0")

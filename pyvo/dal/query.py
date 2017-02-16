@@ -978,9 +978,6 @@ class Iter(object):
 
     next = __next__
 
-# Note: this is for Iter subclassess (i.e. .dbapi2.Cursor) and python3
-if six.PY3 and not hasattr(Iter, "next"):
-    setattr(Iter, "next", lambda self: self.__next__())
 
 if six.PY3:
     _image_mt_re = re.compile(b'^image/(\w+)')
