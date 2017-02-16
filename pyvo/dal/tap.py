@@ -495,6 +495,21 @@ class AsyncTAPJob(object):
         self._url = url
         self._update()
 
+    def __enter__(self):
+        """
+        Enters the context
+        """
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Exits the context. The job is silently deleted.
+        """
+        try:
+            self.delete()
+        except Exception:
+            pass
+
     def _update(self):
         """
         updates local job infos with remote values
