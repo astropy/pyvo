@@ -12,8 +12,8 @@ from datetime import datetime
 from time import time, sleep
 
 from .query import (
-    DALResults, DALQuery, DALService, DALServiceError, DALQueryError,
-    _votableparse)
+    DALResults, DALQuery, DALService, UploadList,
+    DALServiceError, DALQueryError, _votableparse)
 from ..tools import vosi, uws
 
 __all__ = ["search", "escape",
@@ -123,8 +123,7 @@ class TAPQuery(DALQuery):
         super(TAPQuery, self).__init__(baseurl, "TAP", "1.0")
 
         self._mode = mode if mode in ("sync", "async") else "sync"
-        self._uploads = uploads or {}
-        self._uploads = {k: _fix_upload(v) for k, v in self._uploads.items()}
+        self._uploads = UploadList.fromdict(uploads or {})
 
         self["REQUEST"] = "doQuery"
         self["LANG"] = language
@@ -135,13 +134,7 @@ class TAPQuery(DALQuery):
         self["QUERY"] = query
 
         if self._uploads:
-            upload_param = ';'.join(
-                ['{0},{1}{2}'.format(
-                    k,
-                    'param:' if v[0] == 'inline' else '',
-                    v[1] if v[0] == 'uri' else k
-                ) for k, v in self._uploads.items()])
-            self["UPLOAD"] = upload_param
+            self["UPLOAD"] = self._uploads.param()
 
     def getqueryurl(self):
         return '{0}/{1}'.format(self.baseurl, self._mode)
@@ -173,8 +166,11 @@ class TAPQuery(DALQuery):
         """
         url = self.getqueryurl()
 
-        files = {k: _fileobj(v[1]) for k, v in filter(
-            lambda x: x[1][0] == 'inline', self._uploads.items())}
+        files = {
+            upload.name: upload.fileobj()
+            for upload in self._uploads
+            if upload.is_inline
+        }
 
         r = requests.post(url, data = self, stream = True,
             files = files)

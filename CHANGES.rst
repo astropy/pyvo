@@ -6,6 +6,11 @@
 
 * Using the six libray to address Python 2/3 compatibility issues
 
+* AsyncTAPJob is now context aware
+
+* Improvement upload handling; it is no longer necessary to specifiy the type
+  of upload
+
 0.5.2
 ----------------
 Remove trailing ? from query urls

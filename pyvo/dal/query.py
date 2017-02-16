@@ -36,6 +36,7 @@ import requests
 import functools
 
 from astropy.extern import six
+from astropy.table.table import Table
 
 if six.PY3:
     _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
@@ -977,6 +978,143 @@ class Iter(object):
             raise StopIteration()
 
     next = __next__
+
+
+class Upload(object):
+    """
+    This class represents a DALI Upload as described in
+    http://www.ivoa.net/documents/DALI/20161101/PR-DALI-1.1-20161101.html#tth_sEc3.4.5
+    """
+
+    def __init__(self, name, content):
+        """
+        Initialise the Upload object with the given parameters
+
+        Parameters
+        ----------
+        name : str
+            Tablename for use in queries
+        content : object
+            If its a file-like object, a string pointing to a local file,
+            a `DALResults` object or a astropy table, `is_inline` will be true
+            and it will expose a file-like object under `fileobj`
+
+            Otherwise it exposes a URI under `uri`
+        """
+        try:
+            self._is_file = os.path.isfile(content)
+        except Exception:
+            self._is_file = False
+        self._is_fileobj = hasattr(content, "read")
+        self._is_table = isinstance(content, Table)
+        self._is_resultset = isinstance(content, DALResults)
+
+        self._inline = any((
+            self._is_file,
+            self._is_fileobj,
+            self._is_table,
+            self._is_resultset,
+        ))
+
+        self._name = name
+        self._content = content
+
+    @property
+    def is_inline(self):
+        """
+        True if the upload can be inlined
+        """
+        return self._inline
+
+    @property
+    def name(self):
+        return self._name
+
+    def fileobj(self):
+        """
+        A file-like object for a local resource
+
+        Raises
+        ------
+        ValueError
+            if theres no valid local resource
+        """
+
+        if not self.is_inline:
+            raise ValueError(
+                "Upload {name} doesn't refer to a local resource".format(
+                    name = self.name))
+
+        # astropy table
+        if isinstance(self._content, Table):
+            from io import BytesIO
+            fileobj = BytesIO()
+
+            self._content.write(output = fileobj, format = "votable")
+            fileobj.seek(0)
+
+            return fileobj
+        elif isinstance(self._content, DALResults):
+            from io import BytesIO
+            fileobj = BytesIO()
+
+            table = self._content.table
+            table.write(output = fileobj, format = "votable")
+            fileobj.seek(0)
+
+            return fileobj
+
+        fileobj = self._content
+        try:
+            fileobj = open(self._content)
+        finally:
+            return fileobj
+
+    def uri(self):
+        """
+        The URI pointing to the result
+        """
+
+        # TODO: use a async job base class instead of hasattr for inspection
+        if hasattr(self._content, "result_uri"):
+            self._content.raise_if_error()
+            uri = self._content.result_uri
+        else:
+            uri = six.text_type(self._content)
+
+        return uri
+
+    def query_part(self):
+        """
+        The query part for use in DALI requests
+        """
+
+        if self.is_inline:
+            value = "{name},param:{name}"
+        else:
+            value = "{name},{uri}"
+
+        return value.format(name = self.name, uri = self.uri())
+
+
+class UploadList(list):
+    """
+    This class extends the native python list with utility functions for
+    upload handling
+    """
+
+    @classmethod
+    def fromdict(cls, dct):
+        """
+        Constructs a upload list from a dictionary with table_name: content
+        """
+        return cls(Upload(key, value) for key, value in dct.items())
+
+    def param(self):
+        """
+        Returns a string suitable for use in UPLOAD parameters
+        """
+        return ";".join(upload.query_part() for upload in self)
 
 
 if six.PY3:
