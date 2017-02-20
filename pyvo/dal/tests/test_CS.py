@@ -15,7 +15,7 @@ import pyvo.dal.dbapi2 as daldbapi
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
 from astropy.io.votable.exceptions import W22
-from pyvo.dal.query import _votableparse as votableparse
+from astropy.io.votable import parse as votableparse
 from astropy.utils.data import get_pkg_data_filename
 from . import aTestDALServer as testserve
 

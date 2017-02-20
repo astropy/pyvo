@@ -366,34 +366,6 @@ class SCSQuery(query.DALQuery):
     def verbosity(self):
         del self["VERB"]
 
-    def execute_votable(self):
-        """
-        submit the query and return the results as an AstroPy votable instance
-
-        Raises
-        ------
-        DALServiceError  
-           for errors connecting to or communicating with the service
-        DALFormatError  
-           for errors parsing the VOTable response
-        DALQueryError  
-           for errors in the input query syntax
-        """
-        try: 
-            from astropy.io.votable.exceptions import W22
-        except ImportError:
-            raise RuntimeError("astropy votable not available")
-
-        try:
-            return query._votableparse(self.execute_stream().read)
-        except query.DALAccessError:
-            raise
-        except W22 as e:
-            raise query.DALFormatError("Unextractable Error encoded in " +
-                                       "deprecated DEFINITIONS element")
-        except Exception as e:
-            raise query.DALFormatError(e, self.getqueryurl())
-
 
 class SCSService(query.DALService):
     """

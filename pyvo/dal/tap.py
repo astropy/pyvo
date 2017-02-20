@@ -7,36 +7,17 @@ from __future__ import (
 
 import requests
 from functools import partial
-from astropy.table.table import Table
+from astropy.io.votable import parse as votableparse
 from datetime import datetime
 from time import time, sleep
 
 from .query import (
     DALResults, DALQuery, DALService, UploadList,
-    DALServiceError, DALQueryError, _votableparse)
+    DALServiceError, DALQueryError)
 from ..tools import vosi, uws
 
 __all__ = ["search", "escape",
     "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
-
-def _fix_upload(upload):
-    if type(upload) is not tuple:
-        upload = ('uri', upload)
-    if type(upload[1]) == TAPResults:
-        upload = ('uri', upload[1].result_uri)
-    return upload
-
-def _fileobj(s):
-    if type(s) == Table:
-        from cStringIO import StringIO
-        f = StringIO()
-        s.write(output = f, format = "votable")
-        f.seek(0)
-        return f
-    try:
-        s = open(s)
-    finally:
-        return s
 
 def escape(term):
     """
@@ -758,5 +739,5 @@ class AsyncTAPJob(object):
         response.raw.read = partial(
             response.raw.read, decode_content=True)
         return TAPResults(
-            _votableparse(response.raw.read), self.result_uri,
+            votableparse(response.raw.read), self.result_uri,
             "TAP", "1.0")

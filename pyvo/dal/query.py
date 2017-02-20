@@ -37,6 +37,7 @@ import functools
 
 from astropy.extern import six
 from astropy.table.table import Table
+from astropy.io.votable import parse as votableparse
 
 if six.PY3:
     _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
@@ -751,7 +752,7 @@ class DALQuery(dict):
         DALQueryError
         """
         try:
-            return _votableparse(self.execute_stream().read)
+            return votableparse(self.execute_stream().read)
         except DALAccessError:
             raise
         except Exception as e:
@@ -1485,47 +1486,6 @@ class DALQueryError(DALAccessError):
     @label.deleter
     def label(self):
         self._label = None
-
-def _votableparse(source, columns=None, invalid='mask', pedantic=False,
-                  table_number=None, filename=None, version="1.1"):
-    try:
-        import astropy.io.votable.tree as votabletree
-        import astropy.io.votable.table as votabletable
-        from astropy.utils.xml import iterparser
-        #from astropy.io.votable.exceptions import W22
-        from astropy.io.votable.exceptions import W03,W06,W20,W21,W42,W46,W47,W49,E10
-        for warning in (W03, W06, W20, W21, W42, W46, W47, W49, E10):
-            warnings.simplefilter("ignore", warning)
-# MJG : 021913 - commented out to get CDS responses to work
-#        warnings.simplefilter("error", W22)
-    except ImportError:
-        raise RuntimeError("astropy votable not available")
-
-    invalid = invalid.lower()
-    assert invalid in ('exception', 'mask')
-
-    chunk_size=votabletree.DEFAULT_CHUNK_SIZE
-
-    if pedantic is None:
-        pedantic = votabletable.PEDANTIC()
-
-    config = {
-        'columns'      :      columns,
-        'invalid'      :      invalid,
-        'pedantic'     :     pedantic,
-        'chunk_size'   :   chunk_size,
-        'table_number' : table_number,
-        'filename'     :     filename,
-        'version_1_1_or_later': True   }
-
-    if filename is None and type(source) in six.string_types:
-        config['filename'] = source
-    if filename is None:
-        config['filename'] = 'dal_query'
-
-    with iterparser.get_xml_iterator(source) as iterator:
-        return votabletree.VOTableFile(
-          config=config, pos=(1, 1), version=version).parse(iterator, config)
 
 # routines used by DALService describe to format metadata
 
