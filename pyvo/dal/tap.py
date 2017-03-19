@@ -7,7 +7,8 @@ from __future__ import (
 
 from functools import partial
 from datetime import datetime
-from time import time, sleep
+from time import sleep
+from distutils.version import LooseVersion
 import requests
 from astropy.io.votable import parse as votableparse
 
@@ -413,12 +414,17 @@ class AsyncTAPJob(object):
         except Exception:
             pass
 
-    def _update(self):
+    def _update(self, wait_for_statechange=False):
         """
         updates local job infos with remote values
         """
         try:
-            response = requests.get(self.url, stream=True)
+            if wait_for_statechange:
+                response = requests.get(self.url, stream=True, params={
+                    "WAIT": "-1"
+                })
+            else:
+                response = requests.get(self.url, stream=True)
             response.raise_for_status()
         except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
@@ -554,6 +560,11 @@ class AsyncTAPJob(object):
         except StopIteration:
             return None
 
+    @property
+    def uws_version(self):
+        self._update()
+        return self._job["version"]
+
     def run(self):
         """
         starts the job / change phase to RUN
@@ -581,8 +592,7 @@ class AsyncTAPJob(object):
         return self
 
     def wait(
-            self, phases=None, interval=1.0, increment=1.2, giveup_after=None,
-            timeout=None):
+            self, phases=None):
         """
         waits for the job to reach the given phases.
 
@@ -590,40 +600,37 @@ class AsyncTAPJob(object):
         ----------
         phases : list
             phases to wait for
-        interval : float
-            poll interval in seconds. defaults to 1
-        increment : float
-            poll interval increments. defaults to 1.2
-        giveup_after : int
-            raise an :py:class`~pyvo.dal.query.DALServiceError` after n tries
-        timeout : float
-            raise an :py:class`~pyvo.dal.query.DALServiceError` after n seconds
 
         Raises
         ------
         DALServiceError
-            if the timeout is exceeded
+            if the job is in a state that won't lead to an result
         """
         if not phases:
             phases = {"COMPLETED", "ABORTED", "ERROR"}
 
-        attempts = 0
-        start_time = time()
+        interval = 1.0
+        increment = 1.2
+
+        active_phases = {
+            "QUEUED", "EXECUTING", "RUN", "COMPLETED", "ERROR", "UNKNOWN"}
 
         while True:
-            cur_phase = self.phase
+            self._update(wait_for_statechange=True)
+            # use the cached value
+            cur_phase = self._job["phase"]
+
+            if cur_phase not in active_phases:
+                raise DALServiceError(
+                    "Cannot wait for job completion. Job is not active!")
+
             if cur_phase in phases:
                 break
-            sleep(interval)
-            interval = min(120, interval * increment)
-            attempts += 1
-            if any((
-                    giveup_after and attempts > giveup_after,
-                    timeout and start_time + timeout < time()
-            )):
-                raise DALServiceError(
-                    "None of the states in {0} were reached in time.".format(
-                        repr(phases)), self.url, "TAP", "1.0")
+
+            # fallback for uws 1.0
+            if LooseVersion(self._job["version"]) < LooseVersion("1.1"):
+                sleep(interval)
+                interval = min(120, interval * increment)
 
         return self
 

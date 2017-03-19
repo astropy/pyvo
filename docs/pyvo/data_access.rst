@@ -1141,7 +1141,7 @@ being completed or aborted, or by causing an error condition).
 If the job's ``phase`` is ``COMPLETED`` after ``wait`` has returned (one can
 check that by calling :py:class:`~pyvo.dal.tap.AsyncTAPJob.raise_if_error`),
 the job's result can be retrieved by calling
-:py:class:`~pyvo.dal.tap.AsyncTAPJob.fetch`:
+:py:class:`~pyvo.dal.tap.AsyncTAPJob.fetch_result`:
 
 >>> job.wait()
 >>> job.raise_if_error()

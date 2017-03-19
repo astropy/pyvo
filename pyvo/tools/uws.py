@@ -5,7 +5,13 @@ from . import plainxml
 class _JobParser(plainxml.StartEndHandler):
 	def __init__(self):
 		plainxml.StartEndHandler.__init__(self)
-		self.job = {}
+		self.job = {
+			"version": "1.0"
+		}
+
+	def _start_job(self, name, attrs):
+		if "version" in attrs:
+			self.job["version"] = attrs["version"]
 
 	def _end_jobId(self, name, attrs, content):
 		self.job["jobId"] = content.strip()
