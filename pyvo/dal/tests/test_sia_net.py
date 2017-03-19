@@ -36,40 +36,38 @@ class NeatSIAExecuteTest(unittest.TestCase):
         q.pos = (0, 0)
         q.size = (1.0, 1.0)
         q.format = "all"
-        q["NAXIS"] = (75, 75)
+        q["NAXIS"] = ",".join(str(_) for _ in (75, 75))
         results = q.execute()
-        self.assert_(isinstance(results, sia.SIAResults))
-        self.assertEquals(results.nrecs, 5)
+        self.assertIsInstance(results, sia.SIAResults)
+        self.assertEquals(len(results), 5)
 
         rec = results.getrecord(0)
         self.assertEquals(rec.naxis, (75, 75))
 
     def testSearch(self):
         srv = sia.SIAService(neat)
-        results = srv.search(pos=(0,0), size=(1.0,1.0))
+        results = srv.search(pos=(0, 0), size=(1.0, 1.0))
         self.assert_(isinstance(results, sia.SIAResults))
-        self.assertEquals(results.nrecs, 5)
+        self.assertEquals(len(results), 5)
 
     def testSia(self):
-        results = sia.search(neat, pos=(0,0), size=(0.25,0.25))
+        results = sia.search(neat, pos=(0, 0), size=(0.25, 0.25))
         self.assert_(isinstance(results, sia.SIAResults))
-        self.assertEquals(results.nrecs, 5)
+        self.assertEquals(len(results), 5)
 
         rec = results.getrecord(0)
-        self.assertEquals(rec.ra, 0.0)
-        self.assertEquals(rec.dec, 0.0)
+        self.assertEquals(rec.pos.ra.value, 0.0)
+        self.assertEquals(rec.pos.dec.value, 0.0)
         self.assertEquals(rec.title, b"neat")
-        self.assert_(rec.dateobs is None)
+        self.assertIsNone(rec.dateobs)
         self.assertEquals(rec.naxes, 2)
         self.assertEquals(rec.naxis, (300, 300))
-        self.assert_(rec.instr is None)
-        self.assert_(rec.format is not None)
-        # self.assertEquals(rec.acref, self.acref)
+        self.assertIsNone(rec.instr)
+        self.assertIsNone(rec.format)
 
         qurl = rec.getdataurl()
         self.assert_(qurl is not None and len(qurl) > 0)
         self.assert_(not os.path.exists(self.imfile))
-        # print(qurl)
         rec.cachedataset(self.imfile)
         self.assert_(os.path.exists(self.imfile))
 
@@ -77,8 +75,7 @@ class NeatSIAExecuteTest(unittest.TestCase):
             with open(self.imfile) as fits:
                 hdr = fits.read(20)
                 self.assert_(hdr.startswith("SIMPLE  ="), "Not a FITS image?")
-        
-        
+
 
 __all__ = "NeatSIAExecuteTest".split()
 def suite():

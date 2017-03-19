@@ -14,6 +14,4 @@ Virtual Observatory (VO) using Python.
   mod
   dal
   registry
-  nameresolver
-
   

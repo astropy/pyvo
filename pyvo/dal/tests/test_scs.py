@@ -13,11 +13,11 @@ import pyvo.dal.query as dalq
 from pyvo.dal import scs as cs
 import pyvo.dal.dbapi2 as daldbapi
 # from astropy.io.vo import parse as votableparse
-from astropy.io.votable.tree import VOTableFile
 from astropy.io.votable.exceptions import W22
 from astropy.io.votable import parse as votableparse
 from astropy.utils.data import get_pkg_data_filename
-from . import aTestDALServer as testserve
+from astropy.coordinates import SkyCoord
+from . import testserver
 
 csresultfile = "data/twomass-cs.xml"
 errresultfile = "data/error-cs.xml"
@@ -28,31 +28,19 @@ testserverport += random.randint(0,9)
 class SCSServiceTest(unittest.TestCase):
 
     baseurl = "http://localhost/cs"
+    srv = None
 
     def testCtor(self):
-        self.res = {"title": "Archive", "shortName": "arch"}
-        self.srv = cs.SCSService(self.baseurl, self.res)
+        self.srv = cs.SCSService(self.baseurl)
 
     def testProps(self):
         self.testCtor()
         self.assertEquals(self.srv.baseurl, self.baseurl)
-        self.assertEquals(self.srv.protocol, "scs")
-        self.assertEquals(self.srv.version, "1.0")
-        try:
-            self.srv.baseurl = "goober"
-            self.fail("baseurl not read-only")
-        except AttributeError:
-            pass
-
-        self.assertEquals(self.srv.info["title"], "Archive")
-        self.assertEquals(self.srv.info["shortName"], "arch")
-        self.srv.info["title"] = "Sir"
-        self.assertEquals(self.res["title"], "Archive")
 
     def testCreateQuery(self):
         self.testCtor()
         q = self.srv.create_query()
-        self.assert_(isinstance(q, cs.SCSQuery))
+        self.assertIsInstance(q, cs.SCSQuery)
         self.assertEquals(q.baseurl, self.baseurl)
         self.assertEquals(len(q.keys()), 0)
 
@@ -63,10 +51,8 @@ class SCSServiceTest(unittest.TestCase):
         self.assertEquals(q.baseurl, self.baseurl)
         self.assertEquals(len(q.keys()), 4)
 
-        self.assertEquals(q.ra,  0.0)
-        self.assertEquals(q.dec, 0.0)
-        self.assertEquals(q.sr,  1.0)
-        self.assertEquals(q.radius,  1.0)
+        self.assertEquals(q.pos, (0.0, 0.0))
+        self.assertEquals(q.radius, 1.0)
         self.assertEquals(q.verbosity, 2)
 
 
@@ -77,54 +63,32 @@ class SCSQueryTest(unittest.TestCase):
     def testCtor(self):
         self.q = cs.SCSQuery(self.baseurl)
         self.assertEquals(self.q.baseurl, self.baseurl)
-        self.assertEquals(self.q.protocol, "scs")
-        self.assertEquals(self.q.version, "1.0")
 
     def testPos(self):
         self.testCtor()
-        self.assert_(self.q.ra is None)
-        self.assert_(self.q.dec is None)
-        self.assert_(self.q.sr is None)
+        self.assert_(self.q.pos is None)
+        self.assert_(self.q.radius is None)
 
-        self.q.ra = 120.445
-        self.assertEquals(self.q.ra, 120.445)
-        self.q.dec = 40.1434
-        self.assertEquals(self.q.dec, 40.1434)
-        self.assertEquals(self.q.dec, self.q.pos[1])
-        self.assertEquals(self.q.ra, self.q.pos[0])
-        
-        self.q.sr = 0.25
+        self.q.pos = (120.445, 40.1434)
+        self.assertEquals(self.q.pos, (120.445, 40.1434))
+
+        self.q.radius = 0.25
         self.assertEquals(self.q.radius, 0.25)
 
-        self.q.ra = 400.0
-        self.assertEquals(self.q.ra, 40.0)
-        self.q.ra = -60.0
-        self.assertEquals(self.q.ra, 300.0)
+        self.q.pos = (400.0, -60.0)
+        self.assertEquals(self.q.pos, (400.0, -60.0))
 
-
-    def testBadPos(self):
-        self.testCtor()
-        try:  self.q.ra = "a b";  self.fail("ra took string values")
-        except ValueError:  pass
-        try:  self.q.dec = "a b"; self.fail("dec took string values")
-        except ValueError:  pass
-        try:  self.q.radius = "a b";  self.fail("dec took string values")
-        except ValueError:  pass
-        try:  self.q.dec = 100; self.fail("dec took out-of-range value")
-        except ValueError as e:  pass
-            
     def testCreateURL(self):
         self.testCtor()
-        self.assertEquals(self.q.getqueryurl(), self.baseurl)
+        self.assertEquals(self.q.queryurl, self.baseurl)
 
-        self.q.ra = 102.5511
-        self.q.dec = 24.312
+        self.q.pos = (102.5511, 24.312)
         self.q.radius = 0.1
         self.assertAlmostEquals(self.q["RA"], 102.5511)
         self.assertAlmostEquals(self.q["DEC"], 24.312)
         self.assertAlmostEquals(self.q["SR"], 0.1)
 
-        self.q.sr = 0.05
+        self.q.radius = 0.05
         self.assertAlmostEquals(self.q["SR"], 0.05)
 
 
@@ -136,22 +100,14 @@ class CSResultsTest(unittest.TestCase):
 
     def testCtor(self):
         self.r = cs.SCSResults(self.tbl)
-        self.assertEquals(self.r.protocol, "scs")
-        self.assertEquals(self.r.version, "1.0")
-        self.assert_(isinstance(self.r._fldnames, list))
-        self.assert_(self.r.votable is not None)
-        self.assertEquals(self.r.nrecs, 2)
-
-    def testUCDMap(self):
-        self.testCtor()
-        self.assertEquals(self.r._scscols["POS_EQ_RA_MAIN"], "RA")
-        self.assertEquals(self.r._scscols["POS_EQ_DEC_MAIN"], "DEC")
-        self.assertEquals(self.r._scscols["ID_MAIN"], "OBJID")
+        self.assertIsInstance(self.r._fldnames, list)
+        self.assertIsNotNone(self.r.votable)
+        self.assertEquals(len(self.r), 2)
 
     def testGetRecord(self):
         self.testCtor()
         rec = self.r.getrecord(0)
-        self.assert_(isinstance(rec, cs.SCSRecord))
+        self.assertIsInstance(rec, cs.SCSRecord)
 
 
 class CSResultsErrorTest(unittest.TestCase):
@@ -203,14 +159,9 @@ class CSRecordTest(unittest.TestCase):
         self.result = cs.SCSResults(self.tbl)
         self.rec = self.result.getrecord(0)
 
-    def testNameMap(self):
-        self.assertEquals(self.rec._names["id"], "OBJID")
-        self.assertEquals(self.rec._names["ra"], "RA")
-        self.assertEquals(self.rec._names["dec"], "DEC")
-
     def testAttr(self):
-        self.assertEquals(self.rec.ra, 0.065625)
-        self.assertEquals(self.rec.dec, -8.8911667)
+        self.assertEquals(self.rec.pos.ra.value, 0.065625)
+        self.assertEquals(self.rec.pos.dec.value, -8.8911667)
         self.assertEquals(self.rec.id, b"34")
 
 class CSExecuteTest(unittest.TestCase):
@@ -220,7 +171,7 @@ class CSExecuteTest(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
-        cls.srvr = testserve.get_server(testserverport)
+        cls.srvr = testserver.get_server(testserverport)
         cls.srvr.start()
         time.sleep(0.5)
 
@@ -233,27 +184,24 @@ class CSExecuteTest(unittest.TestCase):
 
     def testExecute(self):
         q = cs.SCSQuery(self.baseurl.format(self.srvr.port))
-        q.ra = 0.0
-        q.dec = 0.0
+        q.pos = (0.0, 0.0)
         q.radius = 0.25
         results = q.execute()
-        self.assert_(isinstance(results, cs.SCSResults))
-        self.assertEquals(results.nrecs, 2)
+        self.assertIsInstance(results, cs.SCSResults)
+        self.assertEquals(len(results), 2)
 
     def testSearch(self):
         srv = cs.SCSService(self.baseurl.format(self.srvr.port))
         results = srv.search(pos=(0.0, 0.0), radius=0.25)
-        self.assert_(isinstance(results, cs.SCSResults))
-        self.assertEquals(results.nrecs, 2)
-
+        self.assertIsInstance(results, cs.SCSResults)
+        self.assertEquals(len(results), 2)
 
     def testConesearch(self):
-        # pdb.set_trace()
-        results = cs.search(self.baseurl.format(self.srvr.port), 
-                            pos=(0.0, 0.0), radius=0.25)
+        results = cs.search(
+            self.baseurl.format(self.srvr.port), pos=(0.0, 0.0), radius=0.25)
         self.assert_(isinstance(results, cs.SCSResults))
-        self.assertEquals(results.nrecs, 2)
-        
+        self.assertEquals(len(results), 2)
+
 
 __all__ = "SCSServiceTest SCSQueryTest CSResultsTest CSRecordTest CSExecuteTest".split()
 def suite():
@@ -266,13 +214,13 @@ if __name__ == "__main__":
     try:
         module = find_current_module(1, True)
         pkgdir = os.path.dirname(module.__file__)
-        t = "aTestDALServer"
+        t = "testserver"
         mod = imp.find_module(t, [pkgdir])
-        testserve = imp.load_module(t, mod[0], mod[1], mod[2])
+        testserver = imp.load_module(t, mod[0], mod[1], mod[2])
     except ImportError as e:
-        sys.stderr.write("Can't find test server: aTestDALServer.py:"+str(e))
+        sys.stderr.write("Can't find test server: testserver.py:"+str(e))
 
-    srvr = testserve.TestServer(testserverport)
+    srvr = testserver.TestServer(testserverport)
 
     try:
         srvr.start()

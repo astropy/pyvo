@@ -5,19 +5,19 @@ A module for accessing remote source and observation catalogs
 from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
-import requests
 from functools import partial
-from astropy.io.votable import parse as votableparse
 from datetime import datetime
 from time import time, sleep
+import requests
+from astropy.io.votable import parse as votableparse
 
 from .query import (
-    DALResults, DALQuery, DALService, UploadList,
+    DALResults, DALQuery, DALService, Record, UploadList,
     DALServiceError, DALQueryError)
 from ..tools import vosi, uws
 
-__all__ = ["search", "escape",
-    "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
+__all__ = [
+    "search", "escape", "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
 
 def escape(term):
     """
@@ -60,112 +60,10 @@ def search(url, query, language="ADQL", maxrec=None, uploads=None):
     service = TAPService(url)
     return service.search(query, language, maxrec, uploads)
 
-class TAPResults(DALResults):
-    @property
-    def infos(self):
-        """
-        return the info element as dictionary
-        """
-        return getattr(self, "_infos", {})
-
-    @property
-    def query_status(self):
-        """
-        return the query status
-        """
-        return getattr(self, "_infos", {}).get("QUERY_STATUS", None)
-
-
-class TAPQuery(DALQuery):
-    RESULTS_CLASS = TAPResults
-
-    def __init__(self, baseurl, query, mode="sync", language="ADQL",
-        maxrec=None, uploads = None):
-        """
-        initialize the query object with the given parameters
-
-        Parameters
-        ----------
-        baseurl : str
-            the TAP baseurl
-        query : str
-            the query string
-        mode : str
-            the query mode (sync | async). default "sync"
-        language : str
-            the query language. defaults to ADQL
-        maxrec : int
-            the amount of records to fetch
-        uploads : dict
-            Files to upload. Uses table name as key and table content as value.
-        """
-        baseurl = baseurl.rstrip("?")
-
-        super(TAPQuery, self).__init__(baseurl, "TAP", "1.0")
-
-        self._mode = mode if mode in ("sync", "async") else "sync"
-        self._uploads = UploadList.fromdict(uploads or {})
-
-        self["REQUEST"] = "doQuery"
-        self["LANG"] = language
-
-        if maxrec:
-            self["MAXREC"] = maxrec
-
-        self["QUERY"] = query
-
-        if self._uploads:
-            self["UPLOAD"] = self._uploads.param()
-
-    def getqueryurl(self):
-        return '{0}/{1}'.format(self.baseurl, self._mode)
-
-    def execute_stream(self):
-        """
-        submit the query and return the raw VOTable XML as a file stream
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError
-           for errors in the input query syntax
-        """
-
-        # theres nothing to execute in non-sync queries
-        if self._mode != "sync":
-            raise DALServiceError(
-                "Cannot execute a non-synchronous query. Use submit instead")
-
-        return super(TAPQuery, self).execute_stream()
-
-    def submit(self):
-        """
-        Does the request part of the TAP query.
-        This function is separated from response parsing because async queries
-        return no votable but behave like sync queries in terms of request.
-        """
-        url = self.getqueryurl()
-
-        files = {
-            upload.name: upload.fileobj()
-            for upload in self._uploads
-            if upload.is_inline
-        }
-
-        r = requests.post(url, data = self, stream = True,
-            files = files)
-        # requests doesn't decode the content by default
-        r.raw.read = partial(r.raw.read, decode_content=True)
-        return r
-
-
 class TAPService(DALService):
     """
     a representation of a Table Access Protocol service
     """
-
-    QUERY_CLASS = TAPQuery
 
     _availability = (None, None)
     _capabilities = None
@@ -180,7 +78,7 @@ class TAPService(DALService):
         baseurl :  str
            the base URL that should be used for forming queries to the service.
         """
-        super(TAPService, self).__init__(baseurl, "TAP", "1.0")
+        super(TAPService, self).__init__(baseurl)
 
     @property
     def availability(self):
@@ -197,18 +95,17 @@ class TAPService(DALService):
         if self._availability == (None, None):
             avail_url = '{0}/availability'.format(self.baseurl)
 
-            r = requests.get(avail_url, stream=True)
+            response = requests.get(avail_url, stream=True)
 
             try:
-                r.raise_for_status()
-            except requests.RequestException as e:
-                raise DALServiceError.from_except(
-                    e, avail_url, protocol=self.protocol, version=self.version)
+                response.raise_for_status()
+            except requests.RequestException as ex:
+                raise DALServiceError.from_except(ex, avail_url)
 
             # requests doesn't decode the content by default
-            r.raw.read = partial(r.raw.read, decode_content=True)
+            response.raw.read = partial(response.raw.read, decode_content=True)
 
-            self._availability = vosi.parse_availability(r.raw)
+            self._availability = vosi.parse_availability(response.raw)
         return self._availability
 
     @property
@@ -241,18 +138,17 @@ class TAPService(DALService):
         """
         if self._capabilities is None:
             capa_url = '{0}/capabilities'.format(self.baseurl)
-            r = requests.get(capa_url, stream=True)
+            response = requests.get(capa_url, stream=True)
 
             try:
-                r.raise_for_status()
-            except requests.RequestException as e:
-                raise DALServiceError.from_except(
-                    e, capa_url, protocol=self.protocol, version=self.version)
+                response.raise_for_status()
+            except requests.RequestException as ex:
+                raise DALServiceError.from_except(ex, capa_url)
 
             # requests doesn't decode the content by default
-            r.raw.read = partial(r.raw.read, decode_content=True)
+            response.raw.read = partial(response.raw.read, decode_content=True)
 
-            self._capabilities = vosi.parse_capabilities(r.raw)
+            self._capabilities = vosi.parse_capabilities(response.raw)
         return self._capabilities
 
     @property
@@ -263,18 +159,17 @@ class TAPService(DALService):
         if self._tables is None:
             tables_url = '{0}/tables'.format(self.baseurl)
 
-            r = requests.get(tables_url, stream=True)
+            response = requests.get(tables_url, stream=True)
 
             try:
-                r.raise_for_status()
-            except requests.RequestException as e:
-                raise DALServiceError.from_except(
-                    e, tables_url, protocol=self.protocol, version=self.version)
+                response.raise_for_status()
+            except requests.RequestException as ex:
+                raise DALServiceError.from_except(ex, tables_url)
 
             # requests doesn't decode the content by default
-            r.raw.read = partial(r.raw.read, decode_content=True)
+            response.raw.read = partial(response.raw.read, decode_content=True)
 
-            self._tables = vosi.parse_tables(r.raw)
+            self._tables = vosi.parse_tables(response.raw)
         return self._tables
 
     @property
@@ -349,10 +244,9 @@ class TAPService(DALService):
         --------
         TAPResults
         """
-        q = self.QUERY_CLASS(
+        return self.create_query(
             self.baseurl, query, language=language, maxrec=maxrec,
-            uploads=uploads)
-        return q.execute()
+            uploads=uploads).execute()
 
     #alias for service discovery
     search = run_sync
@@ -426,18 +320,50 @@ class TAPService(DALService):
         --------
         AsyncTAPJob
         """
-        return AsyncTAPJob.create(self.baseurl, query, language, maxrec,
-            uploads)
+        return AsyncTAPJob.create(
+            self.baseurl, query, language, maxrec, uploads)
+
+    def create_query(
+            self, query=None, mode="sync", language="ADQL", maxrec=None,
+            uploads=None, **keywords):
+        """
+        create a query object that constraints can be added to and then
+        executed.  The input arguments will initialize the query with the
+        given values.
+
+        Parameters
+        ----------
+        baseurl : str
+            the base URL for the TAP service
+        query : str
+            the query string / parameters
+        mode : str
+            the query mode (sync | async). default "sync"
+        language : str
+            specifies the query language, default ADQL.
+            useful for services which allow to use the backend query language.
+        maxrec : int
+            specifies the maximum records to return.
+            defaults to the service default.
+        uploads : dict
+            a mapping from table names to objects containing a votable.
+        """
+        return TAPQuery(
+            self.baseurl, query, mode, language, maxrec, uploads, **keywords)
 
 
 class AsyncTAPJob(object):
+    """
+    This class represents a UWS TAP Job.
+    """
+
     _job = {}
- 
+
     @classmethod
-    def create(cls, baseurl, query, language="ADQL", maxrec = None,
-        uploads = None):
+    def create(
+            cls, baseurl, query, language="ADQL", maxrec=None, uploads=None):
         """
-        creates a async tap job on the server unter `baseurl`
+        creates a async tap job on the server under `baseurl`
 
         Parameters
         ----------
@@ -453,7 +379,7 @@ class AsyncTAPJob(object):
         uploads : dict
             a mapping from table names to file like objects containing a votable
         """
-        query = TAPService.QUERY_CLASS(
+        query = TAPQuery(
             baseurl, query, mode="async", language=language, maxrec=maxrec,
             uploads=uploads)
         response = query.submit()
@@ -492,15 +418,15 @@ class AsyncTAPJob(object):
         updates local job infos with remote values
         """
         try:
-            r = requests.get(self.url, stream = True)
-            r.raise_for_status()
+            response = requests.get(self.url, stream=True)
+            response.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
-        
-        # requests doesn't decode the content by default
-        r.raw.read = partial(r.raw.read, decode_content=True)
+            raise DALServiceError.from_except(ex, self.url)
 
-        self._job.update(uws.parse_job(r.raw))
+        # requests doesn't decode the content by default
+        response.raw.read = partial(response.raw.read, decode_content=True)
+
+        self._job.update(uws.parse_job(response.raw))
 
     @property
     def job(self):
@@ -519,7 +445,7 @@ class AsyncTAPJob(object):
         return self._url
 
     @property
-    def jobId(self):
+    def job_id(self):
         """
         the job id
         """
@@ -552,11 +478,12 @@ class AsyncTAPJob(object):
             seconds after the query execution is aborted
         """
         try:
-            r = requests.post("{}/executionduration".format(self.url),
-                data = {"EXECUTIONDURATION": str(value)})
-            r.raise_for_status()
+            response = requests.post(
+                "{}/executionduration".format(self.url),
+                data={"EXECUTIONDURATION": str(value)})
+            response.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
+            raise DALServiceError.from_except(ex, self.url)
         self._job["executionDuration"] = value
 
     @property
@@ -582,15 +509,16 @@ class AsyncTAPJob(object):
         try:
             #is string? easier to ask for forgiveness
             value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
-        except:
+        except ValueError:
             pass
 
         try:
-            r = requests.post("{}/destruction".format(self.url),
-                data = {"DESTRUCTION": value.strftime("%Y-%m-%dT%H:%M:%SZ")})
-            r.raise_for_status()
+            response = requests.post(
+                "{}/destruction".format(self.url),
+                data={"DESTRUCTION": value.strftime("%Y-%m-%dT%H:%M:%SZ")})
+            response.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
+            raise DALServiceError.from_except(ex, self.url)
         self._job["destruction"] = value
 
     @property
@@ -631,11 +559,11 @@ class AsyncTAPJob(object):
         starts the job / change phase to RUN
         """
         try:
-            r = requests.post('{}/phase'.format(self.url),
-                data = {"PHASE": "RUN"})
-            r.raise_for_status()
+            response = requests.post(
+                '{}/phase'.format(self.url), data={"PHASE": "RUN"})
+            response.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
+            raise DALServiceError.from_except(ex, self.url)
 
         return self
 
@@ -644,18 +572,17 @@ class AsyncTAPJob(object):
         aborts the job / change phase to ABORT
         """
         try:
-            r = requests.post('{}/phase'.format(self.url),
-                data = {"PHASE": "ABORT"})
-            r.raise_for_status()
+            response = requests.post(
+                '{}/phase'.format(self.url), data={"PHASE": "ABORT"})
+            response.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            raise DALServiceError.from_except(ex, self.url, self.protocol,
-                self.version)
+            raise DALServiceError.from_except(ex, self.url)
 
         return self
 
     def wait(
-        self, phases={"COMPLETED", "ABORTED", "ERROR"}, interval=1.0,
-        increment=1.2, giveup_after=None, timeout=None):
+            self, phases=None, interval=1.0, increment=1.2, giveup_after=None,
+            timeout=None):
         """
         waits for the job to reach the given phases.
 
@@ -677,6 +604,9 @@ class AsyncTAPJob(object):
         DALServiceError
             if the timeout is exceeded
         """
+        if not phases:
+            phases = {"COMPLETED", "ABORTED", "ERROR"}
+
         attempts = 0
         start_time = time()
 
@@ -688,12 +618,12 @@ class AsyncTAPJob(object):
             interval = min(120, interval * increment)
             attempts += 1
             if any((
-                giveup_after and attempts > giveup_after,
-                timeout and start_time + timeout < time() 
+                    giveup_after and attempts > giveup_after,
+                    timeout and start_time + timeout < time()
             )):
                 raise DALServiceError(
                     "None of the states in {0} were reached in time.".format(
-                    repr(phases)), self.url, "TAP", "1.0")
+                        repr(phases)), self.url, "TAP", "1.0")
 
         return self
 
@@ -702,10 +632,10 @@ class AsyncTAPJob(object):
         deletes the job. this object will become invalid.
         """
         try:
-            r = requests.post(self.url, data = {"ACTION": "DELETE"})
-            r.raise_for_status()
+            response = requests.post(self.url, data={"ACTION": "DELETE"})
+            response.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
+            raise DALServiceError.from_except(ex, self.url)
 
         self._url = None
 
@@ -721,23 +651,229 @@ class AsyncTAPJob(object):
         if self.phase in ["ERROR", "ABORTED"]:
             raise DALQueryError(
                 self._job.get("message", "Unknown Query Error"),
-                self.phase, self.url, "TAP", "1.0")
+                self.phase, self.url)
 
     def fetch_result(self):
         """
         returns the result votable if query is finished
         """
         try:
-            response = requests.get(self.result_uri, stream = True)
+            response = requests.get(self.result_uri, stream=True)
             response.raise_for_status()
         except requests.RequestException as ex:
             self._update()
             # we propably got a 404 because query error. raise with error msg
             self.raise_if_error()
-            raise DALServiceError.from_except(ex, self.url, "TAP", "1.0")
+            raise DALServiceError.from_except(ex, self.url)
 
         response.raw.read = partial(
             response.raw.read, decode_content=True)
-        return TAPResults(
-            votableparse(response.raw.read), self.result_uri,
-            "TAP", "1.0")
+        return TAPResults(votableparse(response.raw.read), self.result_uri)
+
+
+class TAPQuery(DALQuery):
+    """
+    a class for preparing an query to an TAP service.  Query constraints
+    are added via its service type-specific methods.  The various execute()
+    functions will submit the query and return the results.
+
+    The base URL for the query, which controls where the query will be sent
+    when one of the execute functions is called, is typically set at
+    construction time; however, it can be updated later via the
+    :py:attr:`~pyvo.dal.query.DALQuery.baseurl` to send a configured
+    query to another service.
+
+    In addition to the search constraint attributes described below, search
+    parameters can be set generically by name via dict semantics.
+
+    The typical function for submitting the query is ``execute()``; however,
+    alternate execute functions provide the response in different forms,
+    allowing the caller to take greater control of the result processing.
+    """
+
+    def __init__(
+            self, baseurl, query, mode="sync", language="ADQL", maxrec=None,
+            uploads=None):
+        """
+        initialize the query object with the given parameters
+
+        Parameters
+        ----------
+        baseurl : str
+            the TAP baseurl
+        query : str
+            the query string
+        mode : str
+            the query mode (sync | async). default "sync"
+        language : str
+            the query language. defaults to ADQL
+        maxrec : int
+            the amount of records to fetch
+        uploads : dict
+            Files to upload. Uses table name as key and table content as value.
+        """
+        baseurl = baseurl.rstrip("?")
+
+        super(TAPQuery, self).__init__(baseurl)
+
+        self._mode = mode if mode in ("sync", "async") else "sync"
+        self._uploads = UploadList.fromdict(uploads or {})
+
+        self["REQUEST"] = "doQuery"
+        self["LANG"] = language
+
+        if maxrec:
+            self["MAXREC"] = maxrec
+
+        self["QUERY"] = query
+
+        if self._uploads:
+            self["UPLOAD"] = self._uploads.param()
+
+    @property
+    def queryurl(self):
+        return '{baseurl}/{mode}'.format(baseurl=self.baseurl, mode=self._mode)
+
+    def execute_stream(self):
+        """
+        submit the query and return the raw VOTable XML as a file stream
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors in the input query syntax
+        """
+
+        # theres nothing to execute in non-sync queries
+        if self._mode != "sync":
+            raise DALServiceError(
+                "Cannot execute a non-synchronous query. Use submit instead")
+
+        return super(TAPQuery, self).execute_stream()
+
+    def execute(self):
+        """
+        submit the query and return the results as a TAPResults instance
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors either in the input query syntax or
+           other user errors detected by the service
+        DALFormatError
+           for errors parsing the VOTable response
+        """
+        return TAPResults(self.execute_votable(), self.queryurl)
+
+    def submit(self):
+        """
+        Does the request part of the TAP query.
+        This function is separated from response parsing because async queries
+        return no votable but behave like sync queries in terms of request.
+        It returns the requests response.
+        """
+        url = self.queryurl
+
+        files = {
+            upload.name: upload.fileobj()
+            for upload in self._uploads
+            if upload.is_inline
+        }
+
+        response = requests.post(
+            url, data=self, stream=True, files=files)
+        # requests doesn't decode the content by default
+        response.raw.read = partial(response.raw.read, decode_content=True)
+        return response
+
+
+class TAPResults(DALResults):
+    """
+    The list of matching images resulting from an image (SIA) query.
+    Each record contains a set of metadata that describes an available
+    image matching the query constraints.  The number of records in
+    the results is available via the :py:attr:`nrecs` attribute or by
+    passing it to the Python built-in ``len()`` function.
+
+    This class supports iterable semantics; thus,
+    individual records (in the form of
+    :py:class:`~pyvo.dal.query.Record` instances) are typically
+    accessed by iterating over an ``TAPResults`` instance.
+
+    Alternatively, records can be accessed randomly via
+    :py:meth:`getrecord` or through a Python Database API (v2)
+    Cursor (via :py:meth:`~pyvo.dal.query.DALResults.cursor`).
+    Column-based data access is possible via the
+    :py:meth:`~pyvo.dal.query.DALResults.getcolumn` method.
+
+    ``TAPResults`` is essentially a wrapper around an Astropy
+    :py:mod:`~astropy.io.votable`
+    :py:class:`~astropy.io.votable.tree.Table` instance where the
+    columns contain the various metadata describing the images.
+    One can access that VOTable directly via the
+    :py:attr:`~pyvo.dal.query.DALResults.votable` attribute.  Thus,
+    when one retrieves a whole column via
+    :py:meth:`~pyvo.dal.query.DALResults.getcolumn`, the result is
+    a Numpy array.  Alternatively, one can manipulate the results
+    as an Astropy :py:class:`~astropy.table.table.Table` via the
+    following conversion:
+
+    >>> table = results.table
+
+    ``SIAResults`` supports the array item operator ``[...]`` in a
+    read-only context.  When the argument is numerical, the result
+    is an
+    :py:class:`~pyvo.dal.query.Record` instance, representing the
+    record at the position given by the numerical index.  If the
+    argument is a string, it is interpreted as the name of a column,
+    and the data from the column matching that name is returned as
+    a Numpy array.
+    """
+
+    @property
+    def infos(self):
+        """
+        return the info element as dictionary
+        """
+        return getattr(self, "_infos", {})
+
+    @property
+    def query_status(self):
+        """
+        return the query status
+        """
+        return getattr(self, "_infos", {}).get("QUERY_STATUS", None)
+
+    def getrecord(self, index):
+        """
+        return a representation of a tap result record that follows
+        dictionary semantics. The keys of the dictionary are those returned by
+        this instance's fieldnames attribute. The returned record has additional
+        image-specific properties
+
+        Parameters
+        ----------
+        index : int
+           the integer index of the desired record where 0 returns the first
+           record
+
+        Returns
+        -------
+        REc
+           a dictionary-like wrapper containing the result record metadata.
+
+        Raises
+        ------
+        IndexError
+           if index is negative or equal or larger than the number of rows in
+           the result table.
+
+        See Also
+        --------
+        Record
+        """
+        return Record(self, index)

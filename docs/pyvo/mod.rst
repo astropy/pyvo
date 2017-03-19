@@ -23,11 +23,6 @@ The pyvo module currently provides these main capabilities:
 
   *  :py:func:`~pyvo.conesearch`, :py:func:`~pyvo.linesearch`, :py:func:`~pyvo.tablesearch`
 
-* get information about an object via its name
-
-  *  :py:func:`~pyvo.resolve`, :py:func:`~pyvo.object2pos`, 
-     :py:func:`~pyvo.object2sexapos`
-
 Submodules provide additional functions and classes for greater control over
 access to these services.
 
@@ -49,10 +44,7 @@ Functions
 :py:func:`~pyvo.spectrumsearch` equivalent to :py:func:`pyvo.dal.ssa.search`
 :py:func:`~pyvo.linesearch`     equivalent to :py:func:`pyvo.dal.sla.search`
 :py:func:`~pyvo.tablesearch`    equivalent to :py:func:`pyvo.dal.tap.search`
-:py:func:`~pyvo.object2pos`     equivalent to :py:func:`pyvo.nameresolver.sesame.object2pos`
-:py:func:`~pyvo.object2sexapos` equivalent to :py:func:`pyvo.nameresolver.sesame.object2sexapos`
-:py:func:`~pyvo.regsearch`      equivalent to :py:func:`pyvo.registry.vao.search`
-:py:func:`~pyvo.resolve`        equivalent to :py:func:`pyvo.nameresolver.sesame.resolve`
+:py:func:`~pyvo.regsearch`      equivalent to :py:func:`pyvo.registry.regtap.search`
 =============================== ================================================================
 
 **********
@@ -111,21 +103,4 @@ Functions
 .. py:function:: tablesearch(url, query[, language="ADQL", maxrec=None, uploads=None])
 
    equivalent to :py:func:`pyvo.dal.tap.search`
-
-.. py:function:: resolve(names[, db, include, mirror])
-
-   resolve one or more object names to an ObjectData instance contain 
-   metadata about the object; equivalent to 
-   :py:func:`pyvo.nameresolver.sesame.resolve`
-
-.. py:function:: object2pos(names[, db, mirror])
-
-   resolve one or more object names each to a position; equivalent to 
-   :py:func:`pyvo.nameresolver.sesame.object2pos`
-
-.. py:function:: object2sexapos(names[, db, mirror])
-
-   resolve one or more object names each to a sexagesimal-formatted 
-   position; equivalent to 
-   :py:func:`pyvo.nameresolver.sesame.object2pos`
 

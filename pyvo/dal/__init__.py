@@ -11,12 +11,11 @@ from .sla import SLAService, SLAQuery, SLARecord
 from .scs import SCSService, SCSQuery, SCSRecord
 from .tap import TAPService, TAPQuery, AsyncTAPJob
 
-from .query import *
+from .query import (
+    DALAccessError, DALProtocolError, DALFormatError, DALServiceError,
+    DALQueryError)
 
 __all__ = [
-    "imagesearch", "spectrumsearch", "linesearch", "consesearch", "tablesearch"
+    "imagesearch", "spectrumsearch", "linesearch", "conesearch", "tablesearch",
     "SIAService", "SSAService", "SLAService", "SCSService",
-    "SIAResults", "SSAResults", "SLAResults", "SCSResults",
-    "SIARecord",  "SSARecord",  "SLARecord",  "SCSRecord",
-    "TAPService", "TAPQuery", "AsyncTAPJob"
-    "DALResults" ]
+    "TAPService", "AsyncTAPJob"]

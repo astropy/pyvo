@@ -26,14 +26,14 @@
   <TABLE>
     
     <FIELD name="Survey"      ucd="VOX:Image_Title"    datatype="char"   arraysize="*"/>
-    <FIELD name="Ra"          ucd="POS_EQ_RA_MAIN"     datatype="double"/>
+    <FIELD name="Ra"          ucd="POS_EQ_RA_MAIN"     datatype="double" utype="na_ra"/>
     <FIELD name="Dec"         ucd="POS_EQ_DEC_MAIN"    datatype="double"/>
     <FIELD name="Dim"         ucd="VOX:Image_Naxes"    datatype="int"/>
     <FIELD name="Size"        ucd="VOX:Image_Naxis"    datatype="int"    arraysize="*"/>
     <FIELD name="Scale"       ucd="VOX:Image_Scale"    datatype="double" arraysize="*"/>
     <FIELD name="Format"      ucd="VOX:Image_Format"   datatype="char"   arraysize="*"/>
     <FIELD name="PixFlags"    ucd="VOX:Image_PixFlags" datatype="char"   arraysize="*"/>
-    <FIELD name="URL"         ucd="VOX:Image_AccessReference" datatype="char" arraysize="*"/>
+    <FIELD name="URL"         ucd="VOX:Image_AccessReference" datatype="char" arraysize="*" utype="na_acref"/>
     <FIELD name="LogicalName" ucd="VOX:LogicalName"    datatype="char"   arraysize="*"/>
     <DATA><TABLEDATA>
 <TR><TD>neat</TD><TD>0.0</TD><TD>0.0</TD><TD>2</TD><TD>300 300</TD><TD>-0.0033333333333333335 0.0033333333333333335</TD><TD>image/fits</TD><TD>F</TD><TD><![CDATA[http://skyview.gsfc.nasa.gov/cgi-bin/images?position=0.0%2C0.0&survey=neat&pixels=300%2C300&sampler=Clip&size=1.0%2C1.0&projection=Tan&coordinates=J2000.0&return=FITS]]></TD>

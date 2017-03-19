@@ -50,6 +50,561 @@ def is_mime_type(val):
 
     return bool(_mimetype_re.match(val))
 
+
+class DALService(object):
+    """
+    an abstract base class representing a DAL service located a particular 
+    endpoint.
+    """
+
+    def __init__(self, baseurl):
+        """
+        instantiate the service connecting it to a base URL
+
+        Parameters
+        ----------
+        baseurl :  str 
+           the base URL that should be used for forming queries to the service.
+        """
+        self._baseurl = baseurl
+
+    @property
+    def baseurl(self):
+        """
+        the base URL identifying the location of the service and where 
+        queries are submitted (read-only)
+        """
+        return self._baseurl
+
+    def search(self, **keywords):
+        """
+        send a search query to this service.  
+
+        This implementation has no knowledge of the type of service being 
+        queried.  The query parameters are given as arbitrary keywords which 
+        will be assumed to be understood by the service (i.e. there is no
+        argument checking).  The response is a generic DALResults object.  
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError  
+           for errors either in the input query syntax or other user errors 
+           detected by the service
+        DALFormatError  
+           for errors parsing the VOTable response
+        """
+        q = self.create_query(**keywords)
+        return q.execute()
+
+    def create_query(self, **keywords):
+        """
+        create a query object that constraints can be added to and then 
+        executed.
+
+        Returns
+        -------
+        DALQuery
+           a generic query object
+        """
+        q = DALQuery(self.baseurl, **keywords)
+        return q
+
+    # TODO: move to pyvo.registry
+    def describe(self, verbose=False, width=78, file=None):
+        """
+        Print a summary description of this service.  
+
+        At a minimum, this will include the service protocol and 
+        base URL.  If there is metadata associated with this service, 
+        the summary will include other information, such as the 
+        service title and description.
+
+        Parameters
+        ----------
+        verbose : bool
+            If false (default), only user-oriented information is 
+            printed; if true, additional information will be printed
+            as well.
+        width : int
+            Format the description with given character-width.
+        file : writable file-like object
+            If provided, write information to this output stream.
+            Otherwise, it is written to standard out.  
+        """
+        if not file:
+            file = sys.stdout
+        print("{0} v{1} Service".format(self.protocol.upper(), self.version))
+        if self.info.get("title"):
+            print(para_format_desc(self.info["title"]), file=file)
+        if self.info.get("shortName"):
+            print("Short Name: " + self.info["shortName"], file=file)
+        if self.info.get("publisher"):
+            print(para_format_desc("Publisher: " + self.info["publisher"]), 
+                  file=file)
+        if self.info.get("identifier"):
+            print("IVOA Identifier: " + self.info["identifier"], file=file)
+        print("Base URL: " + self.baseurl, file=file)
+
+        if self.info.get("description"):
+            print(file=file)
+            print(para_format_desc(self.info["description"]), file=file)
+            print(file=file)
+
+        if self.info.get("subjects"):
+            val = self.info.get("subjects")
+            if not hasattr(val, "__getitem__"):
+                val = [val]
+            val = (str(v) for v in val)
+            print(para_format_desc("Subjects: " + ", ".join(val)), file=file)
+        if self.info.get("waveband"):
+            val = self.info.get("waveband")
+            if not hasattr(val, "__getitem__"):
+                val = [val]
+            val = (str(v) for v in val)
+            print(para_format_desc("Waveband Coverage: " + ", ".join(val)), 
+                  file=file)
+
+        if verbose:
+            if self.info.get("capabilityStandardID"):
+                print("StandardID: " + self.info["capabilityStandardID"], 
+                      file=file)
+            if self.info.get("referenceURL"):
+                print("More info: " + self.info["referenceURL"], file=file)
+
+
+class DALQuery(dict):
+    """
+    a class for preparing a query to a particular service.  Query constraints
+    are added via its service type-specific methods. The various execute()
+    functions will submit the query and return the results.  
+
+    The base URL for the query can be changed via the baseurl property.
+    """
+
+    _ex = None
+
+    def __init__(self, baseurl, **keywords):
+        """
+        initialize the query object with a baseurl
+        """
+        self._baseurl = baseurl.rstrip("?")
+        self.update({key.upper(): value for key, value in keywords.items()})
+
+    @property
+    def baseurl(self):
+        """
+        the base URL that this query will be sent to when one of the 
+        execute functions is called. 
+        """
+        return self._baseurl
+
+    def execute(self):
+        """
+        submit the query and return the results as a Results subclass instance
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError   
+           for errors either in the input query syntax or 
+           other user errors detected by the service
+        DALFormatError  
+           for errors parsing the VOTable response
+        """
+        return DALResults(self.execute_votable(), self.queryurl)
+
+    def execute_raw(self):
+        """
+        submit the query and return the raw VOTable XML as a string.
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors in the input query syntax
+        """
+        f = self.execute_stream()
+        out = None
+        try:
+            out = f.read()
+        finally:
+            f.close()
+        return out
+
+    def execute_stream(self):
+        """
+        Submit the query and return the raw VOTable XML as a file stream.
+        No exceptions are raised here because non-2xx responses might still
+        contain payload.
+        """
+        r = self.submit()
+
+        try:
+            r.raise_for_status()
+        except requests.RequestException as ex:
+            # save for later use
+            self._ex = ex
+        finally:
+            return r.raw
+
+    def submit(self):
+        """
+        does the actual request
+        """
+        url = self.queryurl
+        params = {k: v for k, v in self.items()}
+
+        r = requests.get(url, params = params, stream = True)
+        r.raw.read = functools.partial(r.raw.read, decode_content=True)
+        return r
+
+    def execute_votable(self):
+        """
+        Submit the query and return the results as an AstroPy votable instance.
+        As this is the level where qualified error messages are available,
+        they are raised here instead of in the underlying execute_stream.
+
+        Returns
+        -------
+        astropy.io.votable.tree.Table
+           an Astropy votable Table instance
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALFormatError
+           for errors parsing the VOTable response
+        DALQueryError
+           for errors in the input query syntax
+
+        See Also
+        --------
+        astropy.io.votable
+        DALServiceError
+        DALFormatError
+        DALQueryError
+        """
+        try:
+            return self._votableparse(self.execute_stream().read)
+        except DALAccessError:
+            raise
+        except Exception as e:
+            if self._ex:
+                e = self._ex
+                raise DALServiceError(
+                    str(e), e.response.status_code, e, self.queryurl)
+            else:
+                raise DALServiceError.from_except(e, self.queryurl)
+
+    @property
+    def queryurl(self):
+        """
+        The URL that encodes the current query. This is the
+        URL that the execute functions will use if called next.
+        """
+        return self.baseurl
+
+    def _votableparse(self, fobj):
+        """
+        takes a file like object and returns a VOTable instance
+        override in subclasses for service specifica.
+        """
+        return votableparse(fobj, _debug_python_based_parser=True)
+
+
+class DALResults(object):
+    """
+    Results from a DAL query.  It provides random access to records in
+    the response.  Alternatively, it can provide results via a Cursor
+    (compliant with the Python Database API) or an iterable.
+    """
+
+    def __init__(self, votable, url=None):
+        """
+        initialize the cursor.  This constructor is not typically called 
+        by directly applications; rather an instance is obtained from calling 
+        a DALQuery's execute().
+
+        Parameters
+        ----------
+        votable : str
+           the service response parsed into an
+           astropy.io.votable.tree.VOTableFile instance.
+        url : str
+           the URL that produced the response
+
+        Raises
+        ------
+        DALFormatError
+           if the response VOTable does not contain a response table
+
+        See Also
+        --------
+        DALFormatError
+        """
+        self._url = url
+        self._status = self._findstatus(votable)
+        if self._status[0].upper() not in ("OK", "OVERFLOW"):
+            raise DALQueryError(self._status[1], self._status[0], url)
+
+        self.votable = self._findresultstable(votable)
+        if not self.votable:
+            raise DALFormatError(
+                reason="VOTable response missing results table", url=url)
+
+        self._fldnames = [field.name for field in self.votable.fields]
+        if not self._fldnames:
+            raise DALFormatError(
+                reason="response table missing column descriptions.", url=url)
+
+        self._infos = self._findinfos(votable)
+
+    def _findresultstable(self, votable):
+        # this can be overridden to specialize for a particular DAL protocol
+        res = self._findresultsresource(votable)
+        if not res or len(res.tables) < 1:
+            return None
+        return res.tables[0]
+
+    def _findresultsresource(self, votable):
+        # this can be overridden to specialize for a particular DAL protocol
+        if len(votable.resources) < 1:
+            return None
+        for res in votable.resources:
+            if res.type.lower() == "results":
+                return res
+        return votable.resources[0]
+
+    def _findstatus(self, votable):
+        # this can be overridden to specialize for a particular DAL protocol
+        
+        # look first in the result resource
+        res = self._findresultsresource(votable)
+        if res:
+            # should be a RESOURCE/INFO
+            info = self._findstatusinfo(res.infos)
+            if info:
+                return (info.value, info.content)
+
+            # if not there, check inside first table
+            if len(res.tables) > 0:
+                info = self._findstatusinfo(res.tables[0].infos)
+                if info:
+                    return (info.value, info.content)
+
+        # otherwise, look just below the root element
+        info = self._findstatusinfo(votable.infos)
+        if info:
+            return (info.value, info.content)
+
+        # assume it's okay
+        return ("OK", "QUERY_STATUS not specified")
+
+    def _findstatusinfo(self, infos):
+        # this can be overridden to specialize for a particular DAL protocol
+        for info in infos:
+            if info.name == "QUERY_STATUS":
+                return info
+
+    def _findinfos(self, votable):
+        # this can be overridden to specialize for a particular DAL protocol
+        infos = {}
+        res = self._findresultsresource(votable)
+        for info in res.infos:
+          infos[info.name] = info.value
+        for info in votable.infos:
+          infos[info.name] = info.value
+        return infos
+
+    @property
+    def queryurl(self):
+        """
+        the URL query that produced these results.  None is returned if unknown
+        """
+        return self._url
+
+    @property
+    def table(self):
+        """
+        the astropy table object
+        """
+        return self.votable.to_table()
+
+    def __len__(self):
+        """
+        return the record count
+        """
+        return len(self.table)
+
+    def __getitem__(self, indx):
+        """
+        if indx is a string, r[indx] will return the field with the name of 
+        indx; if indx is an integer, r[indx] will return the indx-th record.  
+        """
+        if isinstance(indx, int):
+            return self.getrecord(indx)
+        else:
+            return self.getcolumn(indx)
+
+    @property
+    def fieldnames(self):
+        """
+        return the names of the columns.  These are the names that are used 
+        to access values from the dictionaries returned by getrecord().  They 
+        correspond to the column name.
+        """
+        return self._fldnames[:]
+
+    @property
+    def fielddescs(self):
+        """
+        return the full metadata the columns as a list of Field instances,
+        a simple object with attributes corresponding the the VOTable FIELD
+        attributes, namely: name, id, type, ucd, utype, arraysize, description
+        """
+        return self.votable.fields
+
+    def fieldname_with_ucd(self, ucd):
+        """
+        return the field name that has a given UCD value or None if the UCD 
+        is not found.
+        """
+        try:
+            iterchain = (
+                self.getdesc(fieldname) for fieldname in self.fieldnames)
+            iterchain = (field for field in iterchain if field.ucd == ucd)
+            return next(iterchain).name
+        except StopIteration:
+            return None
+
+    def fieldname_with_utype(self, utype):
+        """
+        return the field name that has a given UType value or None if the UType 
+        is not found.
+        """
+        try:
+            iterchain = (
+                self.getdesc(fieldname) for fieldname in self.fieldnames)
+            iterchain = (field for field in iterchain if field.utype == utype)
+            return next(iterchain).name
+        except StopIteration:
+            return None
+
+    def getcolumn(self, name):
+        """
+        return a numpy array containing the values for the column with the 
+        given name
+        """
+        if name not in self.fieldnames:
+            raise KeyError("No such column name: " + name)
+        return self.votable.array[name]
+
+    def getrecord(self, index):
+        """
+        return a representation of a result record that follows dictionary
+        semantics.  The keys of the dictionary are those returned by this
+        instance's fieldnames attribute.The returned record may have additional
+        accessor methods for getting at stardard DAL response metadata
+        (e.g. ra, dec).
+
+        Parameters
+        ----------
+        index : int
+           the integer index of the desired record where 0 returns the first 
+           record
+
+        Returns
+        -------
+        Record
+           a dictionary-like wrapper containing the result record metadata.
+
+        Raises
+        ------
+        IndexError  
+           if index is negative or equal or larger than the number of rows in 
+           the result table.
+
+        See Also
+        --------
+        Record
+        """
+        return Record(self, index)
+
+    def getvalue(self, name, index):
+        """
+        return the value of a record attribute--a value from a column and row.
+
+        Parameters
+        ----------
+        name : str
+           the name of the attribute (column)
+        index : int
+           the zero-based index of the record
+
+        Raises
+        ------
+        IndexError  
+           if index is negative or equal or larger than the 
+           number of rows in the result table.
+        KeyError    
+           if name is not a recognized column name
+        """
+        return self.getrecord(index)[name]
+
+    def getdesc(self, name):
+        """
+        return the field description for the record attribute (column) with 
+        the given name
+
+        Parameters
+        ----------
+        name : str
+           the name of the attribute (column), chosen from those in fieldnames()
+
+        Returns
+        -------
+        object   
+           with attributes (name, id, datatype, unit, ucd, utype, arraysize) 
+           which describe the column
+
+        """
+        if name not in self._fldnames:
+            raise KeyError(name)
+        return self.votable.get_field_by_id_or_name(name)
+
+    def __iter__(self):
+        """
+        return a python iterable for stepping through the records in this
+        result
+        """
+        def _iter(res):
+            pos = 0
+
+            while True:
+                try:
+                    out = res.getrecord(pos)
+                except IndexError:
+                    break
+
+                yield out
+                pos += 1
+
+        return _iter(self)
+
+    def cursor(self):
+        """
+        return a cursor that is compliant with the Python Database API's 
+        :class:`.Cursor` interface.  See PEP 249 for details.  
+        """
+        from .dbapi2 import Cursor
+        return Cursor(self)
+
+
 class Record(dict):
     """
     one record from a DAL query result.  The column values are accessible 
@@ -58,42 +613,46 @@ class Record(dict):
     additional functions for access to service type-specific data.
     """
 
-    def __init__(self, results, index, fielddesc=None):
-        self._fdesc = fielddesc
-        if not self._fdesc: 
-            self._fdesc = {}
-
-        if fielddesc is None:
-            for fld in results.fieldnames():
-                self._fdesc[fld] = results.getdesc(fld)
+    def __init__(self, results, index):
+        self._results = results
 
         super(Record, self).__init__()
 
         self.update(zip(
-            results.fieldnames(),
+            results.fieldnames,
             results.votable.array.data[index]
         ))
 
-    def get_str(self, key, default=None):
-        # Needed for python3 support, this will convert to a native string 
-        # if it is not already
-        try:
-            out = self.__getitem__(key)
-        except KeyError:
-            return default
+    def get(self, key, default=None, decode=False):
+        """
+        This method mimics the dict get method and adds a decode parameter
+        to allow decoding of binary strings.
+        """
+        out = super(Record, self).get(key, default)
 
-        if type(out) == six.binary_type:
+        if decode and type(out) == six.binary_type:
             out = out.decode('utf-8')
 
         return out
 
-    def fielddesc(self, name):
+    def getbyucd(self, ucd, default=None, decode=False):
         """
-        return an object with attributes (name, id, datatype, unit, ucd, 
-        utype, arraysize) that describe the record attribute with the given 
-        name.  
+        return the column with the given ucd.
         """
-        return self._fdesc[name]
+        return self.get(
+            self._results.fieldname_with_ucd(ucd), default, decode)
+
+    def getbyutype(self, utype, default=None, decode=False):
+        """
+        return the column with the given utype.
+
+        Raises
+        ------
+        KeyError
+            if theres no column with the given utype.
+        """
+        return self.get(
+            self._results.fieldname_with_utype(utype), default, decode)
 
     def getdataurl(self):
         """
@@ -101,11 +660,12 @@ class Record(dict):
         to retrieve the dataset described by this record.  None is returned
         if no such column exists.
         """
-        for name,fld in self._fdesc.items():
-            if (fld.utype and "Access.Reference" in fld.utype) or \
-               (fld.ucd   and "meta.dataset" in fld.ucd 
-                          and "meta.ref.url" in fld.ucd):
-                out = self[name]
+        for fieldname in self._results.fieldnames.items():
+            field = self._results.getdesc(fieldname)
+            if (field.utype and "Access.Reference" in field.utype) or \
+               (field.ucd   and "meta.dataset" in field.ucd
+                          and "meta.ref.url" in field.ucd):
+                out = self[fieldname]
                 if type(out) == six.binary_type:
                     out = out.decode('utf-8')
                 return out
@@ -291,675 +851,6 @@ class Record(dict):
         """
         # abstract; specialized for the different service types
         return default
-
-
-class DALResults(object):
-    """
-    Results from a DAL query.  It provides random access to records in 
-    the response.  Alternatively, it can provide results via a Cursor 
-    (compliant with the Python Database API) or an iterable.
-    """
-
-    RECORD_CLASS = Record
-
-    def __init__(self, votable, url=None, protocol=None, version=None):
-        """
-        initialize the cursor.  This constructor is not typically called 
-        by directly applications; rather an instance is obtained from calling 
-        a DALQuery's execute().
-
-        Parameters
-        ----------
-        votable : str
-           the service response parsed into an
-           astropy.io.votable.tree.VOTableFile instance.
-        url : str
-           the URL that produced the response
-        protocol : str
-           the name of the protocol that this response (supposedly) complies with
-        version : str
-           the version of the protocol that this response (supposedly) complies 
-           with
-
-        Raises
-        ------
-        DALFormatError
-           if the response VOTable does not contain a response table
-
-        See Also
-        --------
-        DALFormatError
-        """
-        self._url = url
-        self._protocol = protocol
-        self._version = version
-        self._status = self._findstatus(votable)
-        if self._status[0] != "OK":
-            raise DALQueryError(self._status[1], self._status[0], url,
-                                self.protocol, self.version)
-
-        self.votable = self._findresultstable(votable)
-        if not self.votable:
-            raise DALFormatError(reason="VOTable response missing results table",
-                                 url=self._url)
-        self._fldnames = []
-        for field in self.fielddesc():
-            self._fldnames.append(field.name)
-
-        if len(self._fldnames) == 0:
-            raise DALFormatError(reason="response table missing column " +
-                                 "descriptions.", url=self._url,
-                                protocol=self.protocol, version=self.version)
-
-        self._infos = self._findinfos(votable)
-
-    def _findresultstable(self, votable):
-        # this can be overridden to specialize for a particular DAL protocol
-        res = self._findresultsresource(votable)
-        if not res or len(res.tables) < 1:
-            return None
-        return res.tables[0]
-
-    def _findresultsresource(self, votable):
-        # this can be overridden to specialize for a particular DAL protocol
-        if len(votable.resources) < 1:
-            return None
-        for res in votable.resources:
-            if res.type.lower() == "results":
-                return res
-        return votable.resources[0]
-
-    def _findstatus(self, votable):
-        # this can be overridden to specialize for a particular DAL protocol
-        
-        # look first in the result resource
-        res = self._findresultsresource(votable)
-        if res:
-            # should be a RESOURCE/INFO
-            info = self._findstatusinfo(res.infos)
-            if info:
-                return (info.value, info.content)
-
-            # if not there, check inside first table
-            if len(res.tables) > 0:
-                info = self._findstatusinfo(res.tables[0].infos)
-                if info:
-                    return (info.value, info.content)
-
-        # otherwise, look just below the root element
-        info = self._findstatusinfo(votable.infos)
-        if info:
-            return (info.value, info.content)
-
-        # assume it's okay
-        return ("OK", "QUERY_STATUS not specified")
-
-    def _findstatusinfo(self, infos):
-        # this can be overridden to specialize for a particular DAL protocol
-        for info in infos:
-            if info.name == "QUERY_STATUS":
-                return info
-
-    def _findinfos(self, votable):
-        # this can be overridden to specialize for a particular DAL protocol
-        infos = {}
-        res = self._findresultsresource(votable)
-        for info in res.infos:
-          infos[info.name] = info.value
-        for info in votable.infos:
-          infos[info.name] = info.value
-        return infos
-
-                
-    @property
-    def protocol(self):
-        """
-        The service protocol which generated this query response (read-only).
-        """
-        return self._protocol
-
-    @property
-    def version(self):
-        """
-        The version of the service protocol which generated this query response
-        (read-only).
-        """
-        return self._version
-
-    @property
-    def queryurl(self):
-        """
-        the URL query that produced these results.  None is returned if unknown
-        """
-        return self._url
-
-    @property
-    def nrecs(self):
-        """
-        the number of records returned in this result (read-only)
-        """
-        return len(self.votable.to_table())
-
-    @property
-    def table(self):
-        """
-        the astropy table object
-        """
-        return self.votable.to_table()
-
-    def __len__(self):
-        """
-        return the value of the nrecs property
-        """
-        return self.nrecs
-
-    def __getitem__(self, indx):
-        """
-        if indx is a string, r[indx] will return the field with the name of 
-        indx; if indx is an integer, r[indx] will return the indx-th record.  
-        """
-        if isinstance(indx, int):
-            return self.getrecord(indx)
-        else:
-            return self.getcolumn(indx)
-
-    def fielddesc(self):
-        """
-        return the full metadata for a column as Field instance, a simple 
-        object with attributes corresponding the the VOTable FIELD attributes,
-        namely: name, id, type, ucd, utype, arraysize, description
-        """
-        return self.votable.fields
-
-    def fieldnames(self):
-        """
-        return the names of the columns.  These are the names that are used 
-        to access values from the dictionaries returned by getrecord().  They 
-        correspond the ID of the column, if it is set, or otherwise to the 
-        column name.
-        """
-        return self._fldnames[:]
-
-    def fieldname_with_ucd(self, ucd):
-        """
-        return the field name that has a given UCD value or None if the UCD 
-        is not found.  None is also returned if the UCD is None or an empty 
-        stirng
-        """
-        if not ucd: return None
-
-        for fld in self.fieldnames():
-            desc = self.getdesc(fld)
-            if desc.ucd == ucd:
-                return fld
-
-        return None
-
-    def fieldname_with_utype(self, utype):
-        """
-        return the field name that has a given UType value or None if the UType 
-        is not found.  None is also returned if UType is None or an empty stirng
-        """
-        if not utype: return None
-
-        for fld in self.fieldnames():
-            desc = self.getdesc(fld)
-            if desc.utype == utype:
-                return fld
-
-        return None
-
-    def getcolumn(self, name):
-        """
-        return a numpy array containing the values for the column with the 
-        given name
-        """
-        if name not in self.fieldnames():
-            raise ValueError("No such column name: " + name)
-        return self.votable.array[name]
-
-    def getrecord(self, index):
-        """
-        return a representation of a result record that follows dictionary
-        semantics.  The keys of the dictionary are those returned by this
-        instance's fieldNames() function: either the column IDs or name, if 
-        the ID is not set.  The returned record may have additional accessor 
-        methods for getting at stardard DAL response metadata (e.g. ra, dec).
-
-        Parameters
-        ----------
-        index : int
-           the integer index of the desired record where 0 returns the first 
-           record
-
-        Returns
-        -------
-        Record
-           a dictionary-like wrapper containing the result record metadata.
-
-        Raises
-        ------
-        IndexError  
-           if index is negative or equal or larger than the number of rows in 
-           the result table.
-
-        See Also
-        --------
-        Record
-        """
-        return self.RECORD_CLASS(self, index)
-
-    def getvalue(self, name, index):
-        """
-        return the value of a record attribute--a value from a column and row.
-
-        Parameters
-        ----------
-        name : str
-           the name of the attribute (column)
-        index : int
-           the zero-based index of the record
-
-        Raises
-        ------
-        IndexError  
-           if index is negative or equal or larger than the 
-           number of rows in the result table.
-        KeyError    
-           if name is not a recognized column name
-        """
-        return self.votable.array[name][index]
-
-    def getdesc(self, name):
-        """
-        return the field description for the record attribute (column) with 
-        the given name
-
-        Parameters
-        ----------
-        name : str
-           the name of the attribute (column), chosen from those in fieldnames()
-
-        Returns
-        -------
-        object   
-           with attributes (name, id, datatype, unit, ucd, utype, arraysize) 
-           which describe the column
-
-        """
-        if name not in self._fldnames:
-            raise KeyError(name)
-        return self.votable.get_field_by_id_or_name(name)
-
-    def __iter__(self):
-        """
-        return a python iterable for stepping through the records in this
-        result
-        """
-        return Iter(self)
-
-    def cursor(self):
-        """
-        return a cursor that is compliant with the Python Database API's 
-        :class:`.Cursor` interface.  See PEP 249 for details.  
-        """
-        from .dbapi2 import Cursor
-        return Cursor(self)
-
-
-class DALQuery(dict):
-    """
-    a class for preparing a query to a particular service.  Query constraints
-    are added via its service type-specific methods. The various execute()
-    functions will submit the query and return the results.  
-
-    The base URL for the query can be changed via the baseurl property.
-    """
-
-    RESULTS_CLASS = DALResults
-
-    _ex = None
-
-    std_parameters = [ ]
-
-    def __init__(self, baseurl, protocol=None, version=None):
-        """
-        initialize the query object with a baseurl
-        """
-        self._baseurl = baseurl.rstrip("?")
-        self._protocol = protocol
-        self._version = version
-
-    @property
-    def baseurl(self):
-        """
-        the base URL that this query will be sent to when one of the 
-        execute functions is called. 
-        """
-        return self._baseurl
-    @baseurl.setter
-    def baseurl(self, baseurl):
-        self._baseurl = baseurl
-
-    @property
-    def protocol(self):
-        """
-        The service protocol supported by this query object (read-only).
-        """
-        return self._protocol
-
-    @property
-    def version(self):
-        """
-        The version of the service protocol supported by this query object
-        (read-only).
-        """
-        return self._version
-
-    def execute(self):
-        """
-        submit the query and return the results as a Results subclass instance
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError   
-           for errors either in the input query syntax or 
-           other user errors detected by the service
-        DALFormatError  
-           for errors parsing the VOTable response
-        """
-        return self.RESULTS_CLASS(self.execute_votable(), self.getqueryurl())
-
-    def execute_raw(self):
-        """
-        submit the query and return the raw VOTable XML as a string.
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError
-           for errors in the input query syntax
-        """
-        f = self.execute_stream()
-        out = None
-        try:
-            out = f.read()
-        finally:
-            f.close()
-        return out
-
-    def execute_stream(self):
-        """
-        Submit the query and return the raw VOTable XML as a file stream.
-        No exceptions are raised here because non-2xx responses might still
-        contain payload.
-        """
-        r = self.submit()
-
-        try:
-            r.raise_for_status()
-        except requests.RequestException as ex:
-            # save for later use
-            self._ex = ex
-        finally:
-            return r.raw
-
-    def submit(self):
-        """
-        does the actual request
-        """
-        def urlify_param(param):
-            if type(param) in (list, tuple):
-                return ",".join(map(str, param))
-            else:
-                return param
-
-        url = self.getqueryurl()
-        params = {k: urlify_param(v) for k, v in self.items()}
-
-        r = requests.get(url, params = params, stream = True)
-        r.raw.read = functools.partial(r.raw.read, decode_content=True)
-        return r
-
-    def execute_votable(self):
-        """
-        Submit the query and return the results as an AstroPy votable instance.
-        As this is the level where qualified error messages are available,
-        they are raised here instead of in the underlying execute_stream.
-
-        Returns
-        -------
-        astropy.io.votable.tree.Table
-           an Astropy votable Table instance
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALFormatError
-           for errors parsing the VOTable response
-        DALQueryError
-           for errors in the input query syntax
-
-        See Also
-        --------
-        astropy.io.votable
-        DALServiceError
-        DALFormatError
-        DALQueryError
-        """
-        try:
-            return votableparse(self.execute_stream().read)
-        except DALAccessError:
-            raise
-        except Exception as e:
-            if self._ex:
-                e = self._ex
-                raise DALServiceError(
-                    str(e), e.response.status_code, e, self.getqueryurl(),
-                    self.protocol, self.version)
-            else:
-                raise DALServiceError.from_except(
-                    e, self.getqueryurl(), self.protocol, self.version)
-
-
-    def getqueryurl(self):
-        """
-        return the GET URL that encodes the current query.  This is the 
-        URL that the execute functions will use if called next.  
-
-        Returns
-        -------
-        str
-           the encoded query URL
-
-        Parameters
-        ----------
-        lax : bool
-           if False (default), a DALQueryError exception will be 
-           raised if the current set of parameters cannot be 
-           used to form a legal query.  This implementation does 
-           no syntax checking; thus, this argument is ignored.
-
-        Raises
-        ------
-        DALQueryError
-           when lax=False, for errors in the input query syntax
-
-        See Also
-        --------
-        DALQueryError
-
-        """
-        return self.baseurl
-
-
-class DALService(object):
-    """
-    an abstract base class representing a DAL service located a particular 
-    endpoint.
-    """
-
-    QUERY_CLASS = DALQuery
-
-    def __init__(self, baseurl, protocol=None, version=None, resmeta=None):
-        """
-        instantiate the service connecting it to a base URL
-
-        Parameters
-        ----------
-        baseurl :  str 
-           the base URL that should be used for forming queries to the service.
-        protocol : str
-           The protocol implemented by the service, e.g., "scs", "sia",
-           "ssa", and so forth.
-        version : str
-           The protocol version, e.g, "1.0", "1.2", "2.0".
-        resmeta : dict
-           a dictionary containing resource metadata describing the 
-           service.  This is usually provided a registry record.
-        """
-        self._baseurl = baseurl
-        self._protocol = protocol
-        self._version = version
-        self._info = {}
-        if resmeta and hasattr(resmeta, "__getitem__"):
-            # since this might be (rather, is likely) a Record object, we need 
-            # to hand copy it (as the astropy votable bits won't deepcopy).
-            for key in resmeta.keys():
-                self._info[key] = resmeta[key]  # assuming immutable values
-
-    @property
-    def baseurl(self):
-        """
-        the base URL identifying the location of the service and where 
-        queries are submitted (read-only)
-        """
-        return self._baseurl
-
-    @property
-    def protocol(self):
-        """
-        The service protocol implemented by the service (read-only).
-        """
-        return self._protocol
-
-    @property
-    def version(self):
-        """
-        The version of the service protocol implemented by the service read-only).
-        """
-        return self._version
-
-    @property
-    def info(self):
-        """
-        an optional dictionary of resource metadata that describes the 
-        service.  This is generally information stored in a VO registry.  
-        """
-        return self._info
-
-    def search(self, **keywords):
-        """
-        send a search query to this service.  
-
-        This implementation has no knowledge of the type of service being 
-        queried.  The query parameters are given as arbitrary keywords which 
-        will be assumed to be understood by the service (i.e. there is no
-        argument checking).  The response is a generic DALResults object.  
-
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError  
-           for errors either in the input query syntax or other user errors 
-           detected by the service
-        DALFormatError  
-           for errors parsing the VOTable response
-        """
-        q = self.create_query(**keywords)
-        return q.execute()
-
-    def create_query(self, **keywords):
-        """
-        create a query object that constraints can be added to and then 
-        executed.
-
-        Returns
-        -------
-        DALQuery
-           a generic query object
-        """
-        # this must be overridden to return a Query subclass appropriate for 
-        # the service type
-        q = self.QUERY_CLASS(self.baseurl, self.protocol, self.version)
-        q.update(keywords)
-        return q
-
-    def describe(self, verbose=False, width=78, file=None):
-        """
-        Print a summary description of this service.  
-
-        At a minimum, this will include the service protocol and 
-        base URL.  If there is metadata associated with this service, 
-        the summary will include other information, such as the 
-        service title and description.
-
-        Parameters
-        ----------
-        verbose : bool
-            If false (default), only user-oriented information is 
-            printed; if true, additional information will be printed
-            as well.
-        width : int
-            Format the description with given character-width.
-        file : writable file-like object
-            If provided, write information to this output stream.
-            Otherwise, it is written to standard out.  
-        """
-        if not file:
-            file = sys.stdout
-        print("{0} v{1} Service".format(self.protocol.upper(), self.version))
-        if self.info.get("title"):
-            print(para_format_desc(self.info["title"]), file=file)
-        if self.info.get("shortName"):
-            print("Short Name: " + self.info["shortName"], file=file)
-        if self.info.get("publisher"):
-            print(para_format_desc("Publisher: " + self.info["publisher"]), 
-                  file=file)
-        if self.info.get("identifier"):
-            print("IVOA Identifier: " + self.info["identifier"], file=file)
-        print("Base URL: " + self.baseurl, file=file)
-
-        if self.info.get("description"):
-            print(file=file)
-            print(para_format_desc(self.info["description"]), file=file)
-            print(file=file)
-
-        if self.info.get("subjects"):
-            val = self.info.get("subjects")
-            if not hasattr(val, "__getitem__"):
-                val = [val]
-            val = (str(v) for v in val)
-            print(para_format_desc("Subjects: " + ", ".join(val)), file=file)
-        if self.info.get("waveband"):
-            val = self.info.get("waveband")
-            if not hasattr(val, "__getitem__"):
-                val = [val]
-            val = (str(v) for v in val)
-            print(para_format_desc("Waveband Coverage: " + ", ".join(val)), 
-                  file=file)
-
-        if verbose:
-            if self.info.get("capabilityStandardID"):
-                print("StandardID: " + self.info["capabilityStandardID"], 
-                      file=file)
-            if self.info.get("referenceURL"):
-                print("More info: " + self.info["referenceURL"], file=file)
 
 
 class Iter(object):
@@ -1196,7 +1087,7 @@ class DALAccessError(Exception):
     """
     _defreason = "Unknown service access error"
 
-    def __init__(self, reason=None, url=None, protocol=None, version=None):
+    def __init__(self, reason=None, url=None):
         """
         initialize the exception with an error message
 
@@ -1206,17 +1097,11 @@ class DALAccessError(Exception):
            a message describing the cause of the error
         url : str
            the query URL that produced the error
-        protocol : str
-           the label indicating the type service that produced the error
-        version : str
-           version of the protocol of the service that produced the error
         """
         if not reason: reason = self._defreason
         super(DALAccessError, self).__init__(reason)
         self._reason = reason
         self._url = url
-        self._protocol = protocol
-        self._version = version
 
     @classmethod
     def _typeName(cls, exc):
@@ -1234,13 +1119,6 @@ class DALAccessError(Exception):
         a string description of what went wrong
         """
         return self._reason
-    @reason.setter
-    def reason(self, val):
-        if val is None: val = self._defreason
-        self._reason = val
-    @reason.deleter
-    def reason(self):
-        self._reason = self._defreason
 
     @property
     def url(self):
@@ -1248,38 +1126,6 @@ class DALAccessError(Exception):
         the URL that produced the error.  If None, the URL is unknown or unset
         """
         return self._url
-    @url.setter
-    def url(self, val):
-        self._url = val
-    @url.deleter
-    def url(self):
-        self._url = None
-
-    @property
-    def protocol(self):
-        """
-        A label indicating the type service that produced the error
-        """
-        return self._protocol
-    @protocol.setter
-    def protocol(self, protocol):
-        self._protocol = protocol
-    @protocol.deleter
-    def protocol(self):
-        self._protocol = None
-
-    @property
-    def version(self):
-        """
-        The version of the protocol of the service that produced the error
-        """
-        return self._version
-    @version.setter
-    def version(self, version):
-        self._version = version
-    @version.deleter
-    def version(self):
-        self._version = None
 
 
 class DALProtocolError(DALAccessError):
@@ -1292,8 +1138,7 @@ class DALProtocolError(DALAccessError):
     """
     _defreason = "Unknown DAL Protocol Error"
 
-    def __init__(self, reason=None, cause=None, url=None, 
-                 protocol=None, version=None):
+    def __init__(self, reason=None, cause=None, url=None):
         """
         initialize with a string message and an optional HTTP response code
 
@@ -1309,12 +1154,8 @@ class DALProtocolError(DALAccessError):
            caught.
         url : str
            the query URL that produced the error
-        protocol : str
-           the label indicating the type service that produced the error
-        version : str
-           version of the protocol of the service that produced the error
         """
-        super(DALProtocolError, self).__init__(reason, url, protocol, version)
+        super(DALProtocolError, self).__init__(reason, url)
         self._cause = cause
 
     @property
@@ -1323,13 +1164,6 @@ class DALProtocolError(DALAccessError):
         a string description of what went wrong
         """
         return self._cause
-    @cause.setter
-    def cause(self, val):
-        self._cause = val
-    @cause.deleter
-    def cause(self):
-        self._cause = None
-
 
 class DALFormatError(DALProtocolError):
     """
@@ -1338,8 +1172,7 @@ class DALFormatError(DALProtocolError):
     """
     _defreason = "Unknown VOTable Format Error"
 
-    def __init__(self, cause=None, url=None, reason=None, 
-                 protocol=None, version=None):
+    def __init__(self, cause=None, url=None, reason=None):
         """
         create the exception
 
@@ -1353,16 +1186,12 @@ class DALFormatError(DALProtocolError):
            the query URL that produced the error
         reason
            a message describing the cause of the error
-        protocol
-           the label indicating the type service that produced the error
-        version
-           version of the protocol of the service that produced the error
         """
         if cause and not reason:  
             reason = "{0}: {0}".format(DALAccessError._typeName(cause), 
                                        str(cause))
-        super(DALFormatError, self).__init__(reason, cause, url, 
-                                             protocol, version)
+
+        super(DALFormatError, self).__init__(reason, cause, url)
 
 
 class DALServiceError(DALProtocolError):
@@ -1373,8 +1202,7 @@ class DALServiceError(DALProtocolError):
     """
     _defreason = "Unknown service error"
     
-    def __init__(self, reason=None, code=None, cause=None, url=None, 
-                 protocol=None, version=None):
+    def __init__(self, reason=None, code=None, cause=None, url=None):
         """
         initialize with a string message and an optional HTTP response code
 
@@ -1390,13 +1218,8 @@ class DALServiceError(DALProtocolError):
            caught.
         url : str
            the query URL that produced the error
-        protocol : str
-           the label indicating the type service that produced the error
-        version : str
-           version of the protocol of the service that produced the error
         """
-        super(DALServiceError, self).__init__(reason, cause, url, 
-                                              protocol, version)
+        super(DALServiceError, self).__init__(reason, cause, url)
         self._code = code
 
     @property
@@ -1407,15 +1230,9 @@ class DALServiceError(DALProtocolError):
         response.
         """
         return self._code
-    @code.setter
-    def code(self, val):
-        self._code = val
-    @code.deleter
-    def code(self):
-        self._code = None
 
     @classmethod
-    def from_except(cls, exc, url=None, protocol=None, version=None):
+    def from_except(cls, exc, url=None):
         """
         create and return DALServiceError exception appropriate
         for the given exception that represents the underlying cause.
@@ -1427,13 +1244,11 @@ class DALServiceError(DALProtocolError):
             except AttributeError:
                 code = 0
 
-            return DALServiceError(
-                message, code, exc, url, protocol, version)
+            return DALServiceError(message, code, exc, url)
         elif isinstance(exc, Exception):
             return DALServiceError("{0}: {1}".format(cls._typeName(exc), 
                                                      str(exc)), 
-                                   cause=exc, url=url, 
-                                   protocol=protocol, version=version)
+                                   cause=exc, url=url)
         else:
             raise TypeError("from_except: expected Exception")
 
@@ -1448,8 +1263,7 @@ class DALQueryError(DALAccessError):
     """
     _defreason = "Unknown DAL Query Error"
 
-    def __init__(self, reason=None, label=None, url=None, 
-                 protocol=None, version=None):
+    def __init__(self, reason=None, label=None, url=None):
         """
         Parameters
         ----------
@@ -1462,12 +1276,8 @@ class DALQueryError(DALAccessError):
            VOTable response that describes the error.
         url : str
            the query URL that produced the error
-        protocol : str
-           the label indicating the type service that produced the error
-        version : str
-           version of the protocol of the service that produced the error
         """
-        super(DALQueryError, self).__init__(reason, url, protocol, version)
+        super(DALQueryError, self).__init__(reason, url)
         self._label = label
                           
     @property
@@ -1480,12 +1290,6 @@ class DALQueryError(DALAccessError):
         the INFO's value attribute.  
         """
         return self._label
-    @label.setter
-    def label(self, val):
-        self._label = val
-    @label.deleter
-    def label(self):
-        self._label = None
 
 # routines used by DALService describe to format metadata
 

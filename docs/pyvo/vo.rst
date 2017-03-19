@@ -66,10 +66,7 @@ is simply searching a catalog for its records.  Currently, PyVO
 supports querying three types of catalog services: 
 
 * `Simple Cone Search (SCS) <http://www.ivoa.net/documents/latest/ConeSearch.html>`_ 
-  -- a service for searching a source catalog or an observation log.
-  In particular, you can ask such for all sources or observations
-  whose positions within some distance of a particular position of the
-  sky.  
+  -- a service for positional searching a source catalog or an observation log.
 * `Simple Line Access (SLAP) <http://www.ivoa.net/documents/SLAP/>`_ 
   -- a service for finding data about spectral lines, including their
   rest frequencies. 
@@ -102,5 +99,5 @@ aware exists or is available.  Imagine for example that you want to
 find all image data available of your favorite source.  You would
 first query the registry to find all image archives; you could
 then systematically search all of those archive for images overlapping
-the position of your source.  You might further downseelct the list of
+the position of your source.  You might further downselect the list of
 images based on the image metadata returned.  

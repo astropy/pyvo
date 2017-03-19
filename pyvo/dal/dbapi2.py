@@ -113,11 +113,11 @@ class Cursor(Iter):
         """
         super(Cursor, self).__init__(results)
         self._description = self._mkdesc()
-        self._rowcount = self.resultset.nrecs
+        self._rowcount = len(self.resultset)
         self._arraysize = 1
 
     def _mkdesc(self):
-        flds = self.resultset.fieldnames()
+        flds = self.resultset.fieldnames
         out = []
         for name in flds:
             fld = self.resultset.getdesc(name)
@@ -182,7 +182,7 @@ class Cursor(Iter):
         try:
             rec = self.next()
             out = []
-            for name in self.resultset.fieldnames():
+            for name in self.resultset.fieldnames:
                 out.append(rec[name])
             return out
         except StopIteration:

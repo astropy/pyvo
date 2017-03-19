@@ -17,6 +17,5 @@ Virtual Observatory (VO) using Python.
    getting_started
    data_access
    registry_access
-   resolve_names
    ref
 

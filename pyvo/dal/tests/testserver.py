@@ -6,9 +6,6 @@ a test DAL server for testing pyvo.dal
 from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
-# this gets around a bug in astropy 0.2.4 (needed for python3 support)
-#from ... import dal
-
 import os
 import multiprocessing
 import requests
@@ -27,7 +24,7 @@ template_folder = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     "data"
 )
-app = Flask(__name__, template_folder = template_folder)
+app = Flask(__name__, template_folder=template_folder)
 
 @app.route("/err")
 def send_err():
@@ -95,7 +92,7 @@ def find_available_port(baseport=8081, limit=8181, step=1):
 
 def get_server(baseport=8081, limit=8181, step=1):
     port = find_available_port(baseport, limit, step)
-    process = multiprocessing.Process(target = app.run, kwargs={
+    process = multiprocessing.Process(target=app.run, kwargs={
         "port": port
     })
     process.port = port

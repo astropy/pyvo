@@ -12,31 +12,33 @@ archives for data using the standard VO interfaces.
 
 Four types of data access services are currently supported by PyVO:
 
-* `Simple Image Access (SIA) <http://www.ivoa.net/documents/SIA/>`_ --
-  an interface for finding images in an archive
-* `Simple Spectral Access (SSA) <http://www.ivoa.net/documents/SSA/>`_
+* `Simple Image Access (SIA) <#data-access-sia>`_
+  -- an interface for finding images in an archive
+* `Simple Spectral Access (SSA) <#data-access-ssa>`_
   -- finding spectra in an archive
-* `Simple Cone Search (SCS) <http://www.ivoa.net/documents/latest/ConeSearch.html>`_
-  -- for searching within a remote source catalog or an observation log.
-  In particular, you can ask such for all sources or observations
-  whose positions within some distance of a particular position of the
-  sky.
-* `Simple Line Access (SLAP) <http://www.ivoa.net/documents/SLAP/>`_
-  -- finding data about spectral lines, including their
-  rest frequencies.
-* `Table Access Protocol (TAP)`_
-  -- accessing remote source and observation catalogs.
-
+* `Simple Cone Search (SCS) <#data-access-scs>`_
+  -- for positional searching a source catalog or an observation log.
+* `Simple Line Access (SLAP) <#data-access-sla>`_
+  -- finding data about spectral lines, including their rest frequencies.
+* `Table Access Protocol (TAP) <#data-access-tap>`_
+  -- accessing source catalogs using custom search parameters.
 
 The sub-sections below look at the PyVO interface for each type of
-service in more detail.  You will find the interfaces have a common
+service in more detail.
+
+You will find the interfaces have a common
 design and thus behave in the same way.
+
+Common parameters like `pos` and `size` accept
+`~astropy.coordinates.SkyCoord` or `~astropy.units.Quantity` instances as well
+as scalar or sequences of floats. For simplicity, we show the usage of the
+latter in this section.
 
 .. _data-access-sia:
 
-=====================================================
-Simple Image Access and the Common Interface Features
-=====================================================
+=========================
+Simple Image Access (SIA)
+=========================
 
 In this section, we will examine the API for finding images in an
 archive while as well as highlight the parts of the interface that is
@@ -131,8 +133,7 @@ results.
 A service may support more search parameters than just the ones names
 as arguments to the :py:func:`~pyvo.imagesearch` function.  Some
 parameters correspond to ones defined by the `SIA standard`_ but are
-used less often.  (The list of standard parameter names are listed in
-:py:attr:`SIAResults.std_parameters <pyvo.dal.sia.SIAResults.std_parameters>`.)
+used less often.
 The service may support its own custom parameters as well.  Arbitrary
 parameters can be included in the query by passing them as named
 keyword=value arguments to the function:
@@ -174,22 +175,21 @@ data access services.  It provides some public attributes and
 functions that can be helpful for interpreting.  Four attributes of
 interest are:
 
-==============================================  =========================================================
-attribute                                       description
-==============================================  =========================================================
-:py:attr:`~pyvo.dal.query.DALResults.nrecs`     the number of records (e.g. image descriptions) returned in the result.
-
-----------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.query.DALResults.queryurl`  the full query that was sent to the service, including
-                                                all the search parameters.
-----------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.query.DALResults.votable`   the wrapped :py:class:`astropy.io.votable.tree.Table` object
-                                                containing the results (see
-                                                :ref:`Using Astropy to Process Results`)
-----------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.query.DALResults.table`     an :py:class:`astropy.table.Table` version of the results (see
-                                                :ref:`Using Astropy to Process Results`)
-==============================================  =========================================================
+================================================  =========================================================
+attribute                                         description
+================================================  =========================================================
+:py:attr:`~pyvo.dal.query.DALResults.queryurl`    the full query that was sent to the service, including
+                                                  all the search parameters.
+------------------------------------------------  ---------------------------------------------------------
+:py:attr:`~pyvo.dal.query.DALResults.fieldnames`  a list of the fieldnames in this resultset.
+------------------------------------------------  ---------------------------------------------------------
+:py:attr:`~pyvo.dal.query.DALResults.votable`     the wrapped :py:class:`astropy.io.votable.tree.Table` object
+                                                  containing the results (see
+                                                  :ref:`Using Astropy to Process Results`)
+------------------------------------------------  ---------------------------------------------------------
+:py:attr:`~pyvo.dal.query.DALResults.table`       an :py:class:`astropy.table.Table` version of the results (see
+                                                  :ref:`Using Astropy to Process Results`)
+================================================  =========================================================
 
 As we've noted, the results are fundementally a table where the rows
 reflect, in the case of SIA and the :py:func:`~pyvo.imagesearch` function,
@@ -197,19 +197,19 @@ matching images available from the archive.  The columns of the table
 represent the image metadata.  You find out the names of these columns
 with the :py:meth:`~pyvo.dal.query.DALResults.fieldnames()` method:
 
->>> previews.fieldnames()
+>>> previews.fieldnames
 [u'Survey', u'Ra', u'Dec', u'Dim', u'Size', u'Scale', u'Format', u'PixFlags',
  u'URL', u'LogicalName']
 
 Most image services let you control the amount of metadata you get
-back with the :py:attr:`~pyvo.dal.sia.SIAQuery.verbosity`
-parameter. (Passing ``verbosity=3`` to :py:func:`~pyvo.imagesearch`
+back with the `verbosity`parameter.
+(Passing ``verbosity=3`` to :py:func:`~pyvo.imagesearch`
 will return all the columns the service has available.)
 
 You can get more information about a column either
 :py:meth:`~pyvo.dal.query.DALResults.getdesc` which returns the
 description of the column with a given name or
-:py:meth:`~pyvo.dal.query.DALResults.fielddesc` which returns all of
+:py:attr:`~pyvo.dal.query.DALResults.fielddescs` which contains all of
 the column descriptions in a list in the order they appeared in the
 result.
 
@@ -325,31 +325,80 @@ specialized class.  In the case of results from
 :py:class:`~pyvo.dal.sia.SIARecord` instance.  Here are the standard
 attributes it provides:
 
-==========================================  =========================================================
-attribute                                   description
-==========================================  =========================================================
-:py:attr:`~pyvo.dal.sia.SIARecord.ra`       the IRCS right ascension of the center of the image
-                                            in decimal degrees
-------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.sia.SIARecord.dec`      the IRCS declination of the center of the image
-                                            in decimal degrees
-------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.sia.SIARecord.title`    the name or identifier of the image as given by
-                                            the archive
-------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.sia.SIARecord.format`   the format of the image
-------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.sia.SIARecord.dateobs`  the modified Julien date (MJD) of the mid-point of
-                                            the observational data that went into the image
-                                            (optional)
-------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.sia.SIARecord.naxes`    the number of axes in the image (optional)
-------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.sia.SIARecord.instr`    the name of the instrument (or instruments) that
-                                            produced the data that went into this image.
-------------------------------------------  ---------------------------------------------------------
-:py:attr:`~pyvo.dal.sia.SIARecord.acref`    the URL that can be used to retrieve the image.
-==========================================  =========================================================
+==================================================== ========================================================================
+attribute                                            description
+==================================================== ========================================================================
+:py:attr:`~pyvo.dal.sia.SIARecord.ra`                the IRCS right ascension of the center of the image
+                                                     in decimal degrees
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.dec`               the IRCS declination of the center of the image
+                                                     in decimal degrees
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.title`             the name or identifier of the image as given by
+                                                     the archive
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.instr`             the name of the instrument (or instruments) that
+                                                     produced the data that went into this image.
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.dateobs`           the modified Julien date (MJD) of the mid-point of
+                                                     the observational data that went into the image
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.naxes`             the number of axes in the image
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.naxis`             the lengths of the axes in the image in pixels
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.scale`             the scale of the pixels in each image axis in
+                                                     degrees/pixels
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.format`            the format of the image
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.coord_frame`       the coordinate system reference frame, one of the following:
+                                                     "ICRS", "FK5", "FK4", "ECL", "GAL", and "SGAL".
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.coord_equinox`     the equinox of the used coordinate system
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.coord_projection`  the celestial projection (TAN / ARC / SIN / etc.)
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.coord_refpixel`    the image pixel coordinates of the WCS reference pixel
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.coord_refvalue`    the world coordinates of the WCS reference pixel
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.cdmatrix`          the WCS CD matrix defining the scale and rotation (among other things)
+                                                     of the image. ordered as CD[i,j] = [0,0], [0,1], [1,0], [1,1]
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.bandpass_id`       the bandpass by name (e.g., "V", "SDSS_U", "K", "K-Band", etc.)
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.bandpass_unit`     the astropy unit used to represent spectral values
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.bandpass_refvalue` the characteristic (reference) wavelength, frequency or energy
+                                                     for the bandpass model, as an astropy Quantity of bandpass_unit
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.bandpass_hilimit`  the upper limit of the bandpass, as an astropy Quantity in bandpass_unit
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.bandpass_lolimit`  the lower limit of the bandpass, as an astropy Quantity in bandpass_unit
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.pixflags`          the type of processing done by the image service to produce an output
+                                                     image pixel 
+                                                     a string of one or more of the following values:
+
+                                                     * C -- The image pixels were copied from a source image without change,
+                                                       as when an atlas image or cutout is returned.
+                                                     * F -- The image pixels were computed by resampling an existing image,
+                                                       e.g., to rescale or reproject the data,
+                                                       and were filtered by an interpolator.
+                                                     * X -- The image pixels were computed by the service directly from a
+                                                       primary data set hence were not filtered by an interpolator.
+                                                     * Z -- The image pixels contain valid flux (intensity) values, e.g., if
+                                                       the pixels were resampled a flux-preserving interpolator was used.
+                                                     * V -- The image pixels contain some unspecified visualization of the
+                                                       data, hence are suitable for display but not for numerical analysis.
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.acref`             the URL that can be used to retrieve the image
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.acref_ttl`         the minimum time to live in seconds of the access reference
+---------------------------------------------------- ------------------------------------------------------------------------
+:py:attr:`~pyvo.dal.sia.SIARecord.filesize`          the (estimated) size of the image in bytes
+==================================================== ========================================================================
 
 When the data access service search for datasets, as is the case with
 :py:func:`~pyvo.imagesearch` and :py:func:`~pyvo.spectrumsearch`, one
@@ -436,7 +485,7 @@ services:
             print "Trouble accessing %s archive (%s)"\
                   % (arch.shortname, str(ex))
             continue
-       print "...found %d images" % matches.nrecs
+       print "...found %d images" % len(matches)
 
 In this example, if something went wrong, we just reported the problem
 and went onto the next service.
@@ -478,117 +527,30 @@ Internally, the data access search functions like
 :py:func:`~pyvo.imagesearch` uses a special query class to execute the
 query.  This class can sometimes be useful at the query level.  Query
 classes are specialized to the type of service being accessed and have
-built-in knowledge the input parameters it accepts.  In the case of
-searching for images via an SIA service,  one can use the
-:py:class:`~pyvo.dal.sia.SIAQuery` class.
-
-With a query class, you create an instance, set the query parameters,
-and then execute it:
+built-in knowledge the input parameters it accepts.
+In the case of searching for images via an SIA service,
+one can use a subclass of :py:class:`~pyvo.dal.sia.SIAQuery`.
 
 .. code-block:: python
 
    from pyvo.dal.sia import SIAQuery
 
    url = 'http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=dss2&'
-   query = SIAQuery(url)
-   query.pos = (350.85, 58.815)
-   query.size = 0.25
-   query.format = 'image/fits'
-
+   query = SIAQuery(url, (350.85, 58.815), 0.25, format='image/fits')
    images = query.execute()
 
-Where the query object can be useful is when you want to reuse it,
-altering it slightly for many different queries.  In the next example
-we use it to get DSS cutouts for a list of sources:
+Where the query object can be useful is when you want to modify something to
+match service specific requirements.
 
-.. code-block:: python
-
-   source_pos = [(202.469575, 47.19525833),
-                 (210.802125, 54.34808333),
-                 (184.74008333, 47.30371944)]
-
-   for pos in source_pos:
-       query.pos = pos
-       try:
-           images = query.execute()
-       except DALAccessError, ex:
-           print "Trouble querying at pos=(%d,%d); skipping..." % pos
-           continue
-
-       for image in images:
-           image.cachedataset()
-
-Or you can send the same query to different services to find out what
-they have in the same area of the sky:
-
-.. code-block:: python
-
-   services = ['http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&',
-               'http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=2massh&',
-               'http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=wise1&'  ]
-
-   for service in services:
-       query.baseurl = service
-       try:
-           images = query_execute()
-       except DALAccessError, ex:
-           print "Trouble querying service; skipping..."
-           continue
-       print "Found", len(images), "images"
-
-The most commonly set query constraints are available as mutable
-properties of the class.  For :py:class:`~pyvo.dal.sia.SIAQuery`, the
-following properties are available for setting constraints:
-
-.. the length of a link in the table below makes the first column
-   larger than it needs to be; it can be effectively narrowed by
-   making the second column super wide.
-
-+---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
-|                                                    :py:class:`~pyvo.dal.sia.SIAQuery` search constraint properties                                                                                        |
-+=============================================+=============================================================================================================================================================+
-| :py:attr:`~pyvo.dal.sia.SIAQuery.pos`       | the center position of the search region given as a 2-element                                                                                               |
-|                                             | tuple denoting RA and declination                                                                                                                           |
-+---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| :py:attr:`~pyvo.dal.sia.SIAQuery.ra`        | the right ascension part of the region's center position                                                                                                    |
-+---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| :py:attr:`~pyvo.dal.sia.SIAQuery.dec`       | the declination part of the region's center position                                                                                                        |
-+---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| :py:attr:`~pyvo.dal.sia.SIAQuery.size`      | the width and height of the search region given as a 2-element                                                                                              |
-|                                             | tuple                                                                                                                                                       |
-+---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| :py:attr:`~pyvo.dal.sia.SIAQuery.intersect` | the image-region overlap constraint                                                                                                                         |
-+---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| :py:attr:`~pyvo.dal.sia.SIAQuery.format`    | the desired format of the images to be returned                                                                                                             |
-+---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| :py:attr:`~pyvo.dal.sia.SIAQuery.verbosity` | an integer indicating the amount of metadata (i.e. columns)                                                                                                 |
-|                                             | that will be returned by a query                                                                                                                            |
-+---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
-
-.. raw:: html
-
-   <br>
-
-As a convenience, you can either set the search position via the
-:py:attr:`SIAQuery.pos <pyvo.dal.sia.SIAQuery.pos>` property
-or the  :py:attr:`SIAQuery.ra <pyvo.dal.sia.SIAQuery.ra>` and
-:py:attr:`SIAQuery.dec <pyvo.dal.sia.SIAQuery.dec>` properties.  Lesser used
-parameters or parameters that are custom to the service can be set and
-examined using the :py:meth:`~pyvo.dal.query.DALQuery.setparam` and
-:py:meth:`~pyvo.dal.query.DALQuery.getparam` methods, respectively.
-
-You might note two other useful methods of the query class.  First is
-:py:meth:`~pyvo.dal.query.DALQuery.getqueryurl`: this will print out the
+You might note two other useful members of the query class.  First is
+:py:attr:`~pyvo.dal.query.DALQuery.queryurl`: this contains the
 query URL it will use when you execute it:
 
->>> query.getqueryurl()
+>>> query.queryurl
 'http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=dss2&FORMAT=image%2Ffits&POS=350.85,58.815&SIZE=0.25,0.25'
 
 This is often useful for debugging.  For instance, you can copy this
-url into your browser and view the VOTable results directly.  This
-method will do a validity check on the input parameters automatically
-by default, raising a :py:class:`~pyvo.dal.query.DALQueryError` if an
-issue is found.  You can pass ``lax=True`` to bypass this check.
+url into your browser and view the VOTable results directly.
 
 If you want to work with the service response directly, perhaps use
 your own parser, you can use the
@@ -605,8 +567,7 @@ object, using a Service instance:
    from vo.sia import SIAService
    url = 'http://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=dss2&'
    query = SIAService(url).create_query(size=0.1, format='image/fits')
-   query.ra = 350.85
-   query.dec = 58.815
+   query.pos = (350.85, 58.815)
 
 The :py:meth:`~pyvo.dal.sia.SIAService.create_query` method both
 instantiates the query object and presets several constraints, the
@@ -639,10 +600,10 @@ Here's a simple way to create a service instance:
 You can get service instances from the results of a registry query:
 
 >>> hla = vo.regsearch(['Hubble Legacy Archive'], servicetype='image')
->>> hla.nrecs
+>>> len(hla)
 1
->>> service = hla[0].to_service()
->>> service.info.description
+>>> service = hla[0].service
+>>> service.description
 'The Hubble Space Telecope Legacy Archive (HLA) was developed at the Space Telescope Science Institute to optimize the science return from HST instruments. This resource is an image service which accesses all HLA observation data. The calibrated data is fully online with several forms of access including footprint visualization, composite images, extracted spectra and source lists.'
 
 You can search a service with its :py:meth:`~pyvo.dal.sia.SIAService.search`
@@ -728,9 +689,8 @@ services.  For reference, we summarize those common features here:
   properly.  See :ref:`data-access-exceptions`.
 
 * An alternative way to create data access queries is with a *query
-  object*.  This can be useful when you want to reuse queries, say,
-  across many sources or services.  The
-  :py:meth:`~pyvo.dal.query.DALQuery.getqueryurl` method will give you
+  object*.  This can be useful when you want to modify query bevahiour.
+  The :py:meth:`~pyvo.dal.query.DALQuery.getqueryurl` method will give you
   the full query URL that will be sent to the service, which can be
   helpful for debugging.  See :ref:`sia-query`.
 
@@ -767,9 +727,9 @@ IRSA Two Micron All-Sky Survey (2MASS)::
 
 .. _data-access-ssa:
 
-======================
-Simple Spectrum Access
-======================
+============================
+Simple Spectral Access (SSA)
+============================
 
 Searching for spectra is much like searching for images, although the
 search parameters are a little different.  Instead of searching a
@@ -835,8 +795,8 @@ what is returned from a image search (see :ref:`sia-results`):
 * you can treat the results like a list of records: iterate through
   the records or access specific records with the bracket
   (``[``*i*``]``) operator.
-* Use :py:meth:`~pyvo.dal.query.DALResults.fieldnames()` and
-  :py:meth:`~pyvo.dal.query.DALResults.fielddesc` to access the record
+* Use :py:attr:`~pyvo.dal.query.DALResults.fieldnames` and
+  :py:meth:`~pyvo.dal.query.DALResults.fielddescs` to access the record
   field names and descriptions.
 * Handle the results as a Astropy :py:class:`~astropy.table.Table` or
   or VOTable :py:class:`~astropy.io.votable.tree.Table`.
@@ -861,10 +821,7 @@ are.  These include:
 ==========================================  ==================================================================================================================
 property                                    description
 ==========================================  ==================================================================================================================
-:py:attr:`~pyvo.dal.ssa.SSARecord.ra`       the IRCS right ascension of the center of the spectrum
-                                            in decimal degrees
-------------------------------------------  ------------------------------------------------------------------------------------------------------------------
-:py:attr:`~pyvo.dal.ssa.SSARecord.dec`      the IRCS declination of the center of the spectrum
+:py:attr:`~pyvo.dal.ssa.SSARecord.pos`      the IRCS position of the center of the spectrum
                                             in decimal degrees
 ------------------------------------------  ------------------------------------------------------------------------------------------------------------------
 :py:attr:`~pyvo.dal.ssa.SSARecord.title`    the name or identifier of the spectrum as given by
@@ -913,11 +870,7 @@ conterpart in the search parameters it exposes as properties:
 | :py:attr:`~pyvo.dal.ssa.SSAQuery.pos`       | the center position of the circular search region given as a 2-element                                                                                      |
 |                                             | tuple denoting RA and declination                                                                                                                           |
 +---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| :py:attr:`~pyvo.dal.ssa.SSAQuery.ra`        | the right ascension part of the region's center position                                                                                                    |
-+---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| :py:attr:`~pyvo.dal.ssa.SSAQuery.dec`       | the declination part of the region's center position                                                                                                        |
-+---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| :py:attr:`~pyvo.dal.ssa.SSAQuery.size`      | the diameter of the circular search region                                                                                                                  |
+| :py:attr:`~pyvo.dal.ssa.SSAQuery.diameter`  | the diameter of the circular search region                                                                                                                  |
 +---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | :py:attr:`~pyvo.dal.ssa.SSAQuery.time`      | the range of observation time to restrict spectra to                                                                                                        |
 +---------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -930,10 +883,8 @@ conterpart in the search parameters it exposes as properties:
 
 The SSA service standard defines a large number of additional
 (optional) constraints that can be set via the
-:py:meth:`~pyvo.dal.query.DALQuery.setparam` method.  The
-:py:class:`~pyvo.dal.ssa.SSAQuery` documentation describes them all
-(see the :py:attr:`~pyvo.dal.query.DALQuery.std_parameters`
-attribute).
+:py:meth:`~pyvo.dal.query.DALQuery.set` method.  The
+`IVOA <http://www.ivoa.net/documents/SSA/>`_ documentation describes them all.
 
 Note that there is also a Service class,
 :py:class:`~pyvo.dal.ssa.SSAService`, for SSA services which act just
@@ -941,9 +892,9 @@ like its SIA counterpart.
 
 .. _data-access-scs:
 
-===================================================
-Searching Catalogs with Simple Cone Search Services
-===================================================
+========================
+Simple Cone Search (SCS)
+========================
 
 Owing in part to its simplicity, Simple Cone Search (SCS) services are
 the most prevalent of the data access services in the VO.  It is used
@@ -964,7 +915,7 @@ stars from the Guide Start Catalog (v2.3) within 3 arcminutes of a
 position:
 
 >>> url = 'http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&'
->>> stars = vo.conesearch(url, pos=[161.265, -59.68], radius=0.05)
+>>> stars = vo.conesearch(url, pos=(161.265, -59.68), radius=0.05)
 >>> len(stars)
 525
 
@@ -1002,7 +953,7 @@ results table will have a number of other columns describing the
 source or observation.  Using the example from the previous section,
 we can see what information we have about our guide stars:
 
->>> stars.fieldnames()
+>>> stars.fieldnames
 [u'hstID', u'ra', u'dec', u'GSC1ID', u'raEpsilon', u'decEpsilon',
 u'epoch', u'FpgMag', u'JpgMag', u'NpgMag', u'UMag', u'BMag', u'VMag',
 u'RMag', u'IMag', u'JMag', u'HMag', u'KMag', u'FpgMagCode',
@@ -1038,10 +989,7 @@ property                                description
 :py:attr:`~pyvo.dal.scs.SCSRecord.id`   the name or identifier of the spectrum as given by
                                         the archive
 --------------------------------------  ------------------------------------------------------------------------------------------------------------------
-:py:attr:`~pyvo.dal.scs.SCSRecord.ra`   the IRCS right ascension of the center of the spectrum
-                                        in decimal degrees
---------------------------------------  ------------------------------------------------------------------------------------------------------------------
-:py:attr:`~pyvo.dal.scs.SCSRecord.dec`  the IRCS declination of the center of the spectrum
+:py:attr:`~pyvo.dal.scs.SCSRecord.pos`  the IRCS position of the center of the spectrum
                                         in decimal degrees
 ======================================  ==================================================================================================================
 
@@ -1059,18 +1007,15 @@ are as follows:
 .. autosummary::
 
    ~pyvo.dal.scs.SCSQuery.pos
-   ~pyvo.dal.scs.SCSQuery.ra
-   ~pyvo.dal.scs.SCSQuery.dec
    ~pyvo.dal.scs.SCSQuery.radius
-   ~pyvo.dal.scs.SCSQuery.sr
    ~pyvo.dal.scs.SCSQuery.verbosity
 
 
 .. _data-access-sla:
 
-================================================
-Spectral Line Transitions and Simple Line Access
-================================================
+=========================
+Simple Line Access (SLAP)
+=========================
 
 If you do spectral line studies, you may on occasion need to consult a
 database of spectral line transitions.  For example, if you are
@@ -1102,13 +1047,15 @@ He(beta): 0.211000464262
           services.
 
 
+.. _data-access-tap:
+
 ===========================
 Table Access Protocol (TAP)
 ===========================
 
 The Table Access Protocol supports querying remote astronomical databases
-using SQL-like languages.  It also provides facilities for discovering
-metadata for the tables and facilities on the remote side.
+using a SQL-like language, called ADQL. It also provides facilities for
+discovering metadata for the tables and facilities on the remote side.
 
 Combined with a capability for uploading table to the remote service,
 TAP enables complex query patterns including joins of multiple local
@@ -1282,30 +1229,17 @@ A common use case are positional crossmatches using data from different
 catalogs.
 
 File uploads are specified using the `uploads` parameter, which is a dict of
-tablename: uri.
+tablename: uri
 
->>> service.run_sync(query, uploads = {'t1': 'http://example.org/votable.xml'})
-
-Alternatively content can be a tuple containing (type, source).
-
-Possible type/source combinations are:
-
-- uri : the default. a uri pointing to a votable in the world wide web, or a
-  result from an asynchronous query. This has the advantage that the processing
-  server can download the dataset directly.
-- inline : a file-like object, astropy table or local path string to be
-  uploaded.
-
->>> service.run_sync(query, uploads = {'t1': ('uri', 'http://example.org/votable.xml')})
->>> service.run_sync(query, uploads = {'t1': ('uri', result)})
+>>> service.run_sync(query, uploads={'t1': 'http://example.org/votable.xml'})
+>>> service.run_sync(query, uploads={'t1': result})
+>>> service.run_sync(query, uploads={'t1': open('/path/to/votable.xml')})
+>>> service.run_sync(query, uploads={'t1': result.table})
+>>> service.run_sync(query, uploads={'t1': '/path/to/votable.xml'})
 
 .. note::
   To check if the service supports the desired URI scheme, evaluate the value of
   :py:class:`~pyvo.dal.tap.TAPService.upload_methods`
-
->>> service.run_sync(query, uploads = {'t1': ('inline', open('/path/to/votable.xml'))})
->>> service.run_sync(query, uploads = {'t1': ('inline', result.table)})
->>> service.run_sync(query, uploads = {'t1': ('inline', '/path/to/votable.xml')})
 
 Your upload can be referenced using 'TAP_UPLOAD.t1' as table name.
 

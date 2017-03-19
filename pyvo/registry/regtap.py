@@ -137,24 +137,33 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
     )
 
     service = tap.TAPService(REGISTRY_BASEURL)
-    query = tap.TAPQuery(service.baseurl, query, maxrec=service.hardlimit)
-    query.RESULTS_CLASS = RegistryResults
+    query = RegistryQuery(service.baseurl, query, maxrec=service.hardlimit)
     return query.execute()
 
 
-class RegistryResults(tap.TAPResults):
+class RegistryQuery(tap.TAPQuery):
+    def execute(self):
+        """
+        submit the query and return the results as a RegistryResults instance
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors either in the input query syntax or
+           other user errors detected by the service
+        DALFormatError
+           for errors parsing the VOTable response
+        """
+        return RegistryResults(self.execute_votable(), self.queryurl)
+
+
+class RegistryResults(dalq.DALResults):
     """
     an iterable set of results from a registry query. Each record is
     returned as RegistryResults
     """
-    def __init__(self, votable, url=None, version="1.0"):
-        """
-        initialize the results.  This constructor is not typically called
-        by directly applications; rather an instance is obtained from calling
-        a SIAQuery's execute().
-        """
-        super(RegistryResults, self).__init__(votable, url, "regtap", version)
-
     def getrecord(self, index):
         """
         return all the attributes of a resource record with the given index

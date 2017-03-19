@@ -46,5 +46,3 @@ if not _ASTROPY_SETUP_:
         imagesearch, spectrumsearch, conesearch, linesearch, tablesearch,
         DALAccessError, DALProtocolError, DALFormatError, DALServiceError,
         DALQueryError)
-
-    from .nameresolver import object2pos, object2sexapos, resolve, sesame
