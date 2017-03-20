@@ -246,8 +246,7 @@ class TAPService(DALService):
         TAPResults
         """
         return self.create_query(
-            self.baseurl, query, language=language, maxrec=maxrec,
-            uploads=uploads).execute()
+            query, language=language, maxrec=maxrec, uploads=uploads).execute()
 
     #alias for service discovery
     search = run_sync
