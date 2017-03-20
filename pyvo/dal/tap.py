@@ -26,7 +26,7 @@ def escape(term):
     """
     return str(term).replace("'", "''")
 
-def search(url, query, language="ADQL", maxrec=None, uploads=None):
+def search(url, query, language="ADQL", maxrec=None, uploads=None, **keywords):
     """
     submit a Table Access query that returns rows matching the criteria given.
 
@@ -59,7 +59,7 @@ def search(url, query, language="ADQL", maxrec=None, uploads=None):
         an error, including a query syntax error.
     """
     service = TAPService(url)
-    return service.search(query, language, maxrec, uploads)
+    return service.search(query, language, maxrec, uploads, **keywords)
 
 class TAPService(DALService):
     """
@@ -220,7 +220,9 @@ class TAPService(DALService):
                 _upload_methods += capa["uploadMethods"]
         return _upload_methods
 
-    def run_sync(self, query, language="ADQL", maxrec=None, uploads=None):
+    def run_sync(
+            self, query, language="ADQL", maxrec=None, uploads=None,
+            **keywords):
         """
         runs sync query and returns its result
 
@@ -246,12 +248,15 @@ class TAPService(DALService):
         TAPResults
         """
         return self.create_query(
-            query, language=language, maxrec=maxrec, uploads=uploads).execute()
+            query, language=language, maxrec=maxrec, uploads=uploads,
+            **keywords).execute()
 
     #alias for service discovery
     search = run_sync
 
-    def run_async(self, query, language="ADQL", maxrec=None, uploads=None):
+    def run_async(
+            self, query, language="ADQL", maxrec=None, uploads=None,
+            **keywords):
         """
         runs async query and returns its result
 
@@ -286,7 +291,8 @@ class TAPService(DALService):
         --------
         AsyncTAPJob
         """
-        job = AsyncTAPJob.create(self.baseurl, query, language, maxrec, uploads)
+        job = AsyncTAPJob.create(
+            self.baseurl, query, language, maxrec, uploads, **keywords)
         job = job.run().wait()
         job.raise_if_error()
         result = job.fetch_result()
@@ -361,7 +367,8 @@ class AsyncTAPJob(object):
 
     @classmethod
     def create(
-            cls, baseurl, query, language="ADQL", maxrec=None, uploads=None):
+            cls, baseurl, query, language="ADQL", maxrec=None, uploads=None,
+            **keywords):
         """
         creates a async tap job on the server under `baseurl`
 
@@ -381,7 +388,7 @@ class AsyncTAPJob(object):
         """
         query = TAPQuery(
             baseurl, query, mode="async", language=language, maxrec=maxrec,
-            uploads=uploads)
+            uploads=uploads, **keywords)
         response = query.submit()
         job = cls(response.url)
         return job
@@ -419,10 +426,12 @@ class AsyncTAPJob(object):
         """
         try:
             if wait_for_statechange:
+                print("update with wait_for_statechange")
                 response = requests.get(self.url, stream=True, params={
                     "WAIT": "-1"
                 })
             else:
+                print("update without wait_for_statechange")
                 response = requests.get(self.url, stream=True)
             response.raise_for_status()
         except requests.exceptions.RequestException as ex:
@@ -628,6 +637,7 @@ class AsyncTAPJob(object):
 
             # fallback for uws 1.0
             if LooseVersion(self._job["version"]) < LooseVersion("1.1"):
+                print("fallback for uws 1.0")
                 sleep(interval)
                 interval = min(120, interval * increment)
 
@@ -699,7 +709,7 @@ class TAPQuery(DALQuery):
 
     def __init__(
             self, baseurl, query, mode="sync", language="ADQL", maxrec=None,
-            uploads=None):
+            uploads=None, **keywords):
         """
         initialize the query object with the given parameters
 
@@ -720,7 +730,7 @@ class TAPQuery(DALQuery):
         """
         baseurl = baseurl.rstrip("?")
 
-        super(TAPQuery, self).__init__(baseurl)
+        super(TAPQuery, self).__init__(baseurl, **keywords)
 
         self._mode = mode if mode in ("sync", "async") else "sync"
         self._uploads = UploadList.fromdict(uploads or {})
