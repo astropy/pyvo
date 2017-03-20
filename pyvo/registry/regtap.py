@@ -323,7 +323,7 @@ class RegistryResource(dalq.Record):
                 "ivo://ivoa.net/std/sla":  sla.SLAService,
                 "ivo://ivoa.net/std/tap":  tap.TAPService,
             }.items():
-                if self.standard_id in key:
+                if key in self.standard_id:
                     self._service = value(self.access_url)
 
         return self._service
