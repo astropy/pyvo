@@ -73,13 +73,13 @@ matrix:
 
           # try all python versions
         - os: linux
-          env: PYTHON_VERSION=2.7
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7
         - os: linux
-          env: PYTHON_VERSION=3.4
+          env: PYTHON_VERSION=3.3 NUMPY_VERSION=1.8
         - os: linux
-          env: PYTHON_VERSION=3.5
+          env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9
         - os: linux
-          env: PYTHON_VERSION=3.6
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.11
 
         # Do a PEP8 test with pycodestyle
         - os: linux
