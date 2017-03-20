@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import dateutil.parser
+from astropy.time import Time
 from . import plainxml
 
 class _JobParser(plainxml.StartEndHandler):
@@ -35,7 +35,8 @@ class _JobParser(plainxml.StartEndHandler):
 		self.job["executionDuration"] = content.strip()
 
 	def _end_destruction(self, name, attrs, content):
-		self.job["destruction"] = dateutil.parser.parse(content.strip())
+		self.job["destruction"] = Time(
+			content.strip(), format="isot").to_datetime()
 
 	def _end_message(self, name, attrs, content):
 		self.job["message"] = content.strip()

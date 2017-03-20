@@ -426,12 +426,10 @@ class AsyncTAPJob(object):
         """
         try:
             if wait_for_statechange:
-                print("update with wait_for_statechange")
                 response = requests.get(self.url, stream=True, params={
                     "WAIT": "-1"
                 })
             else:
-                print("update without wait_for_statechange")
                 response = requests.get(self.url, stream=True)
             response.raise_for_status()
         except requests.exceptions.RequestException as ex:
@@ -637,7 +635,6 @@ class AsyncTAPJob(object):
 
             # fallback for uws 1.0
             if LooseVersion(self._job["version"]) < LooseVersion("1.1"):
-                print("fallback for uws 1.0")
                 sleep(interval)
                 interval = min(120, interval * increment)
 
