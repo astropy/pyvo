@@ -35,8 +35,9 @@ class _JobParser(plainxml.StartEndHandler):
 		self.job["executionDuration"] = content.strip()
 
 	def _end_destruction(self, name, attrs, content):
-		self.job["destruction"] = Time(
-			content.strip(), format="isot").to_datetime()
+		time = Time(
+			content.strip(), format="isot")
+		self.job["destruction"] = time.datetime
 
 	def _end_message(self, name, attrs, content):
 		self.job["message"] = content.strip()
