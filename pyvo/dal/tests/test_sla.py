@@ -128,7 +128,7 @@ class SLARecordTest(unittest.TestCase):
         self.rec = self.result.getrecord(0)
 
     def testAttr(self):
-        self.assertEquals(self.rec.title, b"JPL: CH2OHCOCH2OH v29=1 65(10,55)-65( 9,56)")
+        self.assertEquals(self.rec.title, "JPL: CH2OHCOCH2OH v29=1 65(10,55)-65( 9,56)")
         self.assertAlmostEquals(self.rec.wavelength.value, 0.0026007993198247656)
         self.assertEquals(self.rec.species_name, b"Dihydroxyacetone")
         self.assertTrue(self.rec.status is None)

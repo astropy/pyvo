@@ -8,6 +8,7 @@ from __future__ import (
 
 import os, sys, shutil, re, imp, glob, tempfile, random, time
 import unittest, pdb
+import six
 
 import pyvo.dal.query as dalq
 import pyvo.dal.dbapi2 as daldbapi
@@ -144,13 +145,12 @@ class DALResultsTest(unittest.TestCase):
         names = self.result.fieldnames
         self.assertIsInstance(names, list)
         self.assertEquals(len(names), 10)
-        for i in range(len(names)):
-            self.assert_(any((
-                isinstance(names[i], str),
-                isinstance(names[i], unicode)
-            )), "field name #{0} not a string: {1}".format(i, type(names[i])))
+        for i, name in enumerate(names):
+            self.assert_(
+                type(name) in (six.binary_type, six.text_type),
+                "field name #{0} not a string: {1}".format(i, type(name)))
 
-            self.assert_(names[i], "field name #{0} is empty".format(i))
+            self.assert_(name, "field name #{0} is empty".format(i))
 
         fielddescs = self.result.fielddescs
         self.assert_(isinstance(fielddescs, list))
@@ -228,14 +228,14 @@ class DALResultsTest(unittest.TestCase):
         self.testCtor()
         self.assertAlmostEqual(0.0, self.result[0].getbyucd("POS_EQ_RA_MAIN"))
         self.assertEquals(
-            "http://skyview.gsfc.nasa.gov/cgi-bin/images?position=0.0%2C0.0&survey=neat&pixels=300%2C300&sampler=Clip&size=1.0%2C1.0&projection=Tan&coordinates=J2000.0&return=FITS",
+            b"http://skyview.gsfc.nasa.gov/cgi-bin/images?position=0.0%2C0.0&survey=neat&pixels=300%2C300&sampler=Clip&size=1.0%2C1.0&projection=Tan&coordinates=J2000.0&return=FITS",
             self.result[0].getbyucd("VOX:Image_AccessReference"))
 
     def testFieldnameByUtype(self):
         self.testCtor()
         self.assertAlmostEqual(0.0, self.result[0].getbyutype("na_ra"))
         self.assertEquals(
-            "http://skyview.gsfc.nasa.gov/cgi-bin/images?position=0.0%2C0.0&survey=neat&pixels=300%2C300&sampler=Clip&size=1.0%2C1.0&projection=Tan&coordinates=J2000.0&return=FITS",
+            b"http://skyview.gsfc.nasa.gov/cgi-bin/images?position=0.0%2C0.0&survey=neat&pixels=300%2C300&sampler=Clip&size=1.0%2C1.0&projection=Tan&coordinates=J2000.0&return=FITS",
             self.result[0].getbyutype("na_acref"))
 
 
@@ -248,10 +248,10 @@ class RecordTest(unittest.TestCase):
         self.rec = self.result.getrecord(0)
 
     def testFields(self):
-        fnames = self.result.fieldnames
         reckeys = self.rec.keys()
 
-        self.assertItemsEqual(fnames, reckeys)
+        for fieldname in self.result.fieldnames:
+            self.assert_(fieldname in reckeys)
 
     def testValues(self):
         self.assertEquals(self.rec["Format"], b"image/fits")

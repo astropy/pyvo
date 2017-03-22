@@ -12,6 +12,7 @@ import unittest, pdb
 import pyvo.dal.query as dalq
 import pyvo.dal.ssa as ssa
 import pyvo.dal.dbapi2 as daldbapi
+from astropy.time import Time
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
 from astropy.io.votable import parse as votableparse
@@ -220,9 +221,10 @@ class SSARecordTest(unittest.TestCase):
     def testAttr(self):
         self.assertEquals(self.rec.ra, 179.84916)
         self.assertEquals(self.rec.dec, 0.984768)
-        self.assertEquals(self.rec.title, b"SDSS J115923.80+005905.16 GALAXY")
-        self.assertEquals(self.rec.dateobs, b"2000-04-29 03:22:00Z")
-        self.assertEquals(self.rec.instr, b"SDSS 2.5-M SPEC2 v4_5")
+        self.assertEquals(self.rec.title, "SDSS J115923.80+005905.16 GALAXY")
+        self.assertEquals(
+            self.rec.dateobs, Time("2000-04-29 03:22:00Z", format="iso"))
+        self.assertEquals(self.rec.instr, "SDSS 2.5-M SPEC2 v4_5")
         self.assertEquals(self.rec.acref, self.acref)
         self.assertEquals(self.rec.getdataurl(), self.acref)
 

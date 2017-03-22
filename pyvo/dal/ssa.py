@@ -581,7 +581,7 @@ class SSARecord(Record):
         return the modified Julien date (MJD) of the mid-point of the
         observational data that went into the spectrum
         """
-        dateobs = self.getbyutype("ssa:DataID.Date")
+        dateobs = self.getbyutype("ssa:DataID.Date", decode=True)
         if dateobs:
             return Time(dateobs, format="iso")
         else:

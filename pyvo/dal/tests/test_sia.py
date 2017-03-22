@@ -264,7 +264,7 @@ class SIARecordTest(unittest.TestCase):
     def testAttr(self):
         self.assertEquals(self.rec.pos.ra.deg, 0.0)
         self.assertEquals(self.rec.pos.dec.deg, 0.0)
-        self.assertEquals(self.rec.title, b"neat")
+        self.assertEquals(self.rec.title, "neat")
         self.assert_(self.rec.dateobs is None)
         self.assertEquals(self.rec.naxes, 2)
         self.assertEquals(self.rec.naxis.value[0], 300)
@@ -343,8 +343,6 @@ class DatasetNameTest(unittest.TestCase):
 
     def testSuggest(self):
         title = self.rec.title
-        if sys.version_info[0] >= 3:
-            title = title.decode('utf-8')
         self.assertEquals(title, self.rec.suggest_dataset_basename())
         self.assertEquals("fits", self.rec.suggest_extension("DAT"))
 
