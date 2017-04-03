@@ -15,7 +15,8 @@ can be queried for individual datasets of interest.
 This module provides basic, low-level access to the RegTAP Registries using
 standardized TAP-based services.
 """
-from __future__ import print_function, division
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals)
 import os
 from ..dal import scs, sia, ssa, sla, tap, query as dalq
 
@@ -206,28 +207,28 @@ class RegistryResource(dalq.Record):
         """
         the IVOA identifier for the resource.
         """
-        return self.get("ivoid")
+        return self.get("ivoid", decode=True)
 
     @property
     def res_type(self):
         """
         the resource types that characterize this resource.
         """
-        return self.get("res_type")
+        return self.get("res_type", decode=True)
 
     @property
     def short_name(self):
         """
         the short name for the resource
         """
-        return self.get("short_name")
+        return self.get("short_name", decode=True)
 
     @property
     def res_title(self):
         """
         the title of the resource
         """
-        return self.get("res_title", None)
+        return self.get("res_title", default=None, decode=True)
 
     @property
     def content_levels(self):
@@ -235,7 +236,7 @@ class RegistryResource(dalq.Record):
         a list of content level labels that describe the intended audience
         for this resource.
         """
-        return self.get("content_level", "").split("#")
+        return self.get("content_level", default="", decode=True).split("#")
 
     @property
     def res_description(self):
@@ -246,14 +247,14 @@ class RegistryResource(dalq.Record):
         --------
         SimpleResource.describe
         """
-        return self.get("res_description")
+        return self.get("res_description", decode=True)
 
     @property
     def reference_url(self):
         """
         URL pointing to a human-readable document describing this resource.
         """
-        return self.get("reference_url")
+        return self.get("reference_url", decode=True)
 
     @property
     def creators(self):
@@ -261,21 +262,21 @@ class RegistryResource(dalq.Record):
         The creator(s) of the resource
         in the ordergiven by the resource record author
         """
-        return self.get("creator_seq", "").split(";")
+        return self.get("creator_seq", default="", decode=True).split(";")
 
     @property
     def content_types(self):
         """
         list of natures or genres of the content of the resource.
         """
-        return self.get("content_type").split("#")
+        return self.get("content_type", decode=True).split("#")
 
     @property
     def source_format(self):
         """
         The format of source_value.
         """
-        return self.get("source_format")
+        return self.get("source_format", decode=True)
 
     @property
     def region_of_regard(self):
@@ -284,28 +285,28 @@ class RegistryResource(dalq.Record):
         by which a positional query against this resource should be "blurred"
         in order to get an appropriate match.
         """
-        return float(self.get("region_of_regard", "0"))
+        return float(self.get("region_of_regard", 0))
 
     @property
     def waveband(self):
         """
         a list of names of the wavebands that the resource provides data for
         """
-        return self.get("waveband", "").split("#")
+        return self.get("waveband", default="", decode=True).split("#")
 
     @property
     def access_url(self):
         """
         the URL that can be used to access the service resource.
         """
-        return self.get("access_url")
+        return self.get("access_url", decode=True)
 
     @property
     def standard_id(self):
         """
         the IVOA standard identifier
         """
-        return self.get("standard_id")
+        return self.get("standard_id", decode=True)
 
     @property
     def service(self):
