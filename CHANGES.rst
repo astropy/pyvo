@@ -11,6 +11,8 @@
 * Improvement upload handling; it is no longer necessary to specifiy the type
   of upload
 
+* Allow astropy's SkyCoord and Quantity as input parameters
+
 0.5.2
 ----------------
 Remove trailing ? from query urls
