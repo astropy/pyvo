@@ -133,7 +133,7 @@ class SIAService(DALService):
         the metadata resource element
         """
         if not hasattr(self, "_metadata"):
-            query = self.create_query((0, 0), 0.1, format='metadata')
+            query = self.create_query(format='metadata')
             metadata = query.execute_votable()
 
             setattr(self, "_metadata", metadata)
@@ -151,6 +151,18 @@ class SIAService(DALService):
 
         try:
             return getattr(self, "_metadata", None).description
+        except AttributeError:
+            return None
+
+    @property
+    def params(self):
+        """
+        the service parameters.
+        """
+        self._get_metadata()
+
+        try:
+            return getattr(self, "_metadata_resource", None).params
         except AttributeError:
             return None
 
