@@ -244,13 +244,17 @@ class _TablesParser(plainxml.StartEndHandler):
 
 	def _start_column(self, name, attrs):
 		self.inColumn = True
+		self.curUCD = None
+		self.curUnit = None
+		self.curDescription = None
 
 	def _end_column(self, name, attrs, content):
 		column = Column(
 			name = self.curColumn, dtype = self.curDtype,
 			description = self.curDescription,
-			unit = getattr(self, "curUnit", None))
-		column.meta["ucd"] = self.curUcd
+			unit = self.curUnit)
+		if self.curUCD is not None:
+			column.meta["ucd"] = self.curUCD
 		column.meta["datatype"] = self.curDatatype
 		column.meta["arraysize"] = self.curArraysize
 		self.curTable[self.curColumn] = column
@@ -274,7 +278,7 @@ class _TablesParser(plainxml.StartEndHandler):
 		content = content.strip()
 
 		if getattr(self, "inColumn", False):
-			self.curUcd = content
+			self.curUCD = content
 
 	def _end_dataType(self, name, attrs, content):
 		content = content.strip()
