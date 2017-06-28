@@ -4,8 +4,36 @@ from . import plainxml
 import datetime
 from collections import OrderedDict
 from astropy.table import Table, Column
-from astropy.io.votable.converters import get_converter
+from astropy.io.votable.converters import (
+	get_converter, converter_mapping,
+	Int, Float, FloatComplex, Boolean, Char, Short, Long, Double
+)
 import numpy as np
+
+# dirty hack
+converter_mapping.update({
+	"integer": Int,
+	"real": Float,
+	"complex": FloatComplex,
+	"boolean": Boolean,
+	"string": Char,
+	"BOOLEAN": Boolean,
+	"SMALLINT": Short,
+	"INTEGER": Int,
+	"BIGINT": Long,
+	"REAL": Float,
+	"DOUBLE": Double,
+	"TIMESTAMP": Char,
+	"CHAR": Char,
+	"VARCHAR": Char,
+	"BINARY": Char,
+	"VARBINARY": Char,
+	"POINT": Char,
+	"REGION": Char,
+	"CLOB": Char,
+	"BLOB": Char,
+	"UNKNOWN": Char
+})
 
 class _CapabilitiesParser(plainxml.StartEndHandler):
 # VOSI; each capability is a dict with at least a key interfaces.
@@ -256,8 +284,15 @@ class _TablesParser(plainxml.StartEndHandler):
 
 		class _field(object):
 			datatype = content
-			arraysize = attrs.get("arraysize") if content in (
-				"char", "unicodeChar") else None
+			if datatype in (
+				key for key, value in converter_mapping.items()
+				if value == Char
+			):
+				datatype = "char"
+
+			arraysize = (
+				attrs.get("arraysize") or attrs.get("size")) if datatype in (
+					"char", "unicodeChar") else None
 			precision = None
 			width = None
 			values = _values()
