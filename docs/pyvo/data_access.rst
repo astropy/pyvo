@@ -26,6 +26,9 @@ Four types of data access services are currently supported by PyVO:
 The sub-sections below look at the PyVO interface for each type of
 service in more detail.
 
+There is also an additional sub-section about how to access datasets with
+`datalink <#datalink>`_
+
 You will find the interfaces have a common
 design and thus behave in the same way.
 
@@ -1242,6 +1245,34 @@ tablename: uri
   :py:class:`~pyvo.dal.tap.TAPService.upload_methods`
 
 Your upload can be referenced using 'TAP_UPLOAD.t1' as table name.
+
+.. _datalink:
+
+========
+Datalink
+========
+
+Datalink allows to access datasets with multiple resources per row in the
+data access layer results.
+
+One can use the :py:class:`~pyvo.dal.datalink.DatalinkMixin.iter_datalinks`
+method to get an iterator which returns
+:py:class:`~pyvo.dal.datalink.DatalinkResults` instances.
+
+>>> dlres = next(result.iter_datalinks())
+
+You can then either select a specific dataset
+
+>>> dlrow = dlres.bysemantics("#preview")
+
+or the main dataset.
+
+>>> dlrow = datalink.getdataset()
+
+To save the file to disk, use :py:class:`~pyvo.dal.query.cachedataset` as
+described in :ref:`sia-results`.
+
+>>> dlrow.cachedataset()
 
 .. rubric:: Footnotes
 

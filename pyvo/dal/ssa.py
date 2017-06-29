@@ -39,6 +39,7 @@ from astropy.time import Time
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
 from .query import DALResults, DALQuery, DALService, Record, mime2extension
+from .datalink import DatalinkMixin
 
 __all__ = ["search", "SSAService", "SSAQuery", "SSAResults", "SSARecord"]
 
@@ -454,10 +455,10 @@ class SSAQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SSAResults(self.execute_votable(), self.queryurl)
+        return SSAResults(self.execute_votable(), url=self.queryurl)
 
 
-class SSAResults(DALResults):
+class SSAResults(DALResults, DatalinkMixin):
     """
     The list of matching images resulting from a spectrum (SSA) query.
     Each record contains a set of metadata that describes an available
@@ -502,6 +503,13 @@ class SSAResults(DALResults):
     and the data from the column matching that name is returned as
     a Numpy array.
     """
+
+    def __init__(self, votable, **kwargs):
+        """
+        Initialize datalinks
+        """
+        super(SSAResults, self).__init__(votable, **kwargs)
+        self._init_datalinks(votable)
 
     def getrecord(self, index):
         """

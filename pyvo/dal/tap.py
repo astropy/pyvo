@@ -15,6 +15,8 @@ from astropy.io.votable import parse as votableparse
 from .query import (
     DALResults, DALQuery, DALService, Record, UploadList,
     DALServiceError, DALQueryError)
+from .mixin import AvailabilityMixin, CapabilityMixin
+from .datalink import DatalinkMixin
 from ..tools import vosi, uws
 
 __all__ = [
@@ -61,13 +63,11 @@ def search(url, query, language="ADQL", maxrec=None, uploads=None, **keywords):
     service = TAPService(url)
     return service.search(query, language, maxrec, uploads, **keywords)
 
-class TAPService(DALService):
+class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
     """
     a representation of a Table Access Protocol service
     """
 
-    _availability = (None, None)
-    _capabilities = None
     _tables = None
 
     def __init__(self, baseurl):
@@ -80,77 +80,6 @@ class TAPService(DALService):
            the base URL that should be used for forming queries to the service.
         """
         super(TAPService, self).__init__(baseurl)
-
-    @property
-    def availability(self):
-        """
-        returns availability as a tuple in the following form:
-
-        Returns
-        -------
-        [0] : bool
-            whether the service is available or not
-        [1] : datetime
-            the time since the server is running
-        """
-        if self._availability == (None, None):
-            avail_url = '{0}/availability'.format(self.baseurl)
-
-            response = requests.get(avail_url, stream=True)
-
-            try:
-                response.raise_for_status()
-            except requests.RequestException as ex:
-                raise DALServiceError.from_except(ex, avail_url)
-
-            # requests doesn't decode the content by default
-            response.raw.read = partial(response.raw.read, decode_content=True)
-
-            self._availability = vosi.parse_availability(response.raw)
-        return self._availability
-
-    @property
-    def available(self):
-        """
-        True if the service is available, False otherwise
-        """
-        return self.availability[0]
-
-    @property
-    def up_since(self):
-        """
-        datetime the service was started
-        """
-        return self.availability[1]
-
-    @property
-    def capabilities(self):
-        """returns capabilities as a nested dictionary
-
-        Known keys include:
-
-            * outputs_formats
-            * languages: {
-                'ADQL-2.0': {
-                    'features':
-                        'ivo://ivoa.net/std/TAPRegExt#features-adqlgeo': [],
-                        'ivo://ivoa.net/std/TAPRegExt#features-udf': [],
-                }
-        """
-        if self._capabilities is None:
-            capa_url = '{0}/capabilities'.format(self.baseurl)
-            response = requests.get(capa_url, stream=True)
-
-            try:
-                response.raise_for_status()
-            except requests.RequestException as ex:
-                raise DALServiceError.from_except(ex, capa_url)
-
-            # requests doesn't decode the content by default
-            response.raw.read = partial(response.raw.read, decode_content=True)
-
-            self._capabilities = vosi.parse_capabilities(response.raw)
-        return self._capabilities
 
     @property
     def tables(self):
@@ -681,7 +610,7 @@ class AsyncTAPJob(object):
 
         response.raw.read = partial(
             response.raw.read, decode_content=True)
-        return TAPResults(votableparse(response.raw.read), self.result_uri)
+        return TAPResults(votableparse(response.raw.read), url=self.result_uri)
 
 
 class TAPQuery(DALQuery):
@@ -780,7 +709,7 @@ class TAPQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return TAPResults(self.execute_votable(), self.queryurl)
+        return TAPResults(self.execute_votable(), url=self.queryurl)
 
     def submit(self):
         """
@@ -804,7 +733,7 @@ class TAPQuery(DALQuery):
         return response
 
 
-class TAPResults(DALResults):
+class TAPResults(DALResults, DatalinkMixin):
     """
     The list of matching images resulting from an image (SIA) query.
     Each record contains a set of metadata that describes an available
@@ -846,6 +775,13 @@ class TAPResults(DALResults):
     and the data from the column matching that name is returned as
     a Numpy array.
     """
+
+    def __init__(self, votable, **kwargs):
+        """
+        Initialize datalinks
+        """
+        super(TAPResults, self).__init__(votable, **kwargs)
+        self._init_datalinks(votable)
 
     @property
     def infos(self):

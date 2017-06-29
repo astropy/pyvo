@@ -38,6 +38,7 @@ import functools
 from astropy.extern import six
 from astropy.table.table import Table
 from astropy.io.votable import parse as votableparse
+from astropy.utils.exceptions import AstropyUserWarning
 
 if six.PY3:
     _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
@@ -189,7 +190,11 @@ class DALQuery(dict):
         """
         initialize the query object with a baseurl
         """
+        if type(baseurl) == six.binary_type:
+            baseurl = baseurl.decode("utf-8")
+
         self._baseurl = baseurl.rstrip("?")
+
         self.update({key.upper(): value for key, value in keywords.items()})
 
     @property
@@ -1290,6 +1295,10 @@ class DALQueryError(DALAccessError):
         the INFO's value attribute.  
         """
         return self._label
+
+
+class PyvoUserWarning(AstropyUserWarning):
+    pass
 
 # routines used by DALService describe to format metadata
 

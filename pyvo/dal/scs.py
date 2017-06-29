@@ -26,6 +26,7 @@ from __future__ import (
 from astropy.coordinates import SkyCoord
 from astropy.units import Unit, Quantity
 from .query import DALResults, DALQuery, DALService, Record
+from .datalink import DatalinkMixin
 
 __all__ = ["search", "SCSService", "SCSQuery", "SCSResults", "SCSRecord"]
 
@@ -320,10 +321,10 @@ class SCSQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SCSResults(self.execute_votable(), self.queryurl)
+        return SCSResults(self.execute_votable(), url=self.queryurl)
 
 
-class SCSResults(DALResults):
+class SCSResults(DALResults, DatalinkMixin):
     """
     The list of matching catalog records resulting from a catalog (SCS) query.
     Each record contains a set of metadata that describes a source or
@@ -369,6 +370,12 @@ class SCSResults(DALResults):
     and the data from the column matching that name is returned as
     a Numpy array.
     """
+    def __init__(self, votable, **kwargs):
+        """
+        Initialize datalinks
+        """
+        super(SCSResults, self).__init__(votable, **kwargs)
+        self._init_datalinks(votable)
 
     def _findresultsresource(self, votable):
         if len(votable.resources) < 1:

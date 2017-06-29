@@ -26,6 +26,9 @@ template_folder = os.path.join(
 )
 app = Flask(__name__, template_folder=template_folder)
 
+host = "127.0.0.1"
+port = None
+
 @app.route("/err")
 def send_err():
     return render_template("error-sia.xml")
@@ -69,6 +72,15 @@ def send_tap_async_result():
 def send_tap_async_phase():
     return redirect("/tap/async/3bLj5O")
 
+@app.route("/datalink_ssa")
+def send_datalink_ssa():
+    return render_template("datalink-ssa.xml", addr="http://{}:{}".format(
+        host, port))
+
+@app.route("/dlmeta")
+def send_dlmeta():
+    return render_template("datalink.xml")
+
 
 class PortProcess(multiprocessing.Process):
     port = None
@@ -96,6 +108,7 @@ def get_server(baseport=8081, limit=8181, step=1):
         "port": port
     })
     process.port = port
+    globals()["port"] = port
 
     return process
 

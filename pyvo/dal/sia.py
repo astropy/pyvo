@@ -37,6 +37,7 @@ from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity, Unit
 from .query import DALResults, DALQuery, DALService, Record, mime2extension
+from .datalink import DatalinkMixin
 
 __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "SIARecord"]
 
@@ -532,10 +533,10 @@ class SIAQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SIAResults(self.execute_votable(), self.queryurl)
+        return SIAResults(self.execute_votable(), url=self.queryurl)
 
 
-class SIAResults(DALResults):
+class SIAResults(DALResults, DatalinkMixin):
     """
     The list of matching images resulting from an image (SIA) query.
     Each record contains a set of metadata that describes an available
@@ -581,6 +582,13 @@ class SIAResults(DALResults):
     and the data from the column matching that name is returned as
     a Numpy array.
     """
+
+    def __init__(self, votable, **kwargs):
+        """
+        Initialize datalinks
+        """
+        super(SIAResults, self).__init__(votable, **kwargs)
+        self._init_datalinks(votable)
 
     def getrecord(self, index):
         """
