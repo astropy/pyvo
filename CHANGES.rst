@@ -1,4 +1,12 @@
-0.6 (unreleased)
+0.6.1
+----------------
+* Add Datalink interface
+
+* Put some common functionallity in Mixins
+
+* Minor fixes and improvements
+
+0.6
 ----------------
 * Using RegTAP as the only registry interface
 
