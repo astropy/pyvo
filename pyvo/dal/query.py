@@ -295,7 +295,7 @@ class DALQuery(dict):
         DALQueryError
         """
         try:
-            return self._votableparse(self.execute_stream().read)
+            return votableparse(self.execute_stream().read)
         except DALAccessError:
             raise
         except Exception as e:
@@ -313,13 +313,6 @@ class DALQuery(dict):
         URL that the execute functions will use if called next.
         """
         return self.baseurl
-
-    def _votableparse(self, fobj):
-        """
-        takes a file like object and returns a VOTable instance
-        override in subclasses for service specifica.
-        """
-        return votableparse(fobj, _debug_python_based_parser=True)
 
 
 class DALResults(object):
