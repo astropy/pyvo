@@ -180,10 +180,12 @@ class DatalinkQuery(DALQuery):
                 ref="srcGroup"/>
         </GROUP>
         """
-        # TODO: implement the full xml hierarchy
+        # get the group with name inputParams
         group_input_params = next(
             group for group in resource.groups if group.name == "inputParams")
+        # get params outside of any group
         dl_params = {_.name: _ for _ in resource.params}
+        # get only Param elements from the group
         input_params = (
             _ for _ in group_input_params.entries if type(_) == Param)
 
