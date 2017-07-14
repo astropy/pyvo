@@ -17,7 +17,8 @@ from .query import (
     DALServiceError, DALQueryError)
 from .mixin import AvailabilityMixin, CapabilityMixin
 from .datalink import DatalinkMixin
-from ..tools import vosi, uws
+from ..io import vosi, uws
+from ..io.vosi import tapregext as tr
 
 __all__ = [
     "search", "escape", "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
@@ -63,6 +64,72 @@ def search(url, query, language="ADQL", maxrec=None, uploads=None, **keywords):
     service = TAPService(url)
     return service.search(query, language, maxrec, uploads, **keywords)
 
+class VOSITables(object):
+    """
+    This class encapsulates access to the VOSITables using a given Endpoint.
+    Access to table names is like accessing dictionary keys. using iterator
+    syntax or `keys()`
+    """
+    def __init__(self, vosi_tables, endpoint_url):
+        self._vosi_tables = vosi_tables
+        self._endpoint_url = endpoint_url
+        self._cache = {}
+
+    def __len__(self):
+        return self._vosi_tables.ntables
+
+    def __getitem__(self, key):
+        return self._get_table(key)
+
+    def __iter__(self):
+        return self.keys()
+
+    def _get_table(self, name):
+        if name in self._cache:
+            return self._cache[name]
+
+        table = self._vosi_tables.get_table_by_name(name)
+
+        if not table.columns and not table.foreignkeys:
+            tables_url = '{}/{}'.format(self._endpoint_url, name)
+            response = requests.get(tables_url, stream=True)
+
+            try:
+                response.raise_for_status()
+            except requests.RequestException as ex:
+                raise DALServiceError.from_except(ex, tables_url)
+
+            # requests doesn't decode the content by default
+            response.raw.read = partial(response.raw.read, decode_content=True)
+
+            table = vosi.parse_tables(response.raw.read).get_first_table()
+            self._cache[name] = table
+
+        return table
+
+    def keys(self):
+        """
+        Iterates over the keys (table names).
+        """
+        for table in self._vosi_tables.iter_tables():
+            yield table.name
+
+    def values(self):
+        """
+        Iterates over the values (tables).
+        Gathers missing values from endpoint if necessary.
+        """
+        for name in self.keys():
+            yield self._get_table(name)
+
+    def items(self):
+        """
+        Iterates over keys and values (table names and tables).
+        Gathers missing values from endpoint if necessary.
+        """
+        for name in self.keys():
+            yield (name, self._get_table(name))
+
 class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
     """
     a representation of a Table Access Protocol service
@@ -84,7 +151,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
     @property
     def tables(self):
         """
-        returns tables as a flat OrderedDict
+        returns tables as a dict-like object
         """
         if self._tables is None:
             tables_url = '{0}/tables'.format(self.baseurl)
@@ -99,7 +166,8 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             # requests doesn't decode the content by default
             response.raw.read = partial(response.raw.read, decode_content=True)
 
-            self._tables = vosi.parse_tables(response.raw)
+            self._tables = VOSITables(
+                vosi.parse_tables(response.raw.read), tables_url)
         return self._tables
 
     @property
@@ -114,9 +182,9 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         """
         try:
             for capa in self.capabilities:
-                if "outputLimit" in capa:
-                    return capa["outputLimit"]["default"]["value"]
-        except KeyError:
+                if isinstance(capa, tr.TableAccess):
+                    return capa.outputlimit.default.value
+        except AttributeError:
             pass
         raise DALServiceError("Default limit not exposed by the service")
 
@@ -132,9 +200,9 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         """
         try:
             for capa in self.capabilities:
-                if "outputLimit" in capa:
-                    return capa["outputLimit"]["hard"]["value"]
-        except KeyError:
+                if isinstance(capa, tr.TableAccess):
+                    return capa.outputlimit.hard.value
+        except AttributeError:
             pass
         raise DALServiceError("Hard limit not exposed by the service")
 
@@ -143,11 +211,11 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         """
         a list of upload methods in form of IVOA identifiers
         """
-        _upload_methods = []
+        upload_methods = []
         for capa in self.capabilities:
-            if "uploadMethods" in capa:
-                _upload_methods += capa["uploadMethods"]
-        return _upload_methods
+            if isinstance(capa, tr.TableAccess):
+                upload_methods += capa.uploadmethods
+        return upload_methods
 
     def run_sync(
             self, query, language="ADQL", maxrec=None, uploads=None,

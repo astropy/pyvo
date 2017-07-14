@@ -9,7 +9,7 @@ from functools import partial
 import requests
 
 from .query import DALServiceError
-from ..tools import vosi
+from ..io import vosi
 
 class AvailabilityMixin(object):
     """
@@ -20,14 +20,8 @@ class AvailabilityMixin(object):
     @property
     def availability(self):
         """
-        returns availability as a tuple in the following form:
-
-        Returns
-        -------
-        [0] : bool
-            whether the service is available or not
-        [1] : datetime
-            the time since the server is running
+        Service Availability as a
+        :py:class:`~pyvo.io.vosi.availability.Availability` object
         """
         if self._availability == (None, None):
             avail_url = '{0}/availability'.format(self.baseurl)
@@ -42,7 +36,7 @@ class AvailabilityMixin(object):
             # requests doesn't decode the content by default
             response.raw.read = partial(response.raw.read, decode_content=True)
 
-            self._availability = vosi.parse_availability(response.raw)
+            self._availability = vosi.parse_availability(response.raw.read)
         return self._availability
 
     @property
@@ -50,14 +44,14 @@ class AvailabilityMixin(object):
         """
         True if the service is available, False otherwise
         """
-        return self.availability[0]
+        return self.availability.available
 
     @property
     def up_since(self):
         """
         datetime the service was started
         """
-        return self.availability[1]
+        return self.availability.upsince
 
 
 class CapabilityMixin(object):
@@ -83,5 +77,5 @@ class CapabilityMixin(object):
             # requests doesn't decode the content by default
             response.raw.read = partial(response.raw.read, decode_content=True)
 
-            self._capabilities = vosi.parse_capabilities(response.raw)
+            self._capabilities = vosi.parse_capabilities(response.raw.read)
         return self._capabilities

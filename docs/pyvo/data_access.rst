@@ -1195,17 +1195,17 @@ There are three types of service metadata:
 >>> print(service.available)
 True
 >>> print(service.up_since)
-datetime.datetime(2000, 0, 0, 0, 0, 0)
+'2000-01-01T00:00:00Z'
 >>> print(service.capabilities)
->>> print(service.tables.keys())
+>>> print(list(service.tables.keys()))
 
 The keys within tables are the fully qualified table names as they can
-be used in queries.  To inspect the column metadata for a table, see the column
+be used in queries.  To inspect the column metadata for a table, see the columns
 property of a give table.
 
 >>> service.tables["rave.main"].columns
 
-See also http://docs.astropy.org/en/stable/table/index.html.
+See also `~pyvo.io.vosi`
 
 .. note::
          Some TAP services have tables metadata of several megabytes.
