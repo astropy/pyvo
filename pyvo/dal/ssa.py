@@ -454,7 +454,7 @@ class SSAQuery(DALQuery):
         return SSAResults(self.execute_votable(), url=self.queryurl)
 
 
-class SSAResults(DALResults, DatalinkMixin):
+class SSAResults(DatalinkMixin, DALResults):
     """
     The list of matching images resulting from a spectrum (SSA) query.
     Each record contains a set of metadata that describes an available
@@ -499,13 +499,6 @@ class SSAResults(DALResults, DatalinkMixin):
     and the data from the column matching that name is returned as
     a Numpy array.
     """
-
-    def __init__(self, votable, **kwargs):
-        """
-        Initialize datalinks
-        """
-        super(SSAResults, self).__init__(votable, **kwargs)
-        self._init_datalinks(votable)
 
     def getrecord(self, index):
         """

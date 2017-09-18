@@ -84,6 +84,94 @@ def search(url, id, responseformat=None, **keywords):
     service = DatalinkService(url)
     return service.search(id, responseformat, **keywords)
 
+class AdhocServiceMixin(object):
+    """
+    Mixing for adhoc:service functionallity.
+    """
+    def __init__(self, votable, url=None):
+        super(AdhocServiceMixin, self).__init__(votable, url=url)
+
+        self._adhocservices = list(
+            resource for resource in votable.resources
+            if resource.type == "meta" and resource.utype == "adhoc:service"
+        )
+
+    def iter_adhocservices(self):
+        for adhocservice in self._adhocservices:
+            yield adhocservice
+
+    def get_adhocservice_by_ivoid(self, ivo_id):
+        """
+        Return the adhoc service starting with the given ivo_id.
+
+        Parameters
+        ----------
+        ivoid : str
+           the ivoid of the service we want to have.
+
+        Returns
+        -------
+        Resource
+            The resource element describing the service.
+        """
+        for adhocservice in self.iter_adhocservices():
+            if any((
+                    param.name == "standardID" and param.value.lower(
+                    ).startswith(ivo_id) for param in adhocservice.params
+            )):
+                return adhocservice
+        raise DALServiceError("No Adhoc Service with ivo-id {}!".format(ivo_id))
+
+class DatalinkMixin(AdhocServiceMixin):
+    """
+    Mixing for datalink functionallity.
+    """
+    def iter_datalinks(self):
+        """
+        Iterates over all datalinks in a DALResult.
+        """
+        datalink = self.get_adhocservice_by_ivoid(
+            b"ivo://ivoa.net/std/datalink")
+
+        for record in self:
+            query = DatalinkQuery.from_resource(record, datalink)
+            yield query.execute()
+
+
+class SodaMixin(AdhocServiceMixin):
+    """
+    Mixin for soda functionallity
+    """
+    def __init__(self, votable, url=None):
+        super(SodaMixin, self).__init__(votable, url=url)
+
+        self._sodas = list(
+            adhocservice for adhocservice in self._adhocservices
+            if any(
+                param.name == "standardID" and param.value.lower(
+                    ).startswith(b"ivo://ivoa.net/std/SODA#sync")
+                for param in adhocservice.params))
+
+    def processed(self):
+        """
+        Iterates over all soda documents in a DALResult.
+        """
+        for record in self:
+            if "content=datalink" in record.format:
+                datalink_query = DatalinkQuery.from_accref(record)
+                datalink_result = datalink_query.execute()
+
+                soda_resource = datalink_result.get_adhocservice_by_ivoid(
+                    b"ivo://ivoa.net/std/SODA#sync")
+
+                # SodaQuery/DatalinkQuery/maybe AdhocService.from_resource
+                # AdhocService in DALService?
+                import pdb; pdb.set_trace()
+            else:
+                raise RuntimeError("No SODA Service defined!")
+
+
+
 class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
     """
     a representation of a Datalink service
@@ -201,6 +289,10 @@ class DatalinkQuery(DALQuery):
 
         return cls(dl_params["accessURL"].value, **query_params)
 
+    @classmethod
+    def from_accref(cls, row):
+        return cls(row.acref)
+
     def __init__(
             self, baseurl, id=None, responseformat=None, **keywords):
         """
@@ -236,10 +328,10 @@ class DatalinkQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return DatalinkResults(self.execute_votable(), self.queryurl)
+        return DatalinkResults(self.execute_votable(), url=self.queryurl)
 
 
-class DatalinkResults(DALResults):
+class DatalinkResults(DatalinkMixin, SodaMixin, DALResults):
     """
     The list of matching records resulting from an datalink query.
     Each record contains a set of metadata that describes an available
@@ -413,51 +505,3 @@ class DatalinkRecord(Record):
             raise DALServiceError(self.error_message)
 
         return self.access_url
-
-
-class DatalinkMixin(object):
-    """
-    Mixing for datalink functionallity
-
-    If you mix this in, you have to call _init_datalinks in your constructor.
-    """
-    _datalinks = None
-
-    def iter_datalinks(self):
-        """
-        Iterates over all datalinks in a DALResult.
-        """
-        if self._datalinks is None:
-            raise RuntimeError(
-                "iter_datalinks called without previous init_datalinks")
-
-        if len(self._datalinks) < 1:
-            return
-
-        if len(self._datalinks) > 1:
-            warnings.warn(
-                "Got more than one datalink element!", PyvoUserWarning)
-
-        datalink = next(iter(self._datalinks))
-
-        for record in self:
-            query = DatalinkQuery.from_resource(record, datalink)
-            yield query.execute()
-
-    def _init_datalinks(self, votable):
-        # this can be overridden to specialize for a particular DAL protocol
-        adhocs = (
-            resource for resource in votable.resources
-            if resource.type == "meta" and resource.utype == "adhoc:service"
-        )
-
-        datalinks = (
-            adhoc for adhoc in adhocs
-            if any(
-                param.name == "standardID" and param.value.lower(
-                    ).startswith(b"ivo://ivoa.net/std/datalink")
-                for param in adhoc.params))
-
-        self._datalinks = list(datalinks)
-
-

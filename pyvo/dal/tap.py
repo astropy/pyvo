@@ -756,13 +756,6 @@ class TAPResults(DALResults, DatalinkMixin):
     a Numpy array.
     """
 
-    def __init__(self, votable, **kwargs):
-        """
-        Initialize datalinks
-        """
-        super(TAPResults, self).__init__(votable, **kwargs)
-        self._init_datalinks(votable)
-
     @property
     def infos(self):
         """
