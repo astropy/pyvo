@@ -5,7 +5,7 @@ A module for accessing remote source and observation catalogs
 from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
-import warnings
+import numpy as np
 
 from .query import DALResults, DALQuery, DALService, Record
 from .exceptions import DALServiceError, PyvoUserWarning
@@ -115,16 +115,18 @@ class AdhocServiceMixin(object):
             The resource element describing the service.
         """
         for adhocservice in self.iter_adhocservices():
-            if any((
-                    param.name == "standardID" and param.value.lower(
-                    ).startswith(ivo_id) for param in adhocservice.params
-            )):
+            if any(
+                    all((
+                        param.name == "standardID",
+                        param.value.lower().startswith(ivo_id.lower())
+                    )) for param in adhocservice.params
+            ):
                 return adhocservice
         raise DALServiceError("No Adhoc Service with ivo-id {}!".format(ivo_id))
 
 class DatalinkMixin(AdhocServiceMixin):
     """
-    Mixing for datalink functionallity.
+    Mixing for datalink functionallity for results classes.
     """
     def iter_datalinks(self):
         """
@@ -140,36 +142,61 @@ class DatalinkMixin(AdhocServiceMixin):
 
 class SodaMixin(AdhocServiceMixin):
     """
-    Mixin for soda functionallity
+    Mixin for soda functionallity for results classes.
     """
+
     def __init__(self, votable, url=None):
         super(SodaMixin, self).__init__(votable, url=url)
 
         self._sodas = list(
-            adhocservice for adhocservice in self._adhocservices
-            if any(
-                param.name == "standardID" and param.value.lower(
-                    ).startswith(b"ivo://ivoa.net/std/SODA#sync")
-                for param in adhocservice.params))
+            adhocservice for adhocservice in self._adhocservices if any(
+                all((
+                    param.name == "standardID",
+                    param.value.lower().startswith(
+                        b"ivo://ivoa.net/std/SODA#sync")
+                )) for param in adhocservice.params
+            )
+        )
 
-    def processed(self):
+    def _get_soda_resource(self, record):
+        if "content=datalink" in record.format:
+            try:
+                datalink_query = DatalinkQuery.from_accref(record)
+                datalink_result = datalink_query.execute()
+
+                return datalink_result.get_adhocservice_by_ivoid(
+                    b"ivo://ivoa.net/std/SODA#sync")
+            except DALServiceError:
+                pass
+
+            try:
+                return self.get_adhocservice_by_ivoid(
+                    b"ivo://ivoa.net/std/SODA#sync")
+            except DALServiceError:
+                pass
+
+            # let it count as soda resource
+            try:
+                return self.get_adhocservice_by_ivoid(
+                    b"ivo://ivoa.net/std/datalink#links")
+            except DALServiceError:
+                pass
+
+        return None
+
+    def processed(self, pos=None, band=None, **kwargs):
         """
         Iterates over all soda documents in a DALResult.
         """
         for record in self:
-            if "content=datalink" in record.format:
-                datalink_query = DatalinkQuery.from_accref(record)
-                datalink_result = datalink_query.execute()
+            soda_resource = self._get_soda_resource(record)
 
-                soda_resource = datalink_result.get_adhocservice_by_ivoid(
-                    b"ivo://ivoa.net/std/SODA#sync")
-
-                # SodaQuery/DatalinkQuery/maybe AdhocService.from_resource
-                # AdhocService in DALService?
-                import pdb; pdb.set_trace()
+            if soda_resource:
+                soda_query = SodaQuery.from_resource(
+                    record, soda_resource, pos=pos, band=band, **kwargs)
+                yield soda_query.execute_stream()
             else:
-                raise RuntimeError("No SODA Service defined!")
-
+                yield record.getdataset()
 
 
 class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
@@ -251,7 +278,7 @@ class DatalinkQuery(DALQuery):
     allowing the caller to take greater control of the result processing.
     """
     @classmethod
-    def from_resource(cls, row, resource):
+    def from_resource(cls, row, resource, **kwargs):
         """
         Creates a instance from a Record and a Datalink Resource.
 
@@ -275,17 +302,23 @@ class DatalinkQuery(DALQuery):
         dl_params = {_.name: _ for _ in resource.params}
         # get only Param elements from the group
         input_params = (
-            _ for _ in group_input_params.entries if type(_) == Param)
+            _ for _ in group_input_params.entries if isinstance(_, Param))
 
         if "accessURL" not in dl_params:
             raise DALServiceError("Datalink has no accessURL")
 
-        query_params = {}
+        query_params = dict()
         for input_param in input_params:
-            if input_param.value:
+            if input_param.ref:
+                input_param = row[input_param.ref]
+
+            if np.isscalar(input_param.value) and input_param.value:
                 query_params[input_param.name] = input_param.value
-            elif input_param.ref:
-                query_params[input_param.name] = row[input_param.ref]
+            elif not np.isscalar(input_param.value) and input_param.value.all():
+                query_params[input_param.name] = " ".join(
+                    str(_) for _ in input_param.value)
+
+        query_params.update(kwargs)
 
         return cls(dl_params["accessURL"].value, **query_params)
 
@@ -505,3 +538,41 @@ class DatalinkRecord(Record):
             raise DALServiceError(self.error_message)
 
         return self.access_url
+
+
+class SodaQuery(DatalinkQuery):
+    """
+    a class for preparing a query to a SODA Service.
+    """
+    def __init__(self, baseurl, pos=None, band=None, **kwargs):
+        super(SodaQuery, self).__init__(baseurl, **kwargs)
+
+        if pos:
+            self.pos = pos
+
+        if band:
+            self.band = band
+
+    @property
+    def pos(self):
+        """
+        The POS parameter defines the positional region(s) to be extracted from
+        the data.
+        """
+        return getattr(self, "_pos", None)
+    @pos.setter
+    def pos(self, val):
+        setattr(self, "_pos", val)
+        self["POS"] = val
+
+    @property
+    def band(self):
+        """
+        The BAND parameter defines the wavelength interval(s) to be extracted
+        from the data using a floating point interval
+        """
+        return getattr(self, "_pos", None)
+    @band.setter
+    def band(self, val):
+        setattr(self, "_band", val)
+        self["BAND"] = val
