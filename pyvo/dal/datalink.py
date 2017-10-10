@@ -140,28 +140,15 @@ class DatalinkMixin(AdhocServiceMixin):
             yield query.execute()
 
 
-class SodaMixin(AdhocServiceMixin):
+class SodaMixin(object):
     """
-    Mixin for soda functionallity for results classes.
+    Mixin for soda functionallity for record classes.
     """
 
-    def __init__(self, votable, url=None):
-        super(SodaMixin, self).__init__(votable, url=url)
-
-        self._sodas = list(
-            adhocservice for adhocservice in self._adhocservices if any(
-                all((
-                    param.name == "standardID",
-                    param.value.lower().startswith(
-                        b"ivo://ivoa.net/std/SODA#sync")
-                )) for param in adhocservice.params
-            )
-        )
-
-    def _get_soda_resource(self, record):
-        if "content=datalink" in record.format:
+    def _get_soda_resource(self):
+        if "content=datalink" in self.getdataformat():
             try:
-                datalink_query = DatalinkQuery.from_accref(record)
+                datalink_query = DatalinkQuery.from_dataurl(self.getdataurl())
                 datalink_result = datalink_query.execute()
 
                 return datalink_result.get_adhocservice_by_ivoid(
@@ -170,14 +157,14 @@ class SodaMixin(AdhocServiceMixin):
                 pass
 
             try:
-                return self.get_adhocservice_by_ivoid(
+                return self._results.get_adhocservice_by_ivoid(
                     b"ivo://ivoa.net/std/SODA#sync")
             except DALServiceError:
                 pass
 
             # let it count as soda resource
             try:
-                return self.get_adhocservice_by_ivoid(
+                return self._results.get_adhocservice_by_ivoid(
                     b"ivo://ivoa.net/std/datalink#links")
             except DALServiceError:
                 pass
@@ -188,15 +175,17 @@ class SodaMixin(AdhocServiceMixin):
         """
         Iterates over all soda documents in a DALResult.
         """
-        for record in self:
-            soda_resource = self._get_soda_resource(record)
+        soda_resource = self._get_soda_resource()
 
-            if soda_resource:
-                soda_query = SodaQuery.from_resource(
-                    record, soda_resource, pos=pos, band=band, **kwargs)
-                yield soda_query.execute_stream()
-            else:
-                yield record.getdataset()
+        if soda_resource:
+            soda_query = SodaQuery.from_resource(
+                self, soda_resource, pos=pos, band=band, **kwargs)
+
+            soda_stream = soda_query.execute_stream()
+            soda_query.raise_if_error()
+            return soda_stream
+        else:
+            raise DALServiceError("No SODA Resource defined!")
 
 
 class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
@@ -314,7 +303,11 @@ class DatalinkQuery(DALQuery):
 
             if np.isscalar(input_param.value) and input_param.value:
                 query_params[input_param.name] = input_param.value
-            elif not np.isscalar(input_param.value) and input_param.value.all():
+            elif (
+                    not np.isscalar(input_param.value) and
+                    input_param.value.all() and
+                    len(input_param.value)
+            ):
                 query_params[input_param.name] = " ".join(
                     str(_) for _ in input_param.value)
 
@@ -323,8 +316,8 @@ class DatalinkQuery(DALQuery):
         return cls(dl_params["accessURL"].value, **query_params)
 
     @classmethod
-    def from_accref(cls, row):
-        return cls(row.acref)
+    def from_dataurl(cls, dataurl):
+        return cls(dataurl)
 
     def __init__(
             self, baseurl, id=None, responseformat=None, **keywords):
@@ -576,3 +569,4 @@ class SodaQuery(DatalinkQuery):
     def band(self, val):
         setattr(self, "_band", val)
         self["BAND"] = val
+
