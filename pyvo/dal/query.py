@@ -673,7 +673,7 @@ class Record(Mapping):
         """
         return the mimetype of the dataset described by this record.
         """
-        return self.getbyucd('meta.code.mime')
+        return self.getbyucd('meta.code.mime', decode=True)
 
     def getdataurl(self):
         """

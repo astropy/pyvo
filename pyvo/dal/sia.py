@@ -529,7 +529,7 @@ class SIAQuery(DALQuery):
         return SIAResults(self.execute_votable(), url=self.queryurl)
 
 
-class SIAResults(DatalinkMixin, SodaMixin, DALResults):
+class SIAResults(DatalinkMixin, DALResults):
     """
     The list of matching images resulting from an image (SIA) query.
     Each record contains a set of metadata that describes an available
@@ -606,7 +606,7 @@ class SIAResults(DatalinkMixin, SodaMixin, DALResults):
         """
         return SIARecord(self, index)
 
-class SIARecord(Record):
+class SIARecord(SodaMixin, Record):
     """
     a dictionary-like container for data in a record from the results of an
     image (SIA) search, describing an available image.
@@ -618,6 +618,12 @@ class SIARecord(Record):
     acessible via the ``get(`` *key* ``)`` function (or the [*key*]
     operator) where *key* is table column name.
     """
+
+    def getdataformat(self):
+        """
+        return the mimetype of the dataset described by this record.
+        """
+        return self.getbyucd("VOX:Image_Format", decode=True)
 
     @property
     def pos(self):
