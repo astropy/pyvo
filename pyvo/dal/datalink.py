@@ -185,7 +185,7 @@ class SodaMixin(object):
             soda_query.raise_if_error()
             return soda_stream
         else:
-            raise DALServiceError("No SODA Resource defined!")
+            return self.getdataset()
 
 
 class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):

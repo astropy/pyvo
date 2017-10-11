@@ -683,9 +683,10 @@ class Record(Mapping):
         """
         for fieldname in self._results.fieldnames:
             field = self._results.getdesc(fieldname)
-            if (field.utype and "Access.Reference" in field.utype) or \
-               (field.ucd   and "meta.dataset" in field.ucd
-                          and "meta.ref.url" in field.ucd):
+            if (field.utype and "access.reference" in field.utype.lower()) or (
+                    field.ucd and "meta.dataset" in field.ucd and
+                    "meta.ref.url" in field.ucd
+            ):
                 out = self[fieldname]
                 if type(out) == six.binary_type:
                     out = out.decode('utf-8')
