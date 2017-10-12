@@ -331,6 +331,17 @@ class DALResults(object):
     (compliant with the Python Database API) or an iterable.
     """
 
+    @classmethod
+    def from_result_url(cls, result_url):
+        """
+        Create a result object from a url.
+        """
+        response = requests.get(result_url, stream=True)
+        response.raw.read = functools.partial(
+            response.raw.read, decode_content=True)
+
+        return cls(votableparse(response.raw.read), url=result_url)
+
     def __init__(self, votable, url=None):
         """
         initialize the cursor.  This constructor is not typically called 
