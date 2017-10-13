@@ -155,26 +155,26 @@ class SodaMixin(object):
 
         if "content=datalink" in self.getdataformat():
             try:
-                datalink_query = DatalinkQuery.from_dataurl(self.getdataurl())
-                datalink_result = datalink_query.execute()
+                datalink_result = DatalinkResults.from_result_url(
+                    self.getdataurl())
 
                 return datalink_result.get_adhocservice_by_ivoid(
                     b"ivo://ivoa.net/std/SODA#sync")
             except DALServiceError:
                 pass
 
-            try:
-                return self._results.get_adhocservice_by_ivoid(
-                    b"ivo://ivoa.net/std/SODA#sync")
-            except DALServiceError:
-                pass
+        try:
+            return self._results.get_adhocservice_by_ivoid(
+                b"ivo://ivoa.net/std/SODA#sync")
+        except DALServiceError:
+            pass
 
-            # let it count as soda resource
-            try:
-                return self._results.get_adhocservice_by_ivoid(
-                    b"ivo://ivoa.net/std/datalink#links")
-            except DALServiceError:
-                pass
+        # let it count as soda resource
+        try:
+            return self._results.get_adhocservice_by_ivoid(
+                b"ivo://ivoa.net/std/datalink#links")
+        except DALServiceError:
+            pass
 
         return None
 
@@ -320,10 +320,6 @@ class DatalinkQuery(DALQuery):
         query_params.update(kwargs)
 
         return cls(dl_params["accessURL"].value, **query_params)
-
-    @classmethod
-    def from_dataurl(cls, dataurl):
-        return cls(dataurl)
 
     def __init__(
             self, baseurl, id=None, responseformat=None, **keywords):
