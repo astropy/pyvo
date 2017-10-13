@@ -146,6 +146,13 @@ class SodaMixin(object):
     """
 
     def _get_soda_resource(self):
+        dataformat = self.getdataformat()
+
+        if dataformat is None:
+            raise DALServiceError(
+                "No dataformat in record. "
+                "Maybe you forgot to include it into the TAP Query?")
+
         if "content=datalink" in self.getdataformat():
             try:
                 datalink_query = DatalinkQuery.from_dataurl(self.getdataurl())
@@ -299,9 +306,8 @@ class DatalinkQuery(DALQuery):
         query_params = dict()
         for input_param in input_params:
             if input_param.ref:
-                input_param = row[input_param.ref]
-
-            if np.isscalar(input_param.value) and input_param.value:
+                query_params[input_param.name] = row[input_param.ref]
+            elif np.isscalar(input_param.value) and input_param.value:
                 query_params[input_param.name] = input_param.value
             elif (
                     not np.isscalar(input_param.value) and
