@@ -274,7 +274,7 @@ class Interface(Element):
         self._securitymethods = HomogeneousList(SecurityMethod)
 
     def __repr__(self):
-        return '<Interface role={} xsi:type={}>...</Interface>'.format(
+        return '<Interface role={}>...</Interface>'.format(
             self.role)
 
     @property

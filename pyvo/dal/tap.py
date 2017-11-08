@@ -13,9 +13,8 @@ import requests
 from astropy.io.votable import parse as votableparse
 
 from .query import (
-    DALResults, DALQuery, DALService, Record, UploadList,
-    DALServiceError, DALQueryError)
-from .mixin import AvailabilityMixin, CapabilityMixin
+    DALResults, DALQuery, DALService, Record, UploadList)
+from .exceptions import DALServiceError, DALQueryError
 from .datalink import DatalinkMixin
 from ..io import vosi, uws
 from ..io.vosi import tapregext as tr
@@ -130,7 +129,7 @@ class VOSITables(object):
         for name in self.keys():
             yield (name, self._get_table(name))
 
-class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
+class TAPService(DALService):
     """
     a representation of a Table Access Protocol service
     """

@@ -114,11 +114,7 @@ class SSAService(DALService):
 
     def search(self, pos, diameter, band=None, time=None, format='all', **keywords):
         """
-        submit a simple SSA query to this service with the given constraints.
-
-        This method is provided for a simple but typical SSA queries.  For
-        more complex queries, one should create an SSAQuery object via
-        create_query()
+        submit a SSA query to this service with the given constraints.
 
         Parameters
         ----------

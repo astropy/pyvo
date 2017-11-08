@@ -23,9 +23,7 @@ identify table columns.
 from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
-__all__ = ["DALAccessError", "DALProtocolError",
-            "DALFormatError", "DALServiceError", "DALQueryError",
-            "DALService", "DALQuery", "DALResults", "Record"]
+__all__ = ["DALService", "DALQuery", "DALResults", "Record"]
 
 import sys
 import os
@@ -40,6 +38,10 @@ from astropy.table.table import Table
 from astropy.io.votable import parse as votableparse
 from astropy.utils.exceptions import AstropyUserWarning
 
+from .exceptions import (
+    DALAccessError, DALFormatError, DALServiceError, DALQueryError)
+from .mixin import AvailabilityMixin, CapabilityMixin
+
 if six.PY3:
     _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
 else:
@@ -52,9 +54,9 @@ def is_mime_type(val):
     return bool(_mimetype_re.match(val))
 
 
-class DALService(object):
+class DALService(AvailabilityMixin, CapabilityMixin, object):
     """
-    an abstract base class representing a DAL service located a particular 
+    an abstract base class representing a DAL service located a particular
     endpoint.
     """
 
@@ -355,12 +357,15 @@ class DALResults(object):
             raise DALFormatError(
                 reason="VOTable response missing results table", url=url)
 
-        self._fldnames = [field.name for field in self.votable.fields]
+        self._fldnames = tuple(field.name for field in self.votable.fields)
         if not self._fldnames:
             raise DALFormatError(
                 reason="response table missing column descriptions.", url=url)
 
         self._infos = self._findinfos(votable)
+
+    def __repr__(self):
+        return repr(self.votable)
 
     def _findresultstable(self, votable):
         # this can be overridden to specialize for a particular DAL protocol
@@ -380,7 +385,7 @@ class DALResults(object):
 
     def _findstatus(self, votable):
         # this can be overridden to specialize for a particular DAL protocol
-        
+
         # look first in the result resource
         res = self._findresultsresource(votable)
         if res:
@@ -452,17 +457,17 @@ class DALResults(object):
     @property
     def fieldnames(self):
         """
-        return the names of the columns.  These are the names that are used 
-        to access values from the dictionaries returned by getrecord().  They 
+        return the names of the columns.  These are the names that are used
+        to access values from the dictionaries returned by getrecord().  They
         correspond to the column name.
         """
-        return self._fldnames[:]
+        return self._fldnames
 
     @property
     def fielddescs(self):
         """
         return the full metadata the columns as a list of Field instances,
-        a simple object with attributes corresponding the the VOTable FIELD
+        a simple object with attributes corresponding the VOTable FIELD
         attributes, namely: name, id, type, ucd, utype, arraysize, description
         """
         return self.votable.fields
@@ -1076,222 +1081,6 @@ def mime2extension(mimetype, default=None):
         return "txt"
 
     return default
-        
-    
-
-class DALAccessError(Exception):
-    """
-    a base class for failures while accessing a DAL service
-    """
-    _defreason = "Unknown service access error"
-
-    def __init__(self, reason=None, url=None):
-        """
-        initialize the exception with an error message
-
-        Parameters
-        ----------
-        reason : str
-           a message describing the cause of the error
-        url : str
-           the query URL that produced the error
-        """
-        if not reason: reason = self._defreason
-        super(DALAccessError, self).__init__(reason)
-        self._reason = reason
-        self._url = url
-
-    @classmethod
-    def _typeName(cls, exc):
-        return re.sub(r"'>$", '', 
-                      re.sub(r"<(type|class) '(.*\.)?", '', 
-                             str(type(exc))))
-    def __str__(self):
-        return self._reason
-    def __repr__(self):
-        return "{0}: {1}".format(self._typeName(self), self._reason)
-   
-    @property
-    def reason(self):
-        """
-        a string description of what went wrong
-        """
-        return self._reason
-
-    @property
-    def url(self):
-        """
-        the URL that produced the error.  If None, the URL is unknown or unset
-        """
-        return self._url
-
-
-class DALProtocolError(DALAccessError):
-    """
-    a base exception indicating that a DAL service responded in an
-    erroneous way.  This can be either an HTTP protocol error or a
-    response format error; both of these are handled by separate
-    subclasses.  This base class captures an underlying exception
-    clause. 
-    """
-    _defreason = "Unknown DAL Protocol Error"
-
-    def __init__(self, reason=None, cause=None, url=None):
-        """
-        initialize with a string message and an optional HTTP response code
-
-        Parameters
-        ----------
-        reason : str
-           a message describing the cause of the error
-        code : int
-           the HTTP error code (as an integer)
-        cause : str
-           an exception issued as the underlying cause.  A value
-           of None indicates that no underlying exception was 
-           caught.
-        url : str
-           the query URL that produced the error
-        """
-        super(DALProtocolError, self).__init__(reason, url)
-        self._cause = cause
-
-    @property
-    def cause(self):
-        """
-        a string description of what went wrong
-        """
-        return self._cause
-
-class DALFormatError(DALProtocolError):
-    """
-    an exception indicating that a DAL response contains fatal format errors.
-    This would include XML or VOTable format errors.  
-    """
-    _defreason = "Unknown VOTable Format Error"
-
-    def __init__(self, cause=None, url=None, reason=None):
-        """
-        create the exception
-
-        Parameters
-        ----------
-        cause : str
-           an exception issued as the underlying cause.  A value
-           of None indicates that no underlying exception was 
-           caught.
-        url
-           the query URL that produced the error
-        reason
-           a message describing the cause of the error
-        """
-        if cause and not reason:  
-            reason = "{0}: {0}".format(DALAccessError._typeName(cause), 
-                                       str(cause))
-
-        super(DALFormatError, self).__init__(reason, cause, url)
-
-
-class DALServiceError(DALProtocolError):
-    """
-    an exception indicating a failure communicating with a DAL
-    service.  Most typically, this is used to report DAL queries that result 
-    in an HTTP error.  
-    """
-    _defreason = "Unknown service error"
-    
-    def __init__(self, reason=None, code=None, cause=None, url=None):
-        """
-        initialize with a string message and an optional HTTP response code
-
-        Parameters
-        ----------
-        reason : str
-           a message describing the cause of the error
-        code : int
-           the HTTP error code (as an integer)
-        cause : str
-           an exception issued as the underlying cause.  A value
-           of None indicates that no underlying exception was 
-           caught.
-        url : str
-           the query URL that produced the error
-        """
-        super(DALServiceError, self).__init__(reason, cause, url)
-        self._code = code
-
-    @property
-    def code(self):
-        """
-        the HTTP error code that resulted from the DAL service query,
-        indicating the error.  If None, the service did not produce an HTTP 
-        response.
-        """
-        return self._code
-
-    @classmethod
-    def from_except(cls, exc, url=None):
-        """
-        create and return DALServiceError exception appropriate
-        for the given exception that represents the underlying cause.
-        """
-        if isinstance(exc, requests.exceptions.RequestException):
-            message = str(exc)
-            try:
-                code = exc.response.status_code
-            except AttributeError:
-                code = 0
-
-            return DALServiceError(message, code, exc, url)
-        elif isinstance(exc, Exception):
-            return DALServiceError("{0}: {1}".format(cls._typeName(exc), 
-                                                     str(exc)), 
-                                   cause=exc, url=url)
-        else:
-            raise TypeError("from_except: expected Exception")
-
-class DALQueryError(DALAccessError):
-    """
-    an exception indicating an error by a working DAL service while processing
-    a query.  Generally, this would be an error that the service successfully 
-    detected and consequently was able to respond with a legal error response--
-    namely, a VOTable document with an INFO element contains the description
-    of the error.  Possible errors will include bad usage by the client, such
-    as query-syntax errors.
-    """
-    _defreason = "Unknown DAL Query Error"
-
-    def __init__(self, reason=None, label=None, url=None):
-        """
-        Parameters
-        ----------
-        reason : str
-           a message describing the cause of the error.  This should 
-           be set to the content of the INFO error element.
-        label : str
-           the identifying name of the error.  This should be the 
-           value of the INFO element's value attribute within the 
-           VOTable response that describes the error.
-        url : str
-           the query URL that produced the error
-        """
-        super(DALQueryError, self).__init__(reason, url)
-        self._label = label
-                          
-    @property
-    def label(self):
-        """
-        the identifing name for the error given in the DAL query response.
-        DAL queries that produce an error which is detectable on the server
-        will respond with a VOTable containing an INFO element that contains 
-        the description of the error.  This property contains the value of 
-        the INFO's value attribute.  
-        """
-        return self._label
-
-
-class PyvoUserWarning(AstropyUserWarning):
-    pass
 
 # routines used by DALService describe to format metadata
 

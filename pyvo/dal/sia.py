@@ -54,14 +54,11 @@ def search(
     pos : `~astropy.coordinates.SkyCoord` class or sequence of two floats
         the position of the center of the rectangular search region.
         assuming icrs decimal degrees if unit is not specified.
-    size : `~astropy.units.Quantity` class or 2 element sequence of float
+    size : `~astropy.units.Quantity` class or up to 2 floats.
         the full rectangular size of the search region along the
         RA and Dec directions.
         converted if it's a iterable containing scalars,
         assuming decimal degrees.
-    size : `~astropy.units.Quantity` class or scalar float
-        the size of the rectangular region around pos.
-        assuming icrs decimal degrees if unit is not specified.
     format : str
         the image format(s) of interest.  "all" (default)
         indicates all available formats; "graphic" indicates
@@ -171,18 +168,14 @@ class SIAService(DALService):
             self, pos, size=1.0, format='all', intersect="overlaps",
             verbosity=2, **keywords):
         """
-        submit a simple SIA query to this service with the given constraints.
-
-        This method is provided for a simple but typical SIA queries.  For
-        more complex queries, one should create an SIAQuery object via
-        create_query()
+        submit a SIA query to this service with the given parameters.
 
         Parameters
         ----------
         pos : `~astropy.coordinates.SkyCoord` class or sequence of two floats
             the position of the center of the rectangular search region.
             assuming icrs decimal degrees if unit is not specified.
-        size : `~astropy.units.Quantity` class or 2 element sequence of float
+        size : `~astropy.units.Quantity` class or up to 2 floats.
             the full rectangular size of the search region along the
             RA and Dec directions.
             converted if it's a iterable containing scalars,
@@ -212,7 +205,7 @@ class SIAService(DALService):
         verbosity : int
             an integer value that indicates the volume of columns
             to return in the result table.  0 means the minimum
-            set of columsn, 3 means as many columns as are  available.
+            set of columns, 3 means as many columns as are  available.
         **keywords :
             additional parameters can be given via arbitrary
             case insensitive keyword arguments. Where there is overlap
@@ -255,7 +248,7 @@ class SIAService(DALService):
         pos : `~astropy.coordinates.SkyCoord` class or sequence of two floats
             the position of the center of the rectangular search region.
             assuming icrs decimal degrees if unit is not specified.
-        size : `~astropy.units.Quantity` class or 2 element sequence of float
+        size : `~astropy.units.Quantity` class or up to 2 floats.
             the full rectangular size of the search region along the
             RA and Dec directions.
             converted if it's a iterable containing scalars,
@@ -339,7 +332,7 @@ class SIAQuery(DALQuery):
         pos : `~astropy.coordinates.SkyCoord` class or sequence of two floats
             the position of the center of the rectangular search region.
             assuming icrs decimal degrees if unit is not specified.
-        size : `~astropy.units.Quantity` class or 2 element sequence of float
+        size : `~astropy.units.Quantity` class or up to 2 floats.
             the full rectangular size of the search region along the
             RA and Dec directions.
             converted if it's a iterable containing scalars,

@@ -7,8 +7,8 @@ from __future__ import (
 
 import warnings
 
-from .query import (
-    DALResults, DALQuery, DALService, Record, DALServiceError, PyvoUserWarning)
+from .query import DALResults, DALQuery, DALService, Record
+from .exceptions import DALServiceError, PyvoUserWarning
 from .mixin import AvailabilityMixin, CapabilityMixin
 
 from astropy.io.votable.tree import Param

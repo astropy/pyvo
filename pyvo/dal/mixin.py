@@ -11,11 +11,14 @@ import requests
 from .query import DALServiceError
 from ..io import vosi
 
+__all__ = ['AvailabilityMixin', 'CapabilityMixin']
+
+
 class AvailabilityMixin(object):
     """
     Mixing for VOSI availability
     """
-    _availability = (None, None)
+    _availability = None
 
     @property
     def availability(self):
@@ -23,7 +26,7 @@ class AvailabilityMixin(object):
         Service Availability as a
         :py:class:`~pyvo.io.vosi.availability.Availability` object
         """
-        if self._availability == (None, None):
+        if self._availability is None:
             avail_url = '{0}/availability'.format(self.baseurl)
 
             response = requests.get(avail_url, stream=True)
@@ -63,7 +66,8 @@ class CapabilityMixin(object):
     @property
     def capabilities(self):
         """
-        Returns capabilities as a nested dictionary
+        Returns capabilities as a
+        py:class:`~pyvo.io.vosi.availability.Availability` object
         """
         if self._capabilities is None:
             capa_url = '{0}/capabilities'.format(self.baseurl)

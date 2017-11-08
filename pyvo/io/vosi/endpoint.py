@@ -338,6 +338,7 @@ class CapabilitiesFile(Element):
 
     @property
     def capabilities(self):
+        """List of `~pyvo.io.vosi.voresource.Capability` objects"""
         return self._capabilities
 
     def parse(self, iterator, config):

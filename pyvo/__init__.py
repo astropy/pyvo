@@ -19,15 +19,11 @@ The pyvo module currently provides these main capabilities:
 
   *  conesearch(), linesearch(), tablesearch()
 
-* get information about an object via its name
-
-  *  resolve(), object2pos(), object2sexapos()
-
 Submodules provide additional functions and classes for greater control over
 access to these services.
 
-This module also exposes the exception classes raised by the above functions, 
-of which DALAccessError is the root parent exception. 
+This module also exposes the exception classes raised by the above functions,
+of which DALAccessError is the root parent exception.
 """
 
 # Affiliated packages may add whatever they like to this file, but

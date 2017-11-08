@@ -5,17 +5,27 @@ from .sla import search as linesearch
 from .scs import search as conesearch
 from .tap import search as tablesearch
 
-from .sia import SIAService, SIAQuery, SIARecord
-from .ssa import SSAService, SSAQuery, SSARecord
-from .sla import SLAService, SLAQuery, SLARecord
-from .scs import SCSService, SCSQuery, SCSRecord
-from .tap import TAPService, TAPQuery, AsyncTAPJob
+from .query import DALService, DALQuery, DALResults, Record
 
-from .query import (
+from .sia import SIAService, SIAQuery, SIAResults, SIARecord
+from .ssa import SSAService, SSAQuery, SSAResults, SSARecord
+from .sla import SLAService, SLAQuery, SLAResults, SLARecord
+from .scs import SCSService, SCSQuery, SCSResults, SCSRecord
+from .tap import TAPService, TAPQuery, TAPResults, AsyncTAPJob
+
+from .exceptions import (
     DALAccessError, DALProtocolError, DALFormatError, DALServiceError,
     DALQueryError)
 
 __all__ = [
     "imagesearch", "spectrumsearch", "linesearch", "conesearch", "tablesearch",
-    "SIAService", "SSAService", "SLAService", "SCSService",
-    "TAPService", "AsyncTAPJob"]
+    "DALService",
+    "SIAService", "SSAService", "SLAService", "SCSService", "TAPService",
+    "DALQuery",  "SIAQuery", "SSAQuery", "SLAQuery", "SCSQuery", "TAPQuery",
+    "DALResults",
+    "SIAResults", "SSAResults", "SLAResults", "SCSResults", "TAPResults",
+    "Record",
+    "SIARecord", "SSARecord", "SLARecord", "SCSRecord",
+    "AsyncTAPJob",
+    "DALAccessError", "DALProtocolError", "DALFormatError", "DALServiceError",
+    "DALQueryError"]
