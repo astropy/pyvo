@@ -22,8 +22,8 @@ submitting queries.
 
 which returns a :ref:`resultset <pyvo-resultsets>`.
 
-Additional to standard parameters, service-dependant search constraints are
-supported by case-insensitive keyword parameters.
+Individual services may define additional, custom parameters.  You can pass
+these to the ``search`` method as (case-insensitive) keyword arguments.
 
 See :ref:`pyvo-services` for a explanation of the different interfaces.
 
@@ -35,8 +35,9 @@ Astrometrical parameters
 Most services expose the astrometrical parameters ``pos`` and ``size`` for which
 PyVO accept `~astropy.coordinates.SkyCoord` or `~astropy.units.Quantity`
 objects as well as any other sequence containing right ascension and declination
-in degrees, which are converted to the right coordinate frame / unit before
-submitted to the service.
+in degrees, which are converted to the standard coordinate frame 
+(in the VO, that usually is ICRS) in the standard units (always degrees
+in the VO) before they are submitted to the service.
 
 Also, `~astropy.coordinates.SkyCoord` can be used to lookup names of
 astronomical objects you are searching for.
@@ -67,18 +68,27 @@ See :ref:`astropy-time` for explanation.
 
 Verbosity
 ---------
-Some services allow to configure the amount of data to return by the
-``verbosity`` parameter. The exact columns are defined by the service standard.
+
+Several VO protocols have the notion of “verbosity”, where 1 means “minimal
+set of columns”, 2 means “columns most users can work with” and 3 ”everything
+including exotic items”.  Query functions accept these values in the
+``verbosity`` parameter. The exact semantics are service-specific.
 
 Availability and capabilities
 -----------------------------
 
-Services may have availability and capability information, depending on the version.
+VO services should offer some standard ”support” interfaces specified in
+VOSI.  In pyVO, the information obtained from these endpoints can be
+obtained from some service attributes.
 
-For availability, this is :py:attr:`~pyvo.dal.mixin.AvailabilityMixin.available`
+For availability (i.e., is the service up and running?), 
+this is :py:attr:`~pyvo.dal.mixin.AvailabilityMixin.available`
 and :py:attr:`~pyvo.dal.mixin.AvailabilityMixin.up_since`
 
-Capabilities define which functionallity a service is exposing at the http level.
+Capabilities describe specific pieces of functionality (such as “this is a
+spectral search”) and further metadata (such as ”this service will never 
+return more than 10000 rows”).
+
 This information is contained in the datastructure
 :py:class:`~pyvo.io.vosi.endpoint.CapabilitiesFile` available through
 :py:attr:`~pyvo.dal.mixin.CapabilityMixin.capabilities`.
@@ -91,38 +101,44 @@ See :py:mod:`pyvo.dal.exceptions`.
 
 Resultsets and Records
 ----------------------
-Resultset contain primarily tabular data and might also provide binary
+Resultsets contain primarily tabular data and might also provide binary
 datasets and/or access to additional data services.
 
-To obtain the column names:
+To obtain the names of the columns in a service response, write:
 
 >>> print(resultset.fieldnames)
 
-To get metadata about a given column use :py:meth:`~pyvo.dal.query.DALResults.getdesc`
+Rich metadata equivalent to what is found in VOTables (including unit,
+ucd, utype, and xtype) is available through resultset's
+:py:meth:`~pyvo.dal.query.DALResults.getdesc` method:
+
+>>>  print(resultset.getdesc("accref").ucd)
 
 .. note::
-    There are semantics which allow you to get the name of fields which fulfil a
-    certain purpose, namely ``ucd`` and ``utype``.
+    Two convenience functions let you retrieve columns of a specific
+    physics (by UCD) or with a particular legacy data model annotation
+    (by utype), like this:
 
-    >>> fieldname = resultset.fieldname_with_ucd('VOX:Image_AccessReference')
+    >>> fieldname = resultset.fieldname_with_ucd('phot.mag;em.opt.V')
     >>> fieldname = resultset.fieldname_with_utype('Access.Reference')
 
-The object is iterable
+Iterating over a resultset gives the rows in the result:
 
 >>> for row in resultset:
 >>>     print row['accref']
 ...
 
-and it's length is available via the ``len()``
+The total number of rows in the answerh is available as its ``len()``:
 
 >>> print(len(resultset))
 9
 
-it allows access to whole columns (as numpy array) by their name
+As with general numpy arrays, accessing individual columns via names gives an
+array of all of their values:
 
 >>> column = resultset['accref']
 
-or a specific row by rownumber
+whereas integers retrieve columns:
 
 >>> row = resultset[0]
 
@@ -148,22 +164,23 @@ language called *ADQL* instead of predefined search constraints.
 >>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap")
 >>> tap_results = tap_service.search("SELECT TOP 10 * FROM ivoa.obscore")
 
-You can limit the maximum result row count by parameter, producing more readable
-SQL:
-
->>> tap_results = tap_service.search(
->>>     "SELECT * FROM ivoa.obscore", maxrec=10)
-
-The default limit:
+As a sanity precaution, most services have some default limit of how many
+rows they will return before overflowing:
 
 >>> print(tap_service.maxrec)
 
-And the hard limit:
+To retrieve more rows than that (often conservative) default limit, you
+must override maxrec in the call to ``search``:
+
+>>> tap_results = tap_service.search(
+>>>     "SELECT * FROM ivoa.obscore", maxrec=100000)
+
+Services will not let you raise maxrec beyond the hard match limit:
 
 >>> print(tap_service.hardlimit)
 
-An overview over all available tables is exposed by
-:py:attr:`~pyvo.dal.TAPService.tables`
+A list of the tables and the columns within them is available in the
+TAPService's :py:attr:`~pyvo.dal.TAPService.tables` attribute.
 
 .. _pyvo-sia:
 
@@ -184,10 +201,12 @@ The dataset format, 'all' by default, can be specified:
 
 This would return all graphical image formats (png, jpeg, gif) available. Other
 possible values are image/* mimetypes, or ``metadata``, which returns no image
-at all.
+at all but instead a declaration of the additional parameters supported
+by the given service.
 
-The way how the result images intersect with the search constraints are
-variable, being the most greedy by selecting overlapping images by default.
+The ``intersect`` argument (defaulting to ``OVERLAPS``) lets a program
+specify the desired relationship between the region of interest and the
+coverage of the images (case-insensitively):
 
 >>> sia_results = sia_service.search(pos=pos, size=size, intersect='covers')
 
@@ -203,15 +222,14 @@ This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter
 
 Simple Spectrum Access
 ----------------------
-one-dimensional images (spectra), with some subtile differences:
+Access to (one-dimensional) spectra resembles image access, with some
+subtile differences:
 
-It's size parameter is called ``diameter`` and expects the diameter of the
-circular region around ``pos``.
+The size parameter is called ``diameter`` here, and hence the search
+region is always circular with ``pos`` as center:
 
 >>> ssa_service = vo.dal.SSAService("http://www.isdc.unige.ch/vo-services/lc")
 >>> ssa_results = ssa_service.search(pos=pos, diameter=size)
-
-Since spectras are pointed observations, there is no ``intersect`` parameter.
 
 SSA queries can be further constrained by the ``band`` and ``time`` parameters.
 
@@ -222,9 +240,9 @@ SSA queries can be further constrained by the ``band`` and ``time`` parameters.
 
 Simple Cone Search
 ------------------
-The Simple Cone Search returns results (with and without datasets) belonging
-to a circular region in the sky determined by a circular region defined by the
-parameters ``pos`` and ``radius``.
+The Simple Cone Search returns results – typically catalog entries –
+within a circular region on the sky defined by the parameters ``pos``
+(again, ICRS) and ``radius``:
 
 >>> scs_srv = vo.dal.SCSService(
 >>>     'http://dc.zah.uni-heidelberg.de/arihip/q/cone/scs.xml')
@@ -240,11 +258,16 @@ range. The unit of the values is meters, but any unit may be specified using
 
 Jobs
 ====
-Some services also have a ``submit_job`` method, which has the same
+Some services, most notably TAP ones, allow asynchronous operation
+(i.e., you submit a job, receive a URL where to check for updates, and
+then can go away) using a VO standard called UWS.
+
+These have a ``submit_job`` method, which has the same
 parameters as their ``search`` but start a server-side job instead of waiting
 for the result to return.
 
-This is useful for longer-running queries.
+This is particulary useful for longer-running queries or when you want
+to run several queries in parallel from one script.
 
 .. note::
     It is good practice to test the query with a maxrec constraint first.
@@ -286,7 +309,7 @@ Besides ``run`` there are also several other job control methods:
 
 .. note::
     Usually the service deletes the job after a certain time, but it is a good
-    practice to delete it manually.
+    practice to delete it manually when done.
 
     The destruction time can be obtained and changed with
     :py:attr:`~pyvo.dal.tap.AsyncTAPJob.destruction`
