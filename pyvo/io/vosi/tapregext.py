@@ -6,6 +6,8 @@ from astropy.extern import six
 
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.xml import check as xml_check
+from astropy.utils.misc import indent
+
 from astropy.io.votable.exceptions import vo_raise, vo_warn, warn_or_raise
 
 from .util import (
@@ -66,6 +68,49 @@ class TableAccess(TAPCapRestriction):
         self.executionduration = None
         self.outputlimit = None
         self.uploadlimit = None
+
+    def describe(self):
+        """
+        Prints out a human readable description
+        """
+        super(TableAccess, self).describe()
+
+        for datamodel in self.datamodels:
+            datamodel.describe()
+
+        for language in self.languages:
+            language.describe()
+
+        for outputformat in self.outputformats:
+            outputformat.describe()
+
+        for uploadmethod in self.uploadmethods:
+            uploadmethod.describe()
+
+        print("Time a job is kept (in seconds)")
+        print(indent("Default {}".format(self.retentionperiod.default)))
+        if self.retentionperiod.hard:
+            print(indent("Maximum {}".fornat(self.retentionperiod.hard)))
+        print()
+
+        print("Maximal run time of a job")
+        print(indent("Default {}".format(self.executionduration.default)))
+        if self.executionduration.hard:
+            print(indent("Maximum {}".fornat(self.executionduration.hard)))
+        print()
+
+        print("Maximal size of resultsets")
+        print(indent("Default {} {}".format(
+            self.outputlimit.default.value, self.outputlimit.default.unit)))
+        if self.outputlimit.hard:
+            print(indent("Maximum {} {}".format(
+                self.outputlimit.hard.value, self.outputlimit.hard.unit)))
+        print()
+
+        print("Maximal size of uploads")
+        print(indent("Maximum {} {}".format(
+            self.uploadlimit.hard.value, self.uploadlimit.hard.unit)))
+        print()
 
     @property
     def datamodels(self):
@@ -149,7 +194,15 @@ class DataModelType(ValueMixin, Element):
     def __repr__(self):
         return '<DataModel ivo-id={}>{}</DataModel>'.format(
             self.ivo_id, self.value)
-    
+
+    def describe(self):
+        """
+        Prints out a human readable description
+        """
+        print("Datamodel {}".format(self.value))
+        print(indent(self.ivo_id))
+        print()
+
     @property
     def ivo_id(self):
         """The IVORN of the data model."""
@@ -171,17 +224,36 @@ class Language(Element):
             "description": make_add_simplecontent(
                 self, "description", "description", W06),
             "languageFeatures": make_add_complexcontent(
-                self, "languageFeatures", "languagefeatures",
+                self, "languageFeatures", "languagefeaturelists",
                 LanguageFeatureList)
         })
 
         self.name = None
         self._versions = HomogeneousList(Version)
         self.description = None
-        self._languagefeatures = HomogeneousList(LanguageFeatureList)
+        self._languagefeaturelists = HomogeneousList(LanguageFeatureList)
 
     def __repr__(self):
         return '<Language>{}</Language>'.format(self.name)
+
+    def describe(self):
+        """
+        Prints out a human readable description
+        """
+        print("Language {}".format(self.name))
+
+        for languagefeaturelist in self.languagefeaturelists:
+            print(indent(languagefeaturelist.type))
+
+            for feature in languagefeaturelist:
+                print(indent(feature.form, shift=2))
+
+                if feature.description:
+                    print(indent(feature.description, shift=3))
+
+                print()
+
+            print()
 
     @property
     def name(self):
@@ -204,8 +276,8 @@ class Language(Element):
         self._description = description
 
     @property
-    def languagefeatures(self):
-        return self._languagefeatures
+    def languagefeaturelists(self):
+        return self._languagefeaturelists
 
     def parse(self, iterator, config):
         super(Language, self).parse(iterator, config)
@@ -250,6 +322,22 @@ class LanguageFeatureList(Element):
         self.type = kwargs.get('type')
         self._features = HomogeneousList(LanguageFeature)
 
+    def __len__(self):
+        return len(self.features)
+
+    def __getitem__(self, index):
+        return self.features[index]
+
+    def __iter__(self):
+        return iter(self.features)
+
+    def __repr__(self):
+        return (
+            '<LanguageFeatureList>'
+            '... {} features ...'
+            '</LanguageFeatureList'
+        ).format(len(self.features))
+
     @property
     def type(self):
         return self._type
@@ -261,13 +349,6 @@ class LanguageFeatureList(Element):
     @property
     def features(self):
         return self._features
-
-    def __repr__(self):
-        return (
-            '<LanguageFeatureList>'
-            '... {} features ...'
-            '</LanguageFeatureList'
-        ).format(len(self.features))
 
 
 class LanguageFeature(Element):
@@ -325,6 +406,18 @@ class OutputFormat(Element):
         return '<OutputFormat ivo-id={}>{}</OutputFormat>'.format(
             self.ivo_id, self.mime)
 
+    def describe(self):
+        """
+        Prints out a human readable description
+        """
+        print('Output format {}'.format(self.mime))
+
+        if self.aliases:
+            print(indent('Also available as {}'.format(
+                ', '.join(self.aliases))))
+
+        print()
+
     @property
     def mime(self):
         return self._mime
@@ -347,6 +440,14 @@ class UploadMethod(Element):
 
     def __repr__(self):
         return '<UploadMethod ivo-id="{}"/>'.format(self.ivo_id)
+
+    def describe(self):
+        """
+        Prints out a human readable description
+        """
+        print("Upload method supported")
+        print(indent(self.ivo_id))
+        print()
 
     @property
     def ivo_id(self):

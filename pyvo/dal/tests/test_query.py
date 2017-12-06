@@ -135,7 +135,7 @@ class DALResultsTest(unittest.TestCase):
 
     def testCtor(self):
         self.result = dalq.DALResults(self.votable)
-        self.assert_(isinstance(self.result._fldnames, list))
+        self.assert_(isinstance(self.result._fldnames, tuple))
         self.assert_(self.result.votable is not None)
 
     def testProps(self):
@@ -143,7 +143,7 @@ class DALResultsTest(unittest.TestCase):
         self.assertEquals(len(self.result), 2)
 
         names = self.result.fieldnames
-        self.assertIsInstance(names, list)
+        self.assertIsInstance(names, tuple)
         self.assertEquals(len(names), 10)
         for i, name in enumerate(names):
             self.assert_(
@@ -477,7 +477,7 @@ class CursorTest(unittest.TestCase):
 
     def testCtor(self):
         self.result = dalq.DALResults(self.votable)
-        self.assert_(isinstance(self.result._fldnames, list))
+        self.assert_(isinstance(self.result._fldnames, tuple))
         self.assert_(self.result.votable is not None)
         self.cursor = self.result.cursor()
 
@@ -633,91 +633,7 @@ class DatasetNameTest(unittest.TestCase):
         self.assertEquals(os.path.join(self.outdir,self.base+".dat"),
                           self.rec.make_dataset_filename(self.outdir, self.base))
 
-class FormatTest(unittest.TestCase):
 
-    subtests = [ ("d &lt; 10", "d < 10"),
-                 ("t&lt;0",    "t<0"),
-                 ("d &gt; 10", "d > 10"),
-                 ("t&gt;0",    "t>0"),
-                 ("A&amp;P",   "A&P"),
-                 ("A &amp; P", "A & P"),
-                 ("A &amp;amp;P", "A &amp;P"),
-                 ("-30&#176; ", "-30 deg "),
-                 ("-30\deg ", "-30 deg "),
-                 ("I am. <br />", "I am. "),
-                 ("I am; <br/> therefore", "I am;  therefore"),
-                 ("I am;<br> therefore", "I am; therefore"),
-                 ("<p>I am.</p><p>That's", "<p>I am.<p>That's"),
-                 ("goes as $v ~ r$.", "goes as v ~ r."),
-                 ("where $r$ is", "where r is"),
-                 ("$-45\deg$", "-45 deg"),
-                 ("upwards of $1M per month ($10M per", 
-                  "upwards of $1M per month ($10M per")        ]
-
-    splittests = [ "one\n\ntwo", "one<p>two", "one <p/> two", "one\para two" ]
-
-    def test_simple_sub(self):
-        for orig, trx in self.subtests:
-            self.assertEquals(dalq.deref_markup(orig), trx)
-
-    def test_mixed_sub(self):
-        inp = """At t&gt;0, the drop goes as $1/r^2$. <br> This shows"""
-        out = """At t>0, the drop goes as 1/r^2.  This shows"""
-        self.assertEquals(dalq.deref_markup(inp), out);
-
-    def test_fill(self):
-        inp = """
-The quick brown 
-fox jumped over 
-the lazy dogs.
-"""
-        out = """The quick brown fox jumped over the
-lazy dogs."""
-
-        self.assertEquals(dalq.para_format_desc(inp, 38), out)
-
-    def test_para_detect(self):
-        for t in self.splittests:
-            self.assertEquals(dalq.para_format_desc(t), "one\n\ntwo")
-
-
-    def test_para_format(self):
-        inp = """This tests the paragraph formatting functionality that 
-                 will be used to disply resource descriptions.  This is not 
-                 meant for display purpoes only.
-
-                 It must be able to handle to handle multiple paragrasphs.  
-                 The normal delimiter is a pair of consecutive new-line 
-                 charactere, but other markup will be recognized as well,
-                 e.g. "&lt;p&gt;".  <p> Formatting must be succeesful for 
-                 $n$ paragraphs where $n > 1$.  It should even work on $n^2$ 
-                 paragraphs."""
-
-        out = """This tests the paragraph formatting
-functionality that will be used to
-disply resource descriptions.  This is
-not meant for display purpoes only.
-
-It must be able to handle to handle
-multiple paragrasphs. The normal
-delimiter is a pair of consecutive new-
-line charactere, but other markup will
-be recognized as well, e.g. "<p>".
-
-Formatting must be succeesful for n
-paragraphs where n > 1.  It should even
-work on n^2 paragraphs."""
-
-        text = dalq.para_format_desc(inp, 40)
-        if text != out:
-            for i in range(len(text)):
-                if text[i] != out[i]:
-                    print("format different from expected starting with: "+
-                          text[i:])
-                    break
-        self.assertEquals(text, out, "Incorrect formatting.")
-                          
-                 
 __all__ = "DALAccessErrorTest DALServiceErrorTest DALQueryErrorTest RecordTest EnsureBaseURLTest DALServiceTest DALQueryTest QueryExecuteTest CursorTest DatasetNameTest FormatTest".split()
 def suite():
     tests = []

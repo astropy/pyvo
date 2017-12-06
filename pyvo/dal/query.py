@@ -29,7 +29,6 @@ import sys
 import os
 import re
 import warnings
-import textwrap
 import requests
 import functools
 
@@ -40,7 +39,9 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 from .exceptions import (
     DALAccessError, DALFormatError, DALServiceError, DALQueryError)
-from .mixin import AvailabilityMixin, CapabilityMixin
+from .mixin import AvailabilityMixin, TablesMixin
+
+from ..utils.formatting import para_format_desc
 
 if six.PY3:
     _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
@@ -54,7 +55,7 @@ def is_mime_type(val):
     return bool(_mimetype_re.match(val))
 
 
-class DALService(AvailabilityMixin, CapabilityMixin, object):
+class DALService(AvailabilityMixin, TablesMixin, object):
     """
     an abstract base class representing a DAL service located a particular
     endpoint.
@@ -114,67 +115,33 @@ class DALService(AvailabilityMixin, CapabilityMixin, object):
         q = DALQuery(self.baseurl, **keywords)
         return q
 
-    # TODO: move to pyvo.registry
-    def describe(self, verbose=False, width=78, file=None):
+    def describe(self, width=None):
         """
         Print a summary description of this service.  
 
-        At a minimum, this will include the service protocol and 
-        base URL.  If there is metadata associated with this service, 
-        the summary will include other information, such as the 
-        service title and description.
-
-        Parameters
-        ----------
-        verbose : bool
-            If false (default), only user-oriented information is 
-            printed; if true, additional information will be printed
-            as well.
-        width : int
-            Format the description with given character-width.
-        file : writable file-like object
-            If provided, write information to this output stream.
-            Otherwise, it is written to standard out.  
+        THis includes the interface capabilities, and the content description
+        if it doesn't contains multiple data collections (in other words, it is
+        not a TAP service).
         """
-        if not file:
-            file = sys.stdout
-        print("{0} v{1} Service".format(self.protocol.upper(), self.version))
-        if self.info.get("title"):
-            print(para_format_desc(self.info["title"]), file=file)
-        if self.info.get("shortName"):
-            print("Short Name: " + self.info["shortName"], file=file)
-        if self.info.get("publisher"):
-            print(para_format_desc("Publisher: " + self.info["publisher"]), 
-                  file=file)
-        if self.info.get("identifier"):
-            print("IVOA Identifier: " + self.info["identifier"], file=file)
-        print("Base URL: " + self.baseurl, file=file)
+        if len(self.tables) == 1:
+            description = next(self.tables.values()).description
+            
+            if width:
+                description = para_format_desc(description, width)
 
-        if self.info.get("description"):
-            print(file=file)
-            print(para_format_desc(self.info["description"]), file=file)
-            print(file=file)
+            print(description)
+            print()
 
-        if self.info.get("subjects"):
-            val = self.info.get("subjects")
-            if not hasattr(val, "__getitem__"):
-                val = [val]
-            val = (str(v) for v in val)
-            print(para_format_desc("Subjects: " + ", ".join(val)), file=file)
-        if self.info.get("waveband"):
-            val = self.info.get("waveband")
-            if not hasattr(val, "__getitem__"):
-                val = [val]
-            val = (str(v) for v in val)
-            print(para_format_desc("Waveband Coverage: " + ", ".join(val)), 
-                  file=file)
 
-        if verbose:
-            if self.info.get("capabilityStandardID"):
-                print("StandardID: " + self.info["capabilityStandardID"], 
-                      file=file)
-            if self.info.get("referenceURL"):
-                print("More info: " + self.info["referenceURL"], file=file)
+        capabilities = filter(
+            lambda x: not six.text_type(x.standardid).startswith(
+                'ivo://ivoa.net/std/VOSI'),
+            self.capabilities
+        )
+
+        for cap in capabilities:
+            cap.describe()
+            print()
 
 
 class DALQuery(dict):
@@ -1081,50 +1048,3 @@ def mime2extension(mimetype, default=None):
         return "txt"
 
     return default
-
-# routines used by DALService describe to format metadata
-
-_parasp = re.compile(r"(?:[ \t\r\f\v]*\n){2,}[ \t\r\f\v]*")
-_ptag = re.compile(r"\s*(?:<p\s*/?>)|(?:\\para(?:\\ )*)\s*")
-def para_format_desc(text, width=78):
-    """
-    format description text into paragraphs suiteable for display in the 
-    shell.  That is, the output will be one or more plain text paragraphs 
-    of the prescribed width (78 characters, the default).  The text will 
-    be split into separate paragraphs whwre there occurs (1) a two or more 
-    consecutive carriage return, (2) an HTMS paragraph tag, or (2) 
-    a LaTeX parabraph control sequence.  It will attempt other substitutions
-    of HTML and LaTeX markup that sometimes find their way into resource
-    descriptions.  
-    """
-    paras = _parasp.split(text)
-    for i in range(len(paras)):
-        para = paras.pop(0)
-        for p in _ptag.split(para):
-            if len(p) > 0:
-                p = "\n".join( (l.strip() for l in 
-                                (t for t in p.splitlines() if len(t) > 0)) )
-                paras.append(deref_markup(p))
-
-    return "\n\n".join( (textwrap.fill(p, width) for p in paras) )
-
-_musubs = [ (re.compile(r"&lt;"), "<"),  (re.compile(r"&gt;"), ">"), 
-            (re.compile(r"&amp;"), "&"), (re.compile(r"<br\s*/?>"), ''),
-            (re.compile(r"</p>"), ''), (re.compile(r"&#176;"), " deg"),
-            (re.compile(r"\$((?:[^\$]*[\*\+=/^_~><\\][^\$]*)|(?:\w+))\$"), 
-             r'\1'),
-            (re.compile(r"\\deg"), " deg"),
-           ]
-_alink = re.compile(r'''<a .*href=(["])([^\1]*)(?:\1).*>\s*(\S.*\S)\s*</a>''')
-def deref_markup(text):
-    """
-    perform some substitutions of common markup suitable for text display.
-    This includes HTML escape sequence
-    """
-    for pat, repl in _musubs:
-        text = pat.sub(repl, text)
-    text = _alink.sub(r"\3 <\2>", text)
-    return text
-
-    
-        

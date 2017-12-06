@@ -225,7 +225,7 @@ class SIAResultsTest(unittest.TestCase):
 
     def testCtor(self):
         self.r = sia.SIAResults(self.tbl)
-        self.assert_(isinstance(self.r._fldnames, list))
+        self.assert_(isinstance(self.r._fldnames, tuple))
         self.assert_(self.r.votable is not None)
         self.assertEquals(len(self.r), 2)
 

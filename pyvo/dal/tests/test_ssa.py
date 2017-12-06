@@ -183,7 +183,7 @@ class SSAResultsTest(unittest.TestCase):
 
     def testCtor(self):
         self.r = ssa.SSAResults(self.tbl)
-        self.assertIsInstance(self.r._fldnames, list)
+        self.assertIsInstance(self.r._fldnames, tuple)
         self.assertIsNotNone(self.r.votable)
         self.assertEquals(len(self.r), 35)
 

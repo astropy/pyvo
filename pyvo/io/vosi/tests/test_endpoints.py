@@ -90,31 +90,35 @@ class VOSITest(unittest.TestCase):
         self.assertEqual(capabilities[3].languages[0].description, "ADQL 2.0")
 
         self.assertEqual(
-            capabilities[3].languages[0].languagefeatures[0].type,
+            capabilities[3].languages[0].languagefeaturelists[0].type,
             "ivo://ivoa.net/std/TAPRegExt#features-udf")
         self.assertEqual(
-            capabilities[3].languages[0].languagefeatures[0].features[0].form,
+            capabilities[3].languages[0].languagefeaturelists[0].features[
+                0].form,
             "form 1")
         self.assertEqual(
-            capabilities[3].languages[0].languagefeatures[0].features[
+            capabilities[3].languages[0].languagefeaturelists[0].features[
                 0].description,
             "description 1")
         self.assertEqual(
-            capabilities[3].languages[0].languagefeatures[0].features[1].form,
+            capabilities[3].languages[0].languagefeaturelists[0].features[
+                1].form,
             "form 2")
         self.assertEqual(
-            capabilities[3].languages[0].languagefeatures[0].features[
+            capabilities[3].languages[0].languagefeaturelists[0].features[
                 1].description,
             "description 2")
 
         self.assertEqual(
-            capabilities[3].languages[0].languagefeatures[1].type,
+            capabilities[3].languages[0].languagefeaturelists[1].type,
             "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo")
         self.assertEqual(
-            capabilities[3].languages[0].languagefeatures[1].features[0].form,
+            capabilities[3].languages[0].languagefeaturelists[1].features[
+                0].form,
             "BOX")
         self.assertEqual(
-            capabilities[3].languages[0].languagefeatures[1].features[1].form,
+            capabilities[3].languages[0].languagefeaturelists[1].features[
+                1].form,
             "POINT")
 
         self.assertEqual(

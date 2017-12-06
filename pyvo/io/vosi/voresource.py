@@ -19,6 +19,7 @@ from __future__ import (absolute_import, division, print_function,
 from astropy.extern import six
 
 from astropy.utils.collections import HomogeneousList
+from astropy.utils.misc import indent
 
 from .util import (
     make_add_simplecontent, make_add_complexcontent, Element, ValueMixin)
@@ -156,6 +157,21 @@ class Capability(Element):
         ).format(
             self.standardid, len(self.validationlevels), len(self.interfaces))
 
+    def describe(self):
+        """
+        Prints out a human readable description
+        """
+        print("Capability {}".format(self.standardid))
+        print()
+
+        if self.description:
+            print(self.description)
+            print()
+
+        for interface in self.interfaces:
+            interface.describe()
+
+
     @property
     def description(self):
         """
@@ -266,6 +282,8 @@ class Interface(Element):
                 self, "securityMethod", "securitymethods", SecurityMethod)
         })
 
+        self._xsi_type = kwargs.get('xsi:type')
+
         self._version = version
         self._role = role
         self._resulttype = None
@@ -276,6 +294,19 @@ class Interface(Element):
     def __repr__(self):
         return '<Interface role={}>...</Interface>'.format(
             self.role)
+
+    def describe(self):
+        """
+        Prints out a human readable description
+        """
+        print('Interface {}'.format(self._xsi_type))
+
+        accessurls = '\n'.join(
+            accessurl.value for accessurl in self.accessurls)
+
+        print(indent(accessurls))
+
+        print()
 
     @property
     def version(self):
@@ -424,7 +455,7 @@ class SecurityMethod(ValueMixin, Element):
 
 
 @Interface.register_xsi_type('vr:WebBrowser')
-class WebBrowser(Element):
+class WebBrowser(Interface):
     """
     WebBrowser element as described in
     http://www.ivoa.net/xml/VOResource/v1.0
@@ -435,7 +466,7 @@ class WebBrowser(Element):
 
 
 @Interface.register_xsi_type('vr:WebService')
-class WebService(Element):
+class WebService(Interface):
     """
     WebService element as described in
     http://www.ivoa.net/xml/VOResource/v1.0

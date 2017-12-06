@@ -132,6 +132,9 @@ class ValueMixin(object):
         super(ValueMixin, self).__init__(config=config, pos=pos, **kwargs)
         self._value = None
 
+    def __bool__(self):
+        return bool(self.value)
+
     def _value_check(self, value):
         pass
 
