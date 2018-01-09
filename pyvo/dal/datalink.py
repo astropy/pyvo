@@ -566,7 +566,7 @@ class SodaQuery(DatalinkQuery):
         The BAND parameter defines the wavelength interval(s) to be extracted
         from the data using a floating point interval
         """
-        return getattr(self, "_pos", None)
+        return getattr(self, "_band", None)
     @band.setter
     def band(self, val):
         setattr(self, "_band", val)
