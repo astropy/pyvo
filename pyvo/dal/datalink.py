@@ -12,6 +12,8 @@ from .exceptions import DALServiceError, PyvoUserWarning
 from .mixin import AvailabilityMixin, CapabilityMixin
 
 from astropy.io.votable.tree import Param
+from astropy.units import Quantity, Unit
+from astropy.units import spectral as spectral_equivalencies
 
 # monkeypatch astropy with group support in RESOURCE
 def _monkeypath_astropy_resource_groups():
@@ -178,7 +180,8 @@ class SodaMixin(object):
 
         return None
 
-    def processed(self, pos=None, band=None, **kwargs):
+    def processed(self, circle=None, range=None, polygon=None, band=None,
+            **kwargs):
         """
         Iterates over all soda documents in a DALResult.
         """
@@ -186,7 +189,8 @@ class SodaMixin(object):
 
         if soda_resource:
             soda_query = SodaQuery.from_resource(
-                self, soda_resource, pos=pos, band=band, **kwargs)
+                self, soda_resource, circle=circle, range=range,
+                polygon=polygon, band=band, **kwargs)
 
             soda_stream = soda_query.execute_stream()
             soda_query.raise_if_error()
@@ -539,26 +543,102 @@ class SodaQuery(DatalinkQuery):
     """
     a class for preparing a query to a SODA Service.
     """
-    def __init__(self, baseurl, pos=None, band=None, **kwargs):
+    def __init__(self, baseurl, circle=None, range=None, polygon=None,
+            band=None, **kwargs):
         super(SodaQuery, self).__init__(baseurl, **kwargs)
 
-        if pos:
-            self.pos = pos
+        if circle:
+            self.circle = circle
+
+        if range:
+            self.range = range
+
+        if polygon:
+            self.polygon = polygon
 
         if band:
             self.band = band
 
     @property
-    def pos(self):
+    def circle(self):
         """
-        The POS parameter defines the positional region(s) to be extracted from
-        the data.
+        The CIRCLE parameter defines a spatial region using the circle xtype
+        defined in DALI.
         """
-        return getattr(self, "_pos", None)
-    @pos.setter
-    def pos(self, val):
-        setattr(self, "_pos", val)
-        self["POS"] = val
+        return getattr(self, '_circle', None)
+    @circle.setter
+    def circle(self, circle):
+        setattr(self, '_circle', circle)
+        setattr(self, '_range', None)
+        setattr(self, '_polygon', None)
+
+        if not isinstance(circle, Quantity):
+            circle = circle * Unit('deg')
+            valerr = ValueError(
+                "Circle may be specified using exactly three values")
+
+            try:
+                if len(circle) != 3:
+                    raise valerr
+            except TypeError:
+                raise valerr
+
+        self['CIRCLE'] = ' '.join(
+            str(value) for value in circle.to(Unit('deg')).value)
+
+    @property
+    def range(self):
+        """
+        A rectangular range.
+        """
+        return getattr(self, '_circle', None)
+    @range.setter
+    def range(self, range):
+        setattr(self, '_range', range)
+        setattr(self, '_circle', None)
+        setattr(self, '_polygon', None)
+
+        if not isinstance(range, Quantity):
+            range = range * Unit('deg')
+            valerr = ValueError(
+                "Range may be specified using exactly four values")
+
+            try:
+                if len(range) != 4:
+                    raise valerr
+            except TypeError:
+                raise valerr
+
+        self['RANGE'] = ' '.join(
+            str(value) for value in range.to(Unit('deg')).value)
+
+
+    @property
+    def polygon(self):
+        """
+        The POLYGON parameter defines a spatial region using the polygon xtype
+        defined in DALI.
+        """
+        return getattr(self, '_polygon', None)
+    @polygon.setter
+    def polygon(self, polygon):
+        setattr(self, '_polygon', polygon)
+        setattr(self, '_circle', None)
+        setattr(self, '_range', None)
+
+        if not isinstance(polygon, Quantity):
+            polygon = polygon * Unit('deg')
+            valerr = ValueError(
+                "Polygon may be specified using at least three values")
+
+            try:
+                if len(polygon) < 3:
+                    raise valerr
+            except TypeError:
+                raise valerr
+
+        self['POLYGON'] = ' '.join(
+            str(value) for value in polygon.to(Unit('deg')).value)
 
     @property
     def band(self):
@@ -570,5 +650,22 @@ class SodaQuery(DatalinkQuery):
     @band.setter
     def band(self, val):
         setattr(self, "_band", val)
-        self["BAND"] = val
 
+        if not isinstance(val, Quantity):
+            # assume meters
+            val = val * Unit("meter")
+            try:
+                if len(val) != 2:
+                    raise ValueError(
+                        "band must be specified with exactly two values")
+            except TypeError:
+                raise ValueError(
+                    "band must be specified with exactly two values")
+        # transform to meters
+        val = val.to(Unit("m"), equivalencies=spectral_equivalencies())
+        # frequency is counter-proportional to wavelength, so we just sort
+        # it to have the right order again
+        val.sort()
+
+        self["BAND"] = "{start}/{end}".format(
+            start=val.value[0], end=val.value[1])
