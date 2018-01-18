@@ -128,7 +128,7 @@ Iterating over a resultset gives the rows in the result:
 >>>     print row['accref']
 ...
 
-The total number of rows in the answerh is available as its ``len()``:
+The total number of rows in the answer is available as its ``len()``:
 
 >>> print(len(resultset))
 9
