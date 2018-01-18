@@ -54,7 +54,8 @@ def _monkeypath_astropy_resource_groups():
 _monkeypath_astropy_resource_groups()
 
 __all__ = [
-    "search", "DatalinkService", "DatalinkQuery", "DatalinkResults"]
+    "search", "DatalinkService", "DatalinkQuery", "DatalinkResults",
+    "SodaQuery", "SodaMixin"]
 
 def search(url, id, responseformat=None, **keywords):
     """
@@ -569,8 +570,8 @@ class SodaQuery(DatalinkQuery):
     @circle.setter
     def circle(self, circle):
         setattr(self, '_circle', circle)
-        setattr(self, '_range', None)
-        setattr(self, '_polygon', None)
+        del self.range
+        del self.polygon
 
         if not isinstance(circle, Quantity):
             circle = circle * Unit('deg')
@@ -586,6 +587,13 @@ class SodaQuery(DatalinkQuery):
         self['CIRCLE'] = ' '.join(
             str(value) for value in circle.to(Unit('deg')).value)
 
+    @circle.deleter
+    def circle(self):
+        if hasattr(self, '_circle'):
+            delattr(self, '_circle')
+        if 'CIRCLE' in self:
+            del self['CIRCLE']
+
     @property
     def range(self):
         """
@@ -595,8 +603,8 @@ class SodaQuery(DatalinkQuery):
     @range.setter
     def range(self, range):
         setattr(self, '_range', range)
-        setattr(self, '_circle', None)
-        setattr(self, '_polygon', None)
+        del self.circle
+        del self.polygon
 
         if not isinstance(range, Quantity):
             range = range * Unit('deg')
@@ -609,8 +617,15 @@ class SodaQuery(DatalinkQuery):
             except TypeError:
                 raise valerr
 
-        self['RANGE'] = ' '.join(
+        self['POS'] = 'RANGE ' + ' '.join(
             str(value) for value in range.to(Unit('deg')).value)
+
+    @range.deleter
+    def range(self):
+        if hasattr(self, '_range'):
+            delattr(self, '_range')
+        if 'POS' in self and self['POS'].startswith('RANGE'):
+            del self['POS']
 
 
     @property
@@ -623,8 +638,8 @@ class SodaQuery(DatalinkQuery):
     @polygon.setter
     def polygon(self, polygon):
         setattr(self, '_polygon', polygon)
-        setattr(self, '_circle', None)
-        setattr(self, '_range', None)
+        del self.circle
+        del self.range
 
         if not isinstance(polygon, Quantity):
             polygon = polygon * Unit('deg')
@@ -639,6 +654,13 @@ class SodaQuery(DatalinkQuery):
 
         self['POLYGON'] = ' '.join(
             str(value) for value in polygon.to(Unit('deg')).value)
+
+    @polygon.deleter
+    def polygon(self):
+        if hasattr(self, '_polygon'):
+            delattr(self, '_polygon')
+        if 'POLYGON' in self:
+            del self['POLYGON']
 
     @property
     def band(self):
@@ -667,5 +689,12 @@ class SodaQuery(DatalinkQuery):
         # it to have the right order again
         val.sort()
 
-        self["BAND"] = "{start}/{end}".format(
+        self["BAND"] = "{start} {end}".format(
             start=val.value[0], end=val.value[1])
+
+    @band.deleter
+    def band(self):
+        if hasattr(self, '_band'):
+            delattr(self, '_band')
+        if 'BAND' in self:
+            del self['BAND']
