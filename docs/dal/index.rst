@@ -142,10 +142,13 @@ whereas integers retrieve columns:
 
 >>> row = resultset[0]
 
-Row objects expose certain key columns as properties:
+Row objects may expose certain key columns as properties. See the corresponding
+API spec listed below for details.
 
-.. TODO
-    Table
+* :py:class:`pyvo.dal.sia.SIARecord`
+* :py:class:`pyvo.dal.ssa.SSARecord`
+* :py:class:`pyvo.dal.scs.SCSRecord`
+* :py:class:`pyvo.dal.sla.SLARecord`
 
 .. _pyvo-services:
 
