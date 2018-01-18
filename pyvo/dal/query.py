@@ -23,25 +23,27 @@ identify table columns.
 from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
-__all__ = ["DALService", "DALQuery", "DALResults", "Record"]
+__all__ = ["DALAccessError", "DALProtocolError",
+            "DALFormatError", "DALServiceError", "DALQueryError",
+            "DALService", "DALQuery", "DALResults", "Record"]
 
 import sys
 import os
 import re
 import warnings
+import textwrap
 import requests
 import functools
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
+import collections
 
 from astropy.extern import six
 from astropy.table.table import Table
 from astropy.io.votable import parse as votableparse
 from astropy.utils.exceptions import AstropyUserWarning
-
-from .exceptions import (
-    DALAccessError, DALFormatError, DALServiceError, DALQueryError)
-from .mixin import AvailabilityMixin, TablesMixin
-
-from ..utils.formatting import para_format_desc
 
 if six.PY3:
     _mimetype_re = re.compile(b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
@@ -55,9 +57,9 @@ def is_mime_type(val):
     return bool(_mimetype_re.match(val))
 
 
-class DALService(AvailabilityMixin, TablesMixin, object):
+class DALService(object):
     """
-    an abstract base class representing a DAL service located a particular
+    an abstract base class representing a DAL service located a particular 
     endpoint.
     """
 
@@ -115,33 +117,67 @@ class DALService(AvailabilityMixin, TablesMixin, object):
         q = DALQuery(self.baseurl, **keywords)
         return q
 
-    def describe(self, width=None):
+    # TODO: move to pyvo.registry
+    def describe(self, verbose=False, width=78, file=None):
         """
         Print a summary description of this service.  
 
-        THis includes the interface capabilities, and the content description
-        if it doesn't contains multiple data collections (in other words, it is
-        not a TAP service).
+        At a minimum, this will include the service protocol and 
+        base URL.  If there is metadata associated with this service, 
+        the summary will include other information, such as the 
+        service title and description.
+
+        Parameters
+        ----------
+        verbose : bool
+            If false (default), only user-oriented information is 
+            printed; if true, additional information will be printed
+            as well.
+        width : int
+            Format the description with given character-width.
+        file : writable file-like object
+            If provided, write information to this output stream.
+            Otherwise, it is written to standard out.  
         """
-        if len(self.tables) == 1:
-            description = next(self.tables.values()).description
-            
-            if width:
-                description = para_format_desc(description, width)
+        if not file:
+            file = sys.stdout
+        print("{0} v{1} Service".format(self.protocol.upper(), self.version))
+        if self.info.get("title"):
+            print(para_format_desc(self.info["title"]), file=file)
+        if self.info.get("shortName"):
+            print("Short Name: " + self.info["shortName"], file=file)
+        if self.info.get("publisher"):
+            print(para_format_desc("Publisher: " + self.info["publisher"]), 
+                  file=file)
+        if self.info.get("identifier"):
+            print("IVOA Identifier: " + self.info["identifier"], file=file)
+        print("Base URL: " + self.baseurl, file=file)
 
-            print(description)
-            print()
+        if self.info.get("description"):
+            print(file=file)
+            print(para_format_desc(self.info["description"]), file=file)
+            print(file=file)
 
+        if self.info.get("subjects"):
+            val = self.info.get("subjects")
+            if not hasattr(val, "__getitem__"):
+                val = [val]
+            val = (str(v) for v in val)
+            print(para_format_desc("Subjects: " + ", ".join(val)), file=file)
+        if self.info.get("waveband"):
+            val = self.info.get("waveband")
+            if not hasattr(val, "__getitem__"):
+                val = [val]
+            val = (str(v) for v in val)
+            print(para_format_desc("Waveband Coverage: " + ", ".join(val)), 
+                  file=file)
 
-        capabilities = filter(
-            lambda x: not six.text_type(x.standardid).startswith(
-                'ivo://ivoa.net/std/VOSI'),
-            self.capabilities
-        )
-
-        for cap in capabilities:
-            cap.describe()
-            print()
+        if verbose:
+            if self.info.get("capabilityStandardID"):
+                print("StandardID: " + self.info["capabilityStandardID"], 
+                      file=file)
+            if self.info.get("referenceURL"):
+                print("More info: " + self.info["referenceURL"], file=file)
 
 
 class DALQuery(dict):
@@ -268,12 +304,16 @@ class DALQuery(dict):
         except DALAccessError:
             raise
         except Exception as e:
-            if self._ex:
-                e = self._ex
-                raise DALServiceError(
-                    str(e), e.response.status_code, e, self.queryurl)
-            else:
-                raise DALServiceError.from_except(e, self.queryurl)
+            self.raise_if_error()
+            raise DALServiceError.from_except(e, self.queryurl)
+
+    def raise_if_error(self):
+        """
+        Raise if there was an error on http level.
+        """
+        if self._ex:
+            e = self._ex
+            raise DALServiceError.from_except(e, self.queryurl)
 
     @property
     def queryurl(self):
@@ -290,6 +330,17 @@ class DALResults(object):
     the response.  Alternatively, it can provide results via a Cursor
     (compliant with the Python Database API) or an iterable.
     """
+
+    @classmethod
+    def from_result_url(cls, result_url):
+        """
+        Create a result object from a url.
+        """
+        response = requests.get(result_url, stream=True)
+        response.raw.read = functools.partial(
+            response.raw.read, decode_content=True)
+
+        return cls(votableparse(response.raw.read), url=result_url)
 
     def __init__(self, votable, url=None):
         """
@@ -324,15 +375,12 @@ class DALResults(object):
             raise DALFormatError(
                 reason="VOTable response missing results table", url=url)
 
-        self._fldnames = tuple(field.name for field in self.votable.fields)
+        self._fldnames = [field.name for field in self.votable.fields]
         if not self._fldnames:
             raise DALFormatError(
                 reason="response table missing column descriptions.", url=url)
 
         self._infos = self._findinfos(votable)
-
-    def __repr__(self):
-        return repr(self.votable)
 
     def _findresultstable(self, votable):
         # this can be overridden to specialize for a particular DAL protocol
@@ -352,7 +400,7 @@ class DALResults(object):
 
     def _findstatus(self, votable):
         # this can be overridden to specialize for a particular DAL protocol
-
+        
         # look first in the result resource
         res = self._findresultsresource(votable)
         if res:
@@ -424,17 +472,17 @@ class DALResults(object):
     @property
     def fieldnames(self):
         """
-        return the names of the columns.  These are the names that are used
-        to access values from the dictionaries returned by getrecord().  They
+        return the names of the columns.  These are the names that are used 
+        to access values from the dictionaries returned by getrecord().  They 
         correspond to the column name.
         """
-        return self._fldnames
+        return self._fldnames[:]
 
     @property
     def fielddescs(self):
         """
         return the full metadata the columns as a list of Field instances,
-        a simple object with attributes corresponding the VOTable FIELD
+        a simple object with attributes corresponding the the VOTable FIELD
         attributes, namely: name, id, type, ucd, utype, arraysize, description
         """
         return self.votable.fields
@@ -575,7 +623,7 @@ class DALResults(object):
         return Cursor(self)
 
 
-class Record(dict):
+class Record(Mapping):
     """
     one record from a DAL query result.  The column values are accessible 
     as dictionary items.  It also provides special added functions for 
@@ -585,20 +633,28 @@ class Record(dict):
 
     def __init__(self, results, index):
         self._results = results
+        self._mapping = collections.OrderedDict(
+            zip(
+                results.fieldnames,
+                results.votable.array.data[index]
+            )
+        )
 
-        super(Record, self).__init__()
+    def __getitem__(self, key):
+        return self._mapping[key]
 
-        self.update(zip(
-            results.fieldnames,
-            results.votable.array.data[index]
-        ))
+    def __iter__(self):
+        return iter(self._mapping)
+
+    def __len__(self):
+        return len(self._mapping)
 
     def get(self, key, default=None, decode=False):
         """
         This method mimics the dict get method and adds a decode parameter
         to allow decoding of binary strings.
         """
-        out = super(Record, self).get(key, default)
+        out = self._mapping.get(key, default)
 
         if decode and type(out) == six.binary_type:
             out = out.decode('utf-8')
@@ -624,17 +680,24 @@ class Record(dict):
         return self.get(
             self._results.fieldname_with_utype(utype), default, decode)
 
+    def getdataformat(self):
+        """
+        return the mimetype of the dataset described by this record.
+        """
+        return self.getbyucd('meta.code.mime', decode=True)
+
     def getdataurl(self):
         """
         return the URL contained in the access URL column which can be used 
         to retrieve the dataset described by this record.  None is returned
         if no such column exists.
         """
-        for fieldname in self._results.fieldnames.items():
+        for fieldname in self._results.fieldnames:
             field = self._results.getdesc(fieldname)
-            if (field.utype and "Access.Reference" in field.utype) or \
-               (field.ucd   and "meta.dataset" in field.ucd
-                          and "meta.ref.url" in field.ucd):
+            if (field.utype and "access.reference" in field.utype.lower()) or (
+                    field.ucd and "meta.dataset" in field.ucd and
+                    "meta.ref.url" in field.ucd
+            ):
                 out = self[fieldname]
                 if type(out) == six.binary_type:
                     out = out.decode('utf-8')
@@ -675,6 +738,7 @@ class Record(dict):
         url = self.getdataurl()
         if not url:
             raise KeyError("no dataset access URL recognized in record")
+
         if timeout:
             r = requests.get(url, stream = True, timeout = timeout)
         else:
@@ -1048,3 +1112,266 @@ def mime2extension(mimetype, default=None):
         return "txt"
 
     return default
+        
+    
+
+class DALAccessError(Exception):
+    """
+    a base class for failures while accessing a DAL service
+    """
+    _defreason = "Unknown service access error"
+
+    def __init__(self, reason=None, url=None):
+        """
+        initialize the exception with an error message
+
+        Parameters
+        ----------
+        reason : str
+           a message describing the cause of the error
+        url : str
+           the query URL that produced the error
+        """
+        if not reason: reason = self._defreason
+        super(DALAccessError, self).__init__(reason)
+        self._reason = reason
+        self._url = url
+
+    @classmethod
+    def _typeName(cls, exc):
+        return re.sub(r"'>$", '', 
+                      re.sub(r"<(type|class) '(.*\.)?", '', 
+                             str(type(exc))))
+    def __str__(self):
+        return self._reason
+    def __repr__(self):
+        return "{0}: {1}".format(self._typeName(self), self._reason)
+   
+    @property
+    def reason(self):
+        """
+        a string description of what went wrong
+        """
+        return self._reason
+
+    @property
+    def url(self):
+        """
+        the URL that produced the error.  If None, the URL is unknown or unset
+        """
+        return self._url
+
+
+class DALProtocolError(DALAccessError):
+    """
+    a base exception indicating that a DAL service responded in an
+    erroneous way.  This can be either an HTTP protocol error or a
+    response format error; both of these are handled by separate
+    subclasses.  This base class captures an underlying exception
+    clause. 
+    """
+    _defreason = "Unknown DAL Protocol Error"
+
+    def __init__(self, reason=None, cause=None, url=None):
+        """
+        initialize with a string message and an optional HTTP response code
+
+        Parameters
+        ----------
+        reason : str
+           a message describing the cause of the error
+        code : int
+           the HTTP error code (as an integer)
+        cause : str
+           an exception issued as the underlying cause.  A value
+           of None indicates that no underlying exception was 
+           caught.
+        url : str
+           the query URL that produced the error
+        """
+        super(DALProtocolError, self).__init__(reason, url)
+        self._cause = cause
+
+    @property
+    def cause(self):
+        """
+        a string description of what went wrong
+        """
+        return self._cause
+
+class DALFormatError(DALProtocolError):
+    """
+    an exception indicating that a DAL response contains fatal format errors.
+    This would include XML or VOTable format errors.  
+    """
+    _defreason = "Unknown VOTable Format Error"
+
+    def __init__(self, cause=None, url=None, reason=None):
+        """
+        create the exception
+
+        Parameters
+        ----------
+        cause : str
+           an exception issued as the underlying cause.  A value
+           of None indicates that no underlying exception was 
+           caught.
+        url
+           the query URL that produced the error
+        reason
+           a message describing the cause of the error
+        """
+        if cause and not reason:  
+            reason = "{0}: {0}".format(DALAccessError._typeName(cause), 
+                                       str(cause))
+
+        super(DALFormatError, self).__init__(reason, cause, url)
+
+
+class DALServiceError(DALProtocolError):
+    """
+    an exception indicating a failure communicating with a DAL
+    service.  Most typically, this is used to report DAL queries that result 
+    in an HTTP error.  
+    """
+    _defreason = "Unknown service error"
+    
+    def __init__(self, reason=None, code=None, cause=None, url=None):
+        """
+        initialize with a string message and an optional HTTP response code
+
+        Parameters
+        ----------
+        reason : str
+           a message describing the cause of the error
+        code : int
+           the HTTP error code (as an integer)
+        cause : str
+           an exception issued as the underlying cause.  A value
+           of None indicates that no underlying exception was 
+           caught.
+        url : str
+           the query URL that produced the error
+        """
+        super(DALServiceError, self).__init__(reason, cause, url)
+        self._code = code
+
+    @property
+    def code(self):
+        """
+        the HTTP error code that resulted from the DAL service query,
+        indicating the error.  If None, the service did not produce an HTTP 
+        response.
+        """
+        return self._code
+
+    @classmethod
+    def from_except(cls, exc, url=None):
+        """
+        create and return DALServiceError exception appropriate
+        for the given exception that represents the underlying cause.
+        """
+        if isinstance(exc, requests.exceptions.RequestException):
+            message = exc.response.text or str(exc)
+            try:
+                code = exc.response.status_code
+            except AttributeError:
+                code = 0
+
+            return DALServiceError(message, code, exc, url)
+        elif isinstance(exc, Exception):
+            return DALServiceError("{0}: {1}".format(cls._typeName(exc), 
+                                                     str(exc)), 
+                                   cause=exc, url=url)
+        else:
+            raise TypeError("from_except: expected Exception")
+
+class DALQueryError(DALAccessError):
+    """
+    an exception indicating an error by a working DAL service while processing
+    a query.  Generally, this would be an error that the service successfully 
+    detected and consequently was able to respond with a legal error response--
+    namely, a VOTable document with an INFO element contains the description
+    of the error.  Possible errors will include bad usage by the client, such
+    as query-syntax errors.
+    """
+    _defreason = "Unknown DAL Query Error"
+
+    def __init__(self, reason=None, label=None, url=None):
+        """
+        Parameters
+        ----------
+        reason : str
+           a message describing the cause of the error.  This should 
+           be set to the content of the INFO error element.
+        label : str
+           the identifying name of the error.  This should be the 
+           value of the INFO element's value attribute within the 
+           VOTable response that describes the error.
+        url : str
+           the query URL that produced the error
+        """
+        super(DALQueryError, self).__init__(reason, url)
+        self._label = label
+                          
+    @property
+    def label(self):
+        """
+        the identifing name for the error given in the DAL query response.
+        DAL queries that produce an error which is detectable on the server
+        will respond with a VOTable containing an INFO element that contains 
+        the description of the error.  This property contains the value of 
+        the INFO's value attribute.  
+        """
+        return self._label
+
+
+class PyvoUserWarning(AstropyUserWarning):
+    pass
+
+# routines used by DALService describe to format metadata
+
+_parasp = re.compile(r"(?:[ \t\r\f\v]*\n){2,}[ \t\r\f\v]*")
+_ptag = re.compile(r"\s*(?:<p\s*/?>)|(?:\\para(?:\\ )*)\s*")
+def para_format_desc(text, width=78):
+    """
+    format description text into paragraphs suiteable for display in the 
+    shell.  That is, the output will be one or more plain text paragraphs 
+    of the prescribed width (78 characters, the default).  The text will 
+    be split into separate paragraphs whwre there occurs (1) a two or more 
+    consecutive carriage return, (2) an HTMS paragraph tag, or (2) 
+    a LaTeX parabraph control sequence.  It will attempt other substitutions
+    of HTML and LaTeX markup that sometimes find their way into resource
+    descriptions.  
+    """
+    paras = _parasp.split(text)
+    for i in range(len(paras)):
+        para = paras.pop(0)
+        for p in _ptag.split(para):
+            if len(p) > 0:
+                p = "\n".join( (l.strip() for l in 
+                                (t for t in p.splitlines() if len(t) > 0)) )
+                paras.append(deref_markup(p))
+
+    return "\n\n".join( (textwrap.fill(p, width) for p in paras) )
+
+_musubs = [ (re.compile(r"&lt;"), "<"),  (re.compile(r"&gt;"), ">"), 
+            (re.compile(r"&amp;"), "&"), (re.compile(r"<br\s*/?>"), ''),
+            (re.compile(r"</p>"), ''), (re.compile(r"&#176;"), " deg"),
+            (re.compile(r"\$((?:[^\$]*[\*\+=/^_~><\\][^\$]*)|(?:\w+))\$"), 
+             r'\1'),
+            (re.compile(r"\\deg"), " deg"),
+           ]
+_alink = re.compile(r'''<a .*href=(["])([^\1]*)(?:\1).*>\s*(\S.*\S)\s*</a>''')
+def deref_markup(text):
+    """
+    perform some substitutions of common markup suitable for text display.
+    This includes HTML escape sequence
+    """
+    for pat, repl in _musubs:
+        text = pat.sub(repl, text)
+    text = _alink.sub(r"\3 <\2>", text)
+    return text
+
+    
+        

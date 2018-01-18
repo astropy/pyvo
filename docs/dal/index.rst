@@ -97,59 +97,6 @@ Exceptions
 ----------
 See :py:mod:`pyvo.dal.exceptions`.
 
-.. _pyvo-resultsets:
-
-Resultsets and Records
-----------------------
-Resultsets contain primarily tabular data and might also provide binary
-datasets and/or access to additional data services.
-
-To obtain the names of the columns in a service response, write:
-
->>> print(resultset.fieldnames)
-
-Rich metadata equivalent to what is found in VOTables (including unit,
-ucd, utype, and xtype) is available through resultset's
-:py:meth:`~pyvo.dal.query.DALResults.getdesc` method:
-
->>>  print(resultset.getdesc("accref").ucd)
-
-.. note::
-    Two convenience functions let you retrieve columns of a specific
-    physics (by UCD) or with a particular legacy data model annotation
-    (by utype), like this:
-
-    >>> fieldname = resultset.fieldname_with_ucd('phot.mag;em.opt.V')
-    >>> fieldname = resultset.fieldname_with_utype('Access.Reference')
-
-Iterating over a resultset gives the rows in the result:
-
->>> for row in resultset:
->>>     print row['accref']
-...
-
-The total number of rows in the answer is available as its ``len()``:
-
->>> print(len(resultset))
-9
-
-As with general numpy arrays, accessing individual columns via names gives an
-array of all of their values:
-
->>> column = resultset['accref']
-
-whereas integers retrieve columns:
-
->>> row = resultset[0]
-
-Row objects may expose certain key columns as properties. See the corresponding
-API spec listed below for details.
-
-* :py:class:`pyvo.dal.sia.SIARecord`
-* :py:class:`pyvo.dal.ssa.SSARecord`
-* :py:class:`pyvo.dal.scs.SCSRecord`
-* :py:class:`pyvo.dal.sla.SLARecord`
-
 .. _pyvo-services:
 
 Services
@@ -333,9 +280,77 @@ If the execution was successful, the resultset can be obtained using
 
 The result url is available under :py:attr:`~pyvo.dal.tap.AsyncTAPJob.result_uri`
 
+.. _pyvo-resultsets:
+
+Resultsets and Records
+======================
+Resultsets contain primarily tabular data and might also provide binary
+datasets and/or access to additional data services.
+
+To obtain the names of the columns in a service response, write:
+
+>>> print(resultset.fieldnames)
+
+Rich metadata equivalent to what is found in VOTables (including unit,
+ucd, utype, and xtype) is available through resultset's
+:py:meth:`~pyvo.dal.query.DALResults.getdesc` method:
+
+>>>  print(resultset.getdesc("accref").ucd)
+
+.. note::
+    Two convenience functions let you retrieve columns of a specific
+    physics (by UCD) or with a particular legacy data model annotation
+    (by utype), like this:
+
+    >>> fieldname = resultset.fieldname_with_ucd('phot.mag;em.opt.V')
+    >>> fieldname = resultset.fieldname_with_utype('Access.Reference')
+
+Iterating over a resultset gives the rows in the result:
+
+>>> for row in resultset:
+>>>     print row['accref']
+...
+
+The total number of rows in the answer is available as its ``len()``:
+
+>>> print(len(resultset))
+9
+
+As with general numpy arrays, accessing individual columns via names gives an
+array of all of their values:
+
+>>> column = resultset['accref']
+
+whereas integers retrieve columns:
+
+>>> row = resultset[0]
+
+Row objects may expose certain key columns as properties. See the corresponding
+API spec listed below for details.
+
+* :py:class:`pyvo.dal.sia.SIARecord`
+* :py:class:`pyvo.dal.ssa.SSARecord`
+* :py:class:`pyvo.dal.scs.SCSRecord`
+* :py:class:`pyvo.dal.sla.SLARecord`
+
+Server-side processing
+----------------------
+Some services support the server-side processing of record datasets.
+This includes spatial cutouts for 2d-images, reducing of spectra to a certain
+waveband range, and more to come in the future.
+
+To invoke the operation one has to call ``row.processed``, which exposes a set
+of parameters who are dependend on the type of service.
+
+* :py:attr:`pyvo.dal.datalink.SodaQuery.circle`
+* :py:attr:`pyvo.dal.datalink.SodaQuery.range`
+* :py:attr:`pyvo.dal.datalink.SodaQuery.polygon`
+* :py:attr:`pyvo.dal.datalink.SodaQuery.band`
+
 Reference/API
 =============
 
 .. automodapi:: pyvo.dal
 .. automodapi:: pyvo.dal.mixin
+.. automodapi:: pyvo.dal.datalink
 .. automodapi:: pyvo.dal.exceptions

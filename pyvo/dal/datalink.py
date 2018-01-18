@@ -5,13 +5,15 @@ A module for accessing remote source and observation catalogs
 from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
-import warnings
+import numpy as np
 
 from .query import DALResults, DALQuery, DALService, Record
 from .exceptions import DALServiceError, PyvoUserWarning
 from .mixin import AvailabilityMixin, CapabilityMixin
 
 from astropy.io.votable.tree import Param
+from astropy.units import Quantity, Unit
+from astropy.units import spectral as spectral_equivalencies
 
 # monkeypatch astropy with group support in RESOURCE
 def _monkeypath_astropy_resource_groups():
@@ -52,7 +54,8 @@ def _monkeypath_astropy_resource_groups():
 _monkeypath_astropy_resource_groups()
 
 __all__ = [
-    "search", "DatalinkService", "DatalinkQuery", "DatalinkResults"]
+    "search", "DatalinkService", "DatalinkQuery", "DatalinkResults",
+    "SodaQuery", "SodaMixin"]
 
 def search(url, id, responseformat=None, **keywords):
     """
@@ -83,6 +86,119 @@ def search(url, id, responseformat=None, **keywords):
     """
     service = DatalinkService(url)
     return service.search(id, responseformat, **keywords)
+
+class AdhocServiceMixin(object):
+    """
+    Mixing for adhoc:service functionallity.
+    """
+    def __init__(self, votable, url=None):
+        super(AdhocServiceMixin, self).__init__(votable, url=url)
+
+        self._adhocservices = list(
+            resource for resource in votable.resources
+            if resource.type == "meta" and resource.utype == "adhoc:service"
+        )
+
+    def iter_adhocservices(self):
+        for adhocservice in self._adhocservices:
+            yield adhocservice
+
+    def get_adhocservice_by_ivoid(self, ivo_id):
+        """
+        Return the adhoc service starting with the given ivo_id.
+
+        Parameters
+        ----------
+        ivoid : str
+           the ivoid of the service we want to have.
+
+        Returns
+        -------
+        Resource
+            The resource element describing the service.
+        """
+        for adhocservice in self.iter_adhocservices():
+            if any(
+                    all((
+                        param.name == "standardID",
+                        param.value.lower().startswith(ivo_id.lower())
+                    )) for param in adhocservice.params
+            ):
+                return adhocservice
+        raise DALServiceError("No Adhoc Service with ivo-id {}!".format(ivo_id))
+
+class DatalinkMixin(AdhocServiceMixin):
+    """
+    Mixing for datalink functionallity for results classes.
+    """
+    def iter_datalinks(self):
+        """
+        Iterates over all datalinks in a DALResult.
+        """
+        datalink = self.get_adhocservice_by_ivoid(
+            b"ivo://ivoa.net/std/datalink")
+
+        for record in self:
+            query = DatalinkQuery.from_resource(record, datalink)
+            yield query.execute()
+
+
+class SodaMixin(object):
+    """
+    Mixin for soda functionallity for record classes.
+    """
+
+    def _get_soda_resource(self):
+        dataformat = self.getdataformat()
+
+        if dataformat is None:
+            raise DALServiceError(
+                "No dataformat in record. "
+                "Maybe you forgot to include it into the TAP Query?")
+
+        if "content=datalink" in self.getdataformat():
+            try:
+                datalink_result = DatalinkResults.from_result_url(
+                    self.getdataurl())
+
+                return datalink_result.get_adhocservice_by_ivoid(
+                    b"ivo://ivoa.net/std/SODA#sync")
+            except DALServiceError:
+                pass
+
+        try:
+            return self._results.get_adhocservice_by_ivoid(
+                b"ivo://ivoa.net/std/SODA#sync")
+        except DALServiceError:
+            pass
+
+        # let it count as soda resource
+        try:
+            return self._results.get_adhocservice_by_ivoid(
+                b"ivo://ivoa.net/std/datalink#links")
+        except DALServiceError:
+            pass
+
+        return None
+
+    def processed(self, circle=None, range=None, polygon=None, band=None,
+            **kwargs):
+        """
+        Iterates over all soda documents in a DALResult.
+        """
+        soda_resource = self._get_soda_resource()
+
+        if soda_resource:
+            soda_query = SodaQuery.from_resource(
+                self, soda_resource, circle=circle, range=range,
+                polygon=polygon, band=band, **kwargs)
+
+            soda_stream = soda_query.execute_stream()
+            soda_query.raise_if_error()
+            return soda_stream
+        else:
+            return self.getdataset()
+
 
 class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
     """
@@ -163,7 +279,7 @@ class DatalinkQuery(DALQuery):
     allowing the caller to take greater control of the result processing.
     """
     @classmethod
-    def from_resource(cls, row, resource):
+    def from_resource(cls, row, resource, **kwargs):
         """
         Creates a instance from a Record and a Datalink Resource.
 
@@ -187,17 +303,26 @@ class DatalinkQuery(DALQuery):
         dl_params = {_.name: _ for _ in resource.params}
         # get only Param elements from the group
         input_params = (
-            _ for _ in group_input_params.entries if type(_) == Param)
+            _ for _ in group_input_params.entries if isinstance(_, Param))
 
         if "accessURL" not in dl_params:
             raise DALServiceError("Datalink has no accessURL")
 
-        query_params = {}
+        query_params = dict()
         for input_param in input_params:
-            if input_param.value:
-                query_params[input_param.name] = input_param.value
-            elif input_param.ref:
+            if input_param.ref:
                 query_params[input_param.name] = row[input_param.ref]
+            elif np.isscalar(input_param.value) and input_param.value:
+                query_params[input_param.name] = input_param.value
+            elif (
+                    not np.isscalar(input_param.value) and
+                    input_param.value.all() and
+                    len(input_param.value)
+            ):
+                query_params[input_param.name] = " ".join(
+                    str(_) for _ in input_param.value)
+
+        query_params.update(kwargs)
 
         return cls(dl_params["accessURL"].value, **query_params)
 
@@ -236,10 +361,10 @@ class DatalinkQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return DatalinkResults(self.execute_votable(), self.queryurl)
+        return DatalinkResults(self.execute_votable(), url=self.queryurl)
 
 
-class DatalinkResults(DALResults):
+class DatalinkResults(DatalinkMixin, SodaMixin, DALResults):
     """
     The list of matching records resulting from an datalink query.
     Each record contains a set of metadata that describes an available
@@ -415,49 +540,161 @@ class DatalinkRecord(Record):
         return self.access_url
 
 
-class DatalinkMixin(object):
+class SodaQuery(DatalinkQuery):
     """
-    Mixing for datalink functionallity
-
-    If you mix this in, you have to call _init_datalinks in your constructor.
+    a class for preparing a query to a SODA Service.
     """
-    _datalinks = None
+    def __init__(self, baseurl, circle=None, range=None, polygon=None,
+            band=None, **kwargs):
+        super(SodaQuery, self).__init__(baseurl, **kwargs)
 
-    def iter_datalinks(self):
+        if circle:
+            self.circle = circle
+
+        if range:
+            self.range = range
+
+        if polygon:
+            self.polygon = polygon
+
+        if band:
+            self.band = band
+
+    @property
+    def circle(self):
         """
-        Iterates over all datalinks in a DALResult.
+        The CIRCLE parameter defines a spatial region using the circle xtype
+        defined in DALI.
         """
-        if self._datalinks is None:
-            raise RuntimeError(
-                "iter_datalinks called without previous init_datalinks")
+        return getattr(self, '_circle', None)
+    @circle.setter
+    def circle(self, circle):
+        setattr(self, '_circle', circle)
+        del self.range
+        del self.polygon
 
-        if len(self._datalinks) < 1:
-            return
+        if not isinstance(circle, Quantity):
+            circle = circle * Unit('deg')
+            valerr = ValueError(
+                "Circle may be specified using exactly three values")
 
-        if len(self._datalinks) > 1:
-            warnings.warn(
-                "Got more than one datalink element!", PyvoUserWarning)
+            try:
+                if len(circle) != 3:
+                    raise valerr
+            except TypeError:
+                raise valerr
 
-        datalink = next(iter(self._datalinks))
+        self['CIRCLE'] = ' '.join(
+            str(value) for value in circle.to(Unit('deg')).value)
 
-        for record in self:
-            query = DatalinkQuery.from_resource(record, datalink)
-            yield query.execute()
+    @circle.deleter
+    def circle(self):
+        if hasattr(self, '_circle'):
+            delattr(self, '_circle')
+        if 'CIRCLE' in self:
+            del self['CIRCLE']
 
-    def _init_datalinks(self, votable):
-        # this can be overridden to specialize for a particular DAL protocol
-        adhocs = (
-            resource for resource in votable.resources
-            if resource.type == "meta" and resource.utype == "adhoc:service"
-        )
+    @property
+    def range(self):
+        """
+        A rectangular range.
+        """
+        return getattr(self, '_circle', None)
+    @range.setter
+    def range(self, range):
+        setattr(self, '_range', range)
+        del self.circle
+        del self.polygon
 
-        datalinks = (
-            adhoc for adhoc in adhocs
-            if any(
-                param.name == "standardID" and param.value.lower(
-                    ).startswith(b"ivo://ivoa.net/std/datalink")
-                for param in adhoc.params))
+        if not isinstance(range, Quantity):
+            range = range * Unit('deg')
+            valerr = ValueError(
+                "Range may be specified using exactly four values")
 
-        self._datalinks = list(datalinks)
+            try:
+                if len(range) != 4:
+                    raise valerr
+            except TypeError:
+                raise valerr
+
+        self['POS'] = 'RANGE ' + ' '.join(
+            str(value) for value in range.to(Unit('deg')).value)
+
+    @range.deleter
+    def range(self):
+        if hasattr(self, '_range'):
+            delattr(self, '_range')
+        if 'POS' in self and self['POS'].startswith('RANGE'):
+            del self['POS']
 
 
+    @property
+    def polygon(self):
+        """
+        The POLYGON parameter defines a spatial region using the polygon xtype
+        defined in DALI.
+        """
+        return getattr(self, '_polygon', None)
+    @polygon.setter
+    def polygon(self, polygon):
+        setattr(self, '_polygon', polygon)
+        del self.circle
+        del self.range
+
+        if not isinstance(polygon, Quantity):
+            polygon = polygon * Unit('deg')
+            valerr = ValueError(
+                "Polygon may be specified using at least three values")
+
+            try:
+                if len(polygon) < 3:
+                    raise valerr
+            except TypeError:
+                raise valerr
+
+        self['POLYGON'] = ' '.join(
+            str(value) for value in polygon.to(Unit('deg')).value)
+
+    @polygon.deleter
+    def polygon(self):
+        if hasattr(self, '_polygon'):
+            delattr(self, '_polygon')
+        if 'POLYGON' in self:
+            del self['POLYGON']
+
+    @property
+    def band(self):
+        """
+        The BAND parameter defines the wavelength interval(s) to be extracted
+        from the data using a floating point interval
+        """
+        return getattr(self, "_band", None)
+    @band.setter
+    def band(self, val):
+        setattr(self, "_band", val)
+
+        if not isinstance(val, Quantity):
+            # assume meters
+            val = val * Unit("meter")
+            try:
+                if len(val) != 2:
+                    raise ValueError(
+                        "band must be specified with exactly two values")
+            except TypeError:
+                raise ValueError(
+                    "band must be specified with exactly two values")
+        # transform to meters
+        val = val.to(Unit("m"), equivalencies=spectral_equivalencies())
+        # frequency is counter-proportional to wavelength, so we just sort
+        # it to have the right order again
+        val.sort()
+
+        self["BAND"] = "{start} {end}".format(
+            start=val.value[0], end=val.value[1])
+
+    @band.deleter
+    def band(self):
+        if hasattr(self, '_band'):
+            delattr(self, '_band')
+        if 'BAND' in self:
+            del self['BAND']

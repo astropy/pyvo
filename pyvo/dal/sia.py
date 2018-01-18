@@ -37,7 +37,7 @@ from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity, Unit
 from .query import DALResults, DALQuery, DALService, Record, mime2extension
-from .datalink import DatalinkMixin
+from .datalink import DatalinkMixin, SodaMixin
 
 __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "SIARecord"]
 
@@ -529,7 +529,7 @@ class SIAQuery(DALQuery):
         return SIAResults(self.execute_votable(), url=self.queryurl)
 
 
-class SIAResults(DALResults, DatalinkMixin):
+class SIAResults(DatalinkMixin, DALResults):
     """
     The list of matching images resulting from an image (SIA) query.
     Each record contains a set of metadata that describes an available
@@ -576,13 +576,6 @@ class SIAResults(DALResults, DatalinkMixin):
     a Numpy array.
     """
 
-    def __init__(self, votable, **kwargs):
-        """
-        Initialize datalinks
-        """
-        super(SIAResults, self).__init__(votable, **kwargs)
-        self._init_datalinks(votable)
-
     def getrecord(self, index):
         """
         return a representation of a sia result record that follows
@@ -613,7 +606,7 @@ class SIAResults(DALResults, DatalinkMixin):
         """
         return SIARecord(self, index)
 
-class SIARecord(Record):
+class SIARecord(SodaMixin, Record):
     """
     a dictionary-like container for data in a record from the results of an
     image (SIA) search, describing an available image.
@@ -625,6 +618,12 @@ class SIARecord(Record):
     acessible via the ``get(`` *key* ``)`` function (or the [*key*]
     operator) where *key* is table column name.
     """
+
+    def getdataformat(self):
+        """
+        return the mimetype of the dataset described by this record.
+        """
+        return self.getbyucd("VOX:Image_Format", decode=True)
 
     @property
     def pos(self):

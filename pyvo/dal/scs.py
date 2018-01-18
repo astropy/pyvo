@@ -370,12 +370,6 @@ class SCSResults(DALResults, DatalinkMixin):
     and the data from the column matching that name is returned as
     a Numpy array.
     """
-    def __init__(self, votable, **kwargs):
-        """
-        Initialize datalinks
-        """
-        super(SCSResults, self).__init__(votable, **kwargs)
-        self._init_datalinks(votable)
 
     def _findresultsresource(self, votable):
         if len(votable.resources) < 1:
