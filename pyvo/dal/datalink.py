@@ -157,6 +157,11 @@ class SodaMixin(object):
     Mixin for soda functionallity for record classes.
     """
 
+    def __init__(self, results, index):
+        super(SodaMixin, self).__init__(results, index)
+
+        self._soda_resource = self.get_soda_resource()
+
     def _get_soda_resource(self):
         dataformat = self.getdataformat()
 
@@ -165,7 +170,7 @@ class SodaMixin(object):
                 "No dataformat in record. "
                 "Maybe you forgot to include it into the TAP Query?")
 
-        if "content=datalink" in self.getdataformat():
+        if "content=datalink" in dataformat:
             try:
                 datalink_result = DatalinkResults.from_result_url(
                     self.getdataurl())
@@ -195,11 +200,9 @@ class SodaMixin(object):
         """
         Iterates over all soda documents in a DALResult.
         """
-        soda_resource = self._get_soda_resource()
-
-        if soda_resource:
+        if self._soda_resource:
             soda_query = SodaQuery.from_resource(
-                self, soda_resource, circle=circle, range=range,
+                self, self._soda_resource, circle=circle, range=range,
                 polygon=polygon, band=band, **kwargs)
 
             soda_stream = soda_query.execute_stream()
