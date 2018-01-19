@@ -333,6 +333,13 @@ API spec listed below for details.
 * :py:class:`pyvo.dal.scs.SCSRecord`
 * :py:class:`pyvo.dal.sla.SLARecord`
 
+Underlying data structures
+--------------------------
+If you want to work with the astropy :py:class:`astropy.table.Table` or
+:py:class:`astropy.io.votable.tree.Table` objects, their are accessible by
+the properties :py:attr:`pyvo.dal.DALResults.table` and
+:py:attr:`pyvo.dal.DALResults.votable`, respectively.
+
 Server-side processing
 ----------------------
 Some services support the server-side processing of record datasets.
