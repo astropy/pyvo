@@ -8,12 +8,13 @@ from __future__ import (
 import numpy as np
 
 from .query import DALResults, DALQuery, DALService, Record
-from .exceptions import DALServiceError, PyvoUserWarning
+from .exceptions import DALServiceError
 from .mixin import AvailabilityMixin, CapabilityMixin
 
 from astropy.io.votable.tree import Param
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
+
 
 # monkeypatch astropy with group support in RESOURCE
 def _monkeypath_astropy_resource_groups():
@@ -21,6 +22,7 @@ def _monkeypath_astropy_resource_groups():
     from astropy.utils.collections import HomogeneousList
 
     old_group_unknown_tag = Group._add_unknown_tag
+
     def new_group_unknown_tag(self, iterator, tag, data, config, pos):
         if tag == "PARAM":
             return self._add_param(self, iterator, tag, data, config, pos)
@@ -28,6 +30,7 @@ def _monkeypath_astropy_resource_groups():
             old_group_unknown_tag(self, iterator, tag, data, config, pos)
 
     old_init = Resource.__init__
+
     def new_init(self, *args, **kwargs):
         old_init(self, *args, **kwargs)
         self._groups = HomogeneousList(Group)
@@ -44,6 +47,7 @@ def _monkeypath_astropy_resource_groups():
     Resource._add_group = resource_add_group
 
     old_resource_unknown_tag = Resource._add_unknown_tag
+
     def new_resource_unknown_tag(self, iterator, tag, data, config, pos):
         if tag == "GROUP":
             return self._add_group(iterator, tag, data, config, pos)
@@ -51,11 +55,13 @@ def _monkeypath_astropy_resource_groups():
             old_resource_unknown_tag(iterator, tag, data, config, pos)
     Resource._add_unknown_tag = new_resource_unknown_tag
 
+
 _monkeypath_astropy_resource_groups()
 
 __all__ = [
     "search", "DatalinkService", "DatalinkQuery", "DatalinkResults",
     "SodaQuery", "SodaMixin"]
+
 
 def search(url, id, responseformat=None, **keywords):
     """
@@ -86,6 +92,7 @@ def search(url, id, responseformat=None, **keywords):
     """
     service = DatalinkService(url)
     return service.search(id, responseformat, **keywords)
+
 
 class AdhocServiceMixin(object):
     """
@@ -125,7 +132,9 @@ class AdhocServiceMixin(object):
                     )) for param in adhocservice.params
             ):
                 return adhocservice
-        raise DALServiceError("No Adhoc Service with ivo-id {}!".format(ivo_id))
+        raise DALServiceError(
+            "No Adhoc Service with ivo-id {}!".format(ivo_id))
+
 
 class DatalinkMixin(AdhocServiceMixin):
     """
@@ -181,8 +190,8 @@ class SodaMixin(object):
 
         return None
 
-    def processed(self, circle=None, range=None, polygon=None, band=None,
-            **kwargs):
+    def processed(
+            self, circle=None, range=None, polygon=None, band=None, **kwargs):
         """
         Iterates over all soda documents in a DALResult.
         """
@@ -238,7 +247,7 @@ class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
         """
         return self.create_query(id, responseformat, **keywords).execute()
 
-    #alias for service discovery
+    # alias for service discovery
     search = run_sync
 
     def create_query(self, id, responseformat=None, **keywords):
@@ -444,7 +453,7 @@ class DatalinkResults(DatalinkMixin, SodaMixin, DALResults):
         Returns
         -------
         Sequence of DatalinkRecord
-            a sequence of dictionary-like wrappers containing the result record.
+            a sequence of dictionary-like wrappers containing the result record
         """
         # TODO: get semantics with astropy and implement resursive lookup
         for record in self:
@@ -544,8 +553,9 @@ class SodaQuery(DatalinkQuery):
     """
     a class for preparing a query to a SODA Service.
     """
-    def __init__(self, baseurl, circle=None, range=None, polygon=None,
-            band=None, **kwargs):
+    def __init__(
+            self, baseurl, circle=None, range=None, polygon=None, band=None,
+            **kwargs):
         super(SodaQuery, self).__init__(baseurl, **kwargs)
 
         if circle:
@@ -567,6 +577,7 @@ class SodaQuery(DatalinkQuery):
         defined in DALI.
         """
         return getattr(self, '_circle', None)
+
     @circle.setter
     def circle(self, circle):
         setattr(self, '_circle', circle)
@@ -600,6 +611,7 @@ class SodaQuery(DatalinkQuery):
         A rectangular range.
         """
         return getattr(self, '_circle', None)
+
     @range.setter
     def range(self, range):
         setattr(self, '_range', range)
@@ -627,7 +639,6 @@ class SodaQuery(DatalinkQuery):
         if 'POS' in self and self['POS'].startswith('RANGE'):
             del self['POS']
 
-
     @property
     def polygon(self):
         """
@@ -635,6 +646,7 @@ class SodaQuery(DatalinkQuery):
         defined in DALI.
         """
         return getattr(self, '_polygon', None)
+
     @polygon.setter
     def polygon(self, polygon):
         setattr(self, '_polygon', polygon)
@@ -669,6 +681,7 @@ class SodaQuery(DatalinkQuery):
         from the data using a floating point interval
         """
         return getattr(self, "_band", None)
+
     @band.setter
     def band(self, val):
         setattr(self, "_band", val)

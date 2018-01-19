@@ -23,11 +23,13 @@ from ..io.vosi import tapregext as tr
 __all__ = [
     "search", "escape", "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
 
+
 def escape(term):
     """
     escapes a term for use in ADQL
     """
     return str(term).replace("'", "''")
+
 
 def search(url, query, language="ADQL", maxrec=None, uploads=None, **keywords):
     """
@@ -43,7 +45,7 @@ def search(url, query, language="ADQL", maxrec=None, uploads=None, **keywords):
         specifies the query language, default ADQL.
         useful for services which allow to use the backend query language.
     maxrec : int
-        specifies the maximum records to return. defaults to the service default
+        the maximum records to return. defaults to the service default
     uploads : dict
         a mapping from table names to file like objects containing a votable
 
@@ -63,6 +65,7 @@ def search(url, query, language="ADQL", maxrec=None, uploads=None, **keywords):
     """
     service = TAPService(url)
     return service.search(query, language, maxrec, uploads, **keywords)
+
 
 class VOSITables(object):
     """
@@ -129,6 +132,7 @@ class VOSITables(object):
         """
         for name in self.keys():
             yield (name, self._get_table(name))
+
 
 class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
     """
@@ -231,9 +235,9 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             specifies the query language, default ADQL.
             useful for services which allow to use the backend query language.
         maxrec : int
-            specifies the maximum records to return. defaults to the service default
+            the maximum records to return. defaults to the service default
         uploads : dict
-            a mapping from table names to file like objects containing a votable
+            a mapping from table names to objects containing a votable
 
         Returns
         -------
@@ -248,7 +252,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             query, language=language, maxrec=maxrec, uploads=uploads,
             **keywords).execute()
 
-    #alias for service discovery
+    # alias for service discovery
     search = run_sync
 
     def run_async(
@@ -265,9 +269,9 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             specifies the query language, default ADQL.
             useful for services which allow to use the backend query language.
         maxrec : int
-            specifies the maximum records to return. defaults to the service default
+            the maximum records to return. defaults to the service default
         uploads : dict
-            a mapping from table names to file like objects containing a votable
+            a mapping from table names to objects containing a votable
 
         Returns
         -------
@@ -310,9 +314,9 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             specifies the query language, default ADQL.
             useful for services which allow to use the backend query language.
         maxrec : int
-            specifies the maximum records to return. defaults to the service default
+            the maximum records to return. defaults to the service default
         uploads : dict
-            a mapping from table names to file like objects containing a votable
+            a mapping from table names to objects containing a votable
 
         Returns
         -------
@@ -379,9 +383,9 @@ class AsyncTAPJob(object):
             specifies the query language, default ADQL.
             useful for services which allow to use the backend query language.
         maxrec : int
-            specifies the maximum records to return. defaults to the service default
+            the maximum records to return. defaults to the service default
         uploads : dict
-            a mapping from table names to file like objects containing a votable
+            a mapping from table names to objects containing a votable
         """
         query = TAPQuery(
             baseurl, query, mode="async", language=language, maxrec=maxrec,
@@ -392,7 +396,7 @@ class AsyncTAPJob(object):
 
     def __init__(self, url):
         """
-        initialize the job object with the given url and fetch the remote values
+        initialize the job object with the given url and fetch remote values
 
         Parameters
         ----------
@@ -442,7 +446,7 @@ class AsyncTAPJob(object):
         """
         all up-to-date uws job infos as dictionary
         """
-        #keep it up to date
+        # keep it up to date
         self._update()
         return self._job
 
@@ -516,7 +520,7 @@ class AsyncTAPJob(object):
             datetime after which the job results are deleted automatically
         """
         try:
-            #is string? easier to ask for forgiveness
+            # is string? easier to ask for forgiveness
             value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
         except ValueError:
             pass
@@ -862,8 +866,8 @@ class TAPResults(DatalinkMixin, DALResults):
         """
         return a representation of a tap result record that follows
         dictionary semantics. The keys of the dictionary are those returned by
-        this instance's fieldnames attribute. The returned record has additional
-        image-specific properties
+        this instance's fieldnames attribute. The returned record has
+        additional image-specific properties
 
         Parameters
         ----------

@@ -43,7 +43,10 @@ from .datalink import DatalinkMixin
 
 __all__ = ["search", "SSAService", "SSAQuery", "SSAResults", "SSARecord"]
 
-def search(baseurl, pos, diameter=None, band=None, time=None, format='all', **keywords):
+
+def search(
+        baseurl, pos, diameter=None, band=None, time=None, format='all',
+        **keywords):
     """
     submit a simple SSA query that requests spectra overlapping a given region
 
@@ -93,7 +96,8 @@ def search(baseurl, pos, diameter=None, band=None, time=None, format='all', **ke
     pyvo.dal.query.DALServiceError
     pyvo.dal.query.DALQueryError
     """
-    return SSAService(baseurl).search(pos, diameter, band, time, format, **keywords)
+    return SSAService(baseurl).search(
+        pos, diameter, band, time, format, **keywords)
 
 
 class SSAService(DALService):
@@ -112,7 +116,9 @@ class SSAService(DALService):
         """
         super(SSAService, self).__init__(baseurl)
 
-    def search(self, pos, diameter, band=None, time=None, format='all', **keywords):
+    def search(
+            self, pos, diameter, band=None, time=None, format='all',
+            **keywords):
         """
         submit a SSA query to this service with the given constraints.
 
@@ -152,7 +158,7 @@ class SSAService(DALService):
         DALServiceError
            for errors connecting to or communicating with the service
         DALQueryError
-           if the service responds with an error, including a query syntax error
+           if the service responds with an error, including query syntax errors
 
         See Also
         --------
@@ -292,6 +298,7 @@ class SSAQuery(DALQuery):
         `~astropy.coordinates.SkyCoord` instance.
         """
         return getattr(self, "_pos", None)
+
     @pos.setter
     def pos(self, val):
         setattr(self, "_pos", val)
@@ -305,6 +312,7 @@ class SSAQuery(DALQuery):
 
         self["POS"] = "{ra},{dec}".format(
             ra=val.icrs.ra.deg, dec=val.icrs.dec.deg)
+
     @pos.deleter
     def pos(self):
         delattr(self, "_pos")
@@ -317,6 +325,7 @@ class SSAQuery(DALQuery):
         `~astropy.units.Quantity` instance.
         """
         return getattr(self, "_diameter", None)
+
     @diameter.setter
     def diameter(self, val):
         setattr(self, "_diameter", val)
@@ -333,6 +342,7 @@ class SSAQuery(DALQuery):
                 pass
 
         self["SIZE"] = val.to(Unit("deg")).value
+
     @diameter.deleter
     def diameter(self):
         delattr(self, "_diameter")
@@ -344,6 +354,7 @@ class SSAQuery(DALQuery):
         the bandwidth range the observations belong to.
         """
         return getattr(self, "_band", None)
+
     @band.setter
     def band(self, val):
         setattr(self, "_band", val)
@@ -366,6 +377,7 @@ class SSAQuery(DALQuery):
 
         self["BAND"] = "{start}/{end}".format(
             start=val.value[0], end=val.value[1])
+
     @band.deleter
     def band(self):
         delattr(self, "_band")
@@ -377,6 +389,7 @@ class SSAQuery(DALQuery):
         the datetime range the observations were made in.
         """
         return getattr(self, "_time", None)
+
     @time.setter
     def time(self, val):
         setattr(self, "_time", val)
@@ -394,6 +407,7 @@ class SSAQuery(DALQuery):
 
         self["TIME"] = "{start}/{end}".format(
             start=val.isot[0], end=val.isot[1])
+
     @time.deleter
     def time(self):
         delattr(self, "_time")
@@ -409,6 +423,7 @@ class SSAQuery(DALQuery):
         returned--only an empty table with complete metadata.
         """
         return getattr(self, "_format", None)
+
     @format.setter
     def format(self, val):
         setattr(self, "_format", val)
@@ -417,6 +432,7 @@ class SSAQuery(DALQuery):
             val = [val]
 
         self["FORMAT"] = ",".join(val)
+
     @format.deleter
     def format(self):
         delattr(self, "_format")
@@ -428,10 +444,12 @@ class SSAQuery(DALQuery):
         the type of service operation which is being performed
         """
         return getattr(self, "_request", None)
+
     @request.setter
     def request(self, val):
         setattr(self, "_request", val)
         self["REQUEST"] = val
+
     @request.deleter
     def request(self):
         delattr(self, "_request")
@@ -504,8 +522,8 @@ class SSAResults(DatalinkMixin, DALResults):
         """
         return a representation of a sia result record that follows
         dictionary semantics. The keys of the dictionary are those returned by
-        this instance's fieldnames attribute. The returned record has additional
-        image-specific properties
+        this instance's fieldnames attribute. The returned record has
+        additional image-specific properties
 
         Parameters
         ----------

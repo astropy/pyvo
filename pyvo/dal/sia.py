@@ -41,6 +41,7 @@ from .datalink import DatalinkMixin, SodaMixin
 
 __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "SIARecord"]
 
+
 def search(
         url, pos, size=1.0, format='all', intersect="overlaps", verbosity=2,
         **keywords):
@@ -109,6 +110,7 @@ def search(
     """
     service = SIAService(url)
     return service.search(pos, size, format, intersect, verbosity, **keywords)
+
 
 class SIAService(DALService):
     """
@@ -236,8 +238,7 @@ class SIAService(DALService):
 
     def create_query(
             self, pos=None, size=None, format=None, intersect=None,
-            verbosity=None, **keywords
-        ):
+            verbosity=None, **keywords):
         """
         create a query object that constraints can be added to and then
         executed.  The input arguments will initialize the query with the
@@ -319,9 +320,8 @@ class SIAQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, pos=None, size=None, format=None,
-            intersect=None, verbosity=None, **keywords
-        ):
+            self, baseurl, pos=None, size=None, format=None, intersect=None,
+            verbosity=None, **keywords):
         """
         initialize the query object with a baseurl and the given parameters
 
@@ -393,6 +393,7 @@ class SIAQuery(DALQuery):
         `~astropy.coordinates.SkyCoord` instance.
         """
         return getattr(self, "_pos", None)
+
     @pos.setter
     def pos(self, val):
         setattr(self, "_pos", val)
@@ -410,6 +411,7 @@ class SIAQuery(DALQuery):
 
         self["POS"] = "{ra},{dec}".format(
             ra=val.icrs.ra.deg, dec=val.icrs.dec.deg)
+
     @pos.deleter
     def pos(self):
         delattr(self, "_pos")
@@ -422,6 +424,7 @@ class SIAQuery(DALQuery):
         `~astropy.units.Quantity` instance.
         """
         return getattr(self, "_size", None)
+
     @size.setter
     def size(self, val):
         setattr(self, "_size", val)
@@ -442,6 +445,7 @@ class SIAQuery(DALQuery):
                 str(deg) for deg in val.to(Unit("deg")).value)
         except TypeError:
             self["SIZE"] = str(val.to(Unit("deg")).value)
+
     @size.deleter
     def size(self):
         delattr(self, "_size")
@@ -459,6 +463,7 @@ class SIAQuery(DALQuery):
         * can have values like "fits", "jpeg", "png", etc.
         """
         return getattr(self, "_format", None)
+
     @format.setter
     def format(self, val):
         setattr(self, "_format", val)
@@ -467,6 +472,7 @@ class SIAQuery(DALQuery):
             val = [val]
 
         self["FORMAT"] = ",".join(_.upper() for _ in val)
+
     @format.deleter
     def format(self):
         delattr(self, "_format")
@@ -486,10 +492,12 @@ class SIAQuery(DALQuery):
         ========= ======================================================
         """
         return getattr(self, "_intersect", None)
+
     @intersect.setter
     def intersect(self, val):
         setattr(self, "_intersect", val)
         self["INTERSECT"] = val.upper()
+
     @intersect.deleter
     def intersect(self):
         delattr(self, "_intersect")
@@ -503,10 +511,12 @@ class SIAQuery(DALQuery):
         set of columsn, 3 means as many columns as are  available.
         """
         return getattr(self, "_verbosity", None)
+
     @verbosity.setter
     def verbosity(self, val):
         setattr(self, "_verbosity", val)
         self["VERB"] = val
+
     @verbosity.deleter
     def verbosity(self):
         delattr(self, "_verbosity")
@@ -580,8 +590,8 @@ class SIAResults(DatalinkMixin, DALResults):
         """
         return a representation of a sia result record that follows
         dictionary semantics. The keys of the dictionary are those returned by
-        this instance's fieldnames attribute. The returned record has additional
-        image-specific properties
+        this instance's fieldnames attribute. The returned record has
+        additional image-specific properties
 
         Parameters
         ----------
@@ -605,6 +615,7 @@ class SIAResults(DatalinkMixin, DALResults):
         Record
         """
         return SIARecord(self, index)
+
 
 class SIARecord(SodaMixin, Record):
     """
@@ -772,7 +783,7 @@ class SIARecord(SodaMixin, Record):
     @property
     def bandpass_hilimit(self):
         """
-        the upper limit of the bandpass, as an astropy Quantity in bandpass_unit
+        the upper limit of the bandpass as astropy Quantity in bandpass_unit
         """
         return Quantity(
             self.getbyucd("VOX:BandPass_HiLimit"), self.bandpass_unit)
@@ -780,7 +791,7 @@ class SIARecord(SodaMixin, Record):
     @property
     def bandpass_lolimit(self):
         """
-        the lower limit of the bandpass, as an astropy Quantity in bandpass_unit
+        the lower limit of the bandpass as astropy Quantity in bandpass_unit
         """
         return Quantity(
             self.getbyucd("VOX:BandPass_LoLimit"), self.bandpass_unit)
@@ -802,7 +813,7 @@ class SIARecord(SodaMixin, Record):
         * X -- The image pixels were computed by the service directly from a
                primary data set hence were not filtered by an interpolator.
         * Z -- The image pixels contain valid flux (intensity) values, e.g., if
-               the pixels were resampled a flux-preserving interpolator was used.
+               the pixels were resampled with a flux-preserving interpolator.
         * V -- The image pixels contain some unspecified visualization of the
                data, hence are suitable for display but not for numerical
                analysis.

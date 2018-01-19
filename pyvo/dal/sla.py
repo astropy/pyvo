@@ -30,6 +30,7 @@ from .query import (DALResults, DALQuery, DALService, Record)
 
 __all__ = ["search", "SLAService", "SLAQuery", "SLAResults", "SLARecord"]
 
+
 def search(baseurl, wavelength, **keywords):
     """
     submit a simple SLA query that requests spectral lines within a
@@ -201,6 +202,7 @@ class SLAQuery(DALQuery):
         the bandwidth range the observations belong to.
         """
         return getattr(self, "_wavelength", None)
+
     @wavelength.setter
     def wavelength(self, val):
         setattr(self, "_wavelength", val)
@@ -218,12 +220,13 @@ class SLAQuery(DALQuery):
         # transform to meters
         val = val.to(
             Unit("m"), equivalencies=spectral_equivalencies())
-        # frequency is counter-proportional to wavelength, so we just sort it to
-        # have the right order again
+        # frequency is counter-proportional to wavelength, so we just sort it
+        # to have the right order again
         val.sort()
 
         self["WAVELENGTH"] = "{start}/{end}".format(
             start=val.value[0], end=val.value[1])
+
     @wavelength.deleter
     def wavelength(self):
         delattr(self, "_wavelength")
@@ -235,10 +238,12 @@ class SLAQuery(DALQuery):
         the type of service operation which is being performed
         """
         return getattr(self, "_request", None)
+
     @request.setter
     def request(self, val):
         setattr(self, "_request", val)
         self["REQUEST"] = val
+
     @request.deleter
     def request(self):
         delattr(self, "_request")
@@ -313,8 +318,8 @@ class SLAResults(DALResults):
         """
         return a representation of a sla result record that follows
         dictionary semantics. The keys of the dictionary are those returned by
-        this instance's fieldnames attribute. The returned record has additional
-        image-specific properties
+        this instance's fieldnames attribute. The returned record has
+        additional image-specific properties
 
         Parameters
         ----------

@@ -12,6 +12,7 @@ import requests
 
 from astropy.utils.exceptions import AstropyUserWarning
 
+
 class DALAccessError(Exception):
     """
     a base class for failures while accessing a DAL service
@@ -29,21 +30,28 @@ class DALAccessError(Exception):
         url : str
            the query URL that produced the error
         """
-        if not reason: reason = self._defreason
+        if not reason:
+            reason = self._defreason
         super(DALAccessError, self).__init__(reason)
         self._reason = reason
         self._url = url
 
     @classmethod
     def _typeName(cls, exc):
-        return re.sub(r"'>$", '', 
-                      re.sub(r"<(type|class) '(.*\.)?", '', 
-                             str(type(exc))))
+        try:
+            return exc.__qualname__
+        except AttributeError:
+            return re.sub(
+                r"'>$", '',
+                re.sub(r"<(type|class) '(.*\.)?", '', str(type(exc)))
+            )
+
     def __str__(self):
         return self._reason
+
     def __repr__(self):
         return "{0}: {1}".format(self._typeName(self), self._reason)
-   
+
     @property
     def reason(self):
         """
@@ -64,7 +72,7 @@ class DALProtocolError(DALAccessError):
     a base exception indicating that a DAL service responded with an error.
     This can be either an HTTP protocol error or a response format error;
     both of these are handled by separate subclasses. This base class captures
-    an underlying exception clause. 
+    an underlying exception clause.
     """
     _defreason = "Unknown DAL Protocol Error"
 
@@ -80,7 +88,7 @@ class DALProtocolError(DALAccessError):
            the HTTP error code (as an integer)
         cause : str
            an exception issued as the underlying cause.  A value
-           of None indicates that no underlying exception was 
+           of None indicates that no underlying exception was
            caught.
         url : str
            the query URL that produced the error
@@ -94,6 +102,7 @@ class DALProtocolError(DALAccessError):
         a string description of what went wrong
         """
         return self._cause
+
 
 class DALFormatError(DALProtocolError):
     """
@@ -126,11 +135,11 @@ class DALFormatError(DALProtocolError):
 class DALServiceError(DALProtocolError):
     """
     an exception indicating a failure communicating with a DAL
-    service.  Most typically, this is used to report DAL queries that result 
-    in an HTTP error.  
+    service.  Most typically, this is used to report DAL queries that result
+    in an HTTP error.
     """
     _defreason = "Unknown service error"
-    
+
     def __init__(self, reason=None, code=None, cause=None, url=None):
         """
         initialize with a string message and an optional HTTP response code
@@ -143,7 +152,7 @@ class DALServiceError(DALProtocolError):
            the HTTP error code (as an integer)
         cause : str
            an exception issued as the underlying cause.  A value
-           of None indicates that no underlying exception was 
+           of None indicates that no underlying exception was
            caught.
         url : str
            the query URL that produced the error
@@ -155,7 +164,7 @@ class DALServiceError(DALProtocolError):
     def code(self):
         """
         the HTTP error code that resulted from the DAL service query,
-        indicating the error.  If None, the service did not produce an HTTP 
+        indicating the error.  If None, the service did not produce an HTTP
         response.
         """
         return self._code
@@ -175,16 +184,17 @@ class DALServiceError(DALProtocolError):
 
             return DALServiceError(message, code, exc, url)
         elif isinstance(exc, Exception):
-            return DALServiceError("{0}: {1}".format(cls._typeName(exc), 
-                                                     str(exc)), 
+            return DALServiceError("{0}: {1}".format(cls._typeName(exc),
+                                                     str(exc)),
                                    cause=exc, url=url)
         else:
             raise TypeError("from_except: expected Exception")
 
+
 class DALQueryError(DALAccessError):
     """
     an exception indicating an error by a working DAL service while processing
-    a query.  Generally, this would be an error that the service successfully 
+    a query.  Generally, this would be an error that the service successfully
     detected and consequently was able to respond with a legal error response--
     namely, a VOTable document with an INFO element contains the description
     of the error.  Possible errors will include bad usage by the client, such
@@ -197,26 +207,26 @@ class DALQueryError(DALAccessError):
         Parameters
         ----------
         reason : str
-           a message describing the cause of the error.  This should 
+           a message describing the cause of the error.  This should
            be set to the content of the INFO error element.
         label : str
-           the identifying name of the error.  This should be the 
-           value of the INFO element's value attribute within the 
+           the identifying name of the error.  This should be the
+           value of the INFO element's value attribute within the
            VOTable response that describes the error.
         url : str
            the query URL that produced the error
         """
         super(DALQueryError, self).__init__(reason, url)
         self._label = label
-                          
+
     @property
     def label(self):
         """
         the identifing name for the error given in the DAL query response.
         DAL queries that produce an error which is detectable on the server
-        will respond with a VOTable containing an INFO element that contains 
-        the description of the error.  This property contains the value of 
-        the INFO's value attribute.  
+        will respond with a VOTable containing an INFO element that contains
+        the description of the error.  This property contains the value of
+        the INFO's value attribute.
         """
         return self._label
 

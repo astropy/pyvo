@@ -30,6 +30,7 @@ from .datalink import DatalinkMixin
 
 __all__ = ["search", "SCSService", "SCSQuery", "SCSResults", "SCSRecord"]
 
+
 def search(url, pos, radius=1.0, verbosity=2, **keywords):
     """
     submit a simple Cone Search query that requests objects or observations
@@ -243,6 +244,7 @@ class SCSQuery(DALQuery):
         `~astropy.coordinates.SkyCoord` instance.
         """
         return getattr(self, "_pos", None)
+
     @pos.setter
     def pos(self, val):
         setattr(self, "_pos", val)
@@ -256,6 +258,7 @@ class SCSQuery(DALQuery):
 
         self["RA"] = val.icrs.ra.deg
         self["DEC"] = val.icrs.dec.deg
+
     @pos.deleter
     def pos(self):
         delattr(self, "_pos")
@@ -269,6 +272,7 @@ class SCSQuery(DALQuery):
         `~astropy.units.Quantity` instance.
         """
         return getattr(self, "_radius", None)
+
     @radius.setter
     def radius(self, val):
         setattr(self, "_radius", val)
@@ -285,6 +289,7 @@ class SCSQuery(DALQuery):
                 pass
 
         self["SR"] = val.to(Unit("deg")).value
+
     @radius.deleter
     def radius(self):
         delattr(self, "_radius")
@@ -298,10 +303,12 @@ class SCSQuery(DALQuery):
         set of columsn, 3 means as many columns as are  available.
         """
         return getattr(self, "_verbosity", None)
+
     @verbosity.setter
     def verbosity(self, val):
         setattr(self, "_verbosity", val)
         self["VERB"] = val
+
     @verbosity.deleter
     def verbosity(self):
         delattr(self, "_verbosity")
@@ -383,7 +390,6 @@ class SCSResults(DALResults, DatalinkMixin):
         info = self._findstatusinfo(votable.infos)
         if info:
             return (info.name, info.value)
-
 
         # look next in the result resource
         res = self._findresultsresource(votable)
