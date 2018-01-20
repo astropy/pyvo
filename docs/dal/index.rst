@@ -337,7 +337,7 @@ Underlying data structures
 --------------------------
 If you want to work with the astropy :py:class:`astropy.table.Table` or
 :py:class:`astropy.io.votable.tree.Table` objects, their are accessible by
-the properties :py:attr:`pyvo.dal.DALResults.table` and
+the method :py:meth:`pyvo.dal.DALResults.table` and the attribute
 :py:attr:`pyvo.dal.DALResults.votable`, respectively.
 
 Server-side processing

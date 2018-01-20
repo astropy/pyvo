@@ -373,8 +373,8 @@ class DALResults(object):
         if self._status[0].upper() not in ("OK", "OVERFLOW"):
             raise DALQueryError(self._status[1], self._status[0], url)
 
-        self.votable = self._findresultstable(votable)
-        if not self.votable:
+        self._votable = self._findresultstable(votable)
+        if not votable:
             raise DALFormatError(
                 reason="VOTable response missing results table", url=url)
 
@@ -450,9 +450,19 @@ class DALResults(object):
         return self._url
 
     @property
+    def votable(self):
+        """
+        The votable XML element `astropy.io.votable.tree.Table`
+        """
+        return self._votable
+
     def table(self):
         """
-        the astropy table object
+        Returns a astropy Table object.
+
+        Returns
+        -------
+        `astropy.table.Table`
         """
         return self.votable.to_table()
 
@@ -460,7 +470,7 @@ class DALResults(object):
         """
         return the record count
         """
-        return len(self.table)
+        return len(self.votable.array)
 
     def __getitem__(self, indx):
         """
@@ -479,7 +489,7 @@ class DALResults(object):
         to access values from the dictionaries returned by getrecord().  They
         correspond to the column name.
         """
-        return self._fldnames[:]
+        return self._fldnames
 
     @property
     def fielddescs(self):
