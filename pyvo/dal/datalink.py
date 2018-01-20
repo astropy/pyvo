@@ -160,7 +160,7 @@ class SodaMixin(object):
     def __init__(self, results, index):
         super(SodaMixin, self).__init__(results, index)
 
-        self._soda_resource = self.get_soda_resource()
+        self._soda_resource = self._get_soda_resource()
 
     def _get_soda_resource(self):
         dataformat = self.getdataformat()
@@ -376,7 +376,7 @@ class DatalinkQuery(DALQuery):
         return DatalinkResults(self.execute_votable(), url=self.queryurl)
 
 
-class DatalinkResults(DatalinkMixin, SodaMixin, DALResults):
+class DatalinkResults(DatalinkMixin, DALResults):
     """
     The list of matching records resulting from an datalink query.
     Each record contains a set of metadata that describes an available
