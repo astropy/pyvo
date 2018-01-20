@@ -87,30 +87,34 @@ class TableAccess(TAPCapRestriction):
         for uploadmethod in self.uploadmethods:
             uploadmethod.describe()
 
-        print("Time a job is kept (in seconds)")
-        print(indent("Default {}".format(self.retentionperiod.default)))
-        if self.retentionperiod.hard:
-            print(indent("Maximum {}".fornat(self.retentionperiod.hard)))
-        print()
+        if self.retentionperiod:
+            print("Time a job is kept (in seconds)")
+            print(indent("Default {}".format(self.retentionperiod.default)))
+            if self.retentionperiod.hard:
+                print(indent("Maximum {}".fornat(self.retentionperiod.hard)))
+            print()
 
-        print("Maximal run time of a job")
-        print(indent("Default {}".format(self.executionduration.default)))
-        if self.executionduration.hard:
-            print(indent("Maximum {}".fornat(self.executionduration.hard)))
-        print()
+        if self.executionduration:
+            print("Maximal run time of a job")
+            print(indent("Default {}".format(self.executionduration.default)))
+            if self.executionduration.hard:
+                print(indent("Maximum {}".fornat(self.executionduration.hard)))
+            print()
 
-        print("Maximal size of resultsets")
-        print(indent("Default {} {}".format(
-            self.outputlimit.default.value, self.outputlimit.default.unit)))
-        if self.outputlimit.hard:
+        if self.outputlimit:
+            print("Maximum size of resultsets")
+            print(indent("Default {} {}".format(
+                self.outputlimit.default.value, self.outputlimit.default.unit)))
+            if self.outputlimit.hard:
+                print(indent("Maximum {} {}".format(
+                    self.outputlimit.hard.value, self.outputlimit.hard.unit)))
+            print()
+
+        if self.uploadlimit:
+            print("Maximal size of uploads")
             print(indent("Maximum {} {}".format(
-                self.outputlimit.hard.value, self.outputlimit.hard.unit)))
-        print()
-
-        print("Maximal size of uploads")
-        print(indent("Maximum {} {}".format(
-            self.uploadlimit.hard.value, self.uploadlimit.hard.unit)))
-        print()
+                self.uploadlimit.hard.value, self.uploadlimit.hard.unit)))
+            print()
 
     @property
     def datamodels(self):
