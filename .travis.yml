@@ -40,7 +40,6 @@ env:
     matrix:
         # Make sure that egg_info works without dependencies
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
-        - PYTHON_VERSION=3.3 SETUP_CMD='egg_info' NUMPY_VERSION=1.11
         - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
@@ -61,7 +60,7 @@ matrix:
 
         # Now try Astropy dev and LTS vesions with the latest 3.x and 2.7.
         - os: linux
-          env: PYTHON_VERSION=2.7 ASTROPY_VERSION=development
+          env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts
                EVENT_TYPE='pull_request push cron'
         - os: linux
           env: ASTROPY_VERSION=development
@@ -74,8 +73,6 @@ matrix:
           # try all python versions
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7
-        - os: linux
-          env: PYTHON_VERSION=3.3 NUMPY_VERSION=1.8
         - os: linux
           env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9
         - os: linux
@@ -95,10 +92,6 @@ matrix:
         # (allow to fail because docs aren't in the right state yet')
         - os: linux
           env: SETUP_CMD='build_docs -w'
-
-        # Unresolvable conda dependencies
-        - os: linux
-          env: PYTHON_VERSION=3.3 NUMPY_VERSION=1.11
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
