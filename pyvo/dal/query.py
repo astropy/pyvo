@@ -28,7 +28,6 @@ __all__ = ["DALService", "DALQuery", "DALResults", "Record"]
 import os
 import re
 import requests
-import functools
 try:
     from collections.abc import Mapping
 except ImportError:
@@ -42,6 +41,9 @@ from astropy.io.votable import parse as votableparse
 from .exceptions import (
     DALAccessError, DALFormatError, DALServiceError, DALQueryError)
 
+from ..io import vosi
+
+from ..utils.decorators import stream_decode_content, response_decode_content
 from ..utils.formatting import para_format_desc
 
 if six.PY3:
@@ -212,6 +214,7 @@ class DALQuery(dict):
             f.close()
         return out
 
+    @stream_decode_content
     def execute_stream(self):
         """
         Submit the query and return the raw VOTable XML as a file stream.
@@ -236,7 +239,6 @@ class DALQuery(dict):
         params = {k: v for k, v in self.items()}
 
         r = requests.get(url, params=params, stream=True)
-        r.raw.read = functools.partial(r.raw.read, decode_content=True)
         return r
 
     def execute_votable(self):
@@ -297,17 +299,19 @@ class DALResults(object):
     the response.  Alternatively, it can provide results via a Cursor
     (compliant with the Python Database API) or an iterable.
     """
+    @classmethod
+    @stream_decode_content
+    def _from_result_url(cls, result_url):
+        return requests.get(result_url, stream=True).raw
 
     @classmethod
     def from_result_url(cls, result_url):
         """
         Create a result object from a url.
         """
-        response = requests.get(result_url, stream=True)
-        response.raw.read = functools.partial(
-            response.raw.read, decode_content=True)
-
-        return cls(votableparse(response.raw.read), url=result_url)
+        return cls(
+            votableparse(cls._from_result_url(result_url).read),
+            url=result_url)
 
     def __init__(self, votable, url=None):
         """
@@ -681,6 +685,7 @@ class Record(Mapping):
                 return out
         return None
 
+    @stream_decode_content
     def getdataset(self, timeout=None):
         """
         Get the dataset described by this record from the server.
@@ -722,7 +727,6 @@ class Record(Mapping):
             r = requests.get(url, stream=True)
 
         r.raise_for_status()
-        r.raw.read = functools.partial(r.raw.read, decode_content=True)
         return r.raw
 
     def cachedataset(self, filename=None, dir=".", timeout=None, bufsize=None):
@@ -1021,6 +1025,74 @@ class UploadList(list):
         Returns a string suitable for use in UPLOAD parameters
         """
         return ";".join(upload.query_part() for upload in self)
+
+
+class VOSITables(object):
+    """
+    This class encapsulates access to the VOSITables using a given Endpoint.
+    Access to table names is like accessing dictionary keys. using iterator
+    syntax or `keys()`
+    """
+    def __init__(self, vosi_tables, endpoint_url):
+        self._vosi_tables = vosi_tables
+        self._endpoint_url = endpoint_url
+        self._cache = {}
+
+    def __len__(self):
+        return self._vosi_tables.ntables
+
+    def __getitem__(self, key):
+        return self._get_table(key)
+
+    def __iter__(self):
+        return self.keys()
+
+    def _get_table(self, name):
+        if name in self._cache:
+            return self._cache[name]
+
+        table = self._vosi_tables.get_table_by_name(name)
+
+        if not table.columns and not table.foreignkeys:
+            tables_url = '{}/{}'.format(self._endpoint_url, name)
+            response = self._get_table_file(tables_url)
+
+            try:
+                response.raise_for_status()
+            except requests.RequestException as ex:
+                raise DALServiceError.from_except(ex, tables_url)
+
+            table = vosi.parse_tables(response.raw.read).get_first_table()
+            self._cache[name] = table
+
+        return table
+
+    @response_decode_content
+    def _get_table_file(self, tables_url):
+        return requests.get(tables_url, stream=True)
+
+    def keys(self):
+        """
+        Iterates over the keys (table names).
+        """
+        for table in self._vosi_tables.iter_tables():
+            yield table.name
+
+    def values(self):
+        """
+        Iterates over the values (tables).
+        Gathers missing values from endpoint if necessary.
+        """
+        for name in self.keys():
+            yield self._get_table(name)
+
+    def items(self):
+        """
+        Iterates over keys and values (table names and tables).
+        Gathers missing values from endpoint if necessary.
+        """
+        for name in self.keys():
+            yield (name, self._get_table(name))
 
 
 if six.PY3:
