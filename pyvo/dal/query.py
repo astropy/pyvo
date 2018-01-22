@@ -26,6 +26,7 @@ from __future__ import (
 __all__ = ["DALService", "DALQuery", "DALResults", "Record"]
 
 import os
+import shutil
 import re
 import requests
 try:
@@ -777,10 +778,7 @@ class Record(Mapping):
         inp = self.getdataset(timeout)
         try:
             with open(filename, 'wb') as out:
-                buf = inp.read(bufsize)
-                while buf:
-                    out.write(buf)
-                    buf = inp.read(bufsize)
+                shutil.copyfileobj(inp, out)
         finally:
             inp.close()
 
@@ -813,7 +811,7 @@ class Record(Mapping):
             raise ValueError(
                 "make_dataset_filename(): no dir parameter provided")
         if not os.path.exists(dir):
-            raise IOError("{0}: directory not found".format(dir))
+            os.mkdir(dir)
         if not os.path.isdir(dir):
             raise ValueError("{0}: not a directory".format(dir))
 
