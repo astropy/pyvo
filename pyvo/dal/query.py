@@ -638,7 +638,7 @@ class Record(Mapping):
         out = self._mapping.get(key, default)
 
         if decode and type(out) == six.binary_type:
-            out = out.decode('utf-8')
+            out = out.decode('ascii')
 
         return out
 
