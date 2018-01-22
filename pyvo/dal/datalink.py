@@ -199,6 +199,17 @@ class SodaMixin(object):
             self, circle=None, range=None, polygon=None, band=None, **kwargs):
         """
         Iterates over all soda documents in a DALResult.
+
+        Parameters
+        ----------
+        circle : `astropy.units.Quantity`
+            latitude, longitude and radius
+        range : `astropy.units.Quantity`
+            two longitude + two latitude values describing a rectangle
+        polygon : `astropy.units.Quantity`
+            multiple (at least three) pairs of longitude and latitude points
+        band : `astropy.units.Quantity`
+            two bandwidth or frequency values
         """
         if self._soda_resource:
             soda_query = SodaQuery.from_resource(

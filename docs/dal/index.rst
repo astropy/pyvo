@@ -346,13 +346,18 @@ Some services support the server-side processing of record datasets.
 This includes spatial cutouts for 2d-images, reducing of spectra to a certain
 waveband range, and more to come in the future.
 
-To invoke the operation one has to call ``row.processed``, which exposes a set
-of parameters who are dependend on the type of service.
+To invoke the operation one has to call
+:py:meth:`pyvo.dal.datalink.SodaMixin.processed`, which exposes a set of
+parameters who are dependend on the type of service.
 
-* :py:attr:`pyvo.dal.datalink.SodaQuery.circle`
-* :py:attr:`pyvo.dal.datalink.SodaQuery.range`
-* :py:attr:`pyvo.dal.datalink.SodaQuery.polygon`
-* :py:attr:`pyvo.dal.datalink.SodaQuery.band`
+- ``circle`` -- a sequence (degrees) or :py:class:`astropy.units.Quantity` of
+  longitude, latitude and radius
+- ``range`` -- a sequence (degrees) or :py:class:`astropy.units.Quantity` of
+  two longitude values and two latitude values describing a rectangle.
+- ``polygon`` -- multiple pairs of longitude and latitude points
+- ``band`` -- a sequence of two values (meters) or
+  :py:class:`astropy.units.Quantity` with two bandwitdh values. The right sort
+  order will be ensured if converting from frequency to wavelength.
 
 Reference/API
 =============
