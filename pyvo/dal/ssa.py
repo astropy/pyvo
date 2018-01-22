@@ -617,6 +617,13 @@ class SSARecord(Record):
         """
         return self.getbyutype("ssa:Access.Reference", decode=True)
 
+    @property
+    def filesize(self):
+        """
+        The (estimated) size of the image in bytes
+        """
+        return self.getbyutype("ssa:Access.Size")
+
     def getdataurl(self):
         """
         return the URL contained in the access URL column which can be used
