@@ -26,7 +26,7 @@ from __future__ import (
 from astropy.coordinates import SkyCoord
 from astropy.units import Unit, Quantity
 from .query import DALResults, DALQuery, DALService, Record
-from .datalink import DatalinkMixin
+from .datalink import DatalinkResultsMixin
 
 __all__ = ["search", "SCSService", "SCSQuery", "SCSResults", "SCSRecord"]
 
@@ -331,7 +331,7 @@ class SCSQuery(DALQuery):
         return SCSResults(self.execute_votable(), url=self.queryurl)
 
 
-class SCSResults(DALResults, DatalinkMixin):
+class SCSResults(DALResults, DatalinkResultsMixin):
     """
     The list of matching catalog records resulting from a catalog (SCS) query.
     Each record contains a set of metadata that describes a source or

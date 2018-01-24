@@ -11,13 +11,13 @@ from .exceptions import DALServiceError
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
 
-__all__ = ['SodaMixin', 'SodaQuery']
+__all__ = ['SodaRecordMixin', 'SodaQuery']
 
 
-class SodaMixin(object):
+class SodaRecordMixin(object):
     """
     Mixin for soda functionallity for record classes.
-    If used, it's result class must have `pyvo.dal.datalink.AdhocServiceMixin`
+    If used, it's result class must have `pyvo.dal.datalink.AdhocServiceResultsMixin`
     mixed in.
     """
     def _get_soda_resource(self):

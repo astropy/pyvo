@@ -58,7 +58,7 @@ _monkeypath_astropy_resource_groups()
 
 __all__ = [
     "search", "DatalinkService", "DatalinkQuery", "DatalinkResults",
-    "AdhocServiceMixin", "DatalinkMixin"]
+    "AdhocServiceResultsMixin", "DatalinkResultsMixin"]
 
 
 def search(url, id, responseformat=None, **keywords):
@@ -92,12 +92,12 @@ def search(url, id, responseformat=None, **keywords):
     return service.search(id, responseformat, **keywords)
 
 
-class AdhocServiceMixin(object):
+class AdhocServiceResultsMixin(object):
     """
     Mixing for adhoc:service functionallity for results classes.
     """
     def __init__(self, votable, url=None):
-        super(AdhocServiceMixin, self).__init__(votable, url=url)
+        super(AdhocServiceResultsMixin, self).__init__(votable, url=url)
 
         self._adhocservices = list(
             resource for resource in votable.resources
@@ -134,7 +134,7 @@ class AdhocServiceMixin(object):
             "No Adhoc Service with ivo-id {}!".format(ivo_id))
 
 
-class DatalinkMixin(AdhocServiceMixin):
+class DatalinkResultsMixin(AdhocServiceResultsMixin):
     """
     Mixing for datalink functionallity for results classes.
     """
@@ -314,7 +314,7 @@ class DatalinkQuery(DALQuery):
         return DatalinkResults(self.execute_votable(), url=self.queryurl)
 
 
-class DatalinkResults(DatalinkMixin, DALResults):
+class DatalinkResults(DatalinkResultsMixin, DALResults):
     """
     The list of matching records resulting from an datalink query.
     Each record contains a set of metadata that describes an available

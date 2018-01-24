@@ -39,7 +39,7 @@ from astropy.time import Time
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
 from .query import DALResults, DALQuery, DALService, Record, mime2extension
-from .datalink import DatalinkMixin
+from .datalink import DatalinkResultsMixin
 
 __all__ = ["search", "SSAService", "SSAQuery", "SSAResults", "SSARecord"]
 
@@ -472,7 +472,7 @@ class SSAQuery(DALQuery):
         return SSAResults(self.execute_votable(), url=self.queryurl)
 
 
-class SSAResults(DatalinkMixin, DALResults):
+class SSAResults(DatalinkResultsMixin, DALResults):
     """
     The list of matching images resulting from a spectrum (SSA) query.
     Each record contains a set of metadata that describes an available

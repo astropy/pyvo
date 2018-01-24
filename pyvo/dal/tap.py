@@ -16,8 +16,8 @@ from .query import (
     DALResults, DALQuery, DALService, Record, UploadList, DALServiceError,
     DALQueryError)
 from .vosi import AvailabilityMixin, CapabilityMixin, VOSITables
-from .datalink import DatalinkMixin
-from .soda import SodaMixin
+from .datalink import DatalinkResultsMixin
+from .soda import SodaRecordMixin
 from ..io import vosi, uws
 from ..io.vosi import tapregext as tr
 
@@ -739,7 +739,7 @@ class TAPQuery(DALQuery):
         return response
 
 
-class TAPResults(DatalinkMixin, DALResults):
+class TAPResults(DatalinkResultsMixin, DALResults):
     """
     The list of matching images resulting from an image (SIA) query.
     Each record contains a set of metadata that describes an available
@@ -827,5 +827,5 @@ class TAPResults(DatalinkMixin, DALResults):
         return TAPRecord(self, index)
 
 
-class TAPRecord(SodaMixin, Record):
+class TAPRecord(SodaRecordMixin, Record):
     pass
