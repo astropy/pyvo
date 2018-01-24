@@ -20,12 +20,6 @@ class SodaMixin(object):
     If used, it's result class must have `pyvo.dal.datalink.AdhocServiceMixin`
     mixed in.
     """
-
-    def __init__(self, results, index):
-        super(SodaMixin, self).__init__(results, index)
-
-        self._soda_resource = self._get_soda_resource()
-
     def _get_soda_resource(self):
         dataformat = self.getdataformat()
 
@@ -75,9 +69,11 @@ class SodaMixin(object):
         band : `astropy.units.Quantity`
             two bandwidth or frequency values
         """
-        if self._soda_resource:
+        soda_resource = self._get_soda_resource()
+
+        if soda_resource:
             soda_query = SodaQuery.from_resource(
-                self, self._soda_resource, circle=circle, range=range,
+                self, soda_resource, circle=circle, range=range,
                 polygon=polygon, band=band, **kwargs)
 
             soda_stream = soda_query.execute_stream()
