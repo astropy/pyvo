@@ -499,8 +499,12 @@ class DALResults(object):
         given name
         """
         if name not in self.fieldnames:
-            raise KeyError("No such column name: " + name)
-        return self.votable.array[name]
+            name = self.votable.get_field_by_id(name).name
+
+        try:
+            return self.votable.array[name]
+        except KeyError:
+            raise KeyError("No such column: {}".format(name))
 
     def getrecord(self, index):
         """
@@ -621,7 +625,13 @@ class Record(Mapping):
         )
 
     def __getitem__(self, key):
-        return self._mapping[key]
+        if key not in self._mapping:
+            key = self._results.votable.get_field_by_id(key).name
+
+        try:
+            return self._mapping[key]
+        except KeyError:
+            raise KeyError("No such column: {}".format(key))
 
     def __iter__(self):
         return iter(self._mapping)
