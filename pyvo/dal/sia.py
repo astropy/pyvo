@@ -37,7 +37,8 @@ from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity, Unit
 from .query import DALResults, DALQuery, DALService, Record, mime2extension
-from .datalink import DatalinkMixin, SodaMixin
+from .datalink import DatalinkMixin
+from .soda import SodaMixin
 
 __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "SIARecord"]
 

@@ -42,9 +42,7 @@ from astropy.io.votable import parse as votableparse
 from .exceptions import (
     DALAccessError, DALFormatError, DALServiceError, DALQueryError)
 
-from ..io import vosi
-
-from ..utils.decorators import stream_decode_content, response_decode_content
+from ..utils.decorators import stream_decode_content
 from ..utils.formatting import para_format_desc
 
 if six.PY3:
@@ -1023,74 +1021,6 @@ class UploadList(list):
         Returns a string suitable for use in UPLOAD parameters
         """
         return ";".join(upload.query_part() for upload in self)
-
-
-class VOSITables(object):
-    """
-    This class encapsulates access to the VOSITables using a given Endpoint.
-    Access to table names is like accessing dictionary keys. using iterator
-    syntax or `keys()`
-    """
-    def __init__(self, vosi_tables, endpoint_url):
-        self._vosi_tables = vosi_tables
-        self._endpoint_url = endpoint_url
-        self._cache = {}
-
-    def __len__(self):
-        return self._vosi_tables.ntables
-
-    def __getitem__(self, key):
-        return self._get_table(key)
-
-    def __iter__(self):
-        return self.keys()
-
-    def _get_table(self, name):
-        if name in self._cache:
-            return self._cache[name]
-
-        table = self._vosi_tables.get_table_by_name(name)
-
-        if not table.columns and not table.foreignkeys:
-            tables_url = '{}/{}'.format(self._endpoint_url, name)
-            response = self._get_table_file(tables_url)
-
-            try:
-                response.raise_for_status()
-            except requests.RequestException as ex:
-                raise DALServiceError.from_except(ex, tables_url)
-
-            table = vosi.parse_tables(response.raw.read).get_first_table()
-            self._cache[name] = table
-
-        return table
-
-    @response_decode_content
-    def _get_table_file(self, tables_url):
-        return requests.get(tables_url, stream=True)
-
-    def keys(self):
-        """
-        Iterates over the keys (table names).
-        """
-        for table in self._vosi_tables.iter_tables():
-            yield table.name
-
-    def values(self):
-        """
-        Iterates over the values (tables).
-        Gathers missing values from endpoint if necessary.
-        """
-        for name in self.keys():
-            yield self._get_table(name)
-
-    def items(self):
-        """
-        Iterates over keys and values (table names and tables).
-        Gathers missing values from endpoint if necessary.
-        """
-        for name in self.keys():
-            yield (name, self._get_table(name))
 
 
 if six.PY3:

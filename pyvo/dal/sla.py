@@ -26,7 +26,7 @@ from __future__ import (
 
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
-from .query import (DALResults, DALQuery, DALService, Record)
+from .query import DALResults, DALQuery, DALService, Record
 
 __all__ = ["search", "SLAService", "SLAQuery", "SLAResults", "SLARecord"]
 

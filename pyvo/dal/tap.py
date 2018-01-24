@@ -13,14 +13,13 @@ import requests
 from astropy.io.votable import parse as votableparse
 
 from .query import (
-    DALResults, DALQuery, DALService, Record, UploadList,
-    DALServiceError, DALQueryError)
-from .mixin import AvailabilityMixin, CapabilityMixin
-from .datalink import DatalinkMixin, SodaMixin
+    DALResults, DALQuery, DALService, Record, UploadList, DALServiceError,
+    DALQueryError)
+from .vosi import AvailabilityMixin, CapabilityMixin, VOSITables
+from .datalink import DatalinkMixin
+from .soda import SodaMixin
 from ..io import vosi, uws
 from ..io.vosi import tapregext as tr
-
-from ..utils.decorators import stream_decode_content
 
 __all__ = [
     "search", "escape", "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
