@@ -16,7 +16,7 @@ from .query import (
     DALResults, DALQuery, DALService, Record, UploadList, DALServiceError,
     DALQueryError)
 from .vosi import AvailabilityMixin, CapabilityMixin, VOSITables
-from .datalink import DatalinkResultsMixin
+from .datalink import DatalinkResultsMixin, DatalinkRecordMixin
 from .soda import SodaRecordMixin
 from ..io import vosi, uws
 from ..io.vosi import tapregext as tr
@@ -827,5 +827,5 @@ class TAPResults(DatalinkResultsMixin, DALResults):
         return TAPRecord(self, index)
 
 
-class TAPRecord(SodaRecordMixin, Record):
+class TAPRecord(SodaRecordMixin, DatalinkRecordMixin, Record):
     pass

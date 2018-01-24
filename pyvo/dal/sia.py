@@ -37,7 +37,7 @@ from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity, Unit
 from .query import DALResults, DALQuery, DALService, Record, mime2extension
-from .datalink import DatalinkResultsMixin
+from .datalink import DatalinkResultsMixin, DatalinkRecordMixin
 from .soda import SodaRecordMixin
 
 __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "SIARecord"]
@@ -618,7 +618,7 @@ class SIAResults(DatalinkResultsMixin, DALResults):
         return SIARecord(self, index)
 
 
-class SIARecord(SodaRecordMixin, Record):
+class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
     """
     a dictionary-like container for data in a record from the results of an
     image (SIA) search, describing an available image.

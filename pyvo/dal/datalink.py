@@ -142,12 +142,25 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         """
         Iterates over all datalinks in a DALResult.
         """
-        datalink = self.get_adhocservice_by_ivoid(
+        for record in self:
+            yield record.getdatalink()
+
+
+class DatalinkRecordMixin(object):
+    """
+    Mixin for record classes, providing functionallity for datalink.
+
+    - ``getdataset()`` considers datalink.
+    """
+    def getdatalink(self):
+        datalink = self._results.get_adhocservice_by_ivoid(
             b"ivo://ivoa.net/std/datalink")
 
-        for record in self:
-            query = DatalinkQuery.from_resource(record, datalink)
-            yield query.execute()
+        query = DatalinkQuery.from_resource(self, datalink)
+        return query.execute()
+
+    def getdataurl(self):
+        return self.getdatalink().bysemantics('#this').access_url
 
 
 class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):

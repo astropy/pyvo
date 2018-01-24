@@ -26,7 +26,7 @@ from __future__ import (
 from astropy.coordinates import SkyCoord
 from astropy.units import Unit, Quantity
 from .query import DALResults, DALQuery, DALService, Record
-from .datalink import DatalinkResultsMixin
+from .datalink import DatalinkResultsMixin, DatalinkRecordMixin
 
 __all__ = ["search", "SCSService", "SCSQuery", "SCSResults", "SCSRecord"]
 
@@ -448,7 +448,7 @@ class SCSResults(DALResults, DatalinkResultsMixin):
         return SCSRecord(self, index)
 
 
-class SCSRecord(Record):
+class SCSRecord(DatalinkRecordMixin, Record):
     """
     a dictionary-like container for data in a record from the results of an
     Cone Search (SCS) query, describing a matching source or observation.
