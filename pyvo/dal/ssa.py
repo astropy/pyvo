@@ -40,6 +40,7 @@ from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
 from .query import DALResults, DALQuery, DALService, Record, mime2extension
 from .datalink import DatalinkResultsMixin, DatalinkRecordMixin
+from .soda import SodaRecordMixin
 
 __all__ = ["search", "SSAService", "SSAQuery", "SSAResults", "SSARecord"]
 
@@ -549,7 +550,7 @@ class SSAResults(DatalinkResultsMixin, DALResults):
         return SSARecord(self, index)
 
 
-class SSARecord(DatalinkRecordMixin, Record):
+class SSARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
     """
     a dictionary-like container for data in a record from the results of an
     SSA query, describing an available spectrum.
