@@ -160,7 +160,10 @@ class DatalinkRecordMixin(object):
         return query.execute()
 
     def getdataurl(self):
-        return self.getdatalink().bysemantics('#this').access_url
+        try:
+            return next(self.getdatalink().bysemantics('#this')).access_url
+        except (DALServiceError, StopIteration):
+            return None
 
 
 class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):

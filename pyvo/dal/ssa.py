@@ -631,7 +631,11 @@ class SSARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         to retrieve the dataset described by this record.  None is returned
         if no such column exists.
         """
-        return self.acref
+        dataurl = super(SSARecord, self).getdataurl()
+        if dataurl is None:
+            return self.acref
+        else:
+            return dataurl
 
     def suggest_dataset_basename(self):
         """
