@@ -409,6 +409,9 @@ class DALResults(object):
             infos[info.name] = info.value
         return infos
 
+    def __repr__(self):
+        return repr(self.table())
+
     @property
     def queryurl(self):
         """
@@ -617,6 +620,7 @@ class Record(Mapping):
 
     def __init__(self, results, index):
         self._results = results
+        self._index = index
         self._mapping = collections.OrderedDict(
             zip(
                 results.fieldnames,
@@ -638,6 +642,9 @@ class Record(Mapping):
 
     def __len__(self):
         return len(self._mapping)
+
+    def __repr__(self):
+        return repr(tuple(self.values()))
 
     def get(self, key, default=None, decode=False):
         """
