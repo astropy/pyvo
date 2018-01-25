@@ -363,6 +363,6 @@ Reference/API
 =============
 
 .. automodapi:: pyvo.dal
-.. automodapi:: pyvo.dal.mixin
 .. automodapi:: pyvo.dal.datalink
+.. automodapi:: pyvo.dal.soda
 .. automodapi:: pyvo.dal.exceptions
