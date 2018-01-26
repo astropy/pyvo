@@ -981,7 +981,7 @@ class Upload(object):
             from io import BytesIO
             fileobj = BytesIO()
 
-            table = self._content.table
+            table = self._content.table()
             table.write(output=fileobj, format="votable")
             fileobj.seek(0)
 
