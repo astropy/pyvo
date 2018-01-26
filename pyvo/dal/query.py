@@ -587,19 +587,16 @@ class DALResults(object):
         return a python iterable for stepping through the records in this
         result
         """
-        def _iter(res):
-            pos = 0
+        pos = 0
 
-            while True:
-                try:
-                    out = res.getrecord(pos)
-                except IndexError:
-                    break
+        while True:
+            try:
+                out = self.getrecord(pos)
+            except IndexError:
+                break
 
-                yield out
-                pos += 1
-
-        return _iter(self)
+            yield out
+            pos += 1
 
     def cursor(self):
         """
