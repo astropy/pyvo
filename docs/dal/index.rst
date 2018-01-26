@@ -325,6 +325,10 @@ whereas integers retrieve columns:
 
 >>> row = resultset[0]
 
+and both combined gives a single value:
+
+>>> value = resultset['accref', 0]
+
 Row objects may expose certain key columns as properties. See the corresponding
 API spec listed below for details.
 

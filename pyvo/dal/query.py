@@ -449,6 +449,8 @@ class DALResults(object):
         """
         if isinstance(indx, int):
             return self.getrecord(indx)
+        elif isinstance(indx, tuple):
+            return self.getvalue(*indx)
         else:
             return self.getcolumn(indx)
 
