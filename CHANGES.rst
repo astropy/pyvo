@@ -1,3 +1,13 @@
+0.7.0
+----------------
+* Rework VOSI parsing using astropy xml handling
+
+* Describe service object bases on vosi capabilities
+
+* Add SODA functionallity
+
+* Fixes and Improvements
+
 0.6.1
 ----------------
 * Add Datalink interface
