@@ -26,7 +26,7 @@ from __future__ import (
 from astropy.coordinates import SkyCoord
 from astropy.units import Unit, Quantity
 from .query import DALResults, DALQuery, DALService, Record
-from .datalink import DatalinkResultsMixin, DatalinkRecordMixin
+from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin
 
 __all__ = ["search", "SCSService", "SCSQuery", "SCSResults", "SCSRecord"]
 

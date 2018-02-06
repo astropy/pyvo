@@ -32,13 +32,14 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
 import re
+
 from astropy.extern import six
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity, Unit
+
 from .query import DALResults, DALQuery, DALService, Record, mime2extension
-from .datalink import DatalinkResultsMixin, DatalinkRecordMixin
-from .soda import SodaRecordMixin
+from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin, SodaRecordMixin
 
 __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "SIARecord"]
 

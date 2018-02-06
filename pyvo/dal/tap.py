@@ -9,15 +9,17 @@ from functools import partial
 from datetime import datetime
 from time import sleep
 from distutils.version import LooseVersion
+
 import requests
+
 from astropy.io.votable import parse as votableparse
 
 from .query import (
     DALResults, DALQuery, DALService, Record, UploadList, DALServiceError,
     DALQueryError)
 from .vosi import AvailabilityMixin, CapabilityMixin, VOSITables
-from .datalink import DatalinkResultsMixin, DatalinkRecordMixin
-from .soda import SodaRecordMixin
+from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin, SodaRecordMixin
+
 from ..io import vosi, uws
 from ..io.vosi import tapregext as tr
 
