@@ -11,7 +11,6 @@ import unittest, pdb
 import os.path
 
 import pyvo as vo
-import pyvo.dal.datalink as datalink
 # from astropy.io.vo import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
 from astropy.io.votable import parse as votableparse
