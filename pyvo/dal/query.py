@@ -335,17 +335,21 @@ class DALResults(object):
         --------
         DALFormatError
         """
+        self._votable = votable
+
         self._url = url
         self._status = self._findstatus(votable)
         if self._status[0].upper() not in ("OK", "OVERFLOW"):
             raise DALQueryError(self._status[1], self._status[0], url)
 
-        self._votable = self._findresultstable(votable)
+        self._resultstable = self._findresultstable(votable)
         if not votable:
             raise DALFormatError(
                 reason="VOTable response missing results table", url=url)
 
-        self._fldnames = tuple(field.name for field in self.votable.fields)
+        self._fldnames = tuple(
+            field.name for field in self._resultstable.fields)
+
         if not self._fldnames:
             raise DALFormatError(
                 reason="response table missing column descriptions.", url=url)
@@ -422,9 +426,16 @@ class DALResults(object):
     @property
     def votable(self):
         """
-        The votable XML element `astropy.io.votable.tree.Table`
+        The complete votable XML Document `astropy.io.votable.VOTableFile`
         """
         return self._votable
+
+    @property
+    def resultstable(self):
+        """
+        The votable XML element `astropy.io.votable.tree.Table`
+        """
+        return self._resultstable
 
     def table(self):
         """
@@ -434,13 +445,13 @@ class DALResults(object):
         -------
         `astropy.table.Table`
         """
-        return self.votable.to_table()
+        return self.resultstable.to_table()
 
     def __len__(self):
         """
         return the record count
         """
-        return len(self.votable.array)
+        return len(self.resultstable.array)
 
     def __getitem__(self, indx):
         """
@@ -470,7 +481,7 @@ class DALResults(object):
         a simple object with attributes corresponding the the VOTable FIELD
         attributes, namely: name, id, type, ucd, utype, arraysize, description
         """
-        return self.votable.fields
+        return self.resultstable.fields
 
     def fieldname_with_ucd(self, ucd):
         """
@@ -504,10 +515,10 @@ class DALResults(object):
         given name
         """
         if name not in self.fieldnames:
-            name = self.votable.get_field_by_id(name).name
+            name = self.resultstable.get_field_by_id(name).name
 
         try:
-            return self.votable.array[name]
+            return self.resultstable.array[name]
         except KeyError:
             raise KeyError("No such column: {}".format(name))
 
@@ -582,7 +593,7 @@ class DALResults(object):
         """
         if name not in self._fldnames:
             raise KeyError(name)
-        return self.votable.get_field_by_id_or_name(name)
+        return self.resultstable.get_field_by_id_or_name(name)
 
     def __iter__(self):
         """
@@ -623,13 +634,13 @@ class Record(Mapping):
         self._mapping = collections.OrderedDict(
             zip(
                 results.fieldnames,
-                results.votable.array.data[index]
+                results.resultstable.array.data[index]
             )
         )
 
     def __getitem__(self, key):
         if key not in self._mapping:
-            key = self._results.votable.get_field_by_id(key).name
+            key = self._results.resultstable.get_field_by_id(key).name
 
         try:
             return self._mapping[key]
