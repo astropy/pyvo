@@ -426,7 +426,7 @@ class DALResults(object):
     @property
     def votable(self):
         """
-        The complete votable XML Document `astropy.io.votable.VOTableFile`
+        The complete votable XML Document `astropy.io.votable.tree.VOTableFile`
         """
         return self._votable
 

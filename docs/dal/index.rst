@@ -339,9 +339,15 @@ API spec listed below for details.
 
 Underlying data structures
 --------------------------
-If you want to work with the astropy :py:class:`astropy.table.Table` or
-:py:class:`astropy.io.votable.tree.Table` objects, their are accessible by
-the method :py:meth:`pyvo.dal.DALResults.table` and the attribute
+PyVO also allows access to underlying data structures.
+
+The astropy data class :py:class:`astropy.table.Table` is accessible with the
+method :py:meth:`pyvo.dal.DALResults.table`.
+
+If you want to work with the XML data structures
+:py:class:`astropy.io.votable.tree.VOTableFile` or
+:py:class:`astropy.io.votable.tree.Table`, they are accessible by the
+attributes :py:attr:`pyvo.dal.DALResults.resultstable` and
 :py:attr:`pyvo.dal.DALResults.votable`, respectively.
 
 Server-side processing
@@ -351,7 +357,7 @@ This includes spatial cutouts for 2d-images, reducing of spectra to a certain
 waveband range, and more to come in the future.
 
 To invoke the operation one has to call
-:py:meth:`pyvo.dal.datalink.SodaMixin.processed`, which exposes a set of
+:py:meth:`pyvo.dal.adhoc.SodaMixin.processed`, which exposes a set of
 parameters who are dependend on the type of service.
 
 - ``circle`` -- a sequence (degrees) or :py:class:`astropy.units.Quantity` of
@@ -367,6 +373,5 @@ Reference/API
 =============
 
 .. automodapi:: pyvo.dal
-.. automodapi:: pyvo.dal.datalink
-.. automodapi:: pyvo.dal.soda
+.. automodapi:: pyvo.dal.adhoc
 .. automodapi:: pyvo.dal.exceptions
