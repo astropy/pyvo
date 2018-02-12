@@ -302,18 +302,23 @@ class SSAQuery(DALQuery):
         return getattr(self, "_pos", None)
 
     @pos.setter
-    def pos(self, val):
-        setattr(self, "_pos", val)
+    def pos(self, pos):
+        setattr(self, "_pos", pos)
 
-        # use the astropy, luke
-        if not isinstance(val, SkyCoord):
-            pos_ra, pos_dec = val
+        if not isinstance(pos, SkyCoord):
+            try:
+                ra, dec = pos
+            except (TypeError, ValueError):
+                raise ValueError(
+                    'Pos must be a sequence with exactly two values, '
+                    'expressing ra and dec in icrs degrees'
+                )
 
-            # assume ICRS degrees
-            val = SkyCoord(ra=pos_ra, dec=pos_dec, unit="deg", frame="icrs")
+            # assume degrees
+            pos = SkyCoord(ra=ra, dec=dec, unit="deg", frame="icrs")
 
         self["POS"] = "{ra},{dec}".format(
-            ra=val.icrs.ra.deg, dec=val.icrs.dec.deg)
+            ra=pos.icrs.ra.deg, dec=pos.icrs.dec.deg)
 
     @pos.deleter
     def pos(self):
@@ -329,21 +334,26 @@ class SSAQuery(DALQuery):
         return getattr(self, "_diameter", None)
 
     @diameter.setter
-    def diameter(self, val):
-        setattr(self, "_diameter", val)
+    def diameter(self, diameter):
+        setattr(self, "_diameter", diameter)
 
-        if not isinstance(val, Quantity):
-            # assume degrees
-            val = val * Unit("deg")
+        if not isinstance(diameter, Quantity):
+            valerr = ValueError(
+                'Radius must be exactly one value, expressing degrees')
+
             try:
-                if len(val):
-                    raise ValueError(
-                        "diameter may be specified using exactly one value")
-            except TypeError:
-                # len 1
-                pass
+                # assume degrees
+                diameter = diameter * Unit("deg")
+            except ValueError:
+                raise valerr
 
-        self["SIZE"] = val.to(Unit("deg")).value
+            try:
+                if len(diameter):
+                    raise valerr
+            except TypeError:
+                pass  # len 1
+
+        self["SIZE"] = diameter.to(Unit("deg")).value
 
     @diameter.deleter
     def diameter(self):
@@ -358,27 +368,34 @@ class SSAQuery(DALQuery):
         return getattr(self, "_band", None)
 
     @band.setter
-    def band(self, val):
-        setattr(self, "_band", val)
+    def band(self, band):
+        setattr(self, "_band", band)
 
-        if not isinstance(val, Quantity):
-            # assume meters
-            val = val * Unit("meter")
+        if not isinstance(band, Quantity):
+            valerr = ValueError(
+                'Band must be a sequence with exactly two values',
+                'expressing a frequency or wavelength range')
+
             try:
-                if len(val) != 2:
-                    raise ValueError(
-                        "band must be specified with exactly two values")
+                # assume meters
+                band = band * Unit("meter")
+            except ValueError:
+                raise valerr
+
+            try:
+                if len(band) != 2:
+                    raise valerr
             except TypeError:
-                raise ValueError(
-                    "band must be specified with exactly two values")
+                raise valerr
+
         # transform to meters
-        val = val.to(Unit("m"), equivalencies=spectral_equivalencies())
+        band = band.to(Unit("m"), equivalencies=spectral_equivalencies())
         # frequency is counter-proportional to wavelength, so we just sort
         # it to have the right order again
-        val.sort()
+        band.sort()
 
         self["BAND"] = "{start}/{end}".format(
-            start=val.value[0], end=val.value[1])
+            start=band.value[0], end=band.value[1])
 
     @band.deleter
     def band(self):
@@ -393,22 +410,29 @@ class SSAQuery(DALQuery):
         return getattr(self, "_time", None)
 
     @time.setter
-    def time(self, val):
-        setattr(self, "_time", val)
+    def time(self, time):
+        setattr(self, "_time", time)
 
-        if not isinstance(val, Time):
-            # assume iso8601
-            val = Time(val, format="isot")
+        if not isinstance(time, Time):
+            valerr = ValueError(
+                'Time must be a sequence with exactly two values, '
+                'expressing a datetime in ISO 8601'
+            )
+
             try:
-                if len(val) != 2:
-                    raise ValueError(
-                        "time must be specified with exactly two values")
+                # assume iso8601
+                time = Time(time, format="isot")
+            except ValueError:
+                raise valerr
+
+            try:
+                if len(time) != 2:
+                    raise valerr
             except TypeError:
-                raise ValueError(
-                    "time must be specified with exactly two values")
+                raise valerr
 
         self["TIME"] = "{start}/{end}".format(
-            start=val.isot[0], end=val.isot[1])
+            start=time.isot[0], end=time.isot[1])
 
     @time.deleter
     def time(self):

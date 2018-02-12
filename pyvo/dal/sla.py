@@ -195,38 +195,43 @@ class SLAQuery(DALQuery):
 
         self.request = request
 
-        self.update({key.upper(): value for key, value in keywords.items()})
-
     @property
     def wavelength(self):
         """
-        the bandwidth range the observations belong to.
+        the frequency/wavelength range the observations belong to.
         """
         return getattr(self, "_wavelength", None)
 
     @wavelength.setter
-    def wavelength(self, val):
-        setattr(self, "_wavelength", val)
+    def wavelength(self, wavelength):
+        setattr(self, "_wavelength", wavelength)
 
-        if not isinstance(val, Quantity):
-            # assume meters
-            val = val * Unit("meter")
+        if not isinstance(wavelength, Quantity):
+            valerr = ValueError(
+                'Wavelength range must be a sequence with exactly two values',
+                'expressing a frequency or wavelength range')
+
             try:
-                if len(val) != 2:
-                    raise ValueError(
-                        "wavelength must be specified with exactly two values")
+                # assume meters
+                wavelength = wavelength * Unit("meter")
+            except ValueError:
+                raise valerr
+
+            try:
+                if len(wavelength) != 2:
+                    raise valerr
             except TypeError:
-                raise ValueError(
-                    "wavelength must be specified with exactly two values")
+                raise valerr
+
         # transform to meters
-        val = val.to(
+        wavelength = wavelength.to(
             Unit("m"), equivalencies=spectral_equivalencies())
         # frequency is counter-proportional to wavelength, so we just sort it
         # to have the right order again
-        val.sort()
+        wavelength.sort()
 
         self["WAVELENGTH"] = "{start}/{end}".format(
-            start=val.value[0], end=val.value[1])
+            start=wavelength.value[0], end=wavelength.value[1])
 
     @wavelength.deleter
     def wavelength(self):

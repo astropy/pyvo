@@ -397,22 +397,23 @@ class SIAQuery(DALQuery):
         return getattr(self, "_pos", None)
 
     @pos.setter
-    def pos(self, val):
-        setattr(self, "_pos", val)
+    def pos(self, pos):
+        setattr(self, "_pos", pos)
 
-        # use the astropy, luke
-        if not isinstance(val, SkyCoord):
+        if not isinstance(pos, SkyCoord):
             try:
-                pos_ra, pos_dec = val
-            except TypeError:
+                ra, dec = pos
+            except (TypeError, ValueError):
                 raise ValueError(
-                    "pos may be specified using exactly two values")
+                    'Pos must be a sequence with exactly two values, '
+                    'expressing ra and dec in icrs degrees'
+                )
 
-            # assume ICRS degrees
-            val = SkyCoord(ra=pos_ra, dec=pos_dec, unit="deg", frame="icrs")
+            # assume degrees
+            pos = SkyCoord(ra=ra, dec=dec, unit="deg", frame="icrs")
 
         self["POS"] = "{ra},{dec}".format(
-            ra=val.icrs.ra.deg, dec=val.icrs.dec.deg)
+            ra=pos.icrs.ra.deg, dec=pos.icrs.dec.deg)
 
     @pos.deleter
     def pos(self):
@@ -428,25 +429,32 @@ class SIAQuery(DALQuery):
         return getattr(self, "_size", None)
 
     @size.setter
-    def size(self, val):
-        setattr(self, "_size", val)
+    def size(self, size):
+        setattr(self, "_size", size)
 
-        if not isinstance(val, Quantity):
-            # assume degrees
-            val = val * Unit("deg")
+        if not isinstance(size, Quantity):
+            valerr = ValueError(
+                'Size must be either a single value or a sequence with two'
+                'values, expressing degrees'
+            )
+
             try:
-                if len(val) > 2:
-                    raise ValueError(
-                        "size may be specified using either one or two values")
+                # assume degrees
+                size = size * Unit("deg")
+            except ValueError:
+                raise valerr
+
+            try:
+                if len(size) > 2:
+                    raise valerr
             except TypeError:
-                # len 1
-                pass
+                pass  # len 1
 
         try:
             self["SIZE"] = ",".join(
-                str(deg) for deg in val.to(Unit("deg")).value)
+                str(deg) for deg in size.to(Unit("deg")).value)
         except TypeError:
-            self["SIZE"] = str(val.to(Unit("deg")).value)
+            self["SIZE"] = str(size.to(Unit("deg")).value)
 
     @size.deleter
     def size(self):
@@ -467,13 +475,13 @@ class SIAQuery(DALQuery):
         return getattr(self, "_format", None)
 
     @format.setter
-    def format(self, val):
-        setattr(self, "_format", val)
+    def format(self, format_):
+        setattr(self, "_format", format_)
 
-        if type(val) in (six.text_type, six.binary_type):
-            val = [val]
+        if type(format_) in (six.text_type, six.binary_type):
+            format_ = [format_]
 
-        self["FORMAT"] = ",".join(_.upper() for _ in val)
+        self["FORMAT"] = ",".join(_.upper() for _ in format_)
 
     @format.deleter
     def format(self):
@@ -496,9 +504,9 @@ class SIAQuery(DALQuery):
         return getattr(self, "_intersect", None)
 
     @intersect.setter
-    def intersect(self, val):
-        setattr(self, "_intersect", val)
-        self["INTERSECT"] = val.upper()
+    def intersect(self, intersect):
+        setattr(self, "_intersect", intersect)
+        self["INTERSECT"] = intersect.upper()
 
     @intersect.deleter
     def intersect(self):
@@ -515,9 +523,9 @@ class SIAQuery(DALQuery):
         return getattr(self, "_verbosity", None)
 
     @verbosity.setter
-    def verbosity(self, val):
-        setattr(self, "_verbosity", val)
-        self["VERB"] = val
+    def verbosity(self, verbosity):
+        setattr(self, "_verbosity", verbosity)
+        self["VERB"] = verbosity
 
     @verbosity.deleter
     def verbosity(self):

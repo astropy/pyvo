@@ -246,18 +246,23 @@ class SCSQuery(DALQuery):
         return getattr(self, "_pos", None)
 
     @pos.setter
-    def pos(self, val):
-        setattr(self, "_pos", val)
+    def pos(self, pos):
+        setattr(self, "_pos", pos)
 
-        # use the astropy, luke
-        if not isinstance(val, SkyCoord):
-            pos_ra, pos_dec = val
+        if not isinstance(pos, SkyCoord):
+            try:
+                ra, dec = pos
+            except (TypeError, ValueError):
+                raise ValueError(
+                    'Pos must be a sequence with exactly two values, '
+                    'expressing ra and dec in icrs degrees'
+                )
 
-            # assume ICRS degrees
-            val = SkyCoord(ra=pos_ra, dec=pos_dec, unit="deg", frame="icrs")
+            # assume degrees
+            pos = SkyCoord(ra=ra, dec=dec, unit="deg", frame="icrs")
 
-        self["RA"] = val.icrs.ra.deg
-        self["DEC"] = val.icrs.dec.deg
+        self["RA"] = pos.icrs.ra.deg
+        self["DEC"] = pos.icrs.dec.deg
 
     @pos.deleter
     def pos(self):
@@ -274,21 +279,25 @@ class SCSQuery(DALQuery):
         return getattr(self, "_radius", None)
 
     @radius.setter
-    def radius(self, val):
-        setattr(self, "_radius", val)
+    def radius(self, radius):
+        setattr(self, "_radius", radius)
 
-        if not isinstance(val, Quantity):
-            # assume degrees
-            val = val * Unit("deg")
+        if not isinstance(radius, Quantity):
+            valerr = ValueError("Radius must be exactly one value")
+
             try:
-                if len(val):
-                    raise ValueError(
-                        "radius may be specified using exactly one value")
-            except TypeError:
-                # len 1
-                pass
+                # assume degrees
+                radius = radius * Unit("deg")
+            except ValueError:
+                raise valerr
 
-        self["SR"] = val.to(Unit("deg")).value
+            try:
+                if len(radius):
+                    raise valerr
+            except TypeError:
+                pass  # len 1
+
+        self["SR"] = radius.to(Unit("deg")).value
 
     @radius.deleter
     def radius(self):
@@ -305,9 +314,9 @@ class SCSQuery(DALQuery):
         return getattr(self, "_verbosity", None)
 
     @verbosity.setter
-    def verbosity(self, val):
-        setattr(self, "_verbosity", val)
-        self["VERB"] = val
+    def verbosity(self, verbosity):
+        setattr(self, "_verbosity", verbosity)
+        self["VERB"] = verbosity
 
     @verbosity.deleter
     def verbosity(self):

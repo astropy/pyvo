@@ -583,14 +583,15 @@ class SodaQuery(DatalinkQuery):
         del self.polygon
 
         if not isinstance(circle, Quantity):
-            circle = circle * Unit('deg')
             valerr = ValueError(
-                "Circle may be specified using exactly three values")
+                "Circle must be a sequence with exactly three values")
 
             try:
+                # assume degrees
+                circle = circle * Unit('deg')
                 if len(circle) != 3:
                     raise valerr
-            except TypeError:
+            except (ValueError, TypeError):
                 raise valerr
 
         self['CIRCLE'] = ' '.join(
@@ -617,14 +618,15 @@ class SodaQuery(DatalinkQuery):
         del self.polygon
 
         if not isinstance(range, Quantity):
-            range = range * Unit('deg')
             valerr = ValueError(
-                "Range may be specified using exactly four values")
+                "Range must be a sequence with exactly four values")
 
             try:
+                # assume degrees
+                range = range * Unit('deg')
                 if len(range) != 4:
                     raise valerr
-            except TypeError:
+            except (ValueError, TypeError):
                 raise valerr
 
         self['POS'] = 'RANGE ' + ' '.join(
@@ -652,14 +654,17 @@ class SodaQuery(DatalinkQuery):
         del self.range
 
         if not isinstance(polygon, Quantity):
-            polygon = polygon * Unit('deg')
             valerr = ValueError(
-                "Polygon may be specified using at least three values")
+                'Polygon must be a sequence with at least six numeric values, '
+                'expressing pairs of ra and dec in degrees'
+            )
 
             try:
+                # assume degrees
+                polygon = polygon * Unit('deg')
                 if len(polygon) < 3:
                     raise valerr
-            except TypeError:
+            except (ValueError, TypeError):
                 raise valerr
 
         self['POLYGON'] = ' '.join(
@@ -681,27 +686,31 @@ class SodaQuery(DatalinkQuery):
         return getattr(self, "_band", None)
 
     @band.setter
-    def band(self, val):
-        setattr(self, "_band", val)
+    def band(self, band):
+        setattr(self, "_band", band)
 
-        if not isinstance(val, Quantity):
-            # assume meters
-            val = val * Unit("meter")
+        if not isinstance(band, Quantity):
+            valerr = ValueError(
+                'Band must be specified with exactly two values, ',
+                'expressing a frequency or wavelength range'
+            )
+
             try:
-                if len(val) != 2:
-                    raise ValueError(
-                        "band must be specified with exactly two values")
-            except TypeError:
-                raise ValueError(
-                    "band must be specified with exactly two values")
+                # assume meters
+                band = band * Unit("meter")
+                if len(band) != 2:
+                    raise valerr
+            except (ValueError, TypeError):
+                raise valerr
+
         # transform to meters
-        val = val.to(Unit("m"), equivalencies=spectral_equivalencies())
+        band = band.to(Unit("m"), equivalencies=spectral_equivalencies())
         # frequency is counter-proportional to wavelength, so we just sort
         # it to have the right order again
-        val.sort()
+        band.sort()
 
         self["BAND"] = "{start} {end}".format(
-            start=val.value[0], end=val.value[1])
+            start=band.value[0], end=band.value[1])
 
     @band.deleter
     def band(self):
