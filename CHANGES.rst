@@ -1,4 +1,4 @@
-0.7.0
+0.7rc1
 ----------------
 * Rework VOSI parsing using astropy xml handling
 
