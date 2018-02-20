@@ -35,9 +35,12 @@ except ImportError:
     from collections import Mapping
 import collections
 
+from warnings import warn
+
 from astropy.extern import six
 from astropy.table.table import Table
 from astropy.io.votable import parse as votableparse
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .exceptions import (
     DALAccessError, DALFormatError, DALServiceError, DALQueryError)
@@ -437,7 +440,7 @@ class DALResults(object):
         """
         return self._resultstable
 
-    def table(self):
+    def to_table(self):
         """
         Returns a astropy Table object.
 
@@ -446,6 +449,14 @@ class DALResults(object):
         `astropy.table.Table`
         """
         return self.resultstable.to_table()
+
+    @property
+    def table(self):
+        warn(AstropyDeprecationWarning(
+            'Using the table property is deprecated. '
+            'Please use se to_table() instead.'
+        ))
+        return self.to_table()
 
     def __len__(self):
         """
