@@ -417,7 +417,7 @@ class DALResults(object):
         return infos
 
     def __repr__(self):
-        return repr(self.table())
+        return repr(self.to_table())
 
     @property
     def queryurl(self):
@@ -1002,7 +1002,7 @@ class Upload(object):
             from io import BytesIO
             fileobj = BytesIO()
 
-            table = self._content.table()
+            table = self._content.to_table()
             table.write(output=fileobj, format="votable")
             fileobj.seek(0)
 
