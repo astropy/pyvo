@@ -135,7 +135,8 @@ class DatalinkRecordMixin(object):
         try:
             return next(self.getdatalink().bysemantics('#this')).access_url
         except (DALServiceError, StopIteration):
-            return None
+            # this should go to Record.getdataurl()
+            return super(DatalinkRecordMixin, self).getdataurl()
 
 
 class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
@@ -411,23 +412,6 @@ class SodaRecordMixin(object):
     `pyvo.dal.datalink.AdhocServiceResultsMixin` mixed in.
     """
     def _get_soda_resource(self):
-        dataformat = self.getdataformat()
-
-        if dataformat is None:
-            raise DALServiceError(
-                "No dataformat in record. "
-                "Maybe you forgot to include it into the TAP Query?")
-
-        if "content=datalink" in dataformat:
-            try:
-                datalink_result = DatalinkResults.from_result_url(
-                    self.getdataurl())
-
-                return datalink_result.get_adhocservice_by_ivoid(
-                    b"ivo://ivoa.net/std/SODA#sync")
-            except DALServiceError:
-                pass
-
         try:
             return self._results.get_adhocservice_by_ivoid(
                 b"ivo://ivoa.net/std/SODA#sync")
@@ -440,6 +424,27 @@ class SodaRecordMixin(object):
                 b"ivo://ivoa.net/std/datalink#links")
         except DALServiceError:
             pass
+
+        dataformat = self.getdataformat()
+        if dataformat is None:
+            raise DALServiceError(
+                "No SODA Resouces available and no dataformat in record. "
+                "Maybe you forgot to include it into the TAP Query?")
+
+        if "content=datalink" in dataformat:
+            dataurl = self.getdataurl()
+            if not dataurl:
+                raise DALServiceError(
+                    "No dataurl in record, but dataformat contains "
+                    "'content=datalink'. Maybe you forgot to include it into "
+                    "the TAP Query?")
+
+            try:
+                datalink_result = DatalinkResults.from_result_url(dataurl)
+                return datalink_result.get_adhocservice_by_ivoid(
+                    b"ivo://ivoa.net/std/SODA#sync")
+            except DALServiceError:
+                pass
 
         return None
 
