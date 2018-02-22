@@ -346,7 +346,7 @@ To get an iterator yielding specific datasets, call
 :py:meth:`pyvo.dal.adhoc.DatalinkResults.bysemantics` with the identifier
 identifying the dataset you want it to return.
 
->>> preview = next(column.getdatalink().bysemantics('#preview')).getdataset()
+>>> preview = next(row.getdatalink().bysemantics('#preview')).getdataset()
 
 .. note::
   Since the creation of datalink objects requires a network roundtrip, it is
