@@ -105,6 +105,8 @@ Services
 There are five types of services with different purposes but a similiar
 interface available.
 
+.. _pyvo_tap:
+
 Table Access Protocol
 ---------------------
 
@@ -342,7 +344,8 @@ Underlying data structures
 PyVO also allows access to underlying data structures.
 
 The astropy data class :py:class:`astropy.table.Table` is accessible with the
-method :py:meth:`pyvo.dal.DALResults.table`.
+method :py:meth:`pyvo.dal.DALResults.to_table`, following astropy naming
+conventions.
 
 If you want to work with the XML data structures
 :py:class:`astropy.io.votable.tree.VOTableFile` or
@@ -357,8 +360,8 @@ This includes spatial cutouts for 2d-images, reducing of spectra to a certain
 waveband range, and more to come in the future.
 
 To invoke the operation one has to call
-:py:meth:`pyvo.dal.adhoc.SodaMixin.processed`, which exposes a set of
-parameters who are dependend on the type of service.
+:py:meth:`pyvo.dal.adhoc.SodaMixin.processed` on the record, which exposes a
+set of parameters who are dependend on the type of service.
 
 - ``circle`` -- a sequence (degrees) or :py:class:`astropy.units.Quantity` of
   longitude, latitude and radius
