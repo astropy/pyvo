@@ -339,6 +339,42 @@ API spec listed below for details.
 * :py:class:`pyvo.dal.scs.SCSRecord`
 * :py:class:`pyvo.dal.sla.SLARecord`
 
+Multiple datasets
+-----------------
+PyVO supports multiple datasets exposed on record level through the datalink.
+To get an iterator yielding specific datasets, call
+:py:meth:`pyvo.dal.adhoc.DatalinkResults.bysemantics` with the identifier
+identifying the dataset you want it to return.
+
+>>> preview = next(column.getdatalink().bysemantics('#preview')).getdataset()
+
+.. note::
+  Since the creation of datalink objects requires a network roundtrip, it is
+  recommended to call ``getdatalink`` only once.
+
+Of course one can also build a datalink object from it's url.
+
+>>> datalink = DatalinkResults.from_result_url(url)
+
+Server-side processing
+----------------------
+Some services support the server-side processing of record datasets.
+This includes spatial cutouts for 2d-images, reducing of spectra to a certain
+waveband range, and more to come in the future.
+
+To invoke the operation one has to call
+:py:meth:`pyvo.dal.adhoc.SodaRecordMixin.processed` on the record, which
+exposes a set of parameters who are dependend on the type of service.
+
+- ``circle`` -- a sequence (degrees) or :py:class:`astropy.units.Quantity` of
+  longitude, latitude and radius
+- ``range`` -- a sequence (degrees) or :py:class:`astropy.units.Quantity` of
+  two longitude values and two latitude values describing a rectangle.
+- ``polygon`` -- multiple pairs of longitude and latitude points
+- ``band`` -- a sequence of two values (meters) or
+  :py:class:`astropy.units.Quantity` with two bandwitdh values. The right sort
+  order will be ensured if converting from frequency to wavelength.
+
 Underlying data structures
 --------------------------
 PyVO also allows access to underlying data structures.
@@ -352,25 +388,6 @@ If you want to work with the XML data structures
 :py:class:`astropy.io.votable.tree.Table`, they are accessible by the
 attributes :py:attr:`pyvo.dal.DALResults.resultstable` and
 :py:attr:`pyvo.dal.DALResults.votable`, respectively.
-
-Server-side processing
-----------------------
-Some services support the server-side processing of record datasets.
-This includes spatial cutouts for 2d-images, reducing of spectra to a certain
-waveband range, and more to come in the future.
-
-To invoke the operation one has to call
-:py:meth:`pyvo.dal.adhoc.SodaMixin.processed` on the record, which exposes a
-set of parameters who are dependend on the type of service.
-
-- ``circle`` -- a sequence (degrees) or :py:class:`astropy.units.Quantity` of
-  longitude, latitude and radius
-- ``range`` -- a sequence (degrees) or :py:class:`astropy.units.Quantity` of
-  two longitude values and two latitude values describing a rectangle.
-- ``polygon`` -- multiple pairs of longitude and latitude points
-- ``band`` -- a sequence of two values (meters) or
-  :py:class:`astropy.units.Quantity` with two bandwitdh values. The right sort
-  order will be ensured if converting from frequency to wavelength.
 
 Reference/API
 =============

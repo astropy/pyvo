@@ -144,7 +144,7 @@ class DatalinkRecordMixin(object):
             return r.raw
         except (DALServiceError, StopIteration):
             # this should go to Record.getdataset()
-            return super(DatalinkRecordMixin, self).getdataset()
+            return super(DatalinkRecordMixin, self).getdataset(timeout=timeout)
 
 
 class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
@@ -342,7 +342,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
     as an Astropy :py:class:`~astropy.table.table.Table` via the
     following conversion:
 
-    >>> table = results.table
+    >>> table = results.to_table()
 
     ``DatalinkResults`` supports the array item operator ``[...]`` in a
     read-only context.  When the argument is numerical, the result
@@ -398,7 +398,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
             if record.semantics == semantics:
                 yield record
 
-    def getdataset(self):
+    def getdataset(self, timeout=None):
         """
         return the first row with the dataset identified by semantics #this
 
@@ -408,7 +408,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
             a dictionary-like wrapper containing the result record.
         """
         try:
-            return next(self.bysemantics("#this"))
+            return next(self.bysemantics("#this")).getdataset(timeout=timeout)
         except StopIteration:
             raise ValueError("No row with semantics #this found!")
 
@@ -459,7 +459,7 @@ class SodaRecordMixin(object):
     def processed(
             self, circle=None, range=None, polygon=None, band=None, **kwargs):
         """
-        Iterates over all soda documents in a DALResult.
+        Returns processed dataset.
 
         Parameters
         ----------
