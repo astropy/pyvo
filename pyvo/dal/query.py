@@ -276,7 +276,7 @@ class DALQuery(dict):
             raise
         except Exception as e:
             self.raise_if_error()
-            raise DALServiceError.from_except(e, self.queryurl)
+            raise DALFormatError(e, self.queryurl)
 
     def raise_if_error(self):
         """
