@@ -375,7 +375,7 @@ class AsyncTAPJob(object):
         # requests doesn't decode the content by default
         response.raw.read = partial(response.raw.read, decode_content=True)
 
-        self._job.update(uws.parse_job(response.raw))
+        self._job.update(uws.parse_job(response.raw.read))
 
     @property
     def job(self):
