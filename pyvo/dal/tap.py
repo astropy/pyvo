@@ -237,7 +237,9 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
 
         return result
 
-    def submit_job(self, query, language="ADQL", maxrec=None, uploads=None):
+    def submit_job(
+            self, query, language="ADQL", maxrec=None, uploads=None,
+            **keywords):
         """
         submit a async query without starting it and returns a AsyncTAPJob
         object
@@ -264,7 +266,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         AsyncTAPJob
         """
         return AsyncTAPJob.create(
-            self.baseurl, query, language, maxrec, uploads)
+            self.baseurl, query, language, maxrec, uploads, **keywords)
 
     def create_query(
             self, query=None, mode="sync", language="ADQL", maxrec=None,
