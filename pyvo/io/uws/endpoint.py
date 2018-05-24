@@ -16,7 +16,7 @@ from astropy.io.votable.util import convert_to_writable_filelike
 from ...utils.xml.elements import xmlattribute
 from .tree import JobSummary
 
-__all__ = ["parse_job"]
+__all__ = ["parse_job", "JobFile"]
 
 
 def parse_job(

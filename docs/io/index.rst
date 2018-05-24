@@ -7,4 +7,5 @@ virtual observatory.
 .. toctree::
    :maxdepth: 1
 
-   vosi
+  vosi
+  uws

@@ -19,6 +19,11 @@ InDuration = partial(TimeDelta, format='sec')
 XSOutDate = partial(Time, out_subfmt='date')
 
 
+all = [
+    'UWSElement', 'Reference', 'JobSummary', 'Parameters', 'Parameter',
+    'Results', 'Result']
+
+
 def _convert_boolean(value, default=None):
     return {
         'false': False,
