@@ -21,17 +21,18 @@ from astropy.extern import six
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.misc import indent
 
-from .util import (
-    make_add_simplecontent, make_add_complexcontent, Element, ValueMixin)
+from ...utils.xml.elements import (
+    Element, ContentMixin, xmlattribute, xmlelement)
 from .exceptions import W06
 
 __all__ = [
-    "ValidationLevel", "Capability", "Interface", "AccessURL", "SecurityMethod",
-    "WebBrowser", "WebService"]
+    "ValidationLevel", "Capability", "Interface", "AccessURL",
+    "SecurityMethod", "WebBrowser", "WebService"]
+
 
 ######################################################################
 # ELEMENT CLASSES
-class ValidationLevel(ValueMixin, Element):
+class ValidationLevel(ContentMixin, Element):
     """
     ValidationLevel element as described in
     http://www.ivoa.net/xml/VOResource/v1.0
@@ -78,16 +79,19 @@ class ValidationLevel(ValueMixin, Element):
         the resource is expected to be operate well as part of a
         VO application or research study.
     """
-    def __init__(self, validatedBy, config=None, pos=None, **kwargs):
-        super(ValidationLevel, self).__init__(config, pos, **kwargs)
+    def __init__(
+        self, config=None, pos=None, _name='validationLevel', validatedBy=None,
+        **kwargs
+    ):
+        super(ValidationLevel, self).__init__(config, pos, _name, **kwargs)
 
         self._validatedby = validatedBy
 
     def __repr__(self):
         return '<ValidationLevel validatedBy={}>{}</ValidationLevel>'.format(
-            self.validatedby, self.value)
+            self.validatedby, self.content)
 
-    @property
+    @xmlattribute
     def validatedby(self):
         """
         The IVOA ID of the registry or organisation that
@@ -98,6 +102,190 @@ class ValidationLevel(ValueMixin, Element):
     @validatedby.setter
     def validatedby(self, validatedby):
         self._validatedby = validatedby
+
+
+class AccessURL(ContentMixin, Element):
+    """
+    AccessURL element as described in
+    http://www.ivoa.net/xml/VOResource/v1.0
+
+    The URL (or base URL) that a client uses to access the
+    service.  How this URL is to be interpreted and used
+    depends on the specific Interface subclass
+    """
+    def __init__(
+        self, config=None, pos=None, _name='accessURL', use=None, **kwargs
+    ):
+        super(AccessURL, self).__init__(config, pos, _name, **kwargs)
+
+        self._use = use
+
+    def __repr__(self):
+        return '<AccessURL use={}>{}</AccessURL>'.format(
+            self.use, self.content)
+
+    @xmlattribute
+    def use(self):
+        """
+        A flag indicating whether this should be interpreted as a base
+        URL, a full URL, or a URL to a directory that will produce a
+        listing of files.
+
+        Possible values:
+
+        full:
+            Assume a full URL--that is, one that can be invoked directly
+            without alteration.  This usually returns a single document or
+            file.
+        base:
+            Assume a base URL--that is, one requiring an extra portion to be
+            appended before being invoked.
+        dir:
+            Assume URL points to a directory that will return a listing of
+            files.
+        """
+        return self._use
+
+    @use.setter
+    def use(self, use):
+        self._use = use
+
+
+class Interface(Element):
+    """
+    Interface element as described in
+    http://www.ivoa.net/xml/VOResource/v1.0
+
+    A description of a service interface.
+
+    Since this type is abstract, one must use an Interface subclassto describe
+    an actual interface.
+
+    Additional interface subtypes (beyond WebService and WebBrowser) are
+    defined in the VODataService schema.
+    """
+    _xsi_type_mapping = {}
+
+    @classmethod
+    def register_xsi_type(cls, typename):
+        """Decorator factory for registering subtypes"""
+        def register(class_):
+            """Decorator for registering subtypes"""
+            cls._xsi_type_mapping[typename] = class_
+            return class_
+        return register
+
+    def __new__(cls, *args, **kwargs):
+        if 'xsi:type' not in kwargs:
+            pass
+
+        xsi_type = kwargs.get('xsi:type')
+        dtype = cls._xsi_type_mapping.get(xsi_type, cls)
+
+        obj = Element.__new__(dtype)
+        obj.__init__(*args, **kwargs)
+        return obj
+
+    def __init__(
+        self, config=None, pos=None, _name='interface', version='1.0',
+        role=None, **kwargs
+    ):
+        super(Interface, self).__init__(config, pos, _name, **kwargs)
+
+        self._xsi_type = kwargs.get('xsi:type')
+
+        self._version = version
+        self._role = role
+        self._resulttype = None
+
+        self._accessurls = HomogeneousList(AccessURL)
+        self._securitymethods = HomogeneousList(SecurityMethod)
+
+    def __repr__(self):
+        return '<Interface role={}>...</Interface>'.format(
+            self.role)
+
+    def describe(self):
+        """
+        Prints out a human readable description
+        """
+        print('Interface {}'.format(self._xsi_type))
+
+        accessurls = '\n'.join(
+            accessurl.content for accessurl in self.accessurls)
+
+        print(indent(accessurls))
+
+        print()
+
+    @xmlattribute
+    def version(self):
+        """
+        The version of a standard interface specification that this
+        interface complies with.  When the interface is
+        provided in the context of a Capability element, then
+        the standard being refered to is the one identified by
+        the Capability's standardID element.  If the standardID
+        is not provided, the meaning of this attribute is
+        undefined.
+        """
+        return self._version
+
+    @version.setter
+    def version(self, version):
+        self._version = version
+
+    @xmlattribute
+    def role(self):
+        """
+        A tag name the identifies the role the interface plays
+        in the particular capability.  If the value is equal to
+        "std" or begins with "std:", then the interface refers
+        to a standard interface defined by the standard
+        referred to by the capability's standardID attribute.
+
+        For an interface complying with some registered
+        standard (i.e. has a legal standardID), the role can be
+        match against interface roles enumerated in standard
+        resource record.  The interface descriptions in
+        the standard record can provide default descriptions
+        so that such details need not be repeated here.
+        """
+        return self._role
+
+    @role.setter
+    def role(self, role):
+        self._role = role
+
+    @xmlelement(name='accessURL', cls=AccessURL)
+    def accessurls(self):
+        """
+        A list of access urls in the interface.  Must contain only `AccessURL`
+        objects.
+        """
+        return self._accessurls
+
+    @xmlelement(name='securityMethod')
+    def securitymethods(self):
+        """
+        the mechanism the client must employ to gain secure
+        access to the service.
+
+        when more than one method is listed, each one must
+        be employed to gain access.
+        """
+        return self._securitymethods
+
+    @xmlelement
+    def resulttype(self):
+        """
+        The MIME type of a document returned in the HTTP response.
+        """
+        return self._resulttype
+
+    @resulttype.setter
+    def resulttype(self, resulttype):
+        self._resulttype = resulttype
 
 
 class Capability(Element):
@@ -131,17 +319,11 @@ class Capability(Element):
         obj.__init__(*args, **kwargs)
         return obj
 
-    def __init__(self, standardID=None, config=None, pos=None, **kwargs):
-        super(Capability, self).__init__(config, pos, **kwargs)
-
-        self._tag_mapping.update({
-            "description": make_add_simplecontent(
-                self, "description", "description", W06),
-            "validationLevel": make_add_complexcontent(
-                self, "validationLevel", "validationlevels", ValidationLevel),
-            "interface": make_add_complexcontent(
-                self, "interface", "interfaces", Interface)
-        })
+    def __init__(
+        self, config=None, pos=None, _name='capability', standardID=None,
+        **kwargs
+    ):
+        super(Capability, self).__init__(config, pos, _name, **kwargs)
 
         self._description = None
         self._standardid = standardID
@@ -171,8 +353,7 @@ class Capability(Element):
         for interface in self.interfaces:
             interface.describe()
 
-
-    @property
+    @xmlelement(plain=True, multiple_exc=W06)
     def description(self):
         """
         A human-readable description of what this capability
@@ -188,7 +369,7 @@ class Capability(Element):
     def description(self, description):
         self._description = description
 
-    @property
+    @xmlelement(name='validationLevel', cls=ValidationLevel)
     def validationlevels(self):
         """
         A numeric grade describing the quality of the
@@ -199,7 +380,7 @@ class Capability(Element):
         """
         return self._validationlevels
 
-    @property
+    @xmlelement(name='interface', cls=Interface)
     def interfaces(self):
         """
         a description of how to call the service to access this capability
@@ -218,7 +399,7 @@ class Capability(Element):
         """
         return self._interfaces
 
-    @property
+    @xmlattribute(name='standardID')
     def standardid(self):
         """
         A URI identifier for a standard service.
@@ -236,193 +417,7 @@ class Capability(Element):
         self._standardid = standardid
 
 
-class Interface(Element):
-    """
-    Interface element as described in
-    http://www.ivoa.net/xml/VOResource/v1.0
-
-    A description of a service interface.
-
-    Since this type is abstract, one must use an Interface subclassto describe
-    an actual interface.
-
-    Additional interface subtypes (beyond WebService and WebBrowser) are defined
-    in the VODataService schema.
-    """
-    _xsi_type_mapping = {}
-
-    @classmethod
-    def register_xsi_type(cls, typename):
-        """Decorator factory for registering subtypes"""
-        def register(class_):
-            """Decorator for registering subtypes"""
-            cls._xsi_type_mapping[typename] = class_
-            return class_
-        return register
-
-    def __new__(cls, *args, **kwargs):
-        if 'xsi:type' not in kwargs:
-            pass
-
-        xsi_type = kwargs.get('xsi:type')
-        dtype = cls._xsi_type_mapping.get(xsi_type, cls)
-
-        obj = Element.__new__(dtype)
-        obj.__init__(*args, **kwargs)
-        return obj
-
-    def __init__(self, version="1.0", role=None, config=None, pos=None,
-                 **kwargs):
-        super(Interface, self).__init__(config, pos, **kwargs)
-
-        self._tag_mapping.update({
-            "accessURL": make_add_complexcontent(
-                self, "accessURL", "accessurls", AccessURL),
-            "securityMethod": make_add_complexcontent(
-                self, "securityMethod", "securitymethods", SecurityMethod)
-        })
-
-        self._xsi_type = kwargs.get('xsi:type')
-
-        self._version = version
-        self._role = role
-        self._resulttype = None
-
-        self._accessurls = HomogeneousList(AccessURL)
-        self._securitymethods = HomogeneousList(SecurityMethod)
-
-    def __repr__(self):
-        return '<Interface role={}>...</Interface>'.format(
-            self.role)
-
-    def describe(self):
-        """
-        Prints out a human readable description
-        """
-        print('Interface {}'.format(self._xsi_type))
-
-        accessurls = '\n'.join(
-            accessurl.value for accessurl in self.accessurls)
-
-        print(indent(accessurls))
-
-        print()
-
-    @property
-    def version(self):
-        """
-        The version of a standard interface specification that this
-        interface complies with.  When the interface is
-        provided in the context of a Capability element, then
-        the standard being refered to is the one identified by
-        the Capability's standardID element.  If the standardID
-        is not provided, the meaning of this attribute is
-        undefined.
-        """
-        return self._version
-
-    @version.setter
-    def version(self, version):
-        self._version = version
-
-    @property
-    def role(self):
-        """
-        A tag name the identifies the role the interface plays
-        in the particular capability.  If the value is equal to
-        "std" or begins with "std:", then the interface refers
-        to a standard interface defined by the standard
-        referred to by the capability's standardID attribute.
-
-        For an interface complying with some registered
-        standard (i.e. has a legal standardID), the role can be
-        match against interface roles enumerated in standard
-        resource record.  The interface descriptions in
-        the standard record can provide default descriptions
-        so that such details need not be repeated here.
-        """
-        return self._role
-
-    @role.setter
-    def role(self, role):
-        self._role = role
-
-    @property
-    def accessurls(self):
-        """
-        A list of access urls in the interface.  Must contain only `AccessURL`
-        objects.
-        """
-        return self._accessurls
-
-    @property
-    def securitymethods(self):
-        """
-        the mechanism the client must employ to gain secure
-        access to the service.
-
-        when more than one method is listed, each one must
-        be employed to gain access.
-        """
-        return self._securitymethods
-
-    @property
-    def resulttype(self):
-        """
-        The MIME type of a document returned in the HTTP response.
-        """
-        return self._resulttype
-
-    @resulttype.setter
-    def resulttype(self, resulttype):
-        self._resulttype = resulttype
-
-
-class AccessURL(ValueMixin, Element):
-    """
-    AccessURL element as described in
-    http://www.ivoa.net/xml/VOResource/v1.0
-
-    The URL (or base URL) that a client uses to access the
-    service.  How this URL is to be interpreted and used
-    depends on the specific Interface subclass
-    """
-    def __init__(self, use=None, config=None, pos=None, **kwargs):
-        super(AccessURL, self).__init__(config, pos, **kwargs)
-
-        self._use = use
-        self._value = None
-
-    def __repr__(self):
-        return '<AccessURL use={}>{}</AccessURL>'.format(self.use, self.value)
-
-    @property
-    def use(self):
-        """
-        A flag indicating whether this should be interpreted as a base
-        URL, a full URL, or a URL to a directory that will produce a
-        listing of files.
-
-        Possible values:
-
-        full:
-            Assume a full URL--that is, one that can be invoked directly without
-            alteration.  This usually returns a single document or file.
-        base:
-            Assume a base URL--that is, one requiring an extra portion to be
-            appended before being invoked.
-        dir:
-            Assume URL points to a directory that will return a listing of
-            files.
-        """
-        return self._use
-
-    @use.setter
-    def use(self, use):
-        self._use = use
-
-
-class SecurityMethod(ValueMixin, Element):
+class SecurityMethod(ContentMixin, Element):
     """
     SecurityMethod element as described in
     http://www.ivoa.net/xml/VOResource/v1.0
@@ -432,17 +427,19 @@ class SecurityMethod(ValueMixin, Element):
     this type only allows one to refer to the mechanism via a URI.
     Derived types would allow for more metadata.
     """
-    def __init__(self, standardID=None, config=None, pos=None, **kwargs):
-        super(SecurityMethod, self).__init__(config, pos, **kwargs)
+    def __init__(
+        self, config=None, pos=None, _name='securityMethod', standardID=None,
+        **kwargs
+    ):
+        super(SecurityMethod, self).__init__(config, pos, _name, **kwargs)
 
         self._standardid = standardID
-        self._value = None
 
     def __repr__(self):
         return '<SecurityMethod standardID={}>{}</SecurityMethod>'.format(
-            self.standardid, self.value)
+            self.standardid, self.content)
 
-    @property
+    @xmlattribute(name='standardID')
     def standardid(self):
         """
         A URI identifier for a standard security mechanism.
@@ -474,16 +471,12 @@ class WebService(Interface):
     A Web Service that is describable by a WSDL document.
     The accessURL element gives the Web Service's endpoint URL.
     """
-    def __init__(self, config=None, pos=None, **kwargs):
-        Element.__init__(self, config, pos, **kwargs)
-
-        self._tag_mapping.update({
-            "wsdlURL": make_add_simplecontent(self, "wsdlURL", "wsdlurls")
-        })
+    def __init__(self, config=None, pos=None, _name='interface', **kwargs):
+        super(WebService, self).__init__(config, pos, _name, **kwargs)
 
         self._wsdlurls = HomogeneousList(six.text_type)
 
-    @property
+    @xmlelement(name='wsdlURL')
     def wsdlurls(self):
         """
         The location of the WSDL that describes this Web Service.

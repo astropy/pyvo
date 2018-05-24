@@ -15,7 +15,7 @@
         <unit>unit</unit>
         <ucd>meta.id;meta.main</ucd>
         <utype>utype</utype>
-        <dataType arraysize="*" size="42" xsi:type="vs:TAP">VARCHAR</dataType>
+        <dataType arraysize="*" size="42" xsi:type="vs:TAP" delim=";">VARCHAR</dataType>
         <flag>indexed</flag>
         <flag>primary</flag>
       </column>

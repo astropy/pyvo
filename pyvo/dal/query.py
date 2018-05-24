@@ -40,10 +40,10 @@ from warnings import warn
 from astropy.extern import six
 from astropy.table.table import Table
 from astropy.io.votable import parse as votableparse
+from astropy.io.votable.ucd import parse_ucd
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from .exceptions import (
-    DALAccessError, DALFormatError, DALServiceError, DALQueryError)
+from .exceptions import (DALFormatError, DALServiceError, DALQueryError)
 
 from ..utils.decorators import stream_decode_content
 from ..utils.formatting import para_format_desc
@@ -199,14 +199,10 @@ class DALQuery(dict):
 
     def execute_raw(self):
         """
-        submit the query and return the raw VOTable XML as a string.
+        submit the query and return the raw response as a string.
 
-        Raises
-        ------
-        DALServiceError
-           for errors connecting to or communicating with the service
-        DALQueryError
-           for errors in the input query syntax
+        No exceptions are raised here because non-2xx responses might still
+        contain payload. They can be raised later by calling ``raise_if_error``
         """
         f = self.execute_stream()
         out = None
@@ -219,9 +215,10 @@ class DALQuery(dict):
     @stream_decode_content
     def execute_stream(self):
         """
-        Submit the query and return the raw VOTable XML as a file stream.
+        Submit the query and return the raw response as a file stream.
+
         No exceptions are raised here because non-2xx responses might still
-        contain payload.
+        contain payload. They can be raised later by calling ``raise_if_error``
         """
         r = self.submit()
 
@@ -260,8 +257,6 @@ class DALQuery(dict):
            for errors connecting to or communicating with the service
         DALFormatError
            for errors parsing the VOTable response
-        DALQueryError
-           for errors in the input query syntax
 
         See Also
         --------
@@ -272,8 +267,6 @@ class DALQuery(dict):
         """
         try:
             return votableparse(self.execute_stream().read)
-        except DALAccessError:
-            raise
         except Exception as e:
             self.raise_if_error()
             raise DALFormatError(e, self.queryurl)
@@ -342,11 +335,11 @@ class DALResults(object):
 
         self._url = url
         self._status = self._findstatus(votable)
-        if self._status[0].upper() not in ("OK", "OVERFLOW"):
+        if self._status[0].lower() not in ("ok", "overflow"):
             raise DALQueryError(self._status[1], self._status[0], url)
 
         self._resultstable = self._findresultstable(votable)
-        if not votable:
+        if not self._resultstable:
             raise DALFormatError(
                 reason="VOTable response missing results table", url=url)
 
@@ -403,7 +396,7 @@ class DALResults(object):
     def _findstatusinfo(self, infos):
         # this can be overridden to specialize for a particular DAL protocol
         for info in infos:
-            if info.name == "QUERY_STATUS":
+            if info.name.lower() == 'query_status':
                 return info
 
     def _findinfos(self, votable):
@@ -494,18 +487,27 @@ class DALResults(object):
         """
         return self.resultstable.fields
 
+    @property
+    def status(self):
+        """
+        The query status as a 2-element tuple e.g. ('OK', 'Everythings fine')
+        """
+        return self._status
+
     def fieldname_with_ucd(self, ucd):
         """
         return the field name that has a given UCD value or None if the UCD
         is not found.
         """
-        try:
-            iterchain = (
-                self.getdesc(fieldname) for fieldname in self.fieldnames)
-            iterchain = (field for field in iterchain if field.ucd == ucd)
-            return next(iterchain).name
-        except StopIteration:
-            return None
+        search_ucds = set(parse_ucd(ucd, has_colon=True))
+
+        for field in (field for field in self.fielddescs if field.ucd):
+            field_ucds = set(parse_ucd(field.ucd, has_colon=True))
+
+            if search_ucds & field_ucds:
+                return field.name
+
+        return None
 
     def fieldname_with_utype(self, utype):
         """
@@ -525,10 +527,10 @@ class DALResults(object):
         return a numpy array containing the values for the column with the
         given name
         """
-        if name not in self.fieldnames:
-            name = self.resultstable.get_field_by_id(name).name
-
         try:
+            if name not in self.fieldnames:
+                name = self.resultstable.get_field_by_id(name).name
+
             return self.resultstable.array[name]
         except KeyError:
             raise KeyError("No such column: {}".format(name))
@@ -650,10 +652,10 @@ class Record(Mapping):
         )
 
     def __getitem__(self, key):
-        if key not in self._mapping:
-            key = self._results.resultstable.get_field_by_id(key).name
-
         try:
+            if key not in self._mapping:
+                key = self._results.resultstable.get_field_by_id(key).name
+
             return self._mapping[key]
         except KeyError:
             raise KeyError("No such column: {}".format(key))
@@ -674,7 +676,7 @@ class Record(Mapping):
         """
         out = self._mapping.get(key, default)
 
-        if decode and type(out) == six.binary_type:
+        if decode and isinstance(out, six.binary_type):
             out = out.decode('ascii')
 
         return out
@@ -717,7 +719,7 @@ class Record(Mapping):
                     "meta.ref.url" in field.ucd
             ):
                 out = self[fieldname]
-                if type(out) == six.binary_type:
+                if isinstance(out, six.binary_type):
                     out = out.decode('utf-8')
                 return out
         return None

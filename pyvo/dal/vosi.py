@@ -167,6 +167,10 @@ class VOSITables(object):
 
         return table
 
+    def iter_tables(self):
+        for tablename in self.keys():
+            yield self._get_table(tablename)
+
     @response_decode_content
     def _get_table_file(self, tables_url):
         return requests.get(tables_url, stream=True)

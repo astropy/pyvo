@@ -25,16 +25,15 @@ Exceptions
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from astropy.extern import six
-
-# Re-use existing exceptions
-from astropy.io.votable.exceptions import VOWarning
+from astropy.utils.exceptions import AstropyWarning
+from ...utils.xml.exceptions import XMLWarning
 
 __all__ = ["VOSIWarning"]
 __all__ += ["W{:0>2}".format(i) for i in range(1, 36)]
 __all__ += ["E{:0>2}".format(i) for i in range(1, 10)]
 
-class VOSIWarning(VOWarning):
+
+class VOSIWarning(AstropyWarning):
     """
     The base class of all VOSI warnings and exceptions.
     Handles the formatting of the message with a warning or exception
@@ -42,7 +41,7 @@ class VOSIWarning(VOWarning):
     """
 
 
-class W01(VOSIWarning):
+class W01(VOSIWarning, XMLWarning):
     """
     The attribute must be a valid URI as defined in `RFC 2396
     <http://www.ietf.org/rfc/rfc2396.txt>`_.
@@ -52,22 +51,23 @@ class W01(VOSIWarning):
     default_args = ('x',)
 
 
-class W02(VOSIWarning):
+class W02(VOSIWarning, XMLWarning):
     """
     The attribute must be any of the accepted types in the VOSI spec.
     """
-    message_template = "'{}' is not a valid datatype according to the VOSI spec"
+    message_template = (
+        "'{}' is not a valid datatype according to the VOSI spec")
     default_args = ('x',)
 
 
-class W03(VOSIWarning):
+class W03(VOSIWarning, XMLWarning):
     """
     The attribute must be an positive integer.
     """
     message_template = "Size must be positive"
 
 
-class W04(VOSIWarning):
+class W04(VOSIWarning, XMLWarning):
     """
     The attribute must have one of the recognized values
     'indexed', 'primary', 'nullable'.
@@ -76,7 +76,7 @@ class W04(VOSIWarning):
     default_args = ('x',)
 
 
-class W05(VOSIWarning):
+class W05(VOSIWarning, XMLWarning):
     """
     A ``name`` element can only appear once within its parent element.
     According to the schema, it may only occur once (`1.1
@@ -87,7 +87,7 @@ class W05(VOSIWarning):
     default_args = ('x',)
 
 
-class W06(VOSIWarning):
+class W06(VOSIWarning, XMLWarning):
     """
     A ``description`` element can only appear once within its parent element.
     According to the schema, it may only occur once (`1.1
@@ -98,7 +98,7 @@ class W06(VOSIWarning):
     default_args = ('x',)
 
 
-class W07(VOSIWarning):
+class W07(VOSIWarning, XMLWarning):
     """
     A ``unit`` element can only appear once within its parent element.
     According to the schema, it may only occur once (`1.1
@@ -109,7 +109,7 @@ class W07(VOSIWarning):
     default_args = ('x',)
 
 
-class W08(VOSIWarning):
+class W08(VOSIWarning, XMLWarning):
     """
     A ``ucd`` element can only appear once within its parent element.
     According to the schema, it may only occur once (`1.1
@@ -120,7 +120,7 @@ class W08(VOSIWarning):
     default_args = ('x',)
 
 
-class W09(VOSIWarning):
+class W09(VOSIWarning, XMLWarning):
     """
     A ``utype`` element can only appear once within its parent element.
     According to the schema, it may only occur once (`1.1
@@ -131,7 +131,7 @@ class W09(VOSIWarning):
     default_args = ('x',)
 
 
-class W10(VOSIWarning):
+class W10(VOSIWarning, XMLWarning):
     """
     A ``fromColumn`` element can only appear once within its parent element.
     According to the schema, it may only occur once (`1.1
@@ -142,7 +142,7 @@ class W10(VOSIWarning):
     default_args = ('x',)
 
 
-class W11(VOSIWarning):
+class W11(VOSIWarning, XMLWarning):
     """
     A ``targetColumn`` element can only appear once within its parent element.
     According to the schema, it may only occur once (`1.1
@@ -153,7 +153,7 @@ class W11(VOSIWarning):
     default_args = ('x',)
 
 
-class W12(VOSIWarning):
+class W12(VOSIWarning, XMLWarning):
     """
     A ``targetTable`` element can only appear once within its parent element.
     According to the schema, it may only occur once (`1.1
@@ -164,7 +164,7 @@ class W12(VOSIWarning):
     default_args = ('x',)
 
 
-class W13(VOSIWarning):
+class W13(VOSIWarning, XMLWarning):
     """
     A ``title`` element can only appear once within its parent element.
     According to the schema, it may only occur once (`1.1
@@ -175,7 +175,7 @@ class W13(VOSIWarning):
     default_args = ('x',)
 
 
-class W14(VOSIWarning):
+class W14(VOSIWarning, XMLWarning):
     """
     The tableset element must contain at least one schema element.
     """
@@ -184,7 +184,7 @@ class W14(VOSIWarning):
         "tableset element must contain at least one schema element.")
 
 
-class W15(VOSIWarning):
+class W15(VOSIWarning, XMLWarning):
     """
     Unknown issues may arise using ``dal`` with VOSITables files
     from a version other than 1.0 or 1.1
@@ -196,7 +196,7 @@ class W15(VOSIWarning):
     default_args = ('x',)
 
 
-class W16(VOSIWarning):
+class W16(VOSIWarning, XMLWarning):
     """
     The table element is not a valid root element in VOSI before version 1.1
     """
@@ -204,7 +204,7 @@ class W16(VOSIWarning):
         "The element table is not a valid root element in VOSI below v1.1")
 
 
-class W17(VOSIWarning):
+class W17(VOSIWarning, XMLWarning):
     """
     A ``queryType`` element can only appear once within the ParamHTTP element.
     According to the schema, it may only occur once (`1.1
@@ -215,7 +215,7 @@ class W17(VOSIWarning):
         "ParamHTTP element contains more than one ParamHTTP element")
 
 
-class W18(VOSIWarning):
+class W18(VOSIWarning, XMLWarning):
     """
     The QueryType element must not occur more than two times.
     """
@@ -223,15 +223,17 @@ class W18(VOSIWarning):
         "The QueryType element must not occur more than two times.")
 
 
-class W19(VOSIWarning):
+class W19(VOSIWarning, XMLWarning):
     """
     TAP Capabilities must not have an ivo-id other than ivo://ivoa.net/std/TAP
     """
     message_template = (
-        "TAP Capabilities must not have an ivo-id other than ivo://ivoa.net/std/TAP")
+        "TAP Capabilities must not have an ivo-id other than "
+        "ivo://ivoa.net/std/TAP"
+    )
 
 
-class W20(VOSIWarning):
+class W20(VOSIWarning, XMLWarning):
     """
     TAP Capabilties must have at least one `language` element.
     """
@@ -239,13 +241,13 @@ class W20(VOSIWarning):
         "TAP Capabilties must have at least one `language` element.")
 
 
-class W21(VOSIWarning):
+class W21(VOSIWarning, XMLWarning):
     """
     TAP Capabilties must have at least one outputFormat element.
     """
 
 
-class W22(VOSIWarning):
+class W22(VOSIWarning, XMLWarning):
     """
     The `retentionPeriod` element must not occur more than once.
     """
@@ -253,7 +255,7 @@ class W22(VOSIWarning):
         "The retentionPeriod element must not occur more than once")
 
 
-class W23(VOSIWarning):
+class W23(VOSIWarning, XMLWarning):
     """
     The `executionDuration` element must not occur more than once.
     """
@@ -261,7 +263,7 @@ class W23(VOSIWarning):
         "The executionDuration element must not occur more than once")
 
 
-class W24(VOSIWarning):
+class W24(VOSIWarning, XMLWarning):
     """
     The `outputLimit` element must not occur more than once.
     """
@@ -269,7 +271,7 @@ class W24(VOSIWarning):
         "The outputLimit element must not occur more than once")
 
 
-class W25(VOSIWarning):
+class W25(VOSIWarning, XMLWarning):
     """
     The `uploadLimit` element must not occur more than once.
     """
@@ -277,42 +279,42 @@ class W25(VOSIWarning):
         "The uploadLimit element must not occur more than once")
 
 
-class W26(VOSIWarning):
+class W26(VOSIWarning, XMLWarning):
     """
     The ivo-id attribute is mandatory.
     """
     message_template = "The ivo-id attribute is mandatory"
 
 
-class W27(VOSIWarning):
+class W27(VOSIWarning, XMLWarning):
     """
     The `form` element must not occur more than once.
     """
     message_template = "The form element must not occur more than once"
 
 
-class W28(VOSIWarning):
+class W28(VOSIWarning, XMLWarning):
     """
     The `mime` element must not occur more than once.
     """
     message_template = "The mime element must not occur more than once"
 
 
-class W29(VOSIWarning):
+class W29(VOSIWarning, XMLWarning):
     """
     The `default` element must not occur more than once.
     """
     message_template = "The default element must not occur more than once"
 
 
-class W30(VOSIWarning):
+class W30(VOSIWarning, XMLWarning):
     """
     The `hard` element must not occur more than once.
     """
     message_template = "The hard element must not occur more than once"
 
 
-class W31(VOSIWarning):
+class W31(VOSIWarning, XMLWarning):
     """
     The content of the `DataLimit` element must be byte or row
     """
@@ -320,35 +322,49 @@ class W31(VOSIWarning):
         "The content of the DataLimit element must be byte or row")
 
 
-class W32(VOSIWarning):
+class W32(VOSIWarning, XMLWarning):
     """
     The `available` element must not occur more than once.
     """
     message_template = "The available element must not occur more than once"
 
 
-class W33(VOSIWarning):
+class W33(VOSIWarning, XMLWarning):
     """
     The `upSince` element must not occur more than once.
     """
     message_template = "The upSince element must not occur more than once"
 
 
-class W34(VOSIWarning):
+class W34(VOSIWarning, XMLWarning):
     """
     The `downAt` element must not occur more than once.
     """
     message_template = "The downAt element must not occur more than once"
 
 
-class W35(VOSIWarning):
+class W35(VOSIWarning, XMLWarning):
     """
     The `backAt` element must not occur more than once.
     """
     message_template = "The backAt element must not occur more than once"
 
 
-class E01(VOSIWarning, ValueError):
+class W36(VOSIWarning, XMLWarning):
+    """
+    The `resultType` element must not occur more than once.
+    """
+    message_template = "The resultType element must not occur more than once"
+
+
+class W37(VOSIWarning, XMLWarning):
+    """
+    The `dataType` element must not occur more than once.
+    """
+    message_template = "The dataType element must not occur more than once"
+
+
+class E01(VOSIWarning, XMLWarning, ValueError):
     """
     The attribute must be a valid arraysize according to the VOTable standard.
     From the VOTable 1.2 spec:
@@ -383,35 +399,35 @@ class E01(VOSIWarning, ValueError):
     default_args = ('x',)
 
 
-class E02(VOSIWarning, ValueError):
+class E02(VOSIWarning, XMLWarning, ValueError):
     """
     The `FKColumn` element must have a `fromColumn`.
     """
     message_template = "fkColumn element is missing a fromColumn"
 
 
-class E03(VOSIWarning, ValueError):
+class E03(VOSIWarning, XMLWarning, ValueError):
     """
     The element must have a `targetColumn`.
     """
     message_template = "The element is missing a targetColumn"
 
 
-class E04(VOSIWarning, ValueError):
+class E04(VOSIWarning, XMLWarning, ValueError):
     """
     The element must have a `targetTable`.
     """
     message_template = "The element is missing a targetTable"
 
 
-class E05(VOSIWarning, ValueError):
+class E05(VOSIWarning, XMLWarning, ValueError):
     """
     The element must contain at least one `fkColumn`.
     """
     message_template = "The element contains no `fkColumn`"
 
 
-class E06(VOSIWarning, ValueError):
+class E06(VOSIWarning, XMLWarning, ValueError):
     """
     The element must have a ``name`` element.
     """
@@ -419,7 +435,7 @@ class E06(VOSIWarning, ValueError):
     default_args = ('x',)
 
 
-class E07(VOSIWarning, ValueError):
+class E07(VOSIWarning, XMLWarning, ValueError):
     """
     Raised either when the file doesn't appear to be XML, or the root
     element is not tableset or table.
@@ -427,7 +443,7 @@ class E07(VOSIWarning, ValueError):
     message_template = "File does not appear to be a VOSITables file"
 
 
-class E08(VOSIWarning, ValueError):
+class E08(VOSIWarning, XMLWarning, ValueError):
     """
     The element must have a ``version`` element.
     """
@@ -435,9 +451,16 @@ class E08(VOSIWarning, ValueError):
     default_args = ('x',)
 
 
-class E09(VOSIWarning, ValueError):
+class E09(VOSIWarning, XMLWarning, ValueError):
     """
     The element must have a ``form`` element.
     """
     message_template = "The {} element must habe a form element"
     default_args = ('x',)
+
+
+class E10(VOSIWarning, XMLWarning, ValueError):
+    """
+    Raised when then file doesn't appear to be valid capabilities xml
+    """
+    message_template = "File does not appear to be a VOSICapabilities file"

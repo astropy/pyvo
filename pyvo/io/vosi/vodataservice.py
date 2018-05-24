@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This file contains xml element classes as defined in the VODataService standard.
+This file contains xml element classes as defined in the VODataService standard
 
 There are different ways of handling the various xml tags.
 
@@ -25,18 +25,20 @@ from astropy.utils.collections import HomogeneousList
 from astropy.utils.xml import check as xml_check
 from astropy.io.votable.exceptions import vo_raise, vo_warn, warn_or_raise
 
-from .util import (
-    make_add_simplecontent, make_add_complexcontent, Element, ValueMixin)
+from ...utils.xml.elements import (
+    xmlattribute, xmlelement, Element, ContentMixin)
+
 from . import voresource as vr
 from .exceptions import (
     W01, W02, W03, W04, W05, W06, W07, W08, W09, W10, W11, W12, W13, W14, W17,
-    W18,
+    W18, W36, W37,
     E01, E02, E03, E04, E05, E06)
 
 __all__ = [
     "TableSet", "TableSchema", "ParamHTTP", "Table", "BaseParam", "TableParam",
     "InputParam", "DataType", "SimpleDataType", "TableDataType", "VOTableType",
     "TAPDataType", "TAPType", "FKColumn", "ForeignKey"]
+
 
 ######################################################################
 # FACTORY FUNCTIONS
@@ -47,6 +49,8 @@ def _convert_boolean(value, default=None):
         'true': True,
         '1': True
     }.get(value, default)
+
+
 ######################################################################
 # ATTRIBUTE CHECKERS
 def check_anyuri(uri, config=None, pos=None):
@@ -60,6 +64,7 @@ def check_anyuri(uri, config=None, pos=None):
         return False
     return True
 
+
 def check_datatype_flag(data, config=None, pos=None):
     """
     Checks if the datatype flag is valid
@@ -69,31 +74,29 @@ def check_datatype_flag(data, config=None, pos=None):
         return False
     return True
 
+
 ######################################################################
 # ELEMENT CLASSES
-class TableSet(Element):
+class TableSet(Element, HomogeneousList):
     """
     TableSet element as described in
     http://www.ivoa.net/xml/VODataService/v1.1
 
     The set of tables hosted by a resource.
     """
-    def __init__(self, version="1.1", config=None, pos=None, **kwargs):
-        super(TableSet, self).__init__(config, pos, **kwargs)
-
-        self._tag_mapping.update({
-            "schema": make_add_complexcontent(
-                self, "schema", "schemas", TableSchema)
-        })
+    def __init__(
+        self, config=None, pos=None, _name='tableset', version='1.1', **kwargs
+    ):
+        HomogeneousList.__init__(self, TableSchema)
+        Element.__init__(self, config, pos, _name, **kwargs)
 
         self._version = version
-        self._schemas = HomogeneousList(TableSchema)
 
     def __repr__(self):
         return '<TableSet>... {} schemas ...</TableSet>'.format(
-            len(self.schemas))
+            len(self))
 
-    @property
+    @xmlattribute
     def version(self):
         """The version of the standard"""
         return self._version
@@ -103,7 +106,7 @@ class TableSet(Element):
         self._config['version'] = version
         self._version = version
 
-    @property
+    @xmlelement(name='schema')
     def schemas(self):
         """
         A list of schemas. Must contain only `Schema` objects.
@@ -115,11 +118,17 @@ class TableSet(Element):
         there's no locally appropriate name to provide, the name can be set to
         "default".
 
-        This aggregation does not need to map to an actual database, catalog, or
-        schema, though the publisher may choose to aggregate along such
+        This aggregation does not need to map to an actual database, catalog,
+        or schema, though the publisher may choose to aggregate along such
         designations, or particular service protocol may recommend it.
         """
-        return self._schemas
+        return self
+
+    @schemas.adder
+    def schemas(self, iterator, tag, data, config, pos):
+        schema = TableSchema(config, pos, 'schema', **data)
+        schema.parse(iterator, config)
+        self.append(schema)
 
     def parse(self, iterator, config):
         super(TableSet, self).parse(iterator, config)
@@ -127,37 +136,28 @@ class TableSet(Element):
         if not self.schemas:
             warn_or_raise(W14, W14, config=config, pos=self._pos)
 
-class TableSchema(Element):
+
+class TableSchema(Element, HomogeneousList):
     """
     TableSchema element as described in
     http://www.ivoa.net/xml/VODataService/v1.1
 
     A detailed description of a logically-related set of tables.
     """
-    def __init__(self, config=None, pos=None, **kwargs):
-        super(TableSchema, self).__init__(config, pos, **kwargs)
-
-        self._tag_mapping.update({
-            "name": make_add_simplecontent(self, "name", "name", W05),
-            "title": make_add_simplecontent(self, "title", "title", W13),
-            "description": make_add_simplecontent(
-                self, "description", "description", W06),
-            "utype": make_add_simplecontent(self, "utype", "utype", W09),
-            "table": make_add_complexcontent(self, "table", "tables", Table)
-        })
+    def __init__(self, config=None, pos=None, _name='schema', **kwargs):
+        HomogeneousList.__init__(self, Table)
+        Element.__init__(self, config, pos, _name, **kwargs)
 
         self._name = None
         self._title = None
         self._description = None
         self._utype = None
 
-        self._tables = HomogeneousList(Table)
-
     def __repr__(self):
         return '<TableSchema name="{}">... {} tables ...</TableSchema>'.format(
             self.name, len(self.tables))
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W05)
     def name(self):
         """
         A name for the set of tables.
@@ -176,7 +176,7 @@ class TableSchema(Element):
     def name(self, name):
         self._name = name
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W13)
     def title(self):
         """
         a descriptive, human-interpretable name for the table set.
@@ -193,7 +193,7 @@ class TableSchema(Element):
     def title(self, title):
         self._title = title
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W06)
     def description(self):
         """
         A free text description of the tableset that should
@@ -205,7 +205,7 @@ class TableSchema(Element):
     def description(self, description):
         self._description = description
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W09)
     def utype(self):
         """
         an identifier for a concept in a data model that
@@ -220,7 +220,7 @@ class TableSchema(Element):
     def utype(self, utype):
         self._utype = utype
 
-    @property
+    @xmlelement(name='table')
     def tables(self):
         """
         A list of tables in the schema.  Must contain only `Table` objects.
@@ -228,13 +228,19 @@ class TableSchema(Element):
         A description of one of the tables that makes up the set.
         The table names for the table should be unique.
         """
-        return self._tables
+        return self
+
+    @tables.adder
+    def tables(self, iterator, tag, data, config, pos):
+        table = Table(config, pos, 'table', **data)
+        table.parse(iterator, config)
+        self.append(table)
 
     def parse(self, iterator, config):
         super(TableSchema, self).parse(iterator, config)
 
         if not self.name:
-            vo_raise(E06, self._element_name, config=config, pos=self._pos)
+            vo_raise(E06, self._Element__name, config=config, pos=self._pos)
 
 
 @vr.Interface.register_xsi_type('vs:ParamHTTP')
@@ -249,20 +255,14 @@ class ParamHTTP(vr.Interface):
     Note that the URL for help with this service can be put into
     the Service/ReferenceURL element.
     """
-    def __init__(self, config=None, pos=None, **kwargs):
-        super(ParamHTTP, self).__init__(config=config, pos=pos, **kwargs)
-
-        self._tag_mapping.update({
-            "queryType": make_add_simplecontent(
-                self, "queryType", "querytypes"),
-            "resultType": make_add_simplecontent(
-                self, "resultType", "resulttype", W17)
-        })
+    def __init__(self, config=None, pos=None, _name='', **kwargs):
+        super(ParamHTTP, self).__init__(
+                config=config, pos=pos, _name=_name, **kwargs)
 
         self._querytypes = HomogeneousList(six.text_type)
         self._resulttype = None
 
-    @property
+    @xmlelement(name='queryType', multiple_exc=W17)
     def querytypes(self):
         """
         The type of HTTP request, either GET or POST.
@@ -273,7 +273,7 @@ class ParamHTTP(vr.Interface):
         """
         return self._querytypes
 
-    @property
+    @xmlelement(name='resultType', multiple_exc=W36)
     def resulttype(self):
         """The MIME type of a document returned in the HTTP response."""
         return self._resulttype
@@ -294,20 +294,10 @@ class Table(Element):
     Table element as described in
     http://www.ivoa.net/xml/VODataService/v1.1
     """
-    def __init__(self, version="1.1", config=None, pos=None, **kwargs):
-        super(Table, self).__init__(config, pos, **kwargs)
-
-        self._tag_mapping.update({
-            "name": make_add_simplecontent(self, "name", "name", W05),
-            "title": make_add_simplecontent(self, "title", "title", W13),
-            "description": make_add_simplecontent(
-                self, "description", "description", W06),
-            "utype": make_add_simplecontent(self, "utype", "utype", W09),
-            "column": make_add_complexcontent(
-                self, "column", "columns", TableParam),
-            "foreignKey": make_add_complexcontent(
-                self, "foreignKey", "foreignkeys", ForeignKey)
-        })
+    def __init__(
+        self, config=None, pos=None, _name='table', version='1.1', **kwargs
+    ):
+        super(Table, self).__init__(config, pos, _name, **kwargs)
 
         self._name = None
         self._title = None
@@ -323,7 +313,7 @@ class Table(Element):
         return '<Table name="{}">... {} columns ...</Table>'.format(
             self.name, len(self.columns))
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W05)
     def name(self):
         """
         the fully qualified name of the table.  This name
@@ -343,7 +333,7 @@ class Table(Element):
     def name(self, name):
         self._name = name
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W13)
     def title(self):
         """
         a descriptive, human-interpretable name for the table.
@@ -357,7 +347,7 @@ class Table(Element):
     def title(self, title):
         self._title = title
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W06)
     def description(self):
         """
         a free-text description of the table's contents
@@ -368,7 +358,7 @@ class Table(Element):
     def description(self, description):
         self._description = description
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W09)
     def utype(self):
         """
         an identifier for a concept in a data model that
@@ -383,7 +373,7 @@ class Table(Element):
     def utype(self, utype):
         self._utype = utype
 
-    @property
+    @xmlattribute
     def type(self):
         """
         a name for the role this table plays.  Recognized
@@ -400,7 +390,7 @@ class Table(Element):
     def type(self, type_):
         self._type = type_
 
-    @property
+    @xmlattribute
     def version(self):
         """The version of the standard"""
         return self._version
@@ -410,19 +400,26 @@ class Table(Element):
         self._config['version'] = version
         self._version = version
 
-    @property
+    @xmlelement(name='column')
     def columns(self):
         """
-        A list of columns in the table.  Must contain only `Column` objects.
+        A list of columns in the table.
+        Must contain only `TableParams` objects.
 
         A description of a table column.
         """
         return self._columns
 
-    @property
+    @columns.adder
+    def columns(self, iterator, tag, data, config, pos):
+        column = TableParam(config, pos, 'column', **data)
+        column.parse(iterator, config)
+        self.columns.append(column)
+
+    @xmlelement(name='foreignKey')
     def foreignkeys(self):
         """
-        A list of columns in the table.  Must contain only `ForeignKey` objects.
+        A list of columns in the table.  Must contain only `ForeignKey` objects
 
         a description of a foreign keys, one or more columns
         from the current table that can be used to join with
@@ -430,11 +427,17 @@ class Table(Element):
         """
         return self._foreignkeys
 
+    @foreignkeys.adder
+    def foreignkeys(self, iterator, tag, data, config, pos):
+        foreignkey = ForeignKey(config, pos, 'foreignKey', **data)
+        foreignkey.parse(iterator, config)
+        self.foreignkeys.append(foreignkey)
+
     def parse(self, iterator, config):
         super(Table, self).parse(iterator, config)
 
         if not self.name:
-            vo_raise(E06, self._element_name, config=config, pos=self._pos)
+            vo_raise(E06, self._Element__name, config=config, pos=self._pos)
 
 
 class BaseParam(Element):
@@ -444,20 +447,12 @@ class BaseParam(Element):
 
     a description of a parameter that places no restriction on the parameter's
     data type. As the parameter's data type is usually important, schemas
-    normally employ a sub-class of this type (e.g. Param), rather than this type
-    directly.
+    normally employ a sub-class of this type (e.g. Param), rather than this
+    type directly.
     """
-    def __init__(self, config=None, pos=None, **kwargs):
-        super(BaseParam, self).__init__(config=config, pos=pos, **kwargs)
-
-        self._tag_mapping.update({
-            "name": make_add_simplecontent(self, "name", "name", W05),
-            "description": make_add_simplecontent(
-                self, "description", "description", W06),
-            "unit": make_add_simplecontent(self, "unit", "unit", W07),
-            "ucd": make_add_simplecontent(self, "ucd", "ucd", W08),
-            "utype": make_add_simplecontent(self, "utype", "utype", W09)
-        })
+    def __init__(self, config=None, pos=None, _name='', **kwargs):
+        super(BaseParam, self).__init__(
+                config=config, pos=pos, _name=_name, **kwargs)
 
         self._name = None
         self._description = None
@@ -468,7 +463,7 @@ class BaseParam(Element):
     def __repr__(self):
         return '<BaseParam name="{}"/>'.format(self.name)
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W05)
     def name(self):
         """the name of the element"""
         return self._name
@@ -477,7 +472,7 @@ class BaseParam(Element):
     def name(self, name):
         self._name = name
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W06)
     def description(self):
         """
         a free-text description of the element's contents
@@ -488,7 +483,7 @@ class BaseParam(Element):
     def description(self, description):
         self._description = description
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W07)
     def unit(self):
         """the unit associated with all values in the element"""
         return self._unit
@@ -497,7 +492,7 @@ class BaseParam(Element):
     def unit(self, unit):
         self._unit = unit
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W08)
     def ucd(self):
         """
         the name of a unified content descriptor that
@@ -516,7 +511,7 @@ class BaseParam(Element):
     def ucd(self, ucd):
         self._ucd = ucd
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W09)
     def utype(self):
         """
         an identifier for a concept in a data model that
@@ -539,21 +534,15 @@ class TableParam(BaseParam):
     A description of a table parameter having a fixed data type.
     The allowed data type names match those supported by VOTable.
     """
-    def __init__(self, std=None, config=None, pos=None, **kwargs):
-        super(TableParam, self).__init__(config=config, pos=pos, **kwargs)
-
-        self._tag_mapping.update({
-            "dataType": make_add_complexcontent(
-                self, "dataType", "datatype", TableDataType),
-            "flag": make_add_simplecontent(
-                self, "flag", "flags", check_func=check_datatype_flag)
-        })
+    def __init__(self, config=None, pos=None, _name='', std=None, **kwargs):
+        super(TableParam, self).__init__(
+                config=config, pos=pos, _name=_name, **kwargs)
 
         self._datatype = None
         self._flags = HomogeneousList(six.text_type)
         self._std = _convert_boolean(std)
 
-    @property
+    @xmlelement(name='dataType')
     def datatype(self):
         """The type of data contained in the element"""
         return self._datatype
@@ -564,7 +553,17 @@ class TableParam(BaseParam):
             raise ValueError("datatype must be an TableDataType object")
         self._datatype = datatype
 
-    @property
+    @datatype.adder
+    def datatype(self, iterator, tag, data, config, pos):
+        datatype = TableDataType(config, pos, 'dataType', **data)
+        datatype.parse(iterator, config)
+
+        if self.datatype:
+            warn_or_raise(
+                W37, args=self._Element__name, config=config, pos=pos)
+        self.datatype = datatype
+
+    @xmlelement(name='flag')
     def flags(self):
         """
         A list of flags. Must contain only `six.text_type` objects.
@@ -574,7 +573,7 @@ class TableParam(BaseParam):
         """
         return self._flags
 
-    @property
+    @xmlattribute
     def std(self):
         """
         If true, the meaning and use of this parameter is
@@ -593,7 +592,7 @@ class TableParam(BaseParam):
         super(TableParam, self).parse(iterator, config)
 
         if not self.name:
-            vo_raise(E06, self._element_name, config=config, pos=self._pos)
+            vo_raise(E06, self._Element__name, config=config, pos=self._pos)
 
 
 class InputParam(BaseParam):
@@ -604,14 +603,15 @@ class InputParam(BaseParam):
     A description of a service or function parameter having a fixed data type.
     """
     def __init__(
-            self, use="optional", std="1", config=None, pos=None, **kwargs):
-        BaseParam.__init__(self, config, pos, **kwargs)
+            self, config=None, pos=None, _name='', use="optional", std="1",
+            **kwargs):
+        BaseParam.__init__(self, config, pos, _name, **kwargs)
 
         self._datatype = None
         self._use = use
         self._std = _convert_boolean(std, True)
 
-    @property
+    @xmlelement(name='dataType')
     def datatype(self):
         """The type of data contained in the element"""
         return self._datatype
@@ -622,7 +622,7 @@ class InputParam(BaseParam):
             raise ValueError("datatype must be an SimpleDataType object")
         self._datatype = datatype
 
-    @property
+    @xmlattribute
     def use(self):
         """
         An indication of whether this parameter is required to be provided for
@@ -635,7 +635,7 @@ class InputParam(BaseParam):
     def use(self, use):
         self._use = use
 
-    @property
+    @xmlattribute
     def std(self):
         """
         If true, the meaning and behavior of this parameter is
@@ -654,10 +654,10 @@ class InputParam(BaseParam):
         super(InputParam, self).parse(iterator, config)
 
         if not self.name:
-            vo_raise(E06, self._element_name, config=config, pos=self._pos)
+            vo_raise(E06, self._Element__name, config=config, pos=self._pos)
 
 
-class DataType(ValueMixin, Element):
+class DataType(ContentMixin, Element):
     """
     DataType element as described in
     http://www.ivoa.net/xml/VODataService/v1.1
@@ -669,21 +669,23 @@ class DataType(ValueMixin, Element):
     set of names.
     """
     def __init__(
-            self, arraysize="1", delim=" ", extendedType=None,
-            extendedSchema=None, config=None, pos=None, **kwargs
+            self, config=None, pos=None, _name='dataType',
+            arraysize="1", delim=" ", extendedType=None, extendedSchema=None,
+            **kwargs
     ):
-        super(DataType, self).__init__(config=config, pos=pos, **kwargs)
+        super(DataType, self).__init__(
+            config=config, pos=pos, _name=_name, **kwargs)
 
-        self._arraysize = arraysize
+        self.arraysize = arraysize
         self._delim = delim
         self._extendedtype = extendedType
-        self._extendedschema = extendedSchema
+        self.extendedschema = extendedSchema
 
     def __repr__(self):
         return '<DataType arraysize={}>{}</DataType>'.format(
             self.arraysize, self.value)
 
-    @property
+    @xmlattribute
     def arraysize(self):
         """Specifies the size of the dataType"""
         return self._arraysize
@@ -697,7 +699,7 @@ class DataType(ValueMixin, Element):
             vo_raise(E01, arraysize, self._config, self._pos)
         self._arraysize = arraysize
 
-    @property
+    @xmlattribute
     def delim(self):
         """
         the string that is used to delimit elements of an array
@@ -716,7 +718,7 @@ class DataType(ValueMixin, Element):
     def delim(self, delim):
         self._delim = delim
 
-    @property
+    @xmlattribute(name='extendedType')
     def extendedtype(self):
         """
         The data value represented by this type can be
@@ -737,7 +739,7 @@ class DataType(ValueMixin, Element):
     def extendedtype(self, extendedtype):
         self._extendedtype = extendedtype
 
-    @property
+    @xmlattribute(name='extendedSchema')
     def extendedschema(self):
         """
         An identifier for the schema that the value given
@@ -766,10 +768,10 @@ class SimpleDataType(DataType):
     This set is intended for describing simple input parameters to a service or
     function.
     """
-    def _value_check(self, value):
+    def _content_check(self, value):
         if value is not None:
-            valid_values = (
-                'integer', 'real', 'complex', 'boolean', 'char', 'string')
+            valid_values = {
+                'integer', 'real', 'complex', 'boolean', 'char', 'string'}
             if value not in valid_values:
                 vo_warn(W02, value, self._config, self._pos)
 
@@ -814,7 +816,7 @@ class VOTableType(TableDataType):
     VOTableType element as described in
     http://www.ivoa.net/xml/VODataService/v1.1
     """
-    def _value_check(self, value):
+    def _content_check(self, value):
         if value is not None:
             valid_values = (
                 'boolean', 'bit', 'unsignedByte', 'short', 'int', 'long',
@@ -832,12 +834,15 @@ class TAPDataType(TableDataType):
     an abstract parent for the specific data types supported by the
     Table Access Protocol.
     """
-    def __init__(self, size=None, config=None, pos=None, **kwargs):
-        super(TAPDataType, self).__init__(config=config, pos=pos, **kwargs)
+    def __init__(
+        self, config=None, pos=None, _name='dataType', size=None, **kwargs
+    ):
+        super(TAPDataType, self).__init__(
+            config=config, pos=pos, _name=_name, **kwargs)
 
-        self._size = size
+        self.size = size
 
-    @property
+    @xmlattribute
     def size(self):
         """
         the length of the fixed-length value.
@@ -865,7 +870,7 @@ class TAPType(TAPDataType):
 
     a data type supported explicitly by the Table Access Protocol (v1.0).
     """
-    def _value_check(self, value):
+    def _content_check(self, value):
         if value is not None:
             valid_values = (
                 'BOOLEAN', 'SMALLINT', 'INTEGER', 'BIGINT', 'REAL', 'DOUBLE',
@@ -880,15 +885,9 @@ class FKColumn(Element):
     FKColumn element as described in
     http://www.ivoa.net/xml/VODataService/v1.1
     """
-    def __init__(self, config=None, pos=None, **kwargs):
-        super(FKColumn, self).__init__(config=config, pos=pos, **kwargs)
-
-        self._tag_mapping.update({
-            "fromColumn": make_add_simplecontent(
-                self, "fromColumn", "fromcolumn", W10),
-            "targetColumn": make_add_simplecontent(
-                self, "targetColumn", "targetcolumn", W11)
-        })
+    def __init__(self, config=None, pos=None, _name='fkColumn', **kwargs):
+        super(FKColumn, self).__init__(
+                config=config, pos=pos, _name=_name, **kwargs)
 
         self._fromcolumn = None
         self._targetcolumn = None
@@ -897,7 +896,7 @@ class FKColumn(Element):
         return '<FKColumn fromColumn={} targetColumn={}>...</FKColumn>'.format(
             self.fromcolumn, self.targetcolumn)
 
-    @property
+    @xmlelement(name='fromColumn', plain=True, multiple_exc=W10)
     def fromcolumn(self):
         """
         The unqualified name of the column from the current table.
@@ -908,7 +907,7 @@ class FKColumn(Element):
     def fromcolumn(self, fromcolumn):
         self._fromcolumn = fromcolumn
 
-    @property
+    @xmlelement(name='targetColumn', plain=True, multiple_exc=W11)
     def targetcolumn(self):
         """
         The unqualified name of the column from the target table.
@@ -927,23 +926,14 @@ class FKColumn(Element):
         if self.targetcolumn is None:
             vo_raise(E03, config=config, pos=self._pos)
 
+
 class ForeignKey(Element):
     """
     ForeignKey element as described in
     http://www.ivoa.net/xml/VODataService/v1.1
     """
-    def __init__(self, config=None, pos=None, **kwargs):
-        Element.__init__(self, config, pos, **kwargs)
-
-        self._tag_mapping.update({
-            "targetTable": make_add_simplecontent(
-                self, "targetTable", "targettable", W12),
-            "fkColumn": make_add_complexcontent(
-                self, "fkColumn", "fkcolumns", FKColumn),
-            "description": make_add_simplecontent(
-                self, "description", "description", W06),
-            "utype": make_add_simplecontent(self, "utype", "utype", W09)
-        })
+    def __init__(self, config=None, pos=None, _name='foreignKey', **kwargs):
+        Element.__init__(self, config, pos, _name, **kwargs)
 
         self._targettable = None
         self._fkcolumns = HomogeneousList(FKColumn)
@@ -954,7 +944,7 @@ class ForeignKey(Element):
         return '<ForeignKey targetTable={}>...</ForeignKey>'.format(
             self.targettable)
 
-    @property
+    @xmlelement(name='targetTable', plain=True, multiple_exc=W12)
     def targettable(self):
         """
         the fully-qualified name (including catalog and schema, as
@@ -967,7 +957,7 @@ class ForeignKey(Element):
     def targettable(self, targettable):
         self._targettable = targettable
 
-    @property
+    @xmlelement(name='fkColumn')
     def fkcolumns(self):
         """
         A list of foreign key columns. Must contain only `FKColumn` objects.
@@ -978,7 +968,13 @@ class ForeignKey(Element):
         """
         return self._fkcolumns
 
-    @property
+    @fkcolumns.adder
+    def fkcolumns(self, iterator, tag, data, config, pos):
+        fkcolumn = FKColumn(config, pos, 'fkColumn', **data)
+        fkcolumn.parse(iterator, config)
+        self.fkcolumns.append(fkcolumn)
+
+    @xmlelement(plain=True, multiple_exc=W06)
     def description(self):
         """
         a free-text description of what this key points to
@@ -990,7 +986,7 @@ class ForeignKey(Element):
     def description(self, description):
         self._description = description
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W09)
     def utype(self):
         """
         an identifier for a concept in a data model that

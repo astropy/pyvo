@@ -6,647 +6,434 @@ Tests for pyvo.dal.query
 from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
-import os, sys, shutil, re, imp, glob, tempfile, random, time
-import unittest, pdb
-import six
+from functools import partial
+from contextlib import ExitStack
+from os import listdir
 
-import pyvo.dal.query as dalq
-import pyvo.dal.dbapi2 as daldbapi
-# from astropy.io.vo import parse as votableparse
-from astropy.io.votable.tree import VOTableFile
-from astropy.io.votable import parse as votableparse
-from astropy.utils.data import get_pkg_data_filename
-from . import testserver
+import pytest
 
-siaresultfile = "data/neat-sia.xml"
-ssaresultfile = "data/jhu-ssa.xml"
-testserverport = 8084
-testserverport += 10
-testserverport += random.randint(0, 9)
+import numpy as np
 
-class DALAccessErrorTest(unittest.TestCase):
+from pyvo.dal.query import DALService, DALQuery, DALResults, Record
+from pyvo.dal.exceptions import DALServiceError, DALQueryError, DALFormatError
 
-    reason = "nya-nya"
-    url = "http://localhost"
+from astropy.table import Table
+from astropy.io.votable.tree import VOTableFile, Table as VOTable
+from astropy.io.fits import HDUList
 
-    def testProperties2(self):
-        e = dalq.DALAccessError(self.reason, self.url)
-        self.assertEquals(self.reason, e.reason)
-        self.assertEquals(self.url, e.url)
+from astropy.utils.data import get_pkg_data_contents
 
-    def testProperties1(self):
-        e = dalq.DALAccessError(self.reason)
-        self.assertEquals(self.reason, e.reason)
-        self.assert_(e.url is None)
-
-    def testPropertiesDef(self):
-        e = dalq.DALAccessError()
-        self.assertEquals(dalq.DALAccessError._defreason, e.reason)
-        self.assert_(e.url is None)
+get_pkg_data_contents = partial(
+    get_pkg_data_contents, package=__package__, encoding='binary')
 
 
-class DALServiceErrorTest(unittest.TestCase):
+@pytest.fixture(autouse=True, scope='module')
+def register_mocks(mocker):
+    with ExitStack() as stack:
+        matchers = [
+            stack.enter_context(mocker.register_uri(
+                'GET', '//example.com/query/basic',
+                content=get_pkg_data_contents('data/query/basic.xml')
+            )),
+            stack.enter_context(mocker.register_uri(
+                'GET', 'http://example.com/query/missingtable',
+                content=get_pkg_data_contents('data/query/missingtable.xml')
+            )),
+            stack.enter_context(mocker.register_uri(
+                'GET', 'http://example.com/query/missingresource',
+                content=get_pkg_data_contents('data/query/missingresource.xml')
+            )),
+            stack.enter_context(mocker.register_uri(
+                'GET', 'http://example.com/query/missingcolumns',
+                content=get_pkg_data_contents('data/query/missingcolumns.xml')
+            )),
+            stack.enter_context(mocker.register_uri(
+                'GET', 'http://example.com/query/firstresource',
+                content=get_pkg_data_contents('data/query/firstresource.xml')
+            )),
+            stack.enter_context(mocker.register_uri(
+                'GET', 'http://example.com/query/rootinfo',
+                content=get_pkg_data_contents('data/query/rootinfo.xml')
+            )),
+            stack.enter_context(mocker.register_uri(
+                'GET', 'http://example.com/query/tableinfo',
+                content=get_pkg_data_contents('data/query/tableinfo.xml')
+            )),
+            stack.enter_context(mocker.register_uri(
+                'GET', 'http://example.com/query/dataset',
+                content=get_pkg_data_contents('data/query/dataset.xml')
+            )),
+            stack.enter_context(mocker.register_uri(
+                'GET', 'http://example.com/querydata/image.fits',
+                content=get_pkg_data_contents('data/querydata/image.fits')
+            )),
+            # mocker.register_uri(
+            #     'GET', 'http://example.com/querydata/votable.xml',
+            #     content=get_pkg_data_contents('data/querydata/votable.xml')
+            # ),
+            # mocker.register_uri(
+            #     'GET', 'http://example.com/querydata/votable-datalink.xml',
+            #     content=get_pkg_data_contents('data/querydata/votable-datalink.xml')
+            # ),
+            stack.enter_context(mocker.register_uri(
+                'GET', 'http://example.com/query/nonexistant',
+                text='Not Found', status_code=404
+            )),
+            stack.enter_context(mocker.register_uri(
+                'GET', '//example.com/query/errornous',
+                text='Error', status_code=500
+            )),
+            stack.enter_context(mocker.register_uri(
+                'GET', 'http://example.com/query/errorstatus',
+                content=get_pkg_data_contents('data/query/errorstatus.xml')
+            )),
+        ]
 
-    reason = "nya-nya"
-    code = 404
-    cause = "poof"
-    url = "http://localhost/"
+        def verbosetest_callback(request, context):
+            assert 'verbose' in request.qs and '1' in request.qs['verbose']
+            return get_pkg_data_contents('data/query/basic.xml')
 
-    def testProperties4(self):
-        e = dalq.DALServiceError(self.reason, self.code, self.cause, self.url)
-        self.assertEquals(self.reason, e.reason)
-        self.assertEquals(self.cause, e.cause)
-        self.assertEquals(self.code, e.code)
-        self.assertEquals(self.url, e.url)
+        matchers.append(stack.enter_context(mocker.register_uri(
+            'GET', 'http://example.com/query/verbosetest',
+            content=verbosetest_callback
+        )))
 
-    def testProperties3(self):
-        e = dalq.DALServiceError(self.reason, self.code, self.cause)
-        self.assertEquals(self.reason, e.reason)
-        self.assertEquals(self.cause, e.cause)
-        self.assertEquals(self.code, e.code)
-        self.assert_(e.url is None)
-
-    def testProperties2(self):
-        e = dalq.DALServiceError(self.reason, self.code)
-        self.assertEquals(self.reason, e.reason)
-        self.assertEquals(self.code, e.code)
-        self.assert_(e.cause is None)
-        self.assert_(e.url is None)
-
-    def testProperties1(self):
-        e = dalq.DALServiceError(self.reason)
-        self.assertEquals(self.reason, e.reason)
-        self.assert_(e.code is None)
-        self.assert_(e.cause is None)
-        self.assert_(e.url is None)
-
-    def testPropertiesDef(self):
-        e = dalq.DALServiceError()
-        self.assert_(e.reason and e.reason.startswith("Unknown service "))
-        self.assert_(e.code is None)
-        self.assert_(e.cause is None)
-        self.assert_(e.url is None)
-
-    def testFromExcept(self):
-        c = RuntimeError(self.reason)
-        e = dalq.DALServiceError.from_except(c)
-        self.assertEquals(e.reason, "RuntimeError: " + self.reason)
-        self.assert_(e.cause is c)
-        self.assert_(e.code is None)
-        self.assert_(e.url is None)
-
-class DALQueryErrorTest(unittest.TestCase):
-
-    reason = "nya-nya"
-    label = "goofed"
-    url = "http://localhost"
-
-    def testProperties3(self):
-        e = dalq.DALQueryError(self.reason, self.label, self.url)
-        self.assertEquals(self.reason, e.reason)
-        self.assertEquals(self.label, e.label)
-        self.assertEquals(self.url, e.url)
-
-    def testProperties2(self):
-        e = dalq.DALQueryError(self.reason, self.label)
-        self.assertEquals(self.reason, e.reason)
-        self.assertEquals(self.label, e.label)
-        self.assert_(e.url is None)
-
-    def testProperties1(self):
-        e = dalq.DALQueryError(self.reason)
-        self.assertEquals(self.reason, e.reason)
-        self.assert_(e.label is None)
-        self.assert_(e.url is None)
-
-    def testPropertiesDef(self):
-        e = dalq.DALQueryError()
-        self.assert_(e.reason and e.reason.startswith("Unknown DAL Query "))
-        self.assert_(e.label is None)
-        self.assert_(e.label is None)
-        self.assert_(e.url is None)
+        yield matchers
 
 
-class DALResultsTest(unittest.TestCase):
+def _test_results(results):
+    """Regression test result columns for correctnes"""
+    assert len(results) == 3
 
-    def setUp(self):
-        resultfile = get_pkg_data_filename(siaresultfile)
-        self.votable = votableparse(resultfile)
+    assert results['1', 0] == 23
+    assert results['1', 1] == 42
+    assert results['1', 2] == 1337
 
-    def testCtor(self):
-        self.result = dalq.DALResults(self.votable)
-        self.assert_(isinstance(self.result._fldnames, tuple))
-        self.assert_(self.result.votable is not None)
-
-    def testProps(self):
-        self.testCtor()
-        self.assertEquals(len(self.result), 2)
-
-        names = self.result.fieldnames
-        self.assertIsInstance(names, tuple)
-        self.assertEquals(len(names), 10)
-        for i, name in enumerate(names):
-            self.assert_(
-                type(name) in (six.binary_type, six.text_type),
-                "field name #{0} not a string: {1}".format(i, type(name)))
-
-            self.assert_(name, "field name #{0} is empty".format(i))
-
-        fielddescs = self.result.fielddescs
-        self.assert_(isinstance(fielddescs, list))
-        self.assertEquals(len(fielddescs), 10)
-        for fielddesc in fielddescs:
-            self.assert_(all((
-                hasattr(fielddesc, 'name'),
-                hasattr(fielddesc, 'ID'),
-                hasattr(fielddesc, 'ucd'),
-                hasattr(fielddesc, 'datatype')
-            )))
-
-        for i in range(len(names)):
-            fielddesc = self.result.getdesc(names[i])
-            self.assert_(fielddesc is fielddescs[i])
-
-        field = self.result.getdesc("Format")
-        self.assertEquals(field.name, "Format")
-        self.assertEquals(field.ucd, "VOX:Image_Format")
-        self.assertEquals(field.datatype, "char")
-        self.assertEquals(field.arraysize, "*")
-        self.assertIsNone(field.utype)
-
-    def testValue(self):
-        self.testCtor()
-        self.assertEquals(self.result.getvalue("Format", 0), b"image/fits")
-        self.assertEquals(self.result.getvalue("Format", 1), b"image/jpeg")
-        self.assertEquals(self.result.getvalue("Dim", 0), 2)
-        val = self.result.getvalue("Size", 0)
-        self.assertEquals(len(val), 2)
-        self.assertEquals(val[0], 300)
-        self.assertEquals(val[1], 300)
-        self.assertRaises(KeyError, self.result.getvalue, "Goober", 0)
-
-    def testGetRecord(self):
-        self.testCtor()
-        rec = self.result.getrecord(0)
-        self.assert_(rec is not None)
-        self.assert_(isinstance(rec, dalq.Record))
-
-        rec = self.result.getrecord(1)
-        self.assert_(rec is not None)
-        self.assert_(isinstance(rec, dalq.Record))
-
-        self.assertRaises(IndexError, self.result.getrecord, 2)
-
-    def testGetColumn(self):
-        self.testCtor()
-        col = self.result.getcolumn('Ra')
-        shifted = col + 0.05
-        self.assertAlmostEquals(0.05, shifted[0]-col[0])
-        self.assertRaises(KeyError, self.result.getcolumn, 'goob')
-
-    def testIter(self):
-        self.testCtor()
-        i = 0
-        for rec in self.result:
-            self.assertIsInstance(rec, dalq.Record)
-            i += 1
-        self.assertEquals(i, 2)
-
-    def testCursor(self):
-        self.testCtor()
-        c = self.result.cursor()
-        self.assertIsInstance(c, daldbapi.Cursor)
-
-    def testFieldnameByUcd(self):
-        self.testCtor()
-        self.assertEquals(
-            self.result.fieldname_with_ucd("POS_EQ_RA_MAIN"), "Ra")
-        self.assertEquals(
-            self.result.fieldname_with_ucd("VOX:Image_AccessReference"), "URL")
-
-    def testByUcd(self):
-        self.testCtor()
-        self.assertAlmostEqual(0.0, self.result[0].getbyucd("POS_EQ_RA_MAIN"))
-        self.assertEquals(
-            b"http://skyview.gsfc.nasa.gov/cgi-bin/images?position=0.0%2C0.0&survey=neat&pixels=300%2C300&sampler=Clip&size=1.0%2C1.0&projection=Tan&coordinates=J2000.0&return=FITS",
-            self.result[0].getbyucd("VOX:Image_AccessReference"))
-
-    def testFieldnameByUtype(self):
-        self.testCtor()
-        self.assertAlmostEqual(0.0, self.result[0].getbyutype("na_ra"))
-        self.assertEquals(
-            b"http://skyview.gsfc.nasa.gov/cgi-bin/images?position=0.0%2C0.0&survey=neat&pixels=300%2C300&sampler=Clip&size=1.0%2C1.0&projection=Tan&coordinates=J2000.0&return=FITS",
-            self.result[0].getbyutype("na_acref"))
+    assert results['2', 0] == b'Illuminatus'
+    assert results['2', 1] == b"Don't panic, and always carry a towel"
+    assert results['2', 2] == b'Elite'
 
 
-class RecordTest(unittest.TestCase):
+def _test_records(records):
+    """ Regression test dal records for correctness"""
+    assert len(records) == 3
 
-    def setUp(self):
-        resultfile = get_pkg_data_filename(siaresultfile)
-        self.votable = votableparse(resultfile)
-        self.result = dalq.DALResults(self.votable)
-        self.rec = self.result.getrecord(0)
+    assert all([isinstance(record, Record) for record in records])
 
-    def testFields(self):
-        reckeys = self.rec.keys()
+    assert records[0]['1'] == 23
+    assert records[0]['2'] == b'Illuminatus'
 
-        for fieldname in self.result.fieldnames:
-            self.assert_(fieldname in reckeys)
+    assert records[1]['1'] == 42
+    assert records[1]['2'] == b"Don't panic, and always carry a towel"
 
-    def testValues(self):
-        self.assertEquals(self.rec["Format"], b"image/fits")
-        self.assertEquals(self.rec["Dim"], 2)
-        val = self.rec["Size"]
-        self.assertEquals(len(val), 2)
-        self.assertEquals(val[0], 300)
-        self.assertEquals(val[1], 300)
+    assert records[2]['1'] == 1337
+    assert records[2]['2'] == b'Elite'
+
+
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+class TestDALService(object):
+    def test_init(self):
+        """Test if baseurl if passed correctly"""
+        service = DALService('http://example.com/query/basic')
+        assert service.baseurl == 'http://example.com/query/basic'
+
+    def test_search(self):
+        """
+        Test (in conjunction with mocker) that parameters arrive serverside,
+        while also ensuring data consistency
+        """
+        service = DALService('http://example.com/query/verbosetest')
+        dalresults = service.search(VERBOSE=1)
+
+        _test_results(dalresults)
+        _test_records(dalresults)
+
+    def test_http_exception_404(self):
+        service = DALService('http://example.com/query/nonexistant')
+
         try:
-            self.rec["Goober"]
-            self.fail("Failed to raise KeyError on bad key")
-        except KeyError:
-            pass
-
-    def testSuggestExtension(self):
-        self.assertEquals(self.rec.suggest_extension("goob"), "goob")
-        self.assertIsNone(self.rec.suggest_extension())
-
-    def testHasKey(self):
-        self.assertEquals(self.rec["Format"], b"image/fits")
-        self.assertTrue("Format" in self.rec)
-        self.assertFalse("Goober" in self.rec)
-
-class MimeCheckTestCase(unittest.TestCase):
-
-    def testGood(self):
-        self.assertTrue(dalq.is_mime_type("image/jpeg"))
-        self.assertTrue(dalq.is_mime_type("application/fits"))
-        self.assertTrue(dalq.is_mime_type("application/x-fits"))
-        self.assertTrue(dalq.is_mime_type("application/fits"))
-        self.assertTrue(dalq.is_mime_type("application/votable+xml"))
-        self.assertTrue(dalq.is_mime_type("application/fits;convention=STScI-STIS"))
-
-    def testBad(self):
-        self.assertFalse(dalq.is_mime_type("image"))
-        self.assertFalse(dalq.is_mime_type("image/votable/xml"))
-
-class DALServiceTest(unittest.TestCase):
-
-    @classmethod
-    def setup_class(cls):
-        cls.srvr = testserver.get_server(testserverport)
-        cls.srvr.start()
-        time.sleep(0.5)
-
-    def setUp(self):
-        self.baseurl = "http://localhost:{0}/sia".format(self.srvr.port)
-
-    @classmethod
-    def teardown_class(cls):
-        if cls.srvr.is_alive():
-            cls.srvr.terminate()
-        if cls.srvr.is_alive():
-            print("prob")
-
-    def testCtor(self):
-        self.srv = dalq.DALService(self.baseurl)
-
-    def testProps(self):
-        self.testCtor()
-        self.assertEquals(self.srv.baseurl, self.baseurl)
-
-    def testCreateQuery(self):
-        self.testCtor()
-        q = self.srv.create_query()
-        self.assertIsInstance(q, dalq.DALQuery)
-        self.assertEquals(q.baseurl, self.baseurl)
-
-    def testCreateQueryWithKws(self):
-        self.testCtor()
-        q = self.srv.create_query(RA=12.045, DEC=-13.08, SR=0.01)
-        self.assertIsInstance(q, dalq.DALQuery)
-        self.assertEquals(q.baseurl, self.baseurl)
-        self.assertAlmostEquals(q.get('RA'), 12.045)
-        self.assertAlmostEquals(q.get('DEC'), -13.08)
-        self.assertAlmostEquals(q.get('SR'), 0.01)
-
-    def testSearch(self):
-        self.testCtor()
-        res = self.srv.search(RA=12.045, DEC=-13.08, SR=0.01)
-        self.assert_(len(res))
-
-
-class DALQueryTest(unittest.TestCase):
-
-    def setUp(self):
-        self.baseurl = "http://localhost/sia"
-
-    def testCtor(self):
-        self.query = dalq.DALQuery(self.baseurl)
-        self.assert_(self.query.get("FORMAT") is None)
-
-    def testProps(self):
-        self.testCtor()
-        self.assertEquals(self.query.baseurl, self.baseurl)
-
-    def testParam(self):
-        self.testCtor()
-        self.assertEquals(
-            len(self.query.keys()), 0,
-            "param set should be empty: {0}".format(self.query.keys()))
-        self.assertIsNone(self.query.get("RA"))
-
-        self.query["RA"] = 51.235
-        self.assertEquals(len(self.query.keys()), 1)
-        self.assertEquals(self.query.get("RA"), 51.235)
-
-        self.query["RA"] = 127.235
-        self.assertEquals(len(self.query.keys()), 1)
-        self.assertEquals(self.query.get("RA"), 127.235)
-
-        self.query["DEC"] = -13.49677
-        self.assertEquals(len(self.query.keys()), 2)
-        self.assertEquals(self.query.get("DEC"), -13.49677)
-
-        del self.query["RA"]
-        self.assertEquals(len(self.query.keys()), 1)
-        self.assertEquals(self.query.get("DEC"), -13.49677)
-        self.assert_(self.query.get("RA") is None)
-
-
-class QueryExecuteTest(unittest.TestCase):
-
-    srvr = None
-
-    @classmethod
-    def setup_class(cls):
-        cls.srvr = testserver.get_server(testserverport)
-        cls.srvr.start()
-        time.sleep(0.5)
-
-    @classmethod
-    def teardown_class(cls):
-        if cls.srvr.is_alive():
-            cls.srvr.terminate()
-        if cls.srvr.is_alive():
-            print("prob")
-
-    def testExecute(self):
-        q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
-        q["foo"] = "bar"
-
-        results = q.execute()
-        self.assertIsInstance(results, dalq.DALResults)
-        self.assertEquals(len(results), 2)
-
-    def testExecuteStream(self):
-        q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
-        q["foo"] = "bar"
-
-        strm = q.execute_stream()
-        self.assertIsNotNone(strm)
-        self.assert_(hasattr(strm, "read"))
-        results = strm.read()
-        strm.close()
-        self.assert_(results.startswith(b"<?xml version="))
-
-    def testExecuteRaw(self):
-        q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
-        q["foo"] = "bar"
-        # pdb.set_trace()
-        data = q.execute_raw()
-        self.assert_(data is not None)
-        if sys.version_info[0] >= 3:
-            self.assert_(isinstance(data, str) or isinstance(data, bytes))
+            service.search()
+        except DALServiceError as exc:
+            assert exc.code == 404
         else:
-            self.assert_(isinstance(data, unicode) or isinstance(data, str))
-        self.assert_(data.startswith(b"<?xml version="))
+            assert False
 
-    def testExecuteVotable(self):
-        q = dalq.DALQuery("http://localhost:{0}/sia".format(self.srvr.port))
-        q["foo"] = "bar"
+    def test_http_exception_500(self):
+        service = DALService('http://example.com/query/errornous')
 
-        results = q.execute_votable()
-        self.assert_(isinstance(results, VOTableFile))
-
-    def testExecuteServiceErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
-        q["foo"] = "bar"
-
-        self.assertRaises(dalq.DALServiceError, q.execute)
-
-    def testExecuteVotableServiceErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/goob".format(self.srvr.port))
-        q["foo"] = "bar"
-
-        self.assertRaises(dalq.DALServiceError, q.execute_votable)
-
-    def testExecuteRawQueryErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/err".format(self.srvr.port))
-        q["foo"] = "bar"
-
-        data = q.execute_raw()
-        self.assert_(data is not None)
-        if sys.version_info[0] >= 3:
-            self.assert_(isinstance(data, str) or isinstance(data, bytes))
+        try:
+            service.search()
+        except DALServiceError as exc:
+            assert exc.code == 500
         else:
-            self.assert_(isinstance(data, unicode) or isinstance(data, str))
-        self.assert_(data.startswith(b"<?xml version="))
-        self.assert_(b'<INFO name="QUERY_STATUS" value="ERR' in data)
+            assert False
 
-    def testExecuteQueryErr(self):
-        q = dalq.DALQuery("http://localhost:{0}/err".format(self.srvr.port))
-        q["foo"] = "bar"
+    def test_query_exception(self):
+        service = DALService('http://example.com/query/errorstatus')
 
-        try:
-            q.execute()
-            self.fail("failed to raise exception for syntax error")
-        except dalq.DALQueryError as e:
-            self.assertEquals(e.label, "ERROR")
-            self.assertEquals(str(e), "Forced Fail")
-        except dalq.DALServiceError as e:
-            self.fail("wrong exception raised: DALServiceError: " + str(e))
-        except Exception as e:
-            self.fail("wrong exception raised: " + str(type(e)))
+        with pytest.raises(DALQueryError):
+            service.search()
 
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W53")
+    def test_format_exception(self):
+        with pytest.raises(DALFormatError):
+            service = DALService('http://example.com/query/missingtable')
+            service.search()
 
-class CursorTest(unittest.TestCase):
+        with pytest.raises(DALFormatError):
+            service = DALService('http://example.com/query/missingresource')
+            service.search()
 
-    def setUp(self):
-        resultfile = get_pkg_data_filename(ssaresultfile)
-        self.votable = votableparse(resultfile)
-
-    def testCtor(self):
-        self.result = dalq.DALResults(self.votable)
-        self.assert_(isinstance(self.result._fldnames, tuple))
-        self.assert_(self.result.votable is not None)
-        self.cursor = self.result.cursor()
-
-    def testCursor(self):
-        self.testCtor()
-        self.assert_(self.cursor is not None)
-        self.assert_(isinstance(self.cursor, daldbapi.Cursor))
-        self.assertEquals(self.cursor.rowcount, 35)
-        self.assertEquals(self.cursor.arraysize, 1)
-        descr = self.cursor.description
-        self.assert_(len(descr) > 0)
-        self.assertEquals(descr[1][0], 'AcRef')
-        self.assert_(isinstance(descr[1][1], daldbapi.TypeObject))
-
-    def testInfos(self):
-        self.testCtor()
-        infos = self.cursor.infos()
-        self.assertEquals(int(infos['TableRows']), 35)
-
-    def testFetchOne(self):
-        self.testCtor()
-        pos = self.cursor.pos
-        rec = self.cursor.fetchone()
-        self.assertEquals(self.cursor.pos, pos + 1)
-        rec2 = self.cursor.fetchone()
-#        self.assert_(rec != rec2)
-        self.assertEquals(self.cursor.pos, pos + 2)
-
-    def testFetchMany(self):
-        self.testCtor()
-        pos = self.cursor.pos
-        recs = self.cursor.fetchmany()
-        self.assertEquals(len(recs), self.cursor.arraysize)         
-        recs = self.cursor.fetchmany(size = 5)
-        self.assertEquals(len(recs), 5)
-        recs = self.cursor.fetchmany(size = -5)
-
-    def testFetchAll(self):
-        self.testCtor()
-        recs = self.cursor.fetchall()
-        self.assertEquals(len(recs), 35)
-
-        self.testCtor()
-        self.cursor.fetchone()
-        recs = self.cursor.fetchall()
-        self.assertEquals(len(recs), 34)
-        
-    def testScroll(self):
-        self.testCtor()
-        pos = self.cursor.pos
-        self.cursor.scroll(5)
-        self.assertEquals(self.cursor.pos, pos + 5)
-        self.cursor.scroll(5, mode = "absolute")
-        self.assertEquals(self.cursor.pos, 5)
-        try:
-          self.cursor.scroll(-1, mode = "absolute")
-        except daldbapi.DataError:
-          pass
-        self.cursor.scroll(-1)
-        self.assertEquals(self.cursor.pos, 4)
-
-class DatasetNameTest(unittest.TestCase):
-
-    base = "testds"
-
-    def setUp(self):
-        resultfile = get_pkg_data_filename(siaresultfile)
-        self.votable = votableparse(resultfile)
-        self.result = dalq.DALResults(self.votable)
-        self.rec = self.result.getrecord(0)
-
-        self.outdir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        shutil.rmtree(self.outdir)
-
-    def cleanfiles(self, tmpdir=None):
-        if not tmpdir:
-            tmpdir = self.outdir
-        if not os.path.isdir(tmpdir):
-            return
-        files = glob.glob(os.path.join(tmpdir, self.base+"*.*"))
-        for f in files:
-            os.remove(f)
-
-    def testMime2Ext(self):
-        self.assertEquals("fits", dalq.mime2extension("application/fits"))
-        self.assertEquals("fits", dalq.mime2extension("image/fits"))
-        self.assertEquals("fits", dalq.mime2extension("image/x-fits"))
-        self.assertEquals("jpg", dalq.mime2extension("image/jpeg"))
-        self.assertEquals("gif", dalq.mime2extension("image/gif"))
-        self.assertEquals("png", dalq.mime2extension("image/png"))
-        self.assertEquals("txt", dalq.mime2extension("text/plain"))
-        self.assertEquals("html", dalq.mime2extension("text/html"))
-        self.assertEquals("xml", dalq.mime2extension("text/xml"))
-        self.assertEquals("xml", dalq.mime2extension("application/votable;convention=stsci"))
-        self.assertEquals("xml", dalq.mime2extension("application/x-votable"))
-        self.assertEquals("xml", dalq.mime2extension("application/votable"))
-        self.assertEquals("xls", 
-               dalq.mime2extension("application/x-microsoft-spreadsheet", "xls"))
-
-    def testSuggest(self):
-        self.assertEquals("dataset", self.rec.suggest_dataset_basename())
-        self.assertEquals("DAT", self.rec.suggest_extension("DAT"))
-
-    def testMakeDatasetName(self):
-        self.assertTrue(os.path.isdir(self.outdir))
-        self.assertEquals("./dataset.dat", self.rec.make_dataset_filename())
-        self.assertEquals("./goober.dat", 
-                          self.rec.make_dataset_filename(base="goober"))
-        self.assertEquals("./dataset.fits", 
-                          self.rec.make_dataset_filename(ext="fits"))
-        self.assertEquals("./goober.fits", 
-                          self.rec.make_dataset_filename(base="goober", 
-                                                         ext="fits"))
-                          
-        self.assertEquals(self.outdir+"/dataset.dat", 
-                          self.rec.make_dataset_filename(self.outdir))
-
-        path = os.path.join(self.outdir,self.base+".dat")
-        self.assertFalse(os.path.exists(path))
-        self.assertEquals(path, 
-                          self.rec.make_dataset_filename(self.outdir, self.base))
-        open(path,'w').close()
-        self.assertTrue(os.path.exists(path))
-        path = os.path.join(self.outdir,self.base+"-1.dat")
-        self.assertEquals(path, 
-                          self.rec.make_dataset_filename(self.outdir, self.base))
-        open(path,'w').close()
-        self.assertTrue(os.path.exists(path))
-        path = os.path.join(self.outdir,self.base+"-2.dat")
-        self.assertEquals(path, 
-                          self.rec.make_dataset_filename(self.outdir, self.base))
-        open(path,'w').close()
-        self.assertTrue(os.path.exists(path))
-        path = os.path.join(self.outdir,self.base+"-3.dat")
-        self.assertEquals(path, 
-                          self.rec.make_dataset_filename(self.outdir, self.base))
-                         
-        self.cleanfiles()
-        open(os.path.join(self.outdir,self.base+".dat"),'w').close()
-        path = os.path.join(self.outdir,self.base+"-1.dat")
-        self.assertEquals(path, 
-                          self.rec.make_dataset_filename(self.outdir, self.base))
-        open(os.path.join(self.outdir,self.base+"-1.dat"),'w').close()
-        open(os.path.join(self.outdir,self.base+"-2.dat"),'w').close()
-        open(os.path.join(self.outdir,self.base+"-3.dat"),'w').close()
-        path = os.path.join(self.outdir,self.base+"-4.dat")
-        self.assertEquals(path, 
-                          self.rec.make_dataset_filename(self.outdir, self.base))
-
-        self.cleanfiles()
-        self.assertEquals(os.path.join(self.outdir,self.base+".dat"),
-                          self.rec.make_dataset_filename(self.outdir, self.base))
+        with pytest.raises(DALFormatError):
+            service = DALService('http://example.com/query/missingcolumns')
+            service.search()
 
 
-__all__ = "DALAccessErrorTest DALServiceErrorTest DALQueryErrorTest RecordTest EnsureBaseURLTest DALServiceTest DALQueryTest QueryExecuteTest CursorTest DatasetNameTest FormatTest".split()
-def suite():
-    tests = []
-    for t in __all__:
-        tests.append(unittest.makeSuite(globals()[t]))
-    return unittest.TestSuite(tests)
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+class TestDALQuery(object):
+    def test_url(self):
+        queries = (
+            DALQuery('http://example.com/query/basic'),
+            DALQuery(b'http://example.com/query/basic'),
+        )
 
-if __name__ == "__main__":
-    srvr = testserver.get_server(testserverport)
-    try:
-        srvr.start()
-        unittest.main()
-    finally:
-        if srvr.is_alive():
-            srvr.terminate()
+        assert all((
+            q.queryurl == 'http://example.com/query/basic' for q in queries
+        ))
 
+    def test_params(self):
+        query = DALQuery(
+            'http://example.com/query/basic', verbose=1, foo='BAR')
+
+        assert query['VERBOSE'] == 1
+        assert query['FOO'] == 'BAR'
+
+    def test_execute(self):
+        query = DALQuery('http://example.com/query/basic')
+        dalresults = query.execute()
+
+        assert dalresults.queryurl == 'http://example.com/query/basic'
+
+        _test_results(dalresults)
+        _test_records(dalresults)
+
+    def test_execute_raw(self):
+        query = DALQuery('http://example.com/query/basic')
+        raw = query.execute_raw()
+
+        assert raw.startswith(b'<?xml')
+        assert raw.strip().endswith(b'</VOTABLE>')
+
+
+@pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W03')
+@pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W06')
+class TestDALResults(object):
+    def test_init(self):
+        dalresults = DALResults.from_result_url(
+            'http://example.com/query/basic')
+
+        assert dalresults.queryurl == 'http://example.com/query/basic'
+        assert isinstance(dalresults.votable, VOTableFile)
+        assert isinstance(dalresults.resultstable, VOTable)
+
+        assert dalresults.fieldnames == ('1', '2')
+        assert (
+            dalresults.fielddescs[0].name, dalresults.fielddescs[1].name
+        ) == ('1', '2')
+
+        assert dalresults.status == ('OK', 'OK')
+
+    def test_from_result_url(self):
+        dalresults = DALResults.from_result_url(
+            'http://example.com/query/basic')
+        assert dalresults.status == ('OK', 'OK')
+
+    def test_init_errorstatus(self):
+        with pytest.raises(DALQueryError):
+            DALResults.from_result_url('http://example.com/query/errorstatus')
+
+    def test_init_missingtable(self):
+        with pytest.raises(DALFormatError):
+            DALResults.from_result_url('http://example.com/query/missingtable')
+
+    @pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W53')
+    def test_init_missingresource(self):
+        with pytest.raises(DALFormatError):
+            DALResults.from_result_url(
+                'http://example.com/query/missingresource')
+
+    @pytest.mark.xfail()
+    def test_init_missingcolumns(self):
+        with pytest.raises(DALFormatError):
+            DALResults.from_result_url(
+                'http://example.com/query/missingcolumns')
+
+    def test_init_firstresource(self):
+        dalresults = DALResults.from_result_url(
+            'http://example.com/query/firstresource')
+        assert dalresults.status == ('OK', 'OK')
+
+    def test_init_tableinfo(self):
+        dalresults = DALResults.from_result_url(
+            'http://example.com/query/tableinfo')
+        assert dalresults.status == ('OK', 'OK')
+
+    def test_init_rootinfo(self):
+        dalresults = DALResults.from_result_url(
+            'http://example.com/query/rootinfo')
+        assert dalresults.status == ('OK', 'OK')
+
+    @pytest.mark.xfail(reason="ID lookup does not work")
+    def test_repr(self):
+        dalresults = DALResults.from_result_url(
+            'http://example.com/query/basic')
+
+        assert repr(dalresults) == repr(dalresults.table())
+
+    def test_iter(self):
+        dalresults = DALResults.from_result_url(
+            'http://example.com/query/basic')
+
+        records = list(iter(dalresults))
+
+        _test_results(dalresults)
+        _test_records(records)
+
+    def test_dataconsistency(self):
+        dalresults = DALResults.from_result_url(
+            'http://example.com/query/basic')
+
+        assert isinstance(dalresults['1'], np.ndarray)
+        assert isinstance(dalresults['2'], np.ndarray)
+
+        _test_results(dalresults)
+        _test_records(dalresults)
+
+    @pytest.mark.xfail(reason="ID lookup does not work")
+    def test_table_conversion(self):
+        dalresults = DALResults.from_result_url(
+            'http://example.com/query/basic')
+
+        assert isinstance(dalresults.table(), Table)
+        assert len(dalresults) == len(dalresults.table())
+
+    def test_id_over_name(self):
+        dalresults = DALResults.from_result_url(
+            'http://example.com/query/basic')
+
+        assert isinstance(dalresults['_1'], np.ndarray)
+        assert isinstance(dalresults['_2'], np.ndarray)
+
+    def test_nosuchcolumn(self):
+        dalresults = DALResults.from_result_url(
+            'http://example.com/query/basic')
+
+        with pytest.raises(KeyError):
+            dalresults['nosuchcolumn']
+
+        with pytest.raises(KeyError):
+            dalresults.getdesc('nosuchcolumn')
+
+    def test_columnaliases(self):
+        dalresults = DALResults.from_result_url(
+            'http://example.com/query/basic')
+
+        assert dalresults.fieldname_with_ucd('foo') == '1'
+        assert dalresults.fieldname_with_ucd('bar') == '1'
+
+        assert dalresults.fieldname_with_utype('foobar') == '2'
+
+        assert dalresults.fieldname_with_ucd('baz') is None
+        assert dalresults.fieldname_with_utype('foobaz') is None
+
+
+@pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W03')
+@pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W06')
+class TestRecord(object):
+    def test_itemaccess(self):
+        record = DALResults.from_result_url(
+            'http://example.com/query/basic')[0]
+
+        assert record['1'] == 23
+        assert record['2'] == b'Illuminatus'
+
+        assert record['_1'] == 23
+        assert record['_2'] == b'Illuminatus'
+
+    def test_nosuchcolumn(self):
+        record = DALResults.from_result_url(
+            'http://example.com/query/basic')[0]
+
+        with pytest.raises(KeyError):
+            record['nosuchcolumn']
+
+    def test_iter(self):
+        record = DALResults.from_result_url(
+            'http://example.com/query/basic')[0]
+
+        record = list(iter(record))
+
+        assert record[0] == '1'
+        assert record[1] == '2'
+
+    def test_len(self):
+        record = DALResults.from_result_url(
+            'http://example.com/query/basic')[0]
+
+        assert len(record) == 2
+
+    def test_repr(self):
+        record = DALResults.from_result_url(
+            'http://example.com/query/basic')[0]
+
+        assert repr(record) == repr((23, b'Illuminatus'))
+
+    def test_get(self):
+        record = DALResults.from_result_url(
+            'http://example.com/query/basic')[0]
+
+        assert record.get('2', decode=True) == 'Illuminatus'
+
+    def test_columnaliases(self):
+        record = DALResults.from_result_url(
+            'http://example.com/query/basic')[0]
+
+        assert record.getbyucd('foo') == 23
+        assert record.getbyucd('bar') == 23
+
+        assert record.getbyutype('foobar') == b'Illuminatus'
+
+        record.getbyucd('baz') is None
+        record.getbyutype('foobaz') is None
+
+    def test_datasets(self):
+        records = DALResults.from_result_url(
+            'http://example.com/query/dataset')
+
+        record = records[0]
+        assert record.getdataurl() == 'http://example.com/querydata/image.fits'
+        dataset = record.getdataset()
+        HDUList.fromstring(dataset.read())
+
+    def test_nodataset(self):
+        record = DALResults.from_result_url(
+            'http://example.com/query/basic')[0]
+
+        assert record.getdataurl() is None
+
+        with pytest.raises(KeyError):
+            record.getdataset().read()
+
+    def test_cachedataset(self, tmpdir):
+        tmpdir = str(tmpdir)
+
+        record = DALResults.from_result_url(
+            'http://example.com/query/dataset')[0]
+
+        record.cachedataset(dir=tmpdir)
+
+        assert "dataset.dat" in listdir(tmpdir)
+
+
+class TestUpload(object):
+    pass

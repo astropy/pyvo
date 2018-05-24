@@ -5,15 +5,13 @@ from __future__ import (absolute_import, division, print_function,
 from astropy.extern import six
 
 from astropy.utils.collections import HomogeneousList
-from astropy.utils.xml import check as xml_check
-from astropy.io.votable.exceptions import vo_raise, vo_warn, warn_or_raise
 
-from .util import (
-    make_add_simplecontent, make_add_complexcontent, Element, ValueMixin)
+from ...utils.xml.elements import xmlelement, Element
 from . import voresource as vr
 from .exceptions import W32, W33, W34, W35
 
 __all__ = ["Availability"]
+
 
 ######################################################################
 # FACTORY FUNCTIONS
@@ -25,20 +23,12 @@ def _convert_boolean(value, default=None):
         '1': True
     }.get(value, default)
 
+
 ######################################################################
 # ELEMENT CLASSES
 class Availability(Element):
-    def __init__(self, config=None, pos=None, **kwargs):
-        super(Availability, self).__init__(config=config, pos=pos, **kwargs)
-
-        self._tag_mapping.update({
-            "available": make_add_simplecontent(
-                self, "available", "available", W32),
-            "upSince": make_add_simplecontent(self, "upSince", "upsince", W33),
-            "downAt": make_add_simplecontent(self, "downAt", "downat", W34),
-            "backAt": make_add_simplecontent(self, "backAt", "backat", W35),
-            "note": make_add_simplecontent(self, "note", "notes")
-        })
+    def __init__(self, config=None, pos=None, _name='availability', **kwargs):
+        super(Availability, self).__init__(config, pos, _name, **kwargs)
 
         self._available = None
         self._upsince = None
@@ -46,7 +36,7 @@ class Availability(Element):
         self._backat = None
         self._notes = HomogeneousList(six.text_type)
 
-    @property
+    @xmlelement(plain=True, multiple_exc=W32)
     def available(self):
         return self._available
 
@@ -54,7 +44,7 @@ class Availability(Element):
     def available(self, available):
         self._available = _convert_boolean(available)
 
-    @property
+    @xmlelement(name='upSince', plain=True, multiple_exc=W33)
     def upsince(self):
         return self._upsince
 
@@ -62,7 +52,7 @@ class Availability(Element):
     def upsince(self, upsince):
         self._upsince = upsince
 
-    @property
+    @xmlelement(name='downAt', plain=True, multiple_exc=W34)
     def downat(self):
         return self._downat
 
@@ -70,7 +60,7 @@ class Availability(Element):
     def downat(self, downat):
         self._downat = downat
 
-    @property
+    @xmlelement(name='backAt', plain=True, multiple_exc=W35)
     def backat(self):
         return self._backat
 
@@ -78,6 +68,6 @@ class Availability(Element):
     def backat(self, backat):
         self._backat = backat
 
-    @property
+    @xmlelement(name='note', plain=True)
     def notes(self):
         return self._notes

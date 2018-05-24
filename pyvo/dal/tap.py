@@ -123,7 +123,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         try:
             for capa in self.capabilities:
                 if isinstance(capa, tr.TableAccess):
-                    return capa.outputlimit.default.value
+                    return capa.outputlimit.default.content
         except AttributeError:
             pass
         raise DALServiceError("Default limit not exposed by the service")
@@ -141,7 +141,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         try:
             for capa in self.capabilities:
                 if isinstance(capa, tr.TableAccess):
-                    return capa.outputlimit.hard.value
+                    return capa.outputlimit.hard.content
         except AttributeError:
             pass
         raise DALServiceError("Hard limit not exposed by the service")
@@ -377,7 +377,7 @@ class AsyncTAPJob(object):
         # requests doesn't decode the content by default
         response.raw.read = partial(response.raw.read, decode_content=True)
 
-        self._job.update(uws.parse_job(response.raw.read))
+        self._job = uws.parse_job(response.raw.read)
 
     @property
     def job(self):
@@ -400,7 +400,7 @@ class AsyncTAPJob(object):
         """
         the job id
         """
-        return self._job["jobId"]
+        return self._job.jobid.content
 
     @property
     def phase(self):
@@ -408,26 +408,18 @@ class AsyncTAPJob(object):
         the current query phase
         """
         self._update()
-        return self._job["phase"]
+        return self._job.phase.content
 
     @property
     def execution_duration(self):
         """
-        maximum execution duration. read-write
+        maximum execution duration as ~`astropy.time.TimeDelta`
         """
         self._update()
-        return self._job["executionDuration"]
+        return self._job.executionduration.content
 
     @execution_duration.setter
     def execution_duration(self, value):
-        """
-        maximum execution duration. read-write
-
-        Parameters
-        ----------
-        value : int
-            seconds after the query execution is aborted
-        """
         try:
             response = requests.post(
                 "{}/executionduration".format(self.url),
@@ -435,7 +427,8 @@ class AsyncTAPJob(object):
             response.raise_for_status()
         except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
-        self._job["executionDuration"] = value
+
+        self._update()
 
     @property
     def destruction(self):
@@ -444,7 +437,7 @@ class AsyncTAPJob(object):
         read-write
         """
         self._update()
-        return self._job["destruction"]
+        return self._job.destruction.content
 
     @destruction.setter
     def destruction(self, value):
@@ -470,7 +463,8 @@ class AsyncTAPJob(object):
             response.raise_for_status()
         except requests.exceptions.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
-        self._job["destruction"] = value
+
+        self._update()
 
     @property
     def quote(self):
@@ -478,7 +472,7 @@ class AsyncTAPJob(object):
         estimated runtime
         """
         self._update()
-        return self._job["quote"]
+        return self._job.quote.content
 
     @property
     def owner(self):
@@ -486,14 +480,31 @@ class AsyncTAPJob(object):
         job owner (if applicable)
         """
         self._update()
-        return self._job["owner"]
+        return self._job.owner.content
+
+    @property
+    def results(self):
+        """
+        The job results if exists
+        """
+        return self._job.results
+
+    @property
+    def result(self):
+        """
+        The job result if exists
+        """
+        try:
+            return self._job.results[0]
+        except IndexError:
+            return None
 
     @property
     def result_uris(self):
         """
         a list of the last result uri's
         """
-        return self._job["results"]
+        return [result.href for result in self._job.results]
 
     @property
     def result_uri(self):
@@ -501,14 +512,14 @@ class AsyncTAPJob(object):
         the first result uri
         """
         try:
-            return next(iter(self.result_uris.values()))
-        except StopIteration:
+            return self.result_uris[0]
+        except IndexError:
             return None
 
     @property
     def uws_version(self):
         self._update()
-        return self._job["version"]
+        return self._job.version
 
     def run(self):
         """
@@ -563,7 +574,7 @@ class AsyncTAPJob(object):
         while True:
             self._update(wait_for_statechange=True)
             # use the cached value
-            cur_phase = self._job["phase"]
+            cur_phase = self._job.phase.content
 
             if cur_phase not in active_phases:
                 raise DALServiceError(
@@ -573,7 +584,7 @@ class AsyncTAPJob(object):
                 break
 
             # fallback for uws 1.0
-            if LooseVersion(self._job["version"]) < LooseVersion("1.1"):
+            if LooseVersion(self._job.version) < LooseVersion("1.1"):
                 sleep(interval)
                 interval = min(120, interval * increment)
 
@@ -600,10 +611,8 @@ class AsyncTAPJob(object):
         DALQueryError
             if theres an error
         """
-        if self.phase in ["ERROR", "ABORTED"]:
-            raise DALQueryError(
-                self._job.get("message", "Unknown Query Error"),
-                self.phase, self.url)
+        if self.phase in {"ERROR", "ABORTED"}:
+            raise DALQueryError("Query Error", self.phase, self.url)
 
     def fetch_result(self):
         """
