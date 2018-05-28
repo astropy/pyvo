@@ -248,10 +248,6 @@ class TablesFile(Element):
         return self._ntables
 
     def parse(self, iterator, config):
-        for start, tag, data, pos in iterator:
-            if start and tag == 'xml':
-                break
-
         super(TablesFile, self).parse(iterator, config)
 
         if self.tableset is None and self.table is None:
