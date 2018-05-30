@@ -14,7 +14,23 @@ from ...utils.xml.elements import (
     xmlattribute, xmlelement, Element, ContentMixin)
 
 uwselement = partial(xmlelement, ns='uws')
-XSInDate = partial(Time, format='iso')
+
+
+def XSInDate(val):
+    print(val)
+    try:
+        return Time(val, format='iso')
+    except ValueError:
+        pass
+
+    try:
+        return Time(val, format='isot')
+    except ValueError:
+        pass
+
+    raise ValueError('Cannot parse datetime {}'.format(val))
+
+
 InDuration = partial(TimeDelta, format='sec')
 XSOutDate = partial(Time, out_subfmt='date')
 
