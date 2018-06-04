@@ -251,8 +251,9 @@ class Element(object):
         self._tag_mapping = {}
 
     def _add_unknown_tag(self, iterator, tag, data, config, pos):
-        warn_or_raise(
-            UnknownElementWarning, UnknownElementWarning, tag, config, pos)
+        if tag != 'xml':
+            warn_or_raise(
+                UnknownElementWarning, UnknownElementWarning, tag, config, pos)
 
     def _end_tag(self, tag, data, pos):
         pass
