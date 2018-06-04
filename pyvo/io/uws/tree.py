@@ -17,7 +17,9 @@ uwselement = partial(xmlelement, ns='uws')
 
 
 def XSInDate(val):
-    print(val)
+    if not val:
+        return None
+
     try:
         return Time(val, format='iso')
     except ValueError:
@@ -102,7 +104,7 @@ class JobSummary(Element):
         super(JobSummary, self).parse(iterator, config)
         return self
 
-    @uwselement(name='jobId')
+    @uwselement(name='jobId', plain=True)
     def jobid(self):
         """
         The identifier for the job
@@ -113,7 +115,7 @@ class JobSummary(Element):
     def jobid(self, jobid):
         self._jobid = jobid
 
-    @uwselement(name='runId')
+    @uwselement(name='runId', plain=True)
     def runid(self):
         """client supplied identifier"""
         return self._runid
@@ -122,7 +124,7 @@ class JobSummary(Element):
     def runid(self, runid):
         self._runid = runid
 
-    @uwselement(name='ownerId')
+    @uwselement(name='ownerId', plain=True)
     def ownerid(self):
         """the owner (creator) of the job"""
         return self._ownerid
@@ -131,7 +133,7 @@ class JobSummary(Element):
     def ownerid(self, ownerid):
         self._ownerid = ownerid
 
-    @uwselement
+    @uwselement(plain=True)
     def phase(self):
         """the execution phase"""
         return self._phase
@@ -140,7 +142,7 @@ class JobSummary(Element):
     def phase(self, phase):
         self._phase = phase
 
-    @uwselement
+    @uwselement(plain=True)
     def quote(self):
         """estimated completion time"""
         return self._quote
@@ -156,7 +158,7 @@ class JobSummary(Element):
         except ValueError:
             return None
 
-    @uwselement(name='creationTime')
+    @uwselement(name='creationTime', plain=True)
     def creationtime(self):
         """The instant at which the job was created."""
         return self._creationtime
@@ -172,7 +174,7 @@ class JobSummary(Element):
         except ValueError:
             return None
 
-    @uwselement(name='startTime')
+    @uwselement(name='startTime', plain=True)
     def starttime(self):
         """The instant at which the job started execution."""
         return self._starttime
@@ -188,7 +190,7 @@ class JobSummary(Element):
         except ValueError:
             return None
 
-    @uwselement(name='endTime')
+    @uwselement(name='endTime', plain=True)
     def endtime(self):
         """The instant at which the job finished execution"""
         return self._endtime
@@ -204,7 +206,7 @@ class JobSummary(Element):
         except ValueError:
             return None
 
-    @uwselement(name='executionDuration')
+    @uwselement(name='executionDuration', plain=True)
     def executionduration(self):
         """
         The duration (in seconds) for which the job should be allowed to run -
@@ -221,9 +223,9 @@ class JobSummary(Element):
 
     @executionduration.formatter
     def executionduration(self):
-        return str(int(self._executionduration))
+        return str(int(self._executionduration.value))
 
-    @uwselement
+    @uwselement(plain=True)
     def destruction(self):
         """The time at which the whole job will be destroyed"""
         return self._destruction
@@ -231,6 +233,13 @@ class JobSummary(Element):
     @destruction.setter
     def destruction(self, destruction):
         self._destruction = XSInDate(destruction)
+
+    @destruction.formatter
+    def destruction(self):
+        try:
+            return str(XSOutDate(self._destruction))
+        except ValueError:
+            return None
 
     @uwselement
     def parameters(self):

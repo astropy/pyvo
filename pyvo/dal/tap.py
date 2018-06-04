@@ -400,7 +400,7 @@ class AsyncTAPJob(object):
         """
         the job id
         """
-        return self._job.jobid.content
+        return self._job.jobid
 
     @property
     def phase(self):
@@ -408,7 +408,7 @@ class AsyncTAPJob(object):
         the current query phase
         """
         self._update()
-        return self._job.phase.content
+        return self._job.phase
 
     @property
     def execution_duration(self):
@@ -416,7 +416,7 @@ class AsyncTAPJob(object):
         maximum execution duration as ~`astropy.time.TimeDelta`
         """
         self._update()
-        return self._job.executionduration.content
+        return self._job.executionduration
 
     @execution_duration.setter
     def execution_duration(self, value):
@@ -437,7 +437,7 @@ class AsyncTAPJob(object):
         read-write
         """
         self._update()
-        return self._job.destruction.content
+        return self._job.destruction
 
     @destruction.setter
     def destruction(self, value):
@@ -472,7 +472,7 @@ class AsyncTAPJob(object):
         estimated runtime
         """
         self._update()
-        return self._job.quote.content
+        return self._job.quote
 
     @property
     def owner(self):
@@ -480,7 +480,7 @@ class AsyncTAPJob(object):
         job owner (if applicable)
         """
         self._update()
-        return self._job.owner.content
+        return self._job.owner
 
     @property
     def results(self):
@@ -574,7 +574,7 @@ class AsyncTAPJob(object):
         while True:
             self._update(wait_for_statechange=True)
             # use the cached value
-            cur_phase = self._job.phase.content
+            cur_phase = self._job.phase
 
             if cur_phase not in active_phases:
                 raise DALServiceError(

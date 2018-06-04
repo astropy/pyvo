@@ -139,19 +139,21 @@ def object_children(obj):
     try:
         for child in obj:
             if isinstance(child, Element):
-                yield (None, child)
+                yield (child._Element__name, None, child)
     except TypeError:
         for name, child in getmembers(obj):
             descr = getattr(objtype, name, None)
 
             if isinstance(descr, xmlelement):
+                element_name = descr.name
+
                 if descr.fformat:
                     fformat = partial(descr.fformat, obj)
                 else:
                     fformat = None
-                yield (fformat, child)
+                yield (element_name, fformat, child)
             elif isinstance(child, Element):
-                yield (None, child)
+                yield (child._Element__name, None, child)
 
 
 def object_mapping(obj):
@@ -294,8 +296,17 @@ class Element(object):
             name = self._Element__name
 
         with w.tag(name, attrib=object_attrs(self)):
-            for formatter, child in object_children(self):
-                child.to_xml(w, formatter=formatter)
+            for name, formatter, child in object_children(self):
+                if isinstance(child, Element):
+                    child.to_xml(w, formatter=formatter)
+                else:
+                    if formatter:
+                        child = formatter()
+
+                    if not child:
+                        child = ''
+
+                    w.element(name, str(child))
 
 
 class ContentMixin(Element):
