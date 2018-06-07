@@ -37,7 +37,7 @@ InDuration = partial(TimeDelta, format='sec')
 XSOutDate = partial(Time, out_subfmt='date')
 
 
-all = [
+__all__ = [
     'UWSElement', 'Reference', 'JobSummary', 'Parameters', 'Parameter',
     'Results', 'Result']
 
