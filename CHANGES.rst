@@ -1,3 +1,7 @@
+0.8
+----------------
+* Make XML handling more generic
+
 0.7rc1
 ----------------
 * Rework VOSI parsing using astropy xml handling
