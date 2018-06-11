@@ -13,6 +13,9 @@ PyVO
     :target: https://coveralls.io/github/pyvirtobs/pyvo?branch=master
     :alt: Coverage Status
 
+.. image:: https://zenodo.org/badge/10865450.svg
+    :target: https://zenodo.org/badge/latestdoi/10865450
+
 
 PyVO is a package providing access to remote data and services of the
 Virtual observatory (VO) using Python.
