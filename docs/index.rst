@@ -88,6 +88,8 @@ or by rows.
 >>> for row in resultset:
 >>>   calib_level = row["calib_level"]
 
+For more details on how to use data access services see :ref:`pyvo-data-access`
+
 Registry search
 ^^^^^^^^^^^^^^^
 
