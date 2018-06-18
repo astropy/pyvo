@@ -22,6 +22,7 @@ from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin, SodaRecordMixin
 
 from ..io import vosi, uws
 from ..io.vosi import tapregext as tr
+from ..utils.http import session as s
 
 __all__ = [
     "search", "escape", "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
@@ -96,7 +97,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         if self._tables is None:
             tables_url = '{0}/tables'.format(self.baseurl)
 
-            response = requests.get(tables_url, stream=True)
+            response = s.get(tables_url, stream=True)
 
             try:
                 response.raise_for_status()
@@ -365,13 +366,13 @@ class AsyncTAPJob(object):
         """
         try:
             if wait_for_statechange:
-                response = requests.get(self.url, stream=True, params={
+                response = s.get(self.url, stream=True, params={
                     "WAIT": "-1"
                 })
             else:
-                response = requests.get(self.url, stream=True)
+                response = s.get(self.url, stream=True)
             response.raise_for_status()
-        except requests.exceptions.RequestException as ex:
+        except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
 
         # requests doesn't decode the content by default
@@ -421,11 +422,11 @@ class AsyncTAPJob(object):
     @execution_duration.setter
     def execution_duration(self, value):
         try:
-            response = requests.post(
+            response = s.post(
                 "{}/executionduration".format(self.url),
                 data={"EXECUTIONDURATION": str(value)})
             response.raise_for_status()
-        except requests.exceptions.RequestException as ex:
+        except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
 
         self._update()
@@ -457,11 +458,11 @@ class AsyncTAPJob(object):
             pass
 
         try:
-            response = requests.post(
+            response = s.post(
                 "{}/destruction".format(self.url),
                 data={"DESTRUCTION": value.strftime("%Y-%m-%dT%H:%M:%SZ")})
             response.raise_for_status()
-        except requests.exceptions.RequestException as ex:
+        except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
 
         self._update()
@@ -526,10 +527,10 @@ class AsyncTAPJob(object):
         starts the job / change phase to RUN
         """
         try:
-            response = requests.post(
+            response = s.post(
                 '{}/phase'.format(self.url), data={"PHASE": "RUN"})
             response.raise_for_status()
-        except requests.exceptions.RequestException as ex:
+        except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
 
         return self
@@ -539,10 +540,10 @@ class AsyncTAPJob(object):
         aborts the job / change phase to ABORT
         """
         try:
-            response = requests.post(
+            response = s.post(
                 '{}/phase'.format(self.url), data={"PHASE": "ABORT"})
             response.raise_for_status()
-        except requests.exceptions.RequestException as ex:
+        except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
 
         return self
@@ -595,9 +596,9 @@ class AsyncTAPJob(object):
         deletes the job. this object will become invalid.
         """
         try:
-            response = requests.post(self.url, data={"ACTION": "DELETE"})
+            response = s.post(self.url, data={"ACTION": "DELETE"})
             response.raise_for_status()
-        except requests.exceptions.RequestException as ex:
+        except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
 
         self._url = None
@@ -619,7 +620,7 @@ class AsyncTAPJob(object):
         returns the result votable if query is finished
         """
         try:
-            response = requests.get(self.result_uri, stream=True)
+            response = s.get(self.result_uri, stream=True)
             response.raise_for_status()
         except requests.RequestException as ex:
             self._update()
@@ -745,7 +746,7 @@ class TAPQuery(DALQuery):
             if upload.is_inline
         }
 
-        response = requests.post(
+        response = s.post(
             url, data=self, stream=True, files=files)
         # requests doesn't decode the content by default
         response.raw.read = partial(response.raw.read, decode_content=True)

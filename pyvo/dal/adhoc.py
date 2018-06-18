@@ -7,8 +7,6 @@ from __future__ import (
 
 import numpy as np
 
-import requests
-
 from .query import DALResults, DALQuery, DALService, Record
 from .exceptions import DALServiceError
 from .vosi import AvailabilityMixin, CapabilityMixin
@@ -18,6 +16,7 @@ from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
 
 from ..utils.decorators import stream_decode_content
+from ..utils.http import session as s
 
 
 # monkeypatch astropy with group support in RESOURCE
@@ -139,7 +138,7 @@ class DatalinkRecordMixin(object):
     def getdataset(self, timeout=None):
         try:
             url = next(self.getdatalink().bysemantics('#this')).access_url
-            r = requests.get(url, stream=True, timeout=timeout)
+            r = s.get(url, stream=True, timeout=timeout)
             r.raise_for_status()
             return r.raw
         except (DALServiceError, StopIteration):

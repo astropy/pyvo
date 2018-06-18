@@ -47,6 +47,8 @@ from .exceptions import (DALFormatError, DALServiceError, DALQueryError)
 
 from ..utils.decorators import stream_decode_content
 from ..utils.formatting import para_format_desc
+from ..utils.http import session as s
+
 
 if six.PY3:
     _mimetype_re = re.compile(
@@ -237,7 +239,7 @@ class DALQuery(dict):
         url = self.queryurl
         params = {k: v for k, v in self.items()}
 
-        r = requests.get(url, params=params, stream=True)
+        r = s.get(url, params=params, stream=True)
         return r
 
     def execute_votable(self):
@@ -297,7 +299,7 @@ class DALResults(object):
     @classmethod
     @stream_decode_content
     def _from_result_url(cls, result_url):
-        return requests.get(result_url, stream=True).raw
+        return s.get(result_url, stream=True).raw
 
     @classmethod
     def from_result_url(cls, result_url):
@@ -761,9 +763,9 @@ class Record(Mapping):
             raise KeyError("no dataset access URL recognized in record")
 
         if timeout:
-            r = requests.get(url, stream=True, timeout=timeout)
+            r = s.get(url, stream=True, timeout=timeout)
         else:
-            r = requests.get(url, stream=True)
+            r = s.get(url, stream=True)
 
         r.raise_for_status()
         return r.raw

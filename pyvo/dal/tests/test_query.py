@@ -16,6 +16,7 @@ import numpy as np
 
 from pyvo.dal.query import DALService, DALQuery, DALResults, Record
 from pyvo.dal.exceptions import DALServiceError, DALQueryError, DALFormatError
+from pyvo.version import version
 
 from astropy.table import Table
 from astropy.io.votable.tree import VOTableFile, Table as VOTable
@@ -98,6 +99,17 @@ def register_mocks(mocker):
             content=verbosetest_callback
         )))
 
+        def useragent_callback(request, context):
+            assert 'User-Agent' in request.headers
+            assert request.headers['User-Agent'] == 'python-pyvo/{}'.format(
+                version)
+            return get_pkg_data_contents('data/query/basic.xml')
+
+        matchers.append(stack.enter_context(mocker.register_uri(
+            'GET', 'http://example.com/query/useragent',
+            content=useragent_callback
+        )))
+
         yield matchers
 
 
@@ -147,6 +159,10 @@ class TestDALService(object):
 
         _test_results(dalresults)
         _test_records(dalresults)
+
+    def test_useragent(self):
+        service = DALService('http://example.com/query/useragent')
+        service.search()
 
     def test_http_exception_404(self):
         service = DALService('http://example.com/query/nonexistant')
