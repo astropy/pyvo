@@ -324,6 +324,12 @@ class TestDALResults(object):
         assert isinstance(dalresults['_1'], np.ndarray)
         assert isinstance(dalresults['_2'], np.ndarray)
 
+        table = dalresults.to_table()
+        with pytest.raises(KeyError):
+            assert table['_1']
+        with pytest.raises(KeyError):
+            assert table['_2']
+
     def test_nosuchcolumn(self):
         dalresults = DALResults.from_result_url(
             'http://example.com/query/basic')
