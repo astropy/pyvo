@@ -1,6 +1,6 @@
 0.8.1
 ----------------
-
+pass use_names_over_ids=True to astropy's to_table
 
 0.8
 ----------------
