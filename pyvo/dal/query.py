@@ -443,7 +443,7 @@ class DALResults(object):
         -------
         `astropy.table.Table`
         """
-        return self.resultstable.to_table()
+        return self.resultstable.to_table(use_names_over_ids=True)
 
     @property
     def table(self):

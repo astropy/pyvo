@@ -1,3 +1,7 @@
+0.8.1
+----------------
+
+
 0.8
 ----------------
 * Make XML handling more generic
