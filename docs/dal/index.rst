@@ -144,7 +144,9 @@ Basic queries are done with the ``pos`` and ``size`` parameters described in
 :ref:`pyvo-astro-params`, with ``size`` being the rectangular region around
 ``pos``.
 
->>> sia_service = vo.dal.SIAService("http://cdsarc.u-strasbg.fr/saadavizier/siaservice?collection=[vizier]")
+>>> pos = SkyCoord.from_name('Eta Carina')
+>>> size = Quantity(0.5, unit="deg")
+>>> sia_service = vo.dal.SIAService("http://dc.zah.uni-heidelberg.de/hppunion/q/im/siap.xml")
 >>> sia_results = sia_service.search(pos=pos, size=size)
 
 The dataset format, 'all' by default, can be specified:
