@@ -72,7 +72,7 @@ matrix:
 
           # try all python versions
         - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7
+          env: PYTHON_VERSION=2.7
         - os: linux
           env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9
         - os: linux
