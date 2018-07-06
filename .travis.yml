@@ -32,7 +32,7 @@ env:
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - PIP_DEPENDENCIES='requests python-dateutil flask'
+        - PIP_DEPENDENCIES='requests requests_mock python-dateutil'
         - EVENT_TYPE='pull_request push'
         - CONDA_DEPENDENCIES=''
         - CONDA_CHANNELS='astropy-ci-extras astropy'
