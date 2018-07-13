@@ -1,3 +1,9 @@
+0.9 (unreleased)
+----------------
+* use a customized user agent in http requests
+
+* fix some python2/3 issues
+
 0.8.1
 ----------------
 pass use_names_over_ids=True to astropy's to_table
