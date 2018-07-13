@@ -7,7 +7,12 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
 from functools import partial
-from contextlib import ExitStack
+
+try:
+    from contextlib import ExitStack
+except ImportError:
+    from contextlib2 import ExitStack
+
 from os import listdir
 
 import pytest

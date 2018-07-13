@@ -320,6 +320,8 @@ class ContentMixin(Element):
     def __bool__(self):
         return bool(self.content)
 
+    __nonzero__ = __bool__
+
     def _end_tag(self, tag, data, pos):
         self.content = data
 

@@ -6,7 +6,12 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
 from functools import partial
-from contextlib import ExitStack
+
+try:
+    from contextlib import ExitStack
+except ImportError:
+    from contextlib2 import ExitStack
+
 import re
 from io import BytesIO
 
@@ -81,8 +86,7 @@ def async(mocker):
             self._jobs[newid] = job
 
         def job(self, request, context):
-            jobid = int(job_re_path.match(request.path)[1])
-            data = dict(parse_qsl(request.body))
+            jobid = int(job_re_path.match(request.path).group(1))
 
             if request.method == 'GET':
                 job = self._jobs[jobid]
@@ -90,13 +94,14 @@ def async(mocker):
                 job.to_xml(io)
                 return io.getvalue()
             elif request.method == 'POST':
+                data = dict(parse_qsl(request.body))
                 action = data.get('ACTION')
 
                 if action == 'DELETE':
                     del self._jobs[jobid]
 
         def phase(self, request, context):
-            jobid = int(job_re_path.match(request.path)[1])
+            jobid = int(job_re_path.match(request.path).group(1))
 
             if request.method == 'GET':
                 phase = self._jobs[jobid].phase
@@ -119,7 +124,7 @@ def async(mocker):
 
                     try:
                         job.results[0] = result
-                    except IndexError:
+                    except (IndexError, TypeError):
                         job.results.append(result)
 
                 job.phase = newphase
