@@ -203,6 +203,9 @@ def test_escape():
 
 
 @pytest.mark.usefixtures('sync')
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
 def test_search():
     results = search('http://example.com/tap', "SELECT * FROM ivoa.obscore")
 
@@ -259,18 +262,27 @@ class TestTAPService(object):
             'ivo://ivoa.net/std/TAPRegExt#upload-http')
 
     @pytest.mark.usefixtures('sync')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
     def test_run_sync(self):
         service = TAPService('http://example.com/tap')
         results = service.run_sync("SELECT * FROM ivoa.obscore")
         _test_image_results(results)
 
     @pytest.mark.usefixtures('sync')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
     def test_search(self):
         service = TAPService('http://example.com/tap')
         results = service.search("SELECT * FROM ivoa.obscore")
         _test_image_results(results)
 
     @pytest.mark.usefixtures('async')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
     def test_run_async(self):
         service = TAPService('http://example.com/tap')
         results = service.run_async("SELECT * FROM ivoa.obscore")

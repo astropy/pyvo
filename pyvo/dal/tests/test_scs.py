@@ -33,6 +33,7 @@ def scs(mocker):
 
 
 @pytest.mark.usefixtures('scs')
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
 def test_search():
     results = search('http://example.com/scs', (78, 2), 0.5)
 
@@ -46,6 +47,7 @@ class TestSCSService(object):
         assert service.baseurl == 'http://example.com/scs'
 
     @pytest.mark.usefixtures('scs')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
     def test_search(self):
         service = SCSService('http://example.com/scs')
 

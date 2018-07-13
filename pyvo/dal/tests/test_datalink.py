@@ -41,6 +41,10 @@ def datalink(mocker):
 
 
 @pytest.mark.usefixtures('ssa_datalink', 'datalink')
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
 def test_datalink():
     results = vo.spectrumsearch(
         'http://example.com/ssa_datalink', (30, 30))

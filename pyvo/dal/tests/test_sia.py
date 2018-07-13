@@ -44,6 +44,7 @@ def _test_result(result):
 
 
 @pytest.mark.usefixtures('sia')
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
 def test_search():
     results = search('http://example.com/sia', pos=(288, 15))
     result = results[0]
@@ -53,6 +54,9 @@ def test_search():
 
 class TestSIAService(object):
     @pytest.mark.usefixtures('sia')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")
     def test_search(self):
         service = SIAService('http://example.com/sia')
 

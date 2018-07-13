@@ -30,6 +30,8 @@ def sla(mocker):
 
 
 @pytest.mark.usefixtures('sla')
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")
 def test_search():
     results = search('http://example.com/sla', wavelength=(7.6e-6, 1.e-5))
 
@@ -38,6 +40,8 @@ def test_search():
 
 class TestSLAService(object):
     @pytest.mark.usefixtures('sla')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")
     def test_search(self):
         service = SLAService('http://example.com/sla')
 

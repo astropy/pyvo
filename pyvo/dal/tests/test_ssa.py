@@ -33,6 +33,7 @@ def ssa(mocker):
 
 
 @pytest.mark.usefixtures('ssa')
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
 def test_search():
     results = search('http://example.com/ssa', pos=(0.0, 0.0), diameter=1.0)
     assert len(results) == 35
@@ -40,6 +41,7 @@ def test_search():
 
 class TestSSAService(object):
     @pytest.mark.usefixtures('ssa')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
     def test_search(self):
         service = SSAService('http://example.com/ssa')
 
