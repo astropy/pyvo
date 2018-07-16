@@ -232,7 +232,7 @@ class TestTAPService(object):
 
         assert list(tables.keys()) == ['test.table1', 'test.table2']
 
-        table1, table2 = list(tables.iter_tables())
+        table1, table2 = list(tables)
         self._test_tables(table1, table2)
 
     @pytest.mark.usefixtures('capabilities')
