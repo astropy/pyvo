@@ -33,6 +33,8 @@ from __future__ import (
 
 import re
 
+from pyvo.io.vosi.vodataservice import TableParam
+
 from astropy.extern import six
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
@@ -168,6 +170,20 @@ class SIAService(DALService):
         except AttributeError:
             return None
 
+    @property
+    def columns(self):
+        """
+        the available columns on this service
+        """
+        self._get_metadata()
+        fields = getattr(self, '_metadata', None).get_first_table().fields
+
+        try:
+            return [
+                TableParam.from_field(field) for field in fields]
+        except AttributeError:
+            return []
+
     def search(
             self, pos, size=1.0, format='all', intersect="overlaps",
             verbosity=2, **keywords):
@@ -299,6 +315,10 @@ class SIAService(DALService):
         """
         return SIAQuery(
             self.baseurl, pos, size, format, intersect, verbosity, **keywords)
+
+    def describe(self):
+        print(self.description)
+        print()
 
 
 class SIAQuery(DALQuery):

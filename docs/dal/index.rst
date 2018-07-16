@@ -25,6 +25,10 @@ which returns a :ref:`resultset <pyvo-resultsets>`.
 Individual services may define additional, custom parameters.  You can pass
 these to the ``search`` method as (case-insensitive) keyword arguments.
 
+Call the method ``describe`` to print human-readable service metadata. You most
+likely want to use this in a notebook session or similar before actually
+querying the service.
+
 See :ref:`pyvo-services` for a explanation of the different interfaces.
 
 .. _pyvo-astro-params:
@@ -132,7 +136,8 @@ Services will not let you raise maxrec beyond the hard match limit:
 >>> print(tap_service.hardlimit)
 
 A list of the tables and the columns within them is available in the
-TAPService's :py:attr:`~pyvo.dal.TAPService.tables` attribute.
+TAPService's :py:attr:`~pyvo.dal.TAPService.tables` attribute by using it as an
+iterator or calling it's ``describe()`` method for a human-readable summary.
 
 .. _pyvo-sia:
 

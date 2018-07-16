@@ -34,11 +34,15 @@ from __future__ import (
 
 import re
 
+from pyvo.io.vosi.vodataservice import TableParam
+
 from astropy.extern import six
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
+from astropy.io.votable.tree import Field
+from astropy.table import Table
 
 from .query import DALResults, DALQuery, DALService, Record, mime2extension
 from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin, SodaRecordMixin
@@ -117,6 +121,45 @@ class SSAService(DALService):
            the base URL for submitting search queries to the service.
         """
         super(SSAService, self).__init__(baseurl)
+
+    def _get_metadata(self):
+        """
+        the metadata resource element
+        """
+        if not hasattr(self, "_metadata"):
+            query = self.create_query(format='metadata')
+            metadata = query.execute_votable()
+
+            setattr(self, "_metadata", metadata)
+
+    @property
+    def description(self):
+        """
+        the service description.
+        """
+        self._get_metadata()
+
+        try:
+            return getattr(self, "_metadata", None).description
+        except AttributeError:
+            return None
+
+    @property
+    def columns(self):
+        """
+        the available columns on this service
+        """
+        self._get_metadata()
+        fields = filter(
+            lambda field_or_param: isinstance(field_or_param, Field),
+            self._metadata.iter_fields_and_params()
+        )
+
+        try:
+            return [
+                TableParam.from_field(field) for field in fields]
+        except AttributeError:
+            return []
 
     def search(
             self, pos=None, diameter=None, band=None, time=None, format='all',
@@ -217,6 +260,34 @@ class SSAService(DALService):
         return SSAQuery(
             self.baseurl, pos, diameter, band, time, format, request,
             **keywords)
+
+    def describe(self):
+        print(self.description)
+        print()
+
+        rows = [(
+            col.name,
+            col.description,
+            col.unit,
+            col.ucd,
+            col.utype,
+            col.datatype.arraysize,
+            col.datatype.content,
+        ) for col in self.columns]
+
+        names = (
+            'name',
+            'description',
+            'unit',
+            'ucd',
+            'utype',
+            'arraysize',
+            'datatype',
+        )
+
+        table = Table(rows=rows, names=names)
+        table.pprint(
+            max_lines=-1, max_width=-1, show_unit=False, show_dtype=False)
 
 
 class SSAQuery(DALQuery):

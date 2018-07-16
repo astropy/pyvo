@@ -22,6 +22,7 @@ import re
 from astropy.extern import six
 
 from astropy.utils.collections import HomogeneousList
+from astropy.utils.misc import indent
 from astropy.utils.xml import check as xml_check
 from astropy.io.votable.exceptions import vo_raise, vo_warn, warn_or_raise
 
@@ -313,6 +314,12 @@ class Table(Element):
         return '<Table name="{}">... {} columns ...</Table>'.format(
             self.name, len(self.columns))
 
+    def describe(self):
+        print(self.name)
+        print(indent(self.description))
+
+        print()
+
     @xmlelement(plain=True, multiple_exc=W05)
     def name(self):
         """
@@ -534,6 +541,26 @@ class TableParam(BaseParam):
     A description of a table parameter having a fixed data type.
     The allowed data type names match those supported by VOTable.
     """
+    @classmethod
+    def from_field(cls, field):
+        """
+        Create a instance from a `~astropy.io.votable.tree.Field` instance.
+        """
+        instance = cls()
+
+        instance.name = field.name
+        instance.description = field.description
+        instance.unit = field.unit
+        instance.ucd = field.ucd
+        instance.utype = field.utype
+
+        datatype = VOTableType(arraysize=field.arraysize)
+        datatype.value = field.datatype
+
+        instance.datatype = datatype
+
+        return instance
+
     def __init__(self, config=None, pos=None, _name='', std=None, **kwargs):
         super(TableParam, self).__init__(
                 config=config, pos=pos, _name=_name, **kwargs)
@@ -670,11 +697,17 @@ class DataType(ContentMixin, Element):
     """
     def __init__(
             self, config=None, pos=None, _name='dataType',
-            arraysize="1", delim=" ", extendedType=None, extendedSchema=None,
+            arraysize=None, delim=None, extendedType=None, extendedSchema=None,
             **kwargs
     ):
         super(DataType, self).__init__(
             config=config, pos=pos, _name=_name, **kwargs)
+
+        if arraysize is None:
+            arraysize = "1"
+
+        if delim is None:
+            delim = " "
 
         self.arraysize = arraysize
         self._delim = delim

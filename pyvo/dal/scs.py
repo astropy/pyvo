@@ -23,8 +23,13 @@ class can represent a specific service available at a URL endpoint.
 from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
+from pyvo.io.vosi.vodataservice import TableParam
+
 from astropy.coordinates import SkyCoord
 from astropy.units import Unit, Quantity
+from astropy.io.votable.tree import Field
+from astropy.table import Table
+
 from .query import DALResults, DALQuery, DALService, Record
 from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin
 
@@ -95,6 +100,45 @@ class SCSService(DALService):
            the base URL for submitting search queries to the service.
         """
         super(SCSService, self).__init__(baseurl)
+
+    def _get_metadata(self):
+        """
+        download the metadata resource
+        """
+        if not hasattr(self, '_metadata'):
+            query = self.create_query(pos=(0, 0), radius=0)
+            metadata = query.execute_votable()
+
+            setattr(self, '_metadata', metadata)
+
+    @property
+    def description(self):
+        """
+        the service description.
+        """
+        self._get_metadata()
+
+        try:
+            return getattr(self, '_metadata').description
+        except AttributeError:
+            return None
+
+    @property
+    def columns(self):
+        """
+        the available columns on this service
+        """
+        self._get_metadata()
+        fields = filter(
+            lambda field_or_param: isinstance(field_or_param, Field),
+            self._metadata.iter_fields_and_params()
+        )
+
+        try:
+            return [
+                TableParam.from_field(field) for field in fields]
+        except AttributeError:
+            return []
 
     def search(self, pos, radius=1.0, verbosity=2, **keywords):
         """
@@ -181,6 +225,34 @@ class SCSService(DALService):
         """
         return SCSQuery(self.baseurl, pos, radius, verbosity, **keywords)
 
+    def describe(self):
+        print(self.description)
+        print()
+
+        rows = [(
+            col.name,
+            col.description,
+            col.unit,
+            col.ucd,
+            col.utype,
+            col.datatype.arraysize,
+            col.datatype.content,
+        ) for col in self.columns]
+
+        names = (
+            'name',
+            'description',
+            'unit',
+            'ucd',
+            'utype',
+            'arraysize',
+            'datatype',
+        )
+
+        table = Table(rows=rows, names=names)
+        table.pprint(
+            max_lines=-1, max_width=-1, show_unit=False, show_dtype=False)
+
 
 class SCSQuery(DALQuery):
     """
@@ -226,13 +298,13 @@ class SCSQuery(DALQuery):
         """
         super(SCSQuery, self).__init__(baseurl)
 
-        if pos:
+        if pos is not None:
             self.pos = pos
 
-        if radius:
+        if radius is not None:
             self.radius = radius
 
-        if verbosity:
+        if verbosity is not None:
             self.verbosity = verbosity
 
         self.update({key.upper(): value for key, value in keywords.items()})

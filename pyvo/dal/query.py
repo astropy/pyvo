@@ -46,7 +46,6 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from .exceptions import (DALFormatError, DALServiceError, DALQueryError)
 
 from ..utils.decorators import stream_decode_content
-from ..utils.formatting import para_format_desc
 from ..utils.http import session as s
 
 
@@ -125,32 +124,8 @@ class DALService(object):
         q = DALQuery(self.baseurl, **keywords)
         return q
 
-    def describe(self, width=None):
-        """
-        Print a summary description of this service.
-
-        This includes the interface capabilities, and the content description
-        if it doesn't contains multiple data collections (in other words, it is
-        not a TAP service).
-        """
-        if len(self.tables) == 1:
-            description = next(self.tables.values()).description
-
-            if width:
-                description = para_format_desc(description, width)
-
-            print(description)
-            print()
-
-        capabilities = filter(
-            lambda x: not six.text_type(x.standardid).startswith(
-                'ivo://ivoa.net/std/VOSI'),
-            self.capabilities
-        )
-
-        for cap in capabilities:
-            cap.describe()
-            print()
+    def describe(self):
+        print('DAL Service at {}'.format(self.baseurl))
 
 
 class DALQuery(dict):

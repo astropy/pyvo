@@ -1,5 +1,7 @@
 0.9 (unreleased)
 ----------------
+* add a describe method to services to print a human-readable description
+
 * use a customized user agent in http requests
 
 * fix some python2/3 issues

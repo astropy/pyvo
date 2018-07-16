@@ -145,7 +145,8 @@ class VOSITables(object):
         return self._get_table(key)
 
     def __iter__(self):
-        return self.keys()
+        for tablename in self.keys():
+            yield self._get_table(tablename)
 
     def _get_table(self, name):
         if name in self._cache:
@@ -166,10 +167,6 @@ class VOSITables(object):
             self._cache[name] = table
 
         return table
-
-    def iter_tables(self):
-        for tablename in self.keys():
-            yield self._get_table(tablename)
 
     @response_decode_content
     def _get_table_file(self, tables_url):
@@ -197,3 +194,7 @@ class VOSITables(object):
         """
         for name in self.keys():
             yield (name, self._get_table(name))
+
+    def describe(self):
+        for table in self:
+            table.describe()
