@@ -512,7 +512,30 @@ class AsyncTAPJob(object):
         job owner (if applicable)
         """
         self._update()
-        return self._job.owner
+        return self._job.ownerid
+
+    @property
+    def query(self):
+        """
+        the job query
+        """
+        self._update()
+        for parameter in self._job.parameters:
+            if parameter.id_ == 'query':
+                return parameter.content
+        return ''
+
+    @query.setter
+    def query(self, query):
+        try:
+            response = s.post(
+                '{}/parameters'.format(self.url),
+                data={"QUERY": query})
+            response.raise_for_status()
+        except requests.RequestException as ex:
+            raise DALServiceError.from_except(ex, self.url)
+
+        self._update()
 
     @property
     def results(self):
