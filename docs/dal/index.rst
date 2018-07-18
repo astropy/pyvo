@@ -139,6 +139,27 @@ A list of the tables and the columns within them is available in the
 TAPService's :py:attr:`~pyvo.dal.TAPService.tables` attribute by using it as an
 iterator or calling it's ``describe()`` method for a human-readable summary.
 
+Uploads
+^^^^^^^
+
+Some TAP services allow you to upload your own tables to make them accessible
+in queries.
+
+For this the various query methods have a ``uploads`` keyword, which accepts a
+dictionary of table name and content.
+
+The mechanism behind this parameter is smart enough to distinct between various
+types of content, either a :py:class:`~str` pointing to a local file or a
+file-like object, a :py:class:`~astropy.table.Table` or
+:py:class:`~pyvo.dal.query.DALResults` for an inline upload,
+or a url :py:class:`~str` pointing to a remote resource.
+
+The uploaded tables will be available as ``TAP_UPLOAD.name``.
+
+.. note::
+  The supported upload methods are available under
+  :py:meth:`~pyvo.dal.tap.TAPService.upload_methods`.
+
 .. _pyvo-sia:
 
 Simple Image Access

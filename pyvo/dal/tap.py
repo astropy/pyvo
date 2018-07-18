@@ -153,7 +153,8 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
     @property
     def upload_methods(self):
         """
-        a list of upload methods in form of IVOA identifiers
+        a list of upload methods in form of
+        :py:class:`~pyvo.io.vosi.tapregext.UploadMethod` objects
         """
         upload_methods = []
         for capa in self.capabilities:
