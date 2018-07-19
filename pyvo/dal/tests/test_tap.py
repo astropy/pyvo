@@ -35,6 +35,9 @@ job_re_path = re.compile('^/tap/async/([0-9]+)')
 
 job_re_phase_full = re.compile('^http://example.com/tap/async/([0-9]+)/phase')
 
+job_re_parameters_full = re.compile(
+    '^http://example.com/tap/async/([0-9]+)/parameters')
+
 job_re_result_full = re.compile(
     '^http://example.com/tap/async/([0-9]+)/results/result')
 
@@ -129,6 +132,15 @@ def async(mocker):
 
                 job.phase = newphase
 
+        def parameters(self, request, context):
+            if request.method == 'GET':
+                pass
+            elif request.method == 'POST':
+                data = dict(parse_qsl(request.body))
+
+                if 'QUERY' in data:
+                    assert data['QUERY'] == 'SELECT TOP 42 * FROM ivoa.obsCore'
+
         def result(self, request, context):
             # jobid = int(job_re_path.match(request.path)[1])
             return get_pkg_data_contents('data/tap/obscore-image.xml')
@@ -147,6 +159,11 @@ def async(mocker):
             'phase': stack.enter_context(mocker.register_uri(
                 requests_mock.ANY, job_re_phase_full, content=callback.phase
             )),
+            'parameters': stack.enter_context(mocker.register_uri(
+                requests_mock.ANY, job_re_parameters_full,
+                content=callback.parameters
+            )),
+
             'result': stack.enter_context(mocker.register_uri(
                 'GET', job_re_result_full, content=callback.result
             ))
@@ -303,3 +320,10 @@ class TestTAPService(object):
         job.run()
         job.wait()
         job.delete()
+
+    @pytest.mark.usefixtures('async')
+    def test_modify_job(self):
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job(
+            'http://example.com/tap', "SELECT * FROM ivoa.obscore")
+        job.query = "SELECT TOP 42 * FROM ivoa.obsCore"
