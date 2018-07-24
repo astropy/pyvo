@@ -133,6 +133,9 @@ def async(mocker):
                 job.phase = newphase
 
         def parameters(self, request, context):
+            jobid = int(job_re_path.match(request.path).group(1))
+            job = self._jobs[jobid]
+
             if request.method == 'GET':
                 pass
             elif request.method == 'POST':
@@ -140,6 +143,28 @@ def async(mocker):
 
                 if 'QUERY' in data:
                     assert data['QUERY'] == 'SELECT TOP 42 * FROM ivoa.obsCore'
+                    for param in job.parameters:
+                        if param.id_ == 'query':
+                            param.content = data['QUERY']
+                if 'UPLOAD' in data:
+                    for param in job.parameters:
+                        if param.id_ == 'upload':
+                            uploads1 = {data[0]: data[1] for data in [
+                                data.split(',') for data
+                                in data['UPLOAD'].split(';')
+                            ]}
+
+                            uploads2 = {data[0]: data[1] for data in [
+                                data.split(',') for data
+                                in param.content.split(';')
+                            ]}
+
+                            uploads1.update(uploads2)
+
+                            param.content = ';'.join([
+                                '{}={}'.format(key, value) for key, value
+                                in uploads1.items()
+                            ])
 
         def result(self, request, context):
             # jobid = int(job_re_path.match(request.path)[1])
@@ -325,5 +350,18 @@ class TestTAPService(object):
     def test_modify_job(self):
         service = TAPService('http://example.com/tap')
         job = service.submit_job(
-            'http://example.com/tap', "SELECT * FROM ivoa.obscore")
+            "SELECT * FROM ivoa.obscore", uploads={
+                'one': 'http://example.com/uploads/one'
+            })
         job.query = "SELECT TOP 42 * FROM ivoa.obsCore"
+        job.upload(two='http://example.com/uploads/two')
+
+        for parameter in job._job.parameters:
+            if parameter.id_ == 'query':
+                assert parameter.content == 'SELECT TOP 42 * FROM ivoa.obsCore'
+                break
+            elif parameter.id_ == 'upload':
+                assert (
+                    'one=http://example.com/uploads/one' in parameter.content)
+                assert (
+                    'two=http://example.com/uploads/two' in parameter.content)

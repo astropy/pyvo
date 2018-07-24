@@ -16,8 +16,8 @@ from astropy.extern import six
 from astropy.io.votable import parse as votableparse
 
 from .query import (
-    DALResults, DALQuery, DALService, Record, UploadList, DALServiceError,
-    DALQueryError)
+    DALResults, DALQuery, DALService, Record, UploadList,
+    DALServiceError, DALQueryError)
 from .vosi import AvailabilityMixin, CapabilityMixin, VOSITables
 from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin, SodaRecordMixin
 
@@ -531,6 +531,29 @@ class AsyncTAPJob(object):
             response = s.post(
                 '{}/parameters'.format(self.url),
                 data={"QUERY": query})
+            response.raise_for_status()
+        except requests.RequestException as ex:
+            raise DALServiceError.from_except(ex, self.url)
+
+        self._update()
+
+    def upload(self, **kwargs):
+        """
+        upload a table to the job. the job must not been started.
+        """
+        uploads = UploadList.fromdict(kwargs)
+        files = {
+            upload.name: upload.fileobj()
+            for upload in uploads
+            if upload.is_inline
+        }
+
+        try:
+            response = s.post(
+                '{}/parameters'.format(self.url),
+                data={'UPLOAD': uploads.param()},
+                files=files
+            )
             response.raise_for_status()
         except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
