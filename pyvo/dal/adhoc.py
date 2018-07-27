@@ -67,6 +67,26 @@ __all__ = [
     "SodaRecordMixin", "SodaQuery"]
 
 
+def _get_input_params_from_resource(resource):
+    # get the group with name inputParams
+    group_input_params = next(
+        group for group in resource.groups if group.name == "inputParams")
+    # get only Param elements from the group
+    input_params = (
+        _ for _ in group_input_params.entries if isinstance(_, Param))
+    return list(input_params)
+
+
+def _get_params_from_resource(resource):
+    return {_.name: _ for _ in resource.params}
+
+
+def _get_accessurl_from_params(params):
+    if "accessURL" not in params:
+        raise DALServiceError("Datalink has no accessURL")
+    return params["accessURL"].value
+
+
 class AdhocServiceResultsMixin(object):
     """
     Mixing for adhoc:service functionallity for results classes.
@@ -107,6 +127,26 @@ class AdhocServiceResultsMixin(object):
                 return adhocservice
         raise DALServiceError(
             "No Adhoc Service with ivo-id {}!".format(ivo_id))
+
+    def get_adhocservice_by_id(self, id_):
+        """
+        Return the adhoc service starting with the given service_def id.
+
+        Parameters
+        ----------
+        id_ : str
+           the service_def id of the service we want to have.
+
+        Returns
+        -------
+        Resource
+            The resource element describing the service.
+        """
+        for adhocservice in self.iter_adhocservices():
+            if adhocservice.ID == id_:
+                return adhocservice
+        raise DALServiceError(
+            "No Adhoc Service with service_def id {}!".format(id_))
 
 
 class DatalinkResultsMixin(AdhocServiceResultsMixin):
@@ -242,17 +282,10 @@ class DatalinkQuery(DALQuery):
                 ref="srcGroup"/>
         </GROUP>
         """
-        # get the group with name inputParams
-        group_input_params = next(
-            group for group in resource.groups if group.name == "inputParams")
+        input_params = _get_input_params_from_resource(resource)
         # get params outside of any group
-        dl_params = {_.name: _ for _ in resource.params}
-        # get only Param elements from the group
-        input_params = (
-            _ for _ in group_input_params.entries if isinstance(_, Param))
-
-        if "accessURL" not in dl_params:
-            raise DALServiceError("Datalink has no accessURL")
+        dl_params = _get_params_from_resource(resource)
+        accessurl = _get_accessurl_from_params(dl_params)
 
         query_params = dict()
         for input_param in input_params:
@@ -270,7 +303,7 @@ class DatalinkQuery(DALQuery):
 
         query_params.update(kwargs)
 
-        return cls(dl_params["accessURL"].value, **query_params)
+        return cls(accessurl, **query_params)
 
     def __init__(
             self, baseurl, id=None, responseformat=None, **keywords):
@@ -411,6 +444,15 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         except StopIteration:
             raise ValueError("No row with semantics #this found!")
 
+    def process(self, **kwargs):
+        """
+        calls the first processing service and returns it's result as a
+        file-like object
+        """
+        for row in self:
+            if row.service_def:
+                return row.process(**kwargs)
+
 
 class SodaRecordMixin(object):
     """
@@ -508,9 +550,22 @@ class DatalinkRecord(DatalinkRecordMixin, SodaRecordMixin, Record):
     @property
     def access_url(self):
         """
-        Link to data
+        Link to data or processing service
         """
-        return self.get("access_url", decode=True)
+        row_url = self.get("access_url", decode=True)
+
+        if not row_url:
+            proc_resource = self._results.get_adhocservice_by_id(
+                self.service_def)
+            dl_params = _get_params_from_resource(proc_resource)
+            row_url = _get_accessurl_from_params(dl_params)
+
+    @property
+    def service_def(self):
+        """
+        reference to the service descriptor resource
+        """
+        return self.get("service_def", decode=True)
 
     @property
     def error_message(self):
@@ -557,6 +612,32 @@ class DatalinkRecord(DatalinkRecordMixin, SodaRecordMixin, Record):
             raise DALServiceError(self.error_message)
 
         return self.access_url
+
+    def process(self, **kwargs):
+        """
+        calls the processing service and returns it's result as a file-like
+        object
+        """
+        proc_resource = self._results.get_adhocservice_by_id(self.service_def)
+        proc_query = DatalinkQuery.from_resource(self, proc_resource, **kwargs)
+        proc_stream = proc_query.execute_stream()
+        return proc_stream
+
+    @property
+    def params(self):
+        """
+        the access parameters of the service behind this datalink row.
+        """
+        proc_resource = self._results.get_adhocservice_by_id(self.service_def)
+        return proc_resource.params
+
+    @property
+    def input_params(self):
+        """
+        a list of input parameters for the service behind this datalink row.
+        """
+        proc_resource = self._results.get_adhocservice_by_id(self.service_def)
+        return _get_input_params_from_resource(proc_resource)
 
 
 class SodaQuery(DatalinkQuery):
