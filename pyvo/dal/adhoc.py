@@ -444,15 +444,21 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         except StopIteration:
             raise ValueError("No row with semantics #this found!")
 
-    def process(self, **kwargs):
+    def iter_procs(self):
         """
-        calls the first processing service and returns it's result as a
-        file-like object
+        iterate over all rows with a processing service
         """
         for row in self:
             if row.service_def:
-                return row.process(**kwargs)
-        raise DALServiceError('No processing service found')
+                yield row
+
+    def get_first_proc(self):
+        """
+        returns the first datalink row with a processing service.
+        """
+        for proc in self.iter_procs():
+            return proc
+        raise IndexError("No processing service found in datalink result")
 
 
 class SodaRecordMixin(object):
