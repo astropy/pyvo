@@ -47,6 +47,8 @@ from astropy.table import Table
 from .query import DALResults, DALQuery, DALService, Record, mime2extension
 from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin, SodaRecordMixin
 
+from .. import samp
+
 __all__ = ["search", "SSAService", "SSAQuery", "SSAResults", "SSARecord"]
 
 
@@ -758,3 +760,12 @@ class SSARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         the format and choose an extension accordingly.
         """
         return mime2extension(self.format, default)
+
+    def broadcast_samp(self, client_name=None):
+        """
+        Broadcast the spectrum to ``client_name`` via SAMP
+        """
+        with samp.connection() as conn:
+            samp.send_spectrum_to(
+                conn, self.getdataurl(), client_name,
+                name=self.suggest_dataset_basename())

@@ -45,6 +45,8 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .exceptions import (DALFormatError, DALServiceError, DALQueryError)
 
+from .. import samp
+
 from ..utils.decorators import stream_decode_content
 from ..utils.http import session as s
 
@@ -600,6 +602,15 @@ class DALResults(object):
 
             yield out
             pos += 1
+
+    def broadcast_samp(self, client_name=None):
+        """
+        Broadcast the table to ``client_name`` via SAMP
+        """
+        with samp.connection() as conn:
+            samp.send_table_to(
+                conn, self.to_table(),
+                client_name=client_name, name=self.queryurl)
 
     def cursor(self):
         """

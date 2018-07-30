@@ -403,6 +403,19 @@ exposes a set of parameters who are dependend on the type of service.
   :py:class:`astropy.units.Quantity` with two bandwitdh values. The right sort
   order will be ensured if converting from frequency to wavelength.
 
+Interoperabillity over SAMP
+---------------------------
+Tables and datasets can be send to other astronomical applications, providing
+they have support for SAMP (Simple Application Messaging Protocol).
+
+You can either broadcast whole tables by calling ``broadcast_samp`` on the
+resultset or a single product (image, spectrum) by calling this method on the
+SIA or SSA record.
+
+.. note::
+  Don't forget to start the application and make sure there is a runnung SAMP
+  Hub.
+
 Underlying data structures
 --------------------------
 PyVO also allows access to underlying data structures.
