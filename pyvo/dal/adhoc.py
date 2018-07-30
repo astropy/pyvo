@@ -452,6 +452,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         for row in self:
             if row.service_def:
                 return row.process(**kwargs)
+        raise DALServiceError('No processing service found')
 
 
 class SodaRecordMixin(object):
