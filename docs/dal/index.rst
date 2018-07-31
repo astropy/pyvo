@@ -388,11 +388,33 @@ Server-side processing
 ----------------------
 Some services support the server-side processing of record datasets.
 This includes spatial cutouts for 2d-images, reducing of spectra to a certain
-waveband range, and more to come in the future.
+waveband range, and many more depending on the service.
 
-To invoke the operation one has to call
-:py:meth:`pyvo.dal.adhoc.SodaRecordMixin.processed` on the record, which
-exposes a set of parameters who are dependend on the type of service.
+Datalink
+^^^^^^^^
+Generic access to processing services is provided through the datalink
+interface.
+
+>>> datalink_proc = next(row.getdatalink().bysemantics('#proc'))
+
+.. note::
+  most times there is only one processing service per result, and thats all you
+  need.
+
+  >>> datalink_proc = row.getdatalink().get_first_proc()
+
+The returned object lets you access the available input parameters which you
+can pass as keywords to the ``process`` method, returning a file-like object on
+sucess.
+
+>>> print(datalink_proc)
+>>> fobj = datalink.process(CIRCLE="1 1 1")
+
+SODA
+^^^^
+SODA is a service with predefined parameters, available on row-level through
+:py:meth:`pyvo.dal.adhoc.SodaRecordMixin.processed` which exposes a set of
+parameters who are dependend on the type of service.
 
 - ``circle`` -- a sequence (degrees) or :py:class:`astropy.units.Quantity` of
   longitude, latitude and radius
