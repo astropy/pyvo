@@ -47,7 +47,7 @@ def _test_image_results(results):
 
 
 @pytest.fixture()
-def sync(mocker):
+def sync_fixture(mocker):
     def callback(request, context):
         return get_pkg_data_contents('data/tap/obscore-image.xml')
 
@@ -58,7 +58,7 @@ def sync(mocker):
 
 
 @pytest.fixture()
-def async(mocker):
+def async_fixture(mocker):
     class Callback(object):
         def __init__(self):
             self._jobs = dict()
@@ -244,7 +244,7 @@ def test_escape():
             "SELECT * FROM ivoa.obscore WHERE dataproduct_type = ''image''")
 
 
-@pytest.mark.usefixtures('sync')
+@pytest.mark.usefixtures('sync_fixture')
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
@@ -303,7 +303,7 @@ class TestTAPService(object):
         assert upload_methods[3].ivo_id == (
             'ivo://ivoa.net/std/TAPRegExt#upload-http')
 
-    @pytest.mark.usefixtures('sync')
+    @pytest.mark.usefixtures('sync_fixture')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
@@ -312,7 +312,7 @@ class TestTAPService(object):
         results = service.run_sync("SELECT * FROM ivoa.obscore")
         _test_image_results(results)
 
-    @pytest.mark.usefixtures('sync')
+    @pytest.mark.usefixtures('sync_fixture')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
@@ -321,7 +321,7 @@ class TestTAPService(object):
         results = service.search("SELECT * FROM ivoa.obscore")
         _test_image_results(results)
 
-    @pytest.mark.usefixtures('async')
+    @pytest.mark.usefixtures('async_fixture')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
@@ -330,7 +330,7 @@ class TestTAPService(object):
         results = service.run_async("SELECT * FROM ivoa.obscore")
         _test_image_results(results)
 
-    @pytest.mark.usefixtures('async')
+    @pytest.mark.usefixtures('async_fixture')
     def test_submit_job(self):
         service = TAPService('http://example.com/tap')
         job = service.submit_job(
@@ -346,7 +346,7 @@ class TestTAPService(object):
         job.wait()
         job.delete()
 
-    @pytest.mark.usefixtures('async')
+    @pytest.mark.usefixtures('async_fixture')
     def test_modify_job(self):
         service = TAPService('http://example.com/tap')
         job = service.submit_job(
