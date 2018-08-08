@@ -10,6 +10,7 @@ import numpy as np
 from .query import DALResults, DALQuery, DALService, Record
 from .exceptions import DALServiceError
 from .vosi import AvailabilityMixin, CapabilityMixin
+from .params import find_param_by_keyword, Converter
 
 from astropy.io.votable.tree import Param
 from astropy.units import Quantity, Unit
@@ -72,9 +73,8 @@ def _get_input_params_from_resource(resource):
     group_input_params = next(
         group for group in resource.groups if group.name == "inputParams")
     # get only Param elements from the group
-    input_params = (
-        _ for _ in group_input_params.entries if isinstance(_, Param))
-    return list(input_params)
+    return {
+        _.name: _ for _ in group_input_params.entries if isinstance(_, Param)}
 
 
 def _get_params_from_resource(resource):
@@ -288,20 +288,26 @@ class DatalinkQuery(DALQuery):
         accessurl = _get_accessurl_from_params(dl_params)
 
         query_params = dict()
-        for input_param in input_params:
+        for name, input_param in input_params.items():
             if input_param.ref:
-                query_params[input_param.name] = row[input_param.ref]
+                query_params[name] = row[input_param.ref]
             elif np.isscalar(input_param.value) and input_param.value:
-                query_params[input_param.name] = input_param.value
+                query_params[name] = input_param.value
             elif (
                     not np.isscalar(input_param.value) and
                     input_param.value.all() and
                     len(input_param.value)
             ):
-                query_params[input_param.name] = " ".join(
+                query_params[name] = " ".join(
                     str(_) for _ in input_param.value)
 
-        query_params.update(kwargs)
+        for name, query_param in kwargs.items():
+            try:
+                input_param = find_param_by_keyword(name, input_params)
+                converter = Converter.from_param(input_param)
+                query_params[name] = converter.serialize(query_param)
+            except KeyError:
+                query_params[name] = query_param
 
         return cls(accessurl, **query_params)
 
@@ -644,7 +650,7 @@ class DatalinkRecord(DatalinkRecordMixin, SodaRecordMixin, Record):
         a list of input parameters for the service behind this datalink row.
         """
         proc_resource = self._results.get_adhocservice_by_id(self.service_def)
-        return _get_input_params_from_resource(proc_resource)
+        return list(_get_input_params_from_resource(proc_resource).values())
 
 
 class SodaQuery(DatalinkQuery):
