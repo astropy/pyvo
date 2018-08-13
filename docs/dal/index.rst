@@ -408,7 +408,7 @@ can pass as keywords to the ``process`` method, returning a file-like object on
 sucess.
 
 >>> print(datalink_proc)
->>> fobj = datalink.process(CIRCLE="1 1 1")
+>>> fobj = datalink.process(circle=(1, 1, 1))
 
 SODA
 ^^^^
