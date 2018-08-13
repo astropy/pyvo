@@ -38,6 +38,12 @@ class Converter(object):
     Base class for all converters. Each subclass handles the conversion of a
     input value based on a specific xtype.
     """
+    @staticmethod
+    def unify_value(func):
+        def wrapper(self, value):
+            return func(self, Quantity(value))
+        return wrapper
+
     @classmethod
     def from_param(cls, param):
         """
@@ -81,6 +87,7 @@ class Number(Converter):
         super(Number, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
 
+    @Converter.unify_value
     def serialize(self, value):
         """
         Serialize for use in DAL Queries
@@ -109,6 +116,7 @@ class Timestamp(Converter):
         super(Timestamp, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
 
+    @Converter.unify_value
     def serialize(self, value):
         """
         Serialize time values for use in DAL Queries
@@ -137,6 +145,7 @@ class Interval(Number):
         super(Interval, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
 
+    @Converter.unify_value
     def serialize(self, value):
         size = np.size(value)
         if size % 2:
@@ -158,6 +167,7 @@ class Point(Number):
         super(Point, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
 
+    @Converter.unify_value
     def serialize(self, value):
         size = np.size(value)
         if size != 2:
@@ -179,6 +189,7 @@ class Circle(Number):
         super(Circle, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
 
+    @Converter.unify_value
     def serialize(self, value):
         size = np.size(value)
         if size != 3:
@@ -203,6 +214,7 @@ class Polygon(Number):
         super(Polygon, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
 
+    @Converter.unify_value
     def serialize(self, value):
         size = np.size(value)
         if size % 3:
