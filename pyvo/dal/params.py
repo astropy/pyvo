@@ -47,7 +47,7 @@ class Converter(object):
             cls = registry[param.xtype]
 
         return cls(
-            param.arraysize, param.unit, param.xtype,
+            param.datatype, param.arraysize, param.unit, param.xtype,
             range_=(param.values.min, param.values.max),
             options={option[1] for option in param.values.options}
         )
@@ -68,7 +68,7 @@ class Converter(object):
         if np.isscalar(value):
             return str(value)
         elif not np.isscalar(value):
-            return " ".join(value)
+            return " ".join(str(_) for _ in value)
 
 
 class Number(Converter):
@@ -78,7 +78,7 @@ class Number(Converter):
         if datatype not in {'short', 'int', 'long', 'float', 'double'}:
             pass
 
-        super(Converter, self).__init__(
+        super(Number, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
 
     def serialize(self, value):
@@ -106,7 +106,7 @@ class Timestamp(Converter):
         if datatype != 'char':
             raise ValueError('Datatype is not char')
 
-        super(Converter, self).__init__(
+        super(Timestamp, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
 
     def serialize(self, value):

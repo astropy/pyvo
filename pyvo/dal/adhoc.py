@@ -305,7 +305,8 @@ class DatalinkQuery(DALQuery):
             try:
                 input_param = find_param_by_keyword(name, input_params)
                 converter = Converter.from_param(input_param)
-                query_params[name] = converter.serialize(query_param)
+                query_params[input_param.name] = converter.serialize(
+                    query_param)
             except KeyError:
                 query_params[name] = query_param
 
@@ -572,6 +573,8 @@ class DatalinkRecord(DatalinkRecordMixin, SodaRecordMixin, Record):
                 self.service_def)
             dl_params = _get_params_from_resource(proc_resource)
             row_url = _get_accessurl_from_params(dl_params)
+
+        return row_url
 
     @property
     def service_def(self):
