@@ -404,8 +404,14 @@ interface.
   >>> datalink_proc = row.getdatalink().get_first_proc()
 
 The returned object lets you access the available input parameters which you
-can pass as keywords to the ``process`` method, returning a file-like object on
-sucess.
+can pass as keywords to the ``process`` method.
+
+>>> print(datalink_proc.input_params)
+
+For more details about this have a look at
+:py:class:`astropy.io.votable.tree.Param`.
+
+Calling the methid will return a file-like object on sucess.
 
 >>> print(datalink_proc)
 >>> fobj = datalink.process(circle=(1, 1, 1))
