@@ -11,6 +11,7 @@ from six.moves.urllib.parse import parse_qsl
 
 from pyvo.dal.adhoc import DatalinkResults
 from pyvo.dal.params import find_param_by_keyword, Converter
+from pyvo.dal.exceptions import DALServiceError
 
 import pytest
 
@@ -97,6 +98,29 @@ def test_serialize():
 
     assert scale_conv.serialize(1) == "1"
     assert kind_conv.serialize("DATA") == "DATA"
+
+
+@pytest.mark.usefixtures('proc')
+def test_serialize_exceptions():
+    datalink = DatalinkResults.from_result_url('http://example.com/proc')
+    proc = datalink[0]
+    input_params = {param.name: param for param in proc.input_params}
+
+    polygon_conv = Converter.from_param(
+        find_param_by_keyword('polygon', input_params))
+    circle_conv = Converter.from_param(
+        find_param_by_keyword('circle', input_params))
+    band_conv = Converter.from_param(
+        find_param_by_keyword('band', input_params))
+
+    with pytest.raises(DALServiceError):
+        polygon_conv.serialize((1, 2, 3, 4))
+
+    with pytest.raises(DALServiceError):
+        circle_conv.serialize((1, 2, 3, 4))
+
+    with pytest.raises(DALServiceError):
+        band_conv.serialize((1, 2, 3))
 
 
 @pytest.mark.usefixtures('proc')
