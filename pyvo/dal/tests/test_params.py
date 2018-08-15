@@ -7,12 +7,14 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
 from functools import partial
+from six.moves.urllib.parse import parse_qsl
 
 from pyvo.dal.adhoc import DatalinkResults
 from pyvo.dal.params import find_param_by_keyword, Converter
 
 import pytest
 
+import astropy.units as u
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_fileobj
 
 get_pkg_data_contents = partial(
@@ -29,6 +31,22 @@ def proc(mocker):
 
     with mocker.register_uri(
         'GET', 'http://example.com/proc', content=callback
+    ) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
+def proc_units(mocker):
+    def callback(request, context):
+        data = dict(parse_qsl(request.query))
+        if 'band' in data:
+            assert data['band'] == (
+                '6.000000000000001e-07 8.000000000000001e-06')
+
+        return get_pkg_data_contents('data/datalink/proc.xml')
+
+    with mocker.register_uri(
+        'GET', 'http://example.com/proc_units', content=callback
     ) as matcher:
         yield matcher
 
@@ -74,3 +92,12 @@ def test_serialize():
     assert circle_conv.serialize((1, 2, 3)) == "1.0 2.0 3.0"
     assert scale_conv.serialize(1) == "1"
     assert kind_conv.serialize("DATA") == "DATA"
+
+
+@pytest.mark.usefixtures('proc')
+@pytest.mark.usefixtures('proc_units')
+def test_units():
+    datalink = DatalinkResults.from_result_url('http://example.com/proc')
+    proc = datalink[0]
+
+    proc.process(band=(6000*u.Angstrom, 80000*u.Angstrom))

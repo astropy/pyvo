@@ -128,8 +128,9 @@
           <OPTION name="Retrieve the full data, including header (default)" value="DATA"/>
         </VALUES>
       </PARAM>
+      <PARAM ID="BAND" arraysize="2" datatype="double" name="BAND" ucd="em.wl" unit="m" value="[0. 0.]" xtype="interval"/>
     </GROUP>
-    <PARAM arraysize="*" datatype="char" name="accessURL" ucd="meta.ref.url" value="http://dc.zah.uni-heidelberg.de/bgds/q/dl/dlget"/>
+    <PARAM arraysize="*" datatype="char" name="accessURL" ucd="meta.ref.url" value="http://example.com/proc_units"/>
     <PARAM arraysize="*" datatype="char" name="standardID" value="ivo://ivoa.net/std/SODA#sync-1.0"/>
   </RESOURCE>
 </VOTABLE>
