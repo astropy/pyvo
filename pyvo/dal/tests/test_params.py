@@ -9,7 +9,7 @@ from __future__ import (
 from functools import partial
 
 from pyvo.dal.adhoc import DatalinkResults
-from pyvo.dal.params import find_param_by_keyword
+from pyvo.dal.params import find_param_by_keyword, Converter
 
 import pytest
 
@@ -45,4 +45,14 @@ def test_find_param_by_keyword():
     polygon_lower = find_param_by_keyword('polygon', input_params)
     polygon_upper = find_param_by_keyword('POLYGON', input_params)
 
+    circle_lower = find_param_by_keyword('circle', input_params)
+    circle_upper = find_param_by_keyword('CIRCLE', input_params)
+
     assert polygon_lower == polygon_upper
+    assert circle_lower == circle_upper
+
+    polygon_conv = Converter.from_param(polygon_lower)
+    circle_conv = Converter.from_param(circle_lower)
+
+    assert polygon_conv.serialize((1, 2, 3)) == "1.0 2.0 3.0"
+    assert circle_conv.serialize((1, 2, 3)) == "1.0 2.0 3.0"

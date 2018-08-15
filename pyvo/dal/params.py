@@ -209,7 +209,8 @@ class Polygon(Number):
             if arraysize % 3:
                 raise ValueError()
         except ValueError:
-            raise ValueError('Arraysize is not a multiple of 3')
+            if arraysize != '*':
+                raise ValueError('Arraysize is not a multiple of 3')
 
         super(Polygon, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
