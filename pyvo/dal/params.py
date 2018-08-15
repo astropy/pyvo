@@ -44,7 +44,14 @@ class Converter(object):
     @staticmethod
     def unify_value(func):
         def wrapper(self, value):
-            return func(self, Quantity(value))
+            value = Quantity(value)
+            if self._unit:
+                if not value.unit.to_string():
+                    value = value * Unit(self._unit)
+                else:
+                    value = value.to(self._unit)
+
+                return func(self, value.value)
         return wrapper
 
     @classmethod
@@ -98,12 +105,6 @@ class Number(Converter):
         if not isinstance(value, Quantity):
             value = Quantity(value)
 
-        if self._unit:
-            if not value.unit.to_string():
-                value = value * Unit(self._unit)
-            else:
-                value = value.to(self._unit)
-
         return super(Number, self).serialize(value.value)
 
 
@@ -154,7 +155,18 @@ class Interval(Number):
         if size % 2:
             raise DALServiceError('Interval size is not even')
 
-        return super(Interval, self).serialize(value)
+        return ' '.join(self.format_(val) for val in value)
+
+    def format_(self, val):
+        if np.isinf(val):
+            if val > 0:
+                return '+Inf'
+            else:
+                return '-Inf'
+        elif np.isnan(val):
+            return 'NaN'
+        else:
+            return str(val)
 
 
 @xtype('point')

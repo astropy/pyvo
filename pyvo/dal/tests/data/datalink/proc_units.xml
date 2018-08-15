@@ -130,7 +130,7 @@
       </PARAM>
       <PARAM ID="BAND" arraysize="2" datatype="double" name="BAND" ucd="em.wl" unit="m" value="[0. 0.]" xtype="interval"/>
     </GROUP>
-    <PARAM arraysize="*" datatype="char" name="accessURL" ucd="meta.ref.url" value="http://example.com/proc_ds"/>
+    <PARAM arraysize="*" datatype="char" name="accessURL" ucd="meta.ref.url" value="http://example.com/proc_units_ds"/>
     <PARAM arraysize="*" datatype="char" name="standardID" value="ivo://ivoa.net/std/SODA#sync-1.0"/>
   </RESOURCE>
 </VOTABLE>

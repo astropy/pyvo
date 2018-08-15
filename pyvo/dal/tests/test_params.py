@@ -38,17 +38,66 @@ def proc(mocker):
 
 
 @pytest.fixture()
+def proc_ds(mocker):
+    def callback(request, context):
+        return b''
+
+    with mocker.register_uri(
+        'GET', 'http://example.com/proc', content=callback
+    ) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
 def proc_units(mocker):
+    def callback(request, context):
+        return get_pkg_data_contents('data/datalink/proc_units.xml')
+
+    with mocker.register_uri(
+        'GET', 'http://example.com/proc_units', content=callback
+    ) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
+def proc_units_ds(mocker):
     def callback(request, context):
         data = dict(parse_qsl(request.query))
         if 'band' in data:
             assert data['band'] == (
                 '6.000000000000001e-07 8.000000000000001e-06')
 
-        return get_pkg_data_contents('data/datalink/proc.xml')
+        return b''
 
     with mocker.register_uri(
-        'GET', 'http://example.com/proc_units', content=callback
+        'GET', 'http://example.com/proc_units_ds', content=callback
+    ) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
+def proc_inf(mocker):
+    def callback(request, context):
+        return get_pkg_data_contents('data/datalink/proc_inf.xml')
+
+    with mocker.register_uri(
+        'GET', 'http://example.com/proc_inf', content=callback
+    ) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
+def proc_inf_ds(mocker):
+    def callback(request, context):
+        data = dict(parse_qsl(request.query))
+        if 'band' in data:
+            assert data['band'] == (
+                '6.000000000000001e-07 +Inf')
+
+        return b''
+
+    with mocker.register_uri(
+        'GET', 'http://example.com/proc_inf_ds', content=callback
     ) as matcher:
         yield matcher
 
@@ -101,6 +150,7 @@ def test_serialize():
 
 
 @pytest.mark.usefixtures('proc')
+@pytest.mark.usefixtures('proc_ds')
 def test_serialize_exceptions():
     datalink = DatalinkResults.from_result_url('http://example.com/proc')
     proc = datalink[0]
@@ -123,10 +173,19 @@ def test_serialize_exceptions():
         band_conv.serialize((1, 2, 3))
 
 
-@pytest.mark.usefixtures('proc')
 @pytest.mark.usefixtures('proc_units')
+@pytest.mark.usefixtures('proc_units_ds')
 def test_units():
-    datalink = DatalinkResults.from_result_url('http://example.com/proc')
+    datalink = DatalinkResults.from_result_url('http://example.com/proc_units')
     proc = datalink[0]
 
     proc.process(band=(6000*u.Angstrom, 80000*u.Angstrom))
+
+
+@pytest.mark.usefixtures('proc_inf')
+@pytest.mark.usefixtures('proc_inf_ds')
+def test_inf():
+    datalink = DatalinkResults.from_result_url('http://example.com/proc_inf')
+    proc = datalink[0]
+
+    proc.process(band=(6000, +np.inf) * u.Angstrom)
