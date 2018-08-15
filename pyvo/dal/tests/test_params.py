@@ -14,6 +14,7 @@ from pyvo.dal.params import find_param_by_keyword, Converter
 
 import pytest
 
+import numpy as np
 import astropy.units as u
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_fileobj
 
@@ -89,7 +90,11 @@ def test_serialize():
         find_param_by_keyword('kind', input_params))
 
     assert polygon_conv.serialize((1, 2, 3)) == "1.0 2.0 3.0"
+    assert polygon_conv.serialize(np.array((1, 2, 3))) == "1.0 2.0 3.0"
+
     assert circle_conv.serialize((1, 2, 3)) == "1.0 2.0 3.0"
+    assert circle_conv.serialize(np.array((1, 2, 3))) == "1.0 2.0 3.0"
+
     assert scale_conv.serialize(1) == "1"
     assert kind_conv.serialize("DATA") == "DATA"
 
