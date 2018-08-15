@@ -3,8 +3,11 @@
 This file contains functionallity related to VOTABLE Params.
 """
 import numpy as np
+
 from astropy.units import Quantity, Unit
 from astropy.time import Time
+
+from .exceptions import DALServiceError
 
 
 def find_param_by_keyword(keyword, params):
@@ -111,7 +114,7 @@ class Timestamp(Converter):
         xtype='timestamp', range_=None, options=None
     ):
         if datatype != 'char':
-            raise ValueError('Datatype is not char')
+            raise DALServiceError('Datatype is not char')
 
         super(Timestamp, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
@@ -126,7 +129,7 @@ class Timestamp(Converter):
         if value.size == 1:
             return value.isot
         else:
-            raise ValueError('Expecting a scalar time value')
+            raise DALServiceError('Expecting a scalar time value')
 
 
 @xtype('interval')
@@ -138,9 +141,9 @@ class Interval(Number):
         try:
             arraysize = int(arraysize)
             if arraysize % 2:
-                raise ValueError('Arraysize is not even')
+                raise DALServiceError('Arraysize is not even')
         except ValueError:
-            raise ValueError('Arraysize is not even')
+            raise DALServiceError('Arraysize is not even')
 
         super(Interval, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
@@ -149,7 +152,7 @@ class Interval(Number):
     def serialize(self, value):
         size = np.size(value)
         if size % 2:
-            raise ValueError('Interval size is not even')
+            raise DALServiceError('Interval size is not even')
 
         return super(Interval, self).serialize(value)
 
@@ -160,9 +163,12 @@ class Point(Number):
         self, datatype, arraysize, unit,
         xtype='point', range_=None, options=None
     ):
-        arraysize = int(arraysize)
-        if arraysize != 2:
-            raise ValueError('Point arraysize must be 2')
+        try:
+            arraysize = int(arraysize)
+            if arraysize != 2:
+                raise DALServiceError('Point arraysize must be 2')
+        except ValueError:
+            raise DALServiceError('Point arraysize must be 2')
 
         super(Point, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
@@ -171,7 +177,7 @@ class Point(Number):
     def serialize(self, value):
         size = np.size(value)
         if size != 2:
-            raise ValueError('Point size must be 2')
+            raise DALServiceError('Point size must be 2')
 
         return super(Point, self).serialize(value)
 
@@ -184,7 +190,7 @@ class Circle(Number):
     ):
         arraysize = int(arraysize)
         if arraysize != 3:
-            raise ValueError('Circle arraysize must be 3')
+            raise DALServiceError('Circle arraysize must be 3')
 
         super(Circle, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
@@ -193,7 +199,7 @@ class Circle(Number):
     def serialize(self, value):
         size = np.size(value)
         if size != 3:
-            raise ValueError('Circle size must be 3')
+            raise DALServiceError('Circle size must be 3')
 
         return super(Circle, self).serialize(value)
 
@@ -207,10 +213,10 @@ class Polygon(Number):
         try:
             arraysize = int(arraysize)
             if arraysize % 3:
-                raise ValueError()
+                raise DALServiceError('Arraysize is not a multiple of 3')
         except ValueError:
             if arraysize != '*':
-                raise ValueError('Arraysize is not a multiple of 3')
+                raise DALServiceError('Arraysize is not a multiple of 3')
 
         super(Polygon, self).__init__(
             datatype, arraysize, unit, xtype, range_=range_, options=options)
@@ -218,7 +224,10 @@ class Polygon(Number):
     @Converter.unify_value
     def serialize(self, value):
         size = np.size(value)
-        if size % 3:
-            raise ValueError('Size is not a multiple of 3')
+        try:
+            if size % 3:
+                raise DALServiceError('Size is not a multiple of 3')
+        except ValueError:
+                raise DALServiceError('Size is not a multiple of 3')
 
         return super(Polygon, self).serialize(value)
