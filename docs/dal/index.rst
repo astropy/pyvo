@@ -411,7 +411,7 @@ can pass as keywords to the ``process`` method.
 For more details about this have a look at
 :py:class:`astropy.io.votable.tree.Param`.
 
-Calling the methid will return a file-like object on sucess.
+Calling the method will return a file-like object on sucess.
 
 >>> print(datalink_proc)
 >>> fobj = datalink.process(circle=(1, 1, 1))
