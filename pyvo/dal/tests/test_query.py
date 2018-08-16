@@ -96,7 +96,7 @@ def register_mocks(mocker):
         ]
 
         def verbosetest_callback(request, context):
-            assert 'verbose' in request.qs and '1' in request.qs['verbose']
+            assert 'VERBOSE' in request.qs and '1' in request.qs['VERBOSE']
             return get_pkg_data_contents('data/query/basic.xml')
 
         matchers.append(stack.enter_context(mocker.register_uri(
