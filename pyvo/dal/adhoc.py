@@ -10,7 +10,7 @@ import numpy as np
 from .query import DALResults, DALQuery, DALService, Record
 from .exceptions import DALServiceError
 from .vosi import AvailabilityMixin, CapabilityMixin
-from .params import find_param_by_keyword, Converter
+from .params import find_param_by_keyword, get_converter
 
 from astropy.io.votable.tree import Param
 from astropy.units import Quantity, Unit
@@ -304,7 +304,7 @@ class DatalinkQuery(DALQuery):
         for name, query_param in kwargs.items():
             try:
                 input_param = find_param_by_keyword(name, input_params)
-                converter = Converter.from_param(input_param)
+                converter = get_converter(input_param)
                 query_params[input_param.name] = converter.serialize(
                     query_param)
             except KeyError:

@@ -10,7 +10,7 @@ from functools import partial
 from six.moves.urllib.parse import parse_qsl
 
 from pyvo.dal.adhoc import DatalinkResults
-from pyvo.dal.params import find_param_by_keyword, Converter
+from pyvo.dal.params import find_param_by_keyword, get_converter
 from pyvo.dal.exceptions import DALServiceError
 
 import pytest
@@ -130,20 +130,20 @@ def test_serialize():
     proc = datalink[0]
     input_params = {param.name: param for param in proc.input_params}
 
-    polygon_conv = Converter.from_param(
+    polygon_conv = get_converter(
         find_param_by_keyword('polygon', input_params))
-    circle_conv = Converter.from_param(
+    circle_conv = get_converter(
         find_param_by_keyword('circle', input_params))
-    scale_conv = Converter.from_param(
+    scale_conv = get_converter(
         find_param_by_keyword('scale', input_params))
-    kind_conv = Converter.from_param(
+    kind_conv = get_converter(
         find_param_by_keyword('kind', input_params))
 
-    assert polygon_conv.serialize((1, 2, 3)) == "1.0 2.0 3.0"
-    assert polygon_conv.serialize(np.array((1, 2, 3))) == "1.0 2.0 3.0"
+    assert polygon_conv.serialize((1, 2, 3)) == "1 2 3"
+    assert polygon_conv.serialize(np.array((1, 2, 3))) == "1 2 3"
 
-    assert circle_conv.serialize((1, 2, 3)) == "1.0 2.0 3.0"
-    assert circle_conv.serialize(np.array((1, 2, 3))) == "1.0 2.0 3.0"
+    assert circle_conv.serialize((1.1, 2.2, 3.3)) == "1.1 2.2 3.3"
+    assert circle_conv.serialize(np.array((1.1, 2.2, 3.3))) == "1.1 2.2 3.3"
 
     assert scale_conv.serialize(1) == "1"
     assert kind_conv.serialize("DATA") == "DATA"
@@ -156,11 +156,11 @@ def test_serialize_exceptions():
     proc = datalink[0]
     input_params = {param.name: param for param in proc.input_params}
 
-    polygon_conv = Converter.from_param(
+    polygon_conv = get_converter(
         find_param_by_keyword('polygon', input_params))
-    circle_conv = Converter.from_param(
+    circle_conv = get_converter(
         find_param_by_keyword('circle', input_params))
-    band_conv = Converter.from_param(
+    band_conv = get_converter(
         find_param_by_keyword('band', input_params))
 
     with pytest.raises(DALServiceError):

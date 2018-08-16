@@ -6,8 +6,13 @@ import numpy as np
 
 from astropy.units import Quantity, Unit
 from astropy.time import Time
+from astropy.io.votable.converters import (
+    get_converter as get_votable_converter)
 
 from .exceptions import DALServiceError
+
+
+NUMERIC_DATATYPES = {'short', 'int', 'long', 'float', 'double'}
 
 
 def find_param_by_keyword(keyword, params):
@@ -36,91 +41,76 @@ def xtype(name):
     return decorate
 
 
+def unify_value(func):
+    """
+    Decorator for serialize method to do unit conversion on input value.
+    The decorator converts the input value to the unit in the input param.
+    """
+    def wrapper(self, value):
+        if self._param.unit:
+            value = Quantity(value)
+            if not value.unit.to_string():
+                value = value * Unit(self._param.unit)
+            else:
+                value = value.to(self._param.unit)
+
+        if isinstance(value, Quantity):
+            value = value.value
+
+        return func(self, value)
+
+    return wrapper
+
+
+def get_converter(param):
+    if param.xtype in registry:
+        return registry[param.xtype](param)
+
+    if param.datatype in NUMERIC_DATATYPES:
+        return Number(param)
+
+    return Converter(param)
+
+
 class Converter(object):
     """
     Base class for all converters. Each subclass handles the conversion of a
     input value based on a specific xtype.
     """
-    @staticmethod
-    def unify_value(func):
-        def wrapper(self, value):
-            value = Quantity(value)
-            if self._unit:
-                if not value.unit.to_string():
-                    value = value * Unit(self._unit)
-                else:
-                    value = value.to(self._unit)
-
-                return func(self, value.value)
-        return wrapper
-
-    @classmethod
-    def from_param(cls, param):
-        """
-        creates a class instance from a Param element.
-        """
-        if param.xtype in registry:
-            cls = registry[param.xtype]
-
-        return cls(
-            param.datatype, param.arraysize, param.unit, param.xtype,
-            range_=(param.values.min, param.values.max),
-            options={option[1] for option in param.values.options}
-        )
-
-    def __init__(
-        self, datatype, arraysize, unit, xtype, range_=None, options=None
-    ):
-        self._arraysize = arraysize
-        self._unit = unit
-        self._xtype = xtype
-        self._range = range_
-        self._options = options
+    def __init__(self, param):
+        self._param = param
 
     def serialize(self, value):
         """
         Serialize for use in DAL Queries
         """
-        if np.isscalar(value):
-            return str(value)
-        elif not np.isscalar(value):
-            return " ".join(str(_) for _ in value)
+        return str(value)
 
 
 class Number(Converter):
-    def __init__(
-        self, datatype, arraysize, unit, xtype, range_=None, options=None
-    ):
-        if datatype not in {'short', 'int', 'long', 'float', 'double'}:
+    def __init__(self, param):
+        if param.datatype not in {'short', 'int', 'long', 'float', 'double'}:
             pass
 
-        super(Number, self).__init__(
-            datatype, arraysize, unit, xtype, range_=range_, options=options)
+        super(Number, self).__init__(param)
 
-    @Converter.unify_value
+    @unify_value
     def serialize(self, value):
         """
         Serialize for use in DAL Queries
         """
-        if not isinstance(value, Quantity):
-            value = Quantity(value)
-
-        return super(Number, self).serialize(value.value)
+        return get_votable_converter(self._param).output(
+            value, np.zeros_like(value))
 
 
 @xtype('timestamp')
 class Timestamp(Converter):
-    def __init__(
-        self, datatype='char', arraysize='*', unit=None,
-        xtype='timestamp', range_=None, options=None
-    ):
-        if datatype != 'char':
+    def __init__(self, param):
+        if param.datatype != 'char':
             raise DALServiceError('Datatype is not char')
 
-        super(Timestamp, self).__init__(
-            datatype, arraysize, unit, xtype, range_=range_, options=options)
+        super(Timestamp, self).__init__(param)
 
-    @Converter.unify_value
     def serialize(self, value):
         """
         Serialize time values for use in DAL Queries
@@ -135,57 +125,38 @@ class Timestamp(Converter):
 
 @xtype('interval')
 class Interval(Number):
-    def __init__(
-        self, datatype, arraysize, unit,
-        xtype='interval', range_=None, options=None
-    ):
+    def __init__(self, param):
         try:
-            arraysize = int(arraysize)
+            arraysize = int(param.arraysize)
             if arraysize % 2:
                 raise DALServiceError('Arraysize is not even')
         except ValueError:
             raise DALServiceError('Arraysize is not even')
 
-        super(Interval, self).__init__(
-            datatype, arraysize, unit, xtype, range_=range_, options=options)
+        super(Interval, self).__init__(param)
 
-    @Converter.unify_value
+    @unify_value
     def serialize(self, value):
         size = np.size(value)
         if size % 2:
             raise DALServiceError('Interval size is not even')
 
-        return ' '.join(self.format_(val) for val in value)
-
-    def format_(self, val):
-        if np.isinf(val):
-            if val > 0:
-                return '+Inf'
-            else:
-                return '-Inf'
-        elif np.isnan(val):
-            return 'NaN'
-        else:
-            return str(val)
+        return super(Interval, self).serialize(value)
 
 
 @xtype('point')
 class Point(Number):
-    def __init__(
-        self, datatype, arraysize, unit,
-        xtype='point', range_=None, options=None
-    ):
+    def __init__(self, param):
         try:
-            arraysize = int(arraysize)
+            arraysize = int(param.arraysize)
             if arraysize != 2:
                 raise DALServiceError('Point arraysize must be 2')
         except ValueError:
             raise DALServiceError('Point arraysize must be 2')
 
-        super(Point, self).__init__(
-            datatype, arraysize, unit, xtype, range_=range_, options=options)
+        super(Point, self).__init__(param)
 
-    @Converter.unify_value
+    @unify_value
     def serialize(self, value):
         size = np.size(value)
         if size != 2:
@@ -196,18 +167,14 @@ class Point(Number):
 
 @xtype('circle')
 class Circle(Number):
-    def __init__(
-        self, datatype, arraysize, unit,
-        xtype='circle', range_=None, options=None
-    ):
-        arraysize = int(arraysize)
+    def __init__(self, param):
+        arraysize = int(param.arraysize)
         if arraysize != 3:
             raise DALServiceError('Circle arraysize must be 3')
 
-        super(Circle, self).__init__(
-            datatype, arraysize, unit, xtype, range_=range_, options=options)
+        super(Circle, self).__init__(param)
 
-    @Converter.unify_value
+    @unify_value
     def serialize(self, value):
         size = np.size(value)
         if size != 3:
@@ -218,22 +185,18 @@ class Circle(Number):
 
 @xtype('polygon')
 class Polygon(Number):
-    def __init__(
-        self, datatype, arraysize, unit,
-        xtype='polygon', range_=None, options=None
-    ):
+    def __init__(self, param):
         try:
-            arraysize = int(arraysize)
+            arraysize = int(param.arraysize)
             if arraysize % 3:
                 raise DALServiceError('Arraysize is not a multiple of 3')
         except ValueError:
-            if arraysize != '*':
+            if param.arraysize != '*':
                 raise DALServiceError('Arraysize is not a multiple of 3')
 
-        super(Polygon, self).__init__(
-            datatype, arraysize, unit, xtype, range_=range_, options=options)
+        super(Polygon, self).__init__(param)
 
-    @Converter.unify_value
+    @unify_value
     def serialize(self, value):
         size = np.size(value)
         try:
