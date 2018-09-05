@@ -76,7 +76,7 @@ matrix:
           env: PYTHON_VERSION=2.7
                PIP_DEPENDENCIES='requests requests_mock contextlib2'
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.13
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14
 
         # Do a PEP8 test with pycodestyle
         - os: linux
