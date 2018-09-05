@@ -6,6 +6,8 @@
 
 * fix some python2/3 issues
 
+* add general datalink processing method
+
 0.8.1
 ----------------
 pass use_names_over_ids=True to astropy's to_table
