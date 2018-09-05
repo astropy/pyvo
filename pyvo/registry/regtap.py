@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-a module for basic VO Registry interactions.  
+a module for basic VO Registry interactions.
 
 A VO registry is a database of VO resources--data collections and
 services--that are available for VO applications.  Typically, it is
@@ -10,7 +10,7 @@ queries--typically, subject-based.  The registry responds with a list
 of records describing matching resources.  With a record in hand, the
 application can use the information in the record to access the
 resource directly.  Most often, the resource is a data service that
-can be queried for individual datasets of interest.  
+can be queried for individual datasets of interest.
 
 This module provides basic, low-level access to the RegTAP Registries using
 standardized TAP-based services.
@@ -33,6 +33,7 @@ _service_type_map = {
     "table": "tap"
 }
 
+
 def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
     """
     execute a simple query to the RegTAP registry.
@@ -40,19 +41,19 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
     Parameters
     ----------
     keywords : list of str
-       keyword terms to match to registry records.  
-       Use this parameter to find resources related to a 
+       keyword terms to match to registry records.
+       Use this parameter to find resources related to a
        particular topic.
     servicetype : str
        the service type to restrict results to.
        Allowed values include
-       'conesearch', 
+       'conesearch',
        'sia' ,
        'ssa',
        'slap',
        'tap'
     waveband : str
-       the name of a desired waveband; resources returned 
+       the name of a desired waveband; resources returned
        will be restricted to those that indicate as having
        data in that waveband.  Allowed values include
        'radio',
@@ -64,8 +65,8 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
        'x-ray'
        'gamma-ray'
     datamodel : str
-        the name of the datamodel to search for; makes only sence in conjunction
-        with servicetype tap (or no servicetype).
+        the name of the datamodel to search for; makes only sence in
+        conjunction with servicetype tap (or no servicetype).
 
         See http://wiki.ivoa.net/twiki/bin/view/IVOA/IvoaDataModel for more
         informations about data models.
@@ -85,6 +86,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
 
     joins = set(["rr.interface", "rr.resource"])
     wheres = list()
+    wheres.append("intf_type = 'vs:paramhttp'")
 
     if keywords:
         joins.add("rr.res_subject")
@@ -96,14 +98,13 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
                 1=ivo_hasword(res_title, '{0}')
             )""".format(tap.escape(keyword)) for keyword in keywords
         ))])
-    
+
     if servicetype:
         servicetype = _service_type_map.get(servicetype, servicetype)
 
         joins.add("rr.interface")
         wheres.append("standard_id LIKE 'ivo://ivoa.net/std/{}%'".format(
             tap.escape(servicetype)))
-        wheres.append("intf_type = 'vs:paramhttp'")
     else:
         wheres.append("""(
             standard_id LIKE 'ivo://ivoa.net/std/conesearch%' OR
@@ -112,7 +113,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
             standard_id LIKE 'ivo://ivoa.net/std/slap%' OR
             standard_id LIKE 'ivo://ivoa.net/std/tap%'
         )""")
-    
+
     if waveband:
         joins.add("rr.resource")
         wheres.append("1 = ivo_hashlist_has('{}', waveband)".format(
@@ -125,7 +126,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
         wheres.append("intf_type = 'vs:paramhttp'")
         wheres.append("detail_xpath='/capability/dataModel/@ivo-id'")
         wheres.append(
-            "1=ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/{0}%')".format(
+            "1=ivo_nocasematch(detail_value,'ivo://ivoa.net/std/{0}%')".format(
                 tap.escape(datamodel)))
 
     query = """SELECT DISTINCT rr.interface.*, rr.capability.*, rr.resource.*
@@ -364,19 +365,19 @@ class RegistryResource(dalq.Record):
 
     def describe(self, verbose=False, width=78, file=None):
         """
-        Print a summary description of this resource.  
+        Print a summary description of this resource.
 
         Parameters
         ----------
         verbose : bool
-            If false (default), only user-oriented information is 
+            If false (default), only user-oriented information is
             printed; if true, additional information will be printed
             as well.
         width : int
             Format the description with given character-width.
         out : writable file-like object
             If provided, write information to this output stream.
-            Otherwise, it is written to standard out.  
+            Otherwise, it is written to standard out.
         """
         restype = "Custom Service"
         stdid = self.get("standard_id").lower()
@@ -395,7 +396,6 @@ class RegistryResource(dalq.Record):
         print(restype, file=file)
         print(dalq.para_format_desc(self.res_title), file=file)
         print("Short Name: " + self.short_name, file=file)
-        #print("Publisher: " + dalq.para_format_desc(self.publisher), file=file)
         print("IVOA Identifier: " + self.ivoid, file=file)
         if self.access_url:
             print("Base URL: " + self.access_url, file=file)
@@ -406,18 +406,21 @@ class RegistryResource(dalq.Record):
             print(file=file)
 
         if self.short_name:
-            print(dalq.para_format_desc("Subjects: {}".format(self.short_name)),
-                  file=file)
+            print(
+                dalq.para_format_desc("Subjects: {}".format(self.short_name)),
+                file=file)
         if self.waveband:
             val = (str(v) for v in self.waveband)
-            print(dalq.para_format_desc("Waveband Coverage: " + ", ".join(val)),
-                  file=file)
+            print(
+                dalq.para_format_desc("Waveband Coverage: " + ", ".join(val)),
+                file=file)
 
         if verbose:
             if self.standard_id:
                 print("StandardID: " + self.standard_id, file=file)
             if self.reference_url:
                 print("More info: " + self.reference_url, file=file)
+
 
 def ivoid2service(ivoid):
     service = tap.TAPService(REGISTRY_BASEURL)
