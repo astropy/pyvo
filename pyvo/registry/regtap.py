@@ -89,20 +89,21 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
     wheres.append("intf_type = 'vs:paramhttp'")
 
     if keywords:
-        joins.add("rr.res_subject")
-        joins.add("rr.resource")
-        wheres.extend(["({})".format(" AND ".join("""
-            (
-                1=ivo_nocasematch(res_subject, '%{0}%') OR
-                1=ivo_hasword(res_description, '{0}') OR
-                1=ivo_hasword(res_title, '{0}')
-            )""".format(tap.escape(keyword)) for keyword in keywords
-        ))])
+        for keyword in keywords:
+            wheres.append("""
+                rr.interface.ivoid IN (
+                    SELECT ivoid FROM rr.res_subject
+                    WHERE res_subject ILIKE '%{keyword}%'
+                    UNION SELECT ivoid FROM rr.resource
+                    WHERE 1=ivo_hasword(res_description, '{keyword}')
+                    OR 1=ivo_hasword(res_title, '{keyword}')
+                )
+            """.format(keyword=tap.escape(keyword))
+            )
 
     if servicetype:
         servicetype = _service_type_map.get(servicetype, servicetype)
 
-        joins.add("rr.interface")
         wheres.append("standard_id LIKE 'ivo://ivoa.net/std/{}%'".format(
             tap.escape(servicetype)))
     else:
@@ -131,10 +132,10 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
 
     query = """SELECT DISTINCT rr.interface.*, rr.capability.*, rr.resource.*
     FROM rr.capability
-    {}
+    NATURAL JOIN rr.interface
+    NATURAL JOIN rr.resource
     {}
     """.format(
-        ''.join("NATURAL JOIN {} ".format(j) for j in joins),
         ("WHERE " if wheres else "") + " AND ".join(wheres)
     )
 
