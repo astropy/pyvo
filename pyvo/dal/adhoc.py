@@ -16,15 +16,15 @@ from astropy.io.votable.tree import Param
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
 
+from astropy.io.votable.tree import Resource, Group
+from astropy.utils.collections import HomogeneousList
+
 from ..utils.decorators import stream_decode_content
 from ..utils.http import session as s
 
 
 # monkeypatch astropy with group support in RESOURCE
 def _monkeypath_astropy_resource_groups():
-    from astropy.io.votable.tree import Resource, Group
-    from astropy.utils.collections import HomogeneousList
-
     old_group_unknown_tag = Group._add_unknown_tag
 
     def new_group_unknown_tag(self, iterator, tag, data, config, pos):
@@ -56,11 +56,12 @@ def _monkeypath_astropy_resource_groups():
         if tag == "GROUP":
             return self._add_group(iterator, tag, data, config, pos)
         else:
-            old_resource_unknown_tag(iterator, tag, data, config, pos)
+            old_resource_unknown_tag(self, iterator, tag, data, config, pos)
     Resource._add_unknown_tag = new_resource_unknown_tag
 
 
-_monkeypath_astropy_resource_groups()
+if not hasattr(Resource, 'groups'):
+    _monkeypath_astropy_resource_groups()
 
 __all__ = [
     "AdhocServiceResultsMixin", "DatalinkResultsMixin", "DatalinkRecordMixin",
