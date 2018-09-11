@@ -84,51 +84,55 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
         raise dalq.DALQueryError(
             "No search parameters passed to registry search")
 
-    joins = set(["rr.interface", "rr.resource"])
     wheres = list()
     wheres.append("intf_type = 'vs:paramhttp'")
 
     if keywords:
-        for keyword in keywords:
-            wheres.append("""
-                rr.interface.ivoid IN (
-                    SELECT ivoid FROM rr.res_subject
-                    WHERE res_subject ILIKE '%{keyword}%'
-                    UNION SELECT ivoid FROM rr.resource
-                    WHERE 1=ivo_hasword(res_description, '{keyword}')
-                    OR 1=ivo_hasword(res_title, '{keyword}')
-                )
-            """.format(keyword=tap.escape(keyword))
-            )
+        def _unions():
+            for i, keyword in enumerate(keywords):
+                yield """
+                SELECT isub{i}.ivoid FROM rr.res_subject AS isub{i}
+                WHERE isub{i}.res_subject ILIKE '%{keyword}%'
+                """.format(i=i, keyword=tap.escape(keyword))
+
+                yield """
+                SELECT ires{i}.ivoid FROM rr.resource AS ires{i}
+                WHERE 1=ivo_hasword(ires{i}.res_description, '{keyword}')
+                OR 1=ivo_hasword(ires{i}.res_title, '{keyword}')
+                """.format(i=i, keyword=tap.escape(keyword))
+
+        unions = ' UNION '.join(_unions())
+        wheres.append('rr.interface.ivoid IN ({})'.format(unions))
 
     if servicetype:
         servicetype = _service_type_map.get(servicetype, servicetype)
 
-        wheres.append("standard_id LIKE 'ivo://ivoa.net/std/{}%'".format(
+        wheres.append("standard_id LIKE 'ivo://ivoa.net/std/{}'".format(
             tap.escape(servicetype)))
     else:
-        wheres.append("""(
-            standard_id LIKE 'ivo://ivoa.net/std/conesearch%' OR
-            standard_id LIKE 'ivo://ivoa.net/std/sia%' OR
-            standard_id LIKE 'ivo://ivoa.net/std/ssa%' OR
-            standard_id LIKE 'ivo://ivoa.net/std/slap%' OR
-            standard_id LIKE 'ivo://ivoa.net/std/tap%'
-        )""")
+        wheres.append("""
+            standard_id IN (
+                'ivo://ivoa.net/std/conesearch',
+                'ivo://ivoa.net/std/sia',
+                'ivo://ivoa.net/std/ssa',
+                'ivo://ivoa.net/std/slap',
+                'ivo://ivoa.net/std/tap'
+            )
+        """)
 
     if waveband:
-        joins.add("rr.resource")
         wheres.append("1 = ivo_hashlist_has('{}', waveband)".format(
             tap.escape(waveband)))
 
     if datamodel:
-        joins.add("rr.interface")
-        joins.add("rr.res_detail")
-
-        wheres.append("intf_type = 'vs:paramhttp'")
-        wheres.append("detail_xpath='/capability/dataModel/@ivo-id'")
-        wheres.append(
-            "1=ivo_nocasematch(detail_value,'ivo://ivoa.net/std/{0}%')".format(
-                tap.escape(datamodel)))
+        wheres.append("""
+            rr.interface.ivoid IN (
+                SELECT idet.ivoid FROM rr.res_detail as idet
+                WHERE idet.detail_xpath = '/capability/dataModel/@ivo-id'
+                AND 1 = ivo_nocasematch(
+                    idet.detail_value, 'ivo://ivoa.net/std/{0}%')
+            )
+        """.format(tap.escape(datamodel)))
 
     query = """SELECT DISTINCT rr.interface.*, rr.capability.*, rr.resource.*
     FROM rr.capability
@@ -139,6 +143,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
         ("WHERE " if wheres else "") + " AND ".join(wheres)
     )
 
+    print(query)
     service = tap.TAPService(REGISTRY_BASEURL)
     query = RegistryQuery(service.baseurl, query, maxrec=service.hardlimit)
     return query.execute()
