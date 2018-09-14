@@ -143,7 +143,6 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
         ("WHERE " if wheres else "") + " AND ".join(wheres)
     )
 
-    print(query)
     service = tap.TAPService(REGISTRY_BASEURL)
     query = RegistryQuery(service.baseurl, query, maxrec=service.hardlimit)
     return query.execute()
