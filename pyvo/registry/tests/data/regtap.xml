@@ -1,0 +1,1600 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Produced with astropy.io.votable version 3.0.4.dev21329
+     http://www.astropy.org/ -->
+<VOTABLE version="1.3" xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ivoa.net/xml/VOTable/v1.3">
+ <RESOURCE type="results">
+  <TABLE ID="capability_interface_resource" name="capability_interface_resource">
+   <FIELD ID="ivoid" arraysize="*" datatype="char" name="ivoid" utype="xpath:/identifier">
+    <DESCRIPTION>
+     The parent resource.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="cap_index" datatype="short" name="cap_index">
+    <DESCRIPTION>
+     The index of the parent capability.
+    </DESCRIPTION>
+    <VALUES null="-32768"/>
+   </FIELD>
+   <FIELD ID="intf_index" datatype="short" name="intf_index">
+    <DESCRIPTION>
+     An arbitrary identifier for the interfaces of a resource.
+    </DESCRIPTION>
+    <VALUES null="-32768"/>
+   </FIELD>
+   <FIELD ID="intf_type" arraysize="*" datatype="char" name="intf_type" utype="xpath:@xsi:type">
+    <DESCRIPTION>
+     The type of the interface (vr:webbrowser, vs:paramhttp, etc).
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="intf_role" arraysize="*" datatype="char" name="intf_role" utype="xpath:@role">
+    <DESCRIPTION>
+     An identifier for the role the interface plays in the particular
+     capability. If the value is equal to "std" or begins with "std:",
+     then the interface refers to a standard interface defined by the
+     standard referred to by the capability's standardID attribute.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="std_version" arraysize="*" datatype="char" name="std_version" utype="xpath:@version">
+    <DESCRIPTION>
+     The version of a standard interface specification that this
+     interface complies with. When the interface is provided in the
+     context of a Capability element, then the standard being refered
+     to is the one identified by the Capability's standardID element.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="query_type" arraysize="*" datatype="char" name="query_type" utype="xpath:queryType">
+    <DESCRIPTION>
+     Hash-joined list of expected HTTP method (get or post) supported
+     by the service.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="result_type" arraysize="*" datatype="char" name="result_type" utype="xpath:resultType">
+    <DESCRIPTION>
+     The MIME type of a document returned in the HTTP response.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="wsdl_url" arraysize="*" datatype="char" name="wsdl_url" utype="xpath:wsdlURL">
+    <DESCRIPTION>
+     The location of the WSDL that describes this Web Service. If
+     NULL, the location can be assumed to be the accessURL with
+     '?wsdl' appended.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="url_use" arraysize="*" datatype="char" name="url_use" utype="xpath:accessURL/@use">
+    <DESCRIPTION>
+     A flag indicating whether this should be interpreted as a base
+     URL ('base'), a full URL ('full'), or a URL to a directory that
+     will produce a listing of files ('dir').
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="access_url" arraysize="*" datatype="char" name="access_url" utype="xpath:accessURL">
+    <DESCRIPTION>
+     The URL at which the interface is found.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="mirror_url" arraysize="*" datatype="char" name="mirror_url" utype="xpath:mirrorURL">
+    <DESCRIPTION>
+     Secondary access URLs of this interface, separated by hash
+     characters.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="security_method_id" arraysize="*" datatype="char" name="security_method_id" utype="xpath:securityMethod/@standardId">
+    <DESCRIPTION>
+     An identifier of an authentication method required on this
+     interface, or NULL for interfaces publicly available. The
+     identifiers of authentication schemes recommended in the VO are
+     declared in the IVOA recommendation “SSO: Authentication
+     Mechanisms.“
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="ivoid_" arraysize="*" datatype="char" name="ivoid_" utype="xpath:/identifier">
+    <DESCRIPTION>
+     The parent resource.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="cap_index_" datatype="short" name="cap_index_">
+    <DESCRIPTION>
+     An arbitrary identifier of this capability within the resource.
+    </DESCRIPTION>
+    <VALUES null="-32768"/>
+   </FIELD>
+   <FIELD ID="cap_type" arraysize="*" datatype="char" name="cap_type" utype="xpath:@xsi:type">
+    <DESCRIPTION>
+     The type of capability covered here. If looking for endpoints
+     implementing a certain standard, you should not use this column
+     but rather match against standard_id.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="cap_description" arraysize="*" datatype="unicodeChar" name="cap_description" utype="xpath:description">
+    <DESCRIPTION>
+     A human-readable description of what this capability provides as
+     part of the over-all service.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="standard_id" arraysize="*" datatype="char" name="standard_id" utype="xpath:@standardID">
+    <DESCRIPTION>
+     A URI for a standard this capability conforms to.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="ivoid__" arraysize="*" datatype="char" name="ivoid__" utype="xpath:identifier">
+    <DESCRIPTION>
+     Unambiguous reference to the resource conforming to the IVOA
+     standard for identifiers.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="res_type" arraysize="*" datatype="char" name="res_type" utype="xpath:@xsi:type">
+    <DESCRIPTION>
+     Resource type (something like vs:datacollection,
+     vs:catalogservice, etc).
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="created" arraysize="*" datatype="char" name="created" utype="xpath:@created">
+    <DESCRIPTION>
+     The UTC date and time this resource metadata description was
+     created.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="short_name" arraysize="*" datatype="char" name="short_name" utype="xpath:shortName">
+    <DESCRIPTION>
+     A short name or abbreviation given to something, for presentation
+     in space-constrained fields (up to 16 characters).
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="res_title" arraysize="*" datatype="unicodeChar" name="res_title" utype="xpath:title">
+    <DESCRIPTION>
+     The full name given to the resource.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="updated" arraysize="*" datatype="char" name="updated" utype="xpath:@updated">
+    <DESCRIPTION>
+     The UTC date this resource metadata description was last updated.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="content_level" arraysize="*" datatype="char" name="content_level" utype="xpath:content/contentLevel">
+    <DESCRIPTION>
+     A hash-separated list of content levels specifying the intended
+     audience.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="res_description" arraysize="*" datatype="unicodeChar" name="res_description" utype="xpath:content/description">
+    <DESCRIPTION>
+     An account of the nature of the resource.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="reference_url" arraysize="*" datatype="char" name="reference_url" utype="xpath:content/referenceURL">
+    <DESCRIPTION>
+     URL pointing to a human-readable document describing this
+     resource.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="creator_seq" arraysize="*" datatype="unicodeChar" name="creator_seq" utype="xpath:curation/creator/name">
+    <DESCRIPTION>
+     The creator(s) of the resource in the order given by the resource
+     record author, separated by semicolons.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="content_type" arraysize="*" datatype="char" name="content_type" utype="xpath:content/type">
+    <DESCRIPTION>
+     A hash-separated list of natures or genres of the content of the
+     resource.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="source_format" arraysize="*" datatype="char" name="source_format" utype="xpath:content/source/@format">
+    <DESCRIPTION>
+     The format of source_value. This, in particular, can be
+     ``bibcode''.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="source_value" arraysize="*" datatype="unicodeChar" name="source_value" utype="xpath:content/source">
+    <DESCRIPTION>
+     A bibliographic reference from which the present resource is
+     derived or extracted.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="res_version" arraysize="*" datatype="char" name="res_version" utype="xpath:curation/version">
+    <DESCRIPTION>
+     Label associated with creation or availablilty of a version of a
+     resource.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="region_of_regard" datatype="float" name="region_of_regard" unit="deg" utype="xpath:coverage/regionOfRegard">
+    <DESCRIPTION>
+     A single numeric value representing the angle, given in decimal
+     degrees, by which a positional query against this resource should
+     be ``blurred'' in order to get an appropriate match.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="waveband" arraysize="*" datatype="char" name="waveband" utype="xpath:coverage/waveband">
+    <DESCRIPTION>
+     A hash-separated list of regions of the electro-magnetic spectrum
+     that the resource's spectral coverage overlaps with.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="rights" arraysize="*" datatype="char" name="rights" utype="xpath:/rights">
+    <DESCRIPTION>
+     A statement of usage conditions (license, attribution, embargo,
+     etc).
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="rights_uri" arraysize="*" datatype="char" name="rights_uri" utype="xpath:/rights/@rightsURI">
+    <DESCRIPTION>
+     A URI identifying a license the data is made available under.
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="harvested_from" arraysize="*" datatype="char" name="harvested_from">
+    <DESCRIPTION>
+     IVOID of the registry this record came from.
+    </DESCRIPTION>
+   </FIELD>
+   <DATA>
+    <TABLEDATA>
+     <TR>
+      <TD>ivo://cds.vizier/b/cb</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/B/cb/cbdata?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/b/cb</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table B/cb/cbdata (Catalogue of Cataclysmic Binaries)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/b/cb</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-05-23T11:05:12</TD>
+      <TD>B/cb</TD>
+      <TD>Cataclysmic Binaries, LMXBs, and related objects (Ritter+, 2004)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Cataclysmic Binaries are semi-detached binaries consisting of a white dwarf or a white dwarf precursor primary and a low-mass secondary which is filling its critical Roche lobe. The secondary is not necessarily unevolved, it may even be a highly evolved star as for example in the case of the AM CVn-type stars. Low-Mass X-Ray Binaries are semi-detached binaries consisting of either a neutron star or a black hole primary, and a low-mass secondary which is filling its critical Roche lobe. Related Objects are detached binaries consisting of either a white dwarf or a white dwarf precursor primary and of a low-mass secondary. The secondary may also be a highly evolved star. The catalogue lists coordinates, apparent magnitudes, orbital parameters, and stellar parameters of the components and other characteristic properties of 1429 cataclysmic binaries, 108 low-mass X-ray binaries and 619 related objects with known or suspected orbital periods together with a comprehensive selection of the relevant recent literature. In addition the catalogue contains a list of references to published finding charts for 2035 of the 2156 objects, and a cross-reference list of alias object designations. Literature published before 1 July 2016 has, as far as possible, been taken into account. Old editions include catalogue &lt;V/59&gt; (5th edition), &lt;V/99&gt; (6th edition) and &lt;V/113&gt; (7th edition); the successive versions of the 7th edition are available in dedicated subdirectories (v7.00 to v7.20)</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?B/cb</TD>
+      <TD>Ritter H., Kolb U.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2003A&amp;A...404..301R</TD>
+      <TD>29-Sep-2011</TD>
+      <TD/>
+      <TD/>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/b/cb</TD>
+      <TD>5</TD>
+      <TD>5</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/B/cb/lmxbdata?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/b/cb</TD>
+      <TD>5</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table B/cb/lmxbdata (Catalogue of Low-Mass X-Ray Binaries)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/b/cb</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-05-23T11:05:12</TD>
+      <TD>B/cb</TD>
+      <TD>Cataclysmic Binaries, LMXBs, and related objects (Ritter+, 2004)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Cataclysmic Binaries are semi-detached binaries consisting of a white dwarf or a white dwarf precursor primary and a low-mass secondary which is filling its critical Roche lobe. The secondary is not necessarily unevolved, it may even be a highly evolved star as for example in the case of the AM CVn-type stars. Low-Mass X-Ray Binaries are semi-detached binaries consisting of either a neutron star or a black hole primary, and a low-mass secondary which is filling its critical Roche lobe. Related Objects are detached binaries consisting of either a white dwarf or a white dwarf precursor primary and of a low-mass secondary. The secondary may also be a highly evolved star. The catalogue lists coordinates, apparent magnitudes, orbital parameters, and stellar parameters of the components and other characteristic properties of 1429 cataclysmic binaries, 108 low-mass X-ray binaries and 619 related objects with known or suspected orbital periods together with a comprehensive selection of the relevant recent literature. In addition the catalogue contains a list of references to published finding charts for 2035 of the 2156 objects, and a cross-reference list of alias object designations. Literature published before 1 July 2016 has, as far as possible, been taken into account. Old editions include catalogue &lt;V/59&gt; (5th edition), &lt;V/99&gt; (6th edition) and &lt;V/113&gt; (7th edition); the successive versions of the 7th edition are available in dedicated subdirectories (v7.00 to v7.20)</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?B/cb</TD>
+      <TD>Ritter H., Kolb U.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2003A&amp;A...404..301R</TD>
+      <TD>29-Sep-2011</TD>
+      <TD/>
+      <TD/>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/b/cb</TD>
+      <TD>6</TD>
+      <TD>6</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/B/cb/pcbdata?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/b/cb</TD>
+      <TD>6</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table B/cb/pcbdata (Catalogue of Related Objects)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/b/cb</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-05-23T11:05:12</TD>
+      <TD>B/cb</TD>
+      <TD>Cataclysmic Binaries, LMXBs, and related objects (Ritter+, 2004)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Cataclysmic Binaries are semi-detached binaries consisting of a white dwarf or a white dwarf precursor primary and a low-mass secondary which is filling its critical Roche lobe. The secondary is not necessarily unevolved, it may even be a highly evolved star as for example in the case of the AM CVn-type stars. Low-Mass X-Ray Binaries are semi-detached binaries consisting of either a neutron star or a black hole primary, and a low-mass secondary which is filling its critical Roche lobe. Related Objects are detached binaries consisting of either a white dwarf or a white dwarf precursor primary and of a low-mass secondary. The secondary may also be a highly evolved star. The catalogue lists coordinates, apparent magnitudes, orbital parameters, and stellar parameters of the components and other characteristic properties of 1429 cataclysmic binaries, 108 low-mass X-ray binaries and 619 related objects with known or suspected orbital periods together with a comprehensive selection of the relevant recent literature. In addition the catalogue contains a list of references to published finding charts for 2035 of the 2156 objects, and a cross-reference list of alias object designations. Literature published before 1 July 2016 has, as far as possible, been taken into account. Old editions include catalogue &lt;V/59&gt; (5th edition), &lt;V/99&gt; (6th edition) and &lt;V/113&gt; (7th edition); the successive versions of the 7th edition are available in dedicated subdirectories (v7.00 to v7.20)</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?B/cb</TD>
+      <TD>Ritter H., Kolb U.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2003A&amp;A...404..301R</TD>
+      <TD>29-Sep-2011</TD>
+      <TD/>
+      <TD/>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/a+a/506/729</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/A+A/506/729/table2?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/a+a/506/729</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/A+A/506/729/table2 (Properties of the targeted member stars)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/a+a/506/729</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2009-12-30T09:41:09</TD>
+      <TD>J/A+A/506/729</TD>
+      <TD>Abundances in globular cluster Pal 3 (Koch+, 2009)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Chemical abundances of 25 alpha-, iron peak-, and neutron-capture elements in the remote (R=90kpc) outer halo globular cluster have been determined for 4 red giants observed with the Magellan/MIKE spectrograph and from integrated spectra of 19 stars obtained with the Keck/HIRES instrument. The resulting abundance ratios show that Pal 3 is very similar to globular clusters of the inner halo and very dissimilar from dwarf spheroidal galaxy stars. Its neutron capture element ratios are compatible with a pure r-process enrichment.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/A+A/506/729</TD>
+      <TD>Koch A., Cote P., McWilliam A.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2009A&amp;A...506..729K</TD>
+      <TD>10-Sep-2009</TD>
+      <TD/>
+      <TD>optical</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/a+a/530/a28</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/A+A/530/A28/targets?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/a+a/530/a28</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/A+A/530/A28/targets (Priority targets for follow-up)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/a+a/530/a28</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-06-22T14:29:01</TD>
+      <TD>J/A+A/530/A28</TD>
+      <TD>Priority targets for the MUCHFUSS project (Geier+, 2011)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>The project Massive Unseen Companions to Hot Faint Underluminous Stars from SDSS (MUCHFUSS) aims at finding sdBs with compact companions like supermassive white dwarfs (M&gt;1.0M_{sun}_), neutron stars or black holes. The existence of such systems is predicted by binary evolution theory and recent discoveries indicate that they are likely to exist in our Galaxy. A determination of the orbital parameters is sufficient to put a lower limit on the companion mass by calculating the binary mass function. If this lower limit exceeds the Chandrasekhar mass and no sign of a companion is visible in the spectra, the existence of a massive compact companion is proven without the need for any additional assumptions. We identified about 1100 hot subdwarf stars from the SDSS by colour selection and visual inspection of their spectra. Stars with high velocities have been reobserved and individual SDSS spectra have been analysed. In total 127 radial velocity variable subdwarfs have been discovered. Binaries with high RV shifts and binaries with moderate shifts within short timespans have the highest probability of hosting massive compact companions. Atmospheric parameters of 69 hot subdwarfs in these binary systems have been determined by means of a quantitative spectral analysis. The atmospheric parameter distribution of the selected sample does not differ from previously studied samples of hot subdwarfs. The systems are considered the best candidates to search for massive compact companions by follow-up time resolved spectroscopy.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/A+A/530/A28</TD>
+      <TD>Geier S., Hirsch H., Tillich A., Maxted P.F.L., Bentley S.J., Ostensen R.H., Heber U., Gaensicke B.T., Marsh T.R., Napiwotzki R., Barlow B.N., O'Toole S.J.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2011A&amp;A...530A..28G</TD>
+      <TD>30-Aug-2011</TD>
+      <TD/>
+      <TD>optical</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/a+a/530/a28</TD>
+      <TD>5</TD>
+      <TD>5</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/A+A/530/A28/tablea1?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/a+a/530/a28</TD>
+      <TD>5</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/A+A/530/A28/tablea1 (Orbital parameters of all known hot subdwarf binaries from literature)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/a+a/530/a28</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-06-22T14:29:01</TD>
+      <TD>J/A+A/530/A28</TD>
+      <TD>Priority targets for the MUCHFUSS project (Geier+, 2011)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>The project Massive Unseen Companions to Hot Faint Underluminous Stars from SDSS (MUCHFUSS) aims at finding sdBs with compact companions like supermassive white dwarfs (M&gt;1.0M_{sun}_), neutron stars or black holes. The existence of such systems is predicted by binary evolution theory and recent discoveries indicate that they are likely to exist in our Galaxy. A determination of the orbital parameters is sufficient to put a lower limit on the companion mass by calculating the binary mass function. If this lower limit exceeds the Chandrasekhar mass and no sign of a companion is visible in the spectra, the existence of a massive compact companion is proven without the need for any additional assumptions. We identified about 1100 hot subdwarf stars from the SDSS by colour selection and visual inspection of their spectra. Stars with high velocities have been reobserved and individual SDSS spectra have been analysed. In total 127 radial velocity variable subdwarfs have been discovered. Binaries with high RV shifts and binaries with moderate shifts within short timespans have the highest probability of hosting massive compact companions. Atmospheric parameters of 69 hot subdwarfs in these binary systems have been determined by means of a quantitative spectral analysis. The atmospheric parameter distribution of the selected sample does not differ from previously studied samples of hot subdwarfs. The systems are considered the best candidates to search for massive compact companions by follow-up time resolved spectroscopy.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/A+A/530/A28</TD>
+      <TD>Geier S., Hirsch H., Tillich A., Maxted P.F.L., Bentley S.J., Ostensen R.H., Heber U., Gaensicke B.T., Marsh T.R., Napiwotzki R., Barlow B.N., O'Toole S.J.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2011A&amp;A...530A..28G</TD>
+      <TD>30-Aug-2011</TD>
+      <TD/>
+      <TD>optical</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/a+a/537/a83</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/A+A/537/A83/stars?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/a+a/537/a83</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/A+A/537/A83/stars (Properties and stellar parameters of target stars)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/a+a/537/a83</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-12-18T08:57:20</TD>
+      <TD>J/A+A/537/A83</TD>
+      <TD>Abunbances of 9 red giants of Pal 14 (Caliskan+, 2012)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Chemical abundances of 25 elements, which include {alpha}-, iron peak-, and neutron-capture elements, in the outer halo globular cluster Palomar 14 have been determined for the nine red giants observed with the FLAMES/UVES spectrograph. The abundance pattern of Pal 14 is similar to the inner halo GCs, halo field stars, and GCs of recognized extragalactic origin, but differs from what is customarily found in dSphs field stars. The abundance properties of Pal 14 as well as those of the other outer halo GCs are thus compatible with an accretion origin from dSphs. The neutron-capture elements show an r-process signature.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/A+A/537/A83</TD>
+      <TD>Caliskan S., Christlieb N., Grebel E.K.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2012A&amp;A...537A..83C</TD>
+      <TD>21-Nov-2011</TD>
+      <TD/>
+      <TD>optical</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/an/331/349</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/AN/331/349/table2?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/an/331/349</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/AN/331/349/table2 (All values obtained from the catalogues cited in the paper)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/an/331/349</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-12-05T06:09:54</TD>
+      <TD>J/AN/331/349</TD>
+      <TD>O, B-type &amp; red supergiant masses and luminosities (Hohle+, 2010)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Massive stars are of interest as progenitors of supernovae, i.e. neutron stars and black holes, which can be sources of gravitational waves. Recent population synthesis models can predict neutron star and gravitational wave observations but deal with a fixed supernova rate or an assumed initial mass function for the population of massive stars. Here we investigate those massive stars, which are supernova progenitors, i.e. with O- and early B-type stars, and also all supergiants within 3kpc. We restrict our sample to those massive stars detected both in 2MASS and observed by Hipparcos, i.e. only those stars with parallax and precise photometry. To determine the luminosities we calculated the extinctions from published multi-colour photometry, spectral types, luminosity class, all corrected for multiplicity and recently revised Hipparcos distances. We use luminosities and temperatures to estimate the masses and ages of these stars using different models from different authors.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/AN/331/349</TD>
+      <TD>Hohle M.M., Neuhauser R., Schutz B.F.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2010AN....331..349H</TD>
+      <TD>03-May-2010</TD>
+      <TD/>
+      <TD>infrared</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/an/331/349</TD>
+      <TD>5</TD>
+      <TD>5</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/AN/331/349/single?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/an/331/349</TD>
+      <TD>5</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/AN/331/349/single (Input data and derived mass and luminosity for single stars)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/an/331/349</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-12-05T06:09:54</TD>
+      <TD>J/AN/331/349</TD>
+      <TD>O, B-type &amp; red supergiant masses and luminosities (Hohle+, 2010)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Massive stars are of interest as progenitors of supernovae, i.e. neutron stars and black holes, which can be sources of gravitational waves. Recent population synthesis models can predict neutron star and gravitational wave observations but deal with a fixed supernova rate or an assumed initial mass function for the population of massive stars. Here we investigate those massive stars, which are supernova progenitors, i.e. with O- and early B-type stars, and also all supergiants within 3kpc. We restrict our sample to those massive stars detected both in 2MASS and observed by Hipparcos, i.e. only those stars with parallax and precise photometry. To determine the luminosities we calculated the extinctions from published multi-colour photometry, spectral types, luminosity class, all corrected for multiplicity and recently revised Hipparcos distances. We use luminosities and temperatures to estimate the masses and ages of these stars using different models from different authors.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/AN/331/349</TD>
+      <TD>Hohle M.M., Neuhauser R., Schutz B.F.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2010AN....331..349H</TD>
+      <TD>03-May-2010</TD>
+      <TD/>
+      <TD>infrared</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/an/331/349</TD>
+      <TD>6</TD>
+      <TD>6</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/AN/331/349/mult1?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/an/331/349</TD>
+      <TD>6</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/AN/331/349/mult1 (Input data and derived mass and luminosity for primaries of Pourbaix multiple stars)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/an/331/349</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-12-05T06:09:54</TD>
+      <TD>J/AN/331/349</TD>
+      <TD>O, B-type &amp; red supergiant masses and luminosities (Hohle+, 2010)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Massive stars are of interest as progenitors of supernovae, i.e. neutron stars and black holes, which can be sources of gravitational waves. Recent population synthesis models can predict neutron star and gravitational wave observations but deal with a fixed supernova rate or an assumed initial mass function for the population of massive stars. Here we investigate those massive stars, which are supernova progenitors, i.e. with O- and early B-type stars, and also all supergiants within 3kpc. We restrict our sample to those massive stars detected both in 2MASS and observed by Hipparcos, i.e. only those stars with parallax and precise photometry. To determine the luminosities we calculated the extinctions from published multi-colour photometry, spectral types, luminosity class, all corrected for multiplicity and recently revised Hipparcos distances. We use luminosities and temperatures to estimate the masses and ages of these stars using different models from different authors.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/AN/331/349</TD>
+      <TD>Hohle M.M., Neuhauser R., Schutz B.F.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2010AN....331..349H</TD>
+      <TD>03-May-2010</TD>
+      <TD/>
+      <TD>infrared</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/apj/578/405</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/ApJ/578/405/table1?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/apj/578/405</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/ApJ/578/405/table1 (Chandra X-Ray Sources in the Field of NGC 5139)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/apj/578/405</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2003-03-29T10:46:43</TD>
+      <TD>J/ApJ/578/405</TD>
+      <TD>Neutron stars in NGC 5139 (Rutledge+, 2002)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>The Chandra/ACIS-I detectors observed NGC 5139 in imaging mode for two continuous periods (2000 January 24 02:15-09:46 and January 25 04:33-17:24 TT) for a total exposure of ~68.6ks. We combined the two observations and analyzed them as one. We searched for point sources using CELLDETECT, using only the 0.1-2.5keV energy range, excluding regions less than 16 pixels from the detector edges and keeping only sources with signal-to-noise ratio (S/N)&gt;5.0. We find 40 X-ray point sources over the four ACIS-I chips and chip S2 of ACIS-S, which are numbered in order of decreasing S/N in Table 1.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/ApJ/578/405</TD>
+      <TD>Rutledge R.E., Bildsten L., Brown E.F., Pavlov G.G., Zavlin V.E.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2002ApJ...578..405R</TD>
+      <TD>09-Dec-2002</TD>
+      <TD/>
+      <TD>x-ray#radio</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/apj/714/1424</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/ApJ/714/1424/table1?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/apj/714/1424</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/ApJ/714/1424/table1 (Candidates RASS/BSC sources and identifications)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/apj/714/1424</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-11-06T13:23:26</TD>
+      <TD>J/ApJ/714/1424</TD>
+      <TD>Isolated neutron stars from Rosat and Swift (Turner+, 2010)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Following selection of the isolated neutron star (INS) candidates, short (~1ks) follow-up observations with Swift/XRT were obtained on 92 of the candidates; these observations decrease the X-ray positional uncertainty (the systematic positional error associated with Swift blind pointing observations is on the order of 3.5"), and obtain (where possible) contemporaneous UV observations with Swift/UVOT for counterpart identification with off-band objects.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/ApJ/714/1424</TD>
+      <TD>Turner M.L., Rutledge R.E., Letcavage R., Shevchuk A.S.H., Fox D.B.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2010ApJ...714.1424T</TD>
+      <TD>23-Apr-2012</TD>
+      <TD/>
+      <TD>x-ray#radio</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/apj/714/1424</TD>
+      <TD>5</TD>
+      <TD>5</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/ApJ/714/1424/table2?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/apj/714/1424</TD>
+      <TD>5</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/ApJ/714/1424/table2 (Objects observed and detected with Swift/XRT)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/apj/714/1424</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-11-06T13:23:26</TD>
+      <TD>J/ApJ/714/1424</TD>
+      <TD>Isolated neutron stars from Rosat and Swift (Turner+, 2010)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Following selection of the isolated neutron star (INS) candidates, short (~1ks) follow-up observations with Swift/XRT were obtained on 92 of the candidates; these observations decrease the X-ray positional uncertainty (the systematic positional error associated with Swift blind pointing observations is on the order of 3.5"), and obtain (where possible) contemporaneous UV observations with Swift/UVOT for counterpart identification with off-band objects.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/ApJ/714/1424</TD>
+      <TD>Turner M.L., Rutledge R.E., Letcavage R., Shevchuk A.S.H., Fox D.B.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2010ApJ...714.1424T</TD>
+      <TD>23-Apr-2012</TD>
+      <TD/>
+      <TD>x-ray#radio</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/apj/797/21</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/ApJ/797/21/table3?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/apj/797/21</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/ApJ/797/21/table3 (Data for literature stars)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/apj/797/21</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-08-29T07:03:13</TD>
+      <TD>J/ApJ/797/21</TD>
+      <TD>Carbon-enhanced metal-poor stars (Placco+, 2014)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>We revisit the observed frequencies of carbon-enhanced metal-poor (CEMP) stars as a function of the metallicity in the Galaxy, using data from the literature with available high-resolution spectroscopy. Our analysis excludes stars exhibiting clear overabundances of neutron-capture elements and takes into account the expected depletion of surface carbon abundance that occurs due to CN processing on the upper red giant branch. This allows for the recovery of the initial carbon abundance of these stars, and thus for an accurate assessment of the frequencies of carbon-enhanced stars. The correction procedure we develop is based on stellar-evolution models and depends on the surface gravity, log g, of a given star.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/ApJ/797/21</TD>
+      <TD>Placco V.M., Frebel A., Beers T.C., Stancliffe R.J.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2014ApJ...797...21P</TD>
+      <TD>26-Jan-2017</TD>
+      <TD/>
+      <TD/>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/apj/804/114</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/ApJ/804/114/sample?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/apj/804/114</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/ApJ/804/114/sample (Simulated binary neutron-star (BNS) signals of detected events for 2015 scenario using recolored noise (table C1), detections and sky-localization areas (table C2) and accuracy estimations (table C3))</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/apj/804/114</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-06-22T14:28:22</TD>
+      <TD>J/ApJ/804/114</TD>
+      <TD>Parameter-estimation performance with LIGO (Berry+, 2015)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Advanced ground-based gravitational-wave (GW) detectors begin operation imminently. Their intended goal is not only to make the first direct detection of GWs, but also to make inferences about the source systems. Binary neutron-star mergers are among the most promising sources. We investigate the performance of the parameter-estimation (PE) pipeline that will be used during the first observing run of the Advanced Laser Interferometer Gravitational-wave Observatory (aLIGO) in 2015: we concentrate on the ability to reconstruct the source location on the sky, but also consider the ability to measure masses and the distance. Accurate, rapid sky localization is necessary to alert electromagnetic (EM) observatories so that they can perform follow-up searches for counterpart transient events. We consider PE accuracy in the presence of non-stationary, non-Gaussian noise. We find that the character of the noise makes negligible difference to the PE performance at a given signal-to-noise ratio. The source luminosity distance can only be poorly constrained, since the median 90% (50%) credible interval scaled with respect to the true distance is 0.85 (0.38). However, the chirp mass is well measured. Our chirp-mass estimates are subject to systematic error because we used gravitational-waveform templates without component spin to carry out inference on signals with moderate spins, but the total error is typically less than 10^-3^M_{sun}_. The median 90% (50%) credible region for sky localization is ~600deg^2^ (~150deg^2^), with 3% (30%) of detected events localized within 100deg^2^. Early aLIGO, with only two detectors, will have a sky-localization accuracy for binary neutron stars of hundreds of square degrees; this makes EM follow-up challenging, but not impossible.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/ApJ/804/114</TD>
+      <TD>Berry C.P.L., Mandel I., Middleton H., Singer L.P., Urban A.L., Vecchio A., Vitale S., Cannon K., Farr B., Farr W.M., Graff P.B., Hanna C., Haster C.-J., Mohapatra S., Pankow C., Price L.R., Sidery T., Veitch J.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2015ApJ...804..114B</TD>
+      <TD>26-Aug-2015</TD>
+      <TD/>
+      <TD>optical</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/apj/829/20</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/ApJ/829/20/table1?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/apj/829/20</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/ApJ/829/20/table1 (X-Ray point source populations in 343 nearby galaxies)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/apj/829/20</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2018-05-16T07:05:17</TD>
+      <TD>J/ApJ/829/20</TD>
+      <TD>Chandra ACIS survey in nearby galaxies. II (Wang+, 2016)</TD>
+      <TD>2018-05-16T07:05:17</TD>
+      <TD>research</TD>
+      <TD>Based on the recently completed Chandra/ACIS survey of X-ray point sources in nearby galaxies, we study the X-ray luminosity functions (XLFs) for X-ray point sources in different types of galaxies and the statistical properties of ultraluminous X-ray sources (ULXs). Uniform procedures are developed to compute the detection threshold, to estimate the foreground/background contamination, and to calculate the XLFs for individual galaxies and groups of galaxies, resulting in an XLF library of 343 galaxies of different types. With the large number of surveyed galaxies, we have studied the XLFs and ULX properties across different host galaxy types, and confirm with good statistics that the XLF slope flattens from lenticular ({alpha}{\sim}1.50{\pm}0.07) to elliptical ({\sim}1.21{\pm}0.02), to spirals ({\sim}0.80{\pm}0.02), to peculiars ({\sim}0.55{\pm}0.30), and to irregulars ({\sim}0.26{\pm}0.10). The XLF break dividing the neutron star and black hole binaries is also confirmed, albeit at quite different break luminosities for different types of galaxies. A radial dependency is found for ellipticals, with a flatter XLF slope for sources located between D_25_ and 2D_25_, suggesting the XLF slopes in the outer region of early-type galaxies are dominated by low-mass X-ray binaries in globular clusters. This study shows that the ULX rate in early-type galaxies is 0.24{\pm}0.05 ULXs per surveyed galaxy, on a 5{sigma} confidence level. The XLF for ULXs in late-type galaxies extends smoothly until it drops abruptly around 4x10^40^erg/s, and this break may suggest a mild boundary between the stellar black hole population possibly including 30M{\sun} black holes with super-Eddington radiation and intermediate mass black holes.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/ApJ/829/20</TD>
+      <TD>Wang S., Qiu Y., Liu J., Bregman J.N.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2016ApJ...829...20W</TD>
+      <TD>06-Mar-2018</TD>
+      <TD/>
+      <TD>x-ray</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/apjs/179/360</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/ApJS/179/360/sources?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/apjs/179/360</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/ApJS/179/360/sources (Sources list)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/apjs/179/360</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2018-01-31T07:09:53</TD>
+      <TD>J/ApJS/179/360</TD>
+      <TD>Thermonuclear X-ray bursts observed by RXTE (Galloway+, 2008)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>We present a sample of 1187 thermonuclear (type-I) X-ray bursts from public (archival) observations of 48 low-mass X-ray binaries accreting neutron stars by the Rossi X-ray Timing Explorer, spanning 1996 January - 2007 June 3. For each burst, we list results of analysis of data from the Proportional Counter Array, including observed count rates, time-resolved spectroscopy, evolution of the burst lightcurve, and details of the persistent flux and source spectral state at the time of the burst.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/ApJS/179/360</TD>
+      <TD>Galloway D.K., Muno M.P., Hartman J.M., Psaltis D., Chakrabarty D.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2008ApJS..179..360G</TD>
+      <TD>23-Sep-2008</TD>
+      <TD/>
+      <TD>x-ray</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/azh/81/209</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/AZh/81/209/table1?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/azh/81/209</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/AZh/81/209/table1 (Stellar parameters of the selected sample and the final [Nd/Fe] ratios)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/azh/81/209</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-12-22T06:32:10</TD>
+      <TD>J/AZh/81/209</TD>
+      <TD>Neutron capture elements in stars: neodymium (Mashonkina+, 2004)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>We determined the neodymium abundances for 60 of the 78 stars studied by Mashonkina et al. (2003A&amp;A...397..275M). We obtained spectroscopic observations of seven stars in April 2001 with the UVES echelle spectrometer mounted on the 8-m VLT2 telescope of the European Southern Observatoryin Chile. These observations cover 3800-4500{AA} and 4750-6650{AA}. Spectroscopic observations of 53 stars at 4100-6700{AA} were obtained in 1995-2001 with the FOCES echelle spectrometer mounted on the 2.2-m telescope of the German-Spanish Astronomical Center in Calar Alto, Spain.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/AZh/81/209</TD>
+      <TD>Mashonkina L.I., Kamaeva L.A., Samotoev V.A., Sakhibullin N.A.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2004AZh....81..209M</TD>
+      <TD>10-Dec-2004</TD>
+      <TD/>
+      <TD>optical</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/azh/83/542</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/AZh/83/542/pulsars?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/azh/83/542</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/AZh/83/542/pulsars (Luminosities of short- and long-period pulsars)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/azh/83/542</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2018-01-05T09:56:22</TD>
+      <TD>J/AZh/83/542</TD>
+      <TD>Integrated Radio Luminosities of Pulsars (Malov+, 2006)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>The integrated radio luminosities of 311 long-period (P&gt;0.1s) and 27 short-period (P&lt;0.1s) pulsars have been calculated using a new compilation of radio spectra. The luminosities are in the range 10^27^-10^30^erg/s for 88% of the long-period pulsars and 10^28^-10^31^erg/s for 88% of the short-period pulsars. We find a high correlation between the luminosity L and the estimate L1=S_(400)_*d^2^ from the catalog of Taylor et al. (1993, See Cat. &lt;VII/189&gt;. The factor 'eta' for transformation of the rotational energy of the neutron star into radio emission increases/decreases with increasing period for long-period/short-period pulsars. The mean value of 'eta'=-3.73 for the long-period and -4.85 for the short-period pulsars.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/AZh/83/542</TD>
+      <TD>Malov I.F., Malov O.I.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2006AZh...83...542M</TD>
+      <TD>01-Jul-2007</TD>
+      <TD/>
+      <TD>radio</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/azh/88/22</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/AZh/88/22/pulsars?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/azh/88/22</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/AZh/88/22/pulsars (Pulsars studied: initial parameters and calculated {beta} angles)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/azh/88/22</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-07-05T07:00:11</TD>
+      <TD>J/AZh/88/22</TD>
+      <TD>Angles rotation/magnetic moment in pulsars (Malov+, 2011)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Data on the pulse structure and variations of the linear polarization angle at frequencies near 1GHz have been used to estimate the angles {beta} between the rotational axis and magnetic moment of the neutron stars associated with 80 pulsars.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/AZh/88/22</TD>
+      <TD>Malov I.F., Nikitina E.B.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2011AZh....88...22M</TD>
+      <TD>27-Jan-2011</TD>
+      <TD/>
+      <TD>radio</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/azh/88/954</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/AZh/88/954/table1?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/azh/88/954</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/AZh/88/954/table1 (*Calculated values of {beta}1 for 10cm and 20cm)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/azh/88/954</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-10-18T08:24:25</TD>
+      <TD>J/AZh/88/954</TD>
+      <TD>Geometry of radio pulsar magnetospheres (Malov+, 2011)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Data on the profiles and polarization of the 10- and 20-cm emission of radio pulsars are used to calculate the angle {beta} between the rotational axis of the neutron star and its magnetic moment. It is shown that, for these calculations, it is sufficient to use catalog values of the pulse width at the 10% level W10, since the broadening of the observed pulses due to the transition to the full width W0 and narrowing of the pulses associated with the emission of radiation along tangents to the field lines approximately cancel each other out. The angles {beta}1 are calculated for 283 pulsars at 20cm and 132 pulsars at 10cm, assuming that the line of sight passes through the center of the emission cone.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/AZh/88/954</TD>
+      <TD>Malov I.F., Nikitina E.B.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2011AZh....88..954M</TD>
+      <TD>14-Nov-2011</TD>
+      <TD/>
+      <TD>optical#radio</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/mnras/287/293</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/MNRAS/287/293/table1?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/mnras/287/293</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/MNRAS/287/293/table1 (Unidentified EUV sources)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/mnras/287/293</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>1998-02-08T13:48:38</TD>
+      <TD>J/MNRAS/287/293</TD>
+      <TD>BR photometry of EUVE sources (Maoz+ 1997)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Most of the sources detected in the extreme ultraviolet (EUV; 100-600{AA}) by the ROSAT/WFC and EUVE all-sky surveys have been identified with active late-type stars and hot white dwarfs that are near enough to the Earth to escape absorption by interstellar gas. However, about 15 per cent of EUV sources are as yet unidentified with any optical counterparts. We examine whether the unidentified EUV sources may consist of the same population of late-type stars and white dwarfs. We present B and R photometry of stars in the fields of seven of the unidentified EUV sources. We detect in the optical the entire main-sequence and white dwarf population out to the greatest distances where they could still avoid absorption. We use colour-magnitude diagrams to demonstrate that, in most of the fields, none of the observed stars has the colours and magnitudes of late-type dwarfs at distances less than 100pc. Similarly, none of the observed stars is a white dwarf within 500pc that is hot enough to be a EUV emitter. The unidentified EUV sources we study are not detected in X-rays, while cataclysmic variables, X-ray binaries, and active galactic nuclei generally are. We conclude that some of the EUV sources may be a new class of nearby objects, which are either very faint at optical bands or which mimic the colours and magnitudes of distant late-type stars or cool white dwarfs. One candidate for optically faint objects is isolated old neutron stars, slowly accreting interstellar matter. Such neutron stars are expected to be abundant in the Galaxy, and have not been unambiguously detected.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/MNRAS/287/293</TD>
+      <TD>Maoz D., Ofek E.O., Shemi A.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>1997MNRAS.287..293M</TD>
+      <TD>24-Oct-1997</TD>
+      <TD/>
+      <TD>x-ray#uv</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/mnras/342/1299</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/MNRAS/342/1299/table1?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/mnras/342/1299</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/MNRAS/342/1299/table1 (*Positions, flux densities and widths for 200 pulsars discovered in the Parkes Multibeam Pulsar Survey (PMPS))</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/mnras/342/1299</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-06-14T07:31:14</TD>
+      <TD>J/MNRAS/342/1299</TD>
+      <TD>Parkes Multi-Beam Pulsar Survey. III. (Kramer+, 2003)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>The Parkes Multibeam Pulsar Survey has unlocked vast areas of the Galactic plane, which were previously invisible to earlier low-frequency and less-sensitive surveys. The survey has discovered more than 600 new pulsars so far, including many that are young and exotic. In this paper we report the discovery of 200 pulsars for which we present positional and spin-down parameters, dispersion measures, flux densities and pulse profiles. A large number of these new pulsars are young and energetic, and we review possible associations of {gamma}-ray sources with the sample of about 1300 pulsars for which timing solutions are known. Based on a statistical analysis, we estimate that about 19+/-6 associations are genuine. The survey has also discovered 12 pulsars with spin properties similar to those of the Vela pulsar, nearly doubling the known population of such neutron stars. Studying the properties of all known 'Vela-like' pulsars, we find their radio luminosities to be similar to normal pulsars, implying that they are very inefficient radio sources. Finally, we review the use of the newly discovered pulsars as Galactic probes and discuss the implications of the new NE2001 Galactic electron density model for the determination of pulsar distances and luminosities.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/MNRAS/342/1299</TD>
+      <TD>Kramer M., Bell J.F., Manchester R.N., Lyne A.G., Camilo F., Stairs I.H., D'Amico N., Kaspi V.M., Hobbs G., Morris D.J., Crawford F., Possenti A., Joshi B.C., McLaughlin M.A., Lorimer D.R., Faulkner A.J.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2003MNRAS.342.1299K</TD>
+      <TD>12-Sep-2003</TD>
+      <TD/>
+      <TD>gamma-ray#radio</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/mnras/402/2369</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/MNRAS/402/2369/assoc?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/mnras/402/2369</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/MNRAS/402/2369/assoc (Positional and kinematical data for OB associations and clusters (table A1 in the paper))</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/mnras/402/2369</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2015-02-06T11:52:18</TD>
+      <TD>J/MNRAS/402/2369</TD>
+      <TD>Kinematics of young associations/clusters (Tetzlaff+, 2010)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Given a distance of 1kpc and typical neutron star velocities of 100-500km/s (Arzoumanian et al. 2002ApJ...568..289A; Hobbs et al., 2005, Cat. J/MNRAS/360/974) and maximum ages of 5Myr for neutron stars to be detectable in the optical (see cooling curves in Gusakov et al. 2005MNRAS.363..555G and Popov, Grigorian &amp; Blaschke 2006, Phys. Rev. C, 74, 025803), we restricted our search for birth associations and clusters of young nearby neutron stars to within 3kpc. We chose a sample of OB associations and young clusters (we use the term `association' for both in the following) within 3kpc from the Sun with available kinematic data and distance. We collected those from Dambis, Mel'nik &amp; Rastorguev (2001AstL...27...58D) and Hoogerwerf (2001A&amp;A...365...49H) and associations to which stars from the Galactic O-star catalogue from Maiz-Apellaniz et al. (2004, Cat. J/ApJS/151/103) are associated with. Furthermore, we added young local associations (YLA) from Fernandez, Figueras &amp; Torra (2008A&amp;A...480..735F) since they are possible hosts of a few SNe in the near past. We also included the Hercules-Lyrae association (Her-Lyr) and the Pleiades and massive star-forming regions (Reipurth 2008, ASP Monograph Publ. Vol. 4 and Vol. 5). We set the lower limit of the association age to 2Myr to account for the minimum lifetime of a progenitor star that can produce a neutron star (progenitor mass smaller than 30M_{sun}_ see e.g. Heger et al. 2003ApJ...591..288H). The list of all explored associations and their properties can be found in Appendix A. Coordinates as well as heliocentric velocity components are given for a right-handed coordinate system with the x-axis pointing towards the galactic centre and y is positive in the direction of galactic rotation.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/MNRAS/402/2369</TD>
+      <TD>Tetzlaff N., Neuhaeuser R., Hohle M.M., Maciejewski G.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2010MNRAS.402.2369T</TD>
+      <TD>09-Mar-2010</TD>
+      <TD/>
+      <TD>radio</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/mnras/419/2095</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/MNRAS/419/2095/hmxb?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/mnras/419/2095</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/MNRAS/419/2095/hmxb (High-mass X-ray binaries Catalogue)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/mnras/419/2095</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2017-11-28T14:21:30</TD>
+      <TD>J/MNRAS/419/2095</TD>
+      <TD>HMXBs in nearby galaxies (Mineo+, 2012)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Based on a homogeneous set of X-ray, infrared and ultraviolet observations from Chandra, Spitzer, GALEX and 2MASS archives, we study populations of high-mass X-ray binaries (HMXBs) in a sample of 29 nearby star-forming galaxies and their relation with the star formation rate (SFR). In agreement with previous results, we find that HMXBs are a good tracer of the recent star formation activity in the host galaxy and their collective luminosity and number scale with the SFR, in particular, LX~~2.6x10^39^SFR. However, the scaling relations still bear a rather large dispersion of rms~0.4dex, which we believe is of a physical origin. We present the catalog of 1057 X-ray sources detected within the D25 ellipse for galaxies of our sample and construct the average X-ray luminosity function (XLF) of HMXBs with substantially improved statistical accuracy and better control of systematic effects than achieved in previous studies. The XLF follows a power law with slope of 1.6 in the log(LX)~35-40 luminosity range with a moderately significant evidence for a break or cut-off at LX~10^40^erg/s. As before, we did not find any features at the Eddington limit for a neutron star or a stellar mass black hole. We discuss implications of our results for the theory of binary evolution. In particular we estimate the fraction of compact objects that once upon their lifetime experienced an X-ray active phase powered by accretion from a high mass companion and obtain a rather large number, fX~0.2x(0.1Myr/{tau}x) ({tau}x is the life time of the X-ray active phase). This is about 4 orders of magnitude more frequent than in LMXBs. We also derive constrains on the mass distribution of the secondary star in HMXBs.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/MNRAS/419/2095</TD>
+      <TD>Mineo S., Gilfanov M., Sunyaev R.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2012MNRAS.419.2095M</TD>
+      <TD>26-Sep-2011</TD>
+      <TD/>
+      <TD>optical</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/j/other/sci/292.2290</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/J/other/Sci/292.2290/table1?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/j/other/sci/292.2290</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table J/other/Sci/292.2290/table1 (47 Tuc X-Ray Source Parameters (MS 61135))</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/j/other/sci/292.2290</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2003-11-11T20:38:15</TD>
+      <TD>J/other/Sci/292.</TD>
+      <TD>Chandra compact binaries in 47 Tuc (Grindlay+, 2001)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>We have obtained high-resolution (&lt;~1") deep X-ray images of the globular cluster 47 Tucanae (NGC 104) with the Chandra X-ray Observatory to study the population of compact binaries in the high stellar density core. A 70-kilosecond exposure of the cluster reveals a centrally concentrated population of faint (L_X_~10^30-33^ergs/s) X-ray sources, with at least 108 located within the central 2'x2.5' and &gt;~half with L_X_&lt;~10^30.5^ergs/s. All 15 millisecond pulsars (MSPs) recently located precisely by radio observations are identified, though 2 are unresolved by Chandra. The X-ray spectral and temporal characteristics, as well as initial optical identifications with the Hubble Space Telescope, suggest that &gt;~50 percent are MSPs, about 30 percent are accreting white dwarfs, about 15 percent are main-sequence binaries in flare outbursts, and only two to three are quiescent low-mass X-ray binaries containing neutron stars, the conventional progenitors of MSPs. An upper limit of about 470 times the mass of the sun is derived for the mass of an accreting central black hole in the cluster. These observations provide the first X-ray ``color-magnitude'' diagram for a globular cluster and census of its compact object and binary population. Observations were made on UT 16.31 - 17.22 March, 2000.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/other/Sci/292.2290</TD>
+      <TD>Grindlay J.E., Heinke C., Edmonds P.D., Murray S.S.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2001Sci...292.2290G</TD>
+      <TD>31-Jan-2002</TD>
+      <TD/>
+      <TD>x-ray</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/v/113d</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/V/113D/cbdata?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/v/113d</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table V/113D/cbdata (Catalogue of Cataclysmic Binaries)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/v/113d</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2018-01-05T09:56:04</TD>
+      <TD>V/113D</TD>
+      <TD>Cataclysmic Binaries, LMXBs, and related objects (Ritter+, 2003)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Cataclysmic Binaries are semi-detached binaries consisting of a white dwarf or a white dwarf precursor primary and a low-mass secondary which is filling its critical Roche lobe. The secondary is not necessarily unevolved, it may even be a highly evolved star as for example in the case of the AM CVn-type stars. Low-Mass X-Ray Binaries are semi-detached binaries consisting of either a neutron star or a black hole primary, and a low-mass secondary which is filling its critical Roche lobe. Related Objects are detached binaries consisting of either a white dwarf or a white dwarf precursor primary and of a low-mass secondary. The secondary may also be a highly evolved star. The catalogue lists coordinates, apparent magnitudes, orbital parameters, stellar parameters of the components and other characteristic properties of 572 cataclysmic binaries, 80 low-mass X-ray binaries and 142 related objects with known or suspected orbital periods together with a comprehensive selection of the relevant recent literature. In addition the catalogue contains a list of references to published finding charts for 761 of the 794 objects. A cross-reference list of alias object designations concludes the catalogue. Literature published before 31 December 2004 has, as far as possible, been taken into account. This catalogue supersedes the 5th edition (catalogue &lt;V/59&gt;) and the updated lists by Ritter and Kolb (1995; catalogue &lt;V/82&gt;) (1998; catalogue &lt;V/99&gt;).</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?V/113D</TD>
+      <TD>Ritter H., Kolb U.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2003A&amp;A...404..301R</TD>
+      <TD>24-Mar-2005</TD>
+      <TD/>
+      <TD>optical</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/v/113d</TD>
+      <TD>5</TD>
+      <TD>5</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/V/113D/lmxbdata?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/v/113d</TD>
+      <TD>5</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table V/113D/lmxbdata (Catalogue of Low-Mass X-Ray Binaries)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/v/113d</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2018-01-05T09:56:04</TD>
+      <TD>V/113D</TD>
+      <TD>Cataclysmic Binaries, LMXBs, and related objects (Ritter+, 2003)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Cataclysmic Binaries are semi-detached binaries consisting of a white dwarf or a white dwarf precursor primary and a low-mass secondary which is filling its critical Roche lobe. The secondary is not necessarily unevolved, it may even be a highly evolved star as for example in the case of the AM CVn-type stars. Low-Mass X-Ray Binaries are semi-detached binaries consisting of either a neutron star or a black hole primary, and a low-mass secondary which is filling its critical Roche lobe. Related Objects are detached binaries consisting of either a white dwarf or a white dwarf precursor primary and of a low-mass secondary. The secondary may also be a highly evolved star. The catalogue lists coordinates, apparent magnitudes, orbital parameters, stellar parameters of the components and other characteristic properties of 572 cataclysmic binaries, 80 low-mass X-ray binaries and 142 related objects with known or suspected orbital periods together with a comprehensive selection of the relevant recent literature. In addition the catalogue contains a list of references to published finding charts for 761 of the 794 objects. A cross-reference list of alias object designations concludes the catalogue. Literature published before 31 December 2004 has, as far as possible, been taken into account. This catalogue supersedes the 5th edition (catalogue &lt;V/59&gt;) and the updated lists by Ritter and Kolb (1995; catalogue &lt;V/82&gt;) (1998; catalogue &lt;V/99&gt;).</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?V/113D</TD>
+      <TD>Ritter H., Kolb U.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2003A&amp;A...404..301R</TD>
+      <TD>24-Mar-2005</TD>
+      <TD/>
+      <TD>optical</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/v/113d</TD>
+      <TD>6</TD>
+      <TD>6</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/V/113D/pcbdata?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/v/113d</TD>
+      <TD>6</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table V/113D/pcbdata (Catalogue of Related Objects)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/v/113d</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2018-01-05T09:56:04</TD>
+      <TD>V/113D</TD>
+      <TD>Cataclysmic Binaries, LMXBs, and related objects (Ritter+, 2003)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Cataclysmic Binaries are semi-detached binaries consisting of a white dwarf or a white dwarf precursor primary and a low-mass secondary which is filling its critical Roche lobe. The secondary is not necessarily unevolved, it may even be a highly evolved star as for example in the case of the AM CVn-type stars. Low-Mass X-Ray Binaries are semi-detached binaries consisting of either a neutron star or a black hole primary, and a low-mass secondary which is filling its critical Roche lobe. Related Objects are detached binaries consisting of either a white dwarf or a white dwarf precursor primary and of a low-mass secondary. The secondary may also be a highly evolved star. The catalogue lists coordinates, apparent magnitudes, orbital parameters, stellar parameters of the components and other characteristic properties of 572 cataclysmic binaries, 80 low-mass X-ray binaries and 142 related objects with known or suspected orbital periods together with a comprehensive selection of the relevant recent literature. In addition the catalogue contains a list of references to published finding charts for 761 of the 794 objects. A cross-reference list of alias object designations concludes the catalogue. Literature published before 31 December 2004 has, as far as possible, been taken into account. This catalogue supersedes the 5th edition (catalogue &lt;V/59&gt;) and the updated lists by Ritter and Kolb (1995; catalogue &lt;V/82&gt;) (1998; catalogue &lt;V/99&gt;).</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?V/113D</TD>
+      <TD>Ritter H., Kolb U.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>2003A&amp;A...404..301R</TD>
+      <TD>24-Mar-2005</TD>
+      <TD/>
+      <TD>optical</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/v/90</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/V/90/table1?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/v/90</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table V/90/table1 (Low mass X-ray binaries (LMXB))</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/v/90</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2013-03-06T07:14:45</TD>
+      <TD>V/90</TD>
+      <TD>Catalogue of X-Ray Binaries (van Paradijs 1995)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>The objects described in this catalog are X-Ray binaries, i.e., semi-detached binary stars in which matter is transferred from a usually more or less normal star to a neutron star or black hole. Thus, cataclysmic variables are not included. The tables provide basic information of the systems as well as selected references. The tables contain 124 low-mass and 69 high mass X-ray binaries.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?V/90</TD>
+      <TD>van Paradijs J.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD/>
+      <TD>09-Jan-1997</TD>
+      <TD/>
+      <TD>x-ray</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/v/90</TD>
+      <TD>5</TD>
+      <TD>5</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/V/90/table2?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/v/90</TD>
+      <TD>5</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table V/90/table2 (High mass X-ray binaries (HMXB))</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/v/90</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2013-03-06T07:14:45</TD>
+      <TD>V/90</TD>
+      <TD>Catalogue of X-Ray Binaries (van Paradijs 1995)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>The objects described in this catalog are X-Ray binaries, i.e., semi-detached binary stars in which matter is transferred from a usually more or less normal star to a neutron star or black hole. Thus, cataclysmic variables are not included. The tables provide basic information of the systems as well as selected references. The tables contain 124 low-mass and 69 high mass X-ray binaries.</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?V/90</TD>
+      <TD>van Paradijs J.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD/>
+      <TD>09-Jan-1997</TD>
+      <TD/>
+      <TD>x-ray</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/v/99</TD>
+      <TD>4</TD>
+      <TD>4</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/V/99/cbdata?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/v/99</TD>
+      <TD>4</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table V/99/cbdata (Catalogue of Cataclysmic Binaries)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/v/99</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2003-06-08T16:50:32</TD>
+      <TD>V/99</TD>
+      <TD>Cataclysmic Binaries and LMXB Catalogue (Ritter+ 1998)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Cataclysmic Binaries are semi-detached binaries consisting of a white dwarf or a white dwarf precursor primary and a low-mass secondary which is filling its critical Roche lobe. The secondary is not necessarily unevolved, it may even be a highly evolved star as for example in the case of the AM CVn-type stars. Low-Mass X-Ray Binaries are semi-detached binaries consisting of either a neutron star or a black hole primary, and a low-mass secondary which is filling its critical Roche lobe. Related Objects are detached binaries consisting of either a white dwarf or a white dwarf precursor primary and of a low-mass secondary. The secondary may also be a highly evolved star. The catalogue lists coordinates, apparent magnitudes, orbital parameters, stellar parameters of the components and other characteristic properties of 318 cataclysmic binaries, 47 low-mass X-ray binaries and 49 related objects with known or suspected orbital periods together with a comprehensive selection of the relevant recent literature. In addition the catalogue contains a list of references to published finding charts for 394 of the 414 objects. A cross-reference list of alias object designations concludes the catalogue. Literature published before 30 June 1997 has, as far as possible, been taken into account. This catalogue supersedes the 5th edition (catalogue &lt;V/59&gt;) and the updated list by Ritter and Kolb (1995; catalogue &lt;V/82&gt;).</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?V/99</TD>
+      <TD>Ritter H., Kolb U.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>1998A&amp;AS..129...83R</TD>
+      <TD>16-Dec-1997</TD>
+      <TD/>
+      <TD>optical</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/v/99</TD>
+      <TD>5</TD>
+      <TD>5</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/V/99/lmxbdata?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/v/99</TD>
+      <TD>5</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table V/99/lmxbdata (Catalogue of Low-Mass X-Ray Binaries)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/v/99</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2003-06-08T16:50:32</TD>
+      <TD>V/99</TD>
+      <TD>Cataclysmic Binaries and LMXB Catalogue (Ritter+ 1998)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Cataclysmic Binaries are semi-detached binaries consisting of a white dwarf or a white dwarf precursor primary and a low-mass secondary which is filling its critical Roche lobe. The secondary is not necessarily unevolved, it may even be a highly evolved star as for example in the case of the AM CVn-type stars. Low-Mass X-Ray Binaries are semi-detached binaries consisting of either a neutron star or a black hole primary, and a low-mass secondary which is filling its critical Roche lobe. Related Objects are detached binaries consisting of either a white dwarf or a white dwarf precursor primary and of a low-mass secondary. The secondary may also be a highly evolved star. The catalogue lists coordinates, apparent magnitudes, orbital parameters, stellar parameters of the components and other characteristic properties of 318 cataclysmic binaries, 47 low-mass X-ray binaries and 49 related objects with known or suspected orbital periods together with a comprehensive selection of the relevant recent literature. In addition the catalogue contains a list of references to published finding charts for 394 of the 414 objects. A cross-reference list of alias object designations concludes the catalogue. Literature published before 30 June 1997 has, as far as possible, been taken into account. This catalogue supersedes the 5th edition (catalogue &lt;V/59&gt;) and the updated list by Ritter and Kolb (1995; catalogue &lt;V/82&gt;).</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?V/99</TD>
+      <TD>Ritter H., Kolb U.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>1998A&amp;AS..129...83R</TD>
+      <TD>16-Dec-1997</TD>
+      <TD/>
+      <TD>optical</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://cds.vizier/v/99</TD>
+      <TD>6</TD>
+      <TD>6</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml+votable</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>http://vizier.u-strasbg.fr/viz-bin/conesearch/V/99/pcbdata?</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://cds.vizier/v/99</TD>
+      <TD>6</TD>
+      <TD>cs:conesearch</TD>
+      <TD>Cone search capability for table V/99/pcbdata (Catalogue of Related Objects)</TD>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://cds.vizier/v/99</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2003-06-08T16:50:32</TD>
+      <TD>V/99</TD>
+      <TD>Cataclysmic Binaries and LMXB Catalogue (Ritter+ 1998)</TD>
+      <TD>2018-04-05T10:00:00</TD>
+      <TD>research</TD>
+      <TD>Cataclysmic Binaries are semi-detached binaries consisting of a white dwarf or a white dwarf precursor primary and a low-mass secondary which is filling its critical Roche lobe. The secondary is not necessarily unevolved, it may even be a highly evolved star as for example in the case of the AM CVn-type stars. Low-Mass X-Ray Binaries are semi-detached binaries consisting of either a neutron star or a black hole primary, and a low-mass secondary which is filling its critical Roche lobe. Related Objects are detached binaries consisting of either a white dwarf or a white dwarf precursor primary and of a low-mass secondary. The secondary may also be a highly evolved star. The catalogue lists coordinates, apparent magnitudes, orbital parameters, stellar parameters of the components and other characteristic properties of 318 cataclysmic binaries, 47 low-mass X-ray binaries and 49 related objects with known or suspected orbital periods together with a comprehensive selection of the relevant recent literature. In addition the catalogue contains a list of references to published finding charts for 394 of the 414 objects. A cross-reference list of alias object designations concludes the catalogue. Literature published before 30 June 1997 has, as far as possible, been taken into account. This catalogue supersedes the 5th edition (catalogue &lt;V/59&gt;) and the updated list by Ritter and Kolb (1995; catalogue &lt;V/82&gt;).</TD>
+      <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?V/99</TD>
+      <TD>Ritter H., Kolb U.</TD>
+      <TD>catalog</TD>
+      <TD>bibcode</TD>
+      <TD>1998A&amp;AS..129...83R</TD>
+      <TD>16-Dec-1997</TD>
+      <TD/>
+      <TD>optical</TD>
+      <TD>public</TD>
+      <TD/>
+      <TD>ivo://cds.vizier/registry</TD>
+     </TR>
+     <TR>
+      <TD>ivo://nasa.heasarc/rasscndins</TD>
+      <TD>1</TD>
+      <TD>1</TD>
+      <TD>vs:paramhttp</TD>
+      <TD>std</TD>
+      <TD/>
+      <TD>get</TD>
+      <TD>text/xml</TD>
+      <TD/>
+      <TD>base</TD>
+      <TD>https://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=rasscndins&amp;</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://nasa.heasarc/rasscndins</TD>
+      <TD>1</TD>
+      <TD>cs:conesearch</TD>
+      <TD/>
+      <TD>ivo://ivoa.net/std/conesearch</TD>
+      <TD>ivo://nasa.heasarc/rasscndins</TD>
+      <TD>vs:catalogservice</TD>
+      <TD>2018-09-11T00:00:00</TD>
+      <TD>RASSCNDINS</TD>
+      <TD>ROSAT All-Sky Survey Candidate Isolated Neutron Stars</TD>
+      <TD>2018-09-11T00:00:00</TD>
+      <TD>research</TD>
+      <TD>No Description Available</TD>
+      <TD>https://heasarc.gsfc.nasa.gov/W3Browse/all/rasscndins.html</TD>
+      <TD>Turner et al.</TD>
+      <TD>catalog</TD>
+      <TD/>
+      <TD>2010ApJ...714.1424T</TD>
+      <TD/>
+      <TD/>
+      <TD>optical</TD>
+      <TD/>
+      <TD/>
+      <TD>ivo://nasa.heasarc/registry</TD>
+     </TR>
+    </TABLEDATA>
+   </DATA>
+  </TABLE>
+ </RESOURCE>
+</VOTABLE>
