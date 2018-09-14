@@ -60,6 +60,32 @@ def keywords_fixture(mocker):
         yield matcher
 
 
+@pytest.fixture()
+def servicetype_fixture(mocker):
+    def servicetypetest_callback(request, context):
+        data = dict(parse_qsl(request.body))
+        query = data['QUERY']
+
+        assert "'ivo://ivoa.net/std/conesearch'" not in query
+        assert "'ivo://ivoa.net/std/sia'" not in query
+        assert "'ivo://ivoa.net/std/ssa'" not in query
+        assert "'ivo://ivoa.net/std/slap'" not in query
+        assert "'ivo://ivoa.net/std/tap'" in query
+
+        return get_pkg_data_contents('data/regtap.xml')
+
+    with mocker.register_uri(
+        'POST', 'http://dc.g-vo.org/tap/sync',
+        content=servicetypetest_callback
+    ) as matcher:
+        yield matcher
+
+
 @pytest.mark.usefixtures('keywords_fixture', 'capabilities')
 def test_keywords():
     regsearch(keywords=['vizier', 'pulsar'])
+
+
+@pytest.mark.usefixtures('servicetype_fixture', 'capabilities')
+def test_servicetype():
+    regsearch(servicetype='tap')
