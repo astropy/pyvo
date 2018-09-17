@@ -1,4 +1,4 @@
-0.9 (unreleased)
+0.9
 ----------------
 * add a describe method to services to print a human-readable description
 
