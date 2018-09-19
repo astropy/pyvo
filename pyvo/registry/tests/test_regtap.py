@@ -81,6 +81,23 @@ def servicetype_fixture(mocker):
         yield matcher
 
 
+@pytest.fixture()
+def waveband_fixture(mocker):
+    def wavebandtest_callback(request, content):
+        data = dict(parse_qsl(request.body))
+        query = data['QUERY']
+
+        assert "1 = ivo_hashlist_has('optical', waveband" in query
+
+        return get_pkg_data_contents('data/regtap.xml')
+
+    with mocker.register_uri(
+        'POST', 'http://dc.g-vo.org/tap/sync',
+        content=wavebandtest_callback
+    ) as matcher:
+        yield matcher
+
+
 @pytest.mark.usefixtures('keywords_fixture', 'capabilities')
 def test_keywords():
     regsearch(keywords=['vizier', 'pulsar'])
@@ -89,3 +106,8 @@ def test_keywords():
 @pytest.mark.usefixtures('servicetype_fixture', 'capabilities')
 def test_servicetype():
     regsearch(servicetype='tap')
+
+
+@pytest.mark.usefixtures('waveband_fixture', 'capabilities')
+def test_waveband():
+    regsearch(waveband='optical')
