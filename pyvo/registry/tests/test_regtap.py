@@ -98,6 +98,26 @@ def waveband_fixture(mocker):
         yield matcher
 
 
+@pytest.fixture()
+def datamodel_fixture(mocker):
+    def datamodeltest_callback(request, content):
+        data = dict(parse_qsl(request.body))
+        query = data['QUERY']
+
+        assert (
+            "WHERE idet.detail_xpath = '/capability/dataModel/@ivo-id" in query
+        )
+        assert "idet.detail_value, 'ivo://ivoa.net/std/tap%')" in query
+
+        return get_pkg_data_contents('data/regtap.xml')
+
+    with mocker.register_uri(
+        'POST', 'http://dc.g-vo.org/tap/sync',
+        content=datamodeltest_callback
+    ) as matcher:
+        yield matcher
+
+
 @pytest.mark.usefixtures('keywords_fixture', 'capabilities')
 def test_keywords():
     regsearch(keywords=['vizier', 'pulsar'])
@@ -111,3 +131,8 @@ def test_servicetype():
 @pytest.mark.usefixtures('waveband_fixture', 'capabilities')
 def test_waveband():
     regsearch(waveband='optical')
+
+
+@pytest.mark.usefixtures('datamodel_fixture', 'capabilities')
+def test_datamodel():
+    regsearch(datamodel='tap')
