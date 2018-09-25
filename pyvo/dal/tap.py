@@ -391,17 +391,19 @@ class AsyncTAPJob(object):
         except Exception:
             pass
 
-    def _update(self, wait_for_statechange=False):
+    def _update(self, wait_for_statechange=False, timeout=10.):
         """
         updates local job infos with remote values
         """
         try:
             if wait_for_statechange:
-                response = s.get(self.url, stream=True, params={
-                    "WAIT": "-1"
-                })
+                response = s.get(
+                    self.url, stream=True, timeout=timeout, params={
+                        "WAIT": "-1"
+                    }
+                )
             else:
-                response = s.get(self.url, stream=True)
+                response = s.get(self.url, stream=True, timeout=timeout)
             response.raise_for_status()
         except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
@@ -625,8 +627,7 @@ class AsyncTAPJob(object):
 
         return self
 
-    def wait(
-            self, phases=None):
+    def wait(self, phases=None, timeout=600.):
         """
         waits for the job to reach the given phases.
 
@@ -650,7 +651,7 @@ class AsyncTAPJob(object):
             "QUEUED", "EXECUTING", "RUN", "COMPLETED", "ERROR", "UNKNOWN"}
 
         while True:
-            self._update(wait_for_statechange=True)
+            self._update(wait_for_statechange=True, timeout=timeout)
             # use the cached value
             cur_phase = self._job.phase
 
