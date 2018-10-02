@@ -1,3 +1,9 @@
+0.9.1
+----------------
+* Don't use OR's in RegTAP queries
+
+* Add a timeout to job wait
+
 0.9
 ----------------
 * add a describe method to services to print a human-readable description
