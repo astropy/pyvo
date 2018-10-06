@@ -1,3 +1,7 @@
+0.9.2
+----------------
+* Fix typo fornat -> format
+
 0.9.1
 ----------------
 * Don't use OR's in RegTAP queries
