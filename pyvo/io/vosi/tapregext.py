@@ -398,14 +398,14 @@ class TableAccess(TAPCapRestriction):
             print("Time a job is kept (in seconds)")
             print(indent("Default {}".format(self.retentionperiod.default)))
             if self.retentionperiod.hard:
-                print(indent("Maximum {}".fornat(self.retentionperiod.hard)))
+                print(indent("Maximum {}".format(self.retentionperiod.hard)))
             print()
 
         if self.executionduration:
             print("Maximal run time of a job")
             print(indent("Default {}".format(self.executionduration.default)))
             if self.executionduration.hard:
-                print(indent("Maximum {}".fornat(self.executionduration.hard)))
+                print(indent("Maximum {}".format(self.executionduration.hard)))
             print()
 
         if self.outputlimit:
