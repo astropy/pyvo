@@ -169,11 +169,14 @@ class DatalinkRecordMixin(object):
     - ``getdataset()`` considers datalink.
     """
     def getdatalink(self):
-        datalink = self._results.get_adhocservice_by_ivoid(
-            b"ivo://ivoa.net/std/datalink")
+        try:
+            datalink = self._results.get_adhocservice_by_ivoid(
+                b"ivo://ivoa.net/std/datalink")
 
-        query = DatalinkQuery.from_resource(self, datalink)
-        return query.execute()
+            query = DatalinkQuery.from_resource(self, datalink)
+            return query.execute()
+        except DALServiceError:
+            return DatalinkResults.from_result_url(self.getdataurl())
 
     @stream_decode_content
     def getdataset(self, timeout=None):
