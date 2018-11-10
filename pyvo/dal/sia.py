@@ -40,7 +40,8 @@ from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity, Unit
 
-from .query import DALResults, DALQuery, DALService, Record, mime2extension
+from .query import DALResults, DALQuery, DALService, Record
+from .mimetypes import mime2extension
 from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin, SodaRecordMixin
 
 from .. import samp

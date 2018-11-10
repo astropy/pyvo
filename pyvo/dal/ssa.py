@@ -44,7 +44,8 @@ from astropy.units import spectral as spectral_equivalencies
 from astropy.io.votable.tree import Field
 from astropy.table import Table
 
-from .query import DALResults, DALQuery, DALService, Record, mime2extension
+from .query import DALResults, DALQuery, DALService, Record
+from .mimetypes import mime2extension
 from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin, SodaRecordMixin
 
 from .. import samp

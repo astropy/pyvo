@@ -51,21 +51,6 @@ from ..utils.decorators import stream_decode_content
 from ..utils.http import session as s
 
 
-if six.PY3:
-    _mimetype_re = re.compile(
-        b'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
-else:
-    _mimetype_re = re.compile(
-        r'^\w[\w\-]+/\w[\w\-]+(\+\w[\w\-]*)?(;[\w\-]+(\=[\w\-]+))*$')
-
-
-def is_mime_type(val):
-    if type(val) == six.text_type:
-        val = val.encode('utf-8')
-
-    return bool(_mimetype_re.match(val))
-
-
 class DALService(object):
     """
     an abstract base class representing a DAL service located a particular
@@ -1059,65 +1044,3 @@ else:
     _image_mt_re = re.compile(r'^image/(\w+)')
     _text_mt_re = re.compile(r'^text/(\w+)')
     _votable_mt_re = re.compile(r'^(\w+)/(x-)?votable(\+\w+)?')
-
-
-def mime2extension(mimetype, default=None):
-    """
-    return a recommended file extension for a file with a given MIME-type.
-
-    This function provides some generic mappings that can be leveraged in
-    implementations of ``suggest_extension()`` in ``Record`` subclasses.
-
-      >>> mime2extension('application/fits')
-      fits
-      >>> mime2extension('image/jpeg')
-      jpg
-      >>> mime2extension('application/x-zed', 'dat')
-      dat
-
-    Parameters
-    ----------
-    mimetype : str
-       the file MIME-type byte-string to convert
-    default : str
-       the default extension to return if one could not be
-       recommended based on ``mimetype``.  By convention,
-       this should not include a preceding '.'
-
-    Returns
-    -------
-    str
-       the recommended extension without a preceding '.', or the
-       value of ``default`` if no recommendation could be made.
-    """
-    if not mimetype:
-        return default
-    if type(mimetype) == six.text_type:
-        mimetype = mimetype.encode('utf-8')
-
-    if mimetype.endswith(b"/fits") or mimetype.endswith(b'/x-fits'):
-        return "fits"
-    if mimetype == b"image/jpeg":
-        return "jpg"
-
-    m = _votable_mt_re.match(mimetype)  # r'^(\w+)/(x-)?votable(\+\w+)'
-    if m:
-        return "xml"
-
-    m = _image_mt_re.match(mimetype)    # r'^image/(\w+)'
-    if m:
-        out = m.group(1).lower()
-        if six.PY3:
-            out = out.decode('utf-8')
-        return out
-
-    m = _text_mt_re.match(mimetype)     # r'^text/(\w+)'
-    if m:
-        if m.group(1) == b'html' or m.group(1) == b'xml':
-            out = m.group(1)
-            if six.PY3:
-                out = out.decode('utf-8')
-            return out
-        return "txt"
-
-    return default
