@@ -43,6 +43,7 @@ from astropy.io.votable import parse as votableparse
 from astropy.io.votable.ucd import parse_ucd
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
+from .mimetypes import mime_object_maker
 from .exceptions import (DALFormatError, DALServiceError, DALQueryError)
 
 from .. import samp
@@ -696,6 +697,13 @@ class Record(Mapping):
                     out = out.decode('utf-8')
                 return out
         return None
+
+    def getdataobj(self):
+        """
+        return the appropiate data object suitable for the data content behind
+        this record.
+        """
+        return mime_object_maker(self.getdataurl(), self.getdataformat())
 
     @stream_decode_content
     def getdataset(self, timeout=None):

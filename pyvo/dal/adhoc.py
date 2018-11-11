@@ -185,7 +185,7 @@ class DatalinkRecordMixin(object):
             r = s.get(url, stream=True, timeout=timeout)
             r.raise_for_status()
             return r.raw
-        except (DALServiceError, StopIteration):
+        except (DALServiceError, ValueError, StopIteration):
             # this should go to Record.getdataset()
             return super(DatalinkRecordMixin, self).getdataset(timeout=timeout)
 

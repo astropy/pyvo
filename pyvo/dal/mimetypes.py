@@ -8,11 +8,15 @@ import mimeparse
 
 import six
 
+from astropy.io.fits import open as fits_open
+
+from ..utils.http import session as s
+
 
 mimetypes.add_type('application/fits', 'fits')
 mimetypes.add_type('application/x-fits', 'fits')
 mimetypes.add_type('image/fits', 'fits')
-mimetypes.add_type('image/fits', 'fits')
+mimetypes.add_type('text/plain', 'txt')
 
 
 def mime2extension(mimetype, default=None):
@@ -52,3 +56,35 @@ def mime2extension(mimetype, default=None):
 
     ext = mimetypes.guess_extension(mimetype, strict=False)
     return ext
+
+
+def mime_object_maker(url, mimetype):
+    """
+    return a data object suitable for the mimetype given.
+    this will either return a astropy fits object or a pyvo DALResults object,
+    a PIL object for conventional images or string for text content.
+
+    Parameters
+    ----------
+    url : str
+        the object download url
+    mimetype : str
+        the content mimetype
+    """
+    mimetype = mimeparse.parse_mime_type(mimetype)
+
+    if mimetype[0] == 'text':
+        return s.get(url).text
+
+    if mimetype[1] == 'fits' or mimetype[1] == 'x-fits':
+        return fits_open(url)
+
+    if mimetype[1] == 'x-votable' or mimetype[1] == 'x-votable+xml':
+        # As soon as there are some kind of recursive data structures,
+        # things start to get really f*cked up
+        if mimetype[2].get('content', None) == 'datalink':
+            from .adhoc import DatalinkResults
+            return DatalinkResults.from_result_url(url)
+        else:
+            from .query import DALResults
+            return DALResults.from_result_url(url)
