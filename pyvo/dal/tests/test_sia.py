@@ -14,6 +14,7 @@ import pytest
 
 from pyvo.dal.sia import search, SIAService
 
+from astropy.io.fits import HDUList
 from astropy.utils.data import get_pkg_data_contents
 
 get_pkg_data_contents = partial(
@@ -24,10 +25,11 @@ sia_re = re.compile('http://example.com/sia.*')
 
 @pytest.fixture(autouse=True, scope='module')
 def register_mocks(mocker):
-    mocker.register_uri(
+    with mocker.register_uri(
         'GET', 'http://example.com/querydata/image.fits',
         content=get_pkg_data_contents('data/querydata/image.fits')
-    )
+    ) as matcher:
+        yield matcher
 
 
 @pytest.fixture()
@@ -40,6 +42,7 @@ def sia(mocker):
 
 def _test_result(result):
     assert result.getdataurl() == 'http://example.com/querydata/image.fits'
+    assert isinstance(result.getdataobj(), HDUList)
     assert result.filesize == 153280
 
 

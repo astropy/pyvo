@@ -8,7 +8,7 @@ import mimeparse
 
 import six
 
-from astropy.io.fits import open as fits_open
+from astropy.io.fits import HDUList
 
 from ..utils.http import session as s
 
@@ -77,7 +77,8 @@ def mime_object_maker(url, mimetype):
         return s.get(url).text
 
     if mimetype[1] == 'fits' or mimetype[1] == 'x-fits':
-        return fits_open(url)
+        r = s.get(url)
+        return HDUList.fromstring(r.content)
 
     if mimetype[1] == 'x-votable' or mimetype[1] == 'x-votable+xml':
         # As soon as there are some kind of recursive data structures,

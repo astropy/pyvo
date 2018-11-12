@@ -8,6 +8,9 @@
     <FIELD ID="accref" arraysize="*" datatype="char" name="accref" utype="Access.Reference">
       <DESCRIPTION>Access key for the data</DESCRIPTION>
     </FIELD>
+    <FIELD ID="mime" arraysize="*" datatype="char" name="mime" ucd="VOX:Image_Format" utype="Access.Format">
+      <DESCRIPTION>MIME type of the file served</DESCRIPTION>
+    </FIELD>
     <FIELD ID="accsize" datatype="long" name="accsize" ucd="VOX:Image_FileSize" unit="byte" utype="Access.Size">
       <DESCRIPTION>Size of the data in bytes</DESCRIPTION>
       <VALUES null="-1"/>
@@ -40,6 +43,7 @@
     <TABLEDATA>
      <TR>
       <TD>http://example.com/querydata/image.fits</TD>
+      <TD>image/fits</TD>
       <TD>153280</TD>
       <TD>18885.9416782409</TD>
       <TD>Test</TD>
