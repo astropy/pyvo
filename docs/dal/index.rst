@@ -346,6 +346,15 @@ The total number of rows in the answer is available as its ``len()``:
 >>> print(len(resultset))
 9
 
+If the row contains datasets, they are exposed by several retrieval methods:
+
+>>> url = row.getdataurl()
+>>> fileobj = row.getdataset()
+>>> obj = row.getdataobj()
+
+Returning the access url, the file-like object or the appropiate python object
+to further work on.
+
 As with general numpy arrays, accessing individual columns via names gives an
 array of all of their values:
 
