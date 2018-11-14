@@ -80,6 +80,13 @@ def mime_object_maker(url, mimetype):
         r = s.get(url)
         return HDUList.fromstring(r.content)
 
+    if mimetype[0] == 'image':
+        from PIL import Image
+        from io import BytesIO
+        r = s.get(url)
+        b = BytesIO(r.content)
+        return Image.open(b)
+
     if mimetype[1] == 'x-votable' or mimetype[1] == 'x-votable+xml':
         # As soon as there are some kind of recursive data structures,
         # things start to get really f*cked up
