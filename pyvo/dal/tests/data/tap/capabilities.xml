@@ -14,6 +14,7 @@
   <capability standardID="ivo://ivoa.net/std/VOSI#tables">
     <interface role="std" xsi:type="vs:ParamHTTP">
       <accessURL use="full">http://dc.zah.uni-heidelberg.de/__system__/tap/run/tableMetadata</accessURL>
+      <securityMethod standardID="http://www.w3.org/Protocols/HTTP/1.0/spec.html#BasicAA"/>
     </interface>
   </capability>
   <capability standardID="ivo://ivoa.net/std/TAP" xsi:type="tr:TableAccess">
