@@ -151,6 +151,40 @@ class AccessURL(ContentMixin, Element):
         self._use = use
 
 
+class SecurityMethod(ContentMixin, Element):
+    """
+    SecurityMethod element as described in
+    http://www.ivoa.net/xml/VOResource/v1.0
+
+    A description of a security mechanism.
+
+    this type only allows one to refer to the mechanism via a URI.
+    Derived types would allow for more metadata.
+    """
+    def __init__(
+        self, config=None, pos=None, _name='securityMethod', standardID=None,
+        **kwargs
+    ):
+        super(SecurityMethod, self).__init__(config, pos, _name, **kwargs)
+
+        self._standardid = standardID
+
+    def __repr__(self):
+        return '<SecurityMethod standardID={}>{}</SecurityMethod>'.format(
+            self.standardid, self.content)
+
+    @xmlattribute(name='standardID')
+    def standardid(self):
+        """
+        A URI identifier for a standard security mechanism.
+        """
+        return self._standardid
+
+    @standardid.setter
+    def standardid(self, standardid):
+        self._standardid = standardid
+
+
 class Interface(Element):
     """
     Interface element as described in
@@ -265,7 +299,7 @@ class Interface(Element):
         """
         return self._accessurls
 
-    @xmlelement(name='securityMethod')
+    @xmlelement(name='securityMethod', cls=SecurityMethod)
     def securitymethods(self):
         """
         the mechanism the client must employ to gain secure
@@ -409,40 +443,6 @@ class Capability(Element):
         The use of an IVOA identifier here implies that a
         VOResource description of the standard is registered and
         accessible.
-        """
-        return self._standardid
-
-    @standardid.setter
-    def standardid(self, standardid):
-        self._standardid = standardid
-
-
-class SecurityMethod(ContentMixin, Element):
-    """
-    SecurityMethod element as described in
-    http://www.ivoa.net/xml/VOResource/v1.0
-
-    A description of a security mechanism.
-
-    this type only allows one to refer to the mechanism via a URI.
-    Derived types would allow for more metadata.
-    """
-    def __init__(
-        self, config=None, pos=None, _name='securityMethod', standardID=None,
-        **kwargs
-    ):
-        super(SecurityMethod, self).__init__(config, pos, _name, **kwargs)
-
-        self._standardid = standardID
-
-    def __repr__(self):
-        return '<SecurityMethod standardID={}>{}</SecurityMethod>'.format(
-            self.standardid, self.content)
-
-    @xmlattribute(name='standardID')
-    def standardid(self):
-        """
-        A URI identifier for a standard security mechanism.
         """
         return self._standardid
 
