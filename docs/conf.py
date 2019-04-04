@@ -8,7 +8,7 @@
 # Note that not all possible configuration values are present in this file.
 #
 # All configuration values have a default. Some values are defined in
-# the global Astropy configuration which is loaded here before anything else. 
+# the global Astropy configuration which is loaded here before anything else.
 # See astropy.sphinx.conf for which values are set there.
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -58,9 +58,9 @@ setup_cfg = dict(conf.items('metadata'))
 
 # If your documentation needs a minimal Sphinx version, state it here.
 # needs_sphinx = '1.2'
-# astropy_helpers sets 1.2 as the required default; forcing 1.1 seems to 
+# astropy_helpers sets 1.2 as the required default; forcing 1.1 seems to
 # work fine, but this may need to change
-needs_sphinx = '1.1'    
+needs_sphinx = '1.1'
 
 # To perform a Sphinx version check that needs to be more specific than
 # major.minor, call `check_sphinx_version("x.y.z")` here.
@@ -168,4 +168,3 @@ if eval(setup_cfg.get('edit_on_github')):
 
     edit_on_github_source_root = ""
     edit_on_github_doc_root = "docs"
-
