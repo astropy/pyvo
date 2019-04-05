@@ -43,7 +43,7 @@ from astropy.io.votable import parse as votableparse
 from astropy.io.votable.ucd import parse_ucd
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from .mimetypes import mime_object_maker
+from .mimetype import mime_object_maker
 from .exceptions import (DALFormatError, DALServiceError, DALQueryError)
 
 from .. import samp

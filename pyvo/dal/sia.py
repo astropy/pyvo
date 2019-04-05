@@ -41,7 +41,7 @@ from astropy.time import Time
 from astropy.units import Quantity, Unit
 
 from .query import DALResults, DALQuery, DALService, Record
-from .mimetypes import mime2extension
+from .mimetype import mime2extension
 from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin, SodaRecordMixin
 
 from .. import samp

@@ -45,7 +45,7 @@ from astropy.io.votable.tree import Field
 from astropy.table import Table
 
 from .query import DALResults, DALQuery, DALService, Record
-from .mimetypes import mime2extension
+from .mimetype import mime2extension
 from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin, SodaRecordMixin
 
 from .. import samp
