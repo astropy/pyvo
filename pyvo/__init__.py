@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-PyVO is a package providing access to remote data and services of the 
-Virtual observatory (VO) using Python.  
+PyVO is a package providing access to remote data and services of the
+Virtual observatory (VO) using Python.
 
 The pyvo module currently provides these main capabilities:
 
-* find archives that provide particular data of a particular type and/or 
+* find archives that provide particular data of a particular type and/or
   relates to a particular topic
 
   *  regsearch()

@@ -20,7 +20,7 @@ class LicenseTestCase(unittest.TestCase):
         self.assertTrue(
             len(filter(lambda ln: ln.startswith(license_ref_line), lines)) > 0,
             "{0} does not have license reference line".format(filename))
-        self.assertTrue(lines[0].startswith(license_ref_line) or 
+        self.assertTrue(lines[0].startswith(license_ref_line) or
                         lines[1].startswith(license_ref_line),
     "license reference line is not 1st or 2nd line in {0}".format(license_ref_line))
 
@@ -29,7 +29,7 @@ class LicenseTestCase(unittest.TestCase):
                         "license/LICENSE.rst appears to be missing (what dir are you in?)")
 
 def list_py_files(arg, dirname, names):
-    return map(lambda f: (f[:-3], os.path.join(dirname,f)), 
+    return map(lambda f: (f[:-3], os.path.join(dirname,f)),
                filter(lambda n: n.endswith(".py"), names))
 
 for dirp, dirs, files in os.walk("pyvo"):
