@@ -49,7 +49,7 @@ from .exceptions import (DALFormatError, DALServiceError, DALQueryError)
 from .. import samp
 
 from ..utils.decorators import stream_decode_content
-from ..utils.http import session as s
+from ..utils.http import session
 
 
 class DALService(object):
@@ -202,7 +202,7 @@ class DALQuery(dict):
         url = self.queryurl
         params = {k: v for k, v in self.items()}
 
-        r = s.get(url, params=params, stream=True)
+        r = session.get(url, params=params, stream=True)
         return r
 
     def execute_votable(self):
@@ -262,7 +262,7 @@ class DALResults(object):
     @classmethod
     @stream_decode_content
     def _from_result_url(cls, result_url):
-        return s.get(result_url, stream=True).raw
+        return session.get(result_url, stream=True).raw
 
     @classmethod
     def from_result_url(cls, result_url):
@@ -742,9 +742,9 @@ class Record(Mapping):
             raise KeyError("no dataset access URL recognized in record")
 
         if timeout:
-            r = s.get(url, stream=True, timeout=timeout)
+            r = session.get(url, stream=True, timeout=timeout)
         else:
-            r = s.get(url, stream=True)
+            r = session.get(url, stream=True)
 
         r.raise_for_status()
         return r.raw

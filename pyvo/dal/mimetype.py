@@ -10,7 +10,7 @@ import six
 
 from astropy.io.fits import HDUList
 
-from ..utils.http import session as s
+from ..utils.http import session
 
 
 mimetypes.add_type('application/fits', 'fits')
@@ -74,16 +74,16 @@ def mime_object_maker(url, mimetype):
     mimetype = mimeparse.parse_mime_type(mimetype)
 
     if mimetype[0] == 'text':
-        return s.get(url).text
+        return session.get(url).text
 
     if mimetype[1] == 'fits' or mimetype[1] == 'x-fits':
-        r = s.get(url)
+        r = session.get(url)
         return HDUList.fromstring(r.content)
 
     if mimetype[0] == 'image':
         from PIL import Image
         from io import BytesIO
-        r = s.get(url)
+        r = session.get(url)
         b = BytesIO(r.content)
         return Image.open(b)
 

@@ -20,7 +20,7 @@ from astropy.io.votable.tree import Resource, Group
 from astropy.utils.collections import HomogeneousList
 
 from ..utils.decorators import stream_decode_content
-from ..utils.http import session as s
+from ..utils.http import session
 
 
 # monkeypatch astropy with group support in RESOURCE
@@ -182,7 +182,7 @@ class DatalinkRecordMixin(object):
     def getdataset(self, timeout=None):
         try:
             url = next(self.getdatalink().bysemantics('#this')).access_url
-            r = s.get(url, stream=True, timeout=timeout)
+            r = session.get(url, stream=True, timeout=timeout)
             r.raise_for_status()
             return r.raw
         except (DALServiceError, ValueError, StopIteration):
