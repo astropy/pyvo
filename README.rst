@@ -31,9 +31,9 @@ takes advantage of the general capabilities of Astopy (and numpy), and
 so a secondary goal is to provide a development platform for migrating
 more VO capabilities into Astropy. 
 
-Source code can be found on `GitHub <http://github.com/pyvirtobs/pyvo>`
+Source code can be found `on GitHub <http://github.com/astropy/pyvo>`_
 
-Releases of PyVO are available from `PyPI <https://pypi.python.org/pypi/pyvo>`;
+Releases of PyVO are available from `PyPI <https://pypi.python.org/pypi/pyvo>`_
 thus, it and its prerequisites can be most easily installed using ``pip``:
 
    pip install pyvo
@@ -44,9 +44,8 @@ Alternatively, you can do a source install:
 EXAMPLES
 --------
 
-Many instructive examples can be found in the PyVO User's Manual
-(http://pyvo.readthedocs.org).  Additional examples can be found in
-the scripts directory.
+Many instructive examples can be found in the `PyVO Documentation <http://pyvo.readthedocs.org>`_.
+Additional examples can be found in the scripts directory.
 
 UNIT TESTS
 ----------
