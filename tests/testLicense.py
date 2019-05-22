@@ -4,12 +4,15 @@ Tests for pyvo.dal.query
 """
 from __future__ import print_function, division
 
-import os, sys, shutil, re, imp, glob
-import unittest, pdb
+import os
+import re
+import unittest
+import pdb  # noqa: F401
 
 license_ref_line = \
    "# Licensed under a 3-clause BSD style license - see LICENSE.rst"
 license_file = "licenses/LICENSE.rst"
+
 
 class LicenseTestCase(unittest.TestCase):
 
@@ -22,15 +25,18 @@ class LicenseTestCase(unittest.TestCase):
             "{0} does not have license reference line".format(filename))
         self.assertTrue(lines[0].startswith(license_ref_line) or
                         lines[1].startswith(license_ref_line),
-    "license reference line is not 1st or 2nd line in {0}".format(license_ref_line))
+                        "license reference line is not 1st or 2nd line in"
+                        " {0}".format(license_ref_line))
 
     def testHasLicense(self):
         self.assertTrue(os.path.exists(license_file),
                         "license/LICENSE.rst appears to be missing (what dir are you in?)")
 
+
 def list_py_files(arg, dirname, names):
-    return map(lambda f: (f[:-3], os.path.join(dirname,f)),
+    return map(lambda f: (f[:-3], os.path.join(dirname, f)),
                filter(lambda n: n.endswith(".py"), names))
+
 
 for dirp, dirs, files in os.walk("pyvo"):
     for fname in files:
@@ -42,11 +48,14 @@ for dirp, dirs, files in os.walk("pyvo"):
         setattr(LicenseTestCase, "test_"+name, eval(f))
 
 __all__ = "LicenseTestCase".split()
+
+
 def suite():
     tests = []
     for t in __all__:
         tests.append(unittest.makeSuite(globals()[t]))
     return unittest.TestSuite(tests)
+
 
 if __name__ == "__main__":
     unittest.main()

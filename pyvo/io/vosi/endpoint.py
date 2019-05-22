@@ -18,7 +18,6 @@ from astropy.io.votable.util import version_compare
 from ...utils.xml.elements import xmlattribute, xmlelement, Element
 from . import voresource as vr
 from . import vodataservice as vs
-from . import tapregext as tr
 from . import availability as av
 from .exceptions import W15, W16, E07, E10
 
@@ -27,6 +26,7 @@ __all__ = [
     "TablesFile", "CapabilitiesFile", "AvailabilityFile"]
 
 ASTROPY_GT_4 = minversion('astropy', '4.0')
+
 
 def _pedantic_settings(pedantic):
     """
@@ -55,6 +55,7 @@ def _pedantic_settings(pedantic):
             return {'verify': 'warn'}
     else:
         return {'pedantic': pedantic}
+
 
 def parse_tables(source, pedantic=None, filename=None,
                  _debug_python_based_parser=False):

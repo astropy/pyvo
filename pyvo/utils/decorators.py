@@ -13,6 +13,7 @@ def stream_decode_content(func):
 
     return wrapper
 
+
 def response_decode_content(func):
     @wraps(func)
     def wrapper(*args, **kwargs):

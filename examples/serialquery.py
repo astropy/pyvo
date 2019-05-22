@@ -23,9 +23,7 @@ import sys
 import tempfile
 import time
 
-import astropy
 from astropy.vo.samp import SAMPIntegratedClient
-from pyvo.dal import scs
 from pyvo.registry import regtap
 
 
@@ -38,8 +36,7 @@ def samp_accessible(astropy_table):
     """
     handle, f_name = tempfile.mkstemp(suffix=".xml")
     with os.fdopen(handle, "w") as f:
-        astropy_table.write(output=f,
-            format="votable")
+        astropy_table.write(output=f, format="votable")
     try:
         yield "file://"+f_name
     finally:
@@ -53,7 +50,7 @@ def SAMP_conn():
     The program will disconnect as the controlled block is exited.
     """
     client = SAMPIntegratedClient(name="serialquery",
-        description="A serial SCS querier.")
+                                  description="A serial SCS querier.")
     client.connect()
     try:
         yield client
@@ -91,6 +88,6 @@ def main(query_terms, ra, dec, sr):
     broadcast(result.table)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     # serialquery.py RA DEC SR
     main("standard stars", *[float(v) for v in sys.argv[1:]])

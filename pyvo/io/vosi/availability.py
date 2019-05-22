@@ -7,7 +7,6 @@ import six
 from astropy.utils.collections import HomogeneousList
 
 from ...utils.xml.elements import xmlelement, Element
-from . import voresource as vr
 from .exceptions import W32, W33, W34, W35
 
 __all__ = ["Availability"]

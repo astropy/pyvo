@@ -203,6 +203,6 @@ class Polygon(Number):
             if size % 3:
                 raise DALServiceError('Size is not a multiple of 3')
         except ValueError:
-                raise DALServiceError('Size is not a multiple of 3')
+            raise DALServiceError('Size is not a multiple of 3')
 
         return super(Polygon, self).serialize(value)

@@ -12,5 +12,5 @@ from astropy.utils.data import get_pkg_data_filename
 
 def test_monkeypatch():
     Table.read(get_pkg_data_filename("data/monkeypatch.xml"))
-    import pyvo
+    import pyvo  # noqa: F401
     Table.read(get_pkg_data_filename("data/monkeypatch.xml"))

@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from __future__ import print_function
 import pyvo as vo
 
 # find archives with x-ray images
@@ -9,19 +10,19 @@ pos = vo.object2pos('Cas A')
 
 # find images and list in a file
 with open('cas-a.csv', 'w') as csv:
-    print >> csv, "Archive short name,Archive title,Image", \
-                   "title,RA,Dec,format,URL"
+    print("Archive short name,Archive title,Image"
+          "title,RA,Dec,format,URL", file=csv)
     for arch in archives:
-        print "searching %s..." % arch.shortname
+        print("searching %s..." % arch.shortname)
         try:
             matches = arch.search(pos=pos, size=0.25)
-        except vo.DALAccessError, ex:
-            print "Trouble accessing %s archive (%s)"\
-                  % (arch.shortname, str(ex))
+        except vo.DALAccessError as ex:
+            print("Trouble accessing %s archive (%s)"
+                  % (arch.shortname, str(ex)))
             continue
-        print "...found %d images" % matches.nrecs
+        print("...found %d images" % matches.nrecs)
         for image in matches:
-            print >> csv, ','.join(
+            print(','.join(
              (arch.shortname, arch.title, image.title,
               str(image.ra), str(image.dec), image.format,
-              image.getdataurl()) )
+              image.getdataurl())), file=csv)

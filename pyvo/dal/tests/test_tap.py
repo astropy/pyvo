@@ -238,10 +238,10 @@ def capabilities(mocker):
 
 
 def test_escape():
-        query = 'SELECT * FROM ivoa.obscore WHERE dataproduct_type = {}'
-        query = query.format(escape("'image'"))
-        assert query == (
-            "SELECT * FROM ivoa.obscore WHERE dataproduct_type = ''image''")
+    query = 'SELECT * FROM ivoa.obscore WHERE dataproduct_type = {}'
+    query = query.format(escape("'image'"))
+    assert query == (
+        "SELECT * FROM ivoa.obscore WHERE dataproduct_type = ''image''")
 
 
 @pytest.mark.usefixtures('sync_fixture')
