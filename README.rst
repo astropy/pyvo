@@ -5,8 +5,8 @@ PyVO
     :target: http://www.astropy.org
     :alt: Powered by Astropy Badge
 
-.. image:: https://travis-ci.org/pyvirtobs/pyvo.svg
-    :target: https://travis-ci.org/pyvirtobs/pyvo
+.. image:: https://travis-ci.org/astropy/pyvo.svg
+    :target: https://travis-ci.org/astropy/pyvo
     :alt: Travis Status
 
 .. image:: https://coveralls.io/repos/github/pyvirtobs/pyvo/badge.svg?branch=master
@@ -29,7 +29,7 @@ advantage of VO standards to give access to thousands of catalogs,
 data archives, information services, and analysis tools.  It also
 takes advantage of the general capabilities of Astopy (and numpy), and
 so a secondary goal is to provide a development platform for migrating
-more VO capabilities into Astropy. 
+more VO capabilities into Astropy.
 
 Source code can be found `on GitHub <http://github.com/astropy/pyvo>`_
 
