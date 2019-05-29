@@ -38,11 +38,8 @@ except ImportError:
         if os.path.isdir(a_h_path):
             sys.path.insert(1, a_h_path)
 
-    # If that doesn't work trying to import from astropy_helpers below will
-    # still blow up
-
 # Load all of the global Astropy configuration
-from astropy_helpers.sphinx.conf import *
+from sphinx_astropy.conf import *
 
 # Get configuration information from setup.cfg
 try:
