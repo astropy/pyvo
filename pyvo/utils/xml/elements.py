@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 from inspect import getmembers
 from functools import partial
 
-from astropy.extern import six
+import six
 from astropy.utils.misc import InheritDocstrings
 from pyvo.utils.xml.exceptions import warn_or_raise, UnknownElementWarning
 

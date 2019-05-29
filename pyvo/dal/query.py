@@ -37,7 +37,7 @@ import collections
 
 from warnings import warn
 
-from astropy.extern import six
+import six
 from astropy.table.table import Table
 from astropy.io.votable import parse as votableparse
 from astropy.io.votable.ucd import parse_ucd

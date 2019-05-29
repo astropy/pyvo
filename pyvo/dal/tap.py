@@ -12,7 +12,7 @@ from distutils.version import LooseVersion
 
 import requests
 
-from astropy.extern import six
+import six
 from astropy.io.votable import parse as votableparse
 
 from .query import (

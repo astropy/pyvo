@@ -34,8 +34,8 @@ env:
         - SETUP_CMD='test'
         - PIP_DEPENDENCIES='requests mimeparse requests_mock'
         - EVENT_TYPE='pull_request push'
-        - CONDA_DEPENDENCIES=''
-        - CONDA_CHANNELS='astropy-ci-extras astropy'
+        - CONDA_DEPENDENCIES='six'
+        - CONDA_CHANNELS='astropy'
 
     matrix:
         # Make sure that egg_info works without dependencies

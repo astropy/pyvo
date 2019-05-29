@@ -25,7 +25,7 @@ protocols.
 .. note::
   If you need to access data which is not available via the Virtual Observatory
   standards, try the astropy affiliated package
-  `astroquery <http://astroquery.readthedocs.io/en/latest/>`__ (and, of 
+  `astroquery <http://astroquery.readthedocs.io/en/latest/>`__ (and, of
   course, ask the data providers to do the right thing and use the proper
   standards for their publication).
 
@@ -50,6 +50,7 @@ Requirements
 * numpy
 * astropy
 * requests
+* six
 
 .. note::
   With numpy below version 1.14.0 there are some regression with float
@@ -66,8 +67,8 @@ Getting started
 Data Access
 ^^^^^^^^^^^
 
-Most of the interesting functionality of pyVO is through the various 
-data access service interfaces (SCS for catalogs, SIA for images, SSAP for 
+Most of the interesting functionality of pyVO is through the various
+data access service interfaces (SCS for catalogs, SIA for images, SSAP for
 spectra, TAP for tables).  All of these behave in a similar way.
 
 First, there is a class describing a specific type of service:
@@ -81,14 +82,14 @@ specific to the service type. In this example, a database query is enough:
 >>> resultset = service.search("SELECT TOP 1 * FROM ivoa.obscore")
 <Table masked=True length=1>
 dataproduct_type dataproduct_subtype calib_level ... s_pixel_scale em_ucd
-                                                 ...      arcs           
+                                                 ...      arcs
      object             object          int16    ...    float64    object
 ---------------- ------------------- ----------- ... ------------- ------
-           image                               1 ...            --       
+           image                               1 ...            --
 
 What is returned by the search method is a to get a resultset object, which
 esseintially works like a numpy record array.  It can be processed either by
-columns: 
+columns:
 
 >>> row = resultset[0]
 >>> column = resultset["dataproduct_type"]
@@ -103,8 +104,8 @@ For more details on how to use data access services see :ref:`pyvo-data-access`
 Registry search
 ^^^^^^^^^^^^^^^
 
-PyVO also contains a component that lets your programs interrogate the 
-IVOA Registry in a simple way.  For instance, to iterate over all TAP 
+PyVO also contains a component that lets your programs interrogate the
+IVOA Registry in a simple way.  For instance, to iterate over all TAP
 services supporting the obscore data model (which lets people publish
 observational datasets through TAP tables), you can write:
 
