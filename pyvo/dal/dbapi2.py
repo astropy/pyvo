@@ -6,7 +6,7 @@ This only supports read-only access.
 from __future__ import print_function, division
 
 from .query import Iter
-from astropy.extern import six
+import six
 
 if six.PY3:
     StandardError = Exception
