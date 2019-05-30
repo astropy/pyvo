@@ -1,3 +1,13 @@
+0.9.3
+----------------
+* Fix parsing of SecurityMethod in capabilities
+
+* Keep up to date with upstream astropy changes
+
+* Move into astropy GitHub organization and README updates
+
+* Replace mimetype functions with library-based ones
+
 0.9.2
 ----------------
 * Fix typo fornat -> format
