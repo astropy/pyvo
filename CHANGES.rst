@@ -1,3 +1,6 @@
+1.0
+----------------
+
 0.9.3
 ----------------
 * Fix parsing of SecurityMethod in capabilities
