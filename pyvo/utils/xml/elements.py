@@ -8,7 +8,8 @@ from functools import partial
 
 import six
 from astropy.utils.misc import InheritDocstrings
-from pyvo.utils.xml.exceptions import warn_or_raise, UnknownElementWarning
+from astropy.io.votable.exceptions import warn_or_raise
+from pyvo.utils.xml.exceptions import UnknownElementWarning
 
 __all__ = [
     "xmlattribute", "xmlelement",

@@ -1,6 +1,8 @@
 1.0
 ----------------
 
+* Fix #130 pedantic table parsing not throwing exception.
+
 0.9.3
 ----------------
 * Fix parsing of SecurityMethod in capabilities
