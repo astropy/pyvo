@@ -32,7 +32,7 @@ env:
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - PIP_DEPENDENCIES='requests mimeparse requests_mock'
+        - PIP_DEPENDENCIES='requests mimeparse requests_mock flake8'
         - EVENT_TYPE='pull_request push'
         - CONDA_DEPENDENCIES='six'
         - CONDA_CHANNELS='astropy'
@@ -78,16 +78,11 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14
 
-        # Do a PEP8 test with pycodestyle
+        # Do a PEP8 test with flake8
         - os: linux
-          env: MAIN_CMD='pycodestyle pyvo --count' SETUP_CMD=''
+          env: MAIN_CMD='flake8 pyvo' SETUP_CMD=''
 
     allow_failures:
-        # Do a PEP8 test with pycodestyle
-        # (allow to fail unless your code completely compliant)
-        - os: linux
-          env: MAIN_CMD='pycodestyle pyvo --count' SETUP_CMD=''
-
         # Check for sphinx doc build warnings
         # (allow to fail because docs aren't in the right state yet')
         - os: linux
