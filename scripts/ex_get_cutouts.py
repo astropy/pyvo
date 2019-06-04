@@ -1,5 +1,8 @@
 #! /usr/bin/env python
+from __future__ import print_function
+
 import pyvo as vo
+import os
 
 # obtain your list of positions from somewhere
 sourcenames = ["ngc4258", "m101", "m51"]
@@ -8,7 +11,6 @@ for src in sourcenames:
     mysources[src] = vo.object2pos(src)
 
 # create an output directory for cutouts
-import os
 if not os.path.exists("NVSSimages"):
     os.mkdir("NVSSimages")
 
@@ -19,7 +21,7 @@ query.size = 0.2                 # degrees
 query.format = 'image/fits'
 for name, pos in mysources.items():
     query.pos = pos
-    results=query.execute()
+    results = query.execute()
     for image in results:
-        print "Downloading %s..." % name
+        print("Downloading %s..." % name)
         image.cachedataset(filename="NVSSimages/%s.fits" % name)

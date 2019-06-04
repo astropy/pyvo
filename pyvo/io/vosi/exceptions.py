@@ -365,7 +365,7 @@ class W37(VOSIWarning, XMLWarning):
 
 
 class E01(VOSIWarning, XMLWarning, ValueError):
-    """
+    r"""
     The attribute must be a valid arraysize according to the VOTable standard.
     From the VOTable 1.2 spec:
         A table cell can contain an array of a given primitive type,

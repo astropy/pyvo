@@ -115,7 +115,7 @@ try:
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot
-except:
+except Exception:
     # Ignore if this fails for *any* reason*
     pass
 
@@ -769,6 +769,7 @@ class _Bootstrapper(object):
                      '{0!r}:\n{1}\n{2}'.format(submodule, err_msg,
                                                _err_help_msg))
 
+
 class _CommandNotFound(OSError):
     """
     An exception raised when a command run with run_cmd is not found on the
@@ -801,7 +802,6 @@ def run_cmd(cmd):
             raise _AHBootstrapSystemExit(
                 'An unexpected error occurred when running the '
                 '`{0}` command:\n{1}'.format(' '.join(cmd), str(e)))
-
 
     # Can fail of the default locale is not configured properly.  See
     # https://github.com/astropy/astropy/issues/2749.  For the purposes under
@@ -874,6 +874,7 @@ class _DummyFile(object):
 def _verbose():
     yield
 
+
 @contextlib.contextmanager
 def _silence():
     """A context manager that silences sys.stdout and sys.stderr."""
@@ -885,7 +886,7 @@ def _silence():
     exception_occurred = False
     try:
         yield
-    except:
+    except Exception:
         exception_occurred = True
         # Go ahead and clean up so that exception handling can work normally
         sys.stdout = old_stdout

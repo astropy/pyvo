@@ -17,55 +17,74 @@ paramstyle = "n/a"
 
 __all__ = "STRING BINARY NUMBER DATETIME ROWID".split()
 
+
 class Error(StandardError):
     """
     DB-API base exception
     """
     pass
+
+
 class Warning(StandardError):
     """
     DB-API warning
     """
     pass
+
+
 class InterfaceError(Error):
     """
     DB-API exception indicating an error related to the database interface
     rather than the database itself.
     """
     pass
+
+
 class DatabaseError(Error):
     """
     DB-API exception indicating an error related to the database.
     """
     pass
+
+
 class DataError(DatabaseError):
     """
     DB-API exception indicating an error while processing data (e.g. divide
     by zero, numeric value out-of-range, etc.)
     """
     pass
+
+
 class OperationalError(DatabaseError):
     """
     DB-API exception indicating an error related to the database's operation
     and not necessarily under the control of the programmer.
     """
     pass
+
+
 class IntegrityError(DatabaseError):
     """
     DB-API exception indicating an inconsistancy in the database integrity.
     """
     pass
+
+
 class InternalError(DatabaseError):
     """
     DB-API exception indicating an internal error that might indicate that
     a connection or cursor is no longer valid.
     """
     pass
+
+
 class ProgrammingError(DatabaseError):
     """
     DB-API exception indicating an erroneous request (e.g. column not found)
     """
     pass
+
+
 class NotSupportedError(DatabaseError):
     """
     DB-API exception indicating a request is not supported
@@ -74,7 +93,7 @@ class NotSupportedError(DatabaseError):
 
 
 class TypeObject(object):
-    def __init__(self,*values):
+    def __init__(self, *values):
         self._values = values
 
     @property
@@ -90,14 +109,17 @@ class TypeObject(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
 STRING = TypeObject(0)
 BINARY = TypeObject(1)
 NUMBER = TypeObject(2)
 DATETIME = TypeObject(3, STRING.id)
 ROWID = TypeObject(4, NUMBER.id)
 
+
 def connect(source):
     raise NotSupportedError("Connection objects not supported")
+
 
 class Cursor(Iter):
     """
@@ -122,13 +144,13 @@ class Cursor(Iter):
         for name in flds:
             fld = self.resultset.getdesc(name)
             typ = STRING
-            if fld.datatype in \
-       "short int long float double floatComplex doubleComplex boolean".split():
+            if fld.datatype in ("short", "int", "long", "float", "double",
+                                "floatComplex", "doubleComplex", "boolean"):
                 typ = NUMBER
             elif fld.datatype in "char unicodeChar unsignedByte".split():
                 typ = STRING
 
-            out.append( (name, typ) )
+            out.append((name, typ))
 
         return tuple(out)
 
@@ -154,9 +176,11 @@ class Cursor(Iter):
         fetchmany().  This defaults to 1, but can be changed.
         """
         return self._arraysize
+
     @arraysize.setter
     def arraysize(self, value):
-        if not value: value = 1
+        if not value:
+            value = 1
         self._arraysize = value
 
     def infos(self):
@@ -200,10 +224,11 @@ class Cursor(Iter):
         -------
         list of tuples :
             A list of tuples, one per row.  An empty sequence is returned when
-            no more rows are available.  If a DictCursor is used then the output
-            consists of a list of dictionaries, one per row.
+            no more rows are available.  If a DictCursor is used then the
+            output consists of a list of dictionaries, one per row.
         """
-        if not size: size = self.arraysize
+        if not size:
+            size = self.arraysize
         out = []
         for _ in range(size):
             out.append(self.fetchone())
@@ -216,8 +241,8 @@ class Cursor(Iter):
         -------
         list of tuples :
             A list of tuples, one per row.  An empty sequence is returned when
-            no more rows are available.  If a DictCursor is used then the output
-            consists of a list of dictionaries, one per row.
+            no more rows are available.  If a DictCursor is used then the
+            output consists of a list of dictionaries, one per row.
         """
         out = []
         for _ in range(self._rowcount - self.pos):

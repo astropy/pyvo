@@ -5,6 +5,6 @@
 # no matter how it is invoked within the source tree.
 
 try:
-    from astropy.tests.pytest_plugins import *
+    from astropy.tests.pytest_plugins import *  # noqa: F403, F401
 except Exception:  # astropy>=3.2
     pass

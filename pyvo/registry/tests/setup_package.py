@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 import os
 
+
 def get_package_data():
-    paths = [ os.path.join('data', '*.xml') ]
-    return { 'pyvo.registry.tests': paths}
+    paths = [os.path.join('data', '*.xml')]
+    return {'pyvo.registry.tests': paths}
