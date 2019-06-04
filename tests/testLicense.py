@@ -7,7 +7,6 @@ from __future__ import print_function, division
 import os
 import re
 import unittest
-import pdb  # noqa: F401
 
 license_ref_line = \
    "# Licensed under a 3-clause BSD style license - see LICENSE.rst"
