@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import six
 
+from astropy.utils import minversion
 from astropy.utils.xml import iterparser
 from astropy.utils.collections import HomogeneousList
 from astropy.io.votable.exceptions import vo_raise, vo_warn
@@ -25,6 +26,35 @@ __all__ = [
     "parse_tables", "parse_capabilities", "parse_availability",
     "TablesFile", "CapabilitiesFile", "AvailabilityFile"]
 
+ASTROPY_GT_4 = minversion('astropy', '4.0')
+
+def _pedantic_settings(pedantic):
+    """
+    Controls the pedantic parser settings.  Based on the bool
+    passed in to pedantic, create a config to be passed to
+    astropy parsing to raise exceptions or ignore them on
+    pedantic errors.
+
+    Parameters
+    ----------
+    pedantic : bool
+        When `True`, raise an error when the file violates the spec,
+        otherwise issue a warning.  Warnings may be controlled using
+        the standard Python mechanisms.  See the `warnings`
+        module in the Python standard library for more information.
+
+    Returns
+    -------
+    A dict containing configuration settings for astropy, which for
+    version 4.0 and after use 'verify', and previously use 'pedantic'.
+    """
+    if ASTROPY_GT_4:
+        if pedantic:
+            return {'verify': 'exception'}
+        else:
+            return {'verify': 'warn'}
+    else:
+        return {'pedantic': pedantic}
 
 def parse_tables(source, pedantic=None, filename=None,
                  _debug_python_based_parser=False):
@@ -57,13 +87,12 @@ def parse_tables(source, pedantic=None, filename=None,
     --------
     pyvo.io.vosi.exceptions : The exceptions this function may raise.
     """
-    config = {
-        'pedantic': pedantic,
-        'filename': filename
-    }
+    config = _pedantic_settings(pedantic)
 
     if filename is None and isinstance(source, six.string_types):
         config['filename'] = source
+    else:
+        config['filename'] = filename
 
     with iterparser.get_xml_iterator(
         source,
@@ -104,13 +133,12 @@ def parse_capabilities(source, pedantic=None, filename=None,
     --------
     pyvo.io.vosi.exceptions : The exceptions this function may raise.
     """
-    config = {
-        'pedantic': pedantic,
-        'filename': filename
-    }
+    config = _pedantic_settings(pedantic)
 
     if filename is None and isinstance(source, six.string_types):
         config['filename'] = source
+    else:
+        config['filename'] = filename
 
     with iterparser.get_xml_iterator(
         source,
@@ -151,13 +179,12 @@ def parse_availability(source, pedantic=None, filename=None,
     --------
     pyvo.io.vosi.exceptions : The exceptions this function may raise.
     """
-    config = {
-        'pedantic': pedantic,
-        'filename': filename
-    }
+    config = _pedantic_settings(pedantic)
 
     if filename is None and isinstance(source, six.string_types):
         config['filename'] = source
+    else:
+        config['filename'] = filename
 
     with iterparser.get_xml_iterator(
         source,
