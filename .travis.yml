@@ -80,7 +80,7 @@ matrix:
 
         # Do a PEP8 test with flake8
         - os: linux
-          env: MAIN_CMD='flake8 pyvo' SETUP_CMD=''
+          env: MAIN_CMD='flake8' SETUP_CMD=''
 
     allow_failures:
         # Check for sphinx doc build warnings
