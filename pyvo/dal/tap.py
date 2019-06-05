@@ -575,6 +575,10 @@ class AsyncTAPJob(object):
         The job result if exists
         """
         try:
+            for r in self._job.results:
+                if r.id_ == 'result':
+                    return r
+
             return self._job.results[0]
         except IndexError:
             return None
@@ -589,10 +593,10 @@ class AsyncTAPJob(object):
     @property
     def result_uri(self):
         """
-        the first result uri
+        the uri of the result
         """
         try:
-            return self.result_uris[0]
+            return self.result.href
         except IndexError:
             return None
 
