@@ -674,7 +674,7 @@ class AsyncTAPJob(object):
         deletes the job. this object will become invalid.
         """
         try:
-            response = s.post(self.url, data={"ACTION": "DELETE"})
+            response = session.post(self.url, data={"ACTION": "DELETE"})
             response.raise_for_status()
         except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
