@@ -89,7 +89,7 @@ def mime_object_maker(url, mimetype):
 
     if mimetype[1] == 'x-votable' or mimetype[1] == 'x-votable+xml':
         # As soon as there are some kind of recursive data structures,
-        # things start to get really f*cked up
+        # things start to get messy
         if mimetype[2].get('content', None) == 'datalink':
             from .adhoc import DatalinkResults
             return DatalinkResults.from_result_url(url)
