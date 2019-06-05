@@ -23,7 +23,7 @@ import sys
 import tempfile
 import time
 
-from astropy.vo.samp import SAMPIntegratedClient
+from astropy.samp import SAMPIntegratedClient
 from pyvo.registry import regtap
 
 

@@ -10,9 +10,9 @@ import os
 import tempfile
 
 try:
-    from astropy.vo.samp import SAMPIntegratedClient
-except ImportError:
     from astropy.samp import SAMPIntegratedClient
+except ImportError:
+    from astropy.vo.samp import SAMPIntegratedClient
 
 
 __all__ = [
