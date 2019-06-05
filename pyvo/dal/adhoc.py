@@ -252,7 +252,7 @@ class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
 
 class DatalinkQuery(DALQuery):
     """
-    a class for preparing an query to an Datalink service.  Query constraints
+    A class for preparing a query to a Datalink service.  Query constraints
     are added via its service type-specific methods.  The various execute()
     functions will submit the query and return the results.
 
@@ -275,16 +275,19 @@ class DatalinkQuery(DALQuery):
 
         XML Hierarchy:
 
-        <FIELD id="ID"...>
-        <FIELD id="srcGroup">
+        .. code:: xml
 
-        <GROUP name="inputParams">
-            <PARAM name="ID" datatype="char" arraysize="*" value=""
-                ref="primaryID"/>
-            <PARAM name="CALIB" datatype="char" arraysize="*" value="FLUX"/>
-            <PARAM name="GROUP" datatype="char" arraysize="*" value=""
-                ref="srcGroup"/>
-        </GROUP>
+            <FIELD id="ID">
+            <FIELD id="srcGroup">
+
+            <GROUP name="inputParams">
+                <PARAM name="ID" datatype="char" arraysize="*" value=""
+                    ref="primaryID"/>
+                <PARAM name="CALIB" datatype="char" arraysize="*"
+                    value="FLUX"/>
+                <PARAM name="GROUP" datatype="char" arraysize="*" value=""
+                    ref="srcGroup"/>
+            </GROUP>
         """
         input_params = _get_input_params_from_resource(resource)
         # get params outside of any group
