@@ -185,15 +185,15 @@ class DALQuery(dict):
         No exceptions are raised here because non-2xx responses might still
         contain payload. They can be raised later by calling ``raise_if_error``
         """
-        r = self.submit()
+        response = self.submit()
 
         try:
-            r.raise_for_status()
+            response.raise_for_status()
         except requests.RequestException as ex:
             # save for later use
             self._ex = ex
         finally:
-            return r.raw
+            return response.raw
 
     def submit(self):
         """
@@ -202,8 +202,8 @@ class DALQuery(dict):
         url = self.queryurl
         params = {k: v for k, v in self.items()}
 
-        r = session.get(url, params=params, stream=True)
-        return r
+        response = session.get(url, params=params, stream=True)
+        return response
 
     def execute_votable(self):
         """
@@ -742,12 +742,12 @@ class Record(Mapping):
             raise KeyError("no dataset access URL recognized in record")
 
         if timeout:
-            r = session.get(url, stream=True, timeout=timeout)
+            response = session.get(url, stream=True, timeout=timeout)
         else:
-            r = session.get(url, stream=True)
+            response = session.get(url, stream=True)
 
-        r.raise_for_status()
-        return r.raw
+        response.raise_for_status()
+        return response.raw
 
     def cachedataset(self, filename=None, dir=".", timeout=None, bufsize=None):
         """

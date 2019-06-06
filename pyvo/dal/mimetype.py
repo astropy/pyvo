@@ -77,15 +77,15 @@ def mime_object_maker(url, mimetype):
         return session.get(url).text
 
     if mimetype[1] == 'fits' or mimetype[1] == 'x-fits':
-        r = session.get(url)
-        return HDUList.fromstring(r.content)
+        response = session.get(url)
+        return HDUList.fromstring(response.content)
 
     if mimetype[0] == 'image':
         from PIL import Image
         from io import BytesIO
-        r = session.get(url)
-        b = BytesIO(r.content)
-        return Image.open(b)
+        response = session.get(url)
+        bio = BytesIO(response.content)
+        return Image.open(bio)
 
     if mimetype[1] == 'x-votable' or mimetype[1] == 'x-votable+xml':
         # As soon as there are some kind of recursive data structures,

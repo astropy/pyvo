@@ -182,9 +182,9 @@ class DatalinkRecordMixin(object):
     def getdataset(self, timeout=None):
         try:
             url = next(self.getdatalink().bysemantics('#this')).access_url
-            r = session.get(url, stream=True, timeout=timeout)
-            r.raise_for_status()
-            return r.raw
+            response = session.get(url, stream=True, timeout=timeout)
+            response.raise_for_status()
+            return response.raw
         except (DALServiceError, ValueError, StopIteration):
             # this should go to Record.getdataset()
             return super(DatalinkRecordMixin, self).getdataset(timeout=timeout)
