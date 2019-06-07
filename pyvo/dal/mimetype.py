@@ -10,7 +10,7 @@ import six
 
 from astropy.io.fits import HDUList
 
-from ..utils.http import session as s
+from ..utils.http import session
 
 
 mimetypes.add_type('application/fits', 'fits')
@@ -74,18 +74,18 @@ def mime_object_maker(url, mimetype):
     mimetype = mimeparse.parse_mime_type(mimetype)
 
     if mimetype[0] == 'text':
-        return s.get(url).text
+        return session.get(url).text
 
     if mimetype[1] == 'fits' or mimetype[1] == 'x-fits':
-        r = s.get(url)
-        return HDUList.fromstring(r.content)
+        response = session.get(url)
+        return HDUList.fromstring(response.content)
 
     if mimetype[0] == 'image':
         from PIL import Image
         from io import BytesIO
-        r = s.get(url)
-        b = BytesIO(r.content)
-        return Image.open(b)
+        response = session.get(url)
+        bio = BytesIO(response.content)
+        return Image.open(bio)
 
     if mimetype[1] == 'x-votable' or mimetype[1] == 'x-votable+xml':
         # As soon as there are some kind of recursive data structures,
