@@ -193,17 +193,6 @@ class RegistryResource(dalq.Record):
     be accessed by name via the [] operator, and the attribute names can
     by returned via the keys() function.  For convenience, it also stores
     key values as properties; these include:
-
-    Properties
-    ----------
-    title : bytes
-       the title of the resource
-    shortname : bytes
-       the resource's short name
-    ivoid : bytes
-       the IVOA identifier for the resource (identifier will also work)
-    accessurl : str
-       when the resource is a service, the service's access URL.
     """
 
     _service = None
@@ -339,6 +328,8 @@ class RegistryResource(dalq.Record):
         """
         assuming this resource refers to a searchable service, execute a
         search against the resource.  This is equivalent to:
+
+        .. code:: python
 
            self.to_service().search(*args, **keys)
 

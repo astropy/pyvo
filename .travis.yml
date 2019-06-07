@@ -82,11 +82,10 @@ matrix:
         - os: linux
           env: MAIN_CMD='flake8 pyvo' SETUP_CMD=''
 
-    allow_failures:
         # Check for sphinx doc build warnings
-        # (allow to fail because docs aren't in the right state yet')
         - os: linux
           env: SETUP_CMD='build_docs -w'
+               PIP_DEPENDENCIES='requests mimeparse requests_mock sphinx_astropy'
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
