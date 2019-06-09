@@ -18,8 +18,17 @@ addons:
     apt:
         packages:
             - graphviz
-            - texlive-latex-extra
-            - dvipng
+
+stage: Comprehensive tests
+
+stages:
+   # Do the style check and a single test job, don't proceed if it fails
+   - name: Initial tests
+   # Test docs, astropy dev, and without optional dependencies
+   - name: Comprehensive tests
+   # These will only run when cron is opted in
+   - name: Cron tests
+     if: type = cron
 
 env:
     global:
@@ -37,23 +46,24 @@ env:
         - CONDA_DEPENDENCIES='six'
         - CONDA_CHANNELS='astropy'
 
-    matrix:
-        # Make sure that egg_info works without dependencies
-        - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
-        - PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
-
 matrix:
 
     # Don't wait for allowed failures
     fast_finish: true
 
     include:
+        # Make sure that egg_info works without dependencies
+        - env: PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
+          stage: Initial tests
+
         # Try MacOS X
         - os: osx
+          stage: Cron tests
           env: SETUP_CMD='test'
 
         # Do a coverage test.
         - os: linux
+          stage: Initial tests
           env: SETUP_CMD='test --coverage'
 
         # Now try Astropy dev and LTS vesions with the latest 3.x and 2.7.
@@ -76,6 +86,7 @@ matrix:
 
         # Do a PEP8 test with flake8
         - os: linux
+          stage: Initial tests
           env: MAIN_CMD='flake8' SETUP_CMD=''
 
     allow_failures:
