@@ -1044,11 +1044,6 @@ class UploadList(list):
         return ";".join(upload.query_part() for upload in self)
 
 
-if six.PY3:
-    _image_mt_re = re.compile(b'^image/(\w+)')  # noqa: W605
-    _text_mt_re = re.compile(b'^text/(\w+)')  # noqa: W605
-    _votable_mt_re = re.compile(b'^(\w+)/(x-)?votable(\+\w+)?')  # noqa: W605
-else:
-    _image_mt_re = re.compile(r'^image/(\w+)')
-    _text_mt_re = re.compile(r'^text/(\w+)')
-    _votable_mt_re = re.compile(r'^(\w+)/(x-)?votable(\+\w+)?')
+_image_mt_re = re.compile(r'^image/(\w+)')
+_text_mt_re = re.compile(r'^text/(\w+)')
+_votable_mt_re = re.compile(r'^(\w+)/(x-)?votable(\+\w+)?')
