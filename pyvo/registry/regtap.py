@@ -144,7 +144,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
     )
 
     service = tap.TAPService(REGISTRY_BASEURL)
-    query = RegistryQuery(service.baseurl, query, maxrec=service.hardlimit)
+    query = RegistryQuery(service.session, service.baseurl, query, maxrec=service.hardlimit)
     return query.execute()
 
 
@@ -163,7 +163,7 @@ class RegistryQuery(tap.TAPQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return RegistryResults(self.execute_votable(), self.queryurl)
+        return RegistryResults(self.session, self.execute_votable(), self.queryurl)
 
 
 class RegistryResults(dalq.DALResults):

@@ -190,7 +190,7 @@ class SLAService(DALService):
         --------
         SLAQuery
         """
-        return SLAQuery(self.baseurl, wavelength, request, **keywords)
+        return SLAQuery(self.session, self.baseurl, wavelength, request, **keywords)
 
     def describe(self):
         print(self.description)
@@ -242,7 +242,7 @@ class SLAQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, wavelength=None, request="queryData", **keywords):
+            self, session, baseurl, wavelength=None, request="queryData", **keywords):
         """
         initialize the query object with a baseurl and the given parameters
 
@@ -259,7 +259,7 @@ class SLAQuery(DALQuery):
             with the parameters set by the other arguments to
             this function, these keywords will override.
         """
-        super(SLAQuery, self).__init__(baseurl)
+        super(SLAQuery, self).__init__(session, baseurl)
 
         if wavelength is not None:
             self.wavelength = wavelength
@@ -340,7 +340,7 @@ class SLAQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SLAResults(self.execute_votable(), self.queryurl)
+        return SLAResults(self.session, self.execute_votable(), self.queryurl)
 
 
 class SLAResults(DALResults):

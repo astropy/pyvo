@@ -10,8 +10,6 @@ import six
 
 from astropy.io.fits import HDUList
 
-from ..utils.http import session
-
 
 mimetypes.add_type('application/fits', 'fits')
 mimetypes.add_type('application/x-fits', 'fits')
@@ -58,7 +56,7 @@ def mime2extension(mimetype, default=None):
     return ext
 
 
-def mime_object_maker(url, mimetype):
+def mime_object_maker(session, url, mimetype):
     """
     return a data object suitable for the mimetype given.
     this will either return a astropy fits object or a pyvo DALResults object,

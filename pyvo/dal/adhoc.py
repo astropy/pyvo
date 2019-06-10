@@ -20,7 +20,7 @@ from astropy.io.votable.tree import Resource, Group
 from astropy.utils.collections import HomogeneousList
 
 from ..utils.decorators import stream_decode_content
-from ..utils.http import session
+from ..utils.http import create_session
 
 
 # monkeypatch astropy with group support in RESOURCE
@@ -92,8 +92,8 @@ class AdhocServiceResultsMixin(object):
     """
     Mixing for adhoc:service functionallity for results classes.
     """
-    def __init__(self, votable, url=None):
-        super(AdhocServiceResultsMixin, self).__init__(votable, url=url)
+    def __init__(self, session, votable, url=None):
+        super(AdhocServiceResultsMixin, self).__init__(session, votable, url=url)
 
         self._adhocservices = list(
             resource for resource in votable.resources
@@ -182,7 +182,7 @@ class DatalinkRecordMixin(object):
     def getdataset(self, timeout=None):
         try:
             url = next(self.getdatalink().bysemantics('#this')).access_url
-            response = session.get(url, stream=True, timeout=timeout)
+            response = self.session.get(url, stream=True, timeout=timeout)
             response.raise_for_status()
             return response.raw
         except (DALServiceError, ValueError, StopIteration):
@@ -317,10 +317,10 @@ class DatalinkQuery(DALQuery):
             except KeyError:
                 query_params[name] = query_param
 
-        return cls(accessurl, **query_params)
+        return cls(create_session(), accessurl, **query_params)
 
     def __init__(
-            self, baseurl, id=None, responseformat=None, **keywords):
+            self, session, baseurl, id=None, responseformat=None, **keywords):
         """
         initialize the query object with the given parameters
 
@@ -333,7 +333,7 @@ class DatalinkQuery(DALQuery):
         responseformat : str
             the output format
         """
-        super(DatalinkQuery, self).__init__(baseurl, **keywords)
+        super(DatalinkQuery, self).__init__(session, baseurl, **keywords)
 
         if id:
             self["ID"] = id
@@ -354,7 +354,7 @@ class DatalinkQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return DatalinkResults(self.execute_votable(), url=self.queryurl)
+        return DatalinkResults(self.session, self.execute_votable(), url=self.queryurl)
 
 
 class DatalinkResults(DatalinkResultsMixin, DALResults):
@@ -428,7 +428,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         --------
         Record
         """
-        return DatalinkRecord(self, index)
+        return DatalinkRecord(self.session, self, index)
 
     def bysemantics(self, semantics):
         """

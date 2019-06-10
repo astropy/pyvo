@@ -28,6 +28,7 @@ from astropy.io.votable.tree import VOTableFile, Table as VOTable
 from astropy.io.fits import HDUList
 
 from astropy.utils.data import get_pkg_data_contents
+from ...utils.http import create_session
 
 get_pkg_data_contents = partial(
     get_pkg_data_contents, package=__package__, encoding='binary')
@@ -214,8 +215,8 @@ class TestDALService(object):
 class TestDALQuery(object):
     def test_url(self):
         queries = (
-            DALQuery('http://example.com/query/basic'),
-            DALQuery(b'http://example.com/query/basic'),
+            DALQuery(create_session(), 'http://example.com/query/basic'),
+            DALQuery(create_session(), b'http://example.com/query/basic'),
         )
 
         assert all((
@@ -224,13 +225,14 @@ class TestDALQuery(object):
 
     def test_params(self):
         query = DALQuery(
+            create_session(),
             'http://example.com/query/basic', verbose=1, foo='BAR')
 
         assert query['VERBOSE'] == 1
         assert query['FOO'] == 'BAR'
 
     def test_execute(self):
-        query = DALQuery('http://example.com/query/basic')
+        query = DALQuery(create_session(), 'http://example.com/query/basic')
         dalresults = query.execute()
 
         assert dalresults.queryurl == 'http://example.com/query/basic'
@@ -239,7 +241,7 @@ class TestDALQuery(object):
         _test_records(dalresults)
 
     def test_execute_raw(self):
-        query = DALQuery('http://example.com/query/basic')
+        query = DALQuery(create_session(), 'http://example.com/query/basic')
         raw = query.execute_raw()
 
         assert raw.startswith(b'<?xml')

@@ -49,7 +49,7 @@ from .exceptions import (DALFormatError, DALServiceError, DALQueryError)
 from .. import samp
 
 from ..utils.decorators import stream_decode_content
-from ..utils.http import session
+from ..utils.http import create_session
 
 
 class DALService(object):
@@ -68,6 +68,7 @@ class DALService(object):
            the base URL that should be used for forming queries to the service.
         """
         self._baseurl = baseurl
+        self.session = create_session()
 
     @property
     def baseurl(self):
@@ -109,7 +110,7 @@ class DALService(object):
         DALQuery
            a generic query object
         """
-        q = DALQuery(self.baseurl, **keywords)
+        q = DALQuery(self.session, self.baseurl, **keywords)
         return q
 
     def describe(self):
@@ -127,7 +128,7 @@ class DALQuery(dict):
 
     _ex = None
 
-    def __init__(self, baseurl, **keywords):
+    def __init__(self, session, baseurl, **keywords):
         """
         initialize the query object with a baseurl
         """
@@ -135,6 +136,7 @@ class DALQuery(dict):
             baseurl = baseurl.decode("utf-8")
 
         self._baseurl = baseurl.rstrip("?")
+        self.session = session
 
         self.update({key.upper(): value for key, value in keywords.items()})
 
@@ -160,7 +162,7 @@ class DALQuery(dict):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return DALResults(self.execute_votable(), self.queryurl)
+        return DALResults(self.session, self.execute_votable(), self.queryurl)
 
     def execute_raw(self):
         """
@@ -202,7 +204,7 @@ class DALQuery(dict):
         url = self.queryurl
         params = {k: v for k, v in self.items()}
 
-        response = session.get(url, params=params, stream=True)
+        response = self.session.get(url, params=params, stream=True)
         return response
 
     def execute_votable(self):
@@ -262,7 +264,7 @@ class DALResults(object):
     @classmethod
     @stream_decode_content
     def _from_result_url(cls, result_url):
-        return session.get(result_url, stream=True).raw
+        return create_session().get(result_url, stream=True).raw
 
     @classmethod
     def from_result_url(cls, result_url):
@@ -270,10 +272,11 @@ class DALResults(object):
         Create a result object from a url.
         """
         return cls(
+            create_session(),
             votableparse(cls._from_result_url(result_url).read),
             url=result_url)
 
-    def __init__(self, votable, url=None):
+    def __init__(self, session, votable, url=None):
         """
         initialize the cursor.  This constructor is not typically called
         by directly applications; rather an instance is obtained from calling
@@ -297,6 +300,7 @@ class DALResults(object):
         DALFormatError
         """
         self._votable = votable
+        self.session = session
 
         self._url = url
         self._status = self._findstatus(votable)
@@ -529,7 +533,7 @@ class DALResults(object):
         --------
         Record
         """
-        return Record(self, index)
+        return Record(self.session, self, index)
 
     def getvalue(self, name, index):
         """
@@ -615,7 +619,8 @@ class Record(Mapping):
     additional functions for access to service type-specific data.
     """
 
-    def __init__(self, results, index):
+    def __init__(self, session, results, index):
+        self.session = session
         self._results = results
         self._index = index
         self._mapping = collections.OrderedDict(
@@ -703,7 +708,7 @@ class Record(Mapping):
         return the appropiate data object suitable for the data content behind
         this record.
         """
-        return mime_object_maker(self.getdataurl(), self.getdataformat())
+        return mime_object_maker(self.session, self.getdataurl(), self.getdataformat())
 
     @stream_decode_content
     def getdataset(self, timeout=None):
@@ -742,9 +747,9 @@ class Record(Mapping):
             raise KeyError("no dataset access URL recognized in record")
 
         if timeout:
-            response = session.get(url, stream=True, timeout=timeout)
+            response = self.session.get(url, stream=True, timeout=timeout)
         else:
-            response = session.get(url, stream=True)
+            response = self.session.get(url, stream=True)
 
         response.raise_for_status()
         return response.raw

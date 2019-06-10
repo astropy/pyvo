@@ -317,7 +317,7 @@ class SIAService(DALService):
         SIAQuery
         """
         return SIAQuery(
-            self.baseurl, pos, size, format, intersect, verbosity, **keywords)
+            self.session, self.baseurl, pos, size, format, intersect, verbosity, **keywords)
 
     def describe(self):
         print(self.description)
@@ -345,7 +345,7 @@ class SIAQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, pos=None, size=None, format=None, intersect=None,
+            self, session, baseurl, pos=None, size=None, format=None, intersect=None,
             verbosity=None, **keywords):
         """
         initialize the query object with a baseurl and the given parameters
@@ -394,7 +394,7 @@ class SIAQuery(DALQuery):
             with the parameters set by the other arguments to
             this function, these keywords will override.
         """
-        super(SIAQuery, self).__init__(baseurl, **keywords)
+        super(SIAQuery, self).__init__(session, baseurl, **keywords)
 
         if pos:
             self.pos = pos
@@ -569,7 +569,7 @@ class SIAQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SIAResults(self.execute_votable(), url=self.queryurl)
+        return SIAResults(self.session, self.execute_votable(), url=self.queryurl)
 
 
 class SIAResults(DatalinkResultsMixin, DALResults):
@@ -647,7 +647,7 @@ class SIAResults(DatalinkResultsMixin, DALResults):
         --------
         Record
         """
-        return SIARecord(self, index)
+        return SIARecord(self.session, self, index)
 
 
 class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):

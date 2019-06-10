@@ -6,7 +6,7 @@ import requests
 from ..version import version
 
 
-def requests_session(useragent=None):
+def create_session(useragent=None):
     if not useragent:
         useragent = 'python-pyvo/{}'.format(version)
 
@@ -14,6 +14,3 @@ def requests_session(useragent=None):
     session.headers['User-Agent'] = useragent
 
     return session
-
-
-session = requests_session()

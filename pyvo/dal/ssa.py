@@ -261,7 +261,7 @@ class SSAService(DALService):
         SSAQuery
         """
         return SSAQuery(
-            self.baseurl, pos, diameter, band, time, format, request,
+            self.session, self.baseurl, pos, diameter, band, time, format, request,
             **keywords)
 
     def describe(self):
@@ -313,7 +313,7 @@ class SSAQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, pos=None, diameter=None, band=None, time=None,
+            self, session, baseurl, pos=None, diameter=None, band=None, time=None,
             format=None, request="queryData", **keywords):
         """
         initialize the query object with a baseurl and the given parameters
@@ -346,7 +346,7 @@ class SSAQuery(DALQuery):
            with the parameters set by the other arguments to
            this function, these keywords will override.
         """
-        super(SSAQuery, self).__init__(baseurl)
+        super(SSAQuery, self).__init__(session, baseurl)
 
         if pos:
             self.pos = pos
@@ -569,7 +569,7 @@ class SSAQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SSAResults(self.execute_votable(), url=self.queryurl)
+        return SSAResults(self.session, self.execute_votable(), url=self.queryurl)
 
 
 class SSAResults(DatalinkResultsMixin, DALResults):
@@ -646,7 +646,7 @@ class SSAResults(DatalinkResultsMixin, DALResults):
         --------
         Record
         """
-        return SSARecord(self, index)
+        return SSARecord(self.session, self, index)
 
 
 class SSARecord(SodaRecordMixin, DatalinkRecordMixin, Record):

@@ -223,7 +223,7 @@ class SCSService(DALService):
         --------
         SCSQuery
         """
-        return SCSQuery(self.baseurl, pos, radius, verbosity, **keywords)
+        return SCSQuery(self.session, self.baseurl, pos, radius, verbosity, **keywords)
 
     def describe(self):
         print(self.description)
@@ -275,7 +275,7 @@ class SCSQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, pos=None, radius=None, verbosity=None, **keywords):
+            self, session, baseurl, pos=None, radius=None, verbosity=None, **keywords):
         """
         initialize the query object with a baseurl and the given parameters
 
@@ -296,7 +296,7 @@ class SCSQuery(DALQuery):
             set of columns, 3 means as many columns as are
             available.
         """
-        super(SCSQuery, self).__init__(baseurl)
+        super(SCSQuery, self).__init__(session, baseurl)
 
         if pos is not None:
             self.pos = pos
@@ -409,7 +409,7 @@ class SCSQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SCSResults(self.execute_votable(), url=self.queryurl)
+        return SCSResults(self.session, self.execute_votable(), url=self.queryurl)
 
 
 class SCSResults(DALResults, DatalinkResultsMixin):
