@@ -1,125 +1,162 @@
-1.0
-----------------
+1.0 (unreleased)
+================
 
-* Fix #130 pedantic table parsing not throwing exception.
+- Fix pedantic table parsing not throwing exception. [#140]
 
-0.9.3
-----------------
-* Fix parsing of SecurityMethod in capabilities
 
-* Keep up to date with upstream astropy changes
+0.9.3 (2019-05-30)
+==================
 
-* Move into astropy GitHub organization and README updates
+- Fix parsing of SecurityMethod in capabilities.
 
-* Replace mimetype functions with library-based ones
+- Keep up to date with upstream astropy changes.
+
+- Move into astropy GitHub organization and README updates.
+
+- Replace mimetype functions with library-based ones.
+
 
 0.9.2
-----------------
-* Fix typo fornat -> format
+=====
+
+- Fix typo fornat -> format.
+
 
 0.9.1
-----------------
-* Don't use OR's in RegTAP queries
+=====
 
-* Add a timeout to job wait
+- Don't use OR's in RegTAP queries.
+
+- Add a timeout to job wait.
+
 
 0.9
-----------------
-* add a describe method to services to print a human-readable description
+===
 
-* use a customized user agent in http requests
+- Add a describe method to services to print a human-readable description.
 
-* fix some python2/3 issues
+- Use a customized user agent in http requests.
 
-* add general datalink processing method
+- Fix some python2/3 issues.
+
+- Add general datalink processing method.
+
 
 0.8.1
-----------------
-pass use_names_over_ids=True to astropy's to_table
+=====
+
+- Pass use_names_over_ids=True to astropy's to_table.
+
 
 0.8
-----------------
-* Make XML handling more generic
+===
+
+- Make XML handling more generic.
+
 
 0.7rc1
-----------------
-* Rework VOSI parsing using astropy xml handling
+======
 
-* Describe service object bases on vosi capabilities
+- Rework VOSI parsing using astropy xml handling.
 
-* Add SODA functionallity
+- Describe service object bases on vosi capabilities.
 
-* Fixes and Improvements
+- Add SODA functionallity.
+
+- Fixes and Improvements.
+
 
 0.6.1
-----------------
-* Add Datalink interface
+=====
 
-* Put some common functionallity in Mixins
+- Add Datalink interface.
 
-* Minor fixes and improvements
+- Put some common functionallity in Mixins.
+
+- Minor fixes and improvements.
+
 
 0.6
-----------------
-* Using RegTAP as the only registry interface
+===
 
-* Added a datamodel keyword to registry search
+- Using RegTAP as the only registry interface.
 
-* Using the six libray to address Python 2/3 compatibility issues
+- Added a datamodel keyword to registry search.
 
-* AsyncTAPJob is now context aware
+- Using the six libray to address Python 2/3 compatibility issues.
 
-* Improvement upload handling; it is no longer necessary to specifiy the type
-  of upload
+- AsyncTAPJob is now context aware.
 
-* Allow astropy's SkyCoord and Quantity as input parameters
+- Improvement upload handling; it is no longer necessary to specifiy the type
+  of upload.
+
+- Allow astropy's SkyCoord and Quantity as input parameters.
+
 
 0.5.2
-----------------
-Remove trailing ? from query urls
-VOTable fieldnames are now gathered from names only instead of ID and name
+=====
+
+- Remove trailing ? from query urls.
+
+- VOTable fieldnames are now gathered from names only instead of ID and name.
+
 
 0.5.1
-----------------
-* fix content decoding related error in async result handling
+=====
+
+- Fix content decoding related error in async result handling.
 
 0.5
-----------------
-* added a RegTAP interface
-* removed urllib in favor of the requests library
-* deprecated vao registry interface
-* minor improvements and fixes
+===
+
+- Added a RegTAP interface.
+
+- Removed urllib in favor of the requests library.
+
+- Deprecated vao registry interface.
+
+- Minor improvements and fixes.
 
 0.4.1
-------------------
-* fix a bug where maxrec wasn't send to the server
+=====
+
+- Fix a bug where maxrec wasn't send to the server.
+
 
 0.4
-----------------
-* Use astropy tables for table metadata
+===
 
-* fix another content encoding error
+- Use astropy tables for table metadata.
+
+- Fix another content encoding error.
+
 
 0.3.2
-------------------
-* Adding table property to DALResults. This is a shortcut to access the astropy table
+=====
 
-* Improved Error Handling
+- Adding table property to DALResults. This is a shortcut to access the
+  astropy table.
+
+- Improved Error Handling.
+
 
 0.3.1
-------------------
-* fix an error where the content wasn't decoded properly
+=====
 
-* fix a bug where POST parameters are submitted as GET parameters
+- Fix an error where the content wasn't decoded properly.
+
+- Fix a bug where POST parameters are submitted as GET parameters.
+
 
 0.3
-----------------
-Adding TAP API
+===
+
+- Adding TAP API.
+
 
 0.1
-----------------
+===
 
-This is the last release that supports Python 2.6.
+- This is the last release that supports Python 2.6.
 
-This release only contains bug fixes beyond 0.0beta2.
-
+- This release only contains bug fixes beyond 0.0beta2.
