@@ -18,8 +18,17 @@ addons:
     apt:
         packages:
             - graphviz
-            - texlive-latex-extra
-            - dvipng
+
+stage: Comprehensive tests
+
+stages:
+   # Do the style check and a single test job, don't proceed if it fails
+   - name: Initial tests
+   # Test docs, astropy dev, and without optional dependencies
+   - name: Comprehensive tests
+   # These will only run when cron is opted in
+   - name: Cron tests
+     if: type = cron
 
 env:
     global:
@@ -27,21 +36,15 @@ env:
         # The following versions are the 'default' for tests, unless
         # overridden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
-        - PYTHON_VERSION=3.6
+        - PYTHON_VERSION=3.7
         - NUMPY_VERSION=stable
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - PIP_DEPENDENCIES='requests mimeparse requests_mock flake8'
+        - PIP_DEPENDENCIES='requests mimeparse requests_mock'
         - EVENT_TYPE='pull_request push'
         - CONDA_DEPENDENCIES='six'
         - CONDA_CHANNELS='astropy'
-
-    matrix:
-        # Make sure that egg_info works without dependencies
-        - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
-        - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
-        - PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
 
 matrix:
 
@@ -49,38 +52,42 @@ matrix:
     fast_finish: true
 
     include:
+        # Make sure that egg_info works without dependencies
+        - env: PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
+          stage: Initial tests
+
         # Try MacOS X
         - os: osx
+          stage: Cron tests
           env: SETUP_CMD='test'
 
         # Do a coverage test.
         - os: linux
+          stage: Initial tests
           env: SETUP_CMD='test --coverage'
 
         # Now try Astropy dev and LTS vesions with the latest 3.x and 2.7.
         - os: linux
           env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts
-               EVENT_TYPE='pull_request push cron'
+               EVENT_TYPE='pull_request push' PYTEST_VERSION=3.6.4
                PIP_DEPENDENCIES='requests mimeparse requests_mock contextlib2'
         - os: linux
           env: ASTROPY_VERSION=development
                EVENT_TYPE='pull_request push cron'
         - os: linux
-          env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts
-               PIP_DEPENDENCIES='requests mimeparse requests_mock contextlib2'
-        - os: linux
           env: ASTROPY_VERSION=lts
 
           # try all python versions
         - os: linux
-          env: PYTHON_VERSION=2.7
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.15
                PIP_DEPENDENCIES='requests mimeparse requests_mock contextlib2'
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14
 
         # Do a PEP8 test with flake8
         - os: linux
-          env: MAIN_CMD='flake8 pyvo' SETUP_CMD=''
+          stage: Initial tests
+          env: MAIN_CMD='flake8' SETUP_CMD=''
 
         # Check for sphinx doc build warnings
         - os: linux
