@@ -39,7 +39,7 @@ def test_search():
     assert len(results) == 35
 
 
-class TestSSAService(object):
+class TestSSAService:
     @pytest.mark.usefixtures('ssa')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
     def test_search(self):

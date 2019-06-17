@@ -19,7 +19,7 @@ __all__ = [
     'AvailabilityMixin', 'CapabilityMixin', 'VOSITables']
 
 
-class AvailabilityMixin(object):
+class AvailabilityMixin:
     """
     Mixing for VOSI availability
     """
@@ -29,7 +29,7 @@ class AvailabilityMixin(object):
         Service Availability as a
         :py:class:`~pyvo.io.vosi.availability.Availability` object
         """
-        avail_url = '{0}/availability'.format(self.baseurl)
+        avail_url = '{}/availability'.format(self.baseurl)
 
         response = requests.get(avail_url, stream=True)
 
@@ -59,7 +59,7 @@ class AvailabilityMixin(object):
         return self.availability.upsince
 
 
-class CapabilityMixin(object):
+class CapabilityMixin:
     """
     Mixing for VOSI capability
     """
@@ -70,7 +70,7 @@ class CapabilityMixin(object):
         py:class:`~pyvo.io.vosi.availability.Availability` object
         """
         capa_urls = [
-            '{0}/capabilities'.format(self.baseurl),
+            '{}/capabilities'.format(self.baseurl),
             url_sibling(self.baseurl, 'capabilities')
         ]
 
@@ -106,7 +106,7 @@ class TablesMixin(CapabilityMixin):
             tables_urls = (_.value for _ in accessurls)
         except StopIteration:
             tables_urls = [
-                '{0}/tables'.format(self.baseurl),
+                '{}/tables'.format(self.baseurl),
                 url_sibling(self.baseurl, 'tables')
             ]
 
@@ -127,7 +127,7 @@ class TablesMixin(CapabilityMixin):
         return VOSITables(vosi.parse_tables(self._tables().read))
 
 
-class VOSITables(object):
+class VOSITables:
     """
     This class encapsulates access to the VOSITables using a given Endpoint.
     Access to table names is like accessing dictionary keys. using iterator

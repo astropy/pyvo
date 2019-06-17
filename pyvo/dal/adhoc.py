@@ -88,12 +88,12 @@ def _get_accessurl_from_params(params):
     return params["accessURL"].value
 
 
-class AdhocServiceResultsMixin(object):
+class AdhocServiceResultsMixin:
     """
     Mixing for adhoc:service functionallity for results classes.
     """
     def __init__(self, votable, url=None):
-        super(AdhocServiceResultsMixin, self).__init__(votable, url=url)
+        super().__init__(votable, url=url)
 
         self._adhocservices = list(
             resource for resource in votable.resources
@@ -101,8 +101,7 @@ class AdhocServiceResultsMixin(object):
         )
 
     def iter_adhocservices(self):
-        for adhocservice in self._adhocservices:
-            yield adhocservice
+        yield from self._adhocservices
 
     def get_adhocservice_by_ivoid(self, ivo_id):
         """
@@ -162,7 +161,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             yield record.getdatalink()
 
 
-class DatalinkRecordMixin(object):
+class DatalinkRecordMixin:
     """
     Mixin for record classes, providing functionallity for datalink.
 
@@ -187,7 +186,7 @@ class DatalinkRecordMixin(object):
             return response.raw
         except (DALServiceError, ValueError, StopIteration):
             # this should go to Record.getdataset()
-            return super(DatalinkRecordMixin, self).getdataset(timeout=timeout)
+            return super().getdataset(timeout=timeout)
 
 
 class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
@@ -204,7 +203,7 @@ class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
         baseurl :  str
            the base URL that should be used for forming queries to the service.
         """
-        super(DatalinkService, self).__init__(baseurl)
+        super().__init__(baseurl)
 
     def run_sync(self, id, responseformat=None, **keywords):
         """
@@ -333,7 +332,7 @@ class DatalinkQuery(DALQuery):
         responseformat : str
             the output format
         """
-        super(DatalinkQuery, self).__init__(baseurl, **keywords)
+        super().__init__(baseurl, **keywords)
 
         if id:
             self["ID"] = id
@@ -475,7 +474,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         raise IndexError("No processing service found in datalink result")
 
 
-class SodaRecordMixin(object):
+class SodaRecordMixin:
     """
     Mixin for soda functionallity for record classes.
     If used, it's result class must have
@@ -670,7 +669,7 @@ class SodaQuery(DatalinkQuery):
     def __init__(
             self, baseurl, circle=None, range=None, polygon=None, band=None,
             **kwargs):
-        super(SodaQuery, self).__init__(baseurl, **kwargs)
+        super().__init__(baseurl, **kwargs)
 
         if circle:
             self.circle = circle

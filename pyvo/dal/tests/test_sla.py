@@ -38,7 +38,7 @@ def test_search():
     assert len(results) == 21
 
 
-class TestSLAService(object):
+class TestSLAService:
     @pytest.mark.usefixtures('sla')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")

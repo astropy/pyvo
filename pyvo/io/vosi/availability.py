@@ -27,13 +27,13 @@ def _convert_boolean(value, default=None):
 # ELEMENT CLASSES
 class Availability(Element):
     def __init__(self, config=None, pos=None, _name='availability', **kwargs):
-        super(Availability, self).__init__(config, pos, _name, **kwargs)
+        super().__init__(config, pos, _name, **kwargs)
 
         self._available = None
         self._upsince = None
         self._downat = None
         self._backat = None
-        self._notes = HomogeneousList(six.text_type)
+        self._notes = HomogeneousList(str)
 
     @xmlelement(plain=True, multiple_exc=W32)
     def available(self):

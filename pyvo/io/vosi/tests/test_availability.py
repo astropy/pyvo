@@ -11,7 +11,7 @@ import pyvo.io.vosi as vosi
 from astropy.utils.data import get_pkg_data_filename
 
 
-class TestAvailability(object):
+class TestAvailability:
     def test_availability(self):
         availability = vosi.parse_availability(get_pkg_data_filename(
             "data/availability.xml"))

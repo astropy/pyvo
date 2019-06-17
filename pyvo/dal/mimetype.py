@@ -51,7 +51,7 @@ def mime2extension(mimetype, default=None):
     if not mimetype:
         return default
 
-    if type(mimetype) == six.text_type:
+    if type(mimetype) == str:
         mimetype = mimetype.encode('utf-8')
 
     ext = mimetypes.guess_extension(mimetype, strict=False)

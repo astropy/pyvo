@@ -59,7 +59,7 @@ def sync_fixture(mocker):
 
 @pytest.fixture()
 def async_fixture(mocker):
-    class Callback(object):
+    class Callback:
         def __init__(self):
             self._jobs = dict()
 
@@ -254,7 +254,7 @@ def test_search():
     _test_image_results(results)
 
 
-class TestTAPService(object):
+class TestTAPService:
     def test_init(self):
         service = TAPService('http://example.com/tap')
 

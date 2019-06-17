@@ -72,7 +72,7 @@ def get_converter(param):
     return Converter(param)
 
 
-class Converter(object):
+class Converter:
     """
     Base class for all converters. Each subclass handles the conversion of a
     input value based on a specific xtype.
@@ -92,7 +92,7 @@ class Number(Converter):
         if param.datatype not in {'short', 'int', 'long', 'float', 'double'}:
             pass
 
-        super(Number, self).__init__(param)
+        super().__init__(param)
 
     @unify_value
     def serialize(self, value):
@@ -109,7 +109,7 @@ class Timestamp(Converter):
         if param.datatype != 'char':
             raise DALServiceError('Datatype is not char')
 
-        super(Timestamp, self).__init__(param)
+        super().__init__(param)
 
     def serialize(self, value):
         """
@@ -133,7 +133,7 @@ class Interval(Number):
         except ValueError:
             raise DALServiceError('Arraysize is not even')
 
-        super(Interval, self).__init__(param)
+        super().__init__(param)
 
     @unify_value
     def serialize(self, value):
@@ -141,7 +141,7 @@ class Interval(Number):
         if size % 2:
             raise DALServiceError('Interval size is not even')
 
-        return super(Interval, self).serialize(value)
+        return super().serialize(value)
 
 
 @xtype('point')
@@ -154,7 +154,7 @@ class Point(Number):
         except ValueError:
             raise DALServiceError('Point arraysize must be 2')
 
-        super(Point, self).__init__(param)
+        super().__init__(param)
 
     @unify_value
     def serialize(self, value):
@@ -162,7 +162,7 @@ class Point(Number):
         if size != 2:
             raise DALServiceError('Point size must be 2')
 
-        return super(Point, self).serialize(value)
+        return super().serialize(value)
 
 
 @xtype('circle')
@@ -172,7 +172,7 @@ class Circle(Number):
         if arraysize != 3:
             raise DALServiceError('Circle arraysize must be 3')
 
-        super(Circle, self).__init__(param)
+        super().__init__(param)
 
     @unify_value
     def serialize(self, value):
@@ -180,7 +180,7 @@ class Circle(Number):
         if size != 3:
             raise DALServiceError('Circle size must be 3')
 
-        return super(Circle, self).serialize(value)
+        return super().serialize(value)
 
 
 @xtype('polygon')
@@ -194,7 +194,7 @@ class Polygon(Number):
             if param.arraysize != '*':
                 raise DALServiceError('Arraysize is not a multiple of 3')
 
-        super(Polygon, self).__init__(param)
+        super().__init__(param)
 
     @unify_value
     def serialize(self, value):
@@ -205,4 +205,4 @@ class Polygon(Number):
         except ValueError:
             raise DALServiceError('Size is not a multiple of 3')
 
-        return super(Polygon, self).serialize(value)
+        return super().serialize(value)

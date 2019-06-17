@@ -92,7 +92,7 @@ class NotSupportedError(DatabaseError):
     pass
 
 
-class TypeObject(object):
+class TypeObject:
     def __init__(self, *values):
         self._values = values
 
@@ -133,7 +133,7 @@ class Cursor(Iter):
         by directly applications; rather an instance is obtained from calling a
         DalQuery's execute().
         """
-        super(Cursor, self).__init__(results)
+        super().__init__(results)
         self._description = self._mkdesc()
         self._rowcount = len(self.resultset)
         self._arraysize = 1

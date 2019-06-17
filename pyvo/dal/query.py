@@ -52,7 +52,7 @@ from ..utils.decorators import stream_decode_content
 from ..utils.http import session
 
 
-class DALService(object):
+class DALService:
     """
     an abstract base class representing a DAL service located a particular
     endpoint.
@@ -131,7 +131,7 @@ class DALQuery(dict):
         """
         initialize the query object with a baseurl
         """
-        if type(baseurl) == six.binary_type:
+        if type(baseurl) == bytes:
             baseurl = baseurl.decode("utf-8")
 
         self._baseurl = baseurl.rstrip("?")
@@ -253,7 +253,7 @@ class DALQuery(dict):
         return self.baseurl
 
 
-class DALResults(object):
+class DALResults:
     """
     Results from a DAL query.  It provides random access to records in
     the response.  Alternatively, it can provide results via a Cursor
@@ -650,7 +650,7 @@ class Record(Mapping):
         """
         out = self._mapping.get(key, default)
 
-        if decode and isinstance(out, six.binary_type):
+        if decode and isinstance(out, bytes):
             out = out.decode('ascii')
 
         return out
@@ -693,7 +693,7 @@ class Record(Mapping):
                     "meta.ref.url" in field.ucd
             ):
                 out = self[fieldname]
-                if isinstance(out, six.binary_type):
+                if isinstance(out, bytes):
                     out = out.decode('utf-8')
                 return out
         return None
@@ -832,7 +832,7 @@ class Record(Mapping):
         if not os.path.exists(dir):
             os.mkdir(dir)
         if not os.path.isdir(dir):
-            raise ValueError("{0}: not a directory".format(dir))
+            raise ValueError("{}: not a directory".format(dir))
 
         if not base:
             base = self.suggest_dataset_basename()
@@ -844,7 +844,7 @@ class Record(Mapping):
         n = self._dsname_no
 
         def mkpath(i):
-            return os.path.join(dir, "{0}-{1}.{2}".format(base, i, ext))
+            return os.path.join(dir, "{}-{}.{}".format(base, i, ext))
 
         if n > 0:
             # find the last file written of the form, base-n.ext
@@ -854,7 +854,7 @@ class Record(Mapping):
             n += 1
         if n == 0:
             # never wrote a file of form, base-n.ext; try base.ext
-            path = os.path.join(dir, "{0}.{1}".format(base, ext))
+            path = os.path.join(dir, "{}.{}".format(base, ext))
             if not os.path.exists(path):
                 return path
             n += 1
@@ -888,7 +888,7 @@ class Record(Mapping):
         return default
 
 
-class Iter(object):
+class Iter:
     def __init__(self, res):
         self.resultset = res
         self.pos = 0
@@ -907,7 +907,7 @@ class Iter(object):
     next = __next__
 
 
-class Upload(object):
+class Upload:
     """
     This class represents a DALI Upload as described in
     http://www.ivoa.net/documents/DALI/20161101/PR-DALI-1.1-20161101.html#tth_sEc3.4.5
@@ -1007,7 +1007,7 @@ class Upload(object):
             self._content.raise_if_error()
             uri = self._content.result_uri
         else:
-            uri = six.text_type(self._content)
+            uri = str(self._content)
 
         return uri
 

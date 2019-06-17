@@ -99,7 +99,7 @@ class SCSService(DALService):
         baseurl : str
            the base URL for submitting search queries to the service.
         """
-        super(SCSService, self).__init__(baseurl)
+        super().__init__(baseurl)
 
     def _get_metadata(self):
         """
@@ -296,7 +296,7 @@ class SCSQuery(DALQuery):
             set of columns, 3 means as many columns as are
             available.
         """
-        super(SCSQuery, self).__init__(baseurl)
+        super().__init__(baseurl)
 
         if pos is not None:
             self.pos = pos

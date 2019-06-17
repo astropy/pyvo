@@ -130,7 +130,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
                 SELECT idet.ivoid FROM rr.res_detail as idet
                 WHERE idet.detail_xpath = '/capability/dataModel/@ivo-id'
                 AND 1 = ivo_nocasematch(
-                    idet.detail_value, 'ivo://ivoa.net/std/{0}%')
+                    idet.detail_value, 'ivo://ivoa.net/std/{}%')
             )
         """.format(tap.escape(datamodel)))
 
@@ -354,7 +354,7 @@ class RegistryResource(dalq.Record):
         """
         if not self.service:
             raise dalq.DALServiceError(
-                "resource, {0}, is not a searchable service".format(
+                "resource, {}, is not a searchable service".format(
                     self.short_name))
 
         return self.service.search(*args, **keys)

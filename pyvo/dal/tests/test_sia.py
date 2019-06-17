@@ -55,7 +55,7 @@ def test_search():
     _test_result(result)
 
 
-class TestSIAService(object):
+class TestSIAService:
     @pytest.mark.usefixtures('sia')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")

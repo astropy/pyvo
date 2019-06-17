@@ -148,7 +148,7 @@ def _test_records(records):
 
 
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
-class TestDALService(object):
+class TestDALService:
     def test_init(self):
         """Test if baseurl if passed correctly"""
         service = DALService('http://example.com/query/basic')
@@ -211,16 +211,16 @@ class TestDALService(object):
 
 
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
-class TestDALQuery(object):
+class TestDALQuery:
     def test_url(self):
         queries = (
             DALQuery('http://example.com/query/basic'),
             DALQuery(b'http://example.com/query/basic'),
         )
 
-        assert all((
+        assert all(
             q.queryurl == 'http://example.com/query/basic' for q in queries
-        ))
+        )
 
     def test_params(self):
         query = DALQuery(
@@ -248,7 +248,7 @@ class TestDALQuery(object):
 
 @pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W03')
 @pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W06')
-class TestDALResults(object):
+class TestDALResults:
     def test_init(self):
         dalresults = DALResults.from_result_url(
             'http://example.com/query/basic')
@@ -376,7 +376,7 @@ class TestDALResults(object):
 
 @pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W03')
 @pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W06')
-class TestRecord(object):
+class TestRecord:
     def test_itemaccess(self):
         record = DALResults.from_result_url(
             'http://example.com/query/basic')[0]
@@ -462,5 +462,5 @@ class TestRecord(object):
         assert "dataset.dat" in listdir(tmpdir)
 
 
-class TestUpload(object):
+class TestUpload:
     pass

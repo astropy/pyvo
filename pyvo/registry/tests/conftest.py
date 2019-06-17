@@ -10,7 +10,7 @@ class ContextAdapter(requests_mock.Adapter):
     """
     @contextmanager
     def register_uri(self, *args, **kwargs):
-        matcher = super(ContextAdapter, self).register_uri(*args, **kwargs)
+        matcher = super().register_uri(*args, **kwargs)
 
         yield matcher
 

@@ -133,7 +133,7 @@ class SIAService(DALService):
         baseurl : str
            the base URL for submitting search queries to the service.
         """
-        super(SIAService, self).__init__(baseurl)
+        super().__init__(baseurl)
 
     def _get_metadata(self):
         """
@@ -394,7 +394,7 @@ class SIAQuery(DALQuery):
             with the parameters set by the other arguments to
             this function, these keywords will override.
         """
-        super(SIAQuery, self).__init__(baseurl, **keywords)
+        super().__init__(baseurl, **keywords)
 
         if pos:
             self.pos = pos
@@ -501,7 +501,7 @@ class SIAQuery(DALQuery):
     def format(self, format_):
         setattr(self, "_format", format_)
 
-        if type(format_) in (six.text_type, six.binary_type):
+        if type(format_) in (str, bytes):
             format_ = [format_]
 
         self["FORMAT"] = ",".join(_.upper() for _ in format_)
@@ -881,7 +881,7 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         to retrieve the dataset described by this record.  None is returned
         if no such column exists.
         """
-        dataurl = super(SIARecord, self).getdataurl()
+        dataurl = super().getdataurl()
         if dataurl is None:
             return self.acref
         else:
@@ -896,7 +896,7 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         ``make_dataset_filename()``.
         """
         out = self.title
-        if type(out) == six.binary_type:
+        if type(out) == bytes:
             out = out.decode('utf-8')
 
         if not out:

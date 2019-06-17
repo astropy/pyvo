@@ -83,7 +83,7 @@ class SLAService(DALService):
         baseurl : str
            the base URL for submitting search queries to the service.
         """
-        super(SLAService, self).__init__(baseurl,)
+        super().__init__(baseurl,)
 
     def _get_metadata(self):
         """
@@ -259,7 +259,7 @@ class SLAQuery(DALQuery):
             with the parameters set by the other arguments to
             this function, these keywords will override.
         """
-        super(SLAQuery, self).__init__(baseurl)
+        super().__init__(baseurl)
 
         if wavelength is not None:
             self.wavelength = wavelength

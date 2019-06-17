@@ -83,7 +83,7 @@ def main(query_terms, ra, dec, sr):
         if result:
             break
     else:
-        sys.exit("No service has results for CIRCLE({0}, {1}, {2})".format(
+        sys.exit("No service has results for CIRCLE({}, {}, {})".format(
             ra, dec, sr))
     broadcast(result.table)
 
