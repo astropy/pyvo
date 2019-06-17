@@ -66,11 +66,7 @@ matrix:
           stage: Initial tests
           env: SETUP_CMD='test --coverage'
 
-        # Now try Astropy dev and LTS vesions with the latest 3.x and 2.7.
-        - os: linux
-          env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts
-               EVENT_TYPE='pull_request push' PYTEST_VERSION=3.6.4
-               PIP_DEPENDENCIES='requests mimeparse requests_mock contextlib2'
+        # Now try Astropy dev and LTS vesions with the latest 3.x.
         - os: linux
           env: ASTROPY_VERSION=development
                EVENT_TYPE='pull_request push cron'
