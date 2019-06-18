@@ -43,7 +43,6 @@ env:
         - SETUP_CMD='test'
         - PIP_DEPENDENCIES='requests mimeparse requests_mock'
         - EVENT_TYPE='pull_request push'
-        - CONDA_DEPENDENCIES='six'
         - CONDA_CHANNELS='astropy'
 
 matrix:

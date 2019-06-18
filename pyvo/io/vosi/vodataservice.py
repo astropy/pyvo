@@ -591,7 +591,7 @@ class TableParam(BaseParam):
     @xmlelement(name='flag')
     def flags(self):
         """
-        A list of flags. Must contain only `six.text_type` objects.
+        A list of flags. Must contain only `str` objects.
 
         a keyword representing traits of the column. Recognized values include
         "indexed", "primary", and "nullable".

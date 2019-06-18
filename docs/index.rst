@@ -50,7 +50,6 @@ Requirements
 * numpy
 * astropy
 * requests
-* six
 
 .. note::
   With numpy below version 1.14.0 there are some regression with float

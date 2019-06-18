@@ -7,7 +7,7 @@ from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
 from functools import partial
-from six.moves.urllib.parse import parse_qsl
+from urllib.parse import parse_qsl
 
 from pyvo.dal.adhoc import DatalinkResults
 from pyvo.dal.params import find_param_by_keyword, get_converter

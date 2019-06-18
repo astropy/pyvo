@@ -5,7 +5,7 @@ URL utils
 from __future__ import (
     absolute_import, division, print_function, unicode_literals)
 
-from six.moves.urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse
 from os.path import split as pathsplit, join as pathjoin
 
 
