@@ -3,9 +3,6 @@
 Tests for pyvo.utils.url
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 from pyvo.utils.url import url_sibling
 
 

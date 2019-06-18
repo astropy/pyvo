@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-from __future__ import print_function
 import pyvo as vo
 
 # find archives with x-ray images

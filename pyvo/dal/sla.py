@@ -21,9 +21,6 @@ metadata in the response, such as the transition title.
 The SLAService class can represent a specific service available at a URL
 endpoint.
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 from pyvo.io.vosi.vodataservice import TableParam
 
 from astropy.units import Quantity, Unit

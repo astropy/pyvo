@@ -15,8 +15,6 @@ can be queried for individual datasets of interest.
 This module provides basic, low-level access to the RegTAP Registries using
 standardized TAP-based services.
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
 import os
 from ..dal import scs, sia, ssa, sla, tap, query as dalq
 

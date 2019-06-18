@@ -14,9 +14,6 @@ Elements with simple content are parsed with objects inherited from `Element`
 defining a `value` property.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import re
 
 from astropy.utils.collections import HomogeneousList

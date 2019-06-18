@@ -2,8 +2,6 @@
 """
 Tests for pyvo.dal.query
 """
-from __future__ import print_function, division
-
 import os
 import re
 import unittest

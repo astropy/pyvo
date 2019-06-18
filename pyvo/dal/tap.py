@@ -2,9 +2,6 @@
 """
 A module for accessing remote source and observation catalogs
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 from functools import partial
 from datetime import datetime
 from time import sleep

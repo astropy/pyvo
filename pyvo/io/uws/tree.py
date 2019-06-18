@@ -2,9 +2,6 @@
 """
 This file contains xml element classes as defined in the VOResource standard.
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 from functools import partial
 
 from astropy.utils.collections import HomogeneousList

@@ -4,9 +4,6 @@ This file contains a contains the high-level functions to read the various
 VOSI Endpoints.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 from astropy.utils.xml import iterparser
 from astropy.utils.xml.writer import XMLWriter
 from astropy.io.votable.util import convert_to_writable_filelike
