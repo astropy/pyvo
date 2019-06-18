@@ -19,8 +19,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import re
 
-import six
-
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.misc import indent
 from astropy.utils.xml import check as xml_check

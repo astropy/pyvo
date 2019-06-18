@@ -35,7 +35,6 @@ import re
 
 from pyvo.io.vosi.vodataservice import TableParam
 
-import six
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity, Unit

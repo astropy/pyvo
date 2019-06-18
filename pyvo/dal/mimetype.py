@@ -6,8 +6,6 @@ A module for parsing and working with mimetypes
 import mimetypes
 import mimeparse
 
-import six
-
 from astropy.io.fits import HDUList
 
 from ..utils.http import session

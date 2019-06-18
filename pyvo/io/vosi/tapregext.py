@@ -2,8 +2,6 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import six
-
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.misc import indent
 

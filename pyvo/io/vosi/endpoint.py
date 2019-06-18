@@ -7,8 +7,6 @@ VOSI Endpoints.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import six
-
 from astropy.utils import minversion
 from astropy.utils.xml import iterparser
 from astropy.utils.collections import HomogeneousList

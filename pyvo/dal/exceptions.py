@@ -184,8 +184,7 @@ class DALServiceError(DALProtocolError):
 
             return DALServiceError(message, code, exc, url)
         elif isinstance(exc, Exception):
-            return DALServiceError("{}: {}".format(cls._typeName(exc),
-                                                     str(exc)),
+            return DALServiceError("{}: {}".format(cls._typeName(exc), str(exc)),
                                    cause=exc, url=url)
         else:
             raise TypeError("from_except: expected Exception")

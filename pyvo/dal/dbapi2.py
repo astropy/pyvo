@@ -6,10 +6,6 @@ This only supports read-only access.
 from __future__ import print_function, division
 
 from .query import Iter
-import six
-
-if six.PY3:
-    StandardError = Exception
 
 apilevel = "2.0"
 threadsafety = 2
@@ -18,14 +14,14 @@ paramstyle = "n/a"
 __all__ = "STRING BINARY NUMBER DATETIME ROWID".split()
 
 
-class Error(StandardError):
+class Error(Exception):
     """
     DB-API base exception
     """
     pass
 
 
-class Warning(StandardError):
+class Warning(Exception):
     """
     DB-API warning
     """
