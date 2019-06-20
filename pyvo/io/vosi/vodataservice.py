@@ -14,12 +14,7 @@ Elements with simple content are parsed with objects inherited from `Element`
 defining a `value` property.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import re
-
-import six
 
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.misc import indent
@@ -132,7 +127,7 @@ class TableSet(Element, HomogeneousList):
         self.append(schema)
 
     def parse(self, iterator, config):
-        super(TableSet, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         if not self.schemas:
             warn_or_raise(W14, W14, config=config, pos=self._pos)
@@ -238,7 +233,7 @@ class TableSchema(Element, HomogeneousList):
         self.append(table)
 
     def parse(self, iterator, config):
-        super(TableSchema, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         if not self.name:
             vo_raise(E06, self._Element__name, config=config, pos=self._pos)
@@ -257,10 +252,10 @@ class ParamHTTP(vr.Interface):
     the Service/ReferenceURL element.
     """
     def __init__(self, config=None, pos=None, _name='', **kwargs):
-        super(ParamHTTP, self).__init__(
+        super().__init__(
                 config=config, pos=pos, _name=_name, **kwargs)
 
-        self._querytypes = HomogeneousList(six.text_type)
+        self._querytypes = HomogeneousList(str)
         self._resulttype = None
 
     @xmlelement(name='queryType', multiple_exc=W17)
@@ -284,7 +279,7 @@ class ParamHTTP(vr.Interface):
         self._resulttype = resulttype
 
     def parse(self, iterator, config):
-        super(ParamHTTP, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         if len(self.querytypes) > 2:
             warn_or_raise(W18, W18, config=config, pos=self._pos)
@@ -298,7 +293,7 @@ class Table(Element):
     def __init__(
         self, config=None, pos=None, _name='table', version='1.1', **kwargs
     ):
-        super(Table, self).__init__(config, pos, _name, **kwargs)
+        super().__init__(config, pos, _name, **kwargs)
 
         self._name = None
         self._title = None
@@ -441,7 +436,7 @@ class Table(Element):
         self.foreignkeys.append(foreignkey)
 
     def parse(self, iterator, config):
-        super(Table, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         if not self.name:
             vo_raise(E06, self._Element__name, config=config, pos=self._pos)
@@ -458,7 +453,7 @@ class BaseParam(Element):
     type directly.
     """
     def __init__(self, config=None, pos=None, _name='', **kwargs):
-        super(BaseParam, self).__init__(
+        super().__init__(
                 config=config, pos=pos, _name=_name, **kwargs)
 
         self._name = None
@@ -562,11 +557,11 @@ class TableParam(BaseParam):
         return instance
 
     def __init__(self, config=None, pos=None, _name='', std=None, **kwargs):
-        super(TableParam, self).__init__(
+        super().__init__(
                 config=config, pos=pos, _name=_name, **kwargs)
 
         self._datatype = None
-        self._flags = HomogeneousList(six.text_type)
+        self._flags = HomogeneousList(str)
         self._std = _convert_boolean(std)
 
     @xmlelement(name='dataType')
@@ -593,7 +588,7 @@ class TableParam(BaseParam):
     @xmlelement(name='flag')
     def flags(self):
         """
-        A list of flags. Must contain only `six.text_type` objects.
+        A list of flags. Must contain only `str` objects.
 
         a keyword representing traits of the column. Recognized values include
         "indexed", "primary", and "nullable".
@@ -616,7 +611,7 @@ class TableParam(BaseParam):
         self._std = std
 
     def parse(self, iterator, config):
-        super(TableParam, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         if not self.name:
             vo_raise(E06, self._Element__name, config=config, pos=self._pos)
@@ -678,7 +673,7 @@ class InputParam(BaseParam):
         self._std = std
 
     def parse(self, iterator, config):
-        super(InputParam, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         if not self.name:
             vo_raise(E06, self._Element__name, config=config, pos=self._pos)
@@ -700,7 +695,7 @@ class DataType(ContentMixin, Element):
             arraysize=None, delim=None, extendedType=None, extendedSchema=None,
             **kwargs
     ):
-        super(DataType, self).__init__(
+        super().__init__(
             config=config, pos=pos, _name=_name, **kwargs)
 
         if arraysize is None:
@@ -870,7 +865,7 @@ class TAPDataType(TableDataType):
     def __init__(
         self, config=None, pos=None, _name='dataType', size=None, **kwargs
     ):
-        super(TAPDataType, self).__init__(
+        super().__init__(
             config=config, pos=pos, _name=_name, **kwargs)
 
         self.size = size
@@ -919,7 +914,7 @@ class FKColumn(Element):
     http://www.ivoa.net/xml/VODataService/v1.1
     """
     def __init__(self, config=None, pos=None, _name='fkColumn', **kwargs):
-        super(FKColumn, self).__init__(
+        super().__init__(
                 config=config, pos=pos, _name=_name, **kwargs)
 
         self._fromcolumn = None
@@ -952,7 +947,7 @@ class FKColumn(Element):
         self._targetcolumn = targetcolumn
 
     def parse(self, iterator, config):
-        super(FKColumn, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         if self.fromcolumn is None:
             vo_raise(E02, config=config, pos=self._pos)
@@ -1035,7 +1030,7 @@ class ForeignKey(Element):
         self._utype = utype
 
     def parse(self, iterator, config):
-        super(ForeignKey, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         if not self.targettable:
             vo_raise(E04, config=config, pos=self._pos)

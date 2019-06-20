@@ -22,9 +22,6 @@ Exceptions
 {exceptions}
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 from astropy.utils.exceptions import AstropyWarning
 from ...utils.xml.exceptions import XMLWarning
 

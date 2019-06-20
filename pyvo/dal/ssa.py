@@ -29,14 +29,10 @@ URL.
 The SSAService class can represent a specific service available at a URL
 endpoint.
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 import re
 
 from pyvo.io.vosi.vodataservice import TableParam
 
-import six
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity, Unit
@@ -123,7 +119,7 @@ class SSAService(DALService):
         baseurl : str
            the base URL for submitting search queries to the service.
         """
-        super(SSAService, self).__init__(baseurl)
+        super().__init__(baseurl)
 
     def _get_metadata(self):
         """
@@ -346,7 +342,7 @@ class SSAQuery(DALQuery):
            with the parameters set by the other arguments to
            this function, these keywords will override.
         """
-        super(SSAQuery, self).__init__(baseurl)
+        super().__init__(baseurl)
 
         if pos:
             self.pos = pos
@@ -528,7 +524,7 @@ class SSAQuery(DALQuery):
     def format(self, val):
         setattr(self, "_format", val)
 
-        if type(val) in (six.text_type, six.binary_type):
+        if type(val) in (str, bytes):
             val = [val]
 
         self["FORMAT"] = ",".join(val)
@@ -730,7 +726,7 @@ class SSARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         to retrieve the dataset described by this record.  None is returned
         if no such column exists.
         """
-        dataurl = super(SSARecord, self).getdataurl()
+        dataurl = super().getdataurl()
         if dataurl is None:
             return self.acref
         else:
@@ -745,7 +741,7 @@ class SSARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         ``make_dataset_filename()``.
         """
         out = self.title
-        if type(out) == six.binary_type:
+        if type(out) == bytes:
             out = out.decode('utf-8')
 
         if not out:

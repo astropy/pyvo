@@ -3,12 +3,8 @@
 """
 Tests for pyvo.dal.query
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 from functools import partial
-
-from six.moves.urllib.parse import parse_qsl
+from urllib.parse import parse_qsl
 import pytest
 
 from pyvo.registry import search as regsearch

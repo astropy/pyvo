@@ -3,9 +3,6 @@
 """
 Tests for pyvo.dal.ssa
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 from functools import partial
 import re
 
@@ -39,7 +36,7 @@ def test_search():
     assert len(results) == 35
 
 
-class TestSSAService(object):
+class TestSSAService:
     @pytest.mark.usefixtures('ssa')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
     def test_search(self):

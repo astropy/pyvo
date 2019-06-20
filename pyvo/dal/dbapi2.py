@@ -3,13 +3,7 @@
 An implementation of the Database API v2.0 interface to DAL VOTable responses.
 This only supports read-only access.
 """
-from __future__ import print_function, division
-
 from .query import Iter
-import six
-
-if six.PY3:
-    StandardError = Exception
 
 apilevel = "2.0"
 threadsafety = 2
@@ -18,14 +12,14 @@ paramstyle = "n/a"
 __all__ = "STRING BINARY NUMBER DATETIME ROWID".split()
 
 
-class Error(StandardError):
+class Error(Exception):
     """
     DB-API base exception
     """
     pass
 
 
-class Warning(StandardError):
+class Warning(Exception):
     """
     DB-API warning
     """
@@ -92,7 +86,7 @@ class NotSupportedError(DatabaseError):
     pass
 
 
-class TypeObject(object):
+class TypeObject:
     def __init__(self, *values):
         self._values = values
 
@@ -133,7 +127,7 @@ class Cursor(Iter):
         by directly applications; rather an instance is obtained from calling a
         DalQuery's execute().
         """
-        super(Cursor, self).__init__(results)
+        super().__init__(results)
         self._description = self._mkdesc()
         self._rowcount = len(self.resultset)
         self._arraysize = 1

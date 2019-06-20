@@ -32,7 +32,7 @@ class DALAccessError(Exception):
         """
         if not reason:
             reason = self._defreason
-        super(DALAccessError, self).__init__(reason)
+        super().__init__(reason)
         self._reason = reason
         self._url = url
 
@@ -50,7 +50,7 @@ class DALAccessError(Exception):
         return self._reason
 
     def __repr__(self):
-        return "{0}: {1}".format(self._typeName(self), self._reason)
+        return "{}: {}".format(self._typeName(self), self._reason)
 
     @property
     def reason(self):
@@ -93,7 +93,7 @@ class DALProtocolError(DALAccessError):
         url : str
            the query URL that produced the error
         """
-        super(DALProtocolError, self).__init__(reason, url)
+        super().__init__(reason, url)
         self._cause = cause
 
     @property
@@ -126,10 +126,10 @@ class DALFormatError(DALProtocolError):
            a message describing the cause of the error
         """
         if cause and not reason:
-            reason = "{0}: {1}".format(
+            reason = "{}: {}".format(
                 DALAccessError._typeName(cause), str(cause))
 
-        super(DALFormatError, self).__init__(reason, cause, url)
+        super().__init__(reason, cause, url)
 
 
 class DALServiceError(DALProtocolError):
@@ -157,7 +157,7 @@ class DALServiceError(DALProtocolError):
         url : str
            the query URL that produced the error
         """
-        super(DALServiceError, self).__init__(reason, cause, url)
+        super().__init__(reason, cause, url)
         self._code = code
 
     @property
@@ -184,8 +184,7 @@ class DALServiceError(DALProtocolError):
 
             return DALServiceError(message, code, exc, url)
         elif isinstance(exc, Exception):
-            return DALServiceError("{0}: {1}".format(cls._typeName(exc),
-                                                     str(exc)),
+            return DALServiceError("{}: {}".format(cls._typeName(exc), str(exc)),
                                    cause=exc, url=url)
         else:
             raise TypeError("from_except: expected Exception")
@@ -216,7 +215,7 @@ class DALQueryError(DALAccessError):
         url : str
            the query URL that produced the error
         """
-        super(DALQueryError, self).__init__(reason, url)
+        super().__init__(reason, url)
         self._label = label
 
     @property

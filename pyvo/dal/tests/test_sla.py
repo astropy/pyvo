@@ -3,9 +3,6 @@
 """
 Tests for pyvo.dal.sla
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 from functools import partial
 import re
 
@@ -38,7 +35,7 @@ def test_search():
     assert len(results) == 21
 
 
-class TestSLAService(object):
+class TestSLAService:
     @pytest.mark.usefixtures('sla')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")

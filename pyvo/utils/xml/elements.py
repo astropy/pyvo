@@ -1,12 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 from inspect import getmembers
 from functools import partial
 
-import six
 from astropy.utils.misc import InheritDocstrings
 from astropy.io.votable.exceptions import warn_or_raise
 from pyvo.utils.xml.exceptions import UnknownElementWarning
@@ -19,7 +15,7 @@ __all__ = [
 
 class xmlattribute(property):
     def __init__(self, fget=None, fset=None, fdel=None, doc=None, name=None):
-        super(xmlattribute, self).__init__(fget, fset, fdel, doc)
+        super().__init__(fget, fset, fdel, doc)
         if name:
             self.name = name
         elif fget is not None:
@@ -52,7 +48,7 @@ class xmlelement(property):
         self, fget=None, fset=None, fdel=None, fadd=None, fformat=None,
         doc=None, name=None, ns=None, plain=False, cls=None, multiple_exc=None
     ):
-        super(xmlelement, self).__init__(fget, fset, fdel, doc)
+        super().__init__(fget, fset, fdel, doc)
 
         if name:
             self.name = name
@@ -78,7 +74,7 @@ class xmlelement(property):
 
     def __get__(self, obj, owner=None):
         if obj is not None:
-            val = super(xmlelement, self).__get__(obj, owner)
+            val = super().__get__(obj, owner)
             if self.plain:
                 return val
             elif not isinstance(val, (Element, list)):
@@ -88,7 +84,7 @@ class xmlelement(property):
             else:
                 return val
         else:
-            return super(xmlelement, self).__get__(obj, owner)
+            return super().__get__(obj, owner)
 
     def getter(self, fget):
         return self.__class__(
@@ -234,8 +230,7 @@ def make_add_simplecontent(
     return add_simplecontent
 
 
-@six.add_metaclass(InheritDocstrings)
-class Element(object):
+class Element(metaclass=InheritDocstrings):
     """
     A base class for all classes that represent XML elements.
 
@@ -315,7 +310,7 @@ class ContentMixin(Element):
     Mixin class for elements with inner content.
     """
     def __init__(self, config=None, pos=None, _name=None, _ns=None, **kwargs):
-        super(ContentMixin, self).__init__(config, pos, _name, _ns, **kwargs)
+        super().__init__(config, pos, _name, _ns, **kwargs)
         self._content = None
 
     def __bool__(self):

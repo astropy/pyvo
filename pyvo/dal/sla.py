@@ -21,9 +21,6 @@ metadata in the response, such as the transition title.
 The SLAService class can represent a specific service available at a URL
 endpoint.
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 from pyvo.io.vosi.vodataservice import TableParam
 
 from astropy.units import Quantity, Unit
@@ -83,7 +80,7 @@ class SLAService(DALService):
         baseurl : str
            the base URL for submitting search queries to the service.
         """
-        super(SLAService, self).__init__(baseurl,)
+        super().__init__(baseurl,)
 
     def _get_metadata(self):
         """
@@ -259,7 +256,7 @@ class SLAQuery(DALQuery):
             with the parameters set by the other arguments to
             this function, these keywords will override.
         """
-        super(SLAQuery, self).__init__(baseurl)
+        super().__init__(baseurl)
 
         if wavelength is not None:
             self.wavelength = wavelength

@@ -4,11 +4,6 @@ This file contains a contains the high-level functions to read the various
 VOSI Endpoints.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-import six
-
 from astropy.utils.xml import iterparser
 from astropy.utils.xml.writer import XMLWriter
 from astropy.io.votable.util import convert_to_writable_filelike
@@ -56,7 +51,7 @@ def parse_job(
         'filename': filename
     }
 
-    if filename is None and isinstance(source, six.string_types):
+    if filename is None and isinstance(source, str):
         config['filename'] = source
 
     with iterparser.get_xml_iterator(
@@ -74,7 +69,7 @@ class JobFile(JobSummary):
     name, documented below.
     """
     def __init__(self, config=None, pos=None, **kwargs):
-        super(JobFile, self).__init__(config=config, pos=pos, **kwargs)
+        super().__init__(config=config, pos=pos, **kwargs)
         self._version = None
 
     @xmlattribute
@@ -93,7 +88,7 @@ class JobFile(JobSummary):
                 self._version = data.get('version')
                 break
 
-        return super(JobFile, self).parse(iterator, config)
+        return super().parse(iterator, config)
 
     def to_xml(self, fd):
         with convert_to_writable_filelike(fd) as fd:
@@ -106,4 +101,4 @@ class JobFile(JobSummary):
 
             w.write(xml_header)
 
-            super(JobFile, self).to_xml(w)
+            super().to_xml(w)

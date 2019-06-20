@@ -15,8 +15,6 @@ can be queried for individual datasets of interest.
 This module provides basic, low-level access to the RegTAP Registries using
 standardized TAP-based services.
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
 import os
 from ..dal import scs, sia, ssa, sla, tap, query as dalq
 
@@ -130,7 +128,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
                 SELECT idet.ivoid FROM rr.res_detail as idet
                 WHERE idet.detail_xpath = '/capability/dataModel/@ivo-id'
                 AND 1 = ivo_nocasematch(
-                    idet.detail_value, 'ivo://ivoa.net/std/{0}%')
+                    idet.detail_value, 'ivo://ivoa.net/std/{}%')
             )
         """.format(tap.escape(datamodel)))
 
@@ -354,7 +352,7 @@ class RegistryResource(dalq.Record):
         """
         if not self.service:
             raise dalq.DALServiceError(
-                "resource, {0}, is not a searchable service".format(
+                "resource, {}, is not a searchable service".format(
                     self.short_name))
 
         return self.service.search(*args, **keys)

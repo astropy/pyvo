@@ -1,9 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-import six
-
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.misc import indent
 
@@ -26,7 +21,7 @@ __all__ = [
 # ELEMENT CLASSES
 class DataModelType(ContentMixin, Element):
     def __init__(self, config=None, pos=None, **kwargs):
-        super(DataModelType, self).__init__(config=config, pos=pos, **kwargs)
+        super().__init__(config=config, pos=pos, **kwargs)
 
         ivo_id = kwargs.get('ivo-id', None)
         if ivo_id is None:
@@ -57,12 +52,12 @@ class DataModelType(ContentMixin, Element):
 
 class OutputFormat(Element):
     def __init__(self, config=None, pos=None, **kwargs):
-        super(OutputFormat, self).__init__(config=config, pos=pos, **kwargs)
+        super().__init__(config=config, pos=pos, **kwargs)
 
         ivo_id = kwargs.get('ivo-id')
 
         self.mime = None
-        self._aliases = HomogeneousList(six.text_type)
+        self._aliases = HomogeneousList(str)
         self.ivo_id = ivo_id
 
     def __repr__(self):
@@ -96,7 +91,7 @@ class OutputFormat(Element):
 
 class UploadMethod(Element):
     def __init__(self, config=None, pos=None, **kwargs):
-        super(UploadMethod, self).__init__(config=config, pos=pos, **kwargs)
+        super().__init__(config=config, pos=pos, **kwargs)
 
         ivo_id = kwargs.get('ivo-id')
         self.ivo_id = ivo_id
@@ -124,7 +119,7 @@ class UploadMethod(Element):
 
 class TimeLimits(Element):
     def __init__(self, config=None, pos=None, **kwargs):
-        super(TimeLimits, self).__init__(config=config, pos=pos, **kwargs)
+        super().__init__(config=config, pos=pos, **kwargs)
 
         self._default = None
         self._hard = None
@@ -152,7 +147,7 @@ class TimeLimits(Element):
 
 class LanguageFeature(Element):
     def __init__(self, config=None, pos=None, **kwargs):
-        super(LanguageFeature, self).__init__(config=config, pos=pos, **kwargs)
+        super().__init__(config=config, pos=pos, **kwargs)
 
         self.form = None
         self.description = None
@@ -174,7 +169,7 @@ class LanguageFeature(Element):
         self._description = description
 
     def parse(self, iterator, config):
-        super(LanguageFeature, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         if not self.form:
             vo_raise(E09, self._element_name, config=config, pos=self._pos)
@@ -205,7 +200,7 @@ class LanguageFeatureList(Element, HomogeneousList):
 
 class Version(ContentMixin, Element):
     def __init__(self, config=None, pos=None, **kwargs):
-        super(Version, self).__init__(config=config, pos=pos, **kwargs)
+        super().__init__(config=config, pos=pos, **kwargs)
 
         ivo_id = kwargs.get('ivo-id')
         self.ivo_id = ivo_id
@@ -226,7 +221,7 @@ class Version(ContentMixin, Element):
 
 class Language(Element):
     def __init__(self, config=None, pos=None, **kwargs):
-        super(Language, self).__init__(config=config, pos=pos, **kwargs)
+        super().__init__(config=config, pos=pos, **kwargs)
 
         self.name = None
         self._versions = HomogeneousList(Version)
@@ -280,7 +275,7 @@ class Language(Element):
         return self._languagefeaturelists
 
     def parse(self, iterator, config):
-        super(Language, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         if not self.name:
             vo_raise(E06, self._element_name, config=config, pos=self._pos)
@@ -291,7 +286,7 @@ class Language(Element):
 
 class DataLimit(ContentMixin, Element):
     def __init__(self, unit=None, config=None, pos=None, **kwargs):
-        super(DataLimit, self).__init__(config=config, pos=pos, **kwargs)
+        super().__init__(config=config, pos=pos, **kwargs)
 
         self.unit = unit
 
@@ -312,7 +307,7 @@ class DataLimit(ContentMixin, Element):
         self._content = int(content)
 
     def parse(self, iterator, config):
-        super(DataLimit, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         if self.unit not in ('byte', 'row'):
             warn_or_raise(W31, W31, config=config, pos=self._pos)
@@ -320,7 +315,7 @@ class DataLimit(ContentMixin, Element):
 
 class DataLimits(Element):
     def __init__(self, config=None, pos=None, **kwargs):
-        super(DataLimits, self).__init__(config=config, pos=pos, **kwargs)
+        super().__init__(config=config, pos=pos, **kwargs)
 
         self.default = None
         self.hard = None
@@ -358,14 +353,14 @@ class TAPCapRestriction(vr.Capability):
         if standardID != 'ivo://ivoa.net/std/TAP':
             warn_or_raise(W19, W19, config=config, pos=pos)
 
-        super(TAPCapRestriction, self).__init__(
+        super().__init__(
             config, pos, _name, standardID='ivo://ivoa.net/std/TAP', **kwargs)
 
 
 @vr.Capability.register_xsi_type('tr:TableAccess')
 class TableAccess(TAPCapRestriction):
     def __init__(self, config=None, pos=None, _name='capability', **kwargs):
-        super(TableAccess, self).__init__(config, pos, _name, **kwargs)
+        super().__init__(config, pos, _name, **kwargs)
 
         self._datamodels = HomogeneousList(DataModelType)
         self._languages = HomogeneousList(Language)
@@ -380,7 +375,7 @@ class TableAccess(TAPCapRestriction):
         """
         Prints out a human readable description
         """
-        super(TableAccess, self).describe()
+        super().describe()
 
         for datamodel in self.datamodels:
             datamodel.describe()
@@ -487,7 +482,7 @@ class TableAccess(TAPCapRestriction):
         self._uploadlimit = uploadlimit
 
     def parse(self, iterator, config):
-        super(TableAccess, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         if not self.languages:
             warn_or_raise(W20, W20, config=config, pos=self._pos)

@@ -2,9 +2,6 @@
 """
 A module for accessing remote source and observation catalogs
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 from functools import partial
 from datetime import datetime
 from time import sleep
@@ -12,7 +9,6 @@ from distutils.version import LooseVersion
 
 import requests
 
-import six
 from astropy.io.votable import parse as votableparse
 
 from .query import (
@@ -90,7 +86,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         baseurl :  str
            the base URL that should be used for forming queries to the service.
         """
-        super(TAPService, self).__init__(baseurl)
+        super().__init__(baseurl)
 
     @property
     def tables(self):
@@ -98,7 +94,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         returns tables as a dict-like object
         """
         if self._tables is None:
-            tables_url = '{0}/tables'.format(self.baseurl)
+            tables_url = '{}/tables'.format(self.baseurl)
 
             response = session.get(tables_url, stream=True)
 
@@ -319,7 +315,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             print()
 
         capabilities = filter(
-            lambda x: not six.text_type(x.standardid).startswith(
+            lambda x: not str(x.standardid).startswith(
                 'ivo://ivoa.net/std/VOSI'),
             self.capabilities
         )
@@ -329,7 +325,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             print()
 
 
-class AsyncTAPJob(object):
+class AsyncTAPJob:
     """
     This class represents a UWS TAP Job.
     """
@@ -758,7 +754,7 @@ class TAPQuery(DALQuery):
         """
         baseurl = baseurl.rstrip("?")
 
-        super(TAPQuery, self).__init__(baseurl, **keywords)
+        super().__init__(baseurl, **keywords)
 
         self._mode = mode if mode in ("sync", "async") else "sync"
         self._uploads = UploadList.fromdict(uploads or {})
@@ -795,7 +791,7 @@ class TAPQuery(DALQuery):
             raise DALServiceError(
                 "Cannot execute a non-synchronous query. Use submit instead")
 
-        return super(TAPQuery, self).execute_stream()
+        return super().execute_stream()
 
     def execute(self):
         """

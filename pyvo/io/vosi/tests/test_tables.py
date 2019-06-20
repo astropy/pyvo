@@ -3,9 +3,6 @@
 """
 Tests for pyvo.io.vosi
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 import pytest
 
 import pyvo.io.vosi as vosi
@@ -17,7 +14,7 @@ from pyvo.io.vosi.exceptions import E01, E02, E03, E06
 from astropy.utils.data import get_pkg_data_filename
 
 
-class TestTables(object):
+class TestTables:
     def test_all(self):
         tablesfile = vosi.parse_tables(
             get_pkg_data_filename("data/tables.xml"))

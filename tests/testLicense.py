@@ -2,8 +2,6 @@
 """
 Tests for pyvo.dal.query
 """
-from __future__ import print_function, division
-
 import os
 import re
 import unittest
@@ -21,11 +19,11 @@ class LicenseTestCase(unittest.TestCase):
 
         self.assertTrue(
             len(filter(lambda ln: ln.startswith(license_ref_line), lines)) > 0,
-            "{0} does not have license reference line".format(filename))
+            "{} does not have license reference line".format(filename))
         self.assertTrue(lines[0].startswith(license_ref_line) or
                         lines[1].startswith(license_ref_line),
                         "license reference line is not 1st or 2nd line in"
-                        " {0}".format(license_ref_line))
+                        " {}".format(license_ref_line))
 
     def testHasLicense(self):
         self.assertTrue(os.path.exists(license_file),
@@ -43,7 +41,7 @@ for dirp, dirs, files in os.walk("pyvo"):
             continue
         path = os.path.join(dirp, fname)
         name = re.sub(r'/', "_", path)
-        f = "lambda s: s.assertHasLicenseRef('{0}')".format(path)
+        f = "lambda s: s.assertHasLicenseRef('{}')".format(path)
         setattr(LicenseTestCase, "test_"+name, eval(f))
 
 __all__ = "LicenseTestCase".split()

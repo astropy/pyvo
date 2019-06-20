@@ -2,9 +2,6 @@
 """
 Tests for pyvo.dal.tap
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 from functools import partial
 
 try:
@@ -14,8 +11,8 @@ except ImportError:
 
 import re
 from io import BytesIO
+from urllib.parse import parse_qsl
 
-from six.moves.urllib.parse import parse_qsl
 import pytest
 import requests_mock
 
@@ -59,7 +56,7 @@ def sync_fixture(mocker):
 
 @pytest.fixture()
 def async_fixture(mocker):
-    class Callback(object):
+    class Callback:
         def __init__(self):
             self._jobs = dict()
 
@@ -254,7 +251,7 @@ def test_search():
     _test_image_results(results)
 
 
-class TestTAPService(object):
+class TestTAPService:
     def test_init(self):
         service = TAPService('http://example.com/tap')
 

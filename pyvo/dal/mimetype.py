@@ -6,8 +6,6 @@ A module for parsing and working with mimetypes
 import mimetypes
 import mimeparse
 
-import six
-
 from astropy.io.fits import HDUList
 
 from ..utils.http import session
@@ -51,7 +49,7 @@ def mime2extension(mimetype, default=None):
     if not mimetype:
         return default
 
-    if type(mimetype) == six.text_type:
+    if type(mimetype) == str:
         mimetype = mimetype.encode('utf-8')
 
     ext = mimetypes.guess_extension(mimetype, strict=False)

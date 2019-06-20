@@ -1,9 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-import six
-
 from astropy.utils.collections import HomogeneousList
 
 from ...utils.xml.elements import xmlelement, Element
@@ -27,13 +22,13 @@ def _convert_boolean(value, default=None):
 # ELEMENT CLASSES
 class Availability(Element):
     def __init__(self, config=None, pos=None, _name='availability', **kwargs):
-        super(Availability, self).__init__(config, pos, _name, **kwargs)
+        super().__init__(config, pos, _name, **kwargs)
 
         self._available = None
         self._upsince = None
         self._downat = None
         self._backat = None
-        self._notes = HomogeneousList(six.text_type)
+        self._notes = HomogeneousList(str)
 
     @xmlelement(plain=True, multiple_exc=W32)
     def available(self):

@@ -3,15 +3,12 @@
 """
 Tests for pyvo.io.vosi
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 import pyvo.io.uws as uws
 
 from astropy.utils.data import get_pkg_data_filename
 
 
-class TestJob(object):
+class TestJob:
     def test_job(self):
         job = uws.parse_job(get_pkg_data_filename(
             "data/job.xml"))

@@ -2,9 +2,6 @@
 """
 This file contains xml element classes as defined in the VOResource standard.
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 from functools import partial
 
 from astropy.utils.collections import HomogeneousList
@@ -53,13 +50,13 @@ def _convert_boolean(value, default=None):
 
 class UWSElement(Element):
     def __init__(self, config=None, pos=None, _name='', _ns='uws', **kwargs):
-        super(UWSElement, self).__init__(config, pos, _name, 'uws', **kwargs)
+        super().__init__(config, pos, _name, 'uws', **kwargs)
 
 
 class Reference(UWSElement):
     """standard xlink references"""
     def __init__(self, *args, **kwargs):
-        super(Reference, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self._type = kwargs.get('xlink:type')
         self._href = kwargs.get('xlink:href')
@@ -85,7 +82,7 @@ class Reference(UWSElement):
 
 class JobSummary(Element):
     def __init__(self, config=None, pos=None, _name='job', **kwargs):
-        super(JobSummary, self).__init__(config, pos, _name, **kwargs)
+        super().__init__(config, pos, _name, **kwargs)
 
         self._jobid = None
         self._runid = None
@@ -101,7 +98,7 @@ class JobSummary(Element):
         self._results = Results()
 
     def parse(self, iterator, config):
-        super(JobSummary, self).parse(iterator, config)
+        super().parse(iterator, config)
         return self
 
     @uwselement(name='jobId', plain=True)
@@ -282,7 +279,7 @@ class Parameters(UWSElement, HomogeneousList):
 
 class Parameter(ContentMixin, UWSElement):
     def __init__(self, config=None, pos=None, _name='parameter', **kwargs):
-        super(Parameter, self).__init__(config, pos, _name, **kwargs)
+        super().__init__(config, pos, _name, **kwargs)
 
         self._byreference = _convert_boolean(kwargs.get('byReference'))
         self._id = kwargs.get('id')
@@ -328,7 +325,7 @@ class Results(UWSElement, HomogeneousList):
 class Result(Reference, UWSElement):
     """A reference to a UWS result."""
     def __init__(self, config=None, pos=None, _name='result', **kwargs):
-        super(Result, self).__init__(config, pos, _name, **kwargs)
+        super().__init__(config, pos, _name, **kwargs)
 
         self._id = kwargs.get('id')
         self._size = int(kwargs.get('size') or 0)

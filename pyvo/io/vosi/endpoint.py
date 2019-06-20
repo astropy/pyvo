@@ -4,11 +4,6 @@ This file contains a contains the high-level functions to read the various
 VOSI Endpoints.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-import six
-
 from astropy.utils import minversion
 from astropy.utils.xml import iterparser
 from astropy.utils.collections import HomogeneousList
@@ -90,7 +85,7 @@ def parse_tables(source, pedantic=None, filename=None,
     """
     config = _pedantic_settings(pedantic)
 
-    if filename is None and isinstance(source, six.string_types):
+    if filename is None and isinstance(source, str):
         config['filename'] = source
     else:
         config['filename'] = filename
@@ -136,7 +131,7 @@ def parse_capabilities(source, pedantic=None, filename=None,
     """
     config = _pedantic_settings(pedantic)
 
-    if filename is None and isinstance(source, six.string_types):
+    if filename is None and isinstance(source, str):
         config['filename'] = source
     else:
         config['filename'] = filename
@@ -182,7 +177,7 @@ def parse_availability(source, pedantic=None, filename=None,
     """
     config = _pedantic_settings(pedantic)
 
-    if filename is None and isinstance(source, six.string_types):
+    if filename is None and isinstance(source, str):
         config['filename'] = source
     else:
         config['filename'] = filename
@@ -223,7 +218,7 @@ class TablesFile(Element):
         elif self.tableset:
             return repr(self.tableset)
         else:
-            return super(TablesFile, self).__repr__()
+            return super().__repr__()
 
     @xmlattribute
     def version(self):
@@ -276,7 +271,7 @@ class TablesFile(Element):
         return self._ntables
 
     def parse(self, iterator, config):
-        super(TablesFile, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         if self.tableset is None and self.table is None:
             vo_raise(E07, config=config, pos=self._pos)
@@ -304,8 +299,7 @@ class TablesFile(Element):
             yield self.table
         else:
             for schema in self.tableset.schemas:
-                for table in schema.tables:
-                    yield table
+                yield from schema.tables
 
     def get_first_table(self):
         """
@@ -358,7 +352,7 @@ class CapabilitiesFile(Element, HomogeneousList):
             else:
                 vo_raise(E10, config=config, pos=pos)
 
-        super(CapabilitiesFile, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         return self
 
@@ -377,6 +371,6 @@ class AvailabilityFile(av.Availability):
                 elif tag == 'availability':
                     break
 
-        super(AvailabilityFile, self).parse(iterator, config)
+        super().parse(iterator, config)
 
         return self

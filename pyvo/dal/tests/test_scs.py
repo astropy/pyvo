@@ -3,9 +3,6 @@
 """
 Tests for pyvo.dal.scs
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 from functools import partial
 import re
 
@@ -40,7 +37,7 @@ def test_search():
     assert len(results) == 1273
 
 
-class TestSCSService(object):
+class TestSCSService:
     def test_init(self):
         service = SCSService('http://example.com/scs')
 

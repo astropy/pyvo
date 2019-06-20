@@ -13,11 +13,6 @@ Elements with complex content are parsed with objects inherited from `Element`.
 Elements with simple content are parsed with objects inherited from `Element`
 defining a `value` property.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-import six
-
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.misc import indent
 
@@ -83,7 +78,7 @@ class ValidationLevel(ContentMixin, Element):
         self, config=None, pos=None, _name='validationLevel', validatedBy=None,
         **kwargs
     ):
-        super(ValidationLevel, self).__init__(config, pos, _name, **kwargs)
+        super().__init__(config, pos, _name, **kwargs)
 
         self._validatedby = validatedBy
 
@@ -116,7 +111,7 @@ class AccessURL(ContentMixin, Element):
     def __init__(
         self, config=None, pos=None, _name='accessURL', use=None, **kwargs
     ):
-        super(AccessURL, self).__init__(config, pos, _name, **kwargs)
+        super().__init__(config, pos, _name, **kwargs)
 
         self._use = use
 
@@ -165,7 +160,7 @@ class SecurityMethod(ContentMixin, Element):
         self, config=None, pos=None, _name='securityMethod', standardID=None,
         **kwargs
     ):
-        super(SecurityMethod, self).__init__(config, pos, _name, **kwargs)
+        super().__init__(config, pos, _name, **kwargs)
 
         self._standardid = standardID
 
@@ -224,7 +219,7 @@ class Interface(Element):
         self, config=None, pos=None, _name='interface', version='1.0',
         role=None, **kwargs
     ):
-        super(Interface, self).__init__(config, pos, _name, **kwargs)
+        super().__init__(config, pos, _name, **kwargs)
 
         self._xsi_type = kwargs.get('xsi:type')
 
@@ -357,7 +352,7 @@ class Capability(Element):
         self, config=None, pos=None, _name='capability', standardID=None,
         **kwargs
     ):
-        super(Capability, self).__init__(config, pos, _name, **kwargs)
+        super().__init__(config, pos, _name, **kwargs)
 
         self._description = None
         self._standardid = standardID
@@ -472,9 +467,9 @@ class WebService(Interface):
     The accessURL element gives the Web Service's endpoint URL.
     """
     def __init__(self, config=None, pos=None, _name='interface', **kwargs):
-        super(WebService, self).__init__(config, pos, _name, **kwargs)
+        super().__init__(config, pos, _name, **kwargs)
 
-        self._wsdlurls = HomogeneousList(six.text_type)
+        self._wsdlurls = HomogeneousList(str)
 
     @xmlelement(name='wsdlURL')
     def wsdlurls(self):

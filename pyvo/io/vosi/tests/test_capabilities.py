@@ -3,9 +3,6 @@
 """
 Tests for pyvo.io.vosi
 """
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 from operator import eq as equals
 
 import pytest
@@ -18,7 +15,7 @@ from pyvo.io.vosi.exceptions import W06
 from astropy.utils.data import get_pkg_data_filename
 
 
-class TestCapabilities(object):
+class TestCapabilities:
     def test_all(self):
         capabilities = vosi.parse_capabilities(get_pkg_data_filename(
             "data/capabilities.xml"))
