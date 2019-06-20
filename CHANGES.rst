@@ -3,6 +3,7 @@
 
 - Fix pedantic table parsing not throwing exception. [#140]
 
+- Drop support for legacy Python 2.7. [#153]
 
 0.9.3 (2019-05-30)
 ==================
