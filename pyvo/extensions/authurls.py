@@ -12,7 +12,13 @@ class AuthURLs():
             for i in c.interfaces:
                 for u in i.accessurls:
                     url = u.content
-                    methods = set([sm.standardid for sm in i.securitymethods])
+                    methods = set()
+
+                    for sm in i.securitymethods:
+                        if sm.standardid:
+                            methods.add(sm.standardid)
+                        else:
+                            methods.add('anonymous')
 
                     if not methods:
                        methods.add('anonymous')
