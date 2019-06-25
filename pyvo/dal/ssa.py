@@ -258,7 +258,7 @@ class SSAService(DALService):
         """
         return SSAQuery(
             self.baseurl, pos, diameter, band, time, format, request,
-            **keywords)
+            session=self._session, **keywords)
 
     def describe(self):
         print(self.description)
@@ -310,7 +310,7 @@ class SSAQuery(DALQuery):
 
     def __init__(
             self, baseurl, pos=None, diameter=None, band=None, time=None,
-            format=None, request="queryData", **keywords):
+            format=None, request="queryData", session=None, **keywords):
         """
         initialize the query object with a baseurl and the given parameters
 
@@ -336,13 +336,15 @@ class SSAQuery(DALQuery):
            graphical images (e.g. jpeg, png, gif; not FITS);
            "metadata" indicates that no images should be
            returned--only an empty table with complete metadata.
+        session : object
+           optional session to use for network requests
         **keywords :
            additional case insensitive parameters can be given via arbitrary
            case insensitive keyword arguments. Where there is overlap
            with the parameters set by the other arguments to
            this function, these keywords will override.
         """
-        super().__init__(baseurl)
+        super().__init__(baseurl, session=session)
 
         if pos:
             self.pos = pos
@@ -565,7 +567,7 @@ class SSAQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SSAResults(self.execute_votable(), url=self.queryurl)
+        return SSAResults(self.execute_votable(), url=self.queryurl, session=self._session)
 
 
 class SSAResults(DatalinkResultsMixin, DALResults):
@@ -642,7 +644,7 @@ class SSAResults(DatalinkResultsMixin, DALResults):
         --------
         Record
         """
-        return SSARecord(self, index)
+        return SSARecord(self, index, session=self._session)
 
 
 class SSARecord(SodaRecordMixin, DatalinkRecordMixin, Record):

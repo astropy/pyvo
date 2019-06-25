@@ -87,7 +87,7 @@ class SCSService(DALService):
     a representation of a Cone Search service
     """
 
-    def __init__(self, baseurl):
+    def __init__(self, baseurl, session=None):
         """
         instantiate a Cone Search service
 
@@ -95,8 +95,10 @@ class SCSService(DALService):
         ----------
         baseurl : str
            the base URL for submitting search queries to the service.
+        session : object
+           optional session to use for network requests
         """
-        super().__init__(baseurl)
+        super().__init__(baseurl, session=session)
 
     def _get_metadata(self):
         """
@@ -220,7 +222,7 @@ class SCSService(DALService):
         --------
         SCSQuery
         """
-        return SCSQuery(self.baseurl, pos, radius, verbosity, **keywords)
+        return SCSQuery(self.baseurl, pos, radius, verbosity, session=self._session, **keywords)
 
     def describe(self):
         print(self.description)
@@ -272,7 +274,7 @@ class SCSQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, pos=None, radius=None, verbosity=None, **keywords):
+            self, baseurl, pos=None, radius=None, verbosity=None, session=None, **keywords):
         """
         initialize the query object with a baseurl and the given parameters
 
@@ -292,8 +294,10 @@ class SCSQuery(DALQuery):
             to return in the result table.  0 means the minimum
             set of columns, 3 means as many columns as are
             available.
+        session : object
+           optional session to use for network requests
         """
-        super().__init__(baseurl)
+        super().__init__(baseurl, session=session)
 
         if pos is not None:
             self.pos = pos
@@ -406,7 +410,7 @@ class SCSQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SCSResults(self.execute_votable(), url=self.queryurl)
+        return SCSResults(self.execute_votable(), url=self.queryurl, session=self._session)
 
 
 class SCSResults(DALResults, DatalinkResultsMixin):
@@ -523,7 +527,7 @@ class SCSResults(DALResults, DatalinkResultsMixin):
         --------
         Record
         """
-        return SCSRecord(self, index)
+        return SCSRecord(self, index, session=self._session)
 
 
 class SCSRecord(DatalinkRecordMixin, Record):

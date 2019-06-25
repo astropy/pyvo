@@ -21,7 +21,7 @@ from ..io import vosi, uws
 from ..io.vosi import tapregext as tr
 
 from ..utils.formatting import para_format_desc
-from ..utils.http import session
+from ..utils.http import use_session
 
 __all__ = [
     "search", "escape", "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
@@ -96,7 +96,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         if self._tables is None:
             tables_url = '{}/tables'.format(self.baseurl)
 
-            response = session.get(tables_url, stream=True)
+            response = self._session.get(tables_url, stream=True)
 
             try:
                 response.raise_for_status()
@@ -230,7 +230,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         AsyncTAPJob
         """
         job = AsyncTAPJob.create(
-            self.baseurl, query, language, maxrec, uploads, **keywords)
+            self.baseurl, query, language, maxrec, uploads, self._session, **keywords)
         job = job.run().wait()
         job.raise_if_error()
         result = job.fetch_result()
@@ -267,7 +267,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         AsyncTAPJob
         """
         return AsyncTAPJob.create(
-            self.baseurl, query, language, maxrec, uploads, **keywords)
+            self.baseurl, query, language, maxrec, uploads, self._session, **keywords)
 
     def create_query(
             self, query=None, mode="sync", language="ADQL", maxrec=None,
@@ -295,7 +295,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             a mapping from table names to objects containing a votable.
         """
         return TAPQuery(
-            self.baseurl, query, mode, language, maxrec, uploads, **keywords)
+            self.baseurl, query, mode, language, maxrec, uploads, self._session, **keywords)
 
     def describe(self, width=None):
         """
@@ -335,7 +335,7 @@ class AsyncTAPJob:
     @classmethod
     def create(
             cls, baseurl, query, language="ADQL", maxrec=None, uploads=None,
-            **keywords):
+            session=None, **keywords):
         """
         creates a async tap job on the server under `baseurl`
 
@@ -352,15 +352,17 @@ class AsyncTAPJob:
             the maximum records to return. defaults to the service default
         uploads : dict
             a mapping from table names to objects containing a votable
+        session : object
+           optional session to use for network requests
         """
         query = TAPQuery(
             baseurl, query, mode="async", language=language, maxrec=maxrec,
-            uploads=uploads, **keywords)
+            uploads=uploads, session=session, **keywords)
         response = query.submit()
-        job = cls(response.url)
+        job = cls(response.url, session=session)
         return job
 
-    def __init__(self, url):
+    def __init__(self, url, session=None):
         """
         initialize the job object with the given url and fetch remote values
 
@@ -370,6 +372,7 @@ class AsyncTAPJob:
             the job url
         """
         self._url = url
+        self._session = use_session(session)
         self._update()
 
     def __enter__(self):
@@ -393,13 +396,13 @@ class AsyncTAPJob:
         """
         try:
             if wait_for_statechange:
-                response = session.get(
+                response = self._session.get(
                     self.url, stream=True, timeout=timeout, params={
                         "WAIT": "-1"
                     }
                 )
             else:
-                response = session.get(self.url, stream=True, timeout=timeout)
+                response = self._session.get(self.url, stream=True, timeout=timeout)
             response.raise_for_status()
         except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
@@ -451,7 +454,7 @@ class AsyncTAPJob:
     @execution_duration.setter
     def execution_duration(self, value):
         try:
-            response = session.post(
+            response = self._session.post(
                 "{}/executionduration".format(self.url),
                 data={"EXECUTIONDURATION": str(value)})
             response.raise_for_status()
@@ -487,7 +490,7 @@ class AsyncTAPJob:
             pass
 
         try:
-            response = session.post(
+            response = self._session.post(
                 "{}/destruction".format(self.url),
                 data={"DESTRUCTION": value.strftime("%Y-%m-%dT%H:%M:%SZ")})
             response.raise_for_status()
@@ -526,7 +529,7 @@ class AsyncTAPJob:
     @query.setter
     def query(self, query):
         try:
-            response = session.post(
+            response = self._session.post(
                 '{}/parameters'.format(self.url),
                 data={"QUERY": query})
             response.raise_for_status()
@@ -547,7 +550,7 @@ class AsyncTAPJob:
         }
 
         try:
-            response = session.post(
+            response = self._session.post(
                 '{}/parameters'.format(self.url),
                 data={'UPLOAD': uploads.param()},
                 files=files
@@ -606,7 +609,7 @@ class AsyncTAPJob:
         starts the job / change phase to RUN
         """
         try:
-            response = session.post(
+            response = self._session.post(
                 '{}/phase'.format(self.url), data={"PHASE": "RUN"})
             response.raise_for_status()
         except requests.RequestException as ex:
@@ -619,7 +622,7 @@ class AsyncTAPJob:
         aborts the job / change phase to ABORT
         """
         try:
-            response = session.post(
+            response = self._session.post(
                 '{}/phase'.format(self.url), data={"PHASE": "ABORT"})
             response.raise_for_status()
         except requests.RequestException as ex:
@@ -674,7 +677,7 @@ class AsyncTAPJob:
         deletes the job. this object will become invalid.
         """
         try:
-            response = session.post(self.url, data={"ACTION": "DELETE"})
+            response = self._session.post(self.url, data={"ACTION": "DELETE"})
             response.raise_for_status()
         except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
@@ -698,7 +701,7 @@ class AsyncTAPJob:
         returns the result votable if query is finished
         """
         try:
-            response = session.get(self.result_uri, stream=True)
+            response = self._session.get(self.result_uri, stream=True)
             response.raise_for_status()
         except requests.RequestException as ex:
             self._update()
@@ -708,7 +711,7 @@ class AsyncTAPJob:
 
         response.raw.read = partial(
             response.raw.read, decode_content=True)
-        return TAPResults(votableparse(response.raw.read), url=self.result_uri)
+        return TAPResults(votableparse(response.raw.read), url=self.result_uri, session=self._session)
 
 
 class TAPQuery(DALQuery):
@@ -733,7 +736,7 @@ class TAPQuery(DALQuery):
 
     def __init__(
             self, baseurl, query, mode="sync", language="ADQL", maxrec=None,
-            uploads=None, **keywords):
+            uploads=None, session=None, **keywords):
         """
         initialize the query object with the given parameters
 
@@ -751,10 +754,12 @@ class TAPQuery(DALQuery):
             the amount of records to fetch
         uploads : dict
             Files to upload. Uses table name as key and table content as value.
+        session : object
+           optional session to use for network requests
         """
         baseurl = baseurl.rstrip("?")
 
-        super().__init__(baseurl, **keywords)
+        super().__init__(baseurl, session=session, **keywords)
 
         self._mode = mode if mode in ("sync", "async") else "sync"
         self._uploads = UploadList.fromdict(uploads or {})
@@ -807,7 +812,7 @@ class TAPQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return TAPResults(self.execute_votable(), url=self.queryurl)
+        return TAPResults(self.execute_votable(), url=self.queryurl, session=self._session)
 
     def submit(self):
         """
@@ -824,7 +829,7 @@ class TAPQuery(DALQuery):
             if upload.is_inline
         }
 
-        response = session.post(
+        response = self._session.post(
             url, data=self, stream=True, files=files)
         # requests doesn't decode the content by default
         response.raw.read = partial(response.raw.read, decode_content=True)

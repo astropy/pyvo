@@ -120,7 +120,7 @@ class SIAService(DALService):
     a representation of an SIA service
     """
 
-    def __init__(self, baseurl):
+    def __init__(self, baseurl, session=None):
         """
         instantiate an SIA service
 
@@ -128,8 +128,10 @@ class SIAService(DALService):
         ----------
         baseurl : str
            the base URL for submitting search queries to the service.
+        session : object
+           optional session to use for network requests
         """
-        super().__init__(baseurl)
+        super().__init__(baseurl, session=session)
 
     def _get_metadata(self):
         """
@@ -313,7 +315,7 @@ class SIAService(DALService):
         SIAQuery
         """
         return SIAQuery(
-            self.baseurl, pos, size, format, intersect, verbosity, **keywords)
+            self.baseurl, pos, size, format, intersect, verbosity, self._session, **keywords)
 
     def describe(self):
         print(self.description)
@@ -342,7 +344,7 @@ class SIAQuery(DALQuery):
 
     def __init__(
             self, baseurl, pos=None, size=None, format=None, intersect=None,
-            verbosity=None, **keywords):
+            verbosity=None, session=None, **keywords):
         """
         initialize the query object with a baseurl and the given parameters
 
@@ -384,13 +386,15 @@ class SIAQuery(DALQuery):
             an integer value that indicates the volume of columns
             to return in the result table.  0 means the minimum
             set of columsn, 3 means as many columns as are  available.
+        session : object
+           optional session to use for network requests
         **keywords :
             additional parameters can be given via arbitrary
             case insensitive keyword arguments. Where there is overlap
             with the parameters set by the other arguments to
             this function, these keywords will override.
         """
-        super().__init__(baseurl, **keywords)
+        super().__init__(baseurl, session=session, **keywords)
 
         if pos:
             self.pos = pos
@@ -565,7 +569,7 @@ class SIAQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SIAResults(self.execute_votable(), url=self.queryurl)
+        return SIAResults(self.execute_votable(), url=self.queryurl, session=self._session)
 
 
 class SIAResults(DatalinkResultsMixin, DALResults):
@@ -643,7 +647,7 @@ class SIAResults(DatalinkResultsMixin, DALResults):
         --------
         Record
         """
-        return SIARecord(self, index)
+        return SIARecord(self, index, session=self._session)
 
 
 class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):

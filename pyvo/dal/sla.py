@@ -71,7 +71,7 @@ class SLAService(DALService):
     """
     a representation of an spectral line catalog (SLA) service
     """
-    def __init__(self, baseurl):
+    def __init__(self, baseurl, session=None):
         """
         instantiate an SLA service
 
@@ -79,8 +79,10 @@ class SLAService(DALService):
         ----------
         baseurl : str
            the base URL for submitting search queries to the service.
+        session : object
+           optional session to use for network requests
         """
-        super().__init__(baseurl,)
+        super().__init__(baseurl, session=session)
 
     def _get_metadata(self):
         """
@@ -187,7 +189,7 @@ class SLAService(DALService):
         --------
         SLAQuery
         """
-        return SLAQuery(self.baseurl, wavelength, request, **keywords)
+        return SLAQuery(self.baseurl, wavelength, request, session=self._session, **keywords)
 
     def describe(self):
         print(self.description)
@@ -239,7 +241,8 @@ class SLAQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, wavelength=None, request="queryData", **keywords):
+            self, baseurl, wavelength=None, request="queryData", session=None,
+            **keywords):
         """
         initialize the query object with a baseurl and the given parameters
 
@@ -250,13 +253,15 @@ class SLAQuery(DALQuery):
         wavelength : `~astropy.units.Quantity` class or sequence of two floats
             the bandwidth range the observations belong to.
             assuming meters if unit is not specified.
+        session : object
+           optional session to use for network requests
         **keywords :
             additional parameters can be given via arbitrary
             case insensitive keyword arguments. Where there is overlap
             with the parameters set by the other arguments to
             this function, these keywords will override.
         """
-        super().__init__(baseurl)
+        super().__init__(baseurl, session=session)
 
         if wavelength is not None:
             self.wavelength = wavelength
@@ -337,7 +342,7 @@ class SLAQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SLAResults(self.execute_votable(), self.queryurl)
+        return SLAResults(self.execute_votable(), self.queryurl, session=self._session)
 
 
 class SLAResults(DALResults):
@@ -416,7 +421,7 @@ class SLAResults(DALResults):
         --------
         Record
         """
-        return SLARecord(self, index)
+        return SLARecord(self, index, session=self._session)
 
 
 class SLARecord(Record):
