@@ -11,6 +11,7 @@ from .exceptions import DALServiceError
 from ..io import vosi
 from ..utils.url import url_sibling
 from ..utils.decorators import stream_decode_content, response_decode_content
+from ..utils.http import use_session
 
 __all__ = [
     'AvailabilityMixin', 'CapabilityMixin', 'VOSITables']
@@ -28,7 +29,7 @@ class AvailabilityMixin:
         """
         avail_url = '{}/availability'.format(self.baseurl)
 
-        response = requests.get(avail_url, stream=True)
+        response = self._session.get(avail_url, stream=True)
 
         try:
             response.raise_for_status()
@@ -73,7 +74,7 @@ class CapabilityMixin:
 
         for capa_url in capa_urls:
             try:
-                response = requests.get(capa_url, stream=True)
+                response = self._session.get(capa_url, stream=True)
                 response.raise_for_status()
                 break
             except requests.RequestException:
@@ -109,7 +110,7 @@ class TablesMixin(CapabilityMixin):
 
         for tables_url in tables_urls:
             try:
-                response = requests.get(tables_url, stream=True)
+                response = self._session.get(tables_url, stream=True)
                 response.raise_for_status()
                 break
             except requests.RequestException:
@@ -130,10 +131,11 @@ class VOSITables:
     Access to table names is like accessing dictionary keys. using iterator
     syntax or `keys()`
     """
-    def __init__(self, vosi_tables, endpoint_url):
+    def __init__(self, vosi_tables, endpoint_url, session=None):
         self._vosi_tables = vosi_tables
         self._endpoint_url = endpoint_url
         self._cache = {}
+        self._session = use_session(session)
 
     def __len__(self):
         return self._vosi_tables.ntables
@@ -167,7 +169,7 @@ class VOSITables:
 
     @response_decode_content
     def _get_table_file(self, tables_url):
-        return requests.get(tables_url, stream=True)
+        return self._session.get(tables_url, stream=True)
 
     def keys(self):
         """
