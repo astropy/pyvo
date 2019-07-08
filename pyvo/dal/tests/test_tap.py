@@ -3,12 +3,7 @@
 Tests for pyvo.dal.tap
 """
 from functools import partial
-
-try:
-    from contextlib import ExitStack
-except ImportError:
-    from contextlib2 import ExitStack
-
+from contextlib import ExitStack
 import re
 from io import BytesIO
 from urllib.parse import parse_qsl
@@ -54,144 +49,144 @@ def sync_fixture(mocker):
         yield matcher
 
 
-@pytest.fixture()
-def async_fixture(mocker):
-    class Callback:
-        def __init__(self):
-            self._jobs = dict()
+class MockAsyncTAPServer:
+    def __init__(self):
+        self._jobs = dict()
 
-        def create(self, request, context):
-            newid = max(list(self._jobs.keys()) or [0]) + 1
+    def use(self, mocker):
+        with ExitStack() as stack:
+            matchers = {
+                'create': stack.enter_context(mocker.register_uri(
+                    'POST', 'http://example.com/tap/async',
+                    content=self.create
+                )),
+                'job': stack.enter_context(mocker.register_uri(
+                    requests_mock.ANY, job_re_path_full, content=self.job
+                )),
+                'phase': stack.enter_context(mocker.register_uri(
+                    requests_mock.ANY, job_re_phase_full, content=self.phase
+                )),
+                'parameters': stack.enter_context(mocker.register_uri(
+                    requests_mock.ANY, job_re_parameters_full,
+                    content=self.parameters
+                )),
+                'result': stack.enter_context(mocker.register_uri(
+                    'GET', job_re_result_full, content=self.result
+                ))
+            }
+            yield matchers
+
+    def create(self, request, context):
+        newid = max(list(self._jobs.keys()) or [0]) + 1
+        data = dict(parse_qsl(request.body))
+
+        job = JobFile()
+        job.version = "1.1"
+        job.jobid = newid
+        job.phase = 'PENDING'
+        job.quote = Time.now() + TimeDelta(1, format='sec')
+        job.creationtime = Time.now()
+        job.executionduration = TimeDelta(3600, format='sec')
+        job.destruction = Time.now() + TimeDelta(3600, format='sec')
+
+        for key, value in data.items():
+            param = Parameter(id=key.lower())
+            param.content = value
+            job.parameters.append(param)
+
+        context.status_code = 303
+        context.reason = 'See other'
+        context.headers['Location'] = (
+            'http://example.com/tap/async/{}'.format(newid))
+
+        self._jobs[newid] = job
+
+    def job(self, request, context):
+        jobid = int(job_re_path.match(request.path).group(1))
+
+        if request.method == 'GET':
+            job = self._jobs[jobid]
+            io = BytesIO()
+            job.to_xml(io)
+            return io.getvalue()
+        elif request.method == 'POST':
+            data = dict(parse_qsl(request.body))
+            action = data.get('ACTION')
+
+            if action == 'DELETE':
+                del self._jobs[jobid]
+
+    def phase(self, request, context):
+        jobid = int(job_re_path.match(request.path).group(1))
+
+        if request.method == 'GET':
+            phase = self._jobs[jobid].phase
+            return phase
+        elif request.method == 'POST':
+            newphase = request.body.split('=')[-1]
+            job = self._jobs[jobid]
+            result = get_pkg_data_contents('data/tap/obscore-image.xml')
+
+            if newphase == 'RUN':
+                newphase = 'COMPLETED'
+                result = Result(**{
+                    'id': 'result',
+                    'size': len(result),
+                    'mime-type': 'application/x-votable+xml',
+                    'xlink:href': (
+                        'http://example.com/tap/async/{}/results/result'
+                    ).format(jobid)
+                })
+
+                try:
+                    job.results[0] = result
+                except (IndexError, TypeError):
+                    job.results.append(result)
+
+            job.phase = newphase
+
+    def parameters(self, request, context):
+        jobid = int(job_re_path.match(request.path).group(1))
+        job = self._jobs[jobid]
+
+        if request.method == 'GET':
+            pass
+        elif request.method == 'POST':
             data = dict(parse_qsl(request.body))
 
-            job = JobFile()
-            job.version = "1.1"
-            job.jobid = newid
-            job.phase = 'PENDING'
-            job.quote = Time.now() + TimeDelta(1, format='sec')
-            job.creationtime = Time.now()
-            job.executionduration = TimeDelta(3600, format='sec')
-            job.destruction = Time.now() + TimeDelta(3600, format='sec')
+            if 'QUERY' in data:
+                assert data['QUERY'] == 'SELECT TOP 42 * FROM ivoa.obsCore'
+                for param in job.parameters:
+                    if param.id_ == 'query':
+                        param.content = data['QUERY']
+            if 'UPLOAD' in data:
+                for param in job.parameters:
+                    if param.id_ == 'upload':
+                        uploads1 = {data[0]: data[1] for data in [
+                            data.split(',') for data
+                            in data['UPLOAD'].split(';')
+                        ]}
 
-            for key, value in data.items():
-                param = Parameter(id=key.lower())
-                param.content = value
-                job.parameters.append(param)
+                        uploads2 = {data[0]: data[1] for data in [
+                            data.split(',') for data
+                            in param.content.split(';')
+                        ]}
 
-            context.status_code = 303
-            context.reason = 'See other'
-            context.headers['Location'] = (
-                'http://example.com/tap/async/{}'.format(newid))
+                        uploads1.update(uploads2)
 
-            self._jobs[newid] = job
+                        param.content = ';'.join([
+                            '{}={}'.format(key, value) for key, value
+                            in uploads1.items()
+                        ])
 
-        def job(self, request, context):
-            jobid = int(job_re_path.match(request.path).group(1))
+    def result(self, request, context):
+        return get_pkg_data_contents('data/tap/obscore-image.xml')
 
-            if request.method == 'GET':
-                job = self._jobs[jobid]
-                io = BytesIO()
-                job.to_xml(io)
-                return io.getvalue()
-            elif request.method == 'POST':
-                data = dict(parse_qsl(request.body))
-                action = data.get('ACTION')
 
-                if action == 'DELETE':
-                    del self._jobs[jobid]
-
-        def phase(self, request, context):
-            jobid = int(job_re_path.match(request.path).group(1))
-
-            if request.method == 'GET':
-                phase = self._jobs[jobid].phase
-                return phase
-            elif request.method == 'POST':
-                newphase = request.body.split('=')[-1]
-                job = self._jobs[jobid]
-                result = get_pkg_data_contents('data/tap/obscore-image.xml')
-
-                if newphase == 'RUN':
-                    newphase = 'COMPLETED'
-                    result = Result(**{
-                        'id': 'result',
-                        'size': len(result),
-                        'mime-type': 'application/x-votable+xml',
-                        'xlink:href': (
-                            'http://example.com/tap/async/{}/results/result'
-                        ).format(jobid)
-                    })
-
-                    try:
-                        job.results[0] = result
-                    except (IndexError, TypeError):
-                        job.results.append(result)
-
-                job.phase = newphase
-
-        def parameters(self, request, context):
-            jobid = int(job_re_path.match(request.path).group(1))
-            job = self._jobs[jobid]
-
-            if request.method == 'GET':
-                pass
-            elif request.method == 'POST':
-                data = dict(parse_qsl(request.body))
-
-                if 'QUERY' in data:
-                    assert data['QUERY'] == 'SELECT TOP 42 * FROM ivoa.obsCore'
-                    for param in job.parameters:
-                        if param.id_ == 'query':
-                            param.content = data['QUERY']
-                if 'UPLOAD' in data:
-                    for param in job.parameters:
-                        if param.id_ == 'upload':
-                            uploads1 = {data[0]: data[1] for data in [
-                                data.split(',') for data
-                                in data['UPLOAD'].split(';')
-                            ]}
-
-                            uploads2 = {data[0]: data[1] for data in [
-                                data.split(',') for data
-                                in param.content.split(';')
-                            ]}
-
-                            uploads1.update(uploads2)
-
-                            param.content = ';'.join([
-                                '{}={}'.format(key, value) for key, value
-                                in uploads1.items()
-                            ])
-
-        def result(self, request, context):
-            # jobid = int(job_re_path.match(request.path)[1])
-            return get_pkg_data_contents('data/tap/obscore-image.xml')
-
-    callback = Callback()
-
-    with ExitStack() as stack:
-        matchers = {
-            'create': stack.enter_context(mocker.register_uri(
-                'POST', 'http://example.com/tap/async',
-                content=callback.create
-            )),
-            'job': stack.enter_context(mocker.register_uri(
-                requests_mock.ANY, job_re_path_full, content=callback.job
-            )),
-            'phase': stack.enter_context(mocker.register_uri(
-                requests_mock.ANY, job_re_phase_full, content=callback.phase
-            )),
-            'parameters': stack.enter_context(mocker.register_uri(
-                requests_mock.ANY, job_re_parameters_full,
-                content=callback.parameters
-            )),
-
-            'result': stack.enter_context(mocker.register_uri(
-                'GET', job_re_result_full, content=callback.result
-            ))
-        }
-
-        yield matchers
+@pytest.fixture()
+def async_fixture(mocker):
+    mock_server = MockAsyncTAPServer()
+    yield from mock_server.use(mocker)
 
 
 @pytest.fixture()
