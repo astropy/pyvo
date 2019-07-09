@@ -53,6 +53,9 @@ class MockAsyncTAPServer:
     def __init__(self):
         self._jobs = dict()
 
+    def validator(self, request):
+        pass
+
     def use(self, mocker):
         with ExitStack() as stack:
             matchers = {
@@ -77,6 +80,7 @@ class MockAsyncTAPServer:
             yield matchers
 
     def create(self, request, context):
+        self.validator(request)
         newid = max(list(self._jobs.keys()) or [0]) + 1
         data = dict(parse_qsl(request.body))
 
@@ -102,6 +106,7 @@ class MockAsyncTAPServer:
         self._jobs[newid] = job
 
     def job(self, request, context):
+        self.validator(request)
         jobid = int(job_re_path.match(request.path).group(1))
 
         if request.method == 'GET':
@@ -117,6 +122,7 @@ class MockAsyncTAPServer:
                 del self._jobs[jobid]
 
     def phase(self, request, context):
+        self.validator(request)
         jobid = int(job_re_path.match(request.path).group(1))
 
         if request.method == 'GET':
@@ -146,6 +152,7 @@ class MockAsyncTAPServer:
             job.phase = newphase
 
     def parameters(self, request, context):
+        self.validator(request)
         jobid = int(job_re_path.match(request.path).group(1))
         job = self._jobs[jobid]
 
@@ -180,6 +187,7 @@ class MockAsyncTAPServer:
                         ])
 
     def result(self, request, context):
+        self.validator(request)
         return get_pkg_data_contents('data/tap/obscore-image.xml')
 
 
