@@ -54,10 +54,7 @@ setup_cfg = dict(conf.items('metadata'))
 # -- General configuration ----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-# needs_sphinx = '1.2'
-# astropy_helpers sets 1.2 as the required default; forcing 1.1 seems to
-# work fine, but this may need to change
-needs_sphinx = '1.1'
+needs_sphinx = '1.7'
 
 # To perform a Sphinx version check that needs to be more specific than
 # major.minor, call `check_sphinx_version("x.y.z")` here.
