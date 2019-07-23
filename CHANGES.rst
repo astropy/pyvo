@@ -5,6 +5,9 @@
 
 - Drop support for legacy Python 2.7. [#153]
 
+- Sphinx 1.7 or higher is needed to build the documentation. [#160]
+
+
 0.9.3 (2019-05-30)
 ==================
 
