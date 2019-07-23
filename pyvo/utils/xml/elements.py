@@ -3,7 +3,6 @@
 from inspect import getmembers
 from functools import partial
 
-from astropy.utils.misc import InheritDocstrings
 from astropy.io.votable.exceptions import warn_or_raise
 from pyvo.utils.xml.exceptions import UnknownElementWarning
 
@@ -230,7 +229,7 @@ def make_add_simplecontent(
     return add_simplecontent
 
 
-class Element(metaclass=InheritDocstrings):
+class Element:
     """
     A base class for all classes that represent XML elements.
 
