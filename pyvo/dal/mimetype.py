@@ -8,7 +8,7 @@ import mimeparse
 
 from astropy.io.fits import HDUList
 
-from ..utils.http import session
+from ..utils.http import use_session
 
 
 mimetypes.add_type('application/fits', 'fits')
@@ -56,7 +56,7 @@ def mime2extension(mimetype, default=None):
     return ext
 
 
-def mime_object_maker(url, mimetype):
+def mime_object_maker(url, mimetype, session=None):
     """
     return a data object suitable for the mimetype given.
     this will either return a astropy fits object or a pyvo DALResults object,
@@ -68,7 +68,10 @@ def mime_object_maker(url, mimetype):
         the object download url
     mimetype : str
         the content mimetype
+    session : object
+        optional session to use for network requests
     """
+    session = use_session(session)
     mimetype = mimeparse.parse_mime_type(mimetype)
 
     if mimetype[0] == 'text':

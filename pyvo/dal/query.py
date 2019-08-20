@@ -45,7 +45,7 @@ from .exceptions import (DALFormatError, DALServiceError, DALQueryError)
 from .. import samp
 
 from ..utils.decorators import stream_decode_content
-from ..utils.http import session
+from ..utils.http import use_session
 
 
 class DALService:
@@ -54,7 +54,7 @@ class DALService:
     endpoint.
     """
 
-    def __init__(self, baseurl):
+    def __init__(self, baseurl, session=None):
         """
         instantiate the service connecting it to a base URL
 
@@ -62,8 +62,11 @@ class DALService:
         ----------
         baseurl :  str
            the base URL that should be used for forming queries to the service.
+        session : object
+           optional session to use for network requests
         """
         self._baseurl = baseurl
+        self._session = use_session(session)
 
     @property
     def baseurl(self):
@@ -105,7 +108,7 @@ class DALService:
         DALQuery
            a generic query object
         """
-        q = DALQuery(self.baseurl, **keywords)
+        q = DALQuery(self.baseurl, session=self._session, **keywords)
         return q
 
     def describe(self):
@@ -119,11 +122,14 @@ class DALQuery(dict):
     functions will submit the query and return the results.
 
     The base URL for the query can be changed via the baseurl property.
+
+    A session can also optionally be passed in that will be used for
+    network transactions made by this object to remote services.
     """
 
     _ex = None
 
-    def __init__(self, baseurl, **keywords):
+    def __init__(self, baseurl, session=None, **keywords):
         """
         initialize the query object with a baseurl
         """
@@ -131,6 +137,7 @@ class DALQuery(dict):
             baseurl = baseurl.decode("utf-8")
 
         self._baseurl = baseurl.rstrip("?")
+        self._session = use_session(session)
 
         self.update({key.upper(): value for key, value in keywords.items()})
 
@@ -156,7 +163,7 @@ class DALQuery(dict):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return DALResults(self.execute_votable(), self.queryurl)
+        return DALResults(self.execute_votable(), self.queryurl, session=self._session)
 
     def execute_raw(self):
         """
@@ -198,7 +205,7 @@ class DALQuery(dict):
         url = self.queryurl
         params = {k: v for k, v in self.items()}
 
-        response = session.get(url, params=params, stream=True)
+        response = self._session.get(url, params=params, stream=True)
         return response
 
     def execute_votable(self):
@@ -257,19 +264,23 @@ class DALResults:
     """
     @classmethod
     @stream_decode_content
-    def _from_result_url(cls, result_url):
+    def _from_result_url(cls, result_url, session):
         return session.get(result_url, stream=True).raw
 
     @classmethod
-    def from_result_url(cls, result_url):
+    def from_result_url(cls, result_url, session=None):
         """
         Create a result object from a url.
-        """
-        return cls(
-            votableparse(cls._from_result_url(result_url).read),
-            url=result_url)
 
-    def __init__(self, votable, url=None):
+        Uses the optional session to make the request.
+        """
+        session = use_session(session)
+        return cls(
+            votableparse(cls._from_result_url(result_url, session).read),
+            url=result_url,
+            session=session)
+
+    def __init__(self, votable, url=None, session=None):
         """
         initialize the cursor.  This constructor is not typically called
         by directly applications; rather an instance is obtained from calling
@@ -282,6 +293,8 @@ class DALResults:
            astropy.io.votable.tree.VOTableFile instance.
         url : str
            the URL that produced the response
+        session : object
+           optional session to use for network requests
 
         Raises
         ------
@@ -295,6 +308,8 @@ class DALResults:
         self._votable = votable
 
         self._url = url
+        self._session = use_session(session)
+
         self._status = self._findstatus(votable)
         if self._status[0].lower() not in ("ok", "overflow"):
             raise DALQueryError(self._status[1], self._status[0], url)
@@ -525,7 +540,7 @@ class DALResults:
         --------
         Record
         """
-        return Record(self, index)
+        return Record(self, index, session=self._session)
 
     def getvalue(self, name, index):
         """
@@ -611,9 +626,10 @@ class Record(Mapping):
     additional functions for access to service type-specific data.
     """
 
-    def __init__(self, results, index):
+    def __init__(self, results, index, session=None):
         self._results = results
         self._index = index
+        self._session = use_session(session)
         self._mapping = collections.OrderedDict(
             zip(
                 results.fieldnames,
@@ -738,9 +754,9 @@ class Record(Mapping):
             raise KeyError("no dataset access URL recognized in record")
 
         if timeout:
-            response = session.get(url, stream=True, timeout=timeout)
+            response = self._session.get(url, stream=True, timeout=timeout)
         else:
-            response = session.get(url, stream=True)
+            response = self._session.get(url, stream=True)
 
         response.raise_for_status()
         return response.raw

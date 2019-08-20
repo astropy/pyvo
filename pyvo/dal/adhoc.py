@@ -17,7 +17,6 @@ from astropy.io.votable.tree import Resource, Group
 from astropy.utils.collections import HomogeneousList
 
 from ..utils.decorators import stream_decode_content
-from ..utils.http import session
 
 
 # monkeypatch astropy with group support in RESOURCE
@@ -89,8 +88,8 @@ class AdhocServiceResultsMixin:
     """
     Mixing for adhoc:service functionallity for results classes.
     """
-    def __init__(self, votable, url=None):
-        super().__init__(votable, url=url)
+    def __init__(self, votable, url=None, session=None):
+        super().__init__(votable, url=url, session=session)
 
         self._adhocservices = list(
             resource for resource in votable.resources
@@ -178,7 +177,7 @@ class DatalinkRecordMixin:
     def getdataset(self, timeout=None):
         try:
             url = next(self.getdatalink().bysemantics('#this')).access_url
-            response = session.get(url, stream=True, timeout=timeout)
+            response = self._session.get(url, stream=True, timeout=timeout)
             response.raise_for_status()
             return response.raw
         except (DALServiceError, ValueError, StopIteration):
@@ -191,7 +190,7 @@ class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
     a representation of a Datalink service
     """
 
-    def __init__(self, baseurl):
+    def __init__(self, baseurl, session=None):
         """
         instantiate a Datalink service
 
@@ -199,8 +198,17 @@ class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
         ----------
         baseurl :  str
            the base URL that should be used for forming queries to the service.
+        session : object
+           optional session to use for network requests
         """
-        super().__init__(baseurl)
+        super().__init__(baseurl, session=session)
+
+        # Check if the session has an update_from_capabilities attribute.
+        # This means that the session is aware of IVOA capabilities,
+        # and can use this information in processing network requests.
+        # One such usecase for this is auth.
+        if hasattr(self._session, 'update_from_capabilities'):
+            self._session.update_from_capabilities(self.capabilities)
 
     def run_sync(self, id, responseformat=None, **keywords):
         """
@@ -258,6 +266,9 @@ class DatalinkQuery(DALQuery):
     :py:attr:`~pyvo.dal.query.DALQuery.baseurl` to send a configured
     query to another service.
 
+    A session can also optionally be passed in that will be used for
+    network transactions made by this object to remote services.
+
     In addition to the search constraint attributes described below, search
     parameters can be set generically by name via dict semantics.
     The typical function for submitting the query is ``execute()``; however,
@@ -265,7 +276,7 @@ class DatalinkQuery(DALQuery):
     allowing the caller to take greater control of the result processing.
     """
     @classmethod
-    def from_resource(cls, row, resource, **kwargs):
+    def from_resource(cls, row, resource, session=None, **kwargs):
         """
         Creates a instance from a Record and a Datalink Resource.
 
@@ -313,10 +324,10 @@ class DatalinkQuery(DALQuery):
             except KeyError:
                 query_params[name] = query_param
 
-        return cls(accessurl, **query_params)
+        return cls(accessurl, session=session, **query_params)
 
     def __init__(
-            self, baseurl, id=None, responseformat=None, **keywords):
+            self, baseurl, id=None, responseformat=None, session=None, **keywords):
         """
         initialize the query object with the given parameters
 
@@ -328,8 +339,10 @@ class DatalinkQuery(DALQuery):
             the dataset identifier
         responseformat : str
             the output format
+        session : object
+            optional session to use for network requests
         """
-        super().__init__(baseurl, **keywords)
+        super().__init__(baseurl, session=session, **keywords)
 
         if id:
             self["ID"] = id
@@ -350,7 +363,7 @@ class DatalinkQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return DatalinkResults(self.execute_votable(), url=self.queryurl)
+        return DatalinkResults(self.execute_votable(), url=self.queryurl, session=self._session)
 
 
 class DatalinkResults(DatalinkResultsMixin, DALResults):
@@ -424,7 +437,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         --------
         Record
         """
-        return DatalinkRecord(self, index)
+        return DatalinkRecord(self, index, session=self._session)
 
     def bysemantics(self, semantics):
         """

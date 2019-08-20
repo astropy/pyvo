@@ -7,6 +7,7 @@
 
 - Sphinx 1.7 or higher is needed to build the documentation. [#160]
 
+- Add support for authenticated requests. [#157]
 
 0.9.3 (2019-05-30)
 ==================
