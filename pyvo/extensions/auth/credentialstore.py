@@ -2,6 +2,8 @@ import logging
 
 from pyvo.utils.http import create_session
 
+import pyvo.extensions.auth.securitymethods as securitymethods
+
 
 class CredentialStore(object):
     """
@@ -21,7 +23,8 @@ class CredentialStore(object):
     """
 
     def __init__(self):
-        self.credentials = {'anonymous': create_session()}
+        self.credentials = {}
+        self.set(securitymethods.ANONYMOUS, create_session())
 
     def negotiate_method(self, allowed_methods):
         """
@@ -51,7 +54,7 @@ class CredentialStore(object):
         # If there are more than 1 method to pick, don't pick
         # anonymous over an actual method.
         if len(methods) > 1:
-            methods.discard('anonymous')
+            methods.discard(securitymethods.ANONYMOUS)
 
         # Pick a random method.
         return methods.pop()
@@ -100,7 +103,7 @@ class CredentialStore(object):
         path : str
             restrict usage of this cookie to this path
         """
-        cookie_session = self.credentials.setdefault('ivo://ivoa.net/sso#cookie', create_session())
+        cookie_session = self.credentials.setdefault(securitymethods.COOKIE, create_session())
         cookie_session.cookies.set(cookie_name, cookie_value, domain=domain, path=path)
 
     def set_cookie_jar(self, cookie_jar):
@@ -114,7 +117,7 @@ class CredentialStore(object):
         cookie_jar : obj
             the cookie jar to use.
         """
-        cookie_session = self.credentials.setdefault('ivo://ivoa.net/sso#cookie', create_session())
+        cookie_session = self.credentials.setdefault(securitymethods.COOKIE, create_session())
         cookie_session.cookies = cookie_jar
 
     def set_client_certificate(self, certificate_path):
@@ -128,7 +131,7 @@ class CredentialStore(object):
         """
         cert_session = create_session()
         cert_session.cert = certificate_path
-        self.set('ivo://ivoa.net/sso#tls-with-certificate', cert_session)
+        self.set(securitymethods.CLIENT_CERTIFICATE, cert_session)
 
     def set_password(self, username, password):
         """
@@ -143,7 +146,7 @@ class CredentialStore(object):
         """
         basic_session = create_session()
         basic_session.auth = (username, password)
-        self.set('ivo://ivoa.net/sso#BasicAA', basic_session)
+        self.set(securitymethods.BASIC, basic_session)
 
     def __repr__(self):
         return 'Support for %s' % self.credentials.keys()

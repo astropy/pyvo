@@ -9,6 +9,7 @@ import requests
 
 import pyvo
 import pyvo.extensions.auth.authsession
+from pyvo.extensions.auth.securitymethods import ANONYMOUS
 
 # Gather login information
 data = {
@@ -30,7 +31,7 @@ response.raise_for_status()
 
 # Use this session with the auth cookie for all requests to Gaia.
 auth = pyvo.extensions.auth.authsession.AuthSession()
-auth.credentials.set('anonymous', session)
+auth.credentials.set(ANONYMOUS, session)
 service = pyvo.dal.TAPService('http://gea.esac.esa.int/tap-server/tap', auth)
 job = service.search('SELECT * from TAP_SCHEMA.tables')
 print(job)

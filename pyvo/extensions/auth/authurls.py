@@ -1,6 +1,8 @@
 import collections
 import logging
 
+import pyvo.extensions.auth.securitymethods as securitymethods
+
 
 class AuthURLs():
     """
@@ -30,10 +32,10 @@ class AuthURLs():
                     exact = u.use == 'full'
 
                     if not i.securitymethods:
-                        self.add_security_method_for_url(url, 'anonymous', exact)
+                        self.add_security_method_for_url(url, securitymethods.ANONYMOUS, exact)
 
                     for sm in i.securitymethods:
-                        method = sm.standardid or 'anonymous'
+                        method = sm.standardid or securitymethods.ANONYMOUS
                         self.add_security_method_for_url(url, method, exact)
 
     def add_security_method_for_url(self, url, security_method, exact=False):
@@ -81,7 +83,7 @@ class AuthURLs():
                 return methods
 
         logging.debug('No match, using anonymous auth')
-        return {'anonymous'}
+        return {securitymethods.ANONYMOUS}
 
     def _iterate_base_urls(self):
         """
