@@ -399,7 +399,7 @@ class SIAQuery(DALQuery):
         if pos:
             self.pos = pos
 
-        if size:
+        if size is not None:
             self.size = size
 
         if format:
