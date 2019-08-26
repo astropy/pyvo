@@ -349,7 +349,7 @@ class SSAQuery(DALQuery):
         if pos:
             self.pos = pos
 
-        if diameter:
+        if diameter is not None:
             self.diameter = diameter
 
         if band:
