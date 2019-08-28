@@ -9,6 +9,8 @@
 
 - Add support for authenticated requests. [#157]
 
+- Replace example's usage of pyvo.object2pos() with SkyCoord.from_name() [#171]
+
 0.9.3 (2019-05-30)
 ==================
 
