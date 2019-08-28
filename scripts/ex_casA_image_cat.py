@@ -1,11 +1,12 @@
 #! /usr/bin/env python
+from astropy.coordinates import SkyCoord
 import pyvo as vo
 
 # find archives with x-ray images
 archives = vo.regsearch(servicetype='image', waveband='xray')
 
 # position of my favorite source
-pos = vo.object2pos('Cas A')
+pos = SkyCoord.from_name('Cas A')
 
 # find images and list in a file
 with open('cas-a.csv', 'w') as csv:

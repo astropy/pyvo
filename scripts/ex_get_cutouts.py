@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from astropy.coordinates import SkyCoord
 import pyvo as vo
 import os
 
@@ -6,7 +7,7 @@ import os
 sourcenames = ["ngc4258", "m101", "m51"]
 mysources = {}
 for src in sourcenames:
-    mysources[src] = vo.object2pos(src)
+    mysources[src] = SkyCoord.from_name(src)
 
 # create an output directory for cutouts
 if not os.path.exists("NVSSimages"):
