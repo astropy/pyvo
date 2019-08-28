@@ -83,8 +83,7 @@ class Reference(UWSElement):
 class JobSummary(Element):
     def __init__(self, config=None, pos=None, _name='job', **kwargs):
         super().__init__(config, pos, _name, **kwargs)
-
-        self._jobid = None
+        self._jobid = kwargs.get('id')
         self._runid = None
         self._ownerid = None
         self._phase = None
@@ -96,10 +95,6 @@ class JobSummary(Element):
         self._destruction = None
         self._parameters = Parameters()
         self._results = Results()
-
-    def parse(self, iterator, config):
-        super().parse(iterator, config)
-        return self
 
     @uwselement(name='jobId', plain=True)
     def jobid(self):
@@ -220,7 +215,8 @@ class JobSummary(Element):
 
     @executionduration.formatter
     def executionduration(self):
-        return str(int(self._executionduration.value))
+        if self.executionduration:
+            return str(int(self._executionduration.value))
 
     @uwselement(plain=True)
     def destruction(self):
@@ -261,7 +257,26 @@ class JobSummary(Element):
         self._results = results
 
 
+class JobList(UWSElement, HomogeneousList):
+    def __init__(self, config=None, pos=None, _name='jobs', **kwargs):
+        HomogeneousList.__init__(self, JobSummary)
+        UWSElement.__init__(self, config, pos, _name, **kwargs)
+
+    @uwselement(name='jobref')
+    def jobs(self):
+        return self
+
+    @jobs.adder
+    def jobs(self, iterator, tag, data, config, pos):
+        job = JobSummary(config, pos, 'jobref', **data)
+        job.parse(iterator, config)
+        self.append(job)
+
+
 class Parameters(UWSElement, HomogeneousList):
+    """
+    Parameters element of a job
+    """
     def __init__(self, config=None, pos=None, _name='parameters', **kwargs):
         HomogeneousList.__init__(self, Parameter)
         UWSElement.__init__(self, config, pos, _name, **kwargs)
