@@ -76,11 +76,6 @@ cmdclassd = register_commands(PACKAGENAME, VERSION, RELEASE)
 generate_version_py(PACKAGENAME, VERSION, RELEASE,
                     get_debug_option(PACKAGENAME))
 
-# Treat everything in scripts except README* as a script to be installed
-scripts = [fname for fname in glob.glob(os.path.join('scripts', '*'))
-           if not os.path.basename(fname).startswith('README')]
-
-
 # Get configuration information from all of the various subpackages.
 # See the docstring for setup_helpers.update_package_files for more
 # details.
@@ -117,7 +112,6 @@ package_info['package_data'][PACKAGENAME].extend(c_files)
 setup(name=PACKAGENAME,
       version=VERSION,
       description=DESCRIPTION,
-      scripts=scripts,
       python_requires='>=3.5',
       install_requires=metadata.get('install_requires', 'astropy').strip().split(),
       author=AUTHOR,

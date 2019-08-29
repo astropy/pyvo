@@ -11,6 +11,8 @@
 
 - Replace example's usage of pyvo.object2pos() with SkyCoord.from_name() [#171]
 
+- Stop installing files from scripts to /usr/local/bin. Move them to examples/images instead. [#166]
+
 0.9.3 (2019-05-30)
 ==================
 
