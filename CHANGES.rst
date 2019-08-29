@@ -13,6 +13,8 @@
 
 - Stop installing files from scripts to /usr/local/bin. Move them to examples/images instead. [#166]
 
+- Update ex_casA_image_cat example. [#172]
+
 0.9.3 (2019-05-30)
 ==================
 
