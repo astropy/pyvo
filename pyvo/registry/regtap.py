@@ -83,7 +83,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
             "No search parameters passed to registry search")
 
     wheres = list()
-    wheres.append("intf_type = 'vs:paramhttp'")
+    wheres.append("intf_role = 'std'")
 
     if keywords:
         def _unions():
