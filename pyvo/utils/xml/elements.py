@@ -3,13 +3,65 @@
 from inspect import getmembers
 from functools import partial
 
+from astropy.utils.xml import iterparser
 from astropy.io.votable.exceptions import warn_or_raise
 from pyvo.utils.xml.exceptions import UnknownElementWarning
 
 __all__ = [
     "xmlattribute", "xmlelement",
     "make_add_complexcontent", "make_add_simplecontent",
-    "Element", "ContentMixin"]
+    "Element", "ContentMixin", "parse_for_object"]
+
+
+def parse_for_object(
+    source, object_type, pedantic=None, filename=None,
+        _debug_python_based_parser=False
+):
+    """
+    Parses an xml file (or file-like object), and returns a
+    object of specified object_type. object_type must be a subtype of
+    `~pyvo.utils.xml.elements.Element` type
+
+    Parameters
+    ----------
+    source : str or readable file-like object
+        Path or file object containing a tableset xml file.
+    object : object type to return (subtype `~pyvo.utils.xml.elements.Element`)
+    pedantic : bool, optional
+        When `True`, raise an error when the file violates the spec,
+        otherwise issue a warning.  Warnings may be controlled using
+        the standard Python mechanisms.  See the `warnings`
+        module in the Python standard library for more information.
+        Defaults to False.
+    filename : str, optional
+        A filename, URL or other identifier to use in error messages.
+        If *filename* is None and *source* is a string (i.e. a path),
+        then *source* will be used as a filename for error messages.
+        Therefore, *filename* is only required when source is a
+        file-like object.
+
+    Returns
+    -------
+    object : `~pyvo.utils.xml.elements.Element` object or None
+
+    See also
+    --------
+    pyvo.io.vosi.exceptions : The exceptions this function may raise.
+    """
+    config = {
+        'pedantic': pedantic,
+        'filename': filename
+    }
+
+    if filename is None and isinstance(source, str):
+        config['filename'] = source
+
+    with iterparser.get_xml_iterator(
+            source,
+            _debug_python_based_parser=_debug_python_based_parser
+    ) as iterator:
+        return object_type(
+            config=config, pos=(1, 1)).parse(iterator, config)
 
 
 class xmlattribute(property):
@@ -138,6 +190,8 @@ def object_children(obj):
                 yield (child._Element__name, None, child)
     except TypeError:
         for name, child in getmembers(obj):
+            if child is None:
+                continue
             descr = getattr(objtype, name, None)
 
             if isinstance(descr, xmlelement):
@@ -283,6 +337,7 @@ class Element:
                 if tag == self._Element__name:
                     self._end_tag(tag, data, pos)
                     break
+        return self
 
     def to_xml(self, w, **kwargs):
         if self._Element__ns:

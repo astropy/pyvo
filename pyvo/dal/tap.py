@@ -26,6 +26,24 @@ from ..utils.http import use_session
 __all__ = [
     "search", "escape", "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
 
+IVOA_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+
+
+def _from_ivoa_format(datetime_str):
+    """
+    parses an ivoa date in ISO 8601 format: YYYY-MM-DDTHH:MM:SS.[mmm]Z
+
+    :param datetime_str:
+    :return: corresponding datetime object
+    """
+    # TODO Replace with datetime.fromisoformat(date_string) in Python3.7+
+    try:
+        # with fraction of seconds first
+        return datetime.strptime(datetime_str, IVOA_DATETIME_FORMAT)
+    except ValueError:
+        # and without
+        return datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%SZ")
+
 
 def escape(term):
     """
@@ -306,6 +324,75 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         return TAPQuery(
             self.baseurl, query, mode, language, maxrec, uploads, self._session, **keywords)
 
+    def get_job(self, job_id):
+        """
+        Returns the job corresponding to an ID. Note that the caller must be
+        able to see the job in the current security context.
+
+        Parameters
+        ----------
+        job_id : str
+            ID of the job to view
+
+        Returns
+        -------
+        `~pyvo.io.vosi.endpoint.JobSummary` corresponding to the job ID
+        """
+        response = self._session.get(
+            self.baseurl + '/async/' + job_id,
+            stream=True)
+        response.raw.read = partial(response.raw.read,
+                                    decode_content=True)
+        return uws.parse_job(response.raw.read)
+
+    def get_job_list(self, phases=None, after=None, last=None,
+                     short_description=True):
+        """
+        lists jobs that the caller can see in the current security context.
+        The list can be filtered on the server side by the phases of the jobs,
+        creation date time or
+        Note that by default jobs in 'ARCHIVED` phase are not returned.
+
+        Parameters
+        ----------
+        phases: list of str
+            Union of job phases to filter the results by.
+        after: datetime
+            Return only jobs created after this datetime
+        last: int
+            Return only the most recent number of jobs
+        short_description: flag - True or False
+            If True, the jobs in the list will contain only the information
+            corresponding to the TAP ShortJobDescription object (job ID, phase,
+            run ID, owner ID and creation ID) whereas if False, a separate GET
+            call to each job is performed for the complete job description.
+
+        Returns
+        -------
+        list of `~pyvo.io.vosi.endpoint.JobSummary`
+        """
+
+        params = {'PHASE': phases, 'LAST': last}
+
+        if after:
+            if isinstance(after, str):
+                after = _from_ivoa_format(after)
+            params['AFTER'] = after.strftime(IVOA_DATETIME_FORMAT)
+
+        response = self._session.get('{}/async'.format(self.baseurl),
+                                     params=params,
+                                     stream=True)
+        response.raw.read = partial(response.raw.read, decode_content=True)
+
+        jobs = uws.parse_job_list(response.raw.read)
+        if not short_description:
+            dj = []
+            for job in jobs:
+                dj.append(self.get_job(job.jobid))
+            return dj
+        else:
+            return list(jobs)
+
     def describe(self, width=None):
         """
         Print a summary description of this service.
@@ -492,16 +579,13 @@ class AsyncTAPJob:
         value : datetime
             datetime after which the job results are deleted automatically
         """
-        try:
-            # is string? easier to ask for forgiveness
-            value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
-        except ValueError:
-            pass
+        if isinstance(value, str):
+            value = _from_ivoa_format(value)
 
         try:
             response = self._session.post(
                 "{}/destruction".format(self.url),
-                data={"DESTRUCTION": value.strftime("%Y-%m-%dT%H:%M:%SZ")})
+                data={"DESTRUCTION": value.strftime(IVOA_DATETIME_FORMAT)})
             response.raise_for_status()
         except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)

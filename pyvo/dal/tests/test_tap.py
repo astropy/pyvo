@@ -4,6 +4,7 @@ Tests for pyvo.dal.tap
 """
 from functools import partial
 from contextlib import ExitStack
+import datetime
 import re
 from io import BytesIO
 from urllib.parse import parse_qsl
@@ -75,11 +76,21 @@ class MockAsyncTAPServer:
                 )),
                 'result': stack.enter_context(mocker.register_uri(
                     'GET', job_re_result_full, content=self.result
+                )),
+                'get_job': stack.enter_context(mocker.register_uri(
+                    'GET', 'http://example.com/tap/async/111',
+                    content=self.get_job
+                )),
+                'get_job_list': stack.enter_context(mocker.register_uri(
+                    'GET', 'http://example.com/tap/async',
+                    content=self.get_job_list
                 ))
             }
             yield matchers
 
     def create(self, request, context):
+        if request.method == 'GET':
+            return self.get_job_list(request, context)
         self.validator(request)
         newid = max(list(self._jobs.keys()) or [0]) + 1
         data = dict(parse_qsl(request.body))
@@ -189,6 +200,67 @@ class MockAsyncTAPServer:
     def result(self, request, context):
         self.validator(request)
         return get_pkg_data_contents('data/tap/obscore-image.xml')
+
+    def get_job(self, request, context):
+        self.validator(request)
+        jobid = int(job_re_path.match(request.path).group(1))
+
+        job = JobFile()
+        job.jobid = jobid
+        job.phase = 'EXECUTING'
+        job.ownerid = '222'
+        job.creationtime = Time.now()
+        io = BytesIO()
+        job.to_xml(io)
+        return io.getvalue()
+
+    def _get_jobref_rep(self, jobid, phase, runid, ownerid, creation_time):
+        doc = ('    <uws:jobref id="{}">\n'
+               '        <uws:phase>{}</uws:phase>\n'
+               '        <uws:runId>{}</uws:runId>\n'
+               '        <uws:ownerId>{}</uws:ownerId>\n'
+               '        <uws:creationTime>{}</uws:creationTime>\n'
+               '    </uws:jobref>\n')
+        return doc.format(jobid, phase, runid, ownerid, creation_time)
+
+    def get_job_list(self, request, context):
+        self.validator(request)
+        fields = parse_qsl(request.query)
+        phases = []
+        last = None
+        after = None
+        for arg, val in fields:
+            if arg == 'PHASE':
+                phases.append(val)
+            elif arg == 'LAST':
+                last = int(val)
+            elif arg == 'AFTER':
+                after = val
+
+        doc = '<?xml version="1.0" encoding="UTF-8"?>\n' +\
+              '<uws:jobs xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0" ' +\
+              'xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">\n'
+
+        if phases:
+            doc += self._get_jobref_rep('abc1', 'EXECUTING', 'def1', '21',
+                                        '2018-12-20T00:23:15.79')
+            doc += self._get_jobref_rep('abc2', 'EXECUTING', 'def2', '21',
+                                        '2018-12-20T00:23:15.79')
+
+        if after:
+            doc += self._get_jobref_rep('abc3', 'EXECUTING', 'def3', '21',
+                                        '2018-12-20T00:23:15.79')
+
+        if last:
+            doc += self._get_jobref_rep('abc4', 'EXECUTING', 'def4', '21',
+                                        '2018-12-20T00:23:15.79')
+            doc += self._get_jobref_rep('abc5', 'EXECUTING', 'def5', '21',
+                                        '2018-12-20T00:23:15.79')
+            doc += self._get_jobref_rep('abc6', 'EXECUTING', 'def6', '21',
+                                        '2018-12-20T00:23:15.79')
+        doc += '</uws:jobs>'
+
+        return doc.encode('UTF-8')
 
 
 @pytest.fixture()
@@ -365,3 +437,33 @@ class TestTAPService:
                     'one=http://example.com/uploads/one' in parameter.content)
                 assert (
                     'two=http://example.com/uploads/two' in parameter.content)
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_get_job(self):
+        service = TAPService('http://example.com/tap')
+        job = service.get_job('111')
+        assert job.jobid == '111'
+        assert job.phase == 'EXECUTING'
+        assert job.ownerid == '222'
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_get_job_list(self):
+        service = TAPService('http://example.com/tap')
+        # server returns:
+        #       - 3 jobs for last atribute
+        #       - 2 jobs for phase attribute
+        #       - 1 job for after attribute
+        # Tests consists in counting the cumulative number of jobs as per
+        # above rules
+        after = datetime.datetime.now()
+        assert len(service.get_job_list()) == 0
+        assert len(service.get_job_list(last=3)) == 3
+        assert len(service.get_job_list(after='2018-04-25T17:46:01Z')) == 1
+        assert len(service.get_job_list(phases=['EXECUTING'])) == 2
+        assert len(service.get_job_list(after=after,
+                                        phases=['EXECUTING'])) == 3
+        assert len(service.get_job_list(after='2018-04-25T17:46:01.123Z',
+                                        last=3)) == 4
+        assert len(service.get_job_list(phases=['EXECUTING'], last=3)) == 5
+        assert len(service.get_job_list(phases=['EXECUTING'], last=3,
+                                        after=datetime.datetime.now())) == 6

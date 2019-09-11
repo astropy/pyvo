@@ -4,14 +4,49 @@ This file contains a contains the high-level functions to read the various
 VOSI Endpoints.
 """
 
-from astropy.utils.xml import iterparser
 from astropy.utils.xml.writer import XMLWriter
 from astropy.io.votable.util import convert_to_writable_filelike
 
-from ...utils.xml.elements import xmlattribute
-from .tree import JobSummary
+from ...utils.xml.elements import xmlattribute, parse_for_object
+from .tree import JobSummary, JobList
 
-__all__ = ["parse_job", "JobFile"]
+__all__ = ["parse_job", "parse_job_list", "JobFile"]
+
+
+def parse_job_list(
+    source, pedantic=None, filename=None, _debug_python_based_parser=False
+):
+    """
+    Parses a job xml file (or file-like object), and returns a
+    `~pyvo.io.uws.tree.JobList` object.
+
+    Parameters
+    ----------
+    source : str or readable file-like object
+        Path or file object containing a tableset xml file.
+    pedantic : bool, optional
+        When `True`, raise an error when the file violates the spec,
+        otherwise issue a warning.  Warnings may be controlled using
+        the standard Python mechanisms.  See the `warnings`
+        module in the Python standard library for more information.
+        Defaults to False.
+    filename : str, optional
+        A filename, URL or other identifier to use in error messages.
+        If *filename* is None and *source* is a string (i.e. a path),
+        then *source* will be used as a filename for error messages.
+        Therefore, *filename* is only required when source is a
+        file-like object.
+
+    Returns
+    -------
+    `~pyvo.io.uws.tree.JobList` object
+
+    See also
+    --------
+    pyvo.io.vosi.exceptions : The exceptions this function may raise.
+    """
+    return parse_for_object(source, JobList, pedantic, filename,
+                            _debug_python_based_parser)
 
 
 def parse_job(
@@ -40,26 +75,14 @@ def parse_job(
 
     Returns
     -------
-    votable : `~pyvo.io.vosi.endpoint.TableSetFile` object
+    `~pyvo.io.vosi.endpoint.JobFile` object
 
     See also
     --------
     pyvo.io.vosi.exceptions : The exceptions this function may raise.
     """
-    config = {
-        'pedantic': pedantic,
-        'filename': filename
-    }
-
-    if filename is None and isinstance(source, str):
-        config['filename'] = source
-
-    with iterparser.get_xml_iterator(
-        source,
-        _debug_python_based_parser=_debug_python_based_parser
-    ) as iterator:
-        return JobFile(
-            config=config, pos=(1, 1)).parse(iterator, config)
+    return parse_for_object(source, JobFile, pedantic, filename,
+                            _debug_python_based_parser)
 
 
 class JobFile(JobSummary):

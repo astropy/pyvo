@@ -9,11 +9,14 @@
 
 - Add support for authenticated requests. [#157]
 
+- Add a get_job_list method to the TAPService class. [#169]
+
 - Replace example's usage of pyvo.object2pos() with SkyCoord.from_name() [#171]
 
 - Stop installing files from scripts to /usr/local/bin. Move them to examples/images instead. [#166]
 
 - Update ex_casA_image_cat example. [#172]
+
 
 0.9.3 (2019-05-30)
 ==================
