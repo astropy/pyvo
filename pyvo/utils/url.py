@@ -3,7 +3,7 @@
 URL utils
 """
 from urllib.parse import urlparse, urlunparse
-from os.path import split as pathsplit, join as pathjoin
+from posixpath import split as pathsplit, join as pathjoin
 
 
 def url_sibling(url, sibling):
