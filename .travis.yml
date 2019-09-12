@@ -26,6 +26,8 @@ stages:
    - name: Initial tests
    # Test docs, astropy dev, and without optional dependencies
    - name: Comprehensive tests
+   # Leaving windows to the last stage
+   - name: Windows test
    # These will only run when cron is opted in
    - name: Cron tests
      if: type = cron
@@ -88,6 +90,11 @@ matrix:
         - os: linux
           env: SETUP_CMD='build_docs -w'
                PIP_DEPENDENCIES='requests mimeparse requests_mock sphinx_astropy'
+
+        # Try on windows. Since it takes longer, only run after everything passes
+        - os: windows
+          stage: Windows test
+
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
