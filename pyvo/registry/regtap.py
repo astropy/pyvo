@@ -119,7 +119,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
         """)
 
     if waveband:
-        wheres.append("1 = ivo_hashlist_has('{}', waveband)".format(
+        wheres.append("1 = ivo_hashlist_has(rr.resource.waveband, '{}')".format(
             tap.escape(waveband)))
 
     if datamodel:
