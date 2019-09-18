@@ -7,5 +7,6 @@ The regtap module supports access to the IVOA Registries
 from . import regtap
 
 search = regtap.search
+ivoid2service = regtap.ivoid2service
 
 __all__ = ["search"]

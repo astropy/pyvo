@@ -373,8 +373,9 @@ class RegistryResource(dalq.Record):
             If provided, write information to this output stream.
             Otherwise, it is written to standard out.
         """
+        from ..utils.formatting import para_format_desc
         restype = "Custom Service"
-        stdid = self.get("standard_id").lower()
+        stdid = self.get("standard_id", decode=True).lower()
         if stdid:
             if stdid.startswith("ivo://ivoa.net/std/conesearch"):
                 restype = "Catalog Cone-search Service"
@@ -388,7 +389,7 @@ class RegistryResource(dalq.Record):
                 restype = "Table Access Protocol Service"
 
         print(restype, file=file)
-        print(dalq.para_format_desc(self.res_title), file=file)
+        print(para_format_desc(self.res_title), file=file)
         print("Short Name: " + self.short_name, file=file)
         print("IVOA Identifier: " + self.ivoid, file=file)
         if self.access_url:
@@ -396,17 +397,17 @@ class RegistryResource(dalq.Record):
 
         if self.res_description:
             print(file=file)
-            print(dalq.para_format_desc(self.res_description), file=file)
+            print(para_format_desc(self.res_description), file=file)
             print(file=file)
 
         if self.short_name:
             print(
-                dalq.para_format_desc("Subjects: {}".format(self.short_name)),
+                para_format_desc("Subjects: {}".format(self.short_name)),
                 file=file)
         if self.waveband:
             val = (str(v) for v in self.waveband)
             print(
-                dalq.para_format_desc("Waveband Coverage: " + ", ".join(val)),
+                para_format_desc("Waveband Coverage: " + ", ".join(val)),
                 file=file)
 
         if verbose:
@@ -423,8 +424,9 @@ def ivoid2service(ivoid):
         NATURAL JOIN rr.interface
         WHERE ivoid = '{}'
     """.format(tap.escape(ivoid)))
-
+    services=[]
     for result in results:
+        id=result["standard_id"].decode()
         for ivo, cls in {
             "ivo://ivoa.net/std/conesearch":  scs.SCSService,
             "ivo://ivoa.net/std/sia":  sia.SIAService,
@@ -432,7 +434,12 @@ def ivoid2service(ivoid):
             "ivo://ivoa.net/std/sla":  sla.SLAService,
             "ivo://ivoa.net/std/tap":  tap.TAPService,
         }.items():
-            if result["standard_id"] in ivo:
-                return cls(result["access_url"])
-
-    return None
+            if id != '' and id in ivo:
+                services.append( cls(result["access_url"].decode()) )
+    ## Return services as what?  
+    if len(services) > 1:
+        return services
+    elif len(services) == 1:
+        return services[0]
+    else:
+        return None

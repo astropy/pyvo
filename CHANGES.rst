@@ -19,6 +19,9 @@
 
 - Fix waveband option in registry.regsearch [#175]
 
+- Fix to regtap.ivoid2service(), few decode()'s, para_format_desc
+  was moved to utils.  
+
 
 0.9.3 (2019-05-30)
 ==================
