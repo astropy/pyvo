@@ -426,7 +426,7 @@ def ivoid2service(ivoid):
     """.format(tap.escape(ivoid)))
     services = []
     for result in results:
-        id=result["standard_id"].decode()
+        id = result["standard_id"].decode()
         for ivo, cls in {
             "ivo://ivoa.net/std/conesearch":  scs.SCSService,
             "ivo://ivoa.net/std/sia":  sia.SIAService,
@@ -435,7 +435,7 @@ def ivoid2service(ivoid):
             "ivo://ivoa.net/std/tap":  tap.TAPService,
         }.items():
             if id != '' and id in ivo:
-                services.append( cls( result["access_url"].decode() ) )
+                services.append(cls(result["access_url"].decode()))
     if len(services) > 1:
         return services
     elif len(services) == 1:
