@@ -17,6 +17,8 @@
 
 - Update ex_casA_image_cat example. [#172]
 
+- Fix waveband option in registry.regsearch [#175]
+
 
 0.9.3 (2019-05-30)
 ==================

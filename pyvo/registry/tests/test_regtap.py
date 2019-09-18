@@ -83,7 +83,7 @@ def waveband_fixture(mocker):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
 
-        assert "1 = ivo_hashlist_has('optical', waveband" in query
+        assert "1 = ivo_hashlist_has(rr.resource.waveband, 'optical'" in query
 
         return get_pkg_data_contents('data/regtap.xml')
 
