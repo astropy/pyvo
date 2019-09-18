@@ -17,6 +17,8 @@ standardized TAP-based services.
 """
 import os
 from ..dal import scs, sia, ssa, sla, tap, query as dalq
+from ..utils.formatting import para_format_desc
+
 
 __all__ = ["search", "RegistryResource", "RegistryResults", "ivoid2service"]
 
@@ -373,7 +375,6 @@ class RegistryResource(dalq.Record):
             If provided, write information to this output stream.
             Otherwise, it is written to standard out.
         """
-        from ..utils.formatting import para_format_desc
         restype = "Custom Service"
         stdid = self.get("standard_id", decode=True).lower()
         if stdid:
