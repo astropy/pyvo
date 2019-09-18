@@ -424,7 +424,7 @@ def ivoid2service(ivoid):
         NATURAL JOIN rr.interface
         WHERE ivoid = '{}'
     """.format(tap.escape(ivoid)))
-    services=[]
+    services = []
     for result in results:
         id=result["standard_id"].decode()
         for ivo, cls in {
@@ -435,8 +435,7 @@ def ivoid2service(ivoid):
             "ivo://ivoa.net/std/tap":  tap.TAPService,
         }.items():
             if id != '' and id in ivo:
-                services.append( cls(result["access_url"].decode()) )
-    ## Return services as what?  
+                services.append( cls( result["access_url"].decode() ) )
     if len(services) > 1:
         return services
     elif len(services) == 1:
