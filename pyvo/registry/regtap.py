@@ -418,7 +418,14 @@ class RegistryResource(dalq.Record):
                 print("More info: " + self.reference_url, file=file)
 
 
-def ivoid2service(ivoid):
+def ivoid2service(ivoid, servicetype=None):
+    """Retern service(s) for a given IVOID.
+
+    The servicetype option specifies the kind of service requested
+    (conesearch, sia, ssa, slap, or tap).  By default, if none is
+    given, a list of all matching services is returned.
+
+    """
     service = tap.TAPService(REGISTRY_BASEURL)
     results = service.run_sync("""
         SELECT DISTINCT access_url, standard_id FROM rr.capability
@@ -426,20 +433,26 @@ def ivoid2service(ivoid):
         WHERE ivoid = '{}'
     """.format(tap.escape(ivoid)))
     services = []
+    ivo_cls = {
+        "ivo://ivoa.net/std/conesearch":  scs.SCSService,
+        "ivo://ivoa.net/std/sia":  sia.SIAService,
+        "ivo://ivoa.net/std/ssa":  ssa.SSAService,
+        "ivo://ivoa.net/std/sla":  sla.SLAService,
+        "ivo://ivoa.net/std/tap":  tap.TAPService
+    }
     for result in results:
-        id = result["standard_id"].decode()
-        for ivo, cls in {
-            "ivo://ivoa.net/std/conesearch":  scs.SCSService,
-            "ivo://ivoa.net/std/sia":  sia.SIAService,
-            "ivo://ivoa.net/std/ssa":  ssa.SSAService,
-            "ivo://ivoa.net/std/sla":  sla.SLAService,
-            "ivo://ivoa.net/std/tap":  tap.TAPService,
-        }.items():
-            if id != '' and id in ivo:
-                services.append(cls(result["access_url"].decode()))
-    if len(services) > 1:
-        return services
-    elif len(services) == 1:
-        return services[0]
-    else:
-        return None
+        thistype = result["standard_id"].decode()
+        if thistype not in ivo_cls.keys():
+            # This one is not a VO service
+            continue
+        cls = ivo_cls[thistype]
+        if servicetype is not None and servicetype not in thistype:
+            # Not the type of service you want
+            continue
+        elif servicetype is not None:
+            # Return only one service, the first of the requested type
+            return(cls(result["access_url"].decode()))
+        else:
+            # Return a list of services
+            services.append(cls(result["access_url"].decode()))
+    return services
