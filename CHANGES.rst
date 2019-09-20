@@ -1,4 +1,8 @@
-1.0 (unreleased)
+1.1 (unreleased)
+================
+
+
+1.0 (2019-9-20)
 ================
 
 - Fix pedantic table parsing not throwing exception. [#140]
