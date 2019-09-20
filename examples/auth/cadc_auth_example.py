@@ -6,9 +6,8 @@ Example for authenticating with CADC TAP service
 import getpass
 
 import requests
-
 import pyvo
-import pyvo.extensions.auth.authsession
+from pyvo.auth import authsession
 
 # Gather login information
 data = {
@@ -28,7 +27,7 @@ response.raise_for_status()
 cookie = '\"' + response.text + '\"'
 
 # Configure the session and run the query
-auth = pyvo.extensions.auth.authsession.AuthSession()
+auth = authsession.AuthSession()
 auth.credentials.set_cookie('CADC_SSO', cookie)
 service = pyvo.dal.TAPService('https://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/tap', auth)
 job = service.search('SELECT * from TAP_SCHEMA.tables')
