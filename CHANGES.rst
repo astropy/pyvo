@@ -2,7 +2,7 @@
 ================
 
 
-1.0 (2019-9-20)
+1.0 (2019-09-20)
 ================
 
 - Fix pedantic table parsing not throwing exception. [#140]
