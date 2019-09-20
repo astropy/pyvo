@@ -4,12 +4,10 @@
 Example for authenticating with Gaia TAP service
 """
 import getpass
-
 import requests
 
 import pyvo
-import pyvo.extensions.auth.authsession
-from pyvo.extensions.auth.securitymethods import ANONYMOUS
+from pyvo.auth import securitymethods, authsession
 
 # Gather login information
 data = {
@@ -30,8 +28,8 @@ response = session.post(login_url, data=data, headers=headers)
 response.raise_for_status()
 
 # Use this session with the auth cookie for all requests to Gaia.
-auth = pyvo.extensions.auth.authsession.AuthSession()
-auth.credentials.set(ANONYMOUS, session)
+auth = authsession.AuthSession()
+auth.credentials.set(securitymethods.ANONYMOUS, session)
 service = pyvo.dal.TAPService('http://gea.esac.esa.int/tap-server/tap', auth)
 job = service.search('SELECT * from TAP_SCHEMA.tables')
 print(job)

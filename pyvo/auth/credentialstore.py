@@ -2,7 +2,7 @@ import logging
 
 from pyvo.utils.http import create_session
 
-import pyvo.extensions.auth.securitymethods as securitymethods
+from . import securitymethods
 
 
 class CredentialStore(object):

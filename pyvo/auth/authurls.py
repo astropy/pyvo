@@ -1,7 +1,7 @@
 import collections
 import logging
 
-import pyvo.extensions.auth.securitymethods as securitymethods
+from . import securitymethods
 
 
 class AuthURLs():

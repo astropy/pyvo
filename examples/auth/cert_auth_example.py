@@ -5,10 +5,10 @@ Example for using client certificate authentication with CADC TAP service
 Tests for pyvo.extensions.authsession
 """
 import pyvo
-import pyvo.extensions.auth.authsession
+from pyvo.auth import authsession
 
 certificate_path = input('Path to client certificate file:')
-auth = pyvo.extensions.auth.authsession.AuthSession()
+auth = authsession.AuthSession()
 auth.credentials.set_client_certificate(certificate_path)
 service = pyvo.dal.TAPService('https://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/tap', auth)
 job = service.search('SELECT * from TAP_SCHEMA.tables')

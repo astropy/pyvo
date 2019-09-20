@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Tests for pyvo.extensions.auth
+Tests for pyvo.auth
 """
 import base64
 from requests.cookies import RequestsCookieJar
@@ -12,7 +12,7 @@ import pytest
 from astropy.utils.data import get_pkg_data_contents
 
 import pyvo.dal
-from pyvo.extensions.auth.authsession import AuthSession
+from pyvo.auth.authsession import AuthSession
 
 from pyvo.dal.tests.test_tap import MockAsyncTAPServer
 

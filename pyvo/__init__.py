@@ -36,7 +36,7 @@ from ._astropy_init import *
 if not _ASTROPY_SETUP_:
     from . import registry
     from .dal import ssa, sia, sla, scs, tap
-
+    from . import auth
     from .registry import search as regsearch
     from .dal import (
         imagesearch, spectrumsearch, conesearch, linesearch, tablesearch,
