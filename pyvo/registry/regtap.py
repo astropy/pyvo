@@ -17,6 +17,8 @@ standardized TAP-based services.
 """
 import os
 from ..dal import scs, sia, ssa, sla, tap, query as dalq
+from ..utils.formatting import para_format_desc
+
 
 __all__ = ["search", "RegistryResource", "RegistryResults", "ivoid2service"]
 
@@ -374,7 +376,7 @@ class RegistryResource(dalq.Record):
             Otherwise, it is written to standard out.
         """
         restype = "Custom Service"
-        stdid = self.get("standard_id").lower()
+        stdid = self.get("standard_id", decode=True).lower()
         if stdid:
             if stdid.startswith("ivo://ivoa.net/std/conesearch"):
                 restype = "Catalog Cone-search Service"
@@ -388,7 +390,7 @@ class RegistryResource(dalq.Record):
                 restype = "Table Access Protocol Service"
 
         print(restype, file=file)
-        print(dalq.para_format_desc(self.res_title), file=file)
+        print(para_format_desc(self.res_title), file=file)
         print("Short Name: " + self.short_name, file=file)
         print("IVOA Identifier: " + self.ivoid, file=file)
         if self.access_url:
@@ -396,17 +398,17 @@ class RegistryResource(dalq.Record):
 
         if self.res_description:
             print(file=file)
-            print(dalq.para_format_desc(self.res_description), file=file)
+            print(para_format_desc(self.res_description), file=file)
             print(file=file)
 
         if self.short_name:
             print(
-                dalq.para_format_desc("Subjects: {}".format(self.short_name)),
+                para_format_desc("Subjects: {}".format(self.short_name)),
                 file=file)
         if self.waveband:
             val = (str(v) for v in self.waveband)
             print(
-                dalq.para_format_desc("Waveband Coverage: " + ", ".join(val)),
+                para_format_desc("Waveband Coverage: " + ", ".join(val)),
                 file=file)
 
         if verbose:
@@ -416,23 +418,41 @@ class RegistryResource(dalq.Record):
                 print("More info: " + self.reference_url, file=file)
 
 
-def ivoid2service(ivoid):
+def ivoid2service(ivoid, servicetype=None):
+    """Retern service(s) for a given IVOID.
+
+    The servicetype option specifies the kind of service requested
+    (conesearch, sia, ssa, slap, or tap).  By default, if none is
+    given, a list of all matching services is returned.
+
+    """
     service = tap.TAPService(REGISTRY_BASEURL)
     results = service.run_sync("""
         SELECT DISTINCT access_url, standard_id FROM rr.capability
         NATURAL JOIN rr.interface
         WHERE ivoid = '{}'
     """.format(tap.escape(ivoid)))
-
+    services = []
+    ivo_cls = {
+        "ivo://ivoa.net/std/conesearch":  scs.SCSService,
+        "ivo://ivoa.net/std/sia":  sia.SIAService,
+        "ivo://ivoa.net/std/ssa":  ssa.SSAService,
+        "ivo://ivoa.net/std/sla":  sla.SLAService,
+        "ivo://ivoa.net/std/tap":  tap.TAPService
+    }
     for result in results:
-        for ivo, cls in {
-            "ivo://ivoa.net/std/conesearch":  scs.SCSService,
-            "ivo://ivoa.net/std/sia":  sia.SIAService,
-            "ivo://ivoa.net/std/ssa":  ssa.SSAService,
-            "ivo://ivoa.net/std/sla":  sla.SLAService,
-            "ivo://ivoa.net/std/tap":  tap.TAPService,
-        }.items():
-            if result["standard_id"] in ivo:
-                return cls(result["access_url"])
-
-    return None
+        thistype = result["standard_id"].decode()
+        if thistype not in ivo_cls.keys():
+            # This one is not a VO service
+            continue
+        cls = ivo_cls[thistype]
+        if servicetype is not None and servicetype not in thistype:
+            # Not the type of service you want
+            continue
+        elif servicetype is not None:
+            # Return only one service, the first of the requested type
+            return(cls(result["access_url"].decode()))
+        else:
+            # Return a list of services
+            services.append(cls(result["access_url"].decode()))
+    return services
