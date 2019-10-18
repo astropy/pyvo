@@ -428,7 +428,7 @@ class E06(VOSIWarning, XMLWarning, ValueError):
     """
     The element must have a ``name`` element.
     """
-    message_template = "The {} element must habe a name element"
+    message_template = "The {} element must have a name element"
     default_args = ('x',)
 
 
@@ -444,7 +444,7 @@ class E08(VOSIWarning, XMLWarning, ValueError):
     """
     The element must have a ``version`` element.
     """
-    message_template = "The {} element must habe a version element"
+    message_template = "The {} element must have a version element"
     default_args = ('x',)
 
 
@@ -452,7 +452,7 @@ class E09(VOSIWarning, XMLWarning, ValueError):
     """
     The element must have a ``form`` element.
     """
-    message_template = "The {} element must habe a form element"
+    message_template = "The {} element must have a form element"
     default_args = ('x',)
 
 
