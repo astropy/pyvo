@@ -35,7 +35,7 @@ XSOutDate = partial(Time, out_subfmt='date')
 
 
 __all__ = [
-    'UWSElement', 'Reference', 'JobSummary', 'Parameters', 'Parameter',
+    'UWSElement', 'Reference', 'JobSummary', 'ParametersElement', 'Parameter',
     'Results', 'Result']
 
 
@@ -93,7 +93,7 @@ class JobSummary(Element):
         self._endtime = None
         self._executionduration = None
         self._destruction = None
-        self._parameters = Parameters()
+        self._parameters = ParametersElement()
         self._results = Results()
 
     @uwselement(name='jobId', plain=True)
@@ -241,7 +241,7 @@ class JobSummary(Element):
 
     @parameters.adder
     def parameters(self, iterator, tag, data, config, pos):
-        parameters = Parameters(config, pos, 'parameters', **data)
+        parameters = ParametersElement(config, pos, 'parameters', **data)
         parameters.parse(iterator, config)
         self._parameters = parameters
 
@@ -273,7 +273,7 @@ class JobList(UWSElement, HomogeneousList):
         self.append(job)
 
 
-class Parameters(UWSElement, HomogeneousList):
+class ParametersElement(UWSElement, HomogeneousList):
     """
     Parameters element of a job
     """
