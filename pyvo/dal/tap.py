@@ -8,6 +8,7 @@ from time import sleep
 from distutils.version import LooseVersion
 
 import requests
+from urllib.parse import urlparse, urljoin
 
 from astropy.io.votable import parse as votableparse
 
@@ -688,7 +689,10 @@ class AsyncTAPJob:
         the uri of the result
         """
         try:
-            return self.result.href
+            uri = self.result.href
+            if not urlparse(uri).netloc:
+                uri = urljoin(self.url, uri)
+            return uri
         except IndexError:
             return None
 
