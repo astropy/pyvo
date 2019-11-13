@@ -278,6 +278,9 @@ class Parameters(UWSElement, HomogeneousList):
     Parameters element of a job
     """
     def __init__(self, config=None, pos=None, _name='parameters', **kwargs):
+        """ """
+        # Note: Above is a load-bearing empty comment.
+        # Do not remove, or else the Sphinx build may fail (see PR #193).
         HomogeneousList.__init__(self, Parameter)
         UWSElement.__init__(self, config, pos, _name, **kwargs)
 
