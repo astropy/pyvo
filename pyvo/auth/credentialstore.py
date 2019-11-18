@@ -4,6 +4,8 @@ from pyvo.utils.http import create_session
 
 from . import securitymethods
 
+__all__ = ["CredentialStore"]
+
 
 class CredentialStore(object):
     """

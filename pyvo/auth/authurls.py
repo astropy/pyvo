@@ -3,6 +3,8 @@ import logging
 
 from . import securitymethods
 
+__all__ = ["AuthURLs"]
+
 
 class AuthURLs():
     """
