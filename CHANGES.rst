@@ -3,6 +3,7 @@
 
 - Add default for UWS version. [#199]
 
+- Handle description of None when describing a TAP service's tables. [#197]
 
 1.0 (2019-09-20)
 ================
