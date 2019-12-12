@@ -368,3 +368,19 @@ class TestTables:
             vosi.parse_tables(
                 get_pkg_data_filename(
                     "data/tables/wrong_arraysize.xml"))
+
+    def test_no_table_description(self):
+        """Test handling of describing tables with no description
+        """
+        tableset = vosi.parse_tables(
+                get_pkg_data_filename(
+                    "data/tables/no_table_description.xml"))
+        nodesc_table = tableset.get_first_table()
+        assert nodesc_table.description is None
+        import io
+        from contextlib import redirect_stdout
+
+        with io.StringIO() as buf, redirect_stdout(buf):
+            nodesc_table.describe()
+            output = buf.getvalue()
+        assert 'No description' in output
