@@ -14,3 +14,9 @@ class TestJob:
             "data/job.xml"))
 
         assert job.jobid == '1337'
+        assert job.version == '1.1'
+
+        job = uws.parse_job(get_pkg_data_filename(
+            "data/job-implicit-v1.0.xml"))
+
+        assert job.version == '1.0'
