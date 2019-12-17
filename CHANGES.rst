@@ -1,6 +1,8 @@
 1.1 (unreleased)
 ================
 
+- Add default for UWS version. [#199]
+
 
 1.0 (2019-09-20)
 ================

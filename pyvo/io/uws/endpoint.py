@@ -108,7 +108,8 @@ class JobFile(JobSummary):
             if start and tag == 'xml':
                 pass
             elif start and tag == 'job':
-                self._version = data.get('version')
+                # version was not required in v1.0, so default to that.
+                self._version = data.get('version', '1.0')
                 break
 
         return super().parse(iterator, config)
