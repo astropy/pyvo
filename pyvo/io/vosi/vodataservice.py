@@ -311,7 +311,10 @@ class Table(Element):
 
     def describe(self):
         print(self.name)
-        print(indent(self.description))
+        if self.description is not None:
+            print(indent(self.description))
+        else:
+            print('No description')
 
         print()
 
