@@ -3,6 +3,8 @@
 """
 Tests for pyvo.io.vosi
 """
+import contextlib
+import io
 import pytest
 
 import pyvo.io.vosi as vosi
@@ -377,10 +379,23 @@ class TestTables:
                     "data/tables/no_table_description.xml"))
         nodesc_table = tableset.get_first_table()
         assert nodesc_table.description is None
-        import io
-        from contextlib import redirect_stdout
 
-        with io.StringIO() as buf, redirect_stdout(buf):
+        with io.StringIO() as buf, contextlib.redirect_stdout(buf):
             nodesc_table.describe()
             output = buf.getvalue()
         assert 'No description' in output
+
+    def test_single_table_description(self):
+        """Test describing a table with a single description
+        """
+        tableset = vosi.parse_tables(
+                get_pkg_data_filename(
+                    "data/tables/single_table_description.xml"))
+        onedesc_table = tableset.get_first_table()
+        describe_string = 'A test table with a single description'
+        assert describe_string in onedesc_table.description
+
+        with io.StringIO() as buf, contextlib.redirect_stdout(buf):
+            onedesc_table.describe()
+            output = buf.getvalue()
+        assert describe_string in output
