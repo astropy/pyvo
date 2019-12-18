@@ -40,7 +40,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
 
     Parameters
     ----------
-    keywords : list of str
+    keywords : str or list of str
        keyword terms to match to registry records.
        Use this parameter to find resources related to a
        particular topic.
@@ -86,6 +86,9 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
 
     wheres = list()
     wheres.append("intf_role = 'std'")
+
+    if isinstance(keywords, str):
+        keywords = [keywords]
 
     if keywords:
         def _unions():

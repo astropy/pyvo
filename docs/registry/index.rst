@@ -19,6 +19,10 @@ quasars.
 
 >>> services = regsearch(keywords=['quasar'])
 
+A single keyword can be specified as a single string instead of a list.
+
+>>> services = regsearch(keywords='quasar')
+
 Furthermore the search can be limited to a certain ``servicetype``, one of
 sia, ssa, scs, sla, tap.
 
