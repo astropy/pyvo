@@ -5,6 +5,8 @@
 
 - Handle description of None when describing a TAP service's tables. [#197]
 
+- Properly handle single string keywords value for regsearch(). [#201]
+
 1.0 (2019-09-20)
 ================
 
