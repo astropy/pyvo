@@ -714,7 +714,7 @@ class DataType(ContentMixin, Element):
 
     def __repr__(self):
         return '<DataType arraysize={}>{}</DataType>'.format(
-            self.arraysize, self.value)
+            self.arraysize, self.content)
 
     @xmlattribute
     def arraysize(self):
