@@ -37,8 +37,9 @@ class TestTables:
         assert col.utype == "utype"
 
         assert type(col.datatype) == vs.TAPType
+        assert str(col.datatype) == "<DataType arraysize=*>VARCHAR</DataType>"
         assert col.datatype.arraysize == "*"
-        assert col.datatype.delim == ';'
+        assert col.datatype.delim == ";"
         assert col.datatype.size == "42"
         assert col.datatype.content == "VARCHAR"
 
