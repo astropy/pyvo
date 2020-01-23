@@ -70,7 +70,7 @@ class TestSIAService:
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")
-    def test_search(self):
+    def test_search_v2(self):
         service = SIAService('http://example.com/sia')
 
         positions = [
@@ -98,4 +98,3 @@ def test_search_v2():
     result = results[0]
 
     _test_result(result)
-

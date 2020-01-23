@@ -54,7 +54,7 @@ def search_v2(url, pos, res_format=None, **keywords):
 
     """
     service = SIAService(url)
-    #TODO - check capabilities of the service for SIAv2 standard ID
+    # TODO - check capabilities of the service for SIAv2 standard ID
     return service.search_v2(pos, res_format, **keywords)
 
 
@@ -432,10 +432,10 @@ class SIAv2Query(DALQuery):
         if isinstance(val, str):
             pos = val.upper()
             if not (pos.startswith("CIRCLE") or pos.startswith("RANGE") or
-                pos.startswith("POLYGON")):
+                    pos.startswith("POLYGON")):
                 raise ValueError(
                     'position type (CIRCLE|RANGE|POLYGON) required: {pos}'.
-                        format(pos=pos))
+                    format(pos=pos))
         else:
             if isinstance(val, tuple):
                 if not val or len(val) < 2:
@@ -451,7 +451,7 @@ class SIAv2Query(DALQuery):
                     except Exception as e:
                         raise ValueError(
                             'Could not format the CIRCLE position {pos} ({e})'.
-                                format(pos=val, e=str(e)))
+                            format(pos=val, e=str(e)))
                 elif len(val) == 4 and not isinstance(val[0], SkyCoord):
                     # assume range
                     pos = 'RANGE {long1} {long2} {lat1} {lat2}'.format(
@@ -476,7 +476,6 @@ class SIAv2Query(DALQuery):
         delattr(self, "_pos")
         del self["POS"]
 
-
     @property
     def res_format(self):
         """
@@ -491,7 +490,7 @@ class SIAv2Query(DALQuery):
         return getattr(self, "_format", None)
 
     @res_format.setter
-    def format(self, format_):
+    def res_format(self, format_):
         setattr(self, "_format", format_)
 
         if type(format_) in (str, bytes):
@@ -500,7 +499,7 @@ class SIAv2Query(DALQuery):
         self["FORMAT"] = ",".join(_.upper() for _ in format_)
 
     @res_format.deleter
-    def format(self):
+    def res_format(self):
         delattr(self, "_format")
         del self["FORMAT"]
 
