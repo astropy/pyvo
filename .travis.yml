@@ -76,10 +76,10 @@ matrix:
 
           # try all python versions
         - os: linux
-          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.15
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.15 ASTROPY_VERSION=3.2
                PIP_DEPENDENCIES='requests mimeparse requests_mock contextlib2'
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14 ASTROPY_VERSION=2.0.16
 
         # Do a PEP8 test with flake8
         - os: linux
