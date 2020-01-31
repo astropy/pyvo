@@ -45,6 +45,19 @@ from .. import samp
 __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "SIARecord"]
 
 
+def search_v2(url, pos, res_format=None, **keywords):
+    """
+    submit a simple SIA query to a SIAv2 compatible service
+
+    See pyvo.dal.sia.SIAv2Query.__init__ for a description of the parameters
+    and returned types
+
+    """
+    service = SIAService(url)
+    # TODO - check capabilities of the service for SIAv2 standard ID
+    return service.search_v2(pos, res_format, **keywords)
+
+
 def search(
         url, pos, size=1.0, format='all', intersect="overlaps", verbosity=2,
         **keywords):
@@ -85,7 +98,7 @@ def search(
     verbosity : int
         an integer value that indicates the volume of columns
         to return in the result table.  0 means the minimum
-        set of columsn, 3 means as many columns as are  available.
+        set of columns, 3 means as many columns as are  available.
     **keywords :
         additional parameters can be given via arbitrary
         case insensitive keyword arguments. Where there is overlap
@@ -95,7 +108,7 @@ def search(
     Returns
     -------
     SIAResults
-        a container holding a table of matching image records
+        a container holding a table of matching catalog records
 
     Raises
     ------
@@ -111,6 +124,7 @@ def search(
     pyvo.dal.query.DALServiceError
     pyvo.dal.query.DALQueryError
     """
+
     service = SIAService(url)
     return service.search(pos, size, format, intersect, verbosity, **keywords)
 
@@ -317,9 +331,193 @@ class SIAService(DALService):
         return SIAQuery(
             self.baseurl, pos, size, format, intersect, verbosity, self._session, **keywords)
 
+    def search_v2(self, pos, res_format=None, **keywords):
+        """
+        Performs a SIAv2 search against a SIAv2 service
+
+        See pyvo.dal.sia.SIAv2Query.__init__ for a description of the
+        parameters and returned types
+
+        """
+        return SIAv2Query(self.baseurl, pos, res_format, **keywords).execute()
+
     def describe(self):
         print(self.description)
         print()
+
+
+class SIAv2Query(DALQuery):
+    """
+    a class very similar to :py:attr:`~pyvo.dal.query.SIAQuery` class but
+    used to interact with SIAv2 services.
+
+    """
+
+    def __init__(self, url, pos, res_format, session=None, **keywords):
+        """
+        initialize the query object with a baseurl and the given parameters
+
+        Parameters
+        ----------
+        url : str
+            the base URL for the SIAv2 service
+        pos : position to search on. It can take one of the following forms:
+            str that starts with one of the folowing keywords: CIRCLE, RANGE,
+            POLYGON. This is assumed to follow the SIAv2 format convention:
+            CIRCLE <longitude> <latitude> <radius>
+            RANGE <longitude1> <longitude2>  <latitude1> <latitude2>
+            POLYGON <longitude1> <latitude1> ... (at least 3 pairs)
+            and it is sent to the service as is
+            (`~astropy.coordinates.SkyCoord`, radius in degrees) - for CIRCLE
+            (long1, long2, lat1, lat2) - for RANGE
+            (`~astropy.coordinates.SkyCoord`, at least three times) for POLYGON
+        res_format : str
+            the image format(s) of interest.  "all" (default)
+            indicates all available formats; "graphic" indicates
+            graphical images (e.g. jpeg, png, gif; not FITS);
+            "metadata" indicates that no images should be
+            returned--only an empty table with complete metadata;
+            "image/\\*" indicates a particular image format where
+            * can have values like "fits", "jpeg", "png", etc.
+        **keywords :
+            additional SIAv2 parameters can be given via arbitrary
+            case insensitive keyword arguments. (BAND, TIME, POL,
+            FOV, SPATRES, SPECRP, EXPTIME, TIMERES, ID, COLLECTION, FACILITY,
+            INSTRUMENT, DPTYPE, CALIB, TARGET, FORMAT, MAXREC
+
+        Returns
+        -------
+        SIAResults
+            a container holding a table of matching image records. Records are
+            represented in IVOA ObsCore format
+
+        Raises
+        ------
+        DALServiceError
+            for errors connecting to or communicating with the service
+        DALQueryError
+            if the service responds with an error,
+            including a query syntax error.
+
+        See Also
+        --------
+        SIAResults
+        pyvo.dal.query.DALServiceError
+        pyvo.dal.query.DALQueryError
+
+        """
+        super().__init__(url, session=session, **keywords)
+
+        if pos:
+            self.pos = pos
+
+        if res_format:
+            self.res_format = res_format
+
+        for key, value in keywords.items():
+            self[key.upper()] = value
+
+        self.keywords = keywords
+
+    @property
+    def pos(self):
+        """
+        the position of the center of the rectangular search region as a
+        `~astropy.coordinates.SkyCoord` instance.
+        """
+        return getattr(self, "_pos", None)
+
+    @pos.setter
+    def pos(self, val):
+        if isinstance(val, str):
+            pos = val.upper()
+            if not (pos.startswith("CIRCLE") or pos.startswith("RANGE") or
+                    pos.startswith("POLYGON")):
+                raise ValueError(
+                    'position type (CIRCLE|RANGE|POLYGON) required: {pos}'.
+                    format(pos=pos))
+        else:
+            if isinstance(val, tuple):
+                if not val or len(val) < 2:
+                    raise ValueError(
+                        'Too few tuple elements ({len}) for pos to speficy a '
+                        'CIRCLE, RANGE or POLYGON'.format(len=len(val)))
+                if len(val) == 2:
+                    # must be a circle with coord and radius
+                    try:
+                        pos = 'CIRCLE {ra} {dec} {rad}'.format(
+                            ra=val[0].icrs.ra.deg, dec=val[0].icrs.dec.deg,
+                            rad=val[1].to(Unit("deg")).value)
+                    except Exception as e:
+                        raise ValueError(
+                            'Could not format the CIRCLE position {pos} ({e})'.
+                            format(pos=val, e=str(e)))
+                elif len(val) == 4 and not isinstance(val[0], SkyCoord):
+                    # assume range
+                    pos = 'RANGE {long1} {long2} {lat1} {lat2}'.format(
+                        long1=val[0], long2=val[1], lat1=val[2], lat2=val[3])
+                else:
+                    # asume polygon
+                    pos = 'POLYGON'
+                    try:
+                        for pt in val:
+                            pos += ' {ra} {dec}'.format(ra=pt.icrs.ra.deg,
+                                                        dec=pt.icrs.dec.deg)
+                    except Exception as e:
+                        raise ValueError(
+                            'Could not format the POLYGON position {pos} '
+                            '({e})'.format(pos=val, e=str(e)))
+
+        setattr(self, "_pos", pos)
+        self["POS"] = pos
+
+    @pos.deleter
+    def pos(self):
+        delattr(self, "_pos")
+        del self["POS"]
+
+    @property
+    def res_format(self):
+        """
+        the image format(s) of interest.  "all" (default)
+        indicates all available formats; "graphic" indicates
+        graphical images (e.g. jpeg, png, gif; not FITS);
+        "metadata" indicates that no images should be
+        returned--only an empty table with complete metadata;
+        "image/\\*" indicates a particular image format where
+        * can have values like "fits", "jpeg", "png", etc.
+        """
+        return getattr(self, "_format", None)
+
+    @res_format.setter
+    def res_format(self, format_):
+        setattr(self, "_format", format_)
+
+        if type(format_) in (str, bytes):
+            format_ = [format_]
+
+        self["FORMAT"] = ",".join(_.upper() for _ in format_)
+
+    @res_format.deleter
+    def res_format(self):
+        delattr(self, "_format")
+        del self["FORMAT"]
+
+    def execute(self):
+        """
+        submit the query and return the results as a SIAResults instance
+
+        Raises
+        ------
+        DALServiceError
+           for errors connecting to or communicating with the service
+        DALQueryError
+           for errors either in the input query syntax or
+           other user errors detected by the service
+        DALFormatError
+           for errors parsing the VOTable response
+        """
+        return SIAResults(self.execute_votable(), url=self.queryurl, session=self._session)
 
 
 class SIAQuery(DALQuery):
