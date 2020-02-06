@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from .sia import search as imagesearch
+from .sia2 import search as imagesearch2
 from .ssa import search as spectrumsearch
 from .sla import search as linesearch
 from .scs import search as conesearch
 from .tap import search as tablesearch
+from .sia2 import *
 
 from .query import DALService, DALQuery, DALResults, Record
 
@@ -19,7 +21,7 @@ from .exceptions import (
 
 __all__ = [
     "imagesearch", "spectrumsearch", "linesearch", "conesearch", "tablesearch",
-    "DALService",
+    "DALService", "sia2", "imagesearch2",
     "SIAService", "SSAService", "SLAService", "SCSService", "TAPService",
     "DALQuery",  "SIAQuery", "SSAQuery", "SLAQuery", "SCSQuery", "TAPQuery",
     "DALResults",

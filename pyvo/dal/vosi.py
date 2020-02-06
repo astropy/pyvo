@@ -16,8 +16,33 @@ from ..utils.http import use_session
 __all__ = [
     'AvailabilityMixin', 'CapabilityMixin', 'VOSITables']
 
+class EndpointMixin():
+    def _get_endpoint(self, endpoint):
+        # finds the endpoint relative to the base url or its parent
+        # and returns its content in raw format
+        if not endpoint:
+            raise AttributeError('endpoint required')
+        ep_urls = [
+            '{baseurl}/{endpoint}'.format(baseurl=self.baseurl,
+                                          endpoint=endpoint),
+            url_sibling(self.baseurl, endpoint)
+        ]
 
-class AvailabilityMixin:
+        for ep_url in ep_urls:
+            try:
+                response = self._session.get(ep_url, stream=True)
+                response.raise_for_status()
+                break
+            except requests.RequestException:
+                continue
+        else:
+            raise DALServiceError(
+                "No working {endpoint} endpoint provided".format(
+                    endpoint=endpoint))
+
+        return response.raw
+
+class AvailabilityMixin(EndpointMixin):
     """
     Mixing for VOSI availability
     """
@@ -27,16 +52,7 @@ class AvailabilityMixin:
         Service Availability as a
         :py:class:`~pyvo.io.vosi.availability.Availability` object
         """
-        avail_url = '{}/availability'.format(self.baseurl)
-
-        response = self._session.get(avail_url, stream=True)
-
-        try:
-            response.raise_for_status()
-        except requests.RequestException as ex:
-            raise DALServiceError.from_except(ex, avail_url)
-
-        return response.raw
+        return self._get_endpoint('availability')
 
     @lazyproperty
     def availability(self):
@@ -57,7 +73,7 @@ class AvailabilityMixin:
         return self.availability.upsince
 
 
-class CapabilityMixin:
+class CapabilityMixin(EndpointMixin):
     """
     Mixing for VOSI capability
     """
@@ -67,22 +83,7 @@ class CapabilityMixin:
         Returns capabilities as a
         py:class:`~pyvo.io.vosi.availability.Availability` object
         """
-        capa_urls = [
-            '{}/capabilities'.format(self.baseurl),
-            url_sibling(self.baseurl, 'capabilities')
-        ]
-
-        for capa_url in capa_urls:
-            try:
-                response = self._session.get(capa_url, stream=True)
-                response.raise_for_status()
-                break
-            except requests.RequestException:
-                continue
-        else:
-            raise DALServiceError("No working capabilities endpoint provided")
-
-        return response.raw
+        return self._get_endpoint('capabilities')
 
     @lazyproperty
     def capabilities(self):
