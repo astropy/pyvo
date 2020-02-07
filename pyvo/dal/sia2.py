@@ -1306,7 +1306,16 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         """
         The name of the instrument used for the observation
         """
-        return self['instrument_name']
+        return self['instrument_name'].decode('utf-8')
+
+    @property
+    def facility(self):
+        """
+        Name of the facility
+        """
+        if 'facility_name' in self.keys():
+            return self['facility_name'].decode('utf-8')
+        return None
 
     @property
     def proposal_id(self):

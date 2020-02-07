@@ -75,18 +75,6 @@ class TestSIAService:
     def test_search(self):
         service = SIAService('https://example.com/sia')
 
-        results = service.search(pos=(288, 15))
-        result = results[0]
-
-        _test_result(result)
-
-    @pytest.mark.usefixtures('sia')
-    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
-    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
-    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")
-    def test_search_v2(self):
-        service = SIAService('https://example.com/sia')
-
         positions = [
             (SkyCoord('08h45m07.5s +54d18m00s'),
              0.0166 * u.degree),
@@ -96,16 +84,15 @@ class TestSIAService:
              SkyCoord(14.0*u.degree, 36.0*u.degree),
              SkyCoord(12.0*u.degree, 35.0*u.degree))]
 
+        # each position
         for pos in positions:
-            results = service.search_v2(pos=pos)
+            results = service.search(pos=pos)
             result = results[0]
             _test_result(result)
+            
+        # all positions
+        results = service.search(pos=positions)
+        result = results[0]
+        _test_result(result)
 
 
-@pytest.mark.usefixtures('sia')
-@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
-def test_search_v2():
-    results = search('https://example.com/sia', pos='CIRCLE 12.0 34.0 0.5')
-    result = results[0]
-
-    _test_result(result)
