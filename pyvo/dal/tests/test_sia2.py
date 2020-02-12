@@ -60,7 +60,7 @@ def _test_result(record):
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
 def test_search():
     results = search('https://example.com/sia',
-                     pos=(SkyCoord('08h45m07.5s +54d18m00s'), 0.0166*u.degree))
+                     pos=(33.3*u.deg, 4.2*u.deg, 0.0166*u.deg))
     result = results[0]
 
     _test_result(result)
@@ -76,20 +76,19 @@ class TestSIAService:
         service = SIAService('https://example.com/sia')
 
         positions = [
-            (SkyCoord('08h45m07.5s +54d18m00s'),
-             0.0166 * u.degree),
-            (12.0*u.degree, 12.5*u.degree, 34.0*u.degree, 36.0*u.degree),
-            (SkyCoord(12.0*u.degree, 34.0*u.degree),
-             SkyCoord(14.0*u.degree, 35.0*u.degree),
-             SkyCoord(14.0*u.degree, 36.0*u.degree),
-             SkyCoord(12.0*u.degree, 35.0*u.degree))]
+            (2, 4, 0.0166 * u.deg),
+            (12, 12.5, 34, 36),
+            (12.0*u.deg, 34.0*u.deg,
+             14.0*u.deg, 35.0*u.deg,
+             14.0*u.deg, 36.0*u.deg,
+             12.0*u.deg, 35.0*u.deg)]
 
         # each position
         for pos in positions:
             results = service.search(pos=pos)
             result = results[0]
             _test_result(result)
-            
+
         # all positions
         results = service.search(pos=positions)
         result = results[0]

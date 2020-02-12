@@ -29,23 +29,17 @@ URL.
 The ``SIAService`` class can represent a specific service available at a URL
 endpoint.
 """
-import re
 import copy
-import dateutil.parser
-
-from pyvo.io.vosi.vodataservice import TableParam
 
 from astropy.coordinates import SkyCoord
-from astropy.time import Time
-from astropy.units import Quantity
 from astropy import units as u
 
 from .query import DALResults, DALQuery, DALService, Record
-from .mimetype import mime2extension
-from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin, SodaRecordMixin
+from .adhoc import DatalinkResultsMixin, AxisParamMixin, SodaRecordMixin,\
+    DatalinkRecordMixin
 from .vosi import AvailabilityMixin, CapabilityMixin
+from pyvo.dam import ObsCore
 
-from .. import samp
 
 __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "ObsCoreRecord"]
 
@@ -61,10 +55,9 @@ SIA_PARAMETERS_DESC =\
             the positional region(s) to be searched for data. Each region can
             be expressed as a tuple representing a CIRCLE, RANGE or POLYGON as
             follows:
-            (`~astropy.coordinates.SkyCoord`, radius) - for CIRCLE. angle units
-            required for radius
+            (ra, dec, radius) - for CIRCLE. (angle units)
             (long1, long2, lat1, lat2) - for RANGE (angle units required)
-            (`~astropy.coordinates.SkyCoord`, at least three times) for POLYGON
+            (ra, dec, ra, dec, ra, dec ... ) ra/dec points for POLYGON
         band : scalar, tuple(interval) or list of tuples
             energy units required
             the energy interval(s) to be searched for data.
@@ -144,6 +137,8 @@ search.__doc__ = search.__doc__.replace('_SIA2_PARAMETERS', SIA_PARAMETERS_DESC)
 
 def _tolist(value):
     # return value as a list - is there something in Python to do that?
+    if not value:
+        return []
     if isinstance(value, list):
         return value
     return [value]
@@ -215,7 +210,7 @@ class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
                         session=session).execute()
 
 
-class SIAQuery(DALQuery):
+class SIAQuery(DALQuery, AxisParamMixin):
     """
     a class very similar to :py:attr:`~pyvo.dal.query.SIAQuery` class but
     used to interact with SIAv2 services.
@@ -345,131 +340,6 @@ class SIAQuery(DALQuery):
     __init__.__doc__ = \
         __init__.__doc__.replace('_SIA2_PARAMETERS', SIA_PARAMETERS_DESC)
 
-    @property
-    def pos(self):
-        """
-        Returns a copy of the list of positions to be used as constraints
-        """
-        return copy.deepcopy(self._pos)
-
-    def pos_append(self, val):
-        if not val:
-            return
-        if not isinstance(val, tuple):
-            raise AttributeError(
-                'Position value {} must be a tuple'.format(val))
-        if not val or len(val) < 2:
-            raise AttributeError(
-                'Too few tuple elements ({len}) for pos to speficy a '
-                'CIRCLE, RANGE or POLYGON'.format(len=len(val)))
-        if len(val) == 2:
-            # must be a circle with coord and radius
-            try:
-                pos = 'CIRCLE {ra} {dec} {rad}'.format(
-                    ra=val[0].icrs.ra.deg, dec=val[0].icrs.dec.deg,
-                    rad=val[1].to(u.deg).value)
-            except Exception as e:
-                raise AttributeError(
-                    'Could not format the CIRCLE position {pos} ({e})'.
-                    format(pos=val, e=str(e)))
-        elif len(val) == 4 and not isinstance(val[0], SkyCoord):
-            # assume range
-            pos = 'RANGE {long1} {long2} {lat1} {lat2}'.format(
-                long1=val[0], long2=val[1], lat1=val[2], lat2=val[3])
-        else:
-            # asume polygon
-            pos = 'POLYGON'
-            try:
-                for pt in val:
-                    pos += ' {ra} {dec}'.format(ra=pt.icrs.ra.deg,
-                                                dec=pt.icrs.dec.deg)
-            except Exception as e:
-                raise ValueError(
-                    'Could not format the POLYGON position {pos} '
-                    '({e})'.format(pos=val, e=str(e)))
-        self._pos.append(val)
-        if 'POS' in self.keys():
-            self['POS'].append(pos)
-        else:
-            self['POS'] = [pos]
-
-    def pos_del(self, index):
-        del self._pos[index]
-        del self['POS'][index]
-
-    @property
-    def band(self):
-        """
-        Returns a copy of the list of energy or energy bands to be used as
-        constraints
-        """
-        return copy.deepcopy(self._band)
-
-    def band_append(self, val):
-        if not val:
-            return
-        if isinstance(val, tuple):
-            band = '{} {}'.format(val[0].to(u.meter).value,
-                                  val[1].to(u.meter).value)
-        else:
-            band = val.to(u.meter).value
-        if 'BAND' in self.keys():
-            self['BAND'].append(band)
-        else:
-            self['BAND'] = [band]
-        self._band.append(val)
-
-    def band_del(self, index):
-        del self['BAND'][index]
-        del self._band[index]
-
-    @property
-    def time(self):
-        """
-        Returns a list of time or time intervals to be used as constraints
-        """
-        return copy.deepcopy(self._time)
-
-    def time_append(self, val):
-        if not val:
-            return
-        if isinstance(val, tuple):
-            time = '{} {}'.format(val[0].mjd,
-                                  val[1].mjd)
-        else:
-            time = val.mjd
-        if 'TIME' in self.keys():
-            self['TIME'].append(time)
-        else:
-            self['TIME'] = [time]
-        self._time.append(val)
-
-    def time_del(self, index):
-        del self['TIME'][index]
-        del self._time[index]
-
-    @property
-    def pol(self):
-        """
-        Returns copy of a list of polarization states to be used as constraints
-        """
-        return copy.copy(self._pol)
-
-    def pol_append(self, val):
-        if not val:
-            return
-        if val not in POLARIZATION_STATES:
-            raise ValueError('Polarization state {} not in valid set: {}'.
-                             format(val, ', '.join(POLARIZATION_STATES)))
-        self._pol.append(val)
-        if 'POL' not in self.keys():
-            self['POL'] = [val]
-        else:
-            self['POL'].append(val)
-
-    def polarization_del(self, index):
-        del self['POL'][index]
-        del self._pol[index]
 
     @property
     def field_of_view(self):
@@ -869,7 +739,7 @@ class SIAResults(DatalinkResultsMixin, DALResults):
         return ObsCoreRecord(self, index, session=self._session)
 
 
-class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record):
+class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     """
     a dictionary-like container for data in a record from the results of an
     image (SIAv2) search, describing an available image in ObsCore format.
