@@ -8,10 +8,8 @@ import re
 
 import pytest
 
-from pyvo.dal.sia2 import search, SIAService
+from pyvo.dal.sia2 import search, SIAService, SIAQuery
 
-from astropy.io.fits import HDUList
-from astropy.coordinates import SkyCoord
 import astropy.units as u
 from astropy.utils.data import get_pkg_data_contents
 
@@ -93,5 +91,58 @@ class TestSIAService:
         results = service.search(pos=positions)
         result = results[0]
         _test_result(result)
+
+class TestSIAQuery():
+
+    def test_query(self):
+        query = SIAQuery('someurl')
+        query.field_of_view.add((10, 20))
+        assert query['FOV'] == ['10.0 20.0']
+        query.field_of_view.add((1*u.rad, 60))
+        assert query['FOV'] == ['10.0 20.0', '57.29577951308232 60.0']
+
+        query.spatial_resolution.add((1*u.deg, 2))
+        assert query['SPATRES'] == ['1.0 2.0']
+
+        query.spectral_resolving_power.add((3, 5))
+        assert query['SPECRP'] == ['3 5']
+
+        query.exptime.add((25, 50))
+        assert query['EXPTIME'] == ['25.0 50.0']
+
+        query.timeres.add((1, 3))
+        assert query['TIMERES'] == ['1.0 3.0']
+
+        query.id.add('ID1')
+        query.id.add('ID2')
+        assert query['ID'] == ['ID1', 'ID2']
+
+        query.facility.add('TEL1')
+        assert query['FACILITY'] == ['TEL1']
+
+        query.collection.add('ABC')
+        query.collection.add('EFG')
+        assert query['COLLECTION'] == ['ABC', 'EFG']
+
+        query.instrument.add('INST1')
+        assert query['INSTRUMENT'] == ['INST1']
+
+        query.data_type.add('TYPEA')
+        assert query['DPTYPE'] == ['TYPEA']
+
+        query.calib_level.add(0)
+        query.calib_level.add(1)
+        assert query['CALIB'] == ['0', '1']
+
+        query.target.add('TARGET1')
+        assert query['TARGET'] == ['TARGET1']
+
+        query.res_format.add('pdf')
+        assert query['FORMAT'] == ['pdf']
+
+        query.maxrec = 1000
+        assert query['MAXREC'] == '1000'
+
+
 
 

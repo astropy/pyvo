@@ -3,7 +3,10 @@
 This file contains functionallity related to VOTABLE Params.
 """
 import numpy as np
+from collections import MutableSet
+import abc
 
+from astropy import units as u
 from astropy.units import Quantity, Unit
 from astropy.time import Time
 from astropy.io.votable.converters import (
@@ -206,3 +209,203 @@ class Polygon(Number):
             raise DALServiceError('Size is not a multiple of 3')
 
         return super().serialize(value)
+
+
+class AbstractDalQueryParam(MutableSet, metaclass=abc.ABCMeta):
+    """
+    Base class for the DAL parameters. In general, DAL parameters allow
+    for multiple values - hence this class is derived from the set class.
+    The corresponding DAL representation of the values in the list is
+    available through the `dal` attribute. Subclasses might override
+    the `dal_formatter` method that formats values before storing them
+    into the `dal` attribute
+    """
+    def __init__(self, values=()):
+        """
+        Parameters
+        ----------
+        validate_func : reference to the validate function
+            Function to validate the members against.
+
+        values : sequence, optional
+            An initial set of values.
+        """
+        self.dal = []
+        self._data = []
+        for item in values:
+            self.add(item)
+        super().__init__()
+
+    @abc.abstractmethod
+    def get_dal_format(self, item):
+        return str(item)
+
+    def add(self, item):
+        if item in self:
+            return
+        if self.get_dal_format(item) in self.dal:
+            return
+        self._data.append(item)
+        self.dal.append(self.get_dal_format(item))
+
+    def discard(self, item):
+        self._data.pop(self.dal.index(self.get_dal_format(item)))
+        self.dal.pop(self.dal.index(self.get_dal_format(item)))
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __len__(self):
+        return len(self._data)
+
+    def __contains__(self, item):
+        # check dal format for duplications since the quantities are known
+        return self.get_dal_format(item) in self.dal
+
+
+class StrQueryParam(AbstractDalQueryParam):
+    def get_dal_format(self, val):
+        return str(val)
+
+
+class PosQueryParam(AbstractDalQueryParam):
+    def get_dal_format(self, val):
+        """
+        formats the tuple values into a string to be sent to the service
+        entries in values are either quantities or assumed to be degrees
+        """
+        self._validate_pos(val)
+        if len(val) == 3:
+            shape = 'CIRCLE'
+        elif len(val) == 4:
+            shape = 'RANGE'
+        elif len(val) > 5 and not len(val) % 2:
+            shape = 'POLYGON'
+        else:
+            raise ValueError(
+                'Invalid shape {}. Tuple with 3 (CIRCLE), 4 (RANGE) or '
+                'even 6 and above (POLYGON) accepted.'.format(val))
+        return '{} {}'.format(shape, ' '.join(
+            [str(val.to(u.deg).value) if isinstance(val, Quantity) else
+             str((val*u.deg).value) for val in val]))
+
+    def _validate_pos(self, pos):
+        """
+        validates position
+
+        This has probably done already somewhere else
+        """
+        if len(pos) == 3:
+            self._validate_ra(pos[0])
+            self._validate_dec(pos[1])
+            if not isinstance(pos[2], Quantity):
+                radius = pos[2] * u.deg
+            else:
+                radius = pos[2]
+            if radius <= 0*u.deg  or radius.to(u.deg) > 90*u.deg:
+                raise ValueError('Invalid circle radius: {}'.format(radius))
+        elif len(pos) == 4:
+            ra_min = pos[0] if isinstance(pos[0], Quantity) else pos[0] * u.deg
+            ra_max = pos[1] if isinstance(pos[1], Quantity) else pos[1] * u.deg
+            dec_min = pos[2] if isinstance(pos[2], Quantity) \
+                else pos[2] * u.deg
+            dec_max = pos[3] if isinstance(pos[3], Quantity) \
+                else pos[3] * u.deg
+            self._validate_ra(ra_min)
+            self._validate_ra(ra_max)
+            if ra_max.to(u.deg) < ra_min.to(u.deg):
+                raise ValueError('min > max in ra range: '.format(ra_min,
+                                                                  ra_max))
+            self._validate_dec(dec_min)
+            self._validate_dec(dec_max)
+            if dec_max.to(u.deg) < dec_min.to(u.deg):
+                raise ValueError('min > max in dec range: '.format(dec_min,
+                                                                   dec_max))
+        else:
+            for i, m in enumerate(pos):
+                if i%2:
+                    self._validate_dec(m)
+                else:
+                    self._validate_ra(m)
+
+    def _validate_ra(self, ra):
+        if not isinstance(ra, Quantity):
+            ra = ra * u.deg
+        if ra.to(u.deg).value < 0 or ra.to(u.deg).value > 360.0:
+            raise ValueError('Invalid ra: {}'.format(ra))
+
+    def _validate_dec(self, dec):
+        if not isinstance(dec, Quantity):
+            dec = dec * u.deg
+        if dec.to(u.deg).value < -90.0 or dec.to(u.deg).value > 90.0:
+            raise ValueError('Invalid dec: {}'.format(dec))
+
+
+class IntervalQueryParam(AbstractDalQueryParam):
+    def __init__(self, unit=None, equivalencies=None):
+        self._unit = unit
+        self._equivalencies = equivalencies
+        super().__init__()
+
+    def get_dal_format(self, val):
+        if isinstance(val, tuple):
+            if len(val) == 1:
+                high = low = val[0]
+            elif len(val) == 2:
+                low = val[0]
+                high = val[1]
+            else:
+                raise ValueError('Too few/many values in interval attribute: '.
+                                 format(val))
+        else:
+            high = low = val
+        if self._unit:
+            if not isinstance(low, Quantity):
+                low = low*self._unit
+            low = low.to(self._unit, equivalencies=self._equivalencies).value
+            if not isinstance(high, Quantity):
+                high = high*self._unit
+            high = high.to(self._unit, equivalencies=self._equivalencies).value
+        if low > high:
+            raise ValueError('Invalid interval: min({}) > max({})'.format(
+                low, high))
+
+        return '{} {}'.format(low, high)
+
+
+class TimeQueryParam(AbstractDalQueryParam):
+    def get_dal_format(self, val):
+        if isinstance(val, tuple):
+            if len(val) == 1:
+                max_time = min_time = val[0]
+            elif len(val) == 2:
+                min_time = val[0]
+                max_time = val[1]
+            else:
+                raise ValueError('Too few/many members in time attribute: '.
+                                 format(val))
+        else:
+            max_time = min_time = val
+
+        if not isinstance(min_time, Time):
+            min_time = Time(min_time)
+        if not isinstance(max_time, Time):
+            max_time = Time(max_time)
+        if min_time > max_time:
+            raise ValueError('Invalid time interval: min({}) > max({})'.format(
+                min_time, max_time
+            ))
+        return '{} {}'.format(min_time.mjd, max_time.mjd)
+
+
+class EnumQueryParam(AbstractDalQueryParam):
+
+    def __init__(self, allowed_values):
+        self._allowed = allowed_values
+        super().__init__()
+
+    def get_dal_format(self, val):
+        if val not in self._allowed:
+            raise ValueError('{} not a valid value from: {}'.
+                             format(val, self._allowed))
+        return str(val)

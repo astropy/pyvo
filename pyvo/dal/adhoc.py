@@ -17,13 +17,14 @@ from astropy.io.votable.tree import Param
 from astropy import units as u
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
-from astropy.time import Time
 
 from astropy.io.votable.tree import Resource, Group
 from astropy.utils.collections import HomogeneousList
 
 from ..utils.decorators import stream_decode_content
-from ..dam.obscore import POLARIZATION_STATES
+from .params import PosQueryParam, IntervalQueryParam, TimeQueryParam,\
+    EnumQueryParam
+from ..dam.obscore import POLARIZATION_STATES, CALIBRATION_LEVELS
 
 
 # monkeypatch astropy with group support in RESOURCE
@@ -686,259 +687,32 @@ class AxisParamMixin():
     """
     @property
     def pos(self):
-        """
-        return a copy of the list of positions to be used as constraints
-        """
-        if getattr(self, '_pos', None):
-            return copy.deepcopy(self._pos)
-        return None
-
-    def pos_append(self, val):
-        """
-        append a new position to be used as constraints.
-
-        PARAMETERS:
-            val: tuple
-                3 elem for CIRCLE, 4 for RANGE and even > 6 for POLYGON
-        """
-        if not isinstance(val, (tuple, Quantity)):
-            raise ValueError('Expected list or tuple for pos attribute: '.
-                             format(val))
-        if not getattr(self, '_pos', None):
-            setattr(self, '_pos', [])
-        if len(val) < 3:
-            raise ValueError(
-                'Position needs at least 3 values. Received {}'.
-                    format(val))
-        if len(val) == 3:
-            # must be circle
-            shape = 'CIRCLE '
-        elif len(val) == 4:
-            shape = 'RANGE '
-        elif not len(val)%2:
-            shape = 'POLYGON '
-        else:
-            raise ValueError(
-                'Polygon needs even number of values (ra-dec pairs).'
-                'Received: {}'.format(val))
-        try:
-            self._validate_pos(val)
-        except Exception as e:
-            raise ValueError('Invalid position {}. Reason: {}'.format(
-                val, str(e)))
-        format_val = shape + self._get_format_points(val)
-        if 'POS' in self:
-            if format_val not in self['POS']:
-                self['POS'].append(format_val)
-                self._pos.append(val)
-        else:
-            self['POS'] = [format_val]
-            self._pos.append(val)
-
-    def pos_del(self, index):
-        if 'POS' in self:
-            del self['POS'][index]
-        if getattr(self, '_pos', None):
-            del self._pos[index]
+        if not hasattr(self, '_pos'):
+            self._pos = PosQueryParam()
+            self['POS'] = self._pos.dal
+        return self._pos
 
     @property
     def band(self):
-        """
-        return a copy of the list of energy bands to be used as constraints
-        """
-        if getattr(self, '_band', None):
-            return copy.deepcopy(self._band)
-        return None
-
-    def band_append(self, val):
-
-        if isinstance(val, tuple):
-            if len(val) == 1:
-                max_band = min_band = val[0]
-            elif len(val) == 2:
-                min_band = val[0]
-                max_band = val[1]
-            else:
-                raise ValueError('Too few/many members in band attribute: '.
-                                 format(val))
-        else:
-            max_band = min_band = val
-
-        if not getattr(self, '_band', None):
-            setattr(self, '_band', [])
-
-        if not isinstance(min_band, Quantity):
-            min_band = min_band*u.meter
-        min_band = min_band.to(u.meter)
-        if not isinstance(max_band, Quantity):
-            max_band = max_band*u.meter
-        if min_band > max_band:
-            raise ValueError('Invalid band: min({}) > max({})'.format(
-                min_band, max_band))
-        max_band = max_band.to(u.meter)
-        format_band = '{} {}'.format(min_band.value, max_band.value)
-        if 'BAND' in self:
-            if format_band not in self['BAND']:
-                self['BAND'].append(format_band)
-                self._band.append(val)
-        else:
-            self['BAND'] = [format_band]
-            self._band.append(val)
-
-    def band_del(self, index):
-        if 'BAND' in self:
-            del self['BAND'][index]
-        if getattr(self, '_band', None):
-            del self._band[index]
+        if not hasattr(self, '_band'):
+            self._band = IntervalQueryParam(unit=u.meter,
+                                            equivalencies=u.spectral())
+            self['BAND'] = self.band.dal
+        return self._band
 
     @property
     def time(self):
-        """
-        return a copy of the list of time lists to be used as constraints
-        """
-        if getattr(self, '_time', None):
-            return copy.deepcopy(self._time)
-        return None
-
-    def time_append(self, val):
-        """
-        append a new time instance or interval
-        """
-        if not getattr(self, '_time', None):
-            setattr(self, '_time', [])
-        if isinstance(val, tuple):
-            if len(val) == 1:
-                max_time = min_time = val[0]
-            elif len(val) == 2:
-                min_time = val[0]
-                max_time = val[1]
-            else:
-                raise ValueError('Too few/many members in time attribute: '.
-                                 format(val))
-        else:
-            max_time = min_time = val
-
-        if not isinstance(min_time, Time):
-            min_time = Time(min_time)
-        if not isinstance(max_time, Time):
-            max_time = Time(max_time)
-        if min_time > max_time:
-            raise ValueError('Invalid time interval: min({}) > max({})'.format(
-                min_time, max_time
-            ))
-        format_time = '{} {}'.format(min_time.mjd, max_time.mjd)
-        if 'TIME' in self:
-            if format_time not in self['TIME']:
-                self['TIME'].append(format_time)
-                self._time.append(val)
-        else:
-            self['TIME'] = [format_time]
-            self._time.append(val)
-
-    def time_del(self, index):
-        """
-        delete a time instance or interval
-        """
-        if 'TIME' in self:
-            del self['TIME'][index]
-        if getattr(self, '_time', None):
-            del self._time[index]
+        if not hasattr(self, '_time'):
+            self._time = TimeQueryParam()
+            self['TIME'] = self.time.dal
+        return self._time
 
     @property
     def pol(self):
-        """
-        return a copy of the list of polarization states to be used as
-        constraints
-        """
-        if getattr(self, '_pol', None):
-            return copy.deepcopy(self._pol)
-        return None
-
-    def pol_append(self, val):
-        """
-        appends a new polarization state to the search constraints
-        """
-        if val not in POLARIZATION_STATES:
-            raise ValueError('{} not a valid polarization state: {}'.
-                             format(val, POLARIZATION_STATES))
-        if not getattr(self, '_pol', None):
-            setattr(self, '_pol', [])
-        if 'POL' in self:
-            if val not in self['POL']:
-                self['POL'].append(val)
-                self._pol.append(val)
-        else:
-            self['POL'] = [val]
-            self._pol.append(val)
-
-    def pol_del(self, index):
-        """
-        deletes a polarization state from constraints
-        """
-        if 'POL' in self:
-            del self['POL'][index]
-        if getattr(self, '_pol', None):
-            del self._pol[index]
-
-    def _get_format_points(self, values):
-        """
-        formats the tuple values into a string to be sent to the service
-        entries in values are either quantities or assumed to be degrees
-        """
-        return ' '.join(
-            [str(val.to(u.deg).value) if isinstance(val, Quantity) else
-             str((val*u.deg).value) for val in values])
-
-    def _validate_pos(self, pos):
-        """
-        validates position
-
-        This has probably done already somewhere else
-        """
-        if len(pos) == 3:
-            self._validate_ra(pos[0])
-            self._validate_dec(pos[1])
-            if not isinstance(pos[2], Quantity):
-                radius = pos[2] * u.deg
-            else:
-                radius = pos[2]
-            if radius <= 0*u.deg  or radius.to(u.deg) > 90*u.deg:
-                raise ValueError('Invalid circle radius: {}'.format(radius))
-        elif len(pos) == 4:
-            ra_min = pos[0] if isinstance(pos[0], Quantity) else pos[0] * u.deg
-            ra_max = pos[1] if isinstance(pos[1], Quantity) else pos[1] * u.deg
-            dec_min = pos[2] if isinstance(pos[2], Quantity) \
-                else pos[2] * u.deg
-            dec_max = pos[3] if isinstance(pos[3], Quantity) \
-                else pos[3] * u.deg
-            self._validate_ra(ra_min)
-            self._validate_ra(ra_max)
-            if ra_max.to(u.deg) < ra_min.to(u.deg):
-                raise ValueError('min > max in ra range: '.format(ra_min,
-                                                                  ra_max))
-            self._validate_dec(dec_min)
-            self._validate_dec(dec_max)
-            if dec_max.to(u.deg) < dec_min.to(u.deg):
-                raise ValueError('min > max in dec range: '.format(dec_min,
-                                                                   dec_max))
-        else:
-            for i, m in enumerate(pos):
-                if i%2:
-                    self._validate_dec(m)
-                else:
-                    self._validate_ra(m)
-
-    def _validate_ra(self, ra):
-        if not isinstance(ra, Quantity):
-            ra = ra * u.deg
-        if ra.to(u.deg).value < 0 or ra.to(u.deg).value > 360.0:
-            raise ValueError('Invalid ra: {}'.format(ra))
-
-    def _validate_dec(self, dec):
-        if not isinstance(dec, Quantity):
-            dec = dec * u.deg
-        if dec.to(u.deg).value < -90.0 or dec.to(u.deg).value > 90.0:
-            raise ValueError('Invalid dec: {}'.format(dec))
+        if not hasattr(self, '_pol'):
+            self._pol = EnumQueryParam(POLARIZATION_STATES)
+            self['POL'] = self.pol.dal
+        return self._pol
 
 
 class SodaQuery(DatalinkQuery, AxisParamMixin):
@@ -972,11 +746,11 @@ class SodaQuery(DatalinkQuery, AxisParamMixin):
 
     @circle.setter
     def circle(self, circle):
-        self._validate_pos(circle)
         if len(circle) != 3:
            raise ValueError(
-                "Circle must be a sequence with exactly three values")
-        self['CIRCLE'] = self._get_format_points(circle)
+               "Range must be a sequence with exactly three values")
+        self['CIRCLE'] = PosQueryParam().get_dal_format(circle).\
+            replace('CIRCLE ', '')
         setattr(self, '_circle', circle)
         del self.range
         del self.polygon
@@ -1001,16 +775,11 @@ class SodaQuery(DatalinkQuery, AxisParamMixin):
 
     @range.setter
     def range(self, range):
-        warnings.warn(
-            "Use pos attribute instead",
-            DeprecationWarning
-        )
-        self._validate_pos(range)
-        setattr(self, '_range', range)
         if len(range) != 4:
            raise ValueError(
                "Range must be a sequence with exactly four values")
-        self['POS'] = 'RANGE ' + self._get_format_points(range)
+        self['POS'] = PosQueryParam().get_dal_format(range)
+        setattr(self, '_range', range)
         del self.circle
         del self.polygon
 
@@ -1032,13 +801,11 @@ class SodaQuery(DatalinkQuery, AxisParamMixin):
 
     @polygon.setter
     def polygon(self, polygon):
-        if len(polygon) < 6 or len(polygon)%2:
-            raise ValueError(
-                'Polygon must be a sequence with at least six numeric values, '
-                'expressing pairs of ra and dec in degrees'
-            )
-        self._validate_pos(polygon)
-        self['POLYGON'] = self._get_format_points(polygon)
+        if len(polygon) < 6:
+           raise ValueError(
+               "Polygon must be a sequence of at least six values")
+        self['POLYGON'] = PosQueryParam().get_dal_format(polygon).\
+            replace('POLYGON ', '')
         setattr(self, '_polygon', polygon)
         del self.circle
         del self.range
@@ -1091,3 +858,4 @@ class SodaQuery(DatalinkQuery, AxisParamMixin):
             delattr(self, '_band')
         if 'BAND' in self:
             del self['BAND']
+

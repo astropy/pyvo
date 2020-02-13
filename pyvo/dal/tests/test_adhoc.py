@@ -14,101 +14,110 @@ from pyvo.dal.adhoc import AxisParamMixin, SodaQuery
 def test_pos():
     class TestClass(dict, AxisParamMixin): pass
     test_obj = TestClass()
-    test_obj.pos_append((1, 2, 3)*u.deg)
+    test_obj.pos.add((1, 2, 3)*u.deg)
     assert len(test_obj._pos) == 1
     assert test_obj['POS'] == ['CIRCLE 1.0 2.0 3.0']
 
-    test_obj.pos_append((1, 2, 3, 4))
+    test_obj.pos.add((1, 2, 3, 4))
     assert len(test_obj._pos) == 2
     assert test_obj['POS'] == ['CIRCLE 1.0 2.0 3.0', 'RANGE 1.0 2.0 3.0 4.0']
 
     # duplicates are ignored
-    test_obj.pos_append((1, 2, 3))
+    test_obj.pos.add((1, 2, 3))
     assert len(test_obj._pos) == 2
     assert test_obj['POS'] == ['CIRCLE 1.0 2.0 3.0', 'RANGE 1.0 2.0 3.0 4.0']
 
     # polygon
-    test_obj.pos_append((1, 2, 3, 4, 5, 6))
+    test_obj.pos.add((1, 2, 3, 4, 5, 6))
     assert len(test_obj._pos) == 3
     assert test_obj['POS'] == ['CIRCLE 1.0 2.0 3.0', 'RANGE 1.0 2.0 3.0 4.0',
                                'POLYGON 1.0 2.0 3.0 4.0 5.0 6.0']
 
     # deletes
-    test_obj.pos_del(1)
+    test_obj.pos.remove((1, 2, 3, 4))
     assert len(test_obj._pos) == 2
     assert test_obj['POS'] == ['CIRCLE 1.0 2.0 3.0',
                                'POLYGON 1.0 2.0 3.0 4.0 5.0 6.0']
 
     # test borders
-    test_obj.pos_del(0)
-    test_obj.pos_del(0)
+    test_obj.pos.discard((1, 2, 3)*u.deg)
+    test_obj.pos.discard((1, 2, 3, 4, 5, 6))
     assert(len(test_obj._pos) == 0)
-    test_obj.pos_append((0, 90, 90))
+    test_obj.pos.add((0, 90, 90))
     assert len(test_obj._pos) == 1
     assert test_obj['POS'] == ['CIRCLE 0.0 90.0 90.0']
-    test_obj.pos_del(0)
-    test_obj.pos_append((360, -90, 1))
+    test_obj.pos.pop()
+    test_obj.pos.add((360, -90, 1))
     assert len(test_obj._pos) == 1
     assert test_obj['POS'] == ['CIRCLE 360.0 -90.0 1.0']
-    test_obj.pos_del(0)
-    test_obj.pos_append((0, 360, -90, 90))
+    test_obj.pos.pop()
+    test_obj.pos.add((0, 360, -90, 90))
     assert len(test_obj._pos) == 1
     assert test_obj['POS'] == ['RANGE 0.0 360.0 -90.0 90.0']
-    test_obj.pos_del(0)
-    test_obj.pos_append((0, 0, 180, 90, 270, -90))
+    test_obj.pos.pop()
+    test_obj.pos.add((0, 0, 180, 90, 270, -90))
     assert len(test_obj._pos) == 1
     assert test_obj['POS'] == ['POLYGON 0.0 0.0 180.0 90.0 270.0 -90.0']
 
     # errors
-    test_obj.pos_del(0)
+    test_obj.pos.pop()
     with pytest.raises(ValueError):
-        test_obj.pos_append(('A', 2, 3))
+        test_obj.pos.add(('A', 2, 3))
     with pytest.raises(ValueError):
-        test_obj.pos_append((-2, 7, 3))
+        test_obj.pos.add((-2, 7, 3))
     with pytest.raises(ValueError):
-        test_obj.pos_append((3, 99, 3))
+        test_obj.pos.add((3, 99, 3))
     with pytest.raises(ValueError):
-        test_obj.pos_append((2, 7, 91))
+        test_obj.pos.add((2, 7, 91))
     with pytest.raises(ValueError):
-        test_obj.pos_append((-1, 7, 3, 4))
+        test_obj.pos.add((-1, 7, 3, 4))
     with pytest.raises(ValueError):
-        test_obj.pos_append((2, 1, 3, 4))
+        test_obj.pos.add((2, 1, 3, 4))
     with pytest.raises(ValueError):
-        test_obj.pos_append((1, 2, 4, 3))
+        test_obj.pos.add((1, 2, 4, 3))
     with pytest.raises(ValueError):
-        test_obj.pos_append((-2, 7, 5, 9, 10, 10))
+        test_obj.pos.add((-2, 7, 5, 9, 10, 10))
     with pytest.raises(ValueError):
-        test_obj.pos_append((2, 99, 5, 9, 10, 10))
+        test_obj.pos.add((2, 99, 5, 9, 10, 10))
     with pytest.raises(ValueError):
-        test_obj.pos_append((1, 2, 3, 4, 5, 6, 7))
+        test_obj.pos.add((1, 2, 3, 4, 5, 6, 7))
 
 
 def test_band():
     class TestClass(dict, AxisParamMixin): pass
     test_obj = TestClass()
     assert not hasattr(test_obj, '_band')
-    test_obj.band_append(33)
-    assert test_obj._band == [33]
+    test_obj.band.add(33)
+    assert 33 in test_obj.band
     assert test_obj['BAND'] == ['33.0 33.0']
-    test_obj.band_append((50*u.meter, 500))
-    assert test_obj._band == [33, (50*u.meter, 500)]
+    test_obj.band.add((50*u.meter, 500))
+    assert 33 in test_obj.band
+    assert (50*u.meter, 500) in test_obj.band
     assert test_obj['BAND'] == ['33.0 33.0', '50.0 500.0']
-    test_obj.band_del(0)
-    assert test_obj._band == [(50*u.meter, 500)]
+    test_obj.band.discard(33)
+    assert (50*u.meter, 500) in test_obj.band
     assert test_obj['BAND'] == ['50.0 500.0']
-    test_obj.band_del(0)
-    assert not test_obj._band
+    test_obj.band.pop()
+    assert not test_obj.band
     assert not test_obj['BAND']
+    test_obj.band.add((float('-inf'), 33))
+    assert (float('-inf'), 33) in test_obj.band
+    assert test_obj.band.dal == ['-inf 33.0']
+    test_obj.band.clear()
+    test_obj.band.add((33, float('inf')))
+    assert (33, float('inf')) in test_obj.band
+    assert test_obj.band.dal == ['33.0 inf']
+    test_obj.clear()
 
     # error cases
     with pytest.raises(ValueError):
-        test_obj.band_append(())
+        test_obj.band.add(())
     with pytest.raises(ValueError):
-        test_obj.band_append((1, 2, 3))
+        test_obj.band.add((1, 2, 3))
     with pytest.raises(ValueError):
-        test_obj.band_append(('INVALID', 6))
+        test_obj.band.add(('INVALID', 6))
     with pytest.raises(ValueError):
-        test_obj.band_append((3, 1))
+        test_obj.band.add((3, 1))
 
 
 def test_time():
@@ -116,61 +125,64 @@ def test_time():
     test_obj = TestClass()
     assert not hasattr(test_obj, '_time')
     now = Time(datetime.datetime.now())
-    test_obj.time_append(now)
-    assert test_obj._time == [now]
+    test_obj.time.add(now)
+    assert now in test_obj.time
     assert test_obj['TIME'] == ['{now} {now}'.format(now=now.mjd)]
     min_time = '2010-01-01T00:00:00.000Z'
     max_time = '2010-01-01T01:00:00.000Z'
-    test_obj.time_append((min_time, max_time))
-    assert test_obj._time == [now, (min_time, max_time)]
+    test_obj.time.add((min_time, max_time))
+    assert now in test_obj.time
+    assert (min_time, max_time) in test_obj.time
     assert test_obj['TIME'] == ['{now} {now}'.format(now=now.mjd),
                                 '{min} {max}'.format(min=Time(min_time).mjd,
                                                      max=Time(max_time).mjd)]
-    test_obj.time_del(0)
-    assert test_obj._time == [(min_time, max_time)]
+    test_obj.time.discard(now)
+    assert (min_time, max_time) in test_obj.time
     assert test_obj['TIME'] == ['{min} {max}'.format(min=Time(min_time).mjd,
                                                      max=Time(max_time).mjd)]
-    test_obj.time_del(0)
-    assert not test_obj._time
+    test_obj.time.pop()
+    assert not test_obj.time
     assert not test_obj['TIME']
 
     # error cases
     with pytest.raises(ValueError):
-        test_obj.time_append([])
+        test_obj.time.add([])
     with pytest.raises(ValueError):
-        test_obj.time_append([now, min_time, max_time])
+        test_obj.time.add([now, min_time, max_time])
     with pytest.raises(ValueError):
-        test_obj.time_append(['INVALID'])
+        test_obj.time.add(['INVALID'])
     with pytest.raises(ValueError):
-        test_obj.time_append([max_time, min_time])
+        test_obj.time.add([max_time, min_time])
 
 
 def test_pol():
     class TestClass(dict, AxisParamMixin): pass
     test_obj = TestClass()
     assert not hasattr(test_obj, '_pol')
-    test_obj.pol_append('YY')
-    assert test_obj._pol == ['YY']
+    test_obj.pol.add('YY')
+    assert 'YY' in test_obj.pol
     assert test_obj['POL'] == ['YY']
-    test_obj.pol_append('POLI')
-    assert test_obj._pol == ['YY', 'POLI']
+    test_obj.pol.add('POLI')
+    assert 'YY' in test_obj.pol
+    assert 'POLI' in test_obj.pol
     assert test_obj['POL'] == ['YY', 'POLI']
     # test duplicate
-    test_obj.pol_append('POLI')
-    assert test_obj._pol == ['YY', 'POLI']
+    test_obj.pol.add('POLI')
+    assert 'YY' in test_obj.pol
+    assert 'POLI' in test_obj.pol
     assert test_obj['POL'] == ['YY', 'POLI']
-    test_obj.pol_del(0)
-    assert test_obj._pol == ['POLI']
+    test_obj.pol.remove('YY')
+    assert 'POLI' in test_obj.pol
     assert test_obj['POL'] == ['POLI']
-    test_obj.pol_del(0)
+    test_obj.pol.pop()
     assert not test_obj._pol
     assert not test_obj['POL']
 
     # error cases
     with pytest.raises(ValueError):
-        test_obj.pol_append(None)
+        test_obj.pol.add(None)
     with pytest.raises(ValueError):
-        test_obj.pol_append(['INVALID'])
+        test_obj.pol.add(['INVALID'])
 
 
 def test_soda_query():

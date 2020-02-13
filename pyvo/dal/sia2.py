@@ -31,14 +31,17 @@ endpoint.
 """
 import copy
 
+
 from astropy.coordinates import SkyCoord
 from astropy import units as u
+from astropy import time
 
 from .query import DALResults, DALQuery, DALService, Record
 from .adhoc import DatalinkResultsMixin, AxisParamMixin, SodaRecordMixin,\
     DatalinkRecordMixin
+from .params import IntervalQueryParam, StrQueryParam, EnumQueryParam
 from .vosi import AvailabilityMixin, CapabilityMixin
-from pyvo.dam import ObsCore
+from ..dam import ObsCore
 
 
 __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "ObsCoreRecord"]
@@ -235,7 +238,7 @@ class SIAQuery(DALQuery, AxisParamMixin):
         (float(-inf), 600)
 
         Additional attribute constraints can be specified (or removed) after
-        this object has been created using the *_append and *_del methods.
+        this object has been created using the *.add and *_del methods.
 
         Parameters
         ----------
@@ -267,73 +270,56 @@ class SIAQuery(DALQuery, AxisParamMixin):
         """
         super().__init__(url, session=session)
 
-        self._pos = []
         for pp in _tolist(pos):
-            self.pos_append(pp)
+            self.pos.add(pp)
 
-        self._band = []
         for bb in _tolist(band):
-            self.band_append(bb)
+            self.band.add(bb)
 
-        self._time = []
         for tt in _tolist(time):
-            self.time_append(tt)
+            self.time.add(tt)
 
-        self._pol = []
         for pp in _tolist(pol):
-            self.pol_append(pp)
+            self.pol.add(pp)
 
-        self._fov = []
         for ff in _tolist(field_of_view):
-            self.field_of_view_append(ff)
+            self.field_of_view.add(ff)
 
-        self._spatres = []
         for sp in _tolist(spatial_resolution):
-            self.spatial_resolution_append(sp)
+            self.spatial_resolution.add(sp)
 
-        self._specrp = []
         for sr in _tolist(spectral_resolving_power):
-            self.spectral_resolving_power_append(sr)
+            self.spectral_resolving_power.add(sr)
 
-        self._exptime = []
         for et in _tolist(exptime):
-            self.exptime_append(et)
+            self.exptime.add(et)
 
-        self._timeres = []
         for tr in _tolist(timeres):
-            self.timeres_append(tr)
+            self.timeres.add(tr)
 
-        self._id = []
         for ii in _tolist(id):
-            self.id_append(ii)
+            self.id.add(ii)
 
-        self._facility = []
         for ff in _tolist(facility):
-            self.facility_append(ff)
+            self.facility.add(ff)
 
-        self._collection = []
         for col in _tolist(collection):
-            self.collection_append(col)
+            self.collection.add(col)
 
-        self._instrument = []
         for inst in _tolist(instrument):
-            self.instrument_append(inst)
+            self.instrument.add(inst)
 
-        self._dptype = []
         for dt in _tolist(data_type):
-            self.data_type_append(dt)
+            self.data_type.add(dt)
 
-        self._calib_level = []
         for cal in _tolist(calib_level):
-            self.calib_level_append(cal)
+            self.calib_level.add(cal)
 
-        self._target = []
         for tt in _tolist(target):
-            self.target_append(tt)
+            self.target.add(tt)
 
-        self._res_format = []
         for rf in _tolist(res_format):
-            self.res_format_append(rf)
+            self.res_format.add(rf)
 
         self.maxrec = maxrec
 
@@ -343,293 +329,94 @@ class SIAQuery(DALQuery, AxisParamMixin):
 
     @property
     def field_of_view(self):
-        """
-        Returns a copy of the list of field of views to be used as constraints
-        """
-        return copy.copy(self._fov)
-
-    def field_of_view_append(self, val):
-        if not val:
-            return
-        if not isinstance(val, tuple) or len(val) != 2:
-            raise AttributeError(
-                'Field of view {} not a size 2 tuple'.format(val))
-        fval = '{} {}'.format(val[0].to(u.deg).value, val[1].to(u.deg).value)
-        self._fov.append(val)
-        if 'FOV' not in self.keys():
-            self['FOV'] = [fval]
-        else:
-            self['FOV'].append(fval)
-
-    def field_of_view_del(self, index):
-        del self['FOV'][index]
-        del self._fov[index]
+        if not hasattr(self, '_fov'):
+            self._fov = IntervalQueryParam(u.deg)
+            self['FOV'] = self._fov.dal
+        return self._fov
 
     @property
     def spatial_resolution(self):
-        """
-        Returns a copy of the list of spectral resolutions to be used as
-        constraints
-        """
-        return copy.copy(self._spatres)
-
-    def spatial_resolution_append(self, val):
-        if not val:
-            return
-        if not isinstance(val, tuple) or len(val) != 2:
-            raise AttributeError(
-                'Spatial resolution {} not a size 2 tuple'.format(val))
-        fval = '{} {}'.format(val[0].to(u.deg).value, val[1].to(u.deg).value)
-        self._spatres.append(val)
-        if 'SPATRES' not in self.keys():
-            self['SPATRES'] = [fval]
-        else:
-            self['SPATRES'].append(fval)
-
-    def spatial_resolution_del(self, index):
-        del self['SPATRES'][index]
-        del self._spatres[index]
+        if not hasattr(self, '_spatres'):
+            self._spatres = IntervalQueryParam(u.deg)
+            self['SPATRES'] = self._spatres.dal
+        return self._spatres
 
     @property
     def spectral_resolving_power(self):
-        """
-        Returns a copy of the list of spectral resolving power ranges to be
-        used as constraints
-        """
-        return copy.copy(self._specrp)
-
-    def spectral_resolving_power_append(self, val):
-        if not val:
-            return
-        if not isinstance(val, tuple) or len(val) != 2:
-            raise AttributeError(
-                'Spectral resolving power {} not a size 2 tuple'.format(val))
-        fval = '{} {}'.format(val[0], val[1])
-        self._specrp.append(val)
-        if 'SPECRP' not in self.keys():
-            self['SPECRP'] = [fval]
-        else:
-            self['SPECRP'].append(fval)
-
-    def spectral_resolving_power_del(self, index):
-        del self['SPECRP'][index]
-        del self._specrp[index]
+        if not hasattr(self, '_specrp'):
+            self._specrp = IntervalQueryParam()
+            self['SPECRP'] = self._specrp.dal
+        return self._specrp
 
     @property
     def exptime(self):
-        """
-        Returns a copy of the list of exposure time ranges to be used as
-        constraints
-        """
-        return copy.copy(self._exptime)
-
-    def exptime_append(self, val):
-        if not val:
-            return
-        if not isinstance(val, tuple) or len(val) != 2:
-            raise AttributeError(
-                'Exposure time {} not a size 2 tuple'.format(val))
-        fval = '{} {}'.format(val[0].to(u.second).value,
-                              val[1].to(u.second).value)
-        self._exptime.append(val)
-        if 'EXPTIME' not in self.keys():
-            self['EXPTIME'] = [fval]
-        else:
-            self['EXPTIME'].append(fval)
-
-    def exptime_del(self, index):
-        del self['EXPTIME'][index]
-        del self._exptime[index]
+        if not hasattr(self, '_exptime'):
+            self._exptime = IntervalQueryParam(u.second)
+            self['EXPTIME'] = self._exptime.dal
+        return self._exptime
 
     @property
     def timeres(self):
-        """
-        Returns a copy of the list of time resolution ranges to be used as
-        constraints
-        """
-        return copy.copy(self._timeres)
-
-    def timeres_append(self, val):
-        if not val:
-            return
-        if not isinstance(val, tuple) or len(val) != 2:
-            raise AttributeError(
-                'Time resolution {} not a size 2 tuple'.format(val))
-        fval = '{} {}'.format(val[0].to(u.second).value,
-                              val[1].to(u.second).value)
-        self._timeres.append(val)
-        if 'TIMERES' not in self.keys():
-            self['TIMERES'] = [fval]
-        else:
-            self['TIMERES'].append(fval)
-
-    def timeres_del(self, index):
-        del self['TIMERES'][index]
-        del self._timeres[index]
+        if not hasattr(self, '_timeres'):
+            self._timeres = IntervalQueryParam(u.second)
+            self['TIMERES'] = self._timeres.dal
+        return self._timeres
 
     @property
     def id(self):
-        """
-        Returns a copy of the list of ids to be used as constraints
-        """
-        return copy.copy(self._id)
-
-    def id_append(self, val):
-        if not val:
-            return
-        self._id.append(val)
-        if 'ID' not in self.keys():
-            self['ID'] = [val]
-        else:
-            self['ID'].append(val)
-
-    def id_del(self, index):
-        del self['ID'][index]
-        del self._id[index]
+        if not hasattr(self, '_id'):
+            self._id = StrQueryParam()
+            self['ID'] = self._id.dal
+        return self._id
 
     @property
     def facility(self):
-        """
-        Returns a copy of the list of facilities to be used as constraints
-        """
-        return copy.copy(self._facility)
-
-    def facility_append(self, val):
-        if not val:
-            return
-        self._facility.append(val)
-        if 'FACILITY' not in self.keys():
-            self['FACILITY'] = [val]
-        else:
-            self['FACILITY'].append(val)
-
-    def facility_del(self, index):
-        del self['FACILITY'][index]
-        del self._facility[index]
+        if not hasattr(self, '_facility'):
+            self._facility = StrQueryParam()
+            self['FACILITY'] = self._facility.dal
+        return self._facility
 
     @property
     def collection(self):
-        """
-        Returns a copy of the list of collections to be used as constraints
-        """
-        return copy.copy(self._collection)
-
-    def collection_append(self, val):
-        if not val:
-            return
-        self._collection.append(val)
-        if 'COLLECTION' not in self.keys():
-            self['COLLECTION'] = [val]
-        else:
-            self['COLLECTION'].append(val)
-
-    def collection_del(self, index):
-        del self['COLLECTION'][index]
-        del self._collection[index]
+        if not hasattr(self, '_collection'):
+            self._collection = StrQueryParam()
+            self['COLLECTION'] = self._collection.dal
+        return self._collection
 
     @property
     def instrument(self):
-        """
-        Returns a copy of the list of instruments to be used as constraints
-        """
-        return copy.copy(self._instrument)
-
-    def instrument_append(self, val):
-        if not val:
-            return
-        self._instrument.append(val)
-        if 'INSTRUMENT' not in self.keys():
-            self['INSTRUMENT'] = [val]
-        else:
-            self['INSTRUMENT'].append(val)
-
-    def instrument_del(self, index):
-        del self['INSTRUMENT'][index]
-        del self._instrument[index]
+        if not hasattr(self, '_instrument'):
+            self._instrument = StrQueryParam()
+            self['INSTRUMENT'] = self._instrument.dal
+        return self._instrument
 
     @property
     def data_type(self):
-        """
-        Returns a copy of the list of data types to be used as constraints
-        """
-        return copy.copy(self._dptype)
-
-    def data_type_append(self, val):
-        if not val:
-            return
-        self._dptype.append(val)
-        if 'DPTYPE' not in self.keys():
-            self['DPTYPE'] = [val]
-        else:
-            self['DPTYPE'].append(val)
-
-    def data_type_del(self, index):
-        del self['DPTYPE'][index]
-        del self._dptype[index]
+        if not hasattr(self, '_data_type'):
+            self._data_type = StrQueryParam()
+            self['DPTYPE'] = self._data_type.dal
+        return self._data_type
 
     @property
     def calib_level(self):
-        """
-        Returns a copy of the list of calibration levels to be used
-        as constraints
-        """
-        return copy.copy(self._calib_level)
-
-    def calib_level_append(self, val):
-        if not val:
-            return
-        if val not in CALIBRATION_LEVELS:
-            raise ValueError('Calibration {} not in valid range: {}'.
-                             format(val, ','.join(CALIBRATION_LEVELS)))
-        self._calib_level.append(val)
-        if 'CALIB' not in self.keys():
-            self['CALIB'] = [val]
-        else:
-            self['CALIB'].append(val)
-
-    def calibration_del(self, index):
-        del self['CALIB'][index]
-        del self._calib_level[index]
+        if not hasattr(self, '_cal'):
+            self._cal = EnumQueryParam(CALIBRATION_LEVELS)
+            self['CALIB'] = self._cal.dal
+        return self._cal
 
     @property
     def target(self):
-        """
-        Returns a copy of the list of targets to be used as constraints
-        """
-        return copy.copy(self._target)
-
-    def target_append(self, val):
-        if not val:
-            return
-        self._target.append(val)
-        if 'TARGET' not in self.keys():
-            self['TARGET'] = [val]
-        else:
-            self['TARGET'].append(val)
-
-    def target_del(self, index):
-        del self['TARGET'][index]
-        del self._target[index]
+        if not hasattr(self, '_target'):
+            self._target = StrQueryParam()
+            self['TARGET'] = self._target.dal
+        return self._target
 
     @property
     def res_format(self):
-        """
-        Returns a copy of the list of result formats for the response
-        """
-        return copy.copy(self._res_format)
-
-    def res_format_append(self, val):
-        if not val:
-            return
-        self._res_format.append(val)
-        if 'FORMAT' not in self.keys():
-            self['FORMAT'] = [val]
-        else:
-            self['FORMAT'].append(val)
-
-    def res_format_del(self, index):
-        del self['FORMAT'][index]
-        del self._res_format[index]
+        if not hasattr(self, '_res_format'):
+            self._res_format = StrQueryParam()
+            self['FORMAT'] = self._res_format.dal
+        return self._res_format
 
     @property
     def maxrec(self):
@@ -642,7 +429,7 @@ class SIAQuery(DALQuery, AxisParamMixin):
         if not isinstance(val, int) and val > 0:
             raise ValueError('maxrec {} must be positive int'.format(val))
         self._maxrec = val
-        self['MAXREC'] = val
+        self['MAXREC'] = str(val)
 
     def execute(self):
         """
@@ -851,7 +638,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
         Observation release date
         """
         if 'obs_release_date' in self.keys():
-            return dateutil.parser.isoparse(self['obs_release_date'])
+            return time.Time(self['obs_release_date'])
         return None
 
     @property
