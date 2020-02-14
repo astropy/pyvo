@@ -101,7 +101,7 @@ class TestSIAQuery():
         query.field_of_view.add((1*u.rad, 60))
         assert query['FOV'] == ['10.0 20.0', '57.29577951308232 60.0']
 
-        query.spatial_resolution.add((1*u.deg, 2))
+        query.spatial_resolution.add((1*u.arcsec, 2))
         assert query['SPATRES'] == ['1.0 2.0']
 
         query.spectral_resolving_power.add((3, 5))
@@ -113,8 +113,8 @@ class TestSIAQuery():
         query.timeres.add((1, 3))
         assert query['TIMERES'] == ['1.0 3.0']
 
-        query.id.add('ID1')
-        query.id.add('ID2')
+        query.global_id.add('ID1')
+        query.global_id.add('ID2')
         assert query['ID'] == ['ID1', 'ID2']
 
         query.facility.add('TEL1')
@@ -134,7 +134,7 @@ class TestSIAQuery():
         query.calib_level.add(1)
         assert query['CALIB'] == ['0', '1']
 
-        query.target.add('TARGET1')
+        query.target_name.add('TARGET1')
         assert query['TARGET'] == ['TARGET1']
 
         query.res_format.add('pdf')

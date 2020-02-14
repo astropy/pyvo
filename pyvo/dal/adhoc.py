@@ -682,7 +682,7 @@ class DatalinkRecord(DatalinkRecordMixin, SodaRecordMixin, Record):
 
 class AxisParamMixin():
     """
-    a class to handle axis parameters (pos, band, time and pol) in Soda
+    Stores the axis parameters (pos, band, time and pol) used in SODA
     or SIAv2 queries
     """
     @property

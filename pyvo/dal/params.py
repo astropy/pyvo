@@ -213,20 +213,24 @@ class Polygon(Number):
 
 class AbstractDalQueryParam(MutableSet, metaclass=abc.ABCMeta):
     """
-    Base class for the DAL parameters. In general, DAL parameters allow
-    for multiple values - hence this class is derived from the set class.
-    The corresponding DAL representation of the values in the list is
-    available through the `dal` attribute. Subclasses might override
-    the `dal_formatter` method that formats values before storing them
-    into the `dal` attribute
+    Base class for a DAL parameter. In general, a DAL parameter allows
+    for multiple values which are OR-ed by the service. As such, the class
+    behaves like a set that stores all the values.
+
+    When a value is added to an attribute, it is validated and formatted
+    to conform to the using service (SIAv2 or SODA) and value errors might be
+    raised. The `dal` attribute stores the current list of formatted
+    attributes.
+
+    Subclasses must override the `dal_formatter` method that formats values
+    for serialization. That includes unit conversions and string representation
+    Duplicates in the set are determine based on the formatted DAL
+    representation of the value.
     """
     def __init__(self, values=()):
         """
         Parameters
         ----------
-        validate_func : reference to the validate function
-            Function to validate the members against.
-
         values : sequence, optional
             An initial set of values.
         """
@@ -238,12 +242,13 @@ class AbstractDalQueryParam(MutableSet, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_dal_format(self, item):
-        return str(item)
+        """
+        Method to be provided by subclasses
+        """
+        return
 
     def add(self, item):
         if item in self:
-            return
-        if self.get_dal_format(item) in self.dal:
             return
         self._data.append(item)
         self.dal.append(self.get_dal_format(item))
@@ -264,11 +269,19 @@ class AbstractDalQueryParam(MutableSet, metaclass=abc.ABCMeta):
 
 
 class StrQueryParam(AbstractDalQueryParam):
+    """
+    Representation of a unitless, single-value parameter. The formatter is
+    just a str() cast
+    """
     def get_dal_format(self, val):
         return str(val)
 
 
 class PosQueryParam(AbstractDalQueryParam):
+    """
+    Representation of a position parameter. Depending on the number
+    of entries, the resulting DAL format is CIRCLE, RANGE or POLYGON.
+    """
     def get_dal_format(self, val):
         """
         formats the tuple values into a string to be sent to the service
@@ -342,7 +355,18 @@ class PosQueryParam(AbstractDalQueryParam):
 
 
 class IntervalQueryParam(AbstractDalQueryParam):
+    """
+    Representation of an interval DAL parameter.
+    """
     def __init__(self, unit=None, equivalencies=None):
+        """
+        Parameters
+        ----------
+        unit : `astropy.unit`
+            Unit this paramter is represented in DAL format
+        equivalencies: list
+            List of equivalencies for unit conversion
+        """
         self._unit = unit
         self._equivalencies = equivalencies
         super().__init__()
@@ -374,6 +398,9 @@ class IntervalQueryParam(AbstractDalQueryParam):
 
 
 class TimeQueryParam(AbstractDalQueryParam):
+    """
+    Representation of a timestamp parameter.
+    """
     def get_dal_format(self, val):
         if isinstance(val, tuple):
             if len(val) == 1:
@@ -399,8 +426,16 @@ class TimeQueryParam(AbstractDalQueryParam):
 
 
 class EnumQueryParam(AbstractDalQueryParam):
-
+    """
+    Representation of an enum parameter
+    """
     def __init__(self, allowed_values):
+        """
+        Parameters
+        ----------
+        allowed_values : sequence
+            Sequence of allowed values for the enum
+        """
         self._allowed = allowed_values
         super().__init__()
 

@@ -3,34 +3,12 @@
 A module for searching for images in a remote archive.
 
 A Simple Image Access (SIA) service allows a client to search for
-images in an archive whose field of view overlaps with a given
-region on the sky. The region can be a circle, a range or an arbitrary polyon.
-The service responds to a search query
-with a table in which each row represents an image that is available
-for download.  The columns provide metadata describing each image and
-one column in particular provides the image's download URL (also
-called the *access reference*, or *acref*).  Some SIA services act as
-a cut-out service; in this case, the query result is a table of images
-whose field of view matches the requested region and which will be
-created when accessed via the download URL.
-
-This module provides an interface for accessing an SIA v2 service.  It is
-implemented as a specialization of the DAL Query interface.
-
-The ``search()`` function support the simplest and most common types
-of queries, returning an SIAResults instance as its results which
-represents the matching images from the archive.  The SIAResults
-supports access to and iterations over the individual records; these
-are provided as SIARecord instances, which give easy access to key
-metadata in the response, such as the position of the image's center,
-the image format, the size and shape of the image, and its download
-URL.
+images based on a number of criteria/parameters. The results are
+represented in `pyvo.dam.obscore.ObsCoreMetadata` format.
 
 The ``SIAService`` class can represent a specific service available at a URL
 endpoint.
 """
-import copy
-
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -41,7 +19,7 @@ from .adhoc import DatalinkResultsMixin, AxisParamMixin, SodaRecordMixin,\
     DatalinkRecordMixin
 from .params import IntervalQueryParam, StrQueryParam, EnumQueryParam
 from .vosi import AvailabilityMixin, CapabilityMixin
-from ..dam import ObsCore
+from ..dam import ObsCoreMetadata
 
 
 __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "ObsCoreRecord"]
@@ -54,54 +32,58 @@ POLARIZATION_STATES = ['I', 'Q', 'U', 'V', 'RR', 'LL', 'RL', 'LR',
 CALIBRATION_LEVELS = [0, 1, 2, 3, 4]
 
 SIA_PARAMETERS_DESC =\
-"""     pos : tuple or list of tuple
+"""     pos : single or list of tuples
+              angle units (default: deg)
             the positional region(s) to be searched for data. Each region can
             be expressed as a tuple representing a CIRCLE, RANGE or POLYGON as
             follows:
-            (ra, dec, radius) - for CIRCLE. (angle units)
+            (ra, dec, radius) - for CIRCLE. (angle units - defaults to)
             (long1, long2, lat1, lat2) - for RANGE (angle units required)
-            (ra, dec, ra, dec, ra, dec ... ) ra/dec points for POLYGON
+            (ra, dec, ra, dec, ra, dec ... ) ra/dec points for POLYGON all
+            in angle units
         band : scalar, tuple(interval) or list of tuples
-            energy units required
+            (spectral units (default: meter)
             the energy interval(s) to be searched for data.
-        time: `~astropy.time.Time` or list of `~astropy.time.Time`
+        time: single or list of `~astropy.time.Time` or compatible strings
             the time interval(s) to be searched for data.
-        pol: TBD enum or list of enums
+        pol: single or list of str from `pyvo.dam.obscore.POLARIZATION_STATES`
             the polarization state(s) to be searched for data.
-        field_of_view: tuple or list of tuples
-            angle units required
+        field_of_view: single or list of tuples
+            angle units (default arcsec)
             the range(s) of field of view (size) to be searched for data
-        spatial_resolution: tuple or list of tuples
+        spatial_resolution: single or list of tuples
             angle units required
             the range(s) of spatial resolution to be searched for data
-        spectral_resolving_power: tuple or list of tuples
+        spectral_resolving_power: single or list of tuples
             the range(s) of spectral resolving power to be searched for data
-        exptime: tuple or list of tuples
-        time units required
+        exptime: single or list of tuples
+            time units (default: second)
             the range(s) of exposure times to be searched for data
-        timeres: tuple of list of tuples
-            time units required
+        timeres: single of list of tuples
+            time units (default: second)
             the range(s) of temporal resolution to be searched for data
-        id: str or list of str
-            specifies the identifier of dataset(s)
-        collection: str or list of str
+        global_id: single or list of str
+            specifies the unique identifier of dataset(s). It is global because
+            it must include information regarding the publisher
+            (obs_publisher_did in ObsCore)
+        collection: single or list of str
             name of the collection that the data belongs to
-        facility: str or list of str
+        facility: single or list of str
             specifies the name of the facility (usually telescope) where
             the data was acquired.
-        instrument: str or list of str
+        instrument: single or list of str
             specifies the name of the instrument with which the data was
             acquired.
         data_type: 'image'|'cube'
             specifies the type of the data
-        calib_level: 0, 1 - raw data, 2 - calibrated data,
-            3 - highly processed data
+        calib_level: single or list from enum
+            `pyvo.dam.obscore.CALIBRATION_LEVELS`
             specifies the calibration level of the data. Can be a single value
             or a list of values
-        target: str or list of str
+        target_name: single or list of str
             specifies the name of the target (e.g. the intention of the
             original science program or observation)
-        res_format : str or list of strings
+        res_format : single or list of strings
             specifies response format(s).
         max_records: int
             allows the client to limit the number or records in the response"""
@@ -109,9 +91,9 @@ SIA_PARAMETERS_DESC =\
 def search(url, pos=None, band=None, time=None, pol=None,
            field_of_view=None, spatial_resolution=None,
            spectral_resolving_power=None, exptime=None,
-           timeres=None, id=None, facility=None, collection=None,
+           timeres=None, global_id=None, facility=None, collection=None,
            instrument=None, data_type=None, calib_level=None,
-           target=None, res_format=None, maxrec=None, session=None):
+           target_name=None, res_format=None, maxrec=None, session=None):
     """
     submit a simple SIA query to a SIAv2 compatible service
     
@@ -123,19 +105,19 @@ def search(url, pos=None, band=None, time=None, pol=None,
     
     """
     service = SIAService(url)
-    # TODO - check capabilities of the service for SIAv2 standard ID
-    return service.search(pos=pos, band=band,
-                          time=time, pol=pol,
+    return service.search(pos=pos, band=band, time=time, pol=pol,
                           field_of_view=field_of_view,
                           spatial_resolution=spatial_resolution,
                           spectral_resolving_power=spectral_resolving_power,
-                          exptime=exptime, timeres=timeres, id=id,
+                          exptime=exptime, timeres=timeres,
+                          global_id=global_id,
                           facility=facility, collection=collection,
                           instrument=instrument, data_type=data_type,
-                          calib_level=calib_level, target=target,
+                          calib_level=calib_level, target_name=target_name,
                           res_format=res_format, maxrec=maxrec,
                           session=session)
-search.__doc__ = search.__doc__.replace('_SIA2_PARAMETERS', SIA_PARAMETERS_DESC)
+search.__doc__ = search.__doc__.replace('_SIA2_PARAMETERS',
+                                        SIA_PARAMETERS_DESC)
 
 
 def _tolist(value):
@@ -189,9 +171,9 @@ class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
     def search(self, pos=None, band=None, time=None, pol=None,
                field_of_view=None, spatial_resolution=None,
                spectral_resolving_power=None, exptime=None,
-               timeres=None, id=None, facility=None, collection=None,
+               timeres=None, global_id=None, facility=None, collection=None,
                instrument=None, data_type=None, calib_level=None,
-               target=None, res_format=None, maxrec=None, session=None):
+               target_name=None, res_format=None, maxrec=None, session=None):
         """
         Performs a SIAv2 search against a SIAv2 service
 
@@ -205,10 +187,11 @@ class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
                         field_of_view=field_of_view,
                         spatial_resolution=spatial_resolution,
                         spectral_resolving_power=spectral_resolving_power,
-                        exptime=exptime, timeres=timeres, id=id,
+                        exptime=exptime, timeres=timeres,
+                        global_id=global_id,
                         facility=facility, collection=collection,
                         instrument=instrument, data_type=data_type,
-                        calib_level=calib_level, target=target,
+                        calib_level=calib_level, target_name=target_name,
                         res_format=res_format, maxrec=maxrec,
                         session=session).execute()
 
@@ -222,9 +205,10 @@ class SIAQuery(DALQuery, AxisParamMixin):
     def __init__(self, url, pos=None, band=None, time=None, pol=None,
                  field_of_view=None, spatial_resolution=None,
                  spectral_resolving_power=None, exptime=None,
-                 timeres=None, id=None, facility=None, collection=None,
+                 timeres=None, global_id=None,
+                 facility=None, collection=None,
                  instrument=None, data_type=None, calib_level=None,
-                 target=None, res_format=None, maxrec=None,
+                 target_name=None, res_format=None, maxrec=None,
                  session=None):
         """
         initialize the query object with a url and the given parameters
@@ -297,8 +281,8 @@ class SIAQuery(DALQuery, AxisParamMixin):
         for tr in _tolist(timeres):
             self.timeres.add(tr)
 
-        for ii in _tolist(id):
-            self.id.add(ii)
+        for ii in _tolist(global_id):
+            self.global_id.add(ii)
 
         for ff in _tolist(facility):
             self.facility.add(ff)
@@ -315,8 +299,8 @@ class SIAQuery(DALQuery, AxisParamMixin):
         for cal in _tolist(calib_level):
             self.calib_level.add(cal)
 
-        for tt in _tolist(target):
-            self.target.add(tt)
+        for tt in _tolist(target_name):
+            self.target_name.add(tt)
 
         for rf in _tolist(res_format):
             self.res_format.add(rf)
@@ -337,7 +321,7 @@ class SIAQuery(DALQuery, AxisParamMixin):
     @property
     def spatial_resolution(self):
         if not hasattr(self, '_spatres'):
-            self._spatres = IntervalQueryParam(u.deg)
+            self._spatres = IntervalQueryParam(u.arcsec)
             self['SPATRES'] = self._spatres.dal
         return self._spatres
 
@@ -363,11 +347,11 @@ class SIAQuery(DALQuery, AxisParamMixin):
         return self._timeres
 
     @property
-    def id(self):
-        if not hasattr(self, '_id'):
-            self._id = StrQueryParam()
-            self['ID'] = self._id.dal
-        return self._id
+    def global_id(self):
+        if not hasattr(self, '_global_id'):
+            self._global_id = StrQueryParam()
+            self['ID'] = self._global_id.dal
+        return self._global_id
 
     @property
     def facility(self):
@@ -405,11 +389,11 @@ class SIAQuery(DALQuery, AxisParamMixin):
         return self._cal
 
     @property
-    def target(self):
+    def target_name(self):
         if not hasattr(self, '_target'):
-            self._target = StrQueryParam()
-            self['TARGET'] = self._target.dal
-        return self._target
+            self._target_name = StrQueryParam()
+            self['TARGET'] = self._target_name.dal
+        return self._target_name
 
     @property
     def res_format(self):
@@ -510,7 +494,7 @@ class SIAResults(DatalinkResultsMixin, DALResults):
 
         Returns
         -------
-        ObsCoreRecord
+        ObsCoreMetadataRecord
            a dictionary-like wrapper containing the result record metadata.
 
         Raises
@@ -526,7 +510,8 @@ class SIAResults(DatalinkResultsMixin, DALResults):
         return ObsCoreRecord(self, index, session=self._session)
 
 
-class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
+class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
+                            ObsCoreMetadata):
     """
     a dictionary-like container for data in a record from the results of an
     image (SIAv2) search, describing an available image in ObsCore format.
@@ -534,23 +519,25 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     The commonly accessed metadata which are stadardized by the SIA
     protocol are available as attributes.  If the metadatum accessible
     via an attribute is not available, the value of that attribute
-    will be None.  All metadata, including non-standard metadata, are
+    will be None.  All metadata, including non-standard metadata, are also
     acessible via the ``get(`` *key* ``)`` function (or the [*key*]
     operator) where *key* is table column name.
     """
 
     ###          OBSERVATION INFO
     @property
-    def dataproduct_type(self):
+    def data_type(self):
         """
-        Data product (file content) primary type
+        Data product (file content) primary type. This is coded as a string
+        that conveys a general idea of the content and organization of a
+        dataset.
         """
         return self['dataproduct_type'].decode('utf-8')
 
     @property
-    def dataproduct_subtype(self):
+    def data_subtype(self):
         """
-        Data product specific type
+        Data product more specific type
         """
         if 'dataproduct_subtype' in self.keys():
             return self['dataproduct_subtype'].decode('utf-8')
@@ -567,14 +554,23 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def target_name(self):
         """
-        Object of interest
+        The target_name attribute contains the name of the target of the
+        observation, if any. This is typically the name of an astronomical
+        object, but could be the name of a survey field.
+        The target name is most useful for output, to identify the target of
+        an observation to the user. In queries it is generally better to refer
+        to astronomical objects by position, using a name resolver to convert
+        the target name into a coordinate (when possible).
         """
         return self['target_name'].decode('utf-8')
 
     @property
     def target_class(self):
         """
-        Class of the Target object as in SSA
+        This field indicates the type of object that was pointed for this
+        observation. It is a string with possible values defined in a special
+        vocabulary set to be defined: list of object classes (or types) used
+        by the SIMBAD database, NED or defined in another IVOA vocabulary.
         """
         if 'target_class' in self.keys():
             return self['target_class'].decode('utf-8')
@@ -584,7 +580,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def id(self):
         """
-        Internal ID given by the ObsTAP service
+        Collection specific nternal ID given by the ObsTAP service
         """
         return self['obs_id'].decode('utf-8')
 
@@ -600,7 +596,14 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def collection(self):
         """
-        Name of the data collection
+        The name of the collection (DataID.Collection) identifies the data
+        collection to which the data product belongs. A data collection can be
+        any collection of datasets which are alike in some fashion. Typical
+        data collections might be all the data from a particular telescope,
+        instrument, or survey. The value is either the registered shortname
+        for the data collection, the full registered IVOA identifier for the
+        collection, or a data provider defined short name for the collection.
+        Examples: HST/WFPC2, VLT/FORS2, CHANDRA/ACIS-S, etc.
         """
         return self['obs_collection'].decode('utf-8')
 
@@ -616,7 +619,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def creator_name(self):
         """
-        Name of the creator of the data
+        The name of the institution or entity which created the dataset.
         """
         if 'obs_creator_name' in self.keys():
             return self['obs_creator_name'].decode('utf-8')
@@ -625,7 +628,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def creator_did(self):
         """
-        IVOA dataset identifier given by the creator
+        IVOA dataset identifier given by its creator.
         """
         if 'obs_creator_did' in self.keys():
             return self['obs_creator_did'].decode('utf-8')
@@ -642,16 +645,17 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
         return None
 
     @property
-    def obs_publisher_id(self):
+    def global_id(self):
         """
         ID for the Dataset given by the publisher.
         """
-        return self['obs_publisher_id'].decode('utf-8')
+        return self['obs_publisher_did'].decode('utf-8')
 
     @property
     def publisher_id(self):
         """
-        IVOA-ID for the Publisher
+        IVOA-ID for the Publisher. It will also be globally unique since each
+        publisher has a unique registered publisher ID
         """
         if 'publisher_id' in self.keys():
             return self['publisher_id'].decode('utf-8')
@@ -660,7 +664,8 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def bib_reference(self):
         """
-        Service bibliographic reference
+        URL or bibcode for documentation. This is a forward link to major
+        publications which reference the dataset.
         """
         if 'bib_reference' in self.keys():
             return self['bib_reference'].decode('utf-8')
@@ -669,7 +674,8 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def data_rights(self):
         """
-        Public/Secure/Proprietary/
+        This parameter allows mentioning the availability of a dataset.
+        Possible values are: public, secure, or proprietary.
         """
         if 'data_rights' in self.keys():
 
@@ -679,21 +685,32 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def access_url(self):
         """
-        URL used to access dataset
+        The access_url column contains a URL that can be used to download the
+        data product (as a file of some sort). Access URLs are not guaranteed
+        to remain valid and unchanged indefinitely. To access a specific data
+        product after a period of time (e.g., days or weeks) a query should be
+        performed to obtain a fresh access URL.
         """
         return self['access_url'].decode('utf-8')
 
     @property
-    def access_format(self):
+    def res_format(self):
         """
-        Content format of the dataset
+        Content format of the dataset. The value of access_format should be a
+        MIME type, either a standard MIME type, an extended MIME type from
+        the above table, or a new custom MIME type defined by the data
+        provider.
         """
         return self['access_format'].decode('utf-8')
 
     @property
     def access_estsize(self):
         """
-        Estimated size of dataset
+        The approximate size (in kilobytes) of the file available via the
+        access_url. This is used only to gain some idea of the size of a data
+        product before downloading it, hence only an approximate value is
+        required. Provision of dataset size estimates is important whenever it
+        is possible that datasets can be very large.
         """
         return self['access_estsize']*1000*u.byte
 
@@ -708,22 +725,46 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def radius(self):
         """
-        Estimated size of the covered region as the radius of a containing
-        circle
+        Approximate size of the covered region as the radius of a containing
+        circle. For most data products the value given should be large enough
+        to include the entire area of the observation; coverage within the
+        bounded region need not be complete, for example if the specified
+        radius encompasses a rotated rectangular region. For observations
+        which do not have a well-defined boundary, e.g. radio or
+        high energy observations, a characteristic value should be given.
+        The radius attribute provides a simple way to characterize and use
+        (e.g. for discovery computations) the approximate spatial coverage of a
+        data product. The spatial coverage of a data product can be more
+        precisely specified using the region attribute.
         """
         return self['s_fov']/2*u.deg
 
     @property
     def region(self):
         """
-        Sky region covered by the data product (expressed in ICRS frame)
+        Sky region covered by the data product (expressed in ICRS frame).
+        It can be used to precisely specify the covered spatial region of a
+        data product.
+        It is often an exact, or almost exact, representation of the
+        illumination region of a given observation defined in a standard way
+        by the concept of Support in the Characterisation data model.
         """
         return self['s_region']
 
     @property
     def spatial_resolution(self):
         """
-        Spatial resolution of data as FWHM of PSF
+        Spatial resolution of data specifies a reference value chosen by the
+        data provider for the estimated spatial resolution of the data product
+        in arcseconds. This refers to the smallest spatial feature in the
+        observed signal that can be resolved.
+        In cases where the spatial resolution varies across the field the best
+        spatial resolution (smallest resolvable spatial feature) should be
+        specified. In cases where the spatial frequency sampling of an
+        observation is complex (e.g., interferometry) a typical value for
+        spatial resolution estimate should be given; additional
+        characterisation may be necessary to fully specify the spatial
+        characteristics of the data.
         """
         return self['s_resolution']*u.arcsec
 
@@ -766,21 +807,27 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def spatial_calib_status(self):
         """
-        Type of calibration along the spatial axis
+        A string to encode the calibration status along the spatial axis
+        (astrometry). Possible values could be {uncalibrated, raw, calibrated}
         """
         return self.get('s_calib_status', None)
 
     @property
     def spatial_stat_error(self):
         """
-        Astrometric precision along the spatial axis
+        This parameter gives an estimate of the astrometric statistical error
+        after the astrometric calibration phase.
         """
         return self.get('s_stat_error', None)
 
     @property
     def pixel_scale(self):
         """
-        Sampling period in world coordinate units along the spatial axis
+        This corresponds to the sampling precision of the data along the
+        spatial axis. It is stored as a real number corresponding to the
+        spatial sampling period, i.e., the distance in world coordinates
+        system units between two pixel centers. It may contain two values if
+        the pixels are rectangular.
         """
         return self.get('s_pixel_scale', None)
 
@@ -802,7 +849,10 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def time_bounds(self):
         """
-        Tuple containing start and end time
+        Tuple containing the start and end time of the observation specified
+         in MJD. In case of data products result of the combination of multiple
+         frames, min bound must be the minimum of the start times, and max
+         bound as the maximum of the stop times.
         """
         return (dateutil.parser.isoparse(self['t_min']),
                 dateutil.parser.isoparse(self['t_max']))
@@ -810,28 +860,44 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def exptime(self):
         """
-        Total exposure time
+        Total exposure time. For simple exposures, this is just the time_bounds
+         size expressed in seconds. For data where the detector is not active
+         at all times (e.g. data products made by combining exposures taken at
+         different times), the t_exptime will be smaller than the time_bounds
+         interval. For data where the xptime is not constant over the entire
+         data product, the median exposure time per pixel is a good way to
+         characterize the typical value. In some cases, exptime is generally
+         used as an indicator of the relative sensitivity (depth) within a
+         single data collection (e.g. obs_collection); data providers should
+         supply a suitable relative value when it is not feasible to define or
+         compute the true exposure time.
+
+        In case of targeted observations, on the contrary the exposure time is
+        often adjusted to achieve similar signal to noise ratio for different
+        targets.
         """
-        return self['t_extime']*u.second
+        return self['t_exptime']*u.second
 
     @property
     def time_resolution(self):
         """
-        Temporal resolution FWHM
+        Estimated or average value of the temporal resolution.
         """
         return self['t_resolution']*u.second
 
     @property
     def time_calib_status(self):
         """
-        Type of time coordinate calibration
+        Type of time coordinate calibration. Possible values are principally
+        {uncalibrated, calibrated, raw, relative}. This may be extended for
+        specific time domain collections.
         """
         return self.get('t_calib_status', None)
 
     @property
     def time_stat_error(self):
         """
-        Time coord statistical error
+        Time coord statistical error on the time measurements in seconds
         """
         if 't_stat_error' in self.keys():
             return self['t_stat_error']*u.second
@@ -862,21 +928,26 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def spectral_calib_status(self):
         """
-        Type of spectral coord calibration
+        This attribute of the spectral axis indicates the status of the data
+        in terms of spectral calibration. Possible values are defined in the
+        Characterisation Data Model and belong to {uncalibrated , calibrated,
+        relative, absolute}.
         """
         return self.get('em_calib_status', None)
 
     @property
     def spectral_bounds(self):
         """
-        Tuple containing the start and end in spectral coordinates
+        Tuple containing the limits of the spectral interval covered by the
+        observation, in short em_min and em_max.
         """
         return (self['em_min']*u.meter, self['em_max']*u.meter)
 
     @property
     def resolving_power(self):
         """
-        Value of the resolving power along the spectral axis. (R)
+        Average estimation for the spectral resolution power stored as a
+        double value, with no unit.
         """
         return self["em_res_power"]
 
@@ -897,7 +968,10 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def spectral_resolution(self):
         """
-        Value of Resolution along the spectral axis
+        A mean estimate of the resolution, e.g. Full Width at Half Maximum
+        (FWHM) of the Line Spread Function (or LSF). This can be used for
+        narrow range spectra whereas in the majority of cases, the resolution
+        power is preferable due to the LSF variation along the spectral axis.
         """
         if 'em_resolution' in self.keys():
             return self['em_resolution']*u.meter
@@ -906,7 +980,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def spectral_stat_error(self):
         """
-        Spectral coord statistical error
+        Spectral coord statistical error (accuracy along the spectral axis)
         """
         if 'em_stat_error' in self.keys():
             return self['em_stat_error']*u.meter
@@ -916,7 +990,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def obs_ucd(self):
         """
-        Nature of the observable axis
+        Nature of the observable axis within the data product
         """
         return self.get('o_ucd', None)
 
@@ -930,9 +1004,10 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def obs_calib_status(self):
         """
-        Type of calibration for the observable coordinate
+        Type of calibration applied on the Flux observed (or other observable
+        quantity).
         """
-        return self.get('em_calib_status', None)
+        return self.get('o_calib_status', None)
 
     @property
     def obs_stat_error(self):
@@ -946,29 +1021,36 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record, ObsCore):
     @property
     def pol_xel(self):
         """
-        Number of elements along the polarization axis
+        Number of different polarization states present in the data. The
+        default value is 0, indicating that polarization was not explicitly
+        observed. Corresponding values are stored in the `pol` property
         """
         return self['pol_xel']
 
     @property
-    def states(self):
+    def pol(self):
         """
-        List of polarization states present in the data file
+        List of polarization states present in the data file. Possible values
+        are: {I Q U V RR LL RL LR XX YY XY YX POLI POLA}. Values in the
+        set are separated by the '/' character. A leading / character must
+        start the list and a trailing / character must end it. It should be
+        ordered following the above list, compatible with the FITS list table
+        for polarization definition.
         """
-        return self.get('pol_states')
+        return self.get('pol_states').decode('utf-8')
 
     ##           PROVENANCE
     @property
     def instrument(self):
         """
-        The name of the instrument used for the observation
+        The name of the instrument used for the acquisition of the data
         """
         return self['instrument_name'].decode('utf-8')
 
     @property
     def facility(self):
         """
-        Name of the facility
+        Name of the facility or observatory used to collect the data
         """
         if 'facility_name' in self.keys():
             return self['facility_name'].decode('utf-8')

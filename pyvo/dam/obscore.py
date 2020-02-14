@@ -4,7 +4,7 @@ A module for representing data in ObsCore format
 
 """
 
-__all__ = ['ObsCore', 'POLARIZATION_STATES', 'CALIBRATION_LEVELS']
+__all__ = ['ObsCoreMetadata', 'POLARIZATION_STATES', 'CALIBRATION_LEVELS']
 
 
 # to be moved to ObsCore
@@ -13,17 +13,17 @@ POLARIZATION_STATES = ['I', 'Q', 'U', 'V', 'RR', 'LL', 'RL', 'LR',
 CALIBRATION_LEVELS = [0, 1, 2, 3, 4]
 
 
-class ObsCore():
+class ObsCoreMetadata():
     """
     Representation of an ObsCore observation
 
-    TBD setters to do validation and unit check
+    TBD setters to do validation and unit check.
     """
     def __init__(self):
 
         ###          OBSERVATION INFO
-        self.dataproduct_type = None
-        self.dataproduct_subtype = None
+        self.data_type = None
+        self.data_subtype = None
         self.calib_level = None
 
         ###          TARGET INFO
@@ -40,14 +40,14 @@ class ObsCore():
 
         ##         CURATION INFORMATION
         self.release_date = None
-        self.obs_publisher_id = None
         self.publisher_id = None
+        self.global_id = None
         self.bib_reference = None
         self.data_rights = None
 
         ##           ACCESS INFORMATION
         self.access_url = None
-        self.access_format = None
+        self.res_format = None
         self.access_estsize = None
 
         ##           SPATIAL CHARACTERISATION
@@ -93,7 +93,7 @@ class ObsCore():
 
         ##           POLARIZATION CHARACTERISATION
         self.pol_xel = None
-        self.states = None
+        self.pol = None
 
         ##           PROVENANCE
         self.instrument = None
