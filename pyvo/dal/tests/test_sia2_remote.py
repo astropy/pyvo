@@ -3,17 +3,15 @@
 """
 Tests for pyvo.dal.sia2 against remote services
 """
-from functools import partial
-import re
 
 import pytest
 
 from pyvo.dal.sia2 import search, SIAService
 
 import astropy.units as u
-from astropy.utils.data import get_pkg_data_contents
 
 CADC_SIA_URL = 'https://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/sia'
+
 
 @pytest.mark.remote_data
 class TestSIACadc():
@@ -37,7 +35,7 @@ class TestSIACadc():
 
     def test_band(self):
         results = search(CADC_SIA_URL, band=(0.0002, 0.0003), maxrec=5)
-        #TODO - correctness
+        # TODO - correctness
         assert len(results) == 5
 
     def test_time(self):
@@ -72,7 +70,7 @@ class TestSIACadc():
 
     def test_exptime(self):
         results = search(CADC_SIA_URL, exptime=(1, 2),
-                        maxrec=5)
+                         maxrec=5)
         assert len(results) == 5
         for rr in results:
             assert 1*u.second <= rr.exptime <= 2*u.second
@@ -131,8 +129,3 @@ class TestSIACadc():
         for rr in results:
             assert rr.res_format == \
                    'application/x-votable+xml;content=datalink'
-
-
-
-
-

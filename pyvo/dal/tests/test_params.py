@@ -206,5 +206,3 @@ def test_dal_query_param():
     test_obs.clear()
     assert len(test_obs) == 0
     assert len(test_obs.dal) == 0
-
-

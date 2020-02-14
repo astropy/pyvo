@@ -12,7 +12,8 @@ from pyvo.dal.adhoc import AxisParamMixin, SodaQuery
 
 
 def test_pos():
-    class TestClass(dict, AxisParamMixin): pass
+    class TestClass(dict, AxisParamMixin):
+        pass
     test_obj = TestClass()
     test_obj.pos.add((1, 2, 3)*u.deg)
     assert len(test_obj._pos) == 1
@@ -84,7 +85,8 @@ def test_pos():
 
 
 def test_band():
-    class TestClass(dict, AxisParamMixin): pass
+    class TestClass(dict, AxisParamMixin):
+        pass
     test_obj = TestClass()
     assert not hasattr(test_obj, '_band')
     test_obj.band.add(33)
@@ -121,7 +123,8 @@ def test_band():
 
 
 def test_time():
-    class TestClass(dict, AxisParamMixin): pass
+    class TestClass(dict, AxisParamMixin):
+        pass
     test_obj = TestClass()
     assert not hasattr(test_obj, '_time')
     now = Time(datetime.datetime.now())
@@ -156,7 +159,8 @@ def test_time():
 
 
 def test_pol():
-    class TestClass(dict, AxisParamMixin): pass
+    class TestClass(dict, AxisParamMixin):
+        pass
     test_obj = TestClass()
     assert not hasattr(test_obj, '_pol')
     test_obj.pol.add('YY')
@@ -212,35 +216,31 @@ def test_soda_query():
     assert not hasattr(test_obj, '_range')
 
     # error cases
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.circle = ('A', 1, 2)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.circle = (1, 1, 2, 2)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.circle = (-1, 1, 2)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.circle = (1, 99, 2)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.circle = (1, 1, 91)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.range = (1, 2, 3)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.range = (2, 1, 3, 4)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.range = (1, 2, 4, 3)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.range = (-1, 2, 3, 4)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.range = (2, 1000, 3, 4)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.range = (1, 1, -91, 4)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.range = (1, 1, 3, 92)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.polygon = (1, 2, 3, 4)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         test_obj.polygon = (2, 1, 3, 4, 5, 6, 7)
-
-
-
-

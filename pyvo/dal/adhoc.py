@@ -3,10 +3,7 @@
 Datalink classes and mixins
 """
 import numpy as np
-import copy
 import warnings
-import dateutil
-from datetime import datetime
 
 from .query import DALResults, DALQuery, DALService, Record
 from .exceptions import DALServiceError
@@ -24,7 +21,7 @@ from astropy.utils.collections import HomogeneousList
 from ..utils.decorators import stream_decode_content
 from .params import PosQueryParam, IntervalQueryParam, TimeQueryParam,\
     EnumQueryParam
-from ..dam.obscore import POLARIZATION_STATES, CALIBRATION_LEVELS
+from ..dam.obscore import POLARIZATION_STATES
 
 
 # monkeypatch astropy with group support in RESOURCE
@@ -747,8 +744,8 @@ class SodaQuery(DatalinkQuery, AxisParamMixin):
     @circle.setter
     def circle(self, circle):
         if len(circle) != 3:
-           raise ValueError(
-               "Range must be a sequence with exactly three values")
+            raise ValueError(
+                "Range must be a sequence with exactly three values")
         self['CIRCLE'] = PosQueryParam().get_dal_format(circle).\
             replace('CIRCLE ', '')
         setattr(self, '_circle', circle)
@@ -776,8 +773,8 @@ class SodaQuery(DatalinkQuery, AxisParamMixin):
     @range.setter
     def range(self, range):
         if len(range) != 4:
-           raise ValueError(
-               "Range must be a sequence with exactly four values")
+            raise ValueError(
+                "Range must be a sequence with exactly four values")
         self['POS'] = PosQueryParam().get_dal_format(range)
         setattr(self, '_range', range)
         del self.circle
@@ -802,8 +799,8 @@ class SodaQuery(DatalinkQuery, AxisParamMixin):
     @polygon.setter
     def polygon(self, polygon):
         if len(polygon) < 6:
-           raise ValueError(
-               "Polygon must be a sequence of at least six values")
+            raise ValueError(
+                "Polygon must be a sequence of at least six values")
         self['POLYGON'] = PosQueryParam().get_dal_format(polygon).\
             replace('POLYGON ', '')
         setattr(self, '_polygon', polygon)
@@ -858,4 +855,3 @@ class SodaQuery(DatalinkQuery, AxisParamMixin):
             delattr(self, '_band')
         if 'BAND' in self:
             del self['BAND']
-

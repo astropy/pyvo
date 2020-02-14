@@ -21,16 +21,16 @@ class ObsCoreMetadata():
     """
     def __init__(self):
 
-        ###          OBSERVATION INFO
+        #          OBSERVATION INFO
         self.data_type = None
         self.data_subtype = None
         self.calib_level = None
 
-        ###          TARGET INFO
+        #          TARGET INFO
         self.target_name = None
         self.target_class = None
 
-        ###          DATA DESCRIPTION
+        #           DATA DESCRIPTION
         self.id = None
         self.title = None
         self.collection = None
@@ -38,19 +38,19 @@ class ObsCoreMetadata():
         self.creator_name = None
         self.creator_did = None
 
-        ##         CURATION INFORMATION
+        #          CURATION INFORMATION
         self.release_date = None
         self.publisher_id = None
         self.global_id = None
         self.bib_reference = None
         self.data_rights = None
 
-        ##           ACCESS INFORMATION
+        #            ACCESS INFORMATION
         self.access_url = None
         self.res_format = None
         self.access_estsize = None
 
-        ##           SPATIAL CHARACTERISATION
+        #            SPATIAL CHARACTERISATION
         self.pos = None
         self.radius = None
         self.region = None
@@ -64,7 +64,7 @@ class ObsCoreMetadata():
         self.spatial_stat_error = None
         self.pixel_scale = None
 
-        ##           TIME CHARACTERISATION
+        #            TIME CHARACTERISATION
         self.time_xel = None
         self.ref_pos = None
         self.time_bounds = None
@@ -73,7 +73,7 @@ class ObsCoreMetadata():
         self.time_calib_status = None
         self.time_stat_error = None
 
-        ##           SPECTRAL CHARACTERISATION
+        #            SPECTRAL CHARACTERISATION
         self.spectral_xel = None
         self.spectral_ucd = None
         self.spectral_unit = None
@@ -85,17 +85,17 @@ class ObsCoreMetadata():
         self.spectral_resolution = None
         self.spectral_stat_error = None
 
-        ##           OBSERVABLE AXIS
+        #            OBSERVABLE AXIS
         self.obs_ucd = None
         self.obs_unit = None
         self.obs_calib_status = None
         self.obs_stat_error = None
 
-        ##           POLARIZATION CHARACTERISATION
+        #            POLARIZATION CHARACTERISATION
         self.pol_xel = None
         self.pol = None
 
-        ##           PROVENANCE
+        #            PROVENANCE
         self.instrument = None
         self.facility = None
         self.proposal_id = None

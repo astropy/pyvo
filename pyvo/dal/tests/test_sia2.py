@@ -92,6 +92,7 @@ class TestSIAService:
         result = results[0]
         _test_result(result)
 
+
 class TestSIAQuery():
 
     def test_query(self):
@@ -142,7 +143,3 @@ class TestSIAQuery():
 
         query.maxrec = 1000
         assert query['MAXREC'] == '1000'
-
-
-
-

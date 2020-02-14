@@ -32,7 +32,7 @@ POLARIZATION_STATES = ['I', 'Q', 'U', 'V', 'RR', 'LL', 'RL', 'LR',
 CALIBRATION_LEVELS = [0, 1, 2, 3, 4]
 
 SIA_PARAMETERS_DESC =\
-"""     pos : single or list of tuples
+    """     pos : single or list of tuples
               angle units (default: deg)
             the positional region(s) to be searched for data. Each region can
             be expressed as a tuple representing a CIRCLE, RANGE or POLYGON as
@@ -88,6 +88,7 @@ SIA_PARAMETERS_DESC =\
         max_records: int
             allows the client to limit the number or records in the response"""
 
+
 def search(url, pos=None, band=None, time=None, pol=None,
            field_of_view=None, spatial_resolution=None,
            spectral_resolving_power=None, exptime=None,
@@ -96,13 +97,13 @@ def search(url, pos=None, band=None, time=None, pol=None,
            target_name=None, res_format=None, maxrec=None, session=None):
     """
     submit a simple SIA query to a SIAv2 compatible service
-    
-        PARAMETERS 
+
+        PARAMETERS
         ----------
 
         url - url of the SIA service (base or endpoint)
         _SIA2_PARAMETERS
-    
+
     """
     service = SIAService(url)
     return service.search(pos=pos, band=band, time=time, pol=pol,
@@ -116,6 +117,8 @@ def search(url, pos=None, band=None, time=None, pol=None,
                           calib_level=calib_level, target_name=target_name,
                           res_format=res_format, maxrec=maxrec,
                           session=session)
+
+
 search.__doc__ = search.__doc__.replace('_SIA2_PARAMETERS',
                                         SIA_PARAMETERS_DESC)
 
@@ -155,7 +158,7 @@ class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
         if hasattr(self._session, 'update_from_capabilities'):
             self._session.update_from_capabilities(self.capabilities)
 
-        self.query_ep = None # service query end point
+        self.query_ep = None  # service query end point
         for cap in self.capabilities:
             # assumes that the access URL is the same regardless of the
             # authentication method except BasicAA which is not supported
@@ -309,7 +312,6 @@ class SIAQuery(DALQuery, AxisParamMixin):
 
     __init__.__doc__ = \
         __init__.__doc__.replace('_SIA2_PARAMETERS', SIA_PARAMETERS_DESC)
-
 
     @property
     def field_of_view(self):
@@ -511,7 +513,7 @@ class SIAResults(DatalinkResultsMixin, DALResults):
 
 
 class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
-                            ObsCoreMetadata):
+                    ObsCoreMetadata):
     """
     a dictionary-like container for data in a record from the results of an
     image (SIAv2) search, describing an available image in ObsCore format.
@@ -524,7 +526,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
     operator) where *key* is table column name.
     """
 
-    ###          OBSERVATION INFO
+    #          OBSERVATION INFO
     @property
     def data_type(self):
         """
@@ -550,7 +552,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         """
         return int(self['calib_level'])
 
-    ###          TARGET INFO
+    #          TARGET INFO
     @property
     def target_name(self):
         """
@@ -576,7 +578,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
             return self['target_class'].decode('utf-8')
         return None
 
-    ###          DATA DESCRIPTION
+    #          DATA DESCRIPTION
     @property
     def id(self):
         """
@@ -613,7 +615,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         Date when the dataset was created
         """
         if 'obs_create_date' in self.keys():
-            return dateutil.parser.isoparse(self['obs_create_date'])
+            return time.Time(self['obs_create_date'])
         return None
 
     @property
@@ -634,7 +636,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
             return self['obs_creator_did'].decode('utf-8')
         return None
 
-    ##         CURATION INFORMATION
+    #         CURATION INFORMATION
     @property
     def release_date(self):
         """
@@ -681,7 +683,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
 
             return self['data_rights'].decode('utf-8')
 
-    ##           ACCESS INFORMATION
+    #           ACCESS INFORMATION
     @property
     def access_url(self):
         """
@@ -714,7 +716,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         """
         return self['access_estsize']*1000*u.byte
 
-    ##           SPATIAL CHARACTERISATION
+    #           SPATIAL CHARACTERISATION
     @property
     def pos(self):
         """
@@ -831,7 +833,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         """
         return self.get('s_pixel_scale', None)
 
-    ##           TIME CHARACTERISATION
+    #           TIME CHARACTERISATION
     @property
     def time_xel(self):
         """
@@ -854,8 +856,8 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
          frames, min bound must be the minimum of the start times, and max
          bound as the maximum of the stop times.
         """
-        return (dateutil.parser.isoparse(self['t_min']),
-                dateutil.parser.isoparse(self['t_max']))
+        return (time.Time(self['t_min']),
+                time.Time(self['t_max']))
 
     @property
     def exptime(self):
@@ -903,7 +905,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
             return self['t_stat_error']*u.second
         return None
 
-    ##           SPECTRAL CHARACTERISATION
+    #           SPECTRAL CHARACTERISATION
     @property
     def spectral_xel(self):
         """
@@ -963,7 +965,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         """
         Resolving power max value on spectral axis
         """
-        return self.get('em_res_power_ax', None)
+        return self.get('em_res_power_max', None)
 
     @property
     def spectral_resolution(self):
@@ -986,7 +988,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
             return self['em_stat_error']*u.meter
         return None
 
-    ##           OBSERVABLE AXIS
+    #           OBSERVABLE AXIS
     @property
     def obs_ucd(self):
         """
@@ -1017,7 +1019,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         """
         return self.get('o_stat_error', None)
 
-    ##           POLARIZATION CHARACTERISATION
+    #           POLARIZATION CHARACTERISATION
     @property
     def pol_xel(self):
         """
@@ -1039,7 +1041,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         """
         return self.get('pol_states').decode('utf-8')
 
-    ##           PROVENANCE
+    #           PROVENANCE
     @property
     def instrument(self):
         """

@@ -315,7 +315,7 @@ class PosQueryParam(AbstractDalQueryParam):
                 radius = pos[2] * u.deg
             else:
                 radius = pos[2]
-            if radius <= 0*u.deg  or radius.to(u.deg) > 90*u.deg:
+            if radius <= 0*u.deg or radius.to(u.deg) > 90*u.deg:
                 raise ValueError('Invalid circle radius: {}'.format(radius))
         elif len(pos) == 4:
             ra_min = pos[0] if isinstance(pos[0], Quantity) else pos[0] * u.deg
@@ -336,7 +336,7 @@ class PosQueryParam(AbstractDalQueryParam):
                                                                    dec_max))
         else:
             for i, m in enumerate(pos):
-                if i%2:
+                if i % 2:
                     self._validate_dec(m)
                 else:
                     self._validate_ra(m)

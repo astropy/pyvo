@@ -16,6 +16,7 @@ from ..utils.http import use_session
 __all__ = [
     'AvailabilityMixin', 'CapabilityMixin', 'VOSITables']
 
+
 class EndpointMixin():
     def _get_endpoint(self, endpoint):
         # finds the endpoint relative to the base url or its parent
@@ -41,6 +42,7 @@ class EndpointMixin():
                     endpoint=endpoint))
 
         return response.raw
+
 
 class AvailabilityMixin(EndpointMixin):
     """

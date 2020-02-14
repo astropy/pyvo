@@ -8,11 +8,9 @@ import re
 
 import pytest
 
-from pyvo.dal.sia import search, SIAService
+from pyvo.dal.sia import search
 
 from astropy.io.fits import HDUList
-from astropy.coordinates import SkyCoord
-import astropy.units as u
 from astropy.utils.data import get_pkg_data_contents
 
 get_pkg_data_contents = partial(
@@ -51,5 +49,3 @@ def test_search():
     result = results[0]
 
     _test_result(result)
-
-
