@@ -254,8 +254,12 @@ class AbstractDalQueryParam(MutableSet, metaclass=abc.ABCMeta):
         self.dal.append(self.get_dal_format(item))
 
     def discard(self, item):
-        self._data.pop(self.dal.index(self.get_dal_format(item)))
-        self.dal.pop(self.dal.index(self.get_dal_format(item)))
+        # relies on the fact that both the raw and the formatted
+        # attribute lists have the items in the same order. It
+        # uses the formatted list (normalized units) to get the index.
+        index = self.dal.index(self.get_dal_format(item))
+        self._data.pop(index)
+        self.dal.pop(index)
 
     def __iter__(self):
         return iter(self._data)

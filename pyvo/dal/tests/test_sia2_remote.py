@@ -32,6 +32,86 @@ class TestSIACadc():
         # limit results to 5 to expedite tests
         results = search(CADC_SIA_URL, pos=(2.8425, 74.4846, 0.001), maxrec=5)
         assert len(results) == 5
+        # check attributes of a record
+        record = results[0]
+        tmp = record.data_type
+        tmp = record.data_subtype
+        tmp = record.calib_level
+
+        #          TARGET INFO
+        tmp = record.target_name
+        tmp = record.target_class
+
+        #           DATA DESCRIPTION
+        tmp = record.id
+        tmp = record.title
+        tmp = record.collection
+        tmp = record.create_date
+        tmp = record.creator_name
+        tmp = record.creator_did
+
+        #          CURATION INFORMATION
+        tmp = record.release_date
+        tmp = record.publisher_id
+        tmp = record.publisher_did
+        tmp = record.bib_reference
+        tmp = record.data_rights
+
+        #            ACCESS INFORMATION
+        tmp = record.access_url
+        tmp = record.res_format
+        tmp = record.access_estsize
+
+        #            SPATIAL CHARACTERISATION
+        tmp = record.pos
+        tmp = record.radius
+        tmp = record.region
+        tmp = record.spatial_resolution
+        tmp = record.spatial_xel
+        tmp = record.spatial_ucd
+        tmp = record.spatial_unit
+        tmp = record.resolution_min
+        tmp = record.resolution_max
+        tmp = record.spatial_calib_status
+        tmp = record.spatial_stat_error
+        tmp = record.pixel_scale
+
+        #            TIME CHARACTERISATION
+        tmp = record.time_xel
+        tmp = record.ref_pos
+        tmp = record.time_bounds
+        tmp = record.exptime
+        tmp = record.time_resolution
+        tmp = record.time_calib_status
+        tmp = record.time_stat_error
+
+        #            SPECTRAL CHARACTERISATION
+        tmp = record.spectral_xel
+        tmp = record.spectral_ucd
+        tmp = record.spectral_unit
+        tmp = record.spectral_calib_status
+        tmp = record.spectral_bounds
+        tmp = record.resolving_power
+        tmp = record.resolving_power_min
+        tmp = record.resolving_power_max
+        tmp = record.spectral_resolution
+        tmp = record.spectral_stat_error
+
+        #            OBSERVABLE AXIS
+        tmp = record.obs_ucd
+        tmp = record.obs_unit
+        tmp = record.obs_calib_status
+        tmp = record.obs_stat_error
+
+        #            POLARIZATION CHARACTERISATION
+        tmp = record.pol_xel
+        tmp = record.pol
+
+        #            PROVENANCE
+        tmp = record.instrument
+        tmp = record.facility
+        tmp = record.proposal_id
+
 
     def test_band(self):
         results = search(CADC_SIA_URL, band=(0.0002, 0.0003), maxrec=5)
@@ -87,8 +167,8 @@ class TestSIACadc():
                       'ivo://cadc.nrc.ca/CFHT?447232/447232o']
         results = search(CADC_SIA_URL, global_id=global_ids)
         assert len(results) == 2
-        assert results[0].global_id in global_ids
-        assert results[1].global_id in global_ids
+        assert results[0].publisher_did in global_ids
+        assert results[1].publisher_did in global_ids
 
     def test_facility(self):
         results = search(CADC_SIA_URL, facility='JCMT', maxrec=5)

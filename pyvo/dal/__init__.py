@@ -5,7 +5,6 @@ from .ssa import search as spectrumsearch
 from .sla import search as linesearch
 from .scs import search as conesearch
 from .tap import search as tablesearch
-from .sia2 import *
 
 from .query import DALService, DALQuery, DALResults, Record
 
@@ -14,6 +13,7 @@ from .ssa import SSAService, SSAQuery, SSAResults, SSARecord
 from .sla import SLAService, SLAQuery, SLAResults, SLARecord
 from .scs import SCSService, SCSQuery, SCSResults, SCSRecord
 from .tap import TAPService, TAPQuery, TAPResults, AsyncTAPJob
+
 
 from .exceptions import (
     DALAccessError, DALProtocolError, DALFormatError, DALServiceError,

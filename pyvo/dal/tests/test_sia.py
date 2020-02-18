@@ -8,7 +8,7 @@ import re
 
 import pytest
 
-from pyvo.dal.sia import search
+from pyvo.dal.sia import search, SIAService
 
 from astropy.io.fits import HDUList
 from astropy.utils.data import get_pkg_data_contents
@@ -49,3 +49,17 @@ def test_search():
     result = results[0]
 
     _test_result(result)
+
+
+class TestSIAService:
+    @pytest.mark.usefixtures('sia')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")
+    def test_search(self):
+        service = SIAService('http://example.com/sia')
+
+        results = service.search(pos=(288, 15))
+        result = results[0]
+
+        _test_result(result)
