@@ -20,15 +20,6 @@ sia_re = re.compile('https://example.com/sia/v2query*')
 capabilities_url = 'https://example.com/sia/capabilities'
 
 
-@pytest.fixture(autouse=True, scope='module')
-def register_mocks(mocker):
-    with mocker.register_uri(
-        'GET', 'https://example.com/querydata/image.fits',
-        content=get_pkg_data_contents('data/querydata/image.fits')
-    ) as matcher:
-        yield matcher
-
-
 @pytest.fixture()
 def sia(mocker):
     with mocker.register_uri(
