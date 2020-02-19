@@ -27,62 +27,63 @@ __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "ObsCoreRecord"]
 SIA2_STANDARD_ID = 'ivo://ivoa.net/std/SIA#query-2.0'
 
 
-SIA_PARAMETERS_DESC =\
-    """     pos : single or list of tuples
-              angle units (default: deg)
-            the positional region(s) to be searched for data. Each region can
-            be expressed as a tuple representing a CIRCLE, RANGE or POLYGON as
-            follows:
-            (ra, dec, radius) - for CIRCLE. (angle units - defaults to)
-            (long1, long2, lat1, lat2) - for RANGE (angle units required)
-            (ra, dec, ra, dec, ra, dec ... ) ra/dec points for POLYGON all
-            in angle units
-        band : scalar, tuple(interval) or list of tuples
-            (spectral units (default: meter)
-            the energy interval(s) to be searched for data.
-        time: single or list of `~astropy.time.Time` or compatible strings
-            the time interval(s) to be searched for data.
-        pol: single or list of str from `pyvo.dam.obscore.POLARIZATION_STATES`
-            the polarization state(s) to be searched for data.
-        field_of_view: single or list of tuples
-            angle units (default arcsec)
-            the range(s) of field of view (size) to be searched for data
-        spatial_resolution: single or list of tuples
-            angle units required
-            the range(s) of spatial resolution to be searched for data
-        spectral_resolving_power: single or list of tuples
-            the range(s) of spectral resolving power to be searched for data
-        exptime: single or list of tuples
-            time units (default: second)
-            the range(s) of exposure times to be searched for data
-        timeres: single of list of tuples
-            time units (default: second)
-            the range(s) of temporal resolution to be searched for data
-        publisher_did: single or list of str
-            specifies the unique identifier of dataset(s). It is global because
-            it must include information regarding the publisher
-            (obs_publisher_did in ObsCore)
-        collection: single or list of str
-            name of the collection that the data belongs to
-        facility: single or list of str
-            specifies the name of the facility (usually telescope) where
-            the data was acquired.
-        instrument: single or list of str
-            specifies the name of the instrument with which the data was
-            acquired.
-        data_type: 'image'|'cube'
-            specifies the type of the data
-        calib_level: single or list from enum
-            `pyvo.dam.obscore.CALIBRATION_LEVELS`
-            specifies the calibration level of the data. Can be a single value
-            or a list of values
-        target_name: single or list of str
-            specifies the name of the target (e.g. the intention of the
-            original science program or observation)
-        res_format : single or list of strings
-            specifies response format(s).
-        max_records: int
-            allows the client to limit the number or records in the response"""
+SIA_PARAMETERS_DESC ="""
+pos : single or list of tuples
+    angle units (default: deg)
+    the positional region(s) to be searched for data. Each region can
+    be expressed as a tuple representing a CIRCLE, RANGE or POLYGON as
+    follows:
+    (ra, dec, radius) - for CIRCLE. (angle units - defaults to)
+    (long1, long2, lat1, lat2) - for RANGE (angle units required)
+    (ra, dec, ra, dec, ra, dec ... ) ra/dec points for POLYGON all
+    in angle units
+band : scalar, tuple(interval) or list of tuples
+    (spectral units (default: meter)
+    the energy interval(s) to be searched for data.
+time : single or list of `~astropy.time.Time` or compatible strings
+    the time interval(s) to be searched for data.
+pol : single or list of str from `pyvo.dam.obscore.POLARIZATION_STATES`
+    the polarization state(s) to be searched for data.
+field_of_view : single or list of tuples
+    angle units (default arcsec)
+    the range(s) of field of view (size) to be searched for data
+spatial_resolution : single or list of tuples
+    angle units required
+    the range(s) of spatial resolution to be searched for data
+spectral_resolving_power : single or list of tuples
+    the range(s) of spectral resolving power to be searched for data
+exptime : single or list of tuples
+    time units (default: second)
+    the range(s) of exposure times to be searched for data
+timeres : single of list of tuples
+    time units (default: second)
+    the range(s) of temporal resolution to be searched for data
+publisher_did : single or list of str
+    specifies the unique identifier of dataset(s). It is global because
+    it must include information regarding the publisher
+    (obs_publisher_did in ObsCore)
+collection : single or list of str
+    name of the collection that the data belongs to
+facility : single or list of str
+    specifies the name of the facility (usually telescope) where
+    the data was acquired.
+instrument : single or list of str
+    specifies the name of the instrument with which the data was
+    acquired.
+data_type : 'image'|'cube'
+    specifies the type of the data
+calib_level : single or list from enum
+    `pyvo.dam.obscore.CALIBRATION_LEVELS`
+    specifies the calibration level of the data. Can be a single value
+    or a list of values
+target_name : single or list of str
+    specifies the name of the target (e.g. the intention of the
+    original science program or observation)
+res_format : single or list of strings
+    specifies response format(s).
+max_records : int
+    allows the client to limit the number or records in the response
+"""
 
 
 def search(url, pos=None, band=None, time=None, pol=None,
@@ -94,11 +95,12 @@ def search(url, pos=None, band=None, time=None, pol=None,
     """
     submit a simple SIA query to a SIAv2 compatible service
 
-        PARAMETERS
-        ----------
+    Parameters
+    ----------
 
-        url - url of the SIA service (base or endpoint)
-        _SIA2_PARAMETERS
+    url : str
+       url of the SIA service (base or endpoint)
+    _SIA2_PARAMETERS
 
     """
     service = SIAService(url)
