@@ -27,7 +27,7 @@ __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "ObsCoreRecord"]
 SIA2_STANDARD_ID = 'ivo://ivoa.net/std/SIA#query-2.0'
 
 
-SIA_PARAMETERS_DESC ="""
+SIA_PARAMETERS_DESC = """
 pos : single or list of tuples
     angle units (default: deg)
     the positional region(s) to be searched for data. Each region can
