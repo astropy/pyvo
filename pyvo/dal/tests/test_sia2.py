@@ -16,7 +16,7 @@ from astropy.utils.data import get_pkg_data_contents
 get_pkg_data_contents = partial(
     get_pkg_data_contents, package=__package__, encoding='binary')
 
-sia_re = re.compile('https://example.com/sia/v2query.*')
+sia_re = re.compile('https://example.com/sia/v2query*')
 capabilities_url = 'https://example.com/sia/capabilities'
 
 
