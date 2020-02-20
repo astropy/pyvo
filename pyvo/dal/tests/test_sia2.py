@@ -38,10 +38,10 @@ def capabilities(mocker):
 
 
 def _test_result(record):
-    assert record.collection == 'TEST'
-    assert record.id == 'TEST-DATASET'
-    assert record.instrument == 'TEST-INSTR'
-    assert record.facility == 'TEST-1.6m'
+    assert record.obs_collection == 'TEST'
+    assert record.obs_id == 'TEST-DATASET'
+    assert record.instrument_name == 'TEST-INSTR'
+    assert record.facility_name == 'TEST-1.6m'
 
 
 @pytest.mark.usefixtures('sia')
@@ -105,8 +105,8 @@ class TestSIAQuery():
         query.timeres.add((1, 3))
         assert query['TIMERES'] == ['1.0 3.0']
 
-        query.global_id.add('ID1')
-        query.global_id.add('ID2')
+        query.publisher_did.add('ID1')
+        query.publisher_did.add('ID2')
         assert query['ID'] == ['ID1', 'ID2']
 
         query.facility.add('TEL1')

@@ -22,8 +22,8 @@ class ObsCoreMetadata():
     def __init__(self):
 
         #          OBSERVATION INFO
-        self.data_type = None
-        self.data_subtype = None
+        self.dataproduct_type = None
+        self.dataproduct_subtype = None
         self.calib_level = None
 
         #          TARGET INFO
@@ -31,71 +31,75 @@ class ObsCoreMetadata():
         self.target_class = None
 
         #           DATA DESCRIPTION
-        self.id = None
-        self.title = None
-        self.collection = None
-        self.create_date = None
-        self.creator_name = None
-        self.creator_did = None
+        self.obs_id = None
+        self.obs_title = None
+        self.obs_collection = None
+        self.obs_create_date = None
+        self.obs_creator_name = None
+        self.obs_creator_did = None
 
         #          CURATION INFORMATION
-        self.release_date = None
+        self.obs_release_date = None
+        self.obs_publisher_did = None
         self.publisher_id = None
-        self.global_id = None
         self.bib_reference = None
         self.data_rights = None
 
         #            ACCESS INFORMATION
         self.access_url = None
-        self.res_format = None
+        self.access_format = None
         self.access_estsize = None
 
         #            SPATIAL CHARACTERISATION
-        self.pos = None
-        self.radius = None
-        self.region = None
-        self.spatial_resolution = None
-        self.spatial_xel = None
-        self.spatial_ucd = None
-        self.spatial_unit = None
-        self.resolution_min = None
-        self.resolution_max = None
-        self.spatial_calib_status = None
-        self.spatial_stat_error = None
-        self.pixel_scale = None
+        self.s_ra = None
+        self.s_dec = None
+        self.s_fov = None
+        self.s_region = None
+        self.s_resolution = None
+        self.s_xel1 = None
+        self.s_xel2 = None
+        self.s_ucd = None
+        self.s_unit = None
+        self.s_resolution_min = None
+        self.s_resolution_max = None
+        self.s_calib_status = None
+        self.s_stat_error = None
+        self.s_pixel_scale = None
 
         #            TIME CHARACTERISATION
-        self.time_xel = None
-        self.ref_pos = None
-        self.time_bounds = None
-        self.exptime = None
-        self.time_resolution = None
-        self.time_calib_status = None
-        self.time_stat_error = None
+        self.t_xel = None
+        self.t_ref_pos = None
+        self.t_min = None
+        self.t_max = None
+        self.t_exptime = None
+        self.t_resolution = None
+        self.t_calib_status = None
+        self.t_stat_error = None
 
         #            SPECTRAL CHARACTERISATION
-        self.spectral_xel = None
-        self.spectral_ucd = None
-        self.spectral_unit = None
-        self.spectral_calib_status = None
-        self.spectral_bounds = None
-        self.resolving_power = None
-        self.resolving_power_min = None
-        self.resolving_power_max = None
-        self.spectral_resolution = None
-        self.spectral_stat_error = None
+        self.em_xel = None
+        self.em_ucd = None
+        self.em_unit = None
+        self.em_calib_status = None
+        self.em_min = None
+        self.em_max = None
+        self.em_res_power = None
+        self.em_res_power_min = None
+        self.em_res_power_max = None
+        self.em_resolution = None
+        self.em_stat_error = None
 
         #            OBSERVABLE AXIS
-        self.obs_ucd = None
-        self.obs_unit = None
-        self.obs_calib_status = None
-        self.obs_stat_error = None
+        self.o_ucd = None
+        self.o_unit = None
+        self.o_calib_status = None
+        self.o_stat_error = None
 
         #            POLARIZATION CHARACTERISATION
         self.pol_xel = None
-        self.pol = None
+        self.pol_states = None
 
         #            PROVENANCE
-        self.instrument = None
-        self.facility = None
+        self.instrument_name = None
+        self.facility_name = None
         self.proposal_id = None

@@ -205,7 +205,7 @@ class DALQuery(dict):
         url = self.queryurl
         params = {k: v for k, v in self.items()}
 
-        response = self._session.get(url, params=params, stream=True)
+        response = self._session.get(url, params=params, stream=True, allow_redirects=True)
         return response
 
     def execute_votable(self):

@@ -34,8 +34,8 @@ class TestSIACadc():
         assert len(results) == 5
         # check attributes of a record
         record = results[0]
-        record.data_type
-        record.data_subtype
+        record.dataproduct_type
+        record.dataproduct_subtype
         record.calib_level
 
         #          TARGET INFO
@@ -43,73 +43,77 @@ class TestSIACadc():
         record.target_class
 
         #           DATA DESCRIPTION
-        record.id
-        record.title
-        record.collection
-        record.create_date
-        record.creator_name
-        record.creator_did
+        record.obs_id
+        record.obs_title
+        record.obs_collection
+        record.obs_create_date
+        record.obs_creator_name
+        record.obs_creator_did
 
         #          CURATION INFORMATION
-        record.release_date
+        record.obs_release_date
+        record.obs_publisher_did
         record.publisher_id
-        record.publisher_did
         record.bib_reference
         record.data_rights
 
         #            ACCESS INFORMATION
         record.access_url
-        record.res_format
+        record.access_format
         record.access_estsize
 
         #            SPATIAL CHARACTERISATION
-        record.pos
-        record.radius
-        record.region
-        record.spatial_resolution
-        record.spatial_xel
-        record.spatial_ucd
-        record.spatial_unit
-        record.resolution_min
-        record.resolution_max
-        record.spatial_calib_status
-        record.spatial_stat_error
-        record.pixel_scale
+        record.s_ra
+        record.s_dec
+        record.s_fov
+        record.s_region
+        record.s_resolution
+        record.s_xel1
+        record.s_xel2
+        record.s_ucd
+        record.s_unit
+        record.s_resolution_min
+        record.s_resolution_max
+        record.s_calib_status
+        record.s_stat_error
+        record.s_pixel_scale
 
         #            TIME CHARACTERISATION
-        record.time_xel
-        record.ref_pos
-        record.time_bounds
-        record.exptime
-        record.time_resolution
-        record.time_calib_status
-        record.time_stat_error
+        record.t_xel
+        record.t_ref_pos
+        record.t_min
+        record.t_max
+        record.t_exptime
+        record.t_resolution
+        record.t_calib_status
+        record.t_stat_error
 
         #            SPECTRAL CHARACTERISATION
-        record.spectral_xel
-        record.spectral_ucd
-        record.spectral_unit
-        record.spectral_calib_status
-        record.spectral_bounds
-        record.resolving_power
-        record.resolving_power_min
-        record.resolving_power_max
-        record.spectral_resolution
-        record.spectral_stat_error
+        record.em_xel
+        record.em_ucd
+        record.em_unit
+        record.em_calib_status
+        record.em_min
+        record.em_max
+        record.em_res_power
+        record.em_res_power_min
+        record.em_res_power_max
+        record.em_resolution
+        record.em_stat_error
 
         #            OBSERVABLE AXIS
-        record.obs_ucd
-        record.obs_unit
-        record.obs_calib_status
-        record.obs_stat_error
+        record.o_ucd
+        record.o_unit
+        record.o_calib_status
+        record.o_stat_error
 
         #            POLARIZATION CHARACTERISATION
         record.pol_xel
-        record.pol
+        record.pol_states
 
         #            PROVENANCE
-        record.instrument
-        record.facility
+        record.instrument_name
+        record.facility_name
         record.proposal_id
 
     def test_band(self):
@@ -128,7 +132,7 @@ class TestSIACadc():
         results = search(CADC_SIA_URL, pol=['YY', 'U'], maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert 'YY' in rr.pol or 'U' in rr.pol
+            assert 'YY' in rr.pol_states or 'U' in rr.pol_states
 
     def test_fov(self):
         results = search(CADC_SIA_URL, field_of_view=(10, 20), maxrec=5)
@@ -139,59 +143,59 @@ class TestSIACadc():
         results = search(CADC_SIA_URL, spatial_resolution=(1, 2), maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert 1*u.arcsec <= rr.spatial_resolution <= 2*u.arcsec
+            assert 1*u.arcsec <= rr.s_resolution <= 2*u.arcsec
 
     def test_spec_resp(self):
         results = search(CADC_SIA_URL, spectral_resolving_power=(1, 2), maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert 1 <= rr.resolving_power <= 2
+            assert 1 <= rr.em_res_power <= 2
 
     def test_exptime(self):
         results = search(CADC_SIA_URL, exptime=(1, 2),
                          maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert 1*u.second <= rr.exptime <= 2*u.second
+            assert 1*u.second <= rr.t_exptime <= 2*u.second
 
     def test_timeres(self):
         results = search(CADC_SIA_URL, timeres=(1, 2),
                          maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert 1 * u.second <= rr.time_resolution <= 2 * u.second
+            assert 1 * u.second <= rr.t_resolution <= 2 * u.second
 
-    def test_global_id(self):
-        global_ids = ['ivo://cadc.nrc.ca/CFHT?447231/447231o',
-                      'ivo://cadc.nrc.ca/CFHT?447232/447232o']
-        results = search(CADC_SIA_URL, global_id=global_ids)
+    def test_publisher_did(self):
+        ids = ['ivo://cadc.nrc.ca/CFHT?447231/447231o',
+               'ivo://cadc.nrc.ca/CFHT?447232/447232o']
+        results = search(CADC_SIA_URL, publisher_did=ids)
         assert len(results) == 2
-        assert results[0].publisher_did in global_ids
-        assert results[1].publisher_did in global_ids
+        assert results[0].obs_publisher_did in ids
+        assert results[1].obs_publisher_did in ids
 
     def test_facility(self):
         results = search(CADC_SIA_URL, facility='JCMT', maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert rr.facility == 'JCMT'
+            assert rr.facility_name == 'JCMT'
 
     def test_collection(self):
         results = search(CADC_SIA_URL, collection='CFHT', maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert rr.collection == 'CFHT'
+            assert rr.obs_collection == 'CFHT'
 
     def test_instrument(self):
         results = search(CADC_SIA_URL, instrument='SCUBA-2', maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert rr.instrument == 'SCUBA-2'
+            assert rr.instrument_name == 'SCUBA-2'
 
-    def test_data_type(self):
+    def test_dataproduct_type(self):
         results = search(CADC_SIA_URL, data_type='image', maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert rr.data_type == 'image'
+            assert rr.dataproduct_type == 'image'
 
     def test_target_name(self):
         results = search(CADC_SIA_URL, target_name='OGF:t028', maxrec=5)
@@ -206,5 +210,5 @@ class TestSIACadc():
             maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert rr.res_format == \
+            assert rr.access_format == \
                    'application/x-votable+xml;content=datalink'

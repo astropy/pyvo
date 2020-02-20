@@ -19,7 +19,7 @@ get_pkg_data_contents = partial(
 sia_re = re.compile('http://example.com/sia.*')
 
 
-@pytest.fixture(autouse=True, scope='module')
+@pytest.fixture()
 def register_mocks(mocker):
     with mocker.register_uri(
         'GET', 'http://example.com/querydata/image.fits',
@@ -43,6 +43,7 @@ def _test_result(result):
 
 
 @pytest.mark.usefixtures('sia')
+@pytest.mark.usefixtures('register_mocks')
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
 def test_search():
     results = search('http://example.com/sia', pos=(288, 15))
@@ -53,6 +54,7 @@ def test_search():
 
 class TestSIAService:
     @pytest.mark.usefixtures('sia')
+    @pytest.mark.usefixtures('register_mocks')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")

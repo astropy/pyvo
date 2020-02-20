@@ -10,7 +10,6 @@ The ``SIAService`` class can represent a specific service available at a URL
 endpoint.
 """
 
-from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy import time
 
@@ -89,7 +88,7 @@ max_records : int
 def search(url, pos=None, band=None, time=None, pol=None,
            field_of_view=None, spatial_resolution=None,
            spectral_resolving_power=None, exptime=None,
-           timeres=None, global_id=None, facility=None, collection=None,
+           timeres=None, publisher_did=None, facility=None, collection=None,
            instrument=None, data_type=None, calib_level=None,
            target_name=None, res_format=None, maxrec=None, session=None):
     """
@@ -109,7 +108,7 @@ def search(url, pos=None, band=None, time=None, pol=None,
                           spatial_resolution=spatial_resolution,
                           spectral_resolving_power=spectral_resolving_power,
                           exptime=exptime, timeres=timeres,
-                          global_id=global_id,
+                          publisher_did=publisher_did,
                           facility=facility, collection=collection,
                           instrument=instrument, data_type=data_type,
                           calib_level=calib_level, target_name=target_name,
@@ -161,7 +160,7 @@ class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
             # assumes that the access URL is the same regardless of the
             # authentication method except BasicAA which is not supported
             # in pyvo. So pick any access url as long as it's not
-            if cap.standardid == SIA2_STANDARD_ID:
+            if cap.standardid.lower() == SIA2_STANDARD_ID.lower():
                 for interface in cap.interfaces:
                     if interface.accessurls and not \
                         [m for m in interface.securitymethods if
@@ -172,7 +171,7 @@ class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
     def search(self, pos=None, band=None, time=None, pol=None,
                field_of_view=None, spatial_resolution=None,
                spectral_resolving_power=None, exptime=None,
-               timeres=None, global_id=None, facility=None, collection=None,
+               timeres=None, publisher_did=None, facility=None, collection=None,
                instrument=None, data_type=None, calib_level=None,
                target_name=None, res_format=None, maxrec=None, session=None):
         """
@@ -189,7 +188,7 @@ class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
                         spatial_resolution=spatial_resolution,
                         spectral_resolving_power=spectral_resolving_power,
                         exptime=exptime, timeres=timeres,
-                        global_id=global_id,
+                        publisher_did=publisher_did,
                         facility=facility, collection=collection,
                         instrument=instrument, data_type=data_type,
                         calib_level=calib_level, target_name=target_name,
@@ -206,7 +205,7 @@ class SIAQuery(DALQuery, AxisParamMixin):
     def __init__(self, url, pos=None, band=None, time=None, pol=None,
                  field_of_view=None, spatial_resolution=None,
                  spectral_resolving_power=None, exptime=None,
-                 timeres=None, global_id=None,
+                 timeres=None, publisher_did=None,
                  facility=None, collection=None,
                  instrument=None, data_type=None, calib_level=None,
                  target_name=None, res_format=None, maxrec=None,
@@ -282,8 +281,8 @@ class SIAQuery(DALQuery, AxisParamMixin):
         for tr in _tolist(timeres):
             self.timeres.add(tr)
 
-        for ii in _tolist(global_id):
-            self.global_id.add(ii)
+        for ii in _tolist(publisher_did):
+            self.publisher_did.add(ii)
 
         for ff in _tolist(facility):
             self.facility.add(ff)
@@ -347,11 +346,11 @@ class SIAQuery(DALQuery, AxisParamMixin):
         return self._timeres
 
     @property
-    def global_id(self):
-        if not hasattr(self, '_global_id'):
-            self._global_id = StrQueryParam()
-            self['ID'] = self._global_id.dal
-        return self._global_id
+    def publisher_did(self):
+        if not hasattr(self, '_publisher_did'):
+            self._publisher_did = StrQueryParam()
+            self['ID'] = self._publisher_did.dal
+        return self._publisher_did
 
     @property
     def facility(self):
@@ -526,7 +525,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
 
     #          OBSERVATION INFO
     @property
-    def data_type(self):
+    def dataproduct_type(self):
         """
         Data product (file content) primary type. This is coded as a string
         that conveys a general idea of the content and organization of a
@@ -535,7 +534,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return self.get('dataproduct_type', decode=True)
 
     @property
-    def data_subtype(self):
+    def dataproduct_subtype(self):
         """
         Data product more specific type
         """
@@ -574,21 +573,21 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
 
     #          DATA DESCRIPTION
     @property
-    def id(self):
+    def obs_id(self):
         """
-        Collection specific nternal ID given by the ObsTAP service
+        Collection specific internal ID given by the ObsTAP service
         """
         return self.get('obs_id', decode=True)
 
     @property
-    def title(self):
+    def obs_title(self):
         """
         Brief description of dataset in free format
         """
         return self.get('obs_title', decode=True, default=None)
 
     @property
-    def collection(self):
+    def obs_collection(self):
         """
         The name of the collection (DataID.Collection) identifies the data
         collection to which the data product belongs. A data collection can be
@@ -602,7 +601,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return self.get('obs_collection', decode=True)
 
     @property
-    def create_date(self):
+    def obs_create_date(self):
         """
         Date when the dataset was created
         """
@@ -610,14 +609,14 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return cd if not cd else time.Time(cd)
 
     @property
-    def creator_name(self):
+    def obs_creator_name(self):
         """
         The name of the institution or entity which created the dataset.
         """
         return self.get('obs_creator_name', decode=True, default=None)
 
     @property
-    def creator_did(self):
+    def obs_creator_did(self):
         """
         IVOA dataset identifier given by its creator.
         """
@@ -625,7 +624,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
 
     #         CURATION INFORMATION
     @property
-    def release_date(self):
+    def obs_release_date(self):
         """
         Observation release date
         """
@@ -633,7 +632,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return rt if not rt else time.Time(rt)
 
     @property
-    def publisher_did(self):
+    def obs_publisher_did(self):
         """
         ID for the Dataset assigned by the publisher. Note that data from
         a source (creator_did) can be published by multiple publishers
@@ -678,7 +677,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return self.get('access_url', decode=True)
 
     @property
-    def res_format(self):
+    def access_format(self):
         """
         Content format of the dataset. The value of access_format should be a
         MIME type, either a standard MIME type, an extended MIME type from
@@ -700,17 +699,23 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
 
     #           SPATIAL CHARACTERISATION
     @property
-    def pos(self):
+    def s_ra(self):
         """
-        Central Spatial Position in ICRS
+        ICRS Right Ascension of the center of the observation
         """
-        return SkyCoord(self.get('s_ra')*u.deg,
-                        self.get('s_dec')*u.deg, frame='icrs')
+        return self.get('s_ra')*u.deg
 
     @property
-    def radius(self):
+    def s_dec(self):
         """
-        Approximate size of the covered region as the radius of a containing
+        CRS Declination of the center of the observation
+        """
+        return self.get('s_dec')*u.deg
+
+    @property
+    def s_fov(self):
+        """
+        Approximate size of the covered region as the diameter of a containing
         circle. For most data products the value given should be large enough
         to include the entire area of the observation; coverage within the
         bounded region need not be complete, for example if the specified
@@ -722,10 +727,10 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         data product. The spatial coverage of a data product can be more
         precisely specified using the region attribute.
         """
-        return self.get('s_fov')/2*u.deg
+        return self.get('s_fov')*u.deg
 
     @property
-    def region(self):
+    def s_region(self):
         """
         Sky region covered by the data product (expressed in ICRS frame).
         It can be used to precisely specify the covered spatial region of a
@@ -737,7 +742,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return self.get('s_region', decode=True)
 
     @property
-    def spatial_resolution(self):
+    def s_resolution(self):
         """
         Spatial resolution of data specifies a reference value chosen by the
         data provider for the estimated spatial resolution of the data product
@@ -754,29 +759,35 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return self.get('s_resolution')*u.arcsec
 
     @property
-    def spatial_xel(self):
+    def s_xel1(self):
         """
-        Tuple representing the number of elements along the coordinates of
-        spatial axis
+        Number of elements along the first spatial axis
         """
-        return (self.get('s_xel1'), self.get('s_xel2'))
+        return self.get('s_xel1')
 
     @property
-    def spatial_ucd(self):
+    def s_xel2(self):
+        """
+        Number of elements along the second spatial axis
+        """
+        return self.get('s_xel2')
+
+    @property
+    def s_ucd(self):
         """
         UCD for the nature of the spatial axis (pos or u,v data)
         """
         return self.get('s_ucd', decode=True, default=None)
 
     @property
-    def spatial_unit(self):
+    def s_unit(self):
         """
         Unit used for spatial axis
         """
         return self.get('s_unit', decode=True, default=None)
 
     @property
-    def resolution_min(self):
+    def s_resolution_min(self):
         """
         Resolution min value on spatial axis (FHWM of PSF)
         """
@@ -784,7 +795,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return rmin if not rmin else rmin*u.arcsec
 
     @property
-    def resolution_max(self):
+    def s_resolution_max(self):
         """
         Resolution max value on spatial axis (FHWM of PSF)
         """
@@ -792,7 +803,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return rmax if not rmax else rmax * u.arcsec
 
     @property
-    def spatial_calib_status(self):
+    def s_calib_status(self):
         """
         A string to encode the calibration status along the spatial axis
         (astrometry). Possible values could be {uncalibrated, raw, calibrated}
@@ -800,7 +811,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return self.get('s_calib_status', decode=True, default=None)
 
     @property
-    def spatial_stat_error(self):
+    def s_stat_error(self):
         """
         This parameter gives an estimate of the astrometric statistical error
         after the astrometric calibration phase.
@@ -808,7 +819,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return self.get('s_stat_error', decode=True, default=None)
 
     @property
-    def pixel_scale(self):
+    def s_pixel_scale(self):
         """
         This corresponds to the sampling precision of the data along the
         spatial axis. It is stored as a real number corresponding to the
@@ -820,32 +831,39 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
 
     #           TIME CHARACTERISATION
     @property
-    def time_xel(self):
+    def t_xel(self):
         """
         Number of elements along the time axis
         """
         return self.get('t_xel')
 
     @property
-    def ref_pos(self):
+    def t_ref_pos(self):
         """
         Time Axis Reference Position as defined in STC REC, Section 4.4.1.1.1
         """
         return self.get('t_ref_pos', decode=True, default=None)
 
     @property
-    def time_bounds(self):
+    def t_min(self):
         """
-        Tuple containing the start and end time of the observation specified
-         in MJD. In case of data products result of the combination of multiple
-         frames, min bound must be the minimum of the start times, and max
-         bound as the maximum of the stop times.
+        The start time of the observation specified in MJD. In case of data
+        products result of the combination of multiple frames, min time must
+        be the minimum of the start times
         """
-        return (time.Time(self.get('t_min'), format='mjd'),
-                time.Time(self.get('t_max'), format='mjd'))
+        return time.Time(self.get('t_min'), format='mjd')
 
     @property
-    def exptime(self):
+    def t_max(self):
+        """
+        The stop time of the observation specified in MJD. In case of data
+        products result of the combination of multiple frames, t_max must
+        be the maximum of the stop times
+        """
+        return time.Time(self.get('t_min'), format='mjd')
+
+    @property
+    def t_exptime(self):
         """
         Total exposure time. For simple exposures, this is just the time_bounds
          size expressed in seconds. For data where the detector is not active
@@ -866,14 +884,14 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return self.get('t_exptime')*u.second
 
     @property
-    def time_resolution(self):
+    def t_resolution(self):
         """
         Estimated or average value of the temporal resolution.
         """
         return self.get('t_resolution')*u.second
 
     @property
-    def time_calib_status(self):
+    def t_calib_status(self):
         """
         Type of time coordinate calibration. Possible values are principally
         {uncalibrated, calibrated, raw, relative}. This may be extended for
@@ -882,7 +900,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return self.get('t_calib_status', decode=True, default=None)
 
     @property
-    def time_stat_error(self):
+    def t_stat_error(self):
         """
         Time coord statistical error on the time measurements in seconds
         """
@@ -891,28 +909,28 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
 
     #           SPECTRAL CHARACTERISATION
     @property
-    def spectral_xel(self):
+    def em_xel(self):
         """
         Number of elements along the spectral axis
         """
         return self.get('em_xel')
 
     @property
-    def spectral_ucd(self):
+    def em_ucd(self):
         """
         Nature of the spectral axis
         """
         return self.get('em_ucd', decode=True, default=None)
 
     @property
-    def spectral_unit(self):
+    def em_unit(self):
         """
         Units along the spectral axis
         """
         return self.get('em_unit', decode=True, default=None)
 
     @property
-    def spectral_calib_status(self):
+    def em_calib_status(self):
         """
         This attribute of the spectral axis indicates the status of the data
         in terms of spectral calibration. Possible values are defined in the
@@ -922,15 +940,21 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return self.get('em_calib_status', decode=True, default=None)
 
     @property
-    def spectral_bounds(self):
+    def em_min(self):
         """
-        Tuple containing the limits of the spectral interval covered by the
-        observation, in short em_min and em_max.
+        Minimum of the spectral interval covered by the observation
         """
-        return (self.get('em_min')*u.meter, self.get('em_max')*u.meter)
+        return self.get('em_min')*u.meter
 
     @property
-    def resolving_power(self):
+    def em_max(self):
+        """
+        Maximum of the spectral interval covered by the observation
+        """
+        return self.get('em_max')*u.meter
+
+    @property
+    def em_res_power(self):
         """
         Average estimation for the spectral resolution power stored as a
         double value, with no unit.
@@ -938,21 +962,21 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return self.get("em_res_power")
 
     @property
-    def resolving_power_min(self):
+    def em_res_power_min(self):
         """
         Resolving power min value on spectral axis
         """
         return self.get('em_res_power_min', None)
 
     @property
-    def resolving_power_max(self):
+    def em_res_power_max(self):
         """
         Resolving power max value on spectral axis
         """
         return self.get('em_res_power_max', None)
 
     @property
-    def spectral_resolution(self):
+    def em_resolution(self):
         """
         A mean estimate of the resolution, e.g. Full Width at Half Maximum
         (FWHM) of the Line Spread Function (or LSF). This can be used for
@@ -964,7 +988,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return None
 
     @property
-    def spectral_stat_error(self):
+    def em_stat_error(self):
         """
         Spectral coord statistical error (accuracy along the spectral axis)
         """
@@ -974,21 +998,21 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
 
     #           OBSERVABLE AXIS
     @property
-    def obs_ucd(self):
+    def o_ucd(self):
         """
         Nature of the observable axis within the data product
         """
         return self.get('o_ucd', decode=True)
 
     @property
-    def obs_unit(self):
+    def o_unit(self):
         """
         Units along the observable axis
         """
         return self.get('o_unit', decode=True, default=None)
 
     @property
-    def obs_calib_status(self):
+    def o_calib_status(self):
         """
         Type of calibration applied on the Flux observed (or other observable
         quantity).
@@ -996,7 +1020,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return self.get('o_calib_status', decode=True, default=None)
 
     @property
-    def obs_stat_error(self):
+    def o_stat_error(self):
         """
         Statistical error on the Observable axis.
         Note: the return value has the units defined in unit
@@ -1014,7 +1038,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         return self.get('pol_xel')
 
     @property
-    def pol(self):
+    def pol_states(self):
         """
         List of polarization states present in the data file. Possible values
         are: {I Q U V RR LL RL LR XX YY XY YX POLI POLA}. Values in the
@@ -1027,14 +1051,14 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
 
     #           PROVENANCE
     @property
-    def instrument(self):
+    def instrument_name(self):
         """
         The name of the instrument used for the acquisition of the data
         """
         return self.get('instrument_name', decode=True)
 
     @property
-    def facility(self):
+    def facility_name(self):
         """
         Name of the facility or observatory used to collect the data
         """
