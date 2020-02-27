@@ -23,6 +23,9 @@ from .params import PosQueryParam, IntervalQueryParam, TimeQueryParam,\
     EnumQueryParam
 from ..dam.obscore import POLARIZATION_STATES
 
+# calls to DataLink from the results pages are batched for performance
+# reasons. This is the size of a batch
+DATALINK_BATCH_CALL_SIZE = 20
 
 # monkeypatch astropy with group support in RESOURCE
 def _monkeypath_astropy_resource_groups():
@@ -160,6 +163,44 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         """
         for record in self:
             yield record.getdatalink()
+
+    def iter_datalinks_batch(self):
+        """
+        Iterates over all datalinks in a DALResult.
+
+        Returns
+        -------
+        Returns list of Datalink records
+        """
+        if not hasattr(self, "_cached_dl"):
+            # static vars
+            self._current_dl_index = 0
+            self._cached_dl = None
+            self._remaining = 0
+
+        for record in self:
+            if self._remaining == 0:
+                # get a new batch of datalinks
+                self._cached_dl = self._get_datalinks([self[i] for i in range(
+                    self._current_dl_index,
+                    min(len(self),
+                        self._current_dl_index + DATALINK_BATCH_CALL_SIZE))])
+                self._current_dl_index += DATALINK_BATCH_CALL_SIZE
+                ids = (i for i in self.query['ID'])
+                self._remaining = len(self.query['ID'])
+            self._remaining = self._remaining - 1
+            yield self._cached_dl.clone_byid(next(ids))
+
+    def _get_datalinks(self, rows):
+        # Execute a batch datalink call for the data in the rows argument
+        try:
+            datalink = self.get_adhocservice_by_ivoid(
+                b"ivo://ivoa.net/std/datalink")
+
+            self.query = DatalinkQuery.from_resource(rows, datalink)
+            return self.query.execute()
+        except DALServiceError:
+            return DatalinkResults.from_result_url(self.getdataurl())
 
 
 class DatalinkRecordMixin:
@@ -309,7 +350,12 @@ class DatalinkQuery(DALQuery):
         query_params = dict()
         for name, input_param in input_params.items():
             if input_param.ref:
-                query_params[name] = row[input_param.ref]
+                if isinstance(row, list):
+                    query_params[name] = []
+                    for r in row:
+                        query_params[name].append(r[input_param.ref])
+                else:
+                    query_params[name] = row[input_param.ref]
             elif np.isscalar(input_param.value) and input_param.value:
                 query_params[name] = input_param.value
             elif (
@@ -457,6 +503,29 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         for record in self:
             if record.semantics == semantics:
                 yield record
+
+    def clone_byid(self, id):
+        """
+        return a clone of the object with entires matching a given id
+
+        Returns
+        -------
+        Sequence of DatalinkRecord
+            a sequence of dictionary-like wrappers containing the result record
+        """
+        import copy
+        copy_tb = copy.deepcopy(self.votable)
+        votable = copy_tb.get_first_table()
+        # find index of ID column
+        id_index = None
+        for index, field in enumerate(votable.fields):
+            if field.name == 'ID':
+                id_index = index
+        rows = [x for x in votable.array if x[id_index] == id]
+        votable.create_arrays(len(rows))
+        for index, row in enumerate(rows):
+            votable.array[index] = row
+        return DatalinkResults(copy_tb)
 
     def getdataset(self, timeout=None):
         """
