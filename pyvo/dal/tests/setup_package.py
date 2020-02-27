@@ -11,6 +11,7 @@ def get_package_data():
         os.path.join('data/tap', '*.xml'),
         os.path.join('data/scs', '*.xml'),
         os.path.join('data/sia', '*.xml'),
+        os.path.join('data/sia2', '*.xml'),
         os.path.join('data/sla', '*.xml'),
         os.path.join('data/ssa', '*.xml'),
         os.path.join('data/datalink', '*.xml'),

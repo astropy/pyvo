@@ -21,7 +21,7 @@ class ContextAdapter(requests_mock.Adapter):
             self._matchers.remove(matcher)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def mocker():
     with requests_mock.Mocker(
         adapter=ContextAdapter(case_sensitive=True)

@@ -7,7 +7,7 @@ from functools import partial
 from urllib.parse import parse_qsl
 
 from pyvo.dal.adhoc import DatalinkResults
-from pyvo.dal.params import find_param_by_keyword, get_converter
+from pyvo.dal.params import find_param_by_keyword, get_converter, AbstractDalQueryParam
 from pyvo.dal.exceptions import DALServiceError
 
 import pytest
@@ -186,3 +186,23 @@ def test_inf():
     proc = datalink[0]
 
     proc.process(band=(6000, +np.inf) * u.Angstrom)
+
+
+def test_dal_query_param():
+    class Test(AbstractDalQueryParam):
+        def get_dal_format(self, item):
+            return str(item)
+    # check test_obs behaves like a set but also holds the dal representation
+    test_obs = Test()
+    test_obs.add(1)
+    assert 1 in test_obs
+    assert test_obs.dal == ['1']
+    test_obs.add(2)
+    test_obs.add(3)
+    assert len(test_obs) == 3
+    assert test_obs.dal == ['1', '2', '3']
+    assert {2, 3} < test_obs
+    assert {1, 2, 3, 4} > test_obs
+    test_obs.clear()
+    assert len(test_obs) == 0
+    assert len(test_obs.dal) == 0

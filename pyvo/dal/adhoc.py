@@ -3,6 +3,7 @@
 Datalink classes and mixins
 """
 import numpy as np
+import warnings
 
 from .query import DALResults, DALQuery, DALService, Record
 from .exceptions import DALServiceError
@@ -10,6 +11,7 @@ from .vosi import AvailabilityMixin, CapabilityMixin
 from .params import find_param_by_keyword, get_converter
 
 from astropy.io.votable.tree import Param
+from astropy import units as u
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
 
@@ -17,6 +19,9 @@ from astropy.io.votable.tree import Resource, Group
 from astropy.utils.collections import HomogeneousList
 
 from ..utils.decorators import stream_decode_content
+from .params import PosQueryParam, IntervalQueryParam, TimeQueryParam,\
+    EnumQueryParam
+from ..dam.obscore import POLARIZATION_STATES
 
 
 # monkeypatch astropy with group support in RESOURCE
@@ -672,7 +677,42 @@ class DatalinkRecord(DatalinkRecordMixin, SodaRecordMixin, Record):
         return list(_get_input_params_from_resource(proc_resource).values())
 
 
-class SodaQuery(DatalinkQuery):
+class AxisParamMixin():
+    """
+    Stores the axis parameters (pos, band, time and pol) used in SODA
+    or SIAv2 queries
+    """
+    @property
+    def pos(self):
+        if not hasattr(self, '_pos'):
+            self._pos = PosQueryParam()
+            self['POS'] = self._pos.dal
+        return self._pos
+
+    @property
+    def band(self):
+        if not hasattr(self, '_band'):
+            self._band = IntervalQueryParam(unit=u.meter,
+                                            equivalencies=u.spectral())
+            self['BAND'] = self.band.dal
+        return self._band
+
+    @property
+    def time(self):
+        if not hasattr(self, '_time'):
+            self._time = TimeQueryParam()
+            self['TIME'] = self.time.dal
+        return self._time
+
+    @property
+    def pol(self):
+        if not hasattr(self, '_pol'):
+            self._pol = EnumQueryParam(POLARIZATION_STATES)
+            self['POL'] = self.pol.dal
+        return self._pol
+
+
+class SodaQuery(DatalinkQuery, AxisParamMixin):
     """
     a class for preparing a query to a SODA Service.
     """
@@ -703,24 +743,14 @@ class SodaQuery(DatalinkQuery):
 
     @circle.setter
     def circle(self, circle):
+        if len(circle) != 3:
+            raise ValueError(
+                "Range must be a sequence with exactly three values")
+        self['CIRCLE'] = PosQueryParam().get_dal_format(circle).\
+            replace('CIRCLE ', '')
         setattr(self, '_circle', circle)
         del self.range
         del self.polygon
-
-        if not isinstance(circle, Quantity):
-            valerr = ValueError(
-                "Circle must be a sequence with exactly three values")
-
-            try:
-                # assume degrees
-                circle = circle * Unit('deg')
-                if len(circle) != 3:
-                    raise valerr
-            except (ValueError, TypeError):
-                raise valerr
-
-        self['CIRCLE'] = ' '.join(
-            str(value) for value in circle.to(Unit('deg')).value)
 
     @circle.deleter
     def circle(self):
@@ -734,31 +764,25 @@ class SodaQuery(DatalinkQuery):
         """
         A rectangular range.
         """
+        warnings.warn(
+            "Use pos attribute instead",
+            DeprecationWarning
+        )
         return getattr(self, '_circle', None)
 
     @range.setter
     def range(self, range):
+        if len(range) != 4:
+            raise ValueError(
+                "Range must be a sequence with exactly four values")
+        self['POS'] = PosQueryParam().get_dal_format(range)
         setattr(self, '_range', range)
         del self.circle
         del self.polygon
 
-        if not isinstance(range, Quantity):
-            valerr = ValueError(
-                "Range must be a sequence with exactly four values")
-
-            try:
-                # assume degrees
-                range = range * Unit('deg')
-                if len(range) != 4:
-                    raise valerr
-            except (ValueError, TypeError):
-                raise valerr
-
-        self['POS'] = 'RANGE ' + ' '.join(
-            str(value) for value in range.to(Unit('deg')).value)
-
     @range.deleter
     def range(self):
+
         if hasattr(self, '_range'):
             delattr(self, '_range')
         if 'POS' in self and self['POS'].startswith('RANGE'):
@@ -774,26 +798,14 @@ class SodaQuery(DatalinkQuery):
 
     @polygon.setter
     def polygon(self, polygon):
+        if len(polygon) < 6:
+            raise ValueError(
+                "Polygon must be a sequence of at least six values")
+        self['POLYGON'] = PosQueryParam().get_dal_format(polygon).\
+            replace('POLYGON ', '')
         setattr(self, '_polygon', polygon)
         del self.circle
         del self.range
-
-        if not isinstance(polygon, Quantity):
-            valerr = ValueError(
-                'Polygon must be a sequence with at least six numeric values, '
-                'expressing pairs of ra and dec in degrees'
-            )
-
-            try:
-                # assume degrees
-                polygon = polygon * Unit('deg')
-                if len(polygon) < 3:
-                    raise valerr
-            except (ValueError, TypeError):
-                raise valerr
-
-        self['POLYGON'] = ' '.join(
-            str(value) for value in polygon.to(Unit('deg')).value)
 
     @polygon.deleter
     def polygon(self):

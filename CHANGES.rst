@@ -7,6 +7,8 @@
 
 - Properly handle single string keywords value for regsearch(). [#201]
 
+- Add support for SIAv2. [#206]
+
 1.0 (2019-09-20)
 ================
 

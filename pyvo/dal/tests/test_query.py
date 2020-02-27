@@ -30,7 +30,7 @@ get_pkg_data_contents = partial(
     get_pkg_data_contents, package=__package__, encoding='binary')
 
 
-@pytest.fixture(autouse=True, scope='module')
+@pytest.fixture()
 def register_mocks(mocker):
     with ExitStack() as stack:
         matchers = [
@@ -145,6 +145,7 @@ def _test_records(records):
 
 
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+@pytest.mark.usefixtures('register_mocks')
 class TestDALService:
     def test_init(self):
         """Test if baseurl if passed correctly"""
@@ -208,6 +209,7 @@ class TestDALService:
 
 
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+@pytest.mark.usefixtures('register_mocks')
 class TestDALQuery:
     def test_url(self):
         queries = (
@@ -245,6 +247,7 @@ class TestDALQuery:
 
 @pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W03')
 @pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W06')
+@pytest.mark.usefixtures('register_mocks')
 class TestDALResults:
     def test_init(self):
         dalresults = DALResults.from_result_url(
@@ -373,6 +376,7 @@ class TestDALResults:
 
 @pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W03')
 @pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W06')
+@pytest.mark.usefixtures('register_mocks')
 class TestRecord:
     def test_itemaccess(self):
         record = DALResults.from_result_url(
