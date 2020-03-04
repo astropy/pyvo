@@ -23,6 +23,8 @@ from ..io.vosi import tapregext as tr
 
 from ..utils.formatting import para_format_desc
 from ..utils.http import use_session
+import xml.etree.ElementTree
+import io
 
 __all__ = [
     "search", "escape", "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
@@ -95,6 +97,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
     """
 
     _tables = None
+    _examples = None
 
     def __init__(self, baseurl, session=None):
         """
@@ -137,6 +140,33 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             self._tables = VOSITables(
                 vosi.parse_tables(response.raw.read), tables_url)
         return self._tables
+
+    @property
+    def examples(self):
+        """
+        returns examples as a list of TAPQuery objects
+        """
+        if self._examples is None:
+            examples_url = '{}/examples'.format(self.baseurl)
+
+            response = self._session.get(examples_url, stream=True)
+            if response.status_code == 404:
+                return []
+
+            try:
+                response.raise_for_status()
+            except requests.RequestException as ex:
+                raise DALServiceError.from_except(ex, examples_url)
+
+            try:
+                root = xml.etree.ElementTree.parse(io.BytesIO(response.content)).getroot()
+                exampleElements = root.findall('.//*[@property="query"]')
+            except Exception as ex:
+                raise DALServiceError.from_except(ex, examples_url)
+
+            self._examples = [TAPQuery(self.baseurl, example.text) for example in exampleElements]
+
+        return self._examples
 
     @property
     def maxrec(self):
