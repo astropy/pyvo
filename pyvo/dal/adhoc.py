@@ -207,7 +207,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                             self._remaining_ids[:self._batch_size]
                     self._current_batch = self.query.execute(post=True)
                     self._current_ids = list(OrderedDict.fromkeys(
-                        [_ for _ in self._current_batch.table['ID']]))
+                        [_ for _ in self._current_batch.to_table()['ID']]))
                     if not self._current_ids:
                         raise DALService(
                             'Could not retrieve datalinks for: {}'.format(
@@ -388,7 +388,7 @@ class DatalinkQuery(DALQuery):
         for name, query_param in kwargs.items():
             try:
                 input_param = find_param_by_keyword(name, input_params)
-                if input_param and not query_param:
+                if input_param and query_param is None:
                     del query_params[input_param.name]
                 converter = get_converter(input_param)
                 query_params[input_param.name] = converter.serialize(
