@@ -16,6 +16,7 @@ from astropy.io.votable.tree import Param
 from astropy import units as u
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
+from pyvo.utils.compat import ASTROPY_LT_4_1
 
 from astropy.io.votable.tree import Resource, Group
 from astropy.utils.collections import HomogeneousList
@@ -175,9 +176,10 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         # response is partial, uses the size of the response as the batch
         # size.
         if not hasattr(self, '_datalink'):
+            dl_ivoid = b'ivo://ivoa.net/std/datalink' \
+                if ASTROPY_LT_4_1 else 'ivo://ivoa.net/std/datalink'
             try:
-                self._datalink = self.get_adhocservice_by_ivoid(
-                    b"ivo://ivoa.net/std/datalink")
+                self._datalink = self.get_adhocservice_by_ivoid(dl_ivoid)
             except DALServiceError:
                 self._datalink = None
         if not hasattr(self, "_current_batch"):
@@ -205,11 +207,11 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                             self._remaining_ids[:self._batch_size]
                     self._current_batch = self.query.execute(post=True)
                     self._current_ids = list(OrderedDict.fromkeys(
-                        [_.id.encode('utf-8') for _ in self._current_batch]))
+                        [_ for _ in self._current_batch.table['ID']]))
                     if not self._current_ids:
                         raise DALService(
                             'Could not retrieve datalinks for: {}'.format(
-                                ', '.join([_.decode('utf-8') for _ in
+                                ', '.join([_ for _ in
                                            self._remaining_ids])))
                     self._batch_size = len(self._current_ids)
                 id = self._current_ids.pop(0)
@@ -547,8 +549,12 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         for index, row in enumerate(rows):
             votable.array[index] = row
         # now remove unreferenced services from resources
-        referenced_serviced = \
-            [x.decode('utf-8') for x in votable.array['service_def'] if x]
+        if ASTROPY_LT_4_1:
+            referenced_serviced = \
+                [x.decode('utf-8') for x in votable.array['service_def'] if x]
+        else:
+            referenced_serviced = \
+                [x for x in votable.array['service_def'] if x]
         copy_tb.resources[:] = \
             [_ for _ in copy_tb.resources
              if not _.ID or _.ID in referenced_serviced]
