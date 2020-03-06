@@ -555,9 +555,10 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         else:
             referenced_serviced = \
                 [x for x in votable.array['service_def'] if x]
-        copy_tb.resources[:] = \
-            [_ for _ in copy_tb.resources
-             if ((not _.ID) or (_.ID in referenced_serviced))]
+        # remove customized that are not referenced by the current results
+        for x in copy_tb.resources:
+            if x.ID and x.ID not in referenced_serviced:
+                copy_tb.resources.remove(x)
         return DatalinkResults(copy_tb)
 
     def getdataset(self, timeout=None):
