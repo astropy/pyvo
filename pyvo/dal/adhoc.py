@@ -557,7 +557,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
                 [x for x in votable.array['service_def'] if x]
         copy_tb.resources[:] = \
             [_ for _ in copy_tb.resources
-             if not _.ID or _.ID in referenced_serviced]
+             if ((not _.ID) or (_.ID in referenced_serviced))]
         return DatalinkResults(copy_tb)
 
     def getdataset(self, timeout=None):
