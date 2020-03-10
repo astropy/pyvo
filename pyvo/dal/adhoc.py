@@ -128,8 +128,10 @@ class AdhocServiceResultsMixin:
         Resource
             The resource element describing the service.
         """
-        if isinstance(ivo_id, str):
+        if ASTROPY_LT_4_1 and isinstance(ivo_id, str):
             ivo_id = ivo_id.encode('utf-8')
+        if not ASTROPY_LT_4_1 and isinstance(ivo_id, bytes):
+            ivo_id = ivo_id.decode('utf-8')
         for adhocservice in self.iter_adhocservices():
             if any(
                     all((
@@ -179,10 +181,8 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         # response is partial, uses the size of the response as the batch
         # size.
         if not hasattr(self, '_datalink'):
-            dl_ivoid = b'ivo://ivoa.net/std/datalink' \
-                if ASTROPY_LT_4_1 else 'ivo://ivoa.net/std/datalink'
             try:
-                self._datalink = self.get_adhocservice_by_ivoid(dl_ivoid)
+                self._datalink = self.get_adhocservice_by_ivoid(DATALINK_IVOID)
             except DALServiceError:
                 self._datalink = None
         if not hasattr(self, "_current_batch"):
