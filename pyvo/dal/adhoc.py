@@ -31,6 +31,7 @@ from ..dam.obscore import POLARIZATION_STATES
 DATALINK_BATCH_CALL_SIZE = 50
 
 SODA_SYNC_IVOID = 'ivo://ivoa.net/std/SODA#sync-1.0'
+DATALINK_IVOID = 'ivo://ivoa.net/std/datalink'
 
 
 # monkeypatch astropy with group support in RESOURCE
@@ -127,6 +128,8 @@ class AdhocServiceResultsMixin:
         Resource
             The resource element describing the service.
         """
+        if isinstance(ivo_id, str):
+            ivo_id = ivo_id.encode('utf-8')
         for adhocservice in self.iter_adhocservices():
             if any(
                     all((
@@ -221,6 +224,13 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             else:
                 yield DatalinkResults.from_result_url(row.getdataurl())
 
+    def reset_datalinks_iter(self):
+        """
+        Resets the datalinks iterator
+        """
+        if hasattr(self, "_current_batch"):
+            del self._current_batch
+
 
 class DatalinkRecordMixin:
     """
@@ -230,8 +240,7 @@ class DatalinkRecordMixin:
     """
     def getdatalink(self):
         try:
-            datalink = self._results.get_adhocservice_by_ivoid(
-                b"ivo://ivoa.net/std/datalink")
+            datalink = self._results.get_adhocservice_by_ivoid(DATALINK_IVOID)
 
             query = DatalinkQuery.from_resource(self, datalink)
             return query.execute()
@@ -600,15 +609,14 @@ class SodaRecordMixin:
     """
     def _get_soda_resource(self):
         try:
-            return self._results.get_adhocservice_by_ivoid(
-                SODA_SYNC_IVOID.encode('utf-8'))
+            return self._results.get_adhocservice_by_ivoid(SODA_SYNC_IVOID)
         except DALServiceError:
             pass
 
         # let it count as soda resource
         try:
             return self._results.get_adhocservice_by_ivoid(
-                b"ivo://ivoa.net/std/datalink#links")
+                "ivo://ivoa.net/std/datalink#links")
         except DALServiceError:
             pass
 
@@ -629,7 +637,7 @@ class SodaRecordMixin:
             try:
                 datalink_result = DatalinkResults.from_result_url(dataurl)
                 return datalink_result.get_adhocservice_by_ivoid(
-                    SODA_SYNC_IVOID.encode('utf-8'))
+                    SODA_SYNC_IVOID)
             except DALServiceError:
                 pass
 
