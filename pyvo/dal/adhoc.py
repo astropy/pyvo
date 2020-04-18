@@ -33,6 +33,9 @@ DATALINK_BATCH_CALL_SIZE = 50
 SODA_SYNC_IVOID = 'ivo://ivoa.net/std/SODA#sync-1.0'
 DATALINK_IVOID = 'ivo://ivoa.net/std/datalink'
 
+# MIME types
+DATALINK_MIME_TYPE = 'application/x-votable+xml;content=datalink'
+
 
 # monkeypatch astropy with group support in RESOURCE
 def _monkeypath_astropy_resource_groups():
@@ -221,7 +224,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                 self._processed_ids.append(id)
                 self._remaining_ids.remove(id)
                 yield self._current_batch.clone_byid(id)
-            else:
+            elif row.access_format == DATALINK_MIME_TYPE:
                 yield DatalinkResults.from_result_url(row.getdataurl())
 
     def reset_datalinks_iter(self):
