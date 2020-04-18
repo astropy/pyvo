@@ -84,7 +84,7 @@ max_records : int
     allows the client to limit the number or records in the response
 **kwargs : custom query parameters
     single or a list of values (or tuples for intervals) custom query
-    parameters that a specific service accepts. The values of the 
+    parameters that a specific service accepts. The values of the
     parameters need to follow the SIAv2 format and represent the
     appropriate quantities (where applicable).
 """
