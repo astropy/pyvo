@@ -391,8 +391,8 @@ class IntervalQueryParam(AbstractDalQueryParam):
                                  format(val))
         else:
             high = low = val
-        if not (isinstance(low, Quantity) or isinstance(high, Quantity)) and\
-           low > high:
+        if isinstance(low, (int, float)) and isinstance(high, (int, float))\
+                and low > high:
             raise ValueError('Invalid interval: min({}) > max({})'.format(
                 low, high))
         if self._unit:
