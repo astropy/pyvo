@@ -188,51 +188,40 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                 self._datalink = self.get_adhocservice_by_ivoid(DATALINK_IVOID)
             except DALServiceError:
                 self._datalink = None
-        if not hasattr(self, "_current_batch"):
-            # static vars
-            self._remaining_ids = []  # remaining IDs to processed
-            self._current_batch = None  # retrieved but not returned yet
-            self._current_ids = []  # retrieved but not returned
-            self._processed_ids = []  # retrived and returned IDs
-            self._batch_size = None  # size of the batch
+        remaining_ids = []  # remaining IDs to processed
+        current_batch = None  # retrieved but not returned yet
+        current_ids = []  # retrieved but not returned
+        processed_ids = []  # retrived and returned IDs
+        batch_size = None  # size of the batch
 
         for row in self:
             if self._datalink:
-                if not self._current_ids:
-                    if self._batch_size is None:
+                if not current_ids:
+                    if batch_size is None:
                         # first call.
                         self.query = DatalinkQuery.from_resource(
                             [_ for _ in self], self._datalink)
-                        self._remaining_ids = self.query['ID']
-                    if not self._remaining_ids:
+                        remaining_ids = self.query['ID']
+                    if not remaining_ids:
                         # we are done
                         return
-                    if self._batch_size:
+                    if batch_size:
                         # subsequent calls are limitted to batch size
-                        self.query['ID'] = \
-                            self._remaining_ids[:self._batch_size]
-                    self._current_batch = self.query.execute(post=True)
-                    self._current_ids = list(OrderedDict.fromkeys(
-                        [_ for _ in self._current_batch.to_table()['ID']]))
-                    if not self._current_ids:
+                        self.query['ID'] = remaining_ids[:batch_size]
+                    current_batch = self.query.execute(post=True)
+                    current_ids = list(OrderedDict.fromkeys(
+                        [_ for _ in current_batch.to_table()['ID']]))
+                    if not current_ids:
                         raise DALService(
                             'Could not retrieve datalinks for: {}'.format(
-                                ', '.join([_ for _ in
-                                           self._remaining_ids])))
-                    self._batch_size = len(self._current_ids)
-                id = self._current_ids.pop(0)
-                self._processed_ids.append(id)
-                self._remaining_ids.remove(id)
-                yield self._current_batch.clone_byid(id)
+                                ', '.join([_ for _ in remaining_ids])))
+                    batch_size = len(current_ids)
+                id = current_ids.pop(0)
+                processed_ids.append(id)
+                remaining_ids.remove(id)
+                yield current_batch.clone_byid(id)
             elif row.access_format == DATALINK_MIME_TYPE:
                 yield DatalinkResults.from_result_url(row.getdataurl())
-
-    def reset_datalinks_iter(self):
-        """
-        Resets the datalinks iterator
-        """
-        if hasattr(self, "_current_batch"):
-            del self._current_batch
 
 
 class DatalinkRecordMixin:
@@ -353,9 +342,9 @@ class DatalinkQuery(DALQuery):
     allowing the caller to take greater control of the result processing.
     """
     @classmethod
-    def from_resource(cls, row, resource, session=None, **kwargs):
+    def from_resource(cls, rows, resource, session=None, **kwargs):
         """
-        Creates a instance from a Record and a Datalink Resource.
+        Creates a instance from a number of records and a Datalink Resource.
 
         XML Hierarchy:
 
@@ -381,12 +370,13 @@ class DatalinkQuery(DALQuery):
         query_params = dict()
         for name, input_param in input_params.items():
             if input_param.ref:
-                if isinstance(row, list):
+                if isinstance(rows, list):
                     query_params[name] = []
-                    for r in row:
+                    for r in rows:
                         query_params[name].append(r[input_param.ref])
                 else:
-                    query_params[name] = row[input_param.ref]
+                    # scalars are also accepted for backwards compatibility
+                    query_params[name] = rows[input_param.ref]
             elif np.isscalar(input_param.value) and input_param.value:
                 query_params[name] = input_param.value
             elif (
