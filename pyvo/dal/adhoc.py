@@ -212,7 +212,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                     current_ids = list(OrderedDict.fromkeys(
                         [_ for _ in current_batch.to_table()['ID']]))
                     if not current_ids:
-                        raise DALService(
+                        raise DALServiceError(
                             'Could not retrieve datalinks for: {}'.format(
                                 ', '.join([_ for _ in remaining_ids])))
                     batch_size = len(current_ids)
