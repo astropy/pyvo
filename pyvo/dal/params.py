@@ -376,7 +376,7 @@ class IntervalQueryParam(AbstractDalQueryParam):
         super().__init__()
 
     def get_dal_format(self, val):
-        if isinstance(val, tuple):
+        if isinstance(val, (tuple, Quantity)):
             if len(val) == 1:
                 high = low = val[0]
             elif len(val) == 2:
@@ -387,6 +387,10 @@ class IntervalQueryParam(AbstractDalQueryParam):
                                  format(val))
         else:
             high = low = val
+        if isinstance(low, (int, float)) and isinstance(high, (int, float))\
+                and low > high:
+            raise ValueError('Invalid interval: min({}) > max({})'.format(
+                low, high))
         if self._unit:
             if not isinstance(low, Quantity):
                 low = low*self._unit
@@ -394,9 +398,10 @@ class IntervalQueryParam(AbstractDalQueryParam):
             if not isinstance(high, Quantity):
                 high = high*self._unit
             high = high.to(self._unit, equivalencies=self._equivalencies).value
-        if low > high:
-            raise ValueError('Invalid interval: min({}) > max({})'.format(
-                low, high))
+
+            if low > high:
+                # interval could become invalid during transform (e.g. GHz->m)
+                low, high = high, low
 
         return '{} {}'.format(low, high)
 
@@ -405,6 +410,35 @@ class TimeQueryParam(AbstractDalQueryParam):
     """
     Representation of a timestamp parameter.
     """
+    def get_dal_format(self, val):
+        if isinstance(val, (tuple, Quantity)):
+            if len(val) == 1:
+                high = low = val[0]
+            elif len(val) == 2:
+                low = val[0]
+                high = val[1]
+            else:
+                raise ValueError('Too few/many values in interval attribute: '.
+                                 format(val))
+        else:
+            high = low = val
+        if isinstance(low, (int, float)) and isinstance(high, (int, float))\
+                and low > high:
+            raise ValueError('Invalid interval: min({}) > max({})'.format(
+                low, high))
+        if self._unit:
+            if not isinstance(low, Quantity):
+                low = low*self._unit
+            low = low.to(self._unit, equivalencies=self._equivalencies).value
+            if not isinstance(high, Quantity):
+                high = high*self._unit
+            high = high.to(self._unit, equivalencies=self._equivalencies).value
+
+            if low > high:
+                # interval could become invalid during transform (e.g. GHz->m)
+                low, high = high, low
+
+        return '{} {}'.format(low, high)
     def get_dal_format(self, val):
         if isinstance(val, tuple):
             if len(val) == 1:
