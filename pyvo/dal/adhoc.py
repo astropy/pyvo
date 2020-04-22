@@ -222,6 +222,8 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                 yield current_batch.clone_byid(id)
             elif row.access_format == DATALINK_MIME_TYPE:
                 yield DatalinkResults.from_result_url(row.getdataurl())
+            else:
+                yield None
 
 
 class DatalinkRecordMixin:
