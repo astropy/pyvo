@@ -25,6 +25,16 @@ class TestSIACadc():
         assert cadc.availability.notes[0] == 'service is accepting queries'
         assert cadc.capabilities
 
+    def test_datalink_batch(self):
+        # Maximum batch size in CADC SIA is around 25
+        # Test whether multiple batches can be retrieved
+        results = search(CADC_SIA_URL, pos=(2.8425, 74.4846, 10), maxrec=55)
+        ids = []
+        for i in results.iter_datalinks():
+            assert i.table[0]['ID'] not in ids
+            ids.append(i.table[0]['ID'])
+        assert len(ids) == 55
+
     def test_pos(self):
         results = search(CADC_SIA_URL, pos=(2.8425, 74.4846, 0.001))
         assert len(results) > 10
