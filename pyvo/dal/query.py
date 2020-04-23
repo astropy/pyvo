@@ -181,14 +181,14 @@ class DALQuery(dict):
         return out
 
     @stream_decode_content
-    def execute_stream(self):
+    def execute_stream(self, post=False):
         """
         Submit the query and return the raw response as a file stream.
 
         No exceptions are raised here because non-2xx responses might still
         contain payload. They can be raised later by calling ``raise_if_error``
         """
-        response = self.submit()
+        response = self.submit(post=post)
 
         try:
             response.raise_for_status()
@@ -198,17 +198,22 @@ class DALQuery(dict):
         finally:
             return response.raw
 
-    def submit(self):
+    def submit(self, post=False):
         """
         does the actual request
         """
         url = self.queryurl
         params = {k: v for k, v in self.items()}
 
-        response = self._session.get(url, params=params, stream=True, allow_redirects=True)
+        if post:
+            response = self._session.post(url, data=params, stream=True,
+                                          allow_redirects=True)
+        else:
+            response = self._session.get(url, params=params, stream=True,
+                                         allow_redirects=True)
         return response
 
-    def execute_votable(self):
+    def execute_votable(self, post=False):
         """
         Submit the query and return the results as an AstroPy votable instance.
         As this is the level where qualified error messages are available,
@@ -234,7 +239,7 @@ class DALQuery(dict):
         DALQueryError
         """
         try:
-            return votableparse(self.execute_stream().read)
+            return votableparse(self.execute_stream(post=post).read)
         except Exception as e:
             self.raise_if_error()
             raise DALFormatError(e, self.queryurl)

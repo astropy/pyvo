@@ -87,7 +87,11 @@ class Converter:
         """
         Serialize for use in DAL Queries
         """
-        return str(value)
+        if isinstance(value, list):
+            # multiple values
+            return [str(_) for _ in value]
+        else:
+            return str(value)
 
 
 class Number(Converter):

@@ -876,7 +876,7 @@ class TAPQuery(DALQuery):
     def queryurl(self):
         return '{baseurl}/{mode}'.format(baseurl=self.baseurl, mode=self._mode)
 
-    def execute_stream(self):
+    def execute_stream(self, post=False):
         """
         submit the query and return the raw VOTable XML as a file stream
 
@@ -893,7 +893,7 @@ class TAPQuery(DALQuery):
             raise DALServiceError(
                 "Cannot execute a non-synchronous query. Use submit instead")
 
-        return super().execute_stream()
+        return super().execute_stream(post=post)
 
     def execute(self):
         """
@@ -911,7 +911,7 @@ class TAPQuery(DALQuery):
         """
         return TAPResults(self.execute_votable(), url=self.queryurl, session=self._session)
 
-    def submit(self):
+    def submit(self, post=False):
         """
         Does the request part of the TAP query.
         This function is separated from response parsing because async queries
