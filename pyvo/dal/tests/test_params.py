@@ -7,7 +7,8 @@ from functools import partial
 from urllib.parse import parse_qsl
 
 from pyvo.dal.adhoc import DatalinkResults
-from pyvo.dal.params import find_param_by_keyword, get_converter, AbstractDalQueryParam
+from pyvo.dal.params import find_param_by_keyword, get_converter,\
+    AbstractDalQueryParam
 from pyvo.dal.exceptions import DALServiceError
 
 import pytest

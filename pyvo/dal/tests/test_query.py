@@ -19,6 +19,7 @@ import numpy as np
 from pyvo.dal.query import DALService, DALQuery, DALResults, Record
 from pyvo.dal.exceptions import DALServiceError, DALQueryError, DALFormatError
 from pyvo.version import version
+from pyvo.utils.compat import ASTROPY_LT_4_1
 
 from astropy.table import Table
 from astropy.io.votable.tree import VOTableFile, Table as VOTable
@@ -123,9 +124,13 @@ def _test_results(results):
     assert results['1', 1] == 42
     assert results['1', 2] == 1337
 
-    assert results['2', 0] == b'Illuminatus'
-    assert results['2', 1] == b"Don't panic, and always carry a towel"
-    assert results['2', 2] == b'Elite'
+    truth = b'Illuminatus' if ASTROPY_LT_4_1 else 'Illuminatus'
+    assert results['2', 0] == truth
+    truth = b"Don't panic, and always carry a towel" \
+        if ASTROPY_LT_4_1 else "Don't panic, and always carry a towel"
+    assert results['2', 1] == truth
+    truth = b'Elite' if ASTROPY_LT_4_1 else 'Elite'
+    assert results['2', 2] == truth
 
 
 def _test_records(records):
@@ -135,13 +140,18 @@ def _test_records(records):
     assert all([isinstance(record, Record) for record in records])
 
     assert records[0]['1'] == 23
-    assert records[0]['2'] == b'Illuminatus'
+
+    truth = b'Illuminatus' if ASTROPY_LT_4_1 else 'Illuminatus'
+    assert records[0]['2'] == truth
 
     assert records[1]['1'] == 42
-    assert records[1]['2'] == b"Don't panic, and always carry a towel"
+    truth = b"Don't panic, and always carry a towel" \
+        if ASTROPY_LT_4_1 else "Don't panic, and always carry a towel"
+    assert records[1]['2'] == truth
 
     assert records[2]['1'] == 1337
-    assert records[2]['2'] == b'Elite'
+    truth = b'Elite' if ASTROPY_LT_4_1 else 'Elite'
+    assert records[2]['2'] == truth
 
 
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
@@ -383,10 +393,11 @@ class TestRecord:
             'http://example.com/query/basic')[0]
 
         assert record['1'] == 23
-        assert record['2'] == b'Illuminatus'
+        truth = b'Illuminatus' if ASTROPY_LT_4_1 else 'Illuminatus'
+        assert record['2'] == truth
 
         assert record['_1'] == 23
-        assert record['_2'] == b'Illuminatus'
+        assert record['_2'] == truth
 
     def test_nosuchcolumn(self):
         record = DALResults.from_result_url(
@@ -413,8 +424,8 @@ class TestRecord:
     def test_repr(self):
         record = DALResults.from_result_url(
             'http://example.com/query/basic')[0]
-
-        assert repr(record) == repr((23, b'Illuminatus'))
+        truth = b'Illuminatus' if ASTROPY_LT_4_1 else 'Illuminatus'
+        assert repr(record) == repr((23, truth))
 
     def test_get(self):
         record = DALResults.from_result_url(
@@ -429,7 +440,8 @@ class TestRecord:
         assert record.getbyucd('foo') == 23
         assert record.getbyucd('bar') == 23
 
-        assert record.getbyutype('foobar') == b'Illuminatus'
+        truth = b'Illuminatus' if ASTROPY_LT_4_1 else 'Illuminatus'
+        assert record.getbyutype('foobar') == truth
 
         record.getbyucd('baz') is None
         record.getbyutype('foobaz') is None

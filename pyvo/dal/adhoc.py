@@ -4,6 +4,8 @@ Datalink classes and mixins
 """
 import numpy as np
 import warnings
+import copy
+from collections import OrderedDict
 
 from .query import DALResults, DALQuery, DALService, Record
 from .exceptions import DALServiceError
@@ -14,6 +16,7 @@ from astropy.io.votable.tree import Param
 from astropy import units as u
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
+from pyvo.utils.compat import ASTROPY_LT_4_1
 
 from astropy.io.votable.tree import Resource, Group
 from astropy.utils.collections import HomogeneousList
@@ -22,6 +25,16 @@ from ..utils.decorators import stream_decode_content
 from .params import PosQueryParam, IntervalQueryParam, TimeQueryParam,\
     EnumQueryParam
 from ..dam.obscore import POLARIZATION_STATES
+
+# calls to DataLink from the results pages are batched for performance
+# reasons. This is the size of a batch
+DATALINK_BATCH_CALL_SIZE = 50
+
+SODA_SYNC_IVOID = 'ivo://ivoa.net/std/SODA#sync-1.0'
+DATALINK_IVOID = 'ivo://ivoa.net/std/datalink'
+
+# MIME types
+DATALINK_MIME_TYPE = 'application/x-votable+xml;content=datalink'
 
 
 # monkeypatch astropy with group support in RESOURCE
@@ -118,6 +131,10 @@ class AdhocServiceResultsMixin:
         Resource
             The resource element describing the service.
         """
+        if ASTROPY_LT_4_1 and isinstance(ivo_id, str):
+            ivo_id = ivo_id.encode('utf-8')
+        if not ASTROPY_LT_4_1 and isinstance(ivo_id, bytes):
+            ivo_id = ivo_id.decode('utf-8')
         for adhocservice in self.iter_adhocservices():
             if any(
                     all((
@@ -154,12 +171,59 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
     """
     Mixing for datalink functionallity for results classes.
     """
+
     def iter_datalinks(self):
         """
         Iterates over all datalinks in a DALResult.
         """
-        for record in self:
-            yield record.getdatalink()
+        # To reduce the number of calls to the Datalink service, multiple
+        # IDs are sent in batches. The appropriate batch size is not available
+        # as each service has its own criteria for determining the maximum
+        # number of IDs processed per request. To overcome this limitation,
+        # this method initially sends all the available IDs and if the
+        # response is partial, uses the size of the response as the batch
+        # size.
+        if not hasattr(self, '_datalink'):
+            try:
+                self._datalink = self.get_adhocservice_by_ivoid(DATALINK_IVOID)
+            except DALServiceError:
+                self._datalink = None
+        remaining_ids = []  # remaining IDs to processed
+        current_batch = None  # retrieved but not returned yet
+        current_ids = []  # retrieved but not returned
+        processed_ids = []  # retrived and returned IDs
+        batch_size = None  # size of the batch
+
+        for row in self:
+            if self._datalink:
+                if not current_ids:
+                    if batch_size is None:
+                        # first call.
+                        self.query = DatalinkQuery.from_resource(
+                            [_ for _ in self], self._datalink)
+                        remaining_ids = self.query['ID']
+                    if not remaining_ids:
+                        # we are done
+                        return
+                    if batch_size:
+                        # subsequent calls are limitted to batch size
+                        self.query['ID'] = remaining_ids[:batch_size]
+                    current_batch = self.query.execute(post=True)
+                    current_ids = list(OrderedDict.fromkeys(
+                        [_ for _ in current_batch.to_table()['ID']]))
+                    if not current_ids:
+                        raise DALServiceError(
+                            'Could not retrieve datalinks for: {}'.format(
+                                ', '.join([_ for _ in remaining_ids])))
+                    batch_size = len(current_ids)
+                id = current_ids.pop(0)
+                processed_ids.append(id)
+                remaining_ids.remove(id)
+                yield current_batch.clone_byid(id)
+            elif row.access_format == DATALINK_MIME_TYPE:
+                yield DatalinkResults.from_result_url(row.getdataurl())
+            else:
+                yield None
 
 
 class DatalinkRecordMixin:
@@ -170,8 +234,7 @@ class DatalinkRecordMixin:
     """
     def getdatalink(self):
         try:
-            datalink = self._results.get_adhocservice_by_ivoid(
-                b"ivo://ivoa.net/std/datalink")
+            datalink = self._results.get_adhocservice_by_ivoid(DATALINK_IVOID)
 
             query = DatalinkQuery.from_resource(self, datalink)
             return query.execute()
@@ -281,9 +344,9 @@ class DatalinkQuery(DALQuery):
     allowing the caller to take greater control of the result processing.
     """
     @classmethod
-    def from_resource(cls, row, resource, session=None, **kwargs):
+    def from_resource(cls, rows, resource, session=None, **kwargs):
         """
-        Creates a instance from a Record and a Datalink Resource.
+        Creates a instance from a number of records and a Datalink Resource.
 
         XML Hierarchy:
 
@@ -309,7 +372,13 @@ class DatalinkQuery(DALQuery):
         query_params = dict()
         for name, input_param in input_params.items():
             if input_param.ref:
-                query_params[name] = row[input_param.ref]
+                if isinstance(rows, list):
+                    query_params[name] = []
+                    for r in rows:
+                        query_params[name].append(r[input_param.ref])
+                else:
+                    # scalars are also accepted for backwards compatibility
+                    query_params[name] = rows[input_param.ref]
             elif np.isscalar(input_param.value) and input_param.value:
                 query_params[name] = input_param.value
             elif (
@@ -323,6 +392,8 @@ class DatalinkQuery(DALQuery):
         for name, query_param in kwargs.items():
             try:
                 input_param = find_param_by_keyword(name, input_params)
+                if input_param and query_param is None:
+                    del query_params[input_param.name]
                 converter = get_converter(input_param)
                 query_params[input_param.name] = converter.serialize(
                     query_param)
@@ -354,7 +425,7 @@ class DatalinkQuery(DALQuery):
         if responseformat:
             self["RESPONSEFORMAT"] = responseformat
 
-    def execute(self):
+    def execute(self, post=False):
         """
         submit the query and return the results as a DatalinkResults instance
 
@@ -368,7 +439,8 @@ class DatalinkQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return DatalinkResults(self.execute_votable(), url=self.queryurl, session=self._session)
+        return DatalinkResults(self.execute_votable(post),
+                               url=self.queryurl, session=self._session)
 
 
 class DatalinkResults(DatalinkResultsMixin, DALResults):
@@ -458,6 +530,41 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
             if record.semantics == semantics:
                 yield record
 
+    def clone_byid(self, id):
+        """
+        return a clone of the object with results and corresponding
+         resources matching a given id
+
+        Returns
+        -------
+        Sequence of DatalinkRecord
+            a sequence of dictionary-like wrappers containing the result record
+        """
+
+        copy_tb = copy.deepcopy(self.votable)
+        votable = copy_tb.get_first_table()
+        # find index of ID column
+        id_index = None
+        for index, field in enumerate(votable.fields):
+            if field.name == 'ID':
+                id_index = index
+        rows = [x for x in votable.array if x[id_index] == id]
+        votable.create_arrays(len(rows))
+        for index, row in enumerate(rows):
+            votable.array[index] = row
+        # now remove unreferenced services from resources
+        if ASTROPY_LT_4_1:
+            referenced_serviced = \
+                [x.decode('utf-8') for x in votable.array['service_def'] if x]
+        else:
+            referenced_serviced = \
+                [x for x in votable.array['service_def'] if x]
+        # remove customized that are not referenced by the current results
+        for x in copy_tb.resources:
+            if x.ID and x.ID not in referenced_serviced:
+                copy_tb.resources.remove(x)
+        return DatalinkResults(copy_tb)
+
     def getdataset(self, timeout=None):
         """
         return the first row with the dataset identified by semantics #this
@@ -491,21 +598,20 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
 
 class SodaRecordMixin:
     """
-    Mixin for soda functionallity for record classes.
+    Mixin for soda functionality for record classes.
     If used, it's result class must have
     `pyvo.dal.datalink.AdhocServiceResultsMixin` mixed in.
     """
     def _get_soda_resource(self):
         try:
-            return self._results.get_adhocservice_by_ivoid(
-                b"ivo://ivoa.net/std/SODA#sync")
+            return self._results.get_adhocservice_by_ivoid(SODA_SYNC_IVOID)
         except DALServiceError:
             pass
 
         # let it count as soda resource
         try:
             return self._results.get_adhocservice_by_ivoid(
-                b"ivo://ivoa.net/std/datalink#links")
+                "ivo://ivoa.net/std/datalink#links")
         except DALServiceError:
             pass
 
@@ -526,7 +632,7 @@ class SodaRecordMixin:
             try:
                 datalink_result = DatalinkResults.from_result_url(dataurl)
                 return datalink_result.get_adhocservice_by_ivoid(
-                    b"ivo://ivoa.net/std/SODA#sync")
+                    SODA_SYNC_IVOID)
             except DALServiceError:
                 pass
 
