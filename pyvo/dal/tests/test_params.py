@@ -8,7 +8,7 @@ from urllib.parse import parse_qsl
 
 from pyvo.dal.adhoc import DatalinkResults
 from pyvo.dal.params import find_param_by_keyword, get_converter,\
-    AbstractDalQueryParam
+    AbstractDalQueryParam, IntervalQueryParam
 from pyvo.dal.exceptions import DALServiceError
 
 import pytest
@@ -207,3 +207,18 @@ def test_dal_query_param():
     test_obs.clear()
     assert len(test_obs) == 0
     assert len(test_obs.dal) == 0
+
+
+def test_dal_format():
+    iqp = IntervalQueryParam(unit=u.m, equivalencies=u.spectral())
+    assert '1.0 1.0' == iqp.get_dal_format(1)
+    assert '1.0 2.0' == iqp.get_dal_format((1, 2))
+    assert '1.0 2.0' == iqp.get_dal_format((100*u.cm, 200*u.cm))
+    assert '1.0 2.0' == iqp.get_dal_format((100, 200)*u.cm)
+    assert '0.14989622900000002 1.0' == iqp.get_dal_format((100*u.cm, 2*u.GHz))
+    assert '14.9896229 29.9792458' == iqp.get_dal_format((0.01, 0.02)*u.GHz)
+    # Quantity intervals are corrected in terms of min and max ..
+    assert '1.0 2.0' == iqp.get_dal_format((2, 1)*u.m)
+    # But unitless intervals are not
+    with pytest.raises(ValueError):
+        iqp.get_dal_format((2, 1))
