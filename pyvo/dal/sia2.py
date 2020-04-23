@@ -312,15 +312,15 @@ class SIAQuery(DALQuery, AxisParamMixin):
         for rf in _tolist(res_format):
             self.res_format.add(rf)
 
-        for ii in kwargs:
+        for name, value in kwargs.items():
             custom_arg = []
-            for kw in _tolist(kwargs[ii]):
+            for kw in _tolist(value):
                 if isinstance(kw, tuple):
                     val = '{} {}'.format(kw[0], kw[1])
                 else:
                     val = str(kw)
                 custom_arg.append(val)
-            self[ii] = custom_arg
+            self[name] = custom_arg
 
         self.maxrec = maxrec
 
