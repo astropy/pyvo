@@ -134,3 +134,12 @@ class TestSIAQuery():
 
         query.maxrec = 1000
         assert query['MAXREC'] == '1000'
+
+        query = SIAQuery('someurl', custom_param=23)
+        assert query['custom_param'] == ['23']
+
+        query['custom_param'].append('-Inf 0')
+        assert query['custom_param'] == ['23', '-Inf 0']
+
+        query = SIAQuery('someurl', custom_param=[('-Inf', 0), (2, '+Inf')])
+        assert query['custom_param'] == ['-Inf 0', '2 +Inf']

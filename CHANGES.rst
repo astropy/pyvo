@@ -9,6 +9,8 @@
 
 - Add support for SIAv2. [#206]
 
+- Add kwargs to sia2. [#222]
+
 1.0 (2019-09-20)
 ================
 

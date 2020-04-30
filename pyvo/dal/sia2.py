@@ -82,6 +82,11 @@ res_format : single or list of strings
     specifies response format(s).
 max_records : int
     allows the client to limit the number or records in the response
+**kwargs : custom query parameters
+    single or a list of values (or tuples for intervals) custom query
+    parameters that a specific service accepts. The values of the
+    parameters need to follow the SIAv2 format and represent the
+    appropriate quantities (where applicable).
 """
 
 
@@ -90,7 +95,8 @@ def search(url, pos=None, band=None, time=None, pol=None,
            spectral_resolving_power=None, exptime=None,
            timeres=None, publisher_did=None, facility=None, collection=None,
            instrument=None, data_type=None, calib_level=None,
-           target_name=None, res_format=None, maxrec=None, session=None):
+           target_name=None, res_format=None, maxrec=None, session=None,
+           **kwargs):
     """
     submit a simple SIA query to a SIAv2 compatible service
 
@@ -113,7 +119,7 @@ def search(url, pos=None, band=None, time=None, pol=None,
                           instrument=instrument, data_type=data_type,
                           calib_level=calib_level, target_name=target_name,
                           res_format=res_format, maxrec=maxrec,
-                          session=session)
+                          session=session, **kwargs)
 
 
 search.__doc__ = search.__doc__.replace('_SIA2_PARAMETERS',
@@ -173,7 +179,8 @@ class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
                spectral_resolving_power=None, exptime=None,
                timeres=None, publisher_did=None, facility=None, collection=None,
                instrument=None, data_type=None, calib_level=None,
-               target_name=None, res_format=None, maxrec=None, session=None):
+               target_name=None, res_format=None, maxrec=None, session=None,
+               **kwargs):
         """
         Performs a SIAv2 search against a SIAv2 service
 
@@ -193,7 +200,7 @@ class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
                         instrument=instrument, data_type=data_type,
                         calib_level=calib_level, target_name=target_name,
                         res_format=res_format, maxrec=maxrec,
-                        session=session).execute()
+                        session=session, **kwargs).execute()
 
 
 class SIAQuery(DALQuery, AxisParamMixin):
@@ -209,7 +216,7 @@ class SIAQuery(DALQuery, AxisParamMixin):
                  facility=None, collection=None,
                  instrument=None, data_type=None, calib_level=None,
                  target_name=None, res_format=None, maxrec=None,
-                 session=None):
+                 session=None, **kwargs):
         """
         initialize the query object with a url and the given parameters
 
@@ -304,6 +311,16 @@ class SIAQuery(DALQuery, AxisParamMixin):
 
         for rf in _tolist(res_format):
             self.res_format.add(rf)
+
+        for name, value in kwargs.items():
+            custom_arg = []
+            for kw in _tolist(value):
+                if isinstance(kw, tuple):
+                    val = '{} {}'.format(kw[0], kw[1])
+                else:
+                    val = str(kw)
+                custom_arg.append(val)
+            self[name] = custom_arg
 
         self.maxrec = maxrec
 
