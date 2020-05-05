@@ -3,6 +3,8 @@ import logging
 from .authurls import AuthURLs
 from .credentialstore import CredentialStore
 
+__all__ = ["AuthSession"]
+
 
 class AuthSession:
     """

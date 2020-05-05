@@ -121,3 +121,4 @@ Using `pyvo`
    dal/index
    registry/index
    io/index
+   auth/index
