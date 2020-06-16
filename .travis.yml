@@ -107,3 +107,19 @@ after_success:
     - if [[ $SETUP_CMD == 'test --coverage' ]]; then
           codecov;
       fi
+
+jobs:
+  include:
+      #- stage: intTest
+      #python: 3.7
+      #script: ./.intTest
+    - stage: publish
+      python: 3.7
+      deploy:
+         provider: script
+         script: ./.publish.sh
+         on:
+            tags: true
+            condition: ${PYPI_PASSWORD+x} = x
+            branch: master
+
