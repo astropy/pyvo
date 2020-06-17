@@ -105,7 +105,7 @@ matrix:
             script: ./.publish.sh
             on:
                 tags: true
-                condition: ${PYPI_PASSWORD+x} = x
+                #condition: ${PYPI_PASSWORD+x} = x
                 branch: test-pypi
 
 
