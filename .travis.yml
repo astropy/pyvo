@@ -99,7 +99,7 @@ matrix:
 
         - os: linux
           stage: Release
-          env: PYTHON_VERSION=3.7 PIP_DEPENDENCIES='twine'
+          env: PYTHON_VERSION=3.7 PIP_DEPENDENCIES='requests mimeparse twine'
           deploy:
             provider: script
             script: ./.publish.sh
