@@ -106,7 +106,7 @@ matrix:
             on:
                 tags: true
                 #condition: ${PYPI_PASSWORD+x} = x
-                branch: master
+                branch: test-pypi
 
 
 
