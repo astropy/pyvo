@@ -99,7 +99,7 @@ matrix:
 
         - os: linux
           stage: Release
-          env: PYTHON_VERSION=3.7 PIP_DEPENDENCIES='requests mimeparse twine'
+          env: PYTHON_VERSION=3.7 PIP_DEPENDENCIES='pytest-astropy requests mimeparse requests_mock twine'
           deploy:
             provider: script
             script: ./.publish.sh
