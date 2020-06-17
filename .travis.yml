@@ -99,7 +99,6 @@ matrix:
 
         - os: linux
           stage: Release
-          env: MAIN_CMD='flake8' SETUP_CMD=''
           python: 3.7
           deploy:
             provider: script
