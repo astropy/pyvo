@@ -100,14 +100,14 @@ matrix:
         - os: linux
           stage: Release
           env: MAIN_CMD='flake8' SETUP_CMD=''
-#          python: 3.7
-#            deploy:
-#            provider: script
-#            script: ./.publish.sh
-#            on:
-#                tags: true
-#                condition: ${PYPI_PASSWORD+x} = x
-#                branch: master
+          python: 3.7
+          deploy:
+            provider: script
+            script: ./.publish.sh
+            on:
+                tags: true
+                #condition: ${PYPI_PASSWORD+x} = x
+                branch: master
 
 
 
