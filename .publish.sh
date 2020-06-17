@@ -9,15 +9,14 @@ sed 's/ //g' setup.cfg | grep "^version=$TRAVIS_TAG" || { \
    exit 255; }
 
 # build
-python setup.py clean sdist || { echo "Errors building"; exit 255; }
- upload to pypi
- generate the .pypirc file first
+python setup.py clean sdist bdist_wheel || { echo "Errors building"; exit 255; }
+#upload to pypi
+#generate the .pypirc file first
 echo "[testpypi]" > .pypirc
 #echo "[pypi]" > .pypirc
 chmod 600 .pypirc
 echo "username = adriand" >> .pypirc
 echo "password = ${PYPI_PASSWORD}" >> .pypirc
-echo "password = ${PYPI_PASSWORD}"
 
 echo "Publish on pypi ${TRAVIS_TAG}"
 twine upload --config-file .pypirc dist/* || { echo "Errors publishing $TRAVIS_TAG"; exit 255; }
