@@ -32,6 +32,7 @@ stages:
    - name: Cron tests
      if: type = cron
    - name: Release
+     if: branch = test-pypi AND env(TWINE_PASSWORD) IS present AND tag IS present
 
 
 env:
@@ -100,13 +101,7 @@ matrix:
         - os: linux
           stage: Release
           env: PYTHON_VERSION=3.7 PIP_DEPENDENCIES='pytest-astropy requests mimeparse requests_mock wheel twine'
-          deploy:
-            provider: script
-            script: ./.publish.sh
-            on:
-                tags: true
-                condition: env(TWINE_PASSWORD) IS present
-                branch: test-pypi
+          MAIN_CMD='./.publish.sh'
 
 
 
