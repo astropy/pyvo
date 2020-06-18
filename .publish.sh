@@ -13,6 +13,7 @@ python setup.py clean sdist bdist_wheel || { echo "Errors building"; exit 255; }
 #upload to pypi
 
 echo "Publish on pypi ${TRAVIS_TAG}"
+export TWINE_PASSWORD=${TWINE_PASSWORD}
 twine upload --repository-url https://test.pypi.org/legacy/ -u adriand dist/* || { echo "Errors publishing $TRAVIS_TAG"; exit 255; }
 
 # check version available
