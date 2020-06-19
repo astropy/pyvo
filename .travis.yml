@@ -32,7 +32,7 @@ stages:
    - name: Cron tests
      if: type = cron
    - name: Release
-     if: branch = master
+     #if: branch = master
      #if: (branch = test-pypi) AND (env(TWINE_PASSWORD) IS present) AND (tag IS present)
 
 
