@@ -16,6 +16,7 @@ echo "Publish on pypi ${TRAVIS_TAG}"
 export TWINE_PASSWORD=${TWINE_PASSWORD}
 twine upload --repository-url https://test.pypi.org/legacy/ -u adriand dist/* || { echo "Errors publishing $TRAVIS_TAG"; exit 255; }
 
+
 # check version available
 pip uninstall -y pyvo
 pip install --upgrade --pre pyvo==$TRAVIS_TAG || { echo "$TRAVIS_TAG not installed on pypi" ; exit 255; }
