@@ -31,6 +31,9 @@ stages:
    # These will only run when cron is opted in
    - name: Cron tests
      if: type = cron
+   - name: Release to PyPI
+     if: (env(TWINE_PASSWORD) IS present) AND (tag IS present)
+
 
 env:
     global:
@@ -95,6 +98,12 @@ matrix:
         - os: windows
           stage: Windows test
 
+        - os: linux
+          stage: Release
+          env: PYTHON_VERSION=3.7 PIP_DEPENDENCIES='pytest-astropy requests mimeparse requests_mock wheel twine'
+               MAIN_CMD='./.publish.sh'
+
+
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
@@ -107,3 +116,4 @@ after_success:
     - if [[ $SETUP_CMD == 'test --coverage' ]]; then
           codecov;
       fi
+
