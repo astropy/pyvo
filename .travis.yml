@@ -60,43 +60,43 @@ matrix:
         - env: PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
           stage: Initial tests
 
-#        # Try MacOS X
-#        - os: osx
-#          stage: Cron tests
-#          env: SETUP_CMD='test'
-#
-#        # Do a coverage test.
-#        - os: linux
-#          stage: Initial tests
-#          env: SETUP_CMD='test --coverage'
-#
-#        # Now try Astropy dev and LTS vesions with the latest 3.x.
-#        - os: linux
-#          env: ASTROPY_VERSION=development
-#               EVENT_TYPE='pull_request push cron'
-#        - os: linux
-#          env: ASTROPY_VERSION=lts
-#
-#          # try all python versions
-#        - os: linux
-#          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.15 ASTROPY_VERSION=3.2
-#               PIP_DEPENDENCIES='requests mimeparse requests_mock contextlib2'
-#        - os: linux
-#          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14 ASTROPY_VERSION=2.0.16
-#
-#        # Do a PEP8 test with flake8
-#        - os: linux
-#          stage: Initial tests
-#          env: MAIN_CMD='flake8' SETUP_CMD=''
-#
-#        # Check for sphinx doc build warnings
-#        - os: linux
-#          env: SETUP_CMD='build_docs -w'
-#               PIP_DEPENDENCIES='requests mimeparse requests_mock sphinx_astropy'
+        # Try MacOS X
+        - os: osx
+          stage: Cron tests
+          env: SETUP_CMD='test'
 
-        # Try on windows. Since it takes longer, only run after everything passes
-#        - os: windows
-#          stage: Windows test
+        # Do a coverage test.
+        - os: linux
+          stage: Initial tests
+          env: SETUP_CMD='test --coverage'
+
+        # Now try Astropy dev and LTS vesions with the latest 3.x.
+        - os: linux
+          env: ASTROPY_VERSION=development
+               EVENT_TYPE='pull_request push cron'
+        - os: linux
+          env: ASTROPY_VERSION=lts
+
+          # try all python versions
+        - os: linux
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.15 ASTROPY_VERSION=3.2
+               PIP_DEPENDENCIES='requests mimeparse requests_mock contextlib2'
+        - os: linux
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14 ASTROPY_VERSION=2.0.16
+
+        # Do a PEP8 test with flake8
+        - os: linux
+          stage: Initial tests
+          env: MAIN_CMD='flake8' SETUP_CMD=''
+
+        # Check for sphinx doc build warnings
+        - os: linux
+          env: SETUP_CMD='build_docs -w'
+               PIP_DEPENDENCIES='requests mimeparse requests_mock sphinx_astropy'
+
+         Try on windows. Since it takes longer, only run after everything passes
+        - os: windows
+          stage: Windows test
 
         - os: linux
           stage: Release
