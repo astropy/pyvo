@@ -12,9 +12,8 @@ sed 's/ //g' setup.cfg | grep "^version=$TRAVIS_TAG" || { \
 python setup.py clean sdist bdist_wheel || { echo "Errors building"; exit 255; }
 #upload to pypi
 
-echo "Publish on pypi ${TRAVIS_TAG}"
+echo "Publishing pyvo ${TRAVIS_TAG} on pypi"
 export TWINE_USERNAME=adriand
-#export TWINE_PASSWORD=${PYPI_PASSWORD}
 export TWINE_REPOSITORY_URL=https://test.pypi.org/legacy/  #TODO comment out unless testing
 twine upload --verbose dist/* || { echo "Errors publishing $TRAVIS_TAG"; exit 255; }
 
