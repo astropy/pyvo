@@ -13,9 +13,9 @@ python setup.py clean sdist bdist_wheel || { echo "Errors building"; exit 255; }
 #upload to pypi
 
 echo "Publish on pypi ${TRAVIS_TAG}"
-export TWINE_USERNAME=<USERNAME>
+export TWINE_USERNAME=adriand
 export TWINE_URL=https://test.pypi.org/legacy/  #TODO comment out unless testing
-twine upload dist/* || { echo "Errors publishing $TRAVIS_TAG"; exit 255; }
+twine upload --verbose dist/* || { echo "Errors publishing $TRAVIS_TAG"; exit 255; }
 
 
 # check version available
