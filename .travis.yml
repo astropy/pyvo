@@ -99,7 +99,7 @@ matrix:
           stage: Windows test
 
         - os: linux
-          stage: Release
+          stage: Release to PyPI
           env: PYTHON_VERSION=3.7 PIP_DEPENDENCIES='pytest-astropy requests mimeparse requests_mock wheel twine'
                MAIN_CMD='./.publish.sh'
 
