@@ -6,6 +6,7 @@
 
 echo "Deploying version $TRAVIS_TAG..."
 # check that the version in the tag and in setup.cfg match
+ [ -z "$TRAVIS_TAG" ] && echo "BUG: TRAVIS_TAG empty" && exit 255
 sed 's/ //g' setup.cfg | grep "^version=$TRAVIS_TAG" || { \
    echo "Version in tag ($TRAVIS_TAG) does not match version in setup.cfg \
 ($(sed 's/ //g' setup.cfg | grep '^version=' | awk -F '=' '{print $2}'))"; \
