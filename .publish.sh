@@ -14,6 +14,7 @@ python setup.py clean sdist bdist_wheel || { echo "Errors building"; exit 255; }
 
 echo "Publish on pypi ${TRAVIS_TAG}"
 export TWINE_USERNAME=adriand
+export TWINE_PASSWORD=changeme
 export TWINE_URL=https://test.pypi.org/legacy/  #TODO comment out unless testing
 twine upload --verbose dist/* || { echo "Errors publishing $TRAVIS_TAG"; exit 255; }
 
