@@ -1,4 +1,4 @@
-1.1 (unreleased)
+1.1 (2020-06-26)
 ================
 
 - Added TAP examples function. [#220]
