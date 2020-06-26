@@ -299,6 +299,17 @@ def tables(mocker):
 
 
 @pytest.fixture()
+def examples(mocker):
+    def callback_examplesXHTML(request, context):
+        return get_pkg_data_contents('data/tap/examples.htm')
+
+    with mocker.register_uri(
+        'GET', 'http://example.com/tap/examples', content=callback_examplesXHTML
+    ) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
 def capabilities(mocker):
     def callback(request, context):
         return get_pkg_data_contents('data/tap/capabilities.xml')
@@ -348,6 +359,16 @@ class TestTAPService:
 
         table1, table2 = list(tables)
         self._test_tables(table1, table2)
+
+    def _test_examples(self, exampleXHTML):
+        assert "SELECT * FROM rosmaster" in exampleXHTML[0]['QUERY']
+
+    @pytest.mark.usefixtures('examples')
+    def test_examples(self):
+        service = TAPService('http://example.com/tap')
+        examples = service.examples
+
+        self._test_examples(examples)
 
     @pytest.mark.usefixtures('capabilities')
     def test_maxrec(self):

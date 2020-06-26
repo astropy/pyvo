@@ -1,6 +1,8 @@
 1.1 (unreleased)
 ================
 
+- Added TAP examples function. [#220]
+
 - Add default for UWS version. [#199]
 
 - Handle description of None when describing a TAP service's tables. [#197]
