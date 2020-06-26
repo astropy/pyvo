@@ -335,13 +335,13 @@ class PosQueryParam(AbstractDalQueryParam):
             self._validate_ra(ra_min)
             self._validate_ra(ra_max)
             if ra_max.to(u.deg) < ra_min.to(u.deg):
-                raise ValueError('min > max in ra range: '.format(ra_min,
-                                                                  ra_max))
+                raise ValueError('min > max in ra range: {} > {}'.
+                                 format(ra_min, ra_max))
             self._validate_dec(dec_min)
             self._validate_dec(dec_max)
             if dec_max.to(u.deg) < dec_min.to(u.deg):
-                raise ValueError('min > max in dec range: '.format(dec_min,
-                                                                   dec_max))
+                raise ValueError('min > max in dec range: {} > {}'.
+                                 format(dec_min, dec_max))
         else:
             for i, m in enumerate(pos):
                 if i % 2:
@@ -387,7 +387,7 @@ class IntervalQueryParam(AbstractDalQueryParam):
                 low = val[0]
                 high = val[1]
             else:
-                raise ValueError('Too few/many values in interval attribute: '.
+                raise ValueError('Too few/many values in interval attribute: {}'.
                                  format(val))
         else:
             high = low = val
@@ -422,7 +422,7 @@ class TimeQueryParam(AbstractDalQueryParam):
                 min_time = val[0]
                 max_time = val[1]
             else:
-                raise ValueError('Too few/many members in time attribute: '.
+                raise ValueError('Too few/many members in time attribute: {}'.
                                  format(val))
         else:
             max_time = min_time = val
