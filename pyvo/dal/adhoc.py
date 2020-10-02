@@ -420,7 +420,7 @@ class DatalinkQuery(DALQuery):
         """
         super().__init__(baseurl, session=session, **keywords)
 
-        if id:
+        if id is not None:
             self["ID"] = id
         if responseformat:
             self["RESPONSEFORMAT"] = responseformat

@@ -38,7 +38,7 @@ env:
         # The following versions are the 'default' for tests, unless
         # overridden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
-        - PYTHON_VERSION=3.7
+        - PYTHON_VERSION=3.8
         - NUMPY_VERSION=stable
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
@@ -54,42 +54,49 @@ matrix:
 
     include:
         # Make sure that egg_info works without dependencies
-        - env: PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
+        - env: SETUP_CMD='egg_info'
           stage: Initial tests
-
-        # Try MacOS X
-        - os: osx
-          stage: Cron tests
-          env: SETUP_CMD='test'
-
-        # Do a coverage test.
-        - os: linux
-          stage: Initial tests
-          env: SETUP_CMD='test --coverage'
-
-        # Now try Astropy dev and LTS vesions with the latest 3.x.
-        - os: linux
-          env: ASTROPY_VERSION=development
-               EVENT_TYPE='pull_request push cron'
-        - os: linux
-          env: ASTROPY_VERSION=lts
-
-          # try all python versions
-        - os: linux
-          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.15 ASTROPY_VERSION=3.2
-               PIP_DEPENDENCIES='requests mimeparse requests_mock contextlib2'
-        - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14 ASTROPY_VERSION=2.0.16
 
         # Do a PEP8 test with flake8
         - os: linux
           stage: Initial tests
           env: MAIN_CMD='flake8' SETUP_CMD=''
 
+        # Do a coverage test.
+        - os: linux
+          stage: Initial tests
+          env: PYTHON_VERSION=3.8 SETUP_CMD='test --coverage'
+
+        # Now try Astropy dev and LTS vesions with the latest 3.x.
+        - os: linux
+          env: ASTROPY_VERSION=development
+               EVENT_TYPE='pull_request push cron'
+          stage: Comprehensive tests
+        - os: linux
+          env: ASTROPY_VERSION=lts
+          stage: Comprehensive tests
+
+          # try all python versions
+        - os: linux
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.15 ASTROPY_VERSION=3.2
+               PIP_DEPENDENCIES='requests mimeparse requests_mock contextlib2'
+          stage: Comprehensive tests
+
+        - os: linux
+          env: PYTHON_VERSION=3.7
+          stage: Comprehensive tests
+
         # Check for sphinx doc build warnings
         - os: linux
-          env: SETUP_CMD='build_docs -w'
+          env: PYTHON_VERSION=3.7 SETUP_CMD='build_docs -w'
                PIP_DEPENDENCIES='requests mimeparse requests_mock sphinx_astropy'
+          stage: Comprehensive tests
+
+        # Try MacOS X
+        - os: osx
+          stage: Cron tests
+          env: SETUP_CMD='test'
+
 
         # Try on windows. Since it takes longer, only run after everything passes
         - os: windows
