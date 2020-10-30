@@ -34,7 +34,7 @@ _service_type_map = {
 }
 
 
-def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
+def search(keywords=None, servicetype=None, waveband=None, datamodel=None, includeaux=False):
     """
     execute a simple query to the RegTAP registry.
 
@@ -70,6 +70,10 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
 
         See http://wiki.ivoa.net/twiki/bin/view/IVOA/IvoaDataModel for more
         informations about data models.
+    includeaux : boolean
+        Flag for whether to include auxiliary capabilities in results.
+        This may result in duplicate capabilities being returned,
+        especially if the servicetype is not specified.        
 
     Returns
     -------
@@ -109,19 +113,37 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
 
     if servicetype:
         servicetype = _service_type_map.get(servicetype, servicetype)
-
-        wheres.append("standard_id LIKE 'ivo://ivoa.net/std/{}'".format(
-            tap.escape(servicetype)))
+        if includeaux:
+            wheres.append("""
+                (standard_id LIKE 'ivo://ivoa.net/std/%aux' OR
+                 standard_id LIKE 'ivo://ivoa.net/std/{}')
+            """.format(tap.escape(servicetype)))
+        else:
+            wheres.append("standard_id LIKE 'ivo://ivoa.net/std/{}'".format(
+                tap.escape(servicetype)))
     else:
-        wheres.append("""
-            standard_id IN (
-                'ivo://ivoa.net/std/conesearch',
-                'ivo://ivoa.net/std/sia',
-                'ivo://ivoa.net/std/ssa',
-                'ivo://ivoa.net/std/slap',
-                'ivo://ivoa.net/std/tap'
-            )
-        """)
+        if includeaux:
+            wheres.append("""
+                (standard_id LIKE 'ivo://ivoa.net/std/%aux' OR 
+                    standard_id IN (
+                        'ivo://ivoa.net/std/conesearch',
+                        'ivo://ivoa.net/std/sia',
+                        'ivo://ivoa.net/std/ssa',
+                        'ivo://ivoa.net/std/slap',
+                        'ivo://ivoa.net/std/tap'
+                    )
+             )
+            """)
+        else:
+            wheres.append("""
+                standard_id IN (
+                    'ivo://ivoa.net/std/conesearch',
+                    'ivo://ivoa.net/std/sia',
+                    'ivo://ivoa.net/std/ssa',
+                    'ivo://ivoa.net/std/slap',
+                    'ivo://ivoa.net/std/tap'
+                )
+            """)
 
     if waveband:
         wheres.append("1 = ivo_hashlist_has(rr.resource.waveband, '{}')".format(
