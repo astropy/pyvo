@@ -3,6 +3,8 @@ name: CI
 on:
   push:
   pull_request:
+  schedule:
+    - cron: "0 3 * * *"
 
 jobs:
   egginfo:
@@ -19,11 +21,10 @@ jobs:
         run: tox -e egg_info
   tests:
     needs: egginfo
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest 
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: [3.7, 3.8, 3.9]
     steps:
     - name: Checkout code
@@ -54,10 +55,40 @@ jobs:
     - name: Python 3.8 with astropy32
       if: matrix.python-version == 3.8
       run: tox -e py38-test-astropy32
+    - name: Python 3.8 with astropy40
+      if: matrix.python-version == 3.8
+      run: tox -e py38-test-astropy40
+    - name: Python 3.8 with astropy41
+      if: matrix.python-version == 3.8
+      run: tox -e py38-test-astropy41
+    - name: Python 3.9 with astropy41
+      if: matrix.python-version == 3.9
+      run: tox -e py39-test-astropy41
     - name: Python 3.9 with latest astropy
       if: matrix.python-version == 3.9
       run: tox -e py39-test
-   
+
+  mac_windows:
+    runs-on: ${{ matrix.os }}
+    needs: tests
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [macos-latest, windows-latest]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install tox
+      run: python -m pip install --upgrade tox
+    - name: Python 3.8 with latest astropy
+      run: tox -e py38-test
+
   style_docs_coverage:
     runs-on: ubuntu-latest
     needs: tests
