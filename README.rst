@@ -5,8 +5,8 @@ PyVO
     :target: http://www.astropy.org
     :alt: Powered by Astropy Badge
 
-.. image:: https://github.com/astropy/pyvo/workflows/CI/badge.svg?branch=master&event=schedule
-    :target: https://github.com/astropy/pyvo/workflows/CI/badge.svg?branch=master&event=schedule
+.. image:: https://github.com/astropy/pyvo/workflows/CI/badge.svg?branch=master
+    :target: https://github.com/astropy/pyvo/workflows/CI/badge.svg?branch=master
     :alt: CI Status
 
 .. image:: https://coveralls.io/repos/github/pyvirtobs/pyvo/badge.svg?branch=master
