@@ -1,6 +1,8 @@
 1.2 (unreleased)
 ================
 
+- Make .bysemantics expand its terms to the entire branch by default [#241]
+
 
 1.1 (2020-06-26)
 ================
