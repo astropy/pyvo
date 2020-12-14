@@ -162,4 +162,3 @@ class TestSemanticsRetrieval:
         assert len(res)==2
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
         assert res[1].endswith("http://dc.zah.uni-heidelberg.de/wider.dat")
-
