@@ -526,8 +526,8 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         semantics: str or list
             One or more term(s) from the datalink vocabulary
             (http://www.ivoa.net/rdf/datalink/core).  Terms may be
-            passed in with or without a leading hash.  Note that at 
-            this point non-datalink/core URIs (i.e., full resource 
+            passed in with or without a leading hash.  Note that at
+            this point non-datalink/core URIs (i.e., full resource
             URIs) are not supported (and will be butchered).
         include_narrower: boolean
             If true, the result will include matches for any term
@@ -549,7 +549,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
                 if term in voc["terms"]:
                     additional_terms.extend(voc["terms"][term]["narrower"])
             semantics = semantics+additional_terms
-       
+
         semantics = set("#"+term for term in semantics)
         for record in self:
             if record.semantics in semantics:

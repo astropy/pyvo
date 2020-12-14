@@ -19,37 +19,37 @@ from pyvo.utils import vocabularies
 
 @pytest.mark.remote_data
 class TestVocabularies:
-	
-	def test_basic_getting(self):
-		voc = vocabularies.get_vocabulary("datalink/core")
-		assert "progenitor" in voc["terms"]
-		assert data.is_url_in_cache("http://www.ivoa.net/rdf/datalink/core")
-	
-	def test_label_getting(self):
-		voc = vocabularies.get_vocabulary("datalink/core")
-		assert (vocabularies.get_label(voc, "coderived") 
-			== "Coderived Data")
+    
+    def test_basic_getting(self):
+        voc = vocabularies.get_vocabulary("datalink/core")
+        assert "progenitor" in voc["terms"]
+        assert data.is_url_in_cache("http://www.ivoa.net/rdf/datalink/core")
+    
+    def test_label_getting(self):
+        voc = vocabularies.get_vocabulary("datalink/core")
+        assert (vocabularies.get_label(voc, "coderived") 
+            == "Coderived Data")
 
-	def test_label_getting_fallback(self):
-		voc = vocabularies.get_vocabulary("datalink/core")
-		assert vocabularies.get_label(voc, "oov") == "Oov"
+    def test_label_getting_fallback(self):
+        voc = vocabularies.get_vocabulary("datalink/core")
+        assert vocabularies.get_label(voc, "oov") == "Oov"
 
-	def test_refreshing(self):
-		voc = vocabularies.get_vocabulary("datalink/core", force_update=True)
+    def test_refreshing(self):
+        voc = vocabularies.get_vocabulary("datalink/core", force_update=True)
 
-		# first make sure that things didn't break
-		assert "progenitor" in voc["terms"]
+        # first make sure that things didn't break
+        assert "progenitor" in voc["terms"]
 
-		# now guess that a download has actually happened; we don't want
-		# to reflect cache name generation here, so we just check if there's
-		# a recent download in the cache directory
-		dldir, _ = data._get_download_cache_locs()
-		with os.scandir(dldir) as entries:
-			last_change = 0
-			for entry in entries:
-				last_change = max(last_change, entry.stat().st_mtime)
-		assert time.time()-last_change<2
-	
-	def test_non_existing_voc(self):
-		with pytest.raises(vocabularies.VocabularyError):
-			vocabularies.get_vocabulary("not_an_ivoa_vocabulary")
+        # now guess that a download has actually happened; we don't want
+        # to reflect cache name generation here, so we just check if there's
+        # a recent download in the cache directory
+        dldir, _ = data._get_download_cache_locs()
+        with os.scandir(dldir) as entries:
+            last_change = 0
+            for entry in entries:
+                last_change = max(last_change, entry.stat().st_mtime)
+        assert time.time()-last_change<2
+    
+    def test_non_existing_voc(self):
+        with pytest.raises(vocabularies.VocabularyError):
+            vocabularies.get_vocabulary("not_an_ivoa_vocabulary")
