@@ -120,6 +120,7 @@ def test_datalink_batch():
 def _debytify(v):
     if isinstance(v, bytes):
         return v.decode("utf-8")
+    return v
 
 
 @pytest.mark.usefixtures('proc')
