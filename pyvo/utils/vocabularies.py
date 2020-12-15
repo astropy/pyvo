@@ -29,8 +29,8 @@ if astropy.__version__<'4':
         clear_download_cache)
 
     def download_file(url, cache, show_progress, http_headers):
-        # Astropy <4 doesn't let pass in http_headers into download_file.  
-        # Re-implementing the whole mess is far too much.  So, I'm 
+        # Astropy <4 doesn't let pass in http_headers into download_file.
+        # Re-implementing the whole mess is far too much.  So, I'm
         # monkeypatching request.urlopen.
         # This obviously is trouble when there's multithreading
         # going on; if this bites you, upgrade to astropy>=4.
@@ -72,7 +72,7 @@ def get_vocabulary(voc_name, force_update=False):
     except Exception as msg:
         raise VocabularyError("No such vocabulary: {} ({})".format(
             voc_name, msg))
-    
+
     if time.time()-os.path.getmtime(src_name)>3600*60*150:
         # attempt a re-retrieval, but ignore failure
         try:
