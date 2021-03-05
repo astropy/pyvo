@@ -23,7 +23,7 @@ class VocabularyError(Exception):
     """
 
 
-if astropy.__version__<'4':
+if astropy.__version__<'4': # pragma: no cover
     from astropy.utils.data import (
         download_file as download_file_orig,
         clear_download_cache)
