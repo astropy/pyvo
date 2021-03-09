@@ -361,7 +361,7 @@ class TestTAPService:
         self._test_tables(table1, table2)
 
     def _test_examples(self, exampleXHTML):
-        assert "SELECT * FROM rosmaster" in exampleXHTML[0]['QUERY']
+        assert "SELECT * FROM rosmain" in exampleXHTML[0]['QUERY']
 
     @pytest.mark.usefixtures('examples')
     def test_examples(self):
