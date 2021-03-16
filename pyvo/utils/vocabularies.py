@@ -88,14 +88,14 @@ def get_vocabulary(voc_name, force_update=False):
         return json.load(f)
 
 
-def get_label(voc, term):
+def get_label(voc, term, default=None):
     """returns the label of term if it's in the desise vocabulary voc,
     term capitalised otherwise.
     """
     if term in voc["terms"]:
         return voc["terms"][term]["label"]
     else:
-        return term.capitalize()
+        return default if default is not None else term.capitalize()
 
 
 # vi:et:sw=4:sta

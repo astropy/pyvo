@@ -34,6 +34,10 @@ class TestVocabularies:
         voc = vocabularies.get_vocabulary("datalink/core")
         assert vocabularies.get_label(voc, "oov") == "Oov"
 
+    def test_label_getting_default(self):
+        voc = vocabularies.get_vocabulary("datalink/core")
+        assert vocabularies.get_label(voc, "oov", "Missing") == "Missing"
+
     def test_refreshing(self):
         voc = vocabularies.get_vocabulary("datalink/core", force_update=True)
 
@@ -43,7 +47,7 @@ class TestVocabularies:
         # now guess that a download has actually happened; we don't want
         # to reflect cache name generation here, so we just check if there's
         # a recent download in the cache directory
-        dldir, _ = data._get_download_cache_locs()
+        dldir = data._get_download_cache_loc()
         with os.scandir(dldir) as entries:
             last_change = 0
             for entry in entries:
