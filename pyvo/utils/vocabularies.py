@@ -95,7 +95,7 @@ def get_label(voc, term, default=None):
     if term in voc["terms"]:
         return voc["terms"][term]["label"]
     else:
-        return default if default is not None else term.capitalize()
+        return default
 
 
 # vi:et:sw=4:sta

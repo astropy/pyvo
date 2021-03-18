@@ -30,10 +30,6 @@ class TestVocabularies:
         assert (vocabularies.get_label(voc, "coderived")
             == "Coderived Data")
 
-    def test_label_getting_fallback(self):
-        voc = vocabularies.get_vocabulary("datalink/core")
-        assert vocabularies.get_label(voc, "oov") == "Oov"
-
     def test_label_getting_default(self):
         voc = vocabularies.get_vocabulary("datalink/core")
         assert vocabularies.get_label(voc, "oov", "Missing") == "Missing"
