@@ -122,3 +122,4 @@ Using `pyvo`
    registry/index
    io/index
    auth/index
+   astropy_samp/index
