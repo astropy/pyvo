@@ -14,14 +14,14 @@ Using an Existing Hub
 
 You can start up another application that includes a hub, such as
 `TOPCAT <http://www.star.bris.ac.uk/~mbt/topcat/>`_,
-`SAO Ds9 <http://ds9.si.edu/>`_, or
+`SAO DS9 <http://ds9.si.edu/>`_, or
 `Aladin Desktop <http://aladin.u-strasbg.fr>`_.
 
 Using the Command-Line Hub Utility
 ==================================
 
 You can make use of the ``samp_hub`` command-line utility, which is included in
-``astropy``::
+``pyvo``::
 
     $ samp_hub
 
@@ -37,7 +37,7 @@ Starting a Hub Programmatically (Advanced)
 You can start up a hub by creating a |SAMPHubServer| instance and starting it,
 either from the interactive Python prompt, or from a Python script::
 
-    >>> from astropy.samp import SAMPHubServer
+    >>> from pyvo.astropy_samp import SAMPHubServer
     >>> hub = SAMPHubServer()
     >>> hub.start()
 

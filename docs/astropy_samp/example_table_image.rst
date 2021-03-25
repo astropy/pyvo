@@ -18,7 +18,7 @@ In the following examples, we make use of:
 
 TOPCAT and Aladin will run a SAMP Hub if none is found, so for the following
 examples you can either start up one of these applications first, or you can
-start up the `astropy.samp` hub. You can start this using the following
+start up the `pyvo.astropy_samp` hub. You can start this using the following
 command::
 
     $ samp_hub
@@ -30,7 +30,7 @@ The easiest way to send a VO table to TOPCAT is to make use of the
 |SAMPIntegratedClient| class. Once TOPCAT is open, first instantiate a
 |SAMPIntegratedClient| instance and then connect to the hub::
 
-    >>> from astropy.samp import SAMPIntegratedClient
+    >>> from pyvo.astropy_samp import SAMPIntegratedClient
     >>> client = SAMPIntegratedClient()
     >>> client.connect()
 
@@ -59,7 +59,7 @@ and the details of the table that we set above)::
 
 Finally, we can broadcast this to all clients that are listening for
 ``table.load.votable`` messages using
-:meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.notify_all`::
+:meth:`~pyvo.astropy_samp.integrated_client.SAMPIntegratedClient.notify_all`::
 
     >>> client.notify_all(message)
 
@@ -67,7 +67,7 @@ The above message will actually be broadcast to all applications connected via
 SAMP. For example, if we open `SAO DS9 <http://ds9.si.edu/>`_ in
 addition to TOPCAT, and we run the above command, both applications will load
 the table. We can use the
-:meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.get_registered_clients` method to
+:meth:`~pyvo.astropy_samp.integrated_client.SAMPIntegratedClient.get_registered_clients` method to
 find all of the clients connected to the hub::
 
     >>> client.get_registered_clients()
@@ -88,7 +88,7 @@ These IDs do not mean much, but we can find out more using::
 
 We can see that ``c1`` is the TOPCAT client. We can now resend the data, but
 this time only to TOPCAT, using the
-:meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.notify` method::
+:meth:`~pyvo.astropy_samp.integrated_client.SAMPIntegratedClient.notify` method::
 
     >>> client.notify('c1', message)
 
@@ -103,7 +103,7 @@ To receive a table from TOPCAT, we have to set up a client that listens for
 messages from the hub. As before, we instantiate a |SAMPIntegratedClient|
 instance and connect to the hub::
 
-    >>> from astropy.samp import SAMPIntegratedClient
+    >>> from pyvo.astropy_samp import SAMPIntegratedClient
     >>> client = SAMPIntegratedClient()
     >>> client.connect()
 
@@ -128,9 +128,9 @@ And we instantiate it:
     >>> r = Receiver(client)
 
 We can now use the
-:meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.bind_receive_call`
+:meth:`~pyvo.astropy_samp.integrated_client.SAMPIntegratedClient.bind_receive_call`
 and
-:meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.bind_receive_notification`
+:meth:`~pyvo.astropy_samp.integrated_client.SAMPIntegratedClient.bind_receive_notification`
 methods to tell our receiver to listen to all ``table.load.votable`` messages::
 
     >>> client.bind_receive_call("table.load.votable", r.receive_call)
@@ -178,7 +178,7 @@ reads the table once it has::
 
     import time
 
-    from astropy.samp import SAMPIntegratedClient
+    from pyvo.astropy_samp import SAMPIntegratedClient
     from astropy.table import Table
 
      # Instantiate the client and connect to the hub
@@ -236,7 +236,7 @@ make use of the |SAMPIntegratedClient| class. Once Aladin or DS9 are open,
 first instantiate a |SAMPIntegratedClient| instance and then connect to the hub
 as before::
 
-    >>> from astropy.samp import SAMPIntegratedClient
+    >>> from pyvo.astropy_samp import SAMPIntegratedClient
     >>> client = SAMPIntegratedClient()
     >>> client.connect()
 
@@ -264,10 +264,10 @@ Finally, we can broadcast this to all clients that are listening for
     >>> client.notify_all(message)
 
 As for `Sending a Table to TOPCAT and DS9`_, the
-:meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.notify_all`
+:meth:`~pyvo.astropy_samp.integrated_client.SAMPIntegratedClient.notify_all`
 method will broadcast the image to all listening clients, and for tables it
 is possible to instead use the
-:meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.notify` method
+:meth:`~pyvo.astropy_samp.integrated_client.SAMPIntegratedClient.notify` method
 to send it to a specific client.
 
 Once finished, we should make sure we disconnect from the hub::
