@@ -8,7 +8,7 @@
 SAMP (Simple Application Messaging Protocol)
 ********************************************
 
-.. note:: `astropy.samp` is now `pyvo.astropy_samp`.
+.. note:: ``astropy.samp`` is now `pyvo.astropy_samp`.
 
 `pyvo.astropy_samp` is a Python implementation of the SAMP messaging system.
 
