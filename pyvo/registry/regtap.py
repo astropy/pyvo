@@ -73,7 +73,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None, inclu
     includeaux : boolean
         Flag for whether to include auxiliary capabilities in results.
         This may result in duplicate capabilities being returned,
-        especially if the servicetype is not specified.        
+        especially if the servicetype is not specified.
 
     Returns
     -------
@@ -124,7 +124,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None, inclu
     else:
         if includeaux:
             wheres.append("""
-                (standard_id LIKE 'ivo://ivoa.net/std/%aux' OR 
+                (standard_id LIKE 'ivo://ivoa.net/std/%aux' OR
                     standard_id IN (
                         'ivo://ivoa.net/std/conesearch',
                         'ivo://ivoa.net/std/sia',
