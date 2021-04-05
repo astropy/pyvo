@@ -140,7 +140,7 @@ def datamodel_fixture(mocker):
 
 @pytest.fixture()
 def aux_fixture(mocker):
-    def aux_callback(request, context):
+    def auxtest_callback(request, context):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
 
@@ -150,7 +150,7 @@ def aux_fixture(mocker):
 
     with mocker.register_uri(
         'POST', 'http://dc.g-vo.org/tap/sync',
-        content=servicetypetest_callback
+        content=auxtest_callback
     ) as matcher:
         yield matcher
 
@@ -183,9 +183,9 @@ def test_datamodel():
 
 @pytest.mark.usefixtures('aux_fixture', 'capabilities')
 def test_servicetype_aux():
-    regsearch(servicetype='tap', includeaux=true)
+    regsearch(servicetype='tap', includeaux=True)
 
-    
+
 @pytest.mark.usefixtures('aux_fixture', 'capabilities')
 def test_keyword_aux():
-    regsearch(keywords=['pulsar'], includeaux=true)
+    regsearch(keywords=['pulsar'], includeaux=True)
