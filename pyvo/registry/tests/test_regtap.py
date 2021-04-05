@@ -138,6 +138,22 @@ def datamodel_fixture(mocker):
     ) as matcher:
         yield matcher
 
+@pytest.fixture()
+def aux_fixture(mocker):
+    def aux_callback(request, context):
+        data = dict(parse_qsl(request.body))
+        query = data['QUERY']
+
+        assert "ivo://ivoa.net/std/%aux" in query
+
+        return get_pkg_data_contents('data/regtap.xml')
+
+    with mocker.register_uri(
+        'POST', 'http://dc.g-vo.org/tap/sync',
+        content=servicetypetest_callback
+    ) as matcher:
+        yield matcher
+
 
 @pytest.mark.usefixtures('keywords_fixture', 'capabilities')
 def test_keywords():
@@ -163,3 +179,13 @@ def test_waveband():
 @pytest.mark.usefixtures('datamodel_fixture', 'capabilities')
 def test_datamodel():
     regsearch(datamodel='tap')
+
+
+@pytest.mark.usefixtures('aux_fixture', 'capabilities')
+def test_servicetype_aux():
+    regsearch(servicetype='tap', includeaux=true)
+
+    
+@pytest.mark.usefixtures('aux_fixture', 'capabilities')
+def test_keyword_aux():
+    regsearch(keywords=['pulsar'], includeaux=true)
