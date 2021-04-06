@@ -138,6 +138,7 @@ def datamodel_fixture(mocker):
     ) as matcher:
         yield matcher
 
+
 @pytest.fixture()
 def aux_fixture(mocker):
     def auxtest_callback(request, context):
