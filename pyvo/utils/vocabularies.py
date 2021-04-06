@@ -12,7 +12,7 @@ import os
 import time
 from urllib import request
 
-import astropy
+from astropy.utils.data import download_file, clear_download_cache
 
 IVOA_VOCABULARY_ROOT = "http://www.ivoa.net/rdf/"
 
@@ -21,33 +21,6 @@ class VocabularyError(Exception):
     """A generic error that occurred when interacting with the IVOA
     vocabulary repository.
     """
-
-
-if astropy.__version__<'4': # pragma: no cover
-    from astropy.utils.data import (
-        download_file as download_file_orig,
-        clear_download_cache)
-
-    def download_file(url, cache, show_progress, http_headers):
-        # Astropy <4 doesn't let pass in http_headers into download_file.
-        # Re-implementing the whole mess is far too much.  So, I'm
-        # monkeypatching request.urlopen.
-        # This obviously is trouble when there's multithreading
-        # going on; if this bites you, upgrade to astropy>=4.
-        urlopen_orig = request.urlopen
-        try:
-
-            def patched_urlopen(url, timeout):
-                req = request.Request(url, headers=http_headers)
-                return urlopen_orig(req, timeout=timeout)
-            request.urlopen = patched_urlopen
-
-            return download_file_orig(url, cache, show_progress)
-        finally:
-            request.urlopen = urlopen_orig
-
-else:
-    from astropy.utils.data import download_file, clear_download_cache
 
 
 @functools.lru_cache()
