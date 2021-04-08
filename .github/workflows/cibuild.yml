@@ -40,7 +40,11 @@ jobs:
     - name: Install tox
       run: python -m pip install --upgrade tox
     - name: Python ${{ matrix.python-version }} with astropy
-      run: tox -e py${{ matrix.python-version }}-${{ matrix.astropy-version }}
+      run: |
+        # remove "." from matrix.python-version to get the defaults tox python versions
+        tox_python_target=$(echo py${{matrix.python-version}} | sed 's/\.//')
+        echo "Tox python target: " $tox_python_target
+        tox -e $tox_python_target-${{ matrix.astropy-version }}
 
 
   mac_windows:
@@ -62,7 +66,7 @@ jobs:
     - name: Install tox
       run: python -m pip install --upgrade tox
     - name: Python 3.8 with latest astropy
-      run: tox -e py3.8-latest
+      run: tox -e py38-latest
 
 
   style_coverage:
@@ -101,7 +105,7 @@ jobs:
       - name: Install tox
         run: python -m pip install --upgrade tox
       - name: Run tests against astropy dev
-        run: tox -e py3.8-astropydev
+        run: tox -e py38-astropydev
 
   #publish:
   #needs: coverage
