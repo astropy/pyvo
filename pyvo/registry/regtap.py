@@ -125,7 +125,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None, inclu
         ",".join(
         "'ivo://ivoa.net/std/"+s+"'"
         for s in match_caps)))
-    
+
     if waveband:
         wheres.append("1 = ivo_hashlist_has(rr.resource.waveband, '{}')".format(
             tap.escape(waveband)))

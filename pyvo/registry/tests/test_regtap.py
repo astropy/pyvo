@@ -192,9 +192,8 @@ def test_servicetype_aux():
 def test_keyword_aux():
     regsearch(keywords=['pulsar'], includeaux=True)
 
+
 @pytest.mark.usefixtures('aux_fixture', 'capabilities')
 def test_bad_servicetype_aux():
     with pytest.raises(dalq.DALQueryError):
         regsearch(servicetype='bad_servicetype', includeaux=True)
-
-
