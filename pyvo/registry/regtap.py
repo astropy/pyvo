@@ -114,6 +114,8 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None, inclu
     # capabilities as specified by servicetype and includeaux
     match_caps = set(_service_type_map.values())    # default to all known service types
     if servicetype: # limit to one if specified
+        if _service_type_map.get(servicetype) is None:
+            raise dalq.DALQueryError("Invalid servicetype parameter passed to registry search")
         match_caps= set([_service_type_map.get(servicetype)])
 
     if includeaux:

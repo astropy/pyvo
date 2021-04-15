@@ -8,6 +8,7 @@ from urllib.parse import parse_qsl
 import pytest
 
 from pyvo.registry import search as regsearch
+from pyvo.dal import query as dalq
 
 from astropy.utils.data import get_pkg_data_contents
 
@@ -145,7 +146,7 @@ def aux_fixture(mocker):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
 
-        assert "ivo://ivoa.net/std/%aux" in query
+        assert "ivo://ivoa.net/std/tap#aux" in query
 
         return get_pkg_data_contents('data/regtap.xml')
 
@@ -169,7 +170,7 @@ def test_single_keyword():
 
 @pytest.mark.usefixtures('servicetype_fixture', 'capabilities')
 def test_servicetype():
-    regsearch(servicetype='tap')
+    regsearch(servicetype='table')
 
 
 @pytest.mark.usefixtures('waveband_fixture', 'capabilities')
@@ -184,9 +185,16 @@ def test_datamodel():
 
 @pytest.mark.usefixtures('aux_fixture', 'capabilities')
 def test_servicetype_aux():
-    regsearch(servicetype='tap', includeaux=True)
+    regsearch(servicetype='table', includeaux=True)
 
 
 @pytest.mark.usefixtures('aux_fixture', 'capabilities')
 def test_keyword_aux():
     regsearch(keywords=['pulsar'], includeaux=True)
+
+@pytest.mark.usefixtures('aux_fixture', 'capabilities')
+def test_bad_servicetype_aux():
+    with pytest.raises(dalq.DALQueryError):
+        regsearch(servicetype='bad_servicetype', includeaux=True)
+
+
