@@ -1,6 +1,8 @@
 1.2 (unreleased)
 ================
 
+- Added optional includeaux flag for regTAP search() [#258]
+
 
 1.1 (2020-06-26)
 ================

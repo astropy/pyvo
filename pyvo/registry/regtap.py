@@ -111,12 +111,17 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None, inclu
         unions = ' UNION '.join(_unions())
         wheres.append('rr.interface.ivoid IN ({})'.format(unions))
 
-    # capabilities as specified by servicetype and includeaux
-    match_caps = set(_service_type_map.values())    # default to all known service types
-    if servicetype: # limit to one if specified
-        if _service_type_map.get(servicetype) is None:
+    # capabilities as specified by servicetype and includeaux:
+    # default to all known service types
+    # limit to one servicetype if specified by known key or value
+    match_caps = set(_service_type_map.values())
+    if servicetype:
+        if servicetype in _service_type_map.values():
+            match_caps = set([servicetype])
+        elif _service_type_map.get(servicetype) is not None:
+            match_caps= set([_service_type_map.get(servicetype)])
+        else:
             raise dalq.DALQueryError("Invalid servicetype parameter passed to registry search")
-        match_caps= set([_service_type_map.get(servicetype)])
 
     if includeaux:
         match_caps |= {s+"#aux" for s in match_caps}
