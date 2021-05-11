@@ -319,7 +319,7 @@ class TestDALResults:
         dalresults = DALResults.from_result_url(
             'http://example.com/query/basic')
 
-        assert repr(dalresults) == repr(dalresults.table())
+        assert repr(dalresults) == repr(dalresults.to_table())
 
     def test_iter(self):
         dalresults = DALResults.from_result_url(
@@ -345,8 +345,8 @@ class TestDALResults:
         dalresults = DALResults.from_result_url(
             'http://example.com/query/basic')
 
-        assert isinstance(dalresults.table(), Table)
-        assert len(dalresults) == len(dalresults.table())
+        assert isinstance(dalresults.to_table(), Table)
+        assert len(dalresults) == len(dalresults.to_table())
 
     def test_id_over_name(self):
         dalresults = DALResults.from_result_url(
