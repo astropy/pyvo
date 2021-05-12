@@ -55,7 +55,7 @@ Requirements
   With numpy below version 1.14.0 there are some regression with float
   representations.
 
-  See `<https://docs.scipy.org/doc/numpy/release.html#many-changes-to-array-printing-disableable-with-the-new-legacy-printing-mode>`__
+  See `<https://docs.scipy.org/doc/numpy/release.html>`__
   for details.
 
 .. _getting-started:

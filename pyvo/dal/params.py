@@ -3,7 +3,7 @@
 This file contains functionallity related to VOTABLE Params.
 """
 import numpy as np
-from collections import MutableSet
+from collections.abc import MutableSet
 import abc
 
 from astropy import units as u

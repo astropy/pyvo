@@ -22,6 +22,7 @@ from astropy.io.votable.tree import Resource, Group
 from astropy.utils.collections import HomogeneousList
 
 from ..utils.decorators import stream_decode_content
+from ..utils import vocabularies
 from .params import PosQueryParam, IntervalQueryParam, TimeQueryParam,\
     EnumQueryParam
 from ..dam.obscore import POLARIZATION_STATES
@@ -516,18 +517,42 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         """
         return DatalinkRecord(self, index, session=self._session)
 
-    def bysemantics(self, semantics):
+    def bysemantics(self, semantics, include_narrower=True):
         """
         return the rows with the dataset identified by the given semantics
+
+        Parameters
+        ----------
+        semantics: str or list
+            One or more term(s) from the datalink vocabulary
+            (http://www.ivoa.net/rdf/datalink/core).  Terms may be
+            passed in with or without a leading hash.  Note that at
+            this point non-datalink/core URIs (i.e., full resource
+            URIs) are not supported (and will be butchered).
+        include_narrower: boolean
+            If true, the result will include matches for any term
+            that is narrower than the term passed in.
 
         Returns
         -------
         Sequence of DatalinkRecord
             a sequence of dictionary-like wrappers containing the result record
         """
-        # TODO: get semantics with astropy and implement resursive lookup
+        if isinstance(semantics, str):
+            semantics = [semantics]
+        semantics = [term.lstrip("#") for term in semantics]
+
+        if include_narrower:
+            additional_terms = []
+            voc = vocabularies.get_vocabulary("datalink/core")
+            for term in semantics:
+                if term in voc["terms"]:
+                    additional_terms.extend(voc["terms"][term]["narrower"])
+            semantics = semantics+additional_terms
+
+        semantics = set("#"+term for term in semantics)
         for record in self:
-            if record.semantics == semantics:
+            if record.semantics in semantics:
                 yield record
 
     def clone_byid(self, id):

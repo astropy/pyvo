@@ -57,6 +57,16 @@
             <TD/>
             <TD/>
             <TD>A preview for the dataset.</TD>
+            <TD>#preview-image</TD>
+            <TD>image/jpeg</TD>
+            <TD>-1</TD>
+          </TR>
+          <TR>
+            <TD>ivo://org.gavo.dc/s/data/gds_big/v6a/2010/GDS_0644-0035/i_s/eq010000ms/20100927.comb_avg.0001.fits.fz</TD>
+            <TD>http://dc.zah.uni-heidelberg.de/wider.dat</TD>
+            <TD/>
+            <TD/>
+            <TD>An artificial thing.</TD>
             <TD>#preview</TD>
             <TD>image/jpeg</TD>
             <TD>-1</TD>
@@ -128,7 +138,7 @@
           <OPTION name="Retrieve the full data, including header (default)" value="DATA"/>
         </VALUES>
       </PARAM>
-      <PARAM ID="BAND" arraysize="2" datatype="double" name="BAND" ucd="em.wl" unit="m" value="[0. 0.]" xtype="interval"/>
+      <PARAM ID="BAND" arraysize="2" datatype="double" name="BAND" ucd="em.wl" unit="m" xtype="interval"/>
     </GROUP>
     <PARAM arraysize="*" datatype="char" name="accessURL" ucd="meta.ref.url" value="http://example.com/proc_ds"/>
     <PARAM arraysize="*" datatype="char" name="standardID" value="ivo://ivoa.net/std/SODA#sync-1.0"/>

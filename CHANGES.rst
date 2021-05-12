@@ -1,6 +1,8 @@
 1.2 (unreleased)
 ================
 
+- Make .bysemantics expand its terms to the entire branch by default [#241]
+
 - Added optional includeaux flag for regTAP search() [#258]
 
 
