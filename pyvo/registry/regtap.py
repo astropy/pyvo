@@ -34,7 +34,7 @@ _service_type_map = {
 }
 
 
-def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
+def search(keywords=None, servicetype=None, waveband=None, datamodel=None, includeaux=False):
     """
     execute a simple query to the RegTAP registry.
 
@@ -70,6 +70,10 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
 
         See http://wiki.ivoa.net/twiki/bin/view/IVOA/IvoaDataModel for more
         informations about data models.
+    includeaux : boolean
+        Flag for whether to include auxiliary capabilities in results.
+        This may result in duplicate capabilities being returned,
+        especially if the servicetype is not specified.
 
     Returns
     -------
@@ -107,21 +111,25 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None):
         unions = ' UNION '.join(_unions())
         wheres.append('rr.interface.ivoid IN ({})'.format(unions))
 
+    # capabilities as specified by servicetype and includeaux:
+    # default to all known service types
+    # limit to one servicetype if specified by known key or value
+    match_caps = set(_service_type_map.values())
     if servicetype:
-        servicetype = _service_type_map.get(servicetype, servicetype)
+        if servicetype in _service_type_map.values():
+            match_caps = set([servicetype])
+        elif _service_type_map.get(servicetype) is not None:
+            match_caps= set([_service_type_map.get(servicetype)])
+        else:
+            raise dalq.DALQueryError("Invalid servicetype parameter passed to registry search")
 
-        wheres.append("standard_id LIKE 'ivo://ivoa.net/std/{}'".format(
-            tap.escape(servicetype)))
-    else:
-        wheres.append("""
-            standard_id IN (
-                'ivo://ivoa.net/std/conesearch',
-                'ivo://ivoa.net/std/sia',
-                'ivo://ivoa.net/std/ssa',
-                'ivo://ivoa.net/std/slap',
-                'ivo://ivoa.net/std/tap'
-            )
-        """)
+    if includeaux:
+        match_caps |= {s+"#aux" for s in match_caps}
+
+    wheres.append('standard_id IN ({})'.format(
+        ",".join(
+        "'ivo://ivoa.net/std/"+s+"'"
+        for s in match_caps)))
 
     if waveband:
         wheres.append("1 = ivo_hashlist_has(rr.resource.waveband, '{}')".format(
