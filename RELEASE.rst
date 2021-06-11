@@ -5,20 +5,17 @@ These steps are intended to help guide a developer into
 making a new release.  For these instructions, version
 is to be replaced by the version number of the release.
 
-1. Edit setup.cfg and remove .dev from the version number
+1. Make a PR with the following changes to publish a release:
 
-2. Edit CHANGES.rst to change unreleased to the date of the release.
+- Edit setup.cfg and remove .dev from the version number
+- Edit CHANGES.rst to change unreleased to the date of the release
 
-3. Commit and push
+2. Use the GitHub releases to draft a new release, and put the version
+number in for the tag.  This tag must match what is in the setup.cfg
+(without the dev).  This will trigger a github action that builds
+the release and uploads it to pypi.
 
-4. git tag -a version -m "releasing new version version" (this makes a release tag)
+3. Make a PR with the following changes to begin the new release cycle:
 
-5. git push origin version
-
-6. python setup.py sdist (this makes a .tar.gz of the package in dist)
-
-7. twine upload sdist/* (this uploads the output of the previous step to pypi)
-
-8. Edit setup.cfg and set the version to the next release number and add .dev after the version number.  Add a new section at the top for the next release number
-
-9. Commit and push.  This begins the new release
+- Edit setup.cfg and set the version to the next release number plus ".dev"
+- Add a new section at the top of CHANGES.rst for the next release number
