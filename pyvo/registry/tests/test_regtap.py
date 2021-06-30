@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Tests for pyvo.dal.query
+Tests for pyvo.registry.regtap
 """
 from functools import partial
 from urllib.parse import parse_qsl
