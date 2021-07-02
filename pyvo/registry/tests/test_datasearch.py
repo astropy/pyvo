@@ -79,11 +79,11 @@ class TestAuthorConstraint:
             == "role_name LIKE '%Hubble%' AND base_role='creator'")
 
 
-class TestQueryBuilding:
+class TestWhereClauseBuilding:
     @staticmethod
     def where_clause_for(*args, **kwargs):
         return datasearch._build_regtap_query(list(args), kwargs
-            ).split("\nWHERE\n", 1)[1]
+            ).split("\nWHERE\n", 1)[1].split("\nGROUP BY\n")[0]
 
     def test_from_constraints(self):
         assert self.where_clause_for(
@@ -122,3 +122,45 @@ class TestQueryBuilding:
         assert str(excinfo.value) == ("foo is not a valid registry"
             " constraint keyword.  Use one of "
             "keywords, author.")
+
+
+class TestSelectClause:
+    def test_expected_columns(self):
+        # This will break as regtap.RegistryResource.expected_columns
+        # is changed.  Just update the assertion then.
+        assert datasearch._build_regtap_query([], {"author": "%Hubble%"}
+            ).split("\nFROM rr.resource\n")[0] == (
+            "SELECT\n"
+            "ivoid, "
+            "res_type, "
+            "short_name, "
+            "title, "
+            "content_level, "
+            "res_description, "
+            "reference_url, "
+            "creator_seq, "
+            "content_type, "
+            "source_format, "
+            "region_of_regard, "
+            "waveband, "
+            "ivo_string_agg(access_url, ':::py VO sep:::') AS access_urls, "
+            "ivo_string_agg(standard_id, ':::py VO sep:::') AS standard_ids")
+
+    def test_group_by_columns(self):
+        # Again, this will break as regtap.RegistryResource.expected_columns
+        # is changed.  Just update the assertion then.
+        assert datasearch._build_regtap_query([], {"author": "%Hubble%"}
+            ).split("\nGROUP BY\n")[-1] == (
+            "ivoid, "
+            "res_type, "
+            "short_name, "
+            "title, "
+            "content_level, "
+            "res_description, "
+            "reference_url, "
+            "creator_seq, "
+            "content_type, "
+            "source_format, "
+            "region_of_regard, "
+            "waveband")
+

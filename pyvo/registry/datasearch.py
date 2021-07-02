@@ -11,6 +11,7 @@ import datetime
 import numpy
 
 from ..dal import tap
+from .import regtap
 
 
 def make_sql_literal(value):
@@ -130,11 +131,25 @@ def _build_regtap_query(constraints, keywords):
     for constraint in constraints:
         serialized.append("("+constraint.get_search_condition()+")")
 
-    fragments = ["SELECT ivoid, res_title, res_description",
+    # see comment in regtap.RegistryResource for the following
+    # oddity
+    select_clause, plain_columns = [], []
+    for col_desc in regtap.RegistryResource.expected_columns:
+        if isinstance(col_desc, str):
+            select_clause.append(col_desc)
+            plain_columns.append(col_desc)
+        else:
+            select_clause.append("{} AS {}".format(*col_desc))
+    
+    fragments = ["SELECT",
+        ", ".join(select_clause),
         "FROM rr.resource",
         "NATURAL JOIN rr.capabilities",
+        "NATURAL JOIN rr.interfaces",
         "WHERE",
-        "\n  AND ".join(serialized)]
+        "\n  AND ".join(serialized),
+        "GROUP BY",
+        ", ".join(plain_columns)]
 
     return "\n".join(fragments)
 
@@ -145,7 +160,14 @@ def datasearch(*constraints:Constraint, **kwargs):
     Pass in one or more constraints; a resource matches when it matches
     all of them.
     """
-    tap_query = _build_regtap_query(list(constraints), keywords)
+    regtap_query = _build_regtap_query(list(constraints), keywords)
+    service = tap.TAPService(regtap.REGISTRY_BASEURL)
+    query = regtap.RegistryQuery(
+        service.baseurl, 
+        regtap_query, 
+        maxrec=service.hardlimit)
+
+    return query.execute()
 
 
 def _make_constraint_map():

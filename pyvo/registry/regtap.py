@@ -24,6 +24,15 @@ __all__ = ["search", "RegistryResource", "RegistryResults", "ivoid2service"]
 
 REGISTRY_BASEURL = os.environ.get("IVOA_REGISTRY") or "http://dc.g-vo.org/tap"
 
+
+# ADQL only has string_agg, where we need string arrays.  We fake arrays
+# by joining elements with a token separator that we think shouldn't
+# turn up in the things joined.  Of course, people could create
+# resources that break us; let's assume there's nothing be gained
+# from that ever.
+TOKEN_SEP = ":::py VO sep:::"
+
+
 _service_type_map = {
     "image": "sia",
     "spectrum": "ssa",
@@ -207,6 +216,31 @@ class RegistryResource(dalq.Record):
     """
 
     _service = None
+
+    # the following attribute is used by datasearch._build_regtap_query
+    # to figure build the select clause; it is maintained here
+    # because this class knows what it expects to get.
+    #
+    # Each item is either a plain string for a column name, or
+    # a 2-tuple for an as clause; all plain strings are used
+    # used in the group by, and so it is assumed they are
+    # 1:1 to ivoid.
+    expected_columns = [
+        "ivoid",
+        "res_type",
+        "short_name",
+        "title",
+        "content_level",
+        "res_description",
+        "reference_url",
+        "creator_seq",
+        "content_type",
+        "source_format",
+        "region_of_regard",
+        "waveband",
+        (f"ivo_string_agg(access_url, '{TOKEN_SEP}')", "access_urls"),
+        (f"ivo_string_agg(standard_id, '{TOKEN_SEP}')", "standard_ids"),]
+
 
     @property
     def ivoid(self):
@@ -430,7 +464,7 @@ class RegistryResource(dalq.Record):
 
 
 def ivoid2service(ivoid, servicetype=None):
-    """Retern service(s) for a given IVOID.
+    """Return service(s) for a given IVOID.
 
     The servicetype option specifies the kind of service requested
     (conesearch, sia, ssa, slap, or tap).  By default, if none is
