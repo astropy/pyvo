@@ -18,7 +18,6 @@ class TestAbstractConstraint:
             datasearch.Constraint().get_search_condition()
 
 
-
 class TestSQLLiterals:
     @pytest.fixture(scope="class", autouse=True)
     def literals(self):
@@ -79,3 +78,47 @@ class TestAuthorConstraint:
         assert (datasearch.Author("%Hubble%").get_search_condition()
             == "role_name LIKE '%Hubble%' AND base_role='creator'")
 
+
+class TestQueryBuilding:
+    @staticmethod
+    def where_clause_for(*args, **kwargs):
+        return datasearch._build_regtap_query(list(args), kwargs
+            ).split("\nWHERE\n", 1)[1]
+
+    def test_from_constraints(self):
+        assert self.where_clause_for(
+            datasearch.Freetext("star galaxy"),
+            datasearch.Author("%Hubble%")
+            ) == ("(1=ivo_hasword(res_description, 'star galaxy')"
+            " OR 1=ivo_hasword(res_title, 'star galaxy')"
+            " OR 1=ivo_hasword(role_name, 'star galaxy'))"
+            "\n  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+
+    def test_from_keywords(self):
+        assert self.where_clause_for(
+            keywords="star galaxy",
+            author="%Hubble%"
+            ) == ("(1=ivo_hasword(res_description, 'star galaxy')"
+            " OR 1=ivo_hasword(res_title, 'star galaxy')"
+            " OR 1=ivo_hasword(role_name, 'star galaxy'))"
+            "\n  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+
+    def test_mixed(self):
+        assert self.where_clause_for(
+            datasearch.Freetext("star galaxy"),
+            author="%Hubble%"
+            ) == ("(1=ivo_hasword(res_description, 'star galaxy')"
+            " OR 1=ivo_hasword(res_title, 'star galaxy')"
+            " OR 1=ivo_hasword(role_name, 'star galaxy'))"
+            "\n  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+
+    def test_bad_keyword(self):
+        with pytest.raises(TypeError) as excinfo:
+            datasearch._build_regtap_query((), {"foo": "bar"})
+        # the following assertion will fail when new constraints are
+        # defined (or old ones vanish).  I'd say that's a convenient
+        # way to track changes; so, let's update the assertion as we
+        # go.
+        assert str(excinfo.value) == ("foo is not a valid registry"
+            " constraint keyword.  Use one of "
+            "keywords, author.")

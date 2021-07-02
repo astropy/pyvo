@@ -58,10 +58,15 @@ class Constraint:
 
     If your constraints need extra tables, give them in a list
     in _extra_tables.
+
+    For the legacy x_search with keywords, define a _keyword
+    attribute containing the name of the parameter that should
+    generate such a constraint.
     """
     _extra_tables = []
     _condition = None
     _fillers = None
+    _keyword = None
 
     def get_search_condition(self):
         if self._condition is None:
@@ -84,6 +89,8 @@ class Freetext(Constraint):
     but behaviour can then change quite significantly between different
     registries.
     """
+    _keyword = "keywords"
+
     def __init__(self, word:str):
         self._condition = ("1=ivo_hasword(res_description, {word})"
             " OR 1=ivo_hasword(res_title, {word})"
@@ -101,15 +108,24 @@ class Author(Constraint):
 
     The match is case-sensitive.
     """
+    _keyword = "author"
+
     def __init__(self, name:str):
         self._condition = "role_name LIKE {auth} AND base_role='creator'"
         self._fillers = {"auth": name}
 
 
-def _build_regtap_query(constraints):
+def _build_regtap_query(constraints, keywords):
     """returns a RegTAP query ready for submission from a list of
     Constraint instances.
     """
+    for keyword, value in keywords.items():
+        if keyword not in _KEYWORD_TO_CONSTRAINT:
+            raise TypeError(f"{keyword} is not a valid registry"
+                " constraint keyword.  Use one of {}.".format(
+                    ", ".join(_KEYWORD_TO_CONSTRAINT)))
+        constraints.append(_KEYWORD_TO_CONSTRAINT[keyword](value))
+
     serialized = []
     for constraint in constraints:
         serialized.append("("+constraint.get_search_condition()+")")
@@ -123,10 +139,27 @@ def _build_regtap_query(constraints):
     return "\n".join(fragments)
 
 
-def datasearch(*constraints:Constraint):
+def datasearch(*constraints:Constraint, **kwargs):
     """...
 
     Pass in one or more constraints; a resource matches when it matches
     all of them.
     """
-    tap_query = _build_regtap_query(constraints)
+    tap_query = _build_regtap_query(list(constraints), keywords)
+
+
+def _make_constraint_map():
+    """returns a map of _keyword to constraint classes.
+
+    This is used in module initialisation.
+    """
+    keyword_to_constraint = {}
+    for att_name, obj in globals().items():
+        if (isinstance(obj, type)
+                and issubclass(obj, Constraint) 
+                and obj._keyword):
+            keyword_to_constraint[obj._keyword] = obj
+    return keyword_to_constraint
+
+
+_KEYWORD_TO_CONSTRAINT = _make_constraint_map()
