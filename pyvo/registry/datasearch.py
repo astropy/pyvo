@@ -144,8 +144,8 @@ def _build_regtap_query(constraints, keywords):
     fragments = ["SELECT",
         ", ".join(select_clause),
         "FROM rr.resource",
-        "NATURAL JOIN rr.capabilities",
-        "NATURAL JOIN rr.interfaces",
+        "LEFT OUTER NATURAL JOIN rr.capabilities",
+        "LEFT OUTER NATURAL JOIN rr.interfaces",
         "WHERE",
         "\n  AND ".join(serialized),
         "GROUP BY",
@@ -161,7 +161,7 @@ def datasearch(*constraints:Constraint, **kwargs):
     all of them.
     """
     regtap_query = _build_regtap_query(list(constraints), keywords)
-    service = tap.TAPService(regtap.REGISTRY_BASEURL)
+    service = regtap.get_RegTAP_service()
     query = regtap.RegistryQuery(
         service.baseurl, 
         regtap_query, 

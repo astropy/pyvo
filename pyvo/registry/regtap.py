@@ -15,6 +15,7 @@ can be queried for individual datasets of interest.
 This module provides basic, low-level access to the RegTAP Registries using
 standardized TAP-based services.
 """
+import functools
 import os
 from ..dal import scs, sia, ssa, sla, tap, query as dalq
 from ..utils.formatting import para_format_desc
@@ -41,6 +42,17 @@ _service_type_map = {
     "sla": "slap",
     "table": "tap"
 }
+
+
+@functools.lru_cache(1)
+def get_RegTAP_service():
+    """a lazily created TAP service offering the RegTAP services.
+
+    This uses regtap.REGISTRY_BASEURL.  Always get the TAP service
+    there using this function to avoid re-creating the server
+    and profit from caching of capabilties, tables, etc.
+    """
+    return tap.TAPService(REGISTRY_BASEURL)
 
 
 def search(keywords=None, servicetype=None, waveband=None, datamodel=None, includeaux=False):
@@ -163,7 +175,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None, inclu
         ("WHERE " if wheres else "") + " AND ".join(wheres)
     )
 
-    service = tap.TAPService(REGISTRY_BASEURL)
+    service = get_RegTAP_service()
     query = RegistryQuery(service.baseurl, query, maxrec=service.hardlimit)
     return query.execute()
 
@@ -471,7 +483,7 @@ def ivoid2service(ivoid, servicetype=None):
     given, a list of all matching services is returned.
 
     """
-    service = tap.TAPService(REGISTRY_BASEURL)
+    service = get_RegTAP_service()
     results = service.run_sync("""
         SELECT DISTINCT access_url, standard_id FROM rr.capability
         NATURAL JOIN rr.interface
