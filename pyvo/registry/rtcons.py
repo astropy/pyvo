@@ -140,6 +140,7 @@ class Servicetype(Constraint):
     can use ``Servicetype(...).include_auxiliary_services()`` or
     use registry.search's ``includeaux`` parameter.
     """
+    _keyword = "servicetype"
     _service_type_map = {
         "image": "sia",
         "spectrum": "ssa",
@@ -191,6 +192,8 @@ class Waveband(Constraint):
 
     TODO: validate inputs against the vocabulary.
     """
+    _keyword = "waveband"
+
     def __init__(self, *bands):
         self.bands = list(bands)
 
@@ -201,6 +204,59 @@ class Waveband(Constraint):
             for band in self.bands)
 
 
+class Datamodel(Constraint):
+    """A constraint on the adherence to a data model.
+
+    This constraint only lets resources pass that declare support for
+    one of several well-known data models; the SQL produced depends
+    on the data model identifier.
+
+    Known data models at this point include:
+
+    * obscore -- generic observational data
+    * epntap -- solar system data
+    * regtap -- the VO registry.
+
+    DM names are matched case-insensitively here mainly for
+    historical reasons.
+    """
+    _keyword = "datamodel"
+
+    # if you add to this list, you have to define a method
+    # _make_<dmname>_constraint.
+    _known_dms = {"obscore", "epntap", "regtap"}
+
+    def __init__(self, dmname):
+        dmname = dmname.lower()
+        if dmname not in self._known_dms:
+            raise ValueError("Unknown data model id {}.  Known are: {}."
+                .format(dmname, ", ".join(sorted(self._known_dms))))
+        self.get_search_condition = getattr(self, f"_make_{dmname}_constraint")
+
+    def _make_obscore_constraint(self):
+        # There was a bit of chaos with the DM ids for Obscore.
+        # Be lenient here
+        self._extra_tables = ["rr.res_detail"]
+        obscore_pat = 'ivo://ivoa.net/std/obscore%'
+        return ("detail_xpath = '/capability/dataModel/@ivo-id'"
+            f" AND 1 = ivo_nocasematch(detail_value, '{obscore_pat}')")
+
+    def _make_epntap_constraint(self):
+        self._extra_tables = ["rr.res_table"]
+        # we include legacy, pre-IVOA utypes for matches; lowercase
+        # any new identifiers (utypes case-fold).
+        return " OR ".join(
+            f"table_utype LIKE {pat}'" for pat in
+                ['ivo://vopdc.obspm/std/epncore#schema-2.%',
+                    'ivo://ivoa.net/std/epntap#table-2.%'])
+
+    def _make_regtap_constraint(self):
+        self._extra_tables = ["rr.res_detail"]
+        regtap_pat = 'ivo://ivoa.net/std/RegTAP#1.%'
+        return ("detail_xpath = '/capability/dataModel/@ivo-id'"
+            f" AND 1 = ivo_nocasematch(detail_value, '{regtap_pat}')")
+
+
 def _build_regtap_query(constraints, keywords):
     """returns a RegTAP query ready for submission from a list of
     Constraint instances.
@@ -209,7 +265,7 @@ def _build_regtap_query(constraints, keywords):
         if keyword not in _KEYWORD_TO_CONSTRAINT:
             raise TypeError(f"{keyword} is not a valid registry"
                 " constraint keyword.  Use one of {}.".format(
-                    ", ".join(_KEYWORD_TO_CONSTRAINT)))
+                    ", ".join(sorted(_KEYWORD_TO_CONSTRAINT))))
         constraints.append(_KEYWORD_TO_CONSTRAINT[keyword](value))
 
     serialized = []

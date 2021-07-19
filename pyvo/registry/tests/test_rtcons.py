@@ -119,6 +119,39 @@ class TestWavebandConstraint:
                 " OR 1 = ivo_hashlist_has(rr.resource.waveband, 'EUV')")
 
 
+class TestDatamodelConstraint:
+    def test_junk_rejected(self):
+        with pytest.raises(ValueError) as excinfo:
+            rtcons.Datamodel("junk")
+        assert str(excinfo.value) == (
+            "Unknown data model id junk.  Known are: epntap, obscore, regtap.")
+    
+    def test_obscore(self):
+        cons = rtcons.Datamodel("ObsCore")
+        assert (cons.get_search_condition()
+            == "detail_xpath = '/capability/dataModel/@ivo-id'"
+            " AND 1 = ivo_nocasematch(detail_value,"
+                " 'ivo://ivoa.net/std/obscore%')")
+        assert(cons._extra_tables==["rr.res_detail"])
+
+    def test_epntap(self):
+        cons = rtcons.Datamodel("epntap")
+        assert (cons.get_search_condition()
+            == "table_utype LIKE ivo://vopdc.obspm/std/epncore#schema-2.%'"
+            " OR table_utype LIKE ivo://ivoa.net/std/epntap#table-2.%'")
+        assert(cons._extra_tables==["rr.res_table"])
+
+    def test_regtap(self):
+        cons = rtcons.Datamodel("regtap")
+        assert (cons.get_search_condition()
+            == "detail_xpath = '/capability/dataModel/@ivo-id'"
+            " AND 1 = ivo_nocasematch(detail_value,"
+                " 'ivo://ivoa.net/std/RegTAP#1.%')")
+        assert(cons._extra_tables==["rr.res_detail"])
+
+
+
+
 class TestWhereClauseBuilding:
     @staticmethod
     def where_clause_for(*args, **kwargs):
@@ -160,8 +193,8 @@ class TestWhereClauseBuilding:
         # way to track changes; so, let's update the assertion as we
         # go.
         assert str(excinfo.value) == ("foo is not a valid registry"
-            " constraint keyword.  Use one of "
-            "keywords, author.")
+            " constraint keyword.  Use one of"
+            " author, datamodel, keywords, servicetype, waveband.")
 
 
 class TestSelectClause:

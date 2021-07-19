@@ -77,11 +77,11 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None, inclu
        'x-ray'
        'gamma-ray'
     datamodel : str
-        the name of the datamodel to search for; makes only sence in
+        the name of the datamodel to search for; makes only sense in
         conjunction with servicetype tap (or no servicetype).
 
         See http://wiki.ivoa.net/twiki/bin/view/IVOA/IvoaDataModel for more
-        informations about data models.
+        information about data models.
     includeaux : boolean
         Flag for whether to include auxiliary capabilities in results.
         This may result in duplicate capabilities being returned,
