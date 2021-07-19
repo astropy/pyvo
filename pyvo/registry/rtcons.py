@@ -1,9 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-data discovery searches in the VO registry.
+Constraints for doing registry searches.
 
-Searches are built using constraints, which should generally derive
-from Constraint; see its docstring for how to write your own constraints.
+The Constraint class encapsulates a query fragment in a RegTAP query: A
+keyword, a sky location, an author name, a class of services.  They are used
+either directly as arguments to registry.search, or by passing keyword
+arguments into registry.search.  The mapping from keyword arguments to
+constraint classes happens through the _keyword attribute in Constraint-derived
+classes.
 """
 
 import datetime
@@ -114,6 +118,63 @@ class Author(Constraint):
     def __init__(self, name:str):
         self._condition = "role_name LIKE {auth} AND base_role='creator'"
         self._fillers = {"auth": name}
+
+
+class Servicetype(Constraint):
+    """constrain by the type of service.
+
+    The constraint is either a bespoke keyword (of which there are at least
+    image, spectrum, scs, line, and table; the fullist is in this class'
+    _service_type_map) or the standards' ivoid (which generally looks like
+    ``ivo://ivoa.net/std/<standardname>`` and have to be URIs with
+    a scheme part in any case).
+
+    Multiple service types can be passed in; a match in that case
+    is for records having any of the service types passed in.
+
+    The match is literal (i.e., no patterns are allowed); this means
+    that you will not receive records that only have auxiliary
+    services, which is what you want when enumerating all services
+    of a certain type in the VO.  In data discovery (where, however,
+    you generally should not have Servicetype constraints), you
+    can use ``Servicetype(...).include_auxiliary_services()`` or
+    use registry.search's ``includeaux`` parameter.
+    """
+    _service_type_map = {
+        "image": "sia",
+        "spectrum": "ssa",
+        "scs": "conesearch",
+        "line": "slap",
+        "table": "tap"
+    }
+    def __init__(self, *stds):
+        self.stdids = set()
+
+        for std in stds:
+            if std in self._service_type_map:
+                self.stdids.add('ivo://ivoa.net/std/'+
+                    self._service_type_map[std])
+            elif "://" in std:
+                self.stdids.add(std)
+            else:
+                raise ValueError("Service type {} is neither a full"
+                    " standard URI nor one of the bespoke identifiers"
+                    " {}".format(std, ", ".join(self._service_type_map)))
+
+    def get_search_condition(self):
+        # we sort the stdids to make it easy for tests (and it's
+        # virtually free for the small sets we have here).
+        return "standard_id IN ({})".format(
+            ", ".join(make_sql_literal(s) for s in sorted(self.stdids)))
+
+    def include_auxiliary_services(self):
+        """returns a Servicetype constraint that has self's
+        service types but includes the associated auxiliary services.
+
+        This is a convenience to maintain registry.search's signature.
+        """
+        return Servicetype(*(self.stdids | set(
+            std+'#aux' for std in self.stdids)))
 
 
 def _build_regtap_query(constraints, keywords):

@@ -17,6 +17,7 @@ standardized TAP-based services.
 """
 import functools
 import os
+from . import rtcons
 from ..dal import scs, sia, ssa, sla, tap, query as dalq
 from ..utils.formatting import para_format_desc
 
@@ -32,16 +33,6 @@ REGISTRY_BASEURL = os.environ.get("IVOA_REGISTRY") or "http://dc.g-vo.org/tap"
 # resources that break us; let's assume there's nothing be gained
 # from that ever.
 TOKEN_SEP = ":::py VO sep:::"
-
-
-_service_type_map = {
-    "image": "sia",
-    "spectrum": "ssa",
-    "scs": "conesearch",
-    "line": "slap",
-    "sla": "slap",
-    "table": "tap"
-}
 
 
 @functools.lru_cache(1)
@@ -144,8 +135,12 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None, inclu
         else:
             raise dalq.DALQueryError("Invalid servicetype parameter passed to registry search")
 
+    # maintain legacy includeaux by locating any Servicetype constraints
+    # and replacing them with ones that includes auxiliaries.
     if includeaux:
-        match_caps |= {s+"#aux" for s in match_caps}
+        for index, constraint in enumerate(constraints):
+            if isinstance(constraint, rtcons.Servicetype):
+                constraints[index] = constraint.include_auxiliary_services()
 
     wheres.append('standard_id IN ({})'.format(
         ",".join(
