@@ -177,6 +177,30 @@ class Servicetype(Constraint):
             std+'#aux' for std in self.stdids)))
 
 
+class Waveband(Constraint):
+    """A constraint on messenger particles.
+
+    This builds a constraint against rr.resource.waveband, i.e.,
+    a verbal indication of the messenger particle, coming
+    from the IVOA vocabulary http://www.ivoa.net/messenger.
+
+    The Spectral constraint enables selections by particle energy,
+    but few resources actually give the necessary metadata (in 2021).
+
+    Multiple wavebands can be given (and are effectively combined with OR).
+
+    TODO: validate inputs against the vocabulary.
+    """
+    def __init__(self, *bands):
+        self.bands = list(bands)
+
+    def get_search_condition(self):
+        return " OR ".join(
+            "1 = ivo_hashlist_has(rr.resource.waveband, {})".format(
+                make_sql_literal(band))
+            for band in self.bands)
+
+
 def _build_regtap_query(constraints, keywords):
     """returns a RegTAP query ready for submission from a list of
     Constraint instances.

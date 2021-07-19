@@ -111,6 +111,14 @@ class TestServicetypeConstraint:
             " image, spectrum, scs, line, table")
 
 
+# TODO: add a vocabulary check and mark this as requiring networking
+class TestWavebandConstraint:
+    def test_basic(self):
+        assert (rtcons.Waveband("Infrared", "EUV").get_search_condition()
+            == "1 = ivo_hashlist_has(rr.resource.waveband, 'Infrared')"
+                " OR 1 = ivo_hashlist_has(rr.resource.waveband, 'EUV')")
+
+
 class TestWhereClauseBuilding:
     @staticmethod
     def where_clause_for(*args, **kwargs):
