@@ -131,6 +131,50 @@ class RegistryResults(dalq.DALResults):
         return RegistryResource(self, index)
 
 
+class Interface:
+    """
+    a service interface.
+
+    These consist of an access URL, a standard id for the capability 
+    (typically the ivoid of an IVOA standard, or None for free services), 
+    an interface type (something like vs:paramhttp or vr:webbrowser)
+    and an indication if the interface is the "standard" interface
+    of the capability.
+
+    Such interfaces can be turned into services using the ``to_service``
+    method if pyvo knows how to talk to the interface.
+
+    Note that the constructor arguments are assumed to be normalised
+    as in regtap (e.g., lowercased for the standardIDs).
+    """
+    service_for_standardid = {
+           "ivo://ivoa.net/std/conesearch":  scs.SCSService,
+           "ivo://ivoa.net/std/sia":  sia.SIAService,
+           "ivo://ivoa.net/std/ssa":  ssa.SSAService,
+           "ivo://ivoa.net/std/sla":  sla.SLAService,
+           "ivo://ivoa.net/std/tap":  tap.TAPService}
+
+    def __init__(self, access_url, standard_id, intf_type, intf_role):
+        self.access_url = access_url
+        self.standard_id = standard_id or None
+        self.type = intf_type or None
+        self.role = intf_role or None
+        self.is_standard = self.role=="std"
+
+    def to_service(self):
+        if self.standard_id is None or not self.is_standard:
+            raise ValueError("This is not a standard interface.  PyVO"
+                " cannot speak to it.")
+       
+        service_class = self.service_for_standardid.get(
+            self.standard_id.split("#")[0])
+        if service_class is None:
+            raise ValueError("PyVO has no support for interfaces with"
+                f" standard id {self.standard_id}.")
+
+        return service_class(self.access_url)
+
+
 class RegistryResource(dalq.Record):
     """
     a dictionary for the resource metadata returned in one record of a
@@ -167,8 +211,18 @@ class RegistryResource(dalq.Record):
         "waveband",
         (f"ivo_string_agg(access_url, '{TOKEN_SEP}')", "access_urls"),
         (f"ivo_string_agg(standard_id, '{TOKEN_SEP}')", "standard_ids"),
+        (f"ivo_string_agg(intf_type, '{TOKEN_SEP}')", "intf_types"),
         (f"ivo_string_agg(intf_role, '{TOKEN_SEP}')", "intf_roles"),]
 
+    def __init__(self, results, index, session=None):
+        dalq.Record.__init__(self, results, index, session)
+
+        self.interfaces = [Interface(*props)
+            for props in zip(
+                results["access_urls"].split(TOKEN_SEP),
+                results["standard_ids"].split(TOKEN_SEP),
+                results["intf_types"].split(TOKEN_SEP),
+                results["intf_roles"].split(TOKEN_SEP))]
 
     @property
     def ivoid(self):
@@ -282,7 +336,7 @@ class RegistryResource(dalq.Record):
         return an appropriate DALService subclass for this resource that
         can be used to search the resource.  Return None if the resource is
         not a recognized DAL service.  Currently, only Conesearch, SIA, SSA,
-        and SLA services are supported.
+        TAP, and SLA services are supported.
         """
         if self.access_url:
             for key, value in {

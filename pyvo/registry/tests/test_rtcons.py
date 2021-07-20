@@ -131,6 +131,10 @@ class TestWavebandConstraint:
             rtcons.Waveband("junk")
         assert str(excinfo.value) == ("Waveband junk is not in the IVOA messenger vocabulary http://www.ivoa.net/rdf/messenger.")
 
+    def test_normalisation(self):
+        assert (rtcons.Waveband("oPtIcAl").get_search_condition()
+            == "1 = ivo_hashlist_has(rr.resource.waveband, 'optical')")
+
 
 class TestDatamodelConstraint:
     def test_junk_rejected(self):
@@ -228,6 +232,7 @@ class TestSelectClause:
             "waveband, "
             "ivo_string_agg(access_url, ':::py VO sep:::') AS access_urls, "
             "ivo_string_agg(standard_id, ':::py VO sep:::') AS standard_ids, "
+            "ivo_string_agg(intf_type, ':::py VO sep:::') AS intf_types, "
             "ivo_string_agg(intf_role, ':::py VO sep:::') AS intf_roles")
 
     def test_group_by_columns(self):

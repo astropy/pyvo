@@ -218,14 +218,16 @@ class Waveband(Constraint):
     Multiple wavebands can be given (and are effectively combined with OR).
     """
     _keyword = "waveband"
-    _vocab = None
+    _legal_terms = None
 
     def __init__(self, *bands):
-        if self.__class__._vocab is None:
-            self.__class__._vocab = vocabularies.get_vocabulary("messenger")
+        if self.__class__._legal_terms is None:
+            self.__class__._legal_terms = {w.lower() for w in
+                vocabularies.get_vocabulary("messenger")["terms"]}
 
+        bands = [band.lower() for band in bands]
         for band in bands:
-            if band not in self._vocab["terms"]:
+            if band not in self._legal_terms:
                 raise dalq.DALQueryError(
                     f"Waveband {band} is not in the IVOA messenger"
                     " vocabulary http://www.ivoa.net/rdf/messenger.")
@@ -233,7 +235,7 @@ class Waveband(Constraint):
         self.bands = list(bands)
         self._condition = " OR ".join(
             "1 = ivo_hashlist_has(rr.resource.waveband, {})".format(
-                make_sql_literal(band.lower()))
+                make_sql_literal(band))
             for band in self.bands)
 
 

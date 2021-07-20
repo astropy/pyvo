@@ -7,8 +7,10 @@ from functools import partial
 from urllib.parse import parse_qsl
 import pytest
 
+from pyvo.registry import regtap
 from pyvo.registry import search as regsearch
 from pyvo.dal import query as dalq
+from pyvo.dal import tap
 
 from astropy.utils.data import get_pkg_data_contents
 
@@ -145,6 +147,43 @@ def aux_fixture(mocker):
         content=auxtest_callback
     ) as matcher:
         yield matcher
+
+
+class TestInterfaceClass:
+    def test_basic(self):
+        intf = regtap.Interface("http://example.org", "", "", "")
+        assert intf.access_url == "http://example.org"
+        assert intf.standard_id is None
+        assert intf.type is None
+        assert intf.role is None
+        assert intf.is_standard == False
+
+    def test_unknown_standard(self):
+        intf = regtap.Interface("http://example.org", "ivo://gavo/std/a", 
+            "vs:paramhttp", "std")
+        assert intf.is_standard
+        with pytest.raises(ValueError) as excinfo:
+            intf.to_service()
+
+        assert str(excinfo.value) == (
+            "PyVO has no support for interfaces with standard"
+            " id ivo://gavo/std/a.")
+
+    def test_known_standard(self):
+        intf = regtap.Interface("http://example.org", 
+            "ivo://ivoa.net/std/tap#aux", "vs:paramhttp", "std")
+        assert isinstance(intf.to_service(), tap.TAPService)
+
+    def test_secondary_interface(self):
+        intf = regtap.Interface("http://example.org", 
+            "ivo://ivoa.net/std/tap#aux",
+            "vs:webbrowser", "web")
+
+        with pytest.raises(ValueError) as excinfo:
+            intf.to_service()
+
+        assert str(excinfo.value) == (
+            "This is not a standard interface.  PyVO cannot speak to it.")
 
 
 @pytest.mark.usefixtures('keywords_fixture', 'capabilities')
