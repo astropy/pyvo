@@ -13,6 +13,17 @@ from pyvo.registry import rtcons
 from pyvo.dal import query as dalq
 
 
+@pytest.fixture()
+def messenger_vocabulary(mocker):
+    def callback(request, context):
+        return get_pkg_data_contents('data/messenger.desise')
+
+    with mocker.register_uri(
+        'GET', 'http://www.ivoa.net/rdf/messenger', content=callback
+    ) as matcher:
+        yield matcher
+
+
 class TestAbstractConstraint:
     def test_no_search_condition(self):
         with pytest.raises(NotImplementedError):
@@ -108,12 +119,17 @@ class TestServicetypeConstraint:
             " image, spectrum, scs, line, table")
 
 
-# TODO: add a vocabulary check and mark this as requiring networking
+@pytest.mark.usefixtures('messenger_vocabulary')
 class TestWavebandConstraint:
     def test_basic(self):
         assert (rtcons.Waveband("Infrared", "EUV").get_search_condition()
-            == "1 = ivo_hashlist_has(rr.resource.waveband, 'Infrared')"
-                " OR 1 = ivo_hashlist_has(rr.resource.waveband, 'EUV')")
+            == "1 = ivo_hashlist_has(rr.resource.waveband, 'infrared')"
+                " OR 1 = ivo_hashlist_has(rr.resource.waveband, 'euv')")
+
+    def test_junk_rejected(self):
+        with pytest.raises(dalq.DALQueryError) as excinfo:
+            rtcons.Waveband("junk")
+        assert str(excinfo.value) == ("Waveband junk is not in the IVOA messenger vocabulary http://www.ivoa.net/rdf/messenger.")
 
 
 class TestDatamodelConstraint:
@@ -147,8 +163,6 @@ class TestDatamodelConstraint:
         assert(cons._extra_tables==["rr.res_detail"])
 
 
-
-
 class TestWhereClauseBuilding:
     @staticmethod
     def where_clause_for(*args, **kwargs):
@@ -160,14 +174,14 @@ class TestWhereClauseBuilding:
         assert self.where_clause_for(
             rtcons.Waveband("EUV"),
             rtcons.Author("%Hubble%")
-            ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'EUV'))\n"
+            ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
                 "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
 
     def test_from_keywords(self):
         assert self.where_clause_for(
             waveband="EUV",
             author="%Hubble%"
-            ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'EUV'))\n"
+            ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
                 "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
 
 
@@ -175,7 +189,7 @@ class TestWhereClauseBuilding:
         assert self.where_clause_for(
             rtcons.Waveband("EUV"),
             author="%Hubble%"
-            ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'EUV'))\n"
+            ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
                 "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
 
 

@@ -16,6 +16,7 @@ import numpy
 
 from ..dal import tap
 from ..dal import query as dalq
+from ..utils import vocabularies
 from .import regtap
 
 
@@ -215,16 +216,24 @@ class Waveband(Constraint):
     but few resources actually give the necessary metadata (in 2021).
 
     Multiple wavebands can be given (and are effectively combined with OR).
-
-    TODO: validate inputs against the vocabulary.
     """
     _keyword = "waveband"
+    _vocab = None
 
     def __init__(self, *bands):
+        if self.__class__._vocab is None:
+            self.__class__._vocab = vocabularies.get_vocabulary("messenger")
+
+        for band in bands:
+            if band not in self._vocab["terms"]:
+                raise dalq.DALQueryError(
+                    f"Waveband {band} is not in the IVOA messenger"
+                    " vocabulary http://www.ivoa.net/rdf/messenger.")
+
         self.bands = list(bands)
         self._condition = " OR ".join(
             "1 = ivo_hashlist_has(rr.resource.waveband, {})".format(
-                make_sql_literal(band))
+                make_sql_literal(band.lower()))
             for band in self.bands)
 
 
