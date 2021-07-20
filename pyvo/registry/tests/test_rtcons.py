@@ -10,6 +10,7 @@ import numpy
 import pytest
 
 from pyvo.registry import rtcons
+from pyvo.dal import query as dalq
 
 
 class TestAbstractConstraint:
@@ -62,15 +63,11 @@ class TestSQLLiterals:
 class TestFreetextConstraint:
     def test_basic(self):
         assert (rtcons.Freetext("star").get_search_condition()
-            == "1=ivo_hasword(res_description, 'star')"
-            " OR 1=ivo_hasword(res_title, 'star')"
-            " OR 1=ivo_hasword(role_name, 'star')")
+            == "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'star') UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'star') UNION SELECT ivoid FROM rr.res_subject WHERE res_subject ILIKE '%star%')")
 
     def test_interesting_literal(self):
         assert (rtcons.Freetext("α Cen's planets").get_search_condition()
-            == "1=ivo_hasword(res_description, 'α Cen''s planets')"
-            " OR 1=ivo_hasword(res_title, 'α Cen''s planets')"
-            " OR 1=ivo_hasword(role_name, 'α Cen''s planets')")
+            == "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'α Cen''s planets') UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'α Cen''s planets') UNION SELECT ivoid FROM rr.res_subject WHERE res_subject ILIKE '%α Cen''s planets%')")
 
 
 class TestAuthorConstraint:
@@ -104,7 +101,7 @@ class TestServicetypeConstraint:
                 " 'ivo://ivoa.net/std/sia#aux')")
 
     def test_junk_rejected(self):
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(dalq.DALQueryError) as excinfo:
             rtcons.Servicetype("junk")
         assert str(excinfo.value) == ("Service type junk is neither"
             " a full standard URI nor one of the bespoke identifiers"
@@ -121,7 +118,7 @@ class TestWavebandConstraint:
 
 class TestDatamodelConstraint:
     def test_junk_rejected(self):
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(dalq.DALQueryError) as excinfo:
             rtcons.Datamodel("junk")
         assert str(excinfo.value) == (
             "Unknown data model id junk.  Known are: epntap, obscore, regtap.")
@@ -155,39 +152,37 @@ class TestDatamodelConstraint:
 class TestWhereClauseBuilding:
     @staticmethod
     def where_clause_for(*args, **kwargs):
-        return rtcons._build_regtap_query(list(args), kwargs
+        cons = list(args)+rtcons.keywords_to_constraints(kwargs)
+        return rtcons.build_regtap_query(cons
             ).split("\nWHERE\n", 1)[1].split("\nGROUP BY\n")[0]
 
     def test_from_constraints(self):
         assert self.where_clause_for(
-            rtcons.Freetext("star galaxy"),
+            rtcons.Waveband("EUV"),
             rtcons.Author("%Hubble%")
-            ) == ("(1=ivo_hasword(res_description, 'star galaxy')"
-            " OR 1=ivo_hasword(res_title, 'star galaxy')"
-            " OR 1=ivo_hasword(role_name, 'star galaxy'))"
-            "\n  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+            ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'EUV'))\n"
+                "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
 
     def test_from_keywords(self):
         assert self.where_clause_for(
-            keywords="star galaxy",
+            waveband="EUV",
             author="%Hubble%"
-            ) == ("(1=ivo_hasword(res_description, 'star galaxy')"
-            " OR 1=ivo_hasword(res_title, 'star galaxy')"
-            " OR 1=ivo_hasword(role_name, 'star galaxy'))"
-            "\n  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+            ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'EUV'))\n"
+                "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+
 
     def test_mixed(self):
         assert self.where_clause_for(
-            rtcons.Freetext("star galaxy"),
+            rtcons.Waveband("EUV"),
             author="%Hubble%"
-            ) == ("(1=ivo_hasword(res_description, 'star galaxy')"
-            " OR 1=ivo_hasword(res_title, 'star galaxy')"
-            " OR 1=ivo_hasword(role_name, 'star galaxy'))"
-            "\n  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+            ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'EUV'))\n"
+                "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+
 
     def test_bad_keyword(self):
         with pytest.raises(TypeError) as excinfo:
-            rtcons._build_regtap_query((), {"foo": "bar"})
+            rtcons.build_regtap_query(
+                *rtcons.keywords_to_constraints({"foo": "bar"}))
         # the following assertion will fail when new constraints are
         # defined (or old ones vanish).  I'd say that's a convenient
         # way to track changes; so, let's update the assertion as we
@@ -201,7 +196,8 @@ class TestSelectClause:
     def test_expected_columns(self):
         # This will break as regtap.RegistryResource.expected_columns
         # is changed.  Just update the assertion then.
-        assert rtcons._build_regtap_query([], {"author": "%Hubble%"}
+        assert rtcons.build_regtap_query(
+            rtcons.keywords_to_constraints({"author": "%Hubble%"})
             ).split("\nFROM rr.resource\n")[0] == (
             "SELECT\n"
             "ivoid, "
@@ -217,12 +213,13 @@ class TestSelectClause:
             "region_of_regard, "
             "waveband, "
             "ivo_string_agg(access_url, ':::py VO sep:::') AS access_urls, "
-            "ivo_string_agg(standard_id, ':::py VO sep:::') AS standard_ids")
+            "ivo_string_agg(standard_id, ':::py VO sep:::') AS standard_ids, "
+            "ivo_string_agg(intf_role, ':::py VO sep:::') AS intf_roles")
 
     def test_group_by_columns(self):
         # Again, this will break as regtap.RegistryResource.expected_columns
         # is changed.  Just update the assertion then.
-        assert rtcons._build_regtap_query([], {"author": "%Hubble%"}
+        assert rtcons.build_regtap_query([rtcons.Author("%Hubble%")]
             ).split("\nGROUP BY\n")[-1] == (
             "ivoid, "
             "res_type, "

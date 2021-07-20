@@ -46,42 +46,22 @@ def get_RegTAP_service():
     return tap.TAPService(REGISTRY_BASEURL)
 
 
-def search(keywords=None, servicetype=None, waveband=None, datamodel=None, includeaux=False):
+def search(*constraints:rtcons.Constraint, includeaux=False, **kwargs):
     """
     execute a simple query to the RegTAP registry.
 
     Parameters
     ----------
-    keywords : str or list of str
-       keyword terms to match to registry records.
-       Use this parameter to find resources related to a
-       particular topic.
-    servicetype : str
-       the service type to restrict results to.
-       Allowed values include
-       'conesearch',
-       'sia' ,
-       'ssa',
-       'slap',
-       'tap'
-    waveband : str
-       the name of a desired waveband; resources returned
-       will be restricted to those that indicate as having
-       data in that waveband.  Allowed values include
-       'radio',
-       'millimeter',
-       'infrared',
-       'optical',
-       'uv',
-       'euv',
-       'x-ray'
-       'gamma-ray'
-    datamodel : str
-        the name of the datamodel to search for; makes only sense in
-        conjunction with servicetype tap (or no servicetype).
+    The function accepts query constraint either as Constraint objects
+    passed in as positional arguments or as their associated keywords.
+    For what constraints are available, see TODO.
 
-        See http://wiki.ivoa.net/twiki/bin/view/IVOA/IvoaDataModel for more
-        information about data models.
+    The values of keyword arguments may be tuples or lists when the associated
+    Constraint objects take multiple arguments.
+
+    All constraints, whether passed in directly or via keywords, are
+    evaluated as a conjunction (i.e., in an AND clause).
+
     includeaux : boolean
         Flag for whether to include auxiliary capabilities in results.
         This may result in duplicate capabilities being returned,
@@ -96,44 +76,7 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None, inclu
     --------
     RegistryResults
     """
-    if not any((keywords, servicetype, waveband, datamodel)):
-        raise dalq.DALQueryError(
-            "No search parameters passed to registry search")
-
-    wheres = list()
-    wheres.append("intf_role = 'std'")
-
-    if isinstance(keywords, str):
-        keywords = [keywords]
-
-    if keywords:
-        def _unions():
-            for i, keyword in enumerate(keywords):
-                yield """
-                SELECT isub{i}.ivoid FROM rr.res_subject AS isub{i}
-                WHERE isub{i}.res_subject ILIKE '%{keyword}%'
-                """.format(i=i, keyword=tap.escape(keyword))
-
-                yield """
-                SELECT ires{i}.ivoid FROM rr.resource AS ires{i}
-                WHERE 1=ivo_hasword(ires{i}.res_description, '{keyword}')
-                OR 1=ivo_hasword(ires{i}.res_title, '{keyword}')
-                """.format(i=i, keyword=tap.escape(keyword))
-
-        unions = ' UNION '.join(_unions())
-        wheres.append('rr.interface.ivoid IN ({})'.format(unions))
-
-    # capabilities as specified by servicetype and includeaux:
-    # default to all known service types
-    # limit to one servicetype if specified by known key or value
-    match_caps = set(_service_type_map.values())
-    if servicetype:
-        if servicetype in _service_type_map.values():
-            match_caps = set([servicetype])
-        elif _service_type_map.get(servicetype) is not None:
-            match_caps= set([_service_type_map.get(servicetype)])
-        else:
-            raise dalq.DALQueryError("Invalid servicetype parameter passed to registry search")
+    constraints = list(constraints)+rtcons.keywords_to_constraints(kwargs)
 
     # maintain legacy includeaux by locating any Servicetype constraints
     # and replacing them with ones that includes auxiliaries.
@@ -142,36 +85,13 @@ def search(keywords=None, servicetype=None, waveband=None, datamodel=None, inclu
             if isinstance(constraint, rtcons.Servicetype):
                 constraints[index] = constraint.include_auxiliary_services()
 
-    wheres.append('standard_id IN ({})'.format(
-        ",".join(
-        "'ivo://ivoa.net/std/"+s+"'"
-        for s in match_caps)))
-
-    if waveband:
-        wheres.append("1 = ivo_hashlist_has(rr.resource.waveband, '{}')".format(
-            tap.escape(waveband)))
-
-    if datamodel:
-        wheres.append("""
-            rr.interface.ivoid IN (
-                SELECT idet.ivoid FROM rr.res_detail as idet
-                WHERE idet.detail_xpath = '/capability/dataModel/@ivo-id'
-                AND 1 = ivo_nocasematch(
-                    idet.detail_value, 'ivo://ivoa.net/std/{}%')
-            )
-        """.format(tap.escape(datamodel)))
-
-    query = """SELECT DISTINCT rr.interface.*, rr.capability.*, rr.resource.*
-    FROM rr.capability
-    NATURAL JOIN rr.interface
-    NATURAL JOIN rr.resource
-    {}
-    """.format(
-        ("WHERE " if wheres else "") + " AND ".join(wheres)
-    )
+    query_sql = rtcons.build_regtap_query(constraints)
 
     service = get_RegTAP_service()
-    query = RegistryQuery(service.baseurl, query, maxrec=service.hardlimit)
+    query = RegistryQuery(
+        service.baseurl, 
+        query_sql, 
+        maxrec=service.hardlimit)
     return query.execute()
 
 
@@ -246,7 +166,8 @@ class RegistryResource(dalq.Record):
         "region_of_regard",
         "waveband",
         (f"ivo_string_agg(access_url, '{TOKEN_SEP}')", "access_urls"),
-        (f"ivo_string_agg(standard_id, '{TOKEN_SEP}')", "standard_ids"),]
+        (f"ivo_string_agg(standard_id, '{TOKEN_SEP}')", "standard_ids"),
+        (f"ivo_string_agg(intf_role, '{TOKEN_SEP}')", "intf_roles"),]
 
 
     @property

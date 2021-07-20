@@ -15,6 +15,7 @@ import datetime
 import numpy
 
 from ..dal import tap
+from ..dal import query as dalq
 from .import regtap
 
 
@@ -56,10 +57,13 @@ class Constraint:
     Users construct concrete constraints with whatever they would like
     to constrain things with.
 
-    To implement a new constraint, set ``_condition`` to a string with
-    {}-type replacement fields (assume all parameters are strings), and define
-    ``fillers`` to be a dictionary with values for the _condition template.
-    Don't worry about SQL-serialising the values, Constraint takes care of that.
+    To implement a new constraint, in the constructor set ``_condition`` to a
+    string with {}-type replacement fields (assume all parameters are strings),
+    and define ``fillers`` to be a dictionary with values for the _condition
+    template.  Don't worry about SQL-serialising the values, Constraint takes
+    care of that.  If you need your Constraint to be "lazy" 
+    (cf. Servicetype), it's ok to overrride get_search_condition without
+    an upcall to Constraint.
 
     If your constraints need extra tables, give them in a list
     in _extra_tables.
@@ -81,7 +85,9 @@ class Constraint:
         return self._condition.format(**self._get_sql_literals())
   
     def _get_sql_literals(self):
-        return {k: make_sql_literal(v) for k, v in self._fillers.items()}
+        if self._fillers:
+            return {k: make_sql_literal(v) for k, v in self._fillers.items()}
+        return {}
 
 
 class Freetext(Constraint):
@@ -96,11 +102,31 @@ class Freetext(Constraint):
     """
     _keyword = "keywords"
 
-    def __init__(self, word:str):
-        self._condition = ("1=ivo_hasword(res_description, {word})"
-            " OR 1=ivo_hasword(res_title, {word})"
-            " OR 1=ivo_hasword(role_name, {word})")
-        self._fillers = {"word": word}
+    def __init__(self, *words:str):
+        # cross-table ORs kill the query planner.  We therefore 
+        # write the constraint as an IN condition on a UNION
+        # of subqueries; it may look as if this has to be
+        # really slow, but in fact it's almost always a lot
+        # faster than direct ORs.
+        base_queries = [
+            "SELECT ivoid FROM rr.resource WHERE"
+                " 1=ivo_hasword(res_description, {{{parname}}})",
+            "SELECT ivoid FROM rr.resource WHERE"
+                " 1=ivo_hasword(res_title, {{{parname}}})",
+            "SELECT ivoid FROM rr.res_subject WHERE"
+                " res_subject ILIKE {{{parpatname}}}"]
+        self._fillers, subqueries = {}, []
+        
+        for index, word in enumerate(words):
+            parname = "fulltext{}".format(index)
+            parpatname = "fulltextpar{}".format(index)
+            self._fillers[parname] = word
+            self._fillers[parpatname] = '%'+word+'%'
+            for q in base_queries:
+                subqueries.append(q.format(**locals()))
+
+        self._condition = "ivoid IN ({})".format(
+            " UNION ".join(subqueries))
 
 
 class Author(Constraint):
@@ -158,7 +184,7 @@ class Servicetype(Constraint):
             elif "://" in std:
                 self.stdids.add(std)
             else:
-                raise ValueError("Service type {} is neither a full"
+                raise dalq.DALQueryError("Service type {} is neither a full"
                     " standard URI nor one of the bespoke identifiers"
                     " {}".format(std, ", ".join(self._service_type_map)))
 
@@ -196,9 +222,7 @@ class Waveband(Constraint):
 
     def __init__(self, *bands):
         self.bands = list(bands)
-
-    def get_search_condition(self):
-        return " OR ".join(
+        self._condition = " OR ".join(
             "1 = ivo_hashlist_has(rr.resource.waveband, {})".format(
                 make_sql_literal(band))
             for band in self.bands)
@@ -229,9 +253,9 @@ class Datamodel(Constraint):
     def __init__(self, dmname):
         dmname = dmname.lower()
         if dmname not in self._known_dms:
-            raise ValueError("Unknown data model id {}.  Known are: {}."
+            raise dalq.DALQueryError("Unknown data model id {}.  Known are: {}."
                 .format(dmname, ", ".join(sorted(self._known_dms))))
-        self.get_search_condition = getattr(self, f"_make_{dmname}_constraint")
+        self._condition = getattr(self, f"_make_{dmname}_constraint")()
 
     def _make_obscore_constraint(self):
         # There was a bit of chaos with the DM ids for Obscore.
@@ -257,16 +281,13 @@ class Datamodel(Constraint):
             f" AND 1 = ivo_nocasematch(detail_value, '{regtap_pat}')")
 
 
-def _build_regtap_query(constraints, keywords):
+def build_regtap_query(constraints):
     """returns a RegTAP query ready for submission from a list of
     Constraint instances.
     """
-    for keyword, value in keywords.items():
-        if keyword not in _KEYWORD_TO_CONSTRAINT:
-            raise TypeError(f"{keyword} is not a valid registry"
-                " constraint keyword.  Use one of {}.".format(
-                    ", ".join(sorted(_KEYWORD_TO_CONSTRAINT))))
-        constraints.append(_KEYWORD_TO_CONSTRAINT[keyword](value))
+    if not constraints:
+        raise dalq.DALQueryError(
+            "No search parameters passed to registry search")
 
     serialized = []
     for constraint in constraints:
@@ -293,6 +314,24 @@ def _build_regtap_query(constraints, keywords):
         ", ".join(plain_columns)]
 
     return "\n".join(fragments)
+
+
+def keywords_to_constraints(keywords):
+    """returns constraints expressed as keywords as Constraint instances.
+
+    This will raise a DALQueryError for unknown keywords.
+    """
+    constraints = []
+    for keyword, value in keywords.items():
+        if keyword not in _KEYWORD_TO_CONSTRAINT:
+            raise TypeError(f"{keyword} is not a valid registry"
+                " constraint keyword.  Use one of {}.".format(
+                    ", ".join(sorted(_KEYWORD_TO_CONSTRAINT))))
+        if isinstance(value, (tuple, list)):
+            constraints.append(_KEYWORD_TO_CONSTRAINT[keyword](*value))
+        else:
+            constraints.append(_KEYWORD_TO_CONSTRAINT[keyword](value))
+    return constraints
 
 
 def datasearch(*constraints:Constraint, **kwargs):

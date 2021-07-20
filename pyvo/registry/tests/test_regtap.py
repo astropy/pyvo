@@ -34,19 +34,13 @@ def keywords_fixture(mocker):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
 
-        assert "WHERE isub0.res_subject ILIKE '%vizier%'" in query
-        assert "WHERE 1=ivo_hasword(ires0.res_description, 'vizier')" in query
-        assert "OR 1=ivo_hasword(ires0.res_title, 'vizier')" in query
+        assert "res_subject ILIKE '%vizier%'" in query
+        assert "ivo_hasword(res_description, 'vizier')" in query
+        assert "1=ivo_hasword(res_title, 'vizier')" in query
 
-        assert "WHERE isub1.res_subject ILIKE '%pulsar%'" in query
-        assert "WHERE 1=ivo_hasword(ires1.res_description, 'pulsar')" in query
-        assert "OR 1=ivo_hasword(ires1.res_title, 'pulsar')" in query
-
-        assert "'ivo://ivoa.net/std/conesearch'" in query
-        assert "'ivo://ivoa.net/std/sia'" in query
-        assert "'ivo://ivoa.net/std/ssa'" in query
-        assert "'ivo://ivoa.net/std/slap'" in query
-        assert "'ivo://ivoa.net/std/tap'" in query
+        assert " res_subject ILIKE '%pulsar%'" in query
+        assert "1=ivo_hasword(res_description, 'pulsar')" in query
+        assert "1=ivo_hasword(res_title, 'pulsar')" in query
 
         return get_pkg_data_contents('data/regtap.xml')
 
@@ -63,15 +57,9 @@ def single_keyword_fixture(mocker):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
 
-        assert "WHERE isub0.res_subject ILIKE '%single%'" in query
-        assert "WHERE 1=ivo_hasword(ires0.res_description, 'single')" in query
-        assert "OR 1=ivo_hasword(ires0.res_title, 'single')" in query
-
-        assert "'ivo://ivoa.net/std/conesearch'" in query
-        assert "'ivo://ivoa.net/std/sia'" in query
-        assert "'ivo://ivoa.net/std/ssa'" in query
-        assert "'ivo://ivoa.net/std/slap'" in query
-        assert "'ivo://ivoa.net/std/tap'" in query
+        assert "WHERE res_subject ILIKE '%single%'" in query
+        assert "WHERE 1=ivo_hasword(res_description, 'single') UNION" in query
+        assert "1=ivo_hasword(res_title, 'single')" in query
 
         return get_pkg_data_contents('data/regtap.xml')
 
@@ -127,9 +115,11 @@ def datamodel_fixture(mocker):
         query = data['QUERY']
 
         assert (
-            "WHERE idet.detail_xpath = '/capability/dataModel/@ivo-id" in query
-        )
-        assert "idet.detail_value, 'ivo://ivoa.net/std/tap%')" in query
+            "(detail_xpath = '/capability/dataModel/@ivo-id'" in query)
+
+        assert (
+            "ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/obscore%'))"
+            in query)
 
         return get_pkg_data_contents('data/regtap.xml')
 
@@ -180,17 +170,12 @@ def test_waveband():
 
 @pytest.mark.usefixtures('datamodel_fixture', 'capabilities')
 def test_datamodel():
-    regsearch(datamodel='tap')
+    regsearch(datamodel='ObsCore')
 
 
 @pytest.mark.usefixtures('aux_fixture', 'capabilities')
 def test_servicetype_aux():
     regsearch(servicetype='table', includeaux=True)
-
-
-@pytest.mark.usefixtures('aux_fixture', 'capabilities')
-def test_keyword_aux():
-    regsearch(keywords=['pulsar'], includeaux=True)
 
 
 @pytest.mark.usefixtures('aux_fixture', 'capabilities')
