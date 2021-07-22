@@ -221,3 +221,8 @@ def test_servicetype_aux():
 def test_bad_servicetype_aux():
     with pytest.raises(dalq.DALQueryError):
         regsearch(servicetype='bad_servicetype', includeaux=True)
+
+
+class TestInterfaceSelection:
+    def test_interfaces_shown(self):
+        print(regtap.get_RegTAP_query(ivoid="ivo://org.gavo.dc/flashheros/q/ssa"))

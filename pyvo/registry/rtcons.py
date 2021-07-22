@@ -20,6 +20,21 @@ from ..utils import vocabularies
 from .import regtap
 
 
+# a mapping of service type shorthands to the ivoids of the
+# corresponding standards.
+SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/"+v)
+    for k, v in [
+        ("image", "sia"),
+        ("sia", "sia"),
+        ("spectrum", "ssa"),
+        ("ssap", "ssa"),
+        ("scs", "conesearch"),
+        ("line", "slap"),
+        ("table", "tap"),
+        ("tap", "tap"),
+])
+
+
 def make_sql_literal(value):
     """returns the python value as a SQL-embeddable literal.
 
@@ -151,8 +166,8 @@ class Servicetype(Constraint):
     """constrain by the type of service.
 
     The constraint is either a bespoke keyword (of which there are at least
-    image, spectrum, scs, line, and table; the fullist is in this class'
-    _service_type_map) or the standards' ivoid (which generally looks like
+    image, spectrum, scs, line, and table; the fullist is in 
+    SERVICE_TYPE_MAP) or the standards' ivoid (which generally looks like
     ``ivo://ivoa.net/std/<standardname>`` and have to be URIs with
     a scheme part in any case).
 
@@ -168,26 +183,19 @@ class Servicetype(Constraint):
     use registry.search's ``includeaux`` parameter.
     """
     _keyword = "servicetype"
-    _service_type_map = {
-        "image": "sia",
-        "spectrum": "ssa",
-        "scs": "conesearch",
-        "line": "slap",
-        "table": "tap"
-    }
+
     def __init__(self, *stds):
         self.stdids = set()
 
         for std in stds:
-            if std in self._service_type_map:
-                self.stdids.add('ivo://ivoa.net/std/'+
-                    self._service_type_map[std])
+            if std in SERVICE_TYPE_MAP:
+                self.stdids.add(SERVICE_TYPE_MAP[std])
             elif "://" in std:
                 self.stdids.add(std)
             else:
                 raise dalq.DALQueryError("Service type {} is neither a full"
                     " standard URI nor one of the bespoke identifiers"
-                    " {}".format(std, ", ".join(self._service_type_map)))
+                    " {}".format(std, ", ".join(SERVICE_TYPE_MAP)))
 
     def get_search_condition(self):
         # we sort the stdids to make it easy for tests (and it's
@@ -292,6 +300,16 @@ class Datamodel(Constraint):
             f" AND 1 = ivo_nocasematch(detail_value, '{regtap_pat}')")
 
 
+class Ivoid(Constraint):
+    """A constraint selecting a single resource by its IVOA identifier.
+    """
+    _keyword = "ivoid"
+
+    def __init__(self, ivoid):
+        self._condition = "ivoid = {ivoid}"
+        self._fillers = {"ivoid": ivoid}
+
+
 def build_regtap_query(constraints):
     """returns a RegTAP query ready for submission from a list of
     Constraint instances.
@@ -343,22 +361,6 @@ def keywords_to_constraints(keywords):
         else:
             constraints.append(_KEYWORD_TO_CONSTRAINT[keyword](value))
     return constraints
-
-
-def datasearch(*constraints:Constraint, **kwargs):
-    """...
-
-    Pass in one or more constraints; a resource matches when it matches
-    all of them.
-    """
-    regtap_query = _build_regtap_query(list(constraints), keywords)
-    service = regtap.get_RegTAP_service()
-    query = regtap.RegistryQuery(
-        service.baseurl, 
-        regtap_query, 
-        maxrec=service.hardlimit)
-
-    return query.execute()
 
 
 def _make_constraint_map():

@@ -116,7 +116,7 @@ class TestServicetypeConstraint:
             rtcons.Servicetype("junk")
         assert str(excinfo.value) == ("Service type junk is neither"
             " a full standard URI nor one of the bespoke identifiers"
-            " image, spectrum, scs, line, table")
+            " image, sia, spectrum, ssap, scs, line, table, tap")
 
 
 @pytest.mark.usefixtures('messenger_vocabulary')
@@ -167,6 +167,13 @@ class TestDatamodelConstraint:
         assert(cons._extra_tables==["rr.res_detail"])
 
 
+class TestIvoidConstraint:
+    def test_basic(self):
+        cons = rtcons.Ivoid("ivo://example/some_path")
+        assert (cons.get_search_condition() ==
+            "ivoid = 'ivo://example/some_path'")
+
+
 class TestWhereClauseBuilding:
     @staticmethod
     def where_clause_for(*args, **kwargs):
@@ -207,7 +214,7 @@ class TestWhereClauseBuilding:
         # go.
         assert str(excinfo.value) == ("foo is not a valid registry"
             " constraint keyword.  Use one of"
-            " author, datamodel, keywords, servicetype, waveband.")
+            " author, datamodel, ivoid, keywords, servicetype, waveband.")
 
 
 class TestSelectClause:

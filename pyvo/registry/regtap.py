@@ -22,10 +22,20 @@ from ..dal import scs, sia, ssa, sla, tap, query as dalq
 from ..utils.formatting import para_format_desc
 
 
-__all__ = ["search", "RegistryResource", "RegistryResults", "ivoid2service"]
+__all__ = ["search", "get_RegTAP_query", 
+    "RegistryResource", "RegistryResults", "ivoid2service"]
 
 REGISTRY_BASEURL = os.environ.get("IVOA_REGISTRY") or "http://dc.g-vo.org/tap"
 
+# a mapping from (base) ivoids (normalised to lowercase as in RegTAP)
+# to the service classes handling the standard.
+STANDARD_TO_SERVICE_CLASS = {
+    "ivo://ivoa.net/std/conesearch":  scs.SCSService,
+    "ivo://ivoa.net/std/sia":  sia.SIAService,
+    "ivo://ivoa.net/std/ssa":  ssa.SSAService,
+    "ivo://ivoa.net/std/sla":  sla.SLAService,
+    "ivo://ivoa.net/std/tap":  tap.TAPService,
+}
 
 # ADQL only has string_agg, where we need string arrays.  We fake arrays
 # by joining elements with a token separator that we think shouldn't
@@ -37,7 +47,8 @@ TOKEN_SEP = ":::py VO sep:::"
 
 @functools.lru_cache(1)
 def get_RegTAP_service():
-    """a lazily created TAP service offering the RegTAP services.
+    """
+    a lazily created TAP service offering the RegTAP services.
 
     This uses regtap.REGISTRY_BASEURL.  Always get the TAP service
     there using this function to avoid re-creating the server
@@ -46,13 +57,33 @@ def get_RegTAP_service():
     return tap.TAPService(REGISTRY_BASEURL)
 
 
+def get_RegTAP_query(*constraints:rtcons.Constraint, 
+        includeaux=False, **kwargs):
+    """returns SQL for a RegTAP query for constraints and keywords.
+
+    This function's parameters are as for search; this is basically
+    a wrapper for rtcons.build_regtap_query maintaining the legacy
+    keyword-based interface.
+    """
+    constraints = list(constraints)+rtcons.keywords_to_constraints(kwargs)
+
+    # maintain legacy includeaux by locating any Servicetype constraints
+    # and replacing them with ones that includes auxiliaries.
+    if includeaux:
+        for index, constraint in enumerate(constraints):
+            if isinstance(constraint, rtcons.Servicetype):
+                constraints[index] = constraint.include_auxiliary_services()
+
+    return rtcons.build_regtap_query(constraints)
+
+
 def search(*constraints:rtcons.Constraint, includeaux=False, **kwargs):
     """
     execute a simple query to the RegTAP registry.
 
     Parameters
     ----------
-    The function accepts query constraint either as Constraint objects
+    The function accepts query constraints either as Constraint objects
     passed in as positional arguments or as their associated keywords.
     For what constraints are available, see TODO.
 
@@ -62,7 +93,7 @@ def search(*constraints:rtcons.Constraint, includeaux=False, **kwargs):
     All constraints, whether passed in directly or via keywords, are
     evaluated as a conjunction (i.e., in an AND clause).
 
-    includeaux : boolean
+    includeaux : bool
         Flag for whether to include auxiliary capabilities in results.
         This may result in duplicate capabilities being returned,
         especially if the servicetype is not specified.
@@ -76,21 +107,10 @@ def search(*constraints:rtcons.Constraint, includeaux=False, **kwargs):
     --------
     RegistryResults
     """
-    constraints = list(constraints)+rtcons.keywords_to_constraints(kwargs)
-
-    # maintain legacy includeaux by locating any Servicetype constraints
-    # and replacing them with ones that includes auxiliaries.
-    if includeaux:
-        for index, constraint in enumerate(constraints):
-            if isinstance(constraint, rtcons.Servicetype):
-                constraints[index] = constraint.include_auxiliary_services()
-
-    query_sql = rtcons.build_regtap_query(constraints)
-
     service = get_RegTAP_service()
     query = RegistryQuery(
         service.baseurl, 
-        query_sql, 
+        get_RegTAP_query(*constraints, includeaux=includeaux, **kwargs),
         maxrec=service.hardlimit)
     return query.execute()
 
@@ -331,25 +351,54 @@ class RegistryResource(dalq.Record):
         return self.get("standard_id", decode=True)
 
     @property
-    def service(self):
+    def service(self, service_type:str=None, lax:bool=False):
         """
         return an appropriate DALService subclass for this resource that
         can be used to search the resource.  Return None if the resource is
         not a recognized DAL service.  Currently, only Conesearch, SIA, SSA,
         TAP, and SLA services are supported.
-        """
-        if self.access_url:
-            for key, value in {
-                "ivo://ivoa.net/std/conesearch":  scs.SCSService,
-                "ivo://ivoa.net/std/sia":  sia.SIAService,
-                "ivo://ivoa.net/std/ssa":  ssa.SSAService,
-                "ivo://ivoa.net/std/sla":  sla.SLAService,
-                "ivo://ivoa.net/std/tap":  tap.TAPService,
-            }.items():
-                if key in self.standard_id:
-                    self._service = value(self.access_url)
 
-        return self._service
+        Parameters
+        ----------
+        service_type : str
+            If you leave out ``service_type``, this will return a service
+            for "the" standard interface of the resource.  If a resource
+            has multiple standard capabilities (e.g., both TAP and SSAP
+            endpoints), this will raise a DALQueryError.
+
+            Otherwise, a service of the given service type will be returned.
+            Pass in an ivoid of a standard or one of the shorthands from
+            rtcons.SERVICE_TYPE_MAP.
+
+        lax : bool
+            If there are multiple capabilities for service_type, the
+            function will raise a DALQueryError by default.  Pass
+            lax=True to just return the first such capability found.
+        """
+        if self._service is not None:
+            return self._service
+
+        if service_type is not None:
+            service_type = rtcons.SERVICE_TYPE_MAP.get(
+                service_type, service_type)
+
+        candidates = [intf for intf in self.interfaces
+            if intf.is_standard and 
+                (not service_type and intf.standard_id==service_type)]
+
+        if not candidates:
+            raise dalq.DALQueryError("No suitable interface found.")
+        if len(set(c.standard_id for c in candidates))>1 and not lax:
+            raise dalq.DALQueryError("Multiple interfaces found."
+                "  Either pass service_type or use a Servicetype"
+                " constrain in the registry.search.")
+
+        stdid = candidates[0].standard_id.split("#")[0]
+        if not stdid in STANDARD_TO_SERVICE_CLASS:
+            raise dalq.DALQueryError("PyVO does not know how to talk"
+                " to a {stdid} service.")
+        
+        return STANDARD_TO_SERVICE_CLASS[stdid](candidates[0].access_url)
 
     def search(self, *args, **keys):
         """
@@ -453,33 +502,26 @@ def ivoid2service(ivoid, servicetype=None):
     given, a list of all matching services is returned.
 
     """
-    service = get_RegTAP_service()
-    results = service.run_sync("""
-        SELECT DISTINCT access_url, standard_id FROM rr.capability
-        NATURAL JOIN rr.interface
-        WHERE ivoid = '{}'
-    """.format(tap.escape(ivoid)))
-    services = []
-    ivo_cls = {
-        "ivo://ivoa.net/std/conesearch":  scs.SCSService,
-        "ivo://ivoa.net/std/sia":  sia.SIAService,
-        "ivo://ivoa.net/std/ssa":  ssa.SSAService,
-        "ivo://ivoa.net/std/sla":  sla.SLAService,
-        "ivo://ivoa.net/std/tap":  tap.TAPService
-    }
-    for result in results:
-        thistype = result["standard_id"]
-        if thistype not in ivo_cls.keys():
-            # This one is not a VO service
-            continue
-        cls = ivo_cls[thistype]
-        if servicetype is not None and servicetype not in thistype:
-            # Not the type of service you want
-            continue
-        elif servicetype is not None:
-            # Return only one service, the first of the requested type
-            return(cls(result["access_url"]))
+    constraints = [rtcons.Ivoid(ivoid)]
+    if servicetype is not None:
+        constraints.append(rtcons.Servicetype(servicetype))
+    resources = search(*constraints)
+    if len(resources)==0:
+        if servicetype:
+            raise dalq.DALQueryError(f"No resource {ivoid} with"
+                f" {servicetype} capability.")
         else:
-            # Return a list of services
-            services.append(cls(result["access_url"]))
-    return services
+            raise dalq.DALQueryError(f"No resource {ivoid}")
+    
+    # We're grouping by ivoid in search, so if there's a result
+    # there is only one.
+    resource = resources[0]
+
+    if servicetype:
+        return resource.get_service(servicetype, lax=True)
+
+    else:
+        return [STANDARD_TO_SERVICE_CLASS[interface.standard_id
+                ](interface.access_url)
+            for interface in resource.interfaces
+            if interface.standard_id in STANDARD_TO_SERVICE_CLASS]
