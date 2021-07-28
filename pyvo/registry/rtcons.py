@@ -21,7 +21,9 @@ from .import regtap
 
 
 # a mapping of service type shorthands to the ivoids of the
-# corresponding standards.
+# corresponding standards.  This is mostly to keep legacy APIs.
+# In the future, preferably rely on shorten_stdid and expand_stdid
+# from regtap.
 SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/"+v)
     for k, v in [
         ("image", "sia"),
@@ -318,9 +320,13 @@ def build_regtap_query(constraints):
         raise dalq.DALQueryError(
             "No search parameters passed to registry search")
 
-    serialized = []
+    serialized, extra_tables = [], set()
     for constraint in constraints:
         serialized.append("("+constraint.get_search_condition()+")")
+        extra_tables |= set(constraint._extra_tables)
+    
+    joined_tables = ["rr.resource", "rr.capability", "rr.interface"
+        ]+list(extra_tables)
 
     # see comment in regtap.RegistryResource for the following
     # oddity
@@ -334,9 +340,8 @@ def build_regtap_query(constraints):
     
     fragments = ["SELECT",
         ", ".join(select_clause),
-        "FROM rr.resource",
-        "LEFT OUTER NATURAL JOIN rr.capabilities",
-        "LEFT OUTER NATURAL JOIN rr.interfaces",
+        "FROM",
+        "\nNATURAL LEFT OUTER JOIN ".join(joined_tables),
         "WHERE",
         "\n  AND ".join(serialized),
         "GROUP BY",

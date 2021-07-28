@@ -8,6 +8,7 @@ from urllib.parse import parse_qsl
 import pytest
 
 from pyvo.registry import regtap
+from pyvo.registry.regtap import REGISTRY_BASEURL
 from pyvo.registry import search as regsearch
 from pyvo.dal import query as dalq
 from pyvo.dal import tap
@@ -25,7 +26,7 @@ def capabilities(mocker):
         return get_pkg_data_contents('data/capabilities.xml')
 
     with mocker.register_uri(
-        'GET', 'http://dc.g-vo.org/tap/capabilities', content=callback
+        'GET', REGISTRY_BASEURL+'/capabilities', content=callback
     ) as matcher:
         yield matcher
 
@@ -47,7 +48,7 @@ def keywords_fixture(mocker):
         return get_pkg_data_contents('data/regtap.xml')
 
     with mocker.register_uri(
-        'POST', 'http://dc.g-vo.org/tap/sync',
+        'POST', REGISTRY_BASEURL+'/sync',
         content=keywordstest_callback
     ) as matcher:
         yield matcher
@@ -66,7 +67,7 @@ def single_keyword_fixture(mocker):
         return get_pkg_data_contents('data/regtap.xml')
 
     with mocker.register_uri(
-        'POST', 'http://dc.g-vo.org/tap/sync',
+        'POST', REGISTRY_BASEURL+'/sync',
         content=keywordstest_callback
     ) as matcher:
         yield matcher
@@ -87,7 +88,7 @@ def servicetype_fixture(mocker):
         return get_pkg_data_contents('data/regtap.xml')
 
     with mocker.register_uri(
-        'POST', 'http://dc.g-vo.org/tap/sync',
+        'POST', REGISTRY_BASEURL+'/sync',
         content=servicetypetest_callback
     ) as matcher:
         yield matcher
@@ -104,7 +105,7 @@ def waveband_fixture(mocker):
         return get_pkg_data_contents('data/regtap.xml')
 
     with mocker.register_uri(
-        'POST', 'http://dc.g-vo.org/tap/sync',
+        'POST', REGISTRY_BASEURL+'/sync',
         content=wavebandtest_callback
     ) as matcher:
         yield matcher
@@ -126,7 +127,7 @@ def datamodel_fixture(mocker):
         return get_pkg_data_contents('data/regtap.xml')
 
     with mocker.register_uri(
-        'POST', 'http://dc.g-vo.org/tap/sync',
+        'POST', REGISTRY_BASEURL+'/sync',
         content=datamodeltest_callback
     ) as matcher:
         yield matcher
@@ -143,8 +144,26 @@ def aux_fixture(mocker):
         return get_pkg_data_contents('data/regtap.xml')
 
     with mocker.register_uri(
-        'POST', 'http://dc.g-vo.org/tap/sync',
-        content=auxtest_callback
+        'POST', REGISTRY_BASEURL+'/sync',
+        content=auxtest_callback, 
+    ) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
+def multi_interface_fixture(mocker):
+# to update this, run
+# import requests
+# from pyvo.registry import regtap
+# 
+# with open("data/multi-interface.xml", "wb") as f:
+# 	f.write(requests.get("http://dc.g-vo.org/tap/sync", {
+# 		"LANG": "ADQL",
+# 		"QUERY": regtap.get_RegTAP_query(
+# 			ivoid="ivo://org.gavo.dc/flashheros/q/ssa")}).content)
+    with mocker.register_uri(
+        'POST', REGISTRY_BASEURL+'/sync',
+        content=get_pkg_data_contents('data/multi-interface.xml')
     ) as matcher:
         yield matcher
 
@@ -157,6 +176,7 @@ class TestInterfaceClass:
         assert intf.type is None
         assert intf.role is None
         assert intf.is_standard == False
+        assert not intf.is_vosi
 
     def test_unknown_standard(self):
         intf = regtap.Interface("http://example.org", "ivo://gavo/std/a", 
@@ -173,6 +193,7 @@ class TestInterfaceClass:
         intf = regtap.Interface("http://example.org", 
             "ivo://ivoa.net/std/tap#aux", "vs:paramhttp", "std")
         assert isinstance(intf.to_service(), tap.TAPService)
+        assert not intf.is_vosi
 
     def test_secondary_interface(self):
         intf = regtap.Interface("http://example.org", 
@@ -184,6 +205,12 @@ class TestInterfaceClass:
 
         assert str(excinfo.value) == (
             "This is not a standard interface.  PyVO cannot speak to it.")
+
+    def test_VOSI(self):
+        intf = regtap.Interface("http://example.org", 
+            "ivo://ivoa.net/std/vosi#capabilities",
+            "vs:ParamHTTP", "std")
+        assert intf.is_vosi
 
 
 @pytest.mark.usefixtures('keywords_fixture', 'capabilities')
@@ -223,6 +250,14 @@ def test_bad_servicetype_aux():
         regsearch(servicetype='bad_servicetype', includeaux=True)
 
 
+@pytest.mark.usefixtures('multi_interface_fixture', 'capabilities')
 class TestInterfaceSelection:
     def test_interfaces_shown(self):
-        print(regtap.get_RegTAP_query(ivoid="ivo://org.gavo.dc/flashheros/q/ssa"))
+        results = regtap.search(
+            ivoid="ivo://org.gavo.dc/flashheros/q/ssa")
+        assert len(results) == 1
+        rec = results[0]
+        assert set(rec.access_modes()) == {
+            'datalink#links-1.0', 'soda#sync-1.0', 'ssa', 'tap#aux',
+            'vosi#availability', 'vosi#capabilities', 'vosi#tables',
+            'web'}
