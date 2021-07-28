@@ -255,10 +255,14 @@ class RegistryResource(dalq.Record):
         "source_format",
         "region_of_regard",
         "waveband",
-        (f"ivo_string_agg(access_url, '{TOKEN_SEP}')", "access_urls"),
-        (f"ivo_string_agg(standard_id, '{TOKEN_SEP}')", "standard_ids"),
-        (f"ivo_string_agg(intf_type, '{TOKEN_SEP}')", "intf_types"),
-        (f"ivo_string_agg(intf_role, '{TOKEN_SEP}')", "intf_roles"),]
+        (f"ivo_string_agg(COALESCE(access_url, ''), '{TOKEN_SEP}')", 
+            "access_urls"),
+        (f"ivo_string_agg(COALESCE(standard_id, ''), '{TOKEN_SEP}')", 
+            "standard_ids"),
+        (f"ivo_string_agg(COALESCE(intf_type, ''), '{TOKEN_SEP}')", 
+            "intf_types"),
+        (f"ivo_string_agg(COALESCE(intf_role, ''), '{TOKEN_SEP}')", 
+            "intf_roles"),]
 
     def __init__(self, results, index, session=None):
         results["access_urls"][index
@@ -398,7 +402,6 @@ class RegistryResource(dalq.Record):
         suitable for querying if you pass in an identifier from this
         list as the service_type.
         """
-        import pdb;pdb.set_trace()
         return [shorten_stdid(intf.standard_id) or "web" 
             for intf in self.interfaces
             if intf.standard_id or intf.type=="vr:webbrowser"]

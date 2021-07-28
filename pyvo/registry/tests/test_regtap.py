@@ -157,7 +157,7 @@ def multi_interface_fixture(mocker):
 # from pyvo.registry import regtap
 # 
 # with open("data/multi-interface.xml", "wb") as f:
-# 	f.write(requests.get("http://dc.g-vo.org/tap/sync", {
+# 	f.write(requests.get(regtap.REGISTRY_BASEURL+"/sync", {
 # 		"LANG": "ADQL",
 # 		"QUERY": regtap.get_RegTAP_query(
 # 			ivoid="ivo://org.gavo.dc/flashheros/q/ssa")}).content)
