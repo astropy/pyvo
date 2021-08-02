@@ -168,6 +168,12 @@ def multi_interface_fixture(mocker):
         yield matcher
 
 
+@pytest.fixture()
+def flash_service(multi_interface_fixture):
+    return regtap.search(
+            ivoid="ivo://org.gavo.dc/flashheros/q/ssa")[0]
+
+
 class TestInterfaceClass:
     def test_basic(self):
         intf = regtap.Interface("http://example.org", "", "", "")
@@ -250,14 +256,161 @@ def test_bad_servicetype_aux():
         regsearch(servicetype='bad_servicetype', includeaux=True)
 
 
-@pytest.mark.usefixtures('multi_interface_fixture', 'capabilities')
+@pytest.mark.usefixtures('multi_interface_fixture', 'capabilities',
+    'flash_service')
 class TestInterfaceSelection:
-    def test_interfaces_shown(self):
+    def test_exactly_one_result(self):
         results = regtap.search(
             ivoid="ivo://org.gavo.dc/flashheros/q/ssa")
         assert len(results) == 1
-        rec = results[0]
-        assert set(rec.access_modes()) == {
+
+    def test_access_modes(self, flash_service):
+        assert set(flash_service.access_modes()) == {
             'datalink#links-1.0', 'soda#sync-1.0', 'ssa', 'tap#aux',
-            'vosi#availability', 'vosi#capabilities', 'vosi#tables',
             'web'}
+
+    def test_get_web_interface(self, flash_service):
+        svc = flash_service.get_service("web")
+        assert isinstance(svc,
+            regtap._BrowserService)
+        assert (svc.access_url 
+            == "http://dc.zah.uni-heidelberg.de/flashheros/q/web/form")
+    
+    def test_get_aux_interface(self, flash_service):
+        svc = flash_service.get_service("tap#aux")
+        assert (svc._baseurl 
+            == "http://dc.zah.uni-heidelberg.de/tap")
+        
+    def test_get_aux_as_main(self, flash_service):
+        assert (flash_service.get_service("tap")._baseurl 
+            == "http://dc.zah.uni-heidelberg.de/tap")
+
+    def test_get__main_from_aux(self, flash_service):
+        assert (flash_service.get_service("tap")._baseurl 
+            == "http://dc.zah.uni-heidelberg.de/tap")
+
+    def test_get_by_alias(self, flash_service):
+        assert (flash_service.get_service("spectrum")._baseurl 
+            == "http://dc.zah.uni-heidelberg.de/fhssa?")
+
+    def test_get_unsupported_standard(self, flash_service):
+        with pytest.raises(ValueError) as excinfo:
+            flash_service.get_service("soda#sync-1.0")
+
+        assert str(excinfo.value) == (
+            "PyVO has no support for interfaces with standard id"
+            " ivo://ivoa.net/std/soda#sync-1.0.")
+    
+    def test_get_nonexisting_standard(self, flash_service):
+        with pytest.raises(ValueError) as excinfo:
+            flash_service.get_service("http://nonsense#fancy")
+
+        assert str(excinfo.value) == (
+            "No matching interface.")
+
+    def test_unconstrained(self, flash_service):
+        with pytest.raises(ValueError) as excinfo:
+            flash_service.get_service(lax=False)
+
+        assert str(excinfo.value) == (
+            "Multiple matching interfaces found.  Perhaps pass in"
+            " service_type or use a Servicetype constrain in the"
+            " registry.search?  Or use lax=True?")
+
+
+class _FakeResult:
+    """A fake class just sufficient for giving dal.query.Record enough
+    to pull in the dict this is constructed.
+
+    As an extra service, list values are stringified with
+    regtap.TOKEN_SEP -- this is how they ought to come in from
+    RegTAP services.
+    """
+    def __init__(self, d):
+        self.fieldnames = list(d.keys())
+        vals = [regtap.TOKEN_SEP.join(v) if isinstance(v, list) else v
+            for v in d.values()]
+        class _:
+            class array:
+                data = [vals]
+        self.resultstable = _
+
+
+def _makeRegistryRecord(overrides):
+    """returns a minimal RegistryResource instance, overriding
+    some built-in defaults with the dict overrides.
+    """
+    defaults = {
+        "access_urls": "",
+        "standard_ids": "",
+        "intf_types": "",
+        "intf_roles": "",
+    }
+    defaults.update(overrides)
+    return regtap.RegistryResource(_FakeResult(defaults), 0)
+
+
+class TestInterfaceRejection:
+    """tests for various artificial corner cases where interface selection
+    should fail (or just not fail).
+    """
+    def test_nonunique(self):
+        rsc = _makeRegistryRecord({
+            "access_urls": ["http://a", "http://b"],
+            "standard_ids": ["ivo://ivoa.net/std/tap"]*2,
+            "intf_types": ["vs:paramhttp"]*2,
+            "intf_roles": ["std"]*2,
+        })
+        with pytest.raises(ValueError) as excinfo:
+            rsc.get_service("tap", lax=False)
+
+        assert str(excinfo.value) == (
+            "Multiple matching interfaces found.  Perhaps pass in"
+            " service_type or use a Servicetype constrain in the"
+            " registry.search?  Or use lax=True?")
+
+    def test_nonunique_lax(self):
+        rsc = _makeRegistryRecord({
+            "access_urls": ["http://a", "http://b"],
+            "standard_ids": ["ivo://ivoa.net/std/tap"]*2,
+            "intf_types": ["vs:paramhttp"]*2,
+            "intf_roles": ["std"]*2,
+        })
+
+        assert (rsc.get_service("tap")._baseurl
+            == "http://a")
+
+    def test_nonstd_ignored(self):
+        rsc = _makeRegistryRecord({
+            "access_urls": ["http://a", "http://b"],
+            "standard_ids": ["ivo://ivoa.net/std/tap"]*2,
+            "intf_types": ["vs:paramhttp"]*2,
+            "intf_roles": ["std", ""]
+        })
+
+        assert (rsc.get_service("tap", lax=False)._baseurl
+            == "http://a")
+
+    def test_select_single_matching_service(self):
+        rsc = _makeRegistryRecord({
+            "access_urls": ["http://a", "http://b"],
+            "standard_ids": ["", "ivo://ivoa.net/std/tap"],
+            "intf_types": ["vs:webbrowser", "vs:paramhttp"],
+            "intf_roles": ["", "std"]
+        })
+
+        assert (rsc.service._baseurl == "http://b")
+
+    def test_capless(self):
+        rsc = _makeRegistryRecord({
+            "access_urls": "",
+            "standard_ids": "",
+            "intf_types": "",
+            "intf_roles": "",
+        })
+
+        with pytest.raises(ValueError) as excinfo:
+            rsc.service._baseurl 
+        
+        assert str(excinfo.value) == (
+            "No matching interface.")

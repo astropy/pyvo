@@ -223,12 +223,12 @@ class TestSelectClause:
         # is changed.  Just update the assertion then.
         assert rtcons.build_regtap_query(
             rtcons.keywords_to_constraints({"author": "%Hubble%"})
-            ).split("\nFROM rr.resource\n")[0] == (
+            ).split("\nFROM\nrr.resource\n")[0] == (
             "SELECT\n"
             "ivoid, "
             "res_type, "
             "short_name, "
-            "title, "
+            "res_title, "
             "content_level, "
             "res_description, "
             "reference_url, "
@@ -237,10 +237,10 @@ class TestSelectClause:
             "source_format, "
             "region_of_regard, "
             "waveband, "
-            "ivo_string_agg(access_url, ':::py VO sep:::') AS access_urls, "
-            "ivo_string_agg(standard_id, ':::py VO sep:::') AS standard_ids, "
-            "ivo_string_agg(intf_type, ':::py VO sep:::') AS intf_types, "
-            "ivo_string_agg(intf_role, ':::py VO sep:::') AS intf_roles")
+            "\n  ivo_string_agg(COALESCE(access_url, ''), ':::py VO sep:::') AS access_urls, "
+            "\n  ivo_string_agg(COALESCE(standard_id, ''), ':::py VO sep:::') AS standard_ids, "
+            "\n  ivo_string_agg(COALESCE(intf_type, ''), ':::py VO sep:::') AS intf_types, "
+            "\n  ivo_string_agg(COALESCE(intf_role, ''), ':::py VO sep:::') AS intf_roles")
 
     def test_group_by_columns(self):
         # Again, this will break as regtap.RegistryResource.expected_columns
@@ -250,7 +250,7 @@ class TestSelectClause:
             "ivoid, "
             "res_type, "
             "short_name, "
-            "title, "
+            "res_title, "
             "content_level, "
             "res_description, "
             "reference_url, "

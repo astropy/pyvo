@@ -28,15 +28,6 @@ __all__ = ["search", "get_RegTAP_query",
 REGISTRY_BASEURL = os.environ.get("IVOA_REGISTRY", "http://dc.g-vo.org/tap"
     ).rstrip("/")
 
-# a mapping from (base) ivoids (normalised to lowercase as in RegTAP)
-# to the service classes handling the standard.
-STANDARD_TO_SERVICE_CLASS = {
-    "ivo://ivoa.net/std/conesearch":  scs.SCSService,
-    "ivo://ivoa.net/std/sia":  sia.SIAService,
-    "ivo://ivoa.net/std/ssa":  ssa.SSAService,
-    "ivo://ivoa.net/std/sla":  sla.SLAService,
-    "ivo://ivoa.net/std/tap":  tap.TAPService,
-}
 
 # ADQL only has string_agg, where we need string arrays.  We fake arrays
 # by joining elements with a token separator that we think shouldn't
@@ -176,6 +167,18 @@ class RegistryResults(dalq.DALResults):
         return RegistryResource(self, index)
 
 
+class _BrowserService:
+    """A pseudo-service class just opening a web browser for browser-based
+    services.
+    """
+    def __init__(self, access_url):
+        self.access_url = access_url
+
+    def query(self):
+        import webbrowser
+        webbrowser.open(self.access_url, 2)
+
+
 class Interface:
     """
     a service interface.
@@ -208,6 +211,9 @@ class Interface:
         self.is_standard = self.role=="std"
 
     def to_service(self):
+        if self.type=="vr:webbrowser":
+            return _BrowserService(self.access_url)
+
         if self.standard_id is None or not self.is_standard:
             raise ValueError("This is not a standard interface.  PyVO"
                 " cannot speak to it.")
@@ -219,6 +225,27 @@ class Interface:
                 f" standard id {self.standard_id}.")
 
         return service_class(self.access_url)
+
+    def supports(self, standard_id):
+        """returns true if we believe the interface should be able to talk
+        standard_id.
+        
+        At this point, we naively check if the interfaces's standard_id 
+        has standard_id as a prefix.  At this point, we cut off standard_id
+        fragments for this purpose.  This works for all current DAL
+        standards but would, for instance, not work for VOSI.  Hence,
+        this may need further logic if we wanted to extend our service
+        generation to VOSI or, perhaps, VOSpace.
+
+        Parameters
+        ----------
+
+        standard_id : str
+            The ivoid of a standard.
+        """
+        if not self.standard_id:
+            return False
+        return self.standard_id.split("#")[0]==standard_id.split("#")[0]
 
 
 class RegistryResource(dalq.Record):
@@ -255,26 +282,27 @@ class RegistryResource(dalq.Record):
         "source_format",
         "region_of_regard",
         "waveband",
-        (f"ivo_string_agg(COALESCE(access_url, ''), '{TOKEN_SEP}')", 
+        (f"\n  ivo_string_agg(COALESCE(access_url, ''), '{TOKEN_SEP}')", 
             "access_urls"),
-        (f"ivo_string_agg(COALESCE(standard_id, ''), '{TOKEN_SEP}')", 
+        (f"\n  ivo_string_agg(COALESCE(standard_id, ''), '{TOKEN_SEP}')", 
             "standard_ids"),
-        (f"ivo_string_agg(COALESCE(intf_type, ''), '{TOKEN_SEP}')", 
+        (f"\n  ivo_string_agg(COALESCE(intf_type, ''), '{TOKEN_SEP}')", 
             "intf_types"),
-        (f"ivo_string_agg(COALESCE(intf_role, ''), '{TOKEN_SEP}')", 
+        (f"\n  ivo_string_agg(COALESCE(intf_role, ''), '{TOKEN_SEP}')", 
             "intf_roles"),]
 
     def __init__(self, results, index, session=None):
-        results["access_urls"][index
-            ] = results["access_urls"][index].split(TOKEN_SEP)
-        results["standard_ids"][index
-            ] = results["standard_ids"][index].split(TOKEN_SEP)
-        results["intf_types"][index
-            ] = results["intf_types"][index].split(TOKEN_SEP)
-        results["intf_roles"][index
-            ] = results["intf_roles"][index].split(TOKEN_SEP)
-
         dalq.Record.__init__(self, results, index, session)
+
+        self._mapping["access_urls"
+            ] = self._mapping["access_urls"].split(TOKEN_SEP)
+        self._mapping["standard_ids"
+            ] = self._mapping["standard_ids"].split(TOKEN_SEP)
+        self._mapping["intf_types"
+            ] = self._mapping["intf_types"].split(TOKEN_SEP)
+        self._mapping["intf_roles"
+            ] = self._mapping["intf_roles"].split(TOKEN_SEP)
+
 
         self.interfaces = [Interface(*props)
             for props in zip(
@@ -401,25 +429,76 @@ class RegistryResource(dalq.Record):
         For standard interfaces, get_service will return a service
         suitable for querying if you pass in an identifier from this
         list as the service_type.
+
+        This will ignore VOSI (infrastructure) services.
         """
         return [shorten_stdid(intf.standard_id) or "web" 
             for intf in self.interfaces
-            if intf.standard_id or intf.type=="vr:webbrowser"]
+            if (intf.standard_id or intf.type=="vr:webbrowser")
+                and not intf.is_vosi]
+
+    def get_interface(self,
+            service_type:str,
+            lax:bool=True,
+            std_only:bool=False):
+        """returns a regtap.Interface class for service_type.
+
+        Parameters
+        ----------
+
+        The meaning of the parameters is as for get_service.  This
+        method does not return services, though, so you can use it to
+        obtain access URLs and such for interfaces that pyVO does
+        not (directly) support. In addition,
+
+        std_only : bool
+            Only return interfaces declared as "std".  This is what you
+            want when you want to construct pyVO service objects later.
+            This parameter is ignored for the "web" service type.
+        """
+        if service_type=="web":
+            # this works very much differently in the Registry
+            # than do the proper services
+            candidates = [intf for intf in self.interfaces
+                if intf.type=="vr:webbrowser"]
+
+        else:
+            service_type = expand_stdid(
+                rtcons.SERVICE_TYPE_MAP.get(
+                    service_type, service_type))
+
+            candidates = [intf for intf in self.interfaces
+                if ((not std_only) or intf.is_standard) 
+                    and not intf.is_vosi
+                    and ((not service_type) or intf.supports(service_type))]
+
+        if not candidates:
+            raise ValueError(
+                "No matching interface.")
+        if len(candidates)>1 and not lax:
+            raise ValueError("Multiple matching interfaces found."
+                "  Perhaps pass in service_type or use a Servicetype"
+                " constrain in the registry.search?  Or use lax=True?")
+        
+        return candidates[0]
 
     def get_service(self, 
             service_type:str=None, 
-            lax:bool=True,
-            std_only:bool=True):
+            lax:bool=True):
         """
         return an appropriate DALService subclass for this resource that
         can be used to search the resource using service_type.
 
-        Raise a DALQueryError if the service_type is not offerend on
+        Raise a ValueError if the service_type is not offerend on
         the resource (or no standard service is offered).  With
-        lax=False, also raise a DALQueryError if multiple interfaces
+        lax=False, also raise a ValueError if multiple interfaces
         exist for the given service_type.
 
         VOSI (infrastructure) services are always ignored here.
+
+        A magic service_type "web" can be passed in to get non-standard,
+        browser-based interfaces.  The service in this case is an
+        object that opens a web browser if its query() method is called.
 
         Parameters
         ----------
@@ -431,40 +510,17 @@ class RegistryResource(dalq.Record):
 
             Otherwise, a service of the given service type will be returned.
             Pass in an ivoid of a standard or one of the shorthands from
-            rtcons.SERVICE_TYPE_MAP.
+            rtcons.SERVICE_TYPE_MAP, or "web" for a web page (the "service"
+            for this will be an object opening a web browser when you call
+            its query method).
 
         lax : bool
             If there are multiple capabilities for service_type, the
             function choose the first matching capability by default
             Pass lax=False to instead raise a DALQueryError.
-        
-        std_only : bool
-            Only return the interfaces complying to the standard (true
-            by default).  This typically filters out interfaces that
-            can be operated by web browsers.
         """
-        service_type = expand_stdid(
-            rtcons.SERVICE_TYPE_MAP.get(
-                service_type, service_type))
-
-        candidates = [intf for intf in self.interfaces
-            if ((not std_only) and intf.is_standard) 
-                and not intf.is_vosi
-                and (not service_type and intf.standard_id==service_type)]
-
-        if not candidates:
-            raise dalq.DALQueryError("No suitable interface found.")
-        if len(set(c.standard_id for c in candidates))>1 and not lax:
-            raise dalq.DALQueryError("Multiple interfaces found."
-                "  Either pass service_type or use a Servicetype"
-                " constrain in the registry.search.")
-
-        stdid = candidates[0].standard_id.split("#")[0]
-        if not stdid in STANDARD_TO_SERVICE_CLASS:
-            raise dalq.DALQueryError("PyVO does not know how to talk"
-                " to a {stdid} service.")
-        
-        return STANDARD_TO_SERVICE_CLASS[stdid](candidates[0].access_url)
+        return self.get_interface(service_type, lax, std_only=True
+            ).to_service()
 
     @property
     def service(self):
@@ -598,11 +654,4 @@ def ivoid2service(ivoid, servicetype=None):
     # there is only one.
     resource = resources[0]
 
-    if servicetype:
-        return resource.get_service(servicetype, lax=True)
-
-    else:
-        return [STANDARD_TO_SERVICE_CLASS[interface.standard_id
-                ](interface.access_url)
-            for interface in resource.interfaces
-            if interface.standard_id in STANDARD_TO_SERVICE_CLASS]
+    return resource.get_service(servicetype, lax=True)
