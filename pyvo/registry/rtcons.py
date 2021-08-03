@@ -51,7 +51,7 @@ def make_sql_literal(value):
     elif isinstance(value, bytes):
         return "'{}'".format(value.decode("ascii").replace("'", "''"))
 
-    elif isinstance(value, int):
+    elif isinstance(value, (int, numpy.integer)):
         return "{:d}".format(value)
 
     elif isinstance(value, (float, numpy.floating)):

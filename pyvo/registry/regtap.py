@@ -22,6 +22,7 @@ from astropy import table
 
 from . import rtcons
 from ..dal import scs, sia, ssa, sla, tap, query as dalq
+from ..io.vosi import vodataservice
 from ..utils.formatting import para_format_desc
 
 
@@ -676,10 +677,87 @@ class RegistryResource(dalq.Record):
             contacts.append(contact)
 
         return "\n".join(contacts)
-                
+
+    def _build_vosi_column(self, column_row):
+        """
+        return a io.vosi.vodataservice.Column element for a
+        query result from get_tables.
+        """
+        res = vodataservice.TableParam()
+        for att_name in ["name", "ucd", "unit", "utype"]:
+            setattr(res, att_name, column_row[att_name])
+        res.description = column_row["column_description"]
+
+# TODO: be more careful with the type; this isn't necessarily a
+# VOTable type (regrettably)
+        res.datatype = vodataservice.VOTableType(
+            arraysize=column_row["arraysize"],
+            extendedType=column_row["extended_type"])
+        res.datatype.content = column_row["datatype"]
+
+        return res
+
+    def _build_vosi_table(self, table_row, columns):
+        """
+        return a io.vosi.vodataservice.Table element for a
+        query result from get_tables.
+        """
+        res = vodataservice.Table()
+        res.name = table_row["table_name"]
+        res.title = table_row["table_title"]
+        res.description = table_row["table_description"]
+        res._columns = [
+            self._build_vosi_column(row)
+            for row in columns]
+        return res
+
+    def get_tables(self, table_limit=20):
+        """
+        return the structure of the tables underlying the service.
+
+        This returns a dict with table names as keys and vosi.Table
+        objects as values (pretty much what tables returns for a TAP
+        service).
+
+        Note that not only TAP services can (and do) define table
+        structures.  The meaning of non-TAP tables is not always
+        as clear.
+
+        Also note that resources do not need to define tables at all.
+        You will receive an empty dictionary if they don't.
+        """
+        svc = get_RegTAP_service()
+
+        tables = svc.run_sync(
+            """SELECT table_name, table_description, table_index, table_title
+            FROM rr.res_table
+            WHERE ivoid={}""".format(
+                    rtcons.make_sql_literal(self.ivoid)))
+        if len(tables)>table_limit:
+            raise dalq.DALQueryError(f"Resource {self.ivoid} reports"
+                f" {len(tables)} tables.  Pass a higher table_limit"
+                " to see them all.")
+       
+        res = {}
+        for table_row in tables:
+            columns = svc.run_sync(
+                """
+                SELECT name, ucd, unit, utype, datatype, arraysize,
+                    extended_type, column_description
+                FROM rr.table_column
+                WHERE ivoid={}
+                    AND table_index={}""".format(
+                    rtcons.make_sql_literal(self.ivoid),
+                    rtcons.make_sql_literal(table_row["table_index"])))
+            res[table_row["table_name"]] = self._build_vosi_table(
+                table_row, columns)
+
+        return res
+
 
 def ivoid2service(ivoid, servicetype=None):
-    """Return service(s) for a given IVOID.
+    """
+    return service(s) for a given IVOID.
 
     The servicetype option specifies the kind of service requested
     (conesearch, sia, ssa, slap, or tap).  By default, if none is

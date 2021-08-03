@@ -3,8 +3,11 @@
 """
 Tests for pyvo.registry.regtap
 """
+
+import re
 from functools import partial
 from urllib.parse import parse_qsl
+
 import pytest
 
 from pyvo.registry import regtap
@@ -433,7 +436,8 @@ class TestInterfaceRejection:
 class TestExtraResourceMethods:
     """
     tests for methods of RegistryResource containing some non-trivial
-    logic (except service selection, which is in TestInterfaceSelection.
+    logic (except service selection, which is in TestInterfaceSelection,
+    and get_tables, which is in TestGetTables).
     """
     @pytest.mark.remote_data
     def test_get_contact(self):
@@ -442,3 +446,67 @@ class TestExtraResourceMethods:
         assert (rsc.get_contact()
             == "GAVO Data Center Team (++49 6221 54 1837)"
                 " <gavo@ari.uni-heidelberg.de>")
+
+
+# TODO: While I suppose the contact test should keep requiring network,
+# I think we should can the network responses involved in the following;
+# the stuff might change upstream any time and then break our unit tests.
+@pytest.mark.remote_data
+@pytest.fixture()
+def flash_tables():
+    rsc = _makeRegistryRecord(
+        {"ivoid": "ivo://org.gavo.dc/flashheros/q/ssa"})
+    return rsc.get_tables()
+
+
+@pytest.mark.usefixtures("flash_tables")
+class TestGetTables:
+    @pytest.mark.remote_data
+    def test_get_tables_limit_enforced(self):
+        rsc = _makeRegistryRecord(
+            {"ivoid": "ivo://org.gavo.dc/tap"})
+        with pytest.raises(dalq.DALQueryError) as excinfo:
+            rsc.get_tables()
+
+        assert re.match(r"Resource ivo://org.gavo.dc/tap reports \d+ tables."
+            "  Pass a higher table_limit to see them all.", str(excinfo.value))
+
+    @pytest.mark.remote_data
+    def test_get_tables_names(self, flash_tables):
+        assert (list(sorted(flash_tables.keys()))
+            == ["flashheros.data", "ivoa.obscore"])
+
+    @pytest.mark.remote_data
+    def test_get_tables_table_instance(self, flash_tables):
+        assert (flash_tables["ivoa.obscore"].name
+            == "ivoa.obscore")
+        assert (flash_tables["ivoa.obscore"].description
+            == "This data collection is queriable in GAVO Data"
+            " Center's obscore table.")
+        assert (flash_tables["flashheros.data"].title
+            == "Flash/Heros SSA table")
+
+    @pytest.mark.remote_data
+    def test_get_tables_column_meta(self, flash_tables):
+        def getflashcol(name):
+            for col in flash_tables["flashheros.data"].columns:
+                if name==col.name:
+                    return col
+            raise KeyError(name)
+
+        assert getflashcol("accref").datatype.content == "char"
+        assert getflashcol("accref").datatype.arraysize == "*"
+
+# TODO: upstream bug: the following needs to fixed in DaCHS before
+# the assertion passes
+        # assert getflashcol("ssa_region").datatype._extendedtype == "point"
+
+        assert getflashcol("mime").ucd == 'meta.code.mime'
+
+        assert getflashcol("ssa_specend").unit == "m"
+
+        assert (getflashcol("ssa_specend").utype 
+            == "ssa:char.spectralaxis.coverage.bounds.stop")
+
+        assert (getflashcol("ssa_fluxcalib").description
+            == "Type of flux calibration")
