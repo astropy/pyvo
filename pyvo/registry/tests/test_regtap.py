@@ -274,6 +274,10 @@ class TestResultsExtras:
 @pytest.mark.usefixtures('multi_interface_fixture', 'capabilities',
     'flash_service')
 class TestInterfaceSelection:
+    """
+    tests for the selection and generation of services within 
+    RegistryResource.
+    """
     def test_exactly_one_result(self):
         results = regtap.search(
             ivoid="ivo://org.gavo.dc/flashheros/q/ssa")
@@ -417,15 +421,24 @@ class TestInterfaceRejection:
         assert (rsc.service._baseurl == "http://b")
 
     def test_capless(self):
-        rsc = _makeRegistryRecord({
-            "access_urls": "",
-            "standard_ids": "",
-            "intf_types": "",
-            "intf_roles": "",
-        })
+        rsc = _makeRegistryRecord({})
 
         with pytest.raises(ValueError) as excinfo:
             rsc.service._baseurl 
         
         assert str(excinfo.value) == (
             "No matching interface.")
+
+
+class TestExtraResourceMethods:
+    """
+    tests for methods of RegistryResource containing some non-trivial
+    logic (except service selection, which is in TestInterfaceSelection.
+    """
+    @pytest.mark.remote_data
+    def test_get_contact(self):
+        rsc = _makeRegistryRecord(
+            {"ivoid": "ivo://org.gavo.dc/flashheros/q/ssa"})
+        assert (rsc.get_contact()
+            == "GAVO Data Center Team (++49 6221 54 1837)"
+                " <gavo@ari.uni-heidelberg.de>")

@@ -652,6 +652,31 @@ class RegistryResource(dalq.Record):
             if self.reference_url:
                 print("More info: " + self.reference_url, file=file)
 
+    def get_contact(self):
+        """
+        return contact information for this resource in a string.
+
+        Use this to report bugs or unexpected downtime.
+        """
+        res = get_RegTAP_service().run_sync("""
+            SELECT role_name, email, telephone
+            FROM rr.res_role
+            WHERE 
+                base_role='contact'
+                AND ivoid={}""".format(
+                    rtcons.make_sql_literal(self.ivoid)))
+       
+        contacts = []
+        for row in res:
+            contact = row["role_name"]
+            if row["telephone"]:
+                contact += f" ({row['telephone']})"
+            if row["email"]:
+                contact += f" <{row['email']}>"
+            contacts.append(contact)
+
+        return "\n".join(contacts)
+                
 
 def ivoid2service(ivoid, servicetype=None):
     """Return service(s) for a given IVOID.
