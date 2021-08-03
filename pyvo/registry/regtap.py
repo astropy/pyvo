@@ -17,6 +17,9 @@ standardized TAP-based services.
 """
 import functools
 import os
+
+from astropy import table
+
 from . import rtcons
 from ..dal import scs, sia, ssa, sla, tap, query as dalq
 from ..utils.formatting import para_format_desc
@@ -165,6 +168,25 @@ class RegistryResults(dalq.DALResults):
             the zero-based index of the record
         """
         return RegistryResource(self, index)
+
+    def to_table(self):
+        """
+        returns a brief overview of the matched results as an astropy table.
+
+        This is mainly intended for interactive use, where people would
+        like to inspect the matches in, perhaps, notebooks.
+        """
+        return table.Table([
+                list(range(len(self))),
+                [r.res_title for r in self],
+                [r.res_description for r in self],
+                [", ".join(r.access_modes()) for r in self]],
+            names=("index", "title", "description", "interfaces"),
+            descriptions=(
+                "Index to access the resource within self",
+                "Resource title",
+                "Resource description",
+                "Access modes offered"))
 
 
 class _BrowserService:
