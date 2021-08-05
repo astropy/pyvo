@@ -197,7 +197,7 @@ class _BrowserService:
     def __init__(self, access_url):
         self.access_url = access_url
 
-    def query(self):
+    def search(self):
         import webbrowser
         webbrowser.open(self.access_url, 2)
 
