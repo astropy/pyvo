@@ -174,6 +174,13 @@ class TestIvoidConstraint:
             "ivoid = 'ivo://example/some_path'")
 
 
+class TestUCDConstraint:
+    def test_basic(self):
+        cons = rtcons.UCD("phot.mag;em.opt.%", "phot.mag;em.ir.%")
+        assert (cons.get_search_condition() ==
+            "ucd LIKE 'phot.mag;em.opt.%' OR ucd LIKE 'phot.mag;em.ir.%'")
+
+
 class TestWhereClauseBuilding:
     @staticmethod
     def where_clause_for(*args, **kwargs):
@@ -214,7 +221,7 @@ class TestWhereClauseBuilding:
         # go.
         assert str(excinfo.value) == ("foo is not a valid registry"
             " constraint keyword.  Use one of"
-            " author, datamodel, ivoid, keywords, servicetype, waveband.")
+            " author, datamodel, ivoid, keywords, servicetype, ucd, waveband.")
 
 
 class TestSelectClause:

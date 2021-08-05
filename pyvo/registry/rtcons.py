@@ -312,6 +312,26 @@ class Ivoid(Constraint):
         self._fillers = {"ivoid": ivoid}
 
 
+class UCD(Constraint):
+    """
+    A constraint selecting resources having tables with columns having
+    UCDs matching a SQL pattern (% as wildcard).  Multiple patterns may 
+    be passed in and are joined by OR.
+    """
+    _keyword = "ucd"
+
+    def __init__(self, *patterns):
+        self._extra_tables = ["rr.table_column"]
+        self._condition = " OR ".join(
+            f"ucd LIKE {{ucd{i}}}" for i in range(len(patterns)))
+        self._fillers = dict((f"ucd{index}", pattern)
+            for index, pattern in enumerate(patterns))
+    
+
+# NOTE: If you add new Contraint-s, don't forget to add them in
+# registry.__init__ and in docs/registry/index.rst.
+
+
 def build_regtap_query(constraints):
     """returns a RegTAP query ready for submission from a list of
     Constraint instances.

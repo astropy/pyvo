@@ -29,7 +29,7 @@ from ..utils.formatting import para_format_desc
 __all__ = ["search", "get_RegTAP_query", 
     "RegistryResource", "RegistryResults", "ivoid2service"]
 
-REGISTRY_BASEURL = os.environ.get("IVOA_REGISTRY", "http://dc.g-vo.org/tap"
+REGISTRY_BASEURL = os.environ.get("IVOA_REGISTRY", "http://reg.g-vo.org/tap"
     ).rstrip("/")
 
 
@@ -181,7 +181,7 @@ class RegistryResults(dalq.DALResults):
                 list(range(len(self))),
                 [r.res_title for r in self],
                 [r.res_description for r in self],
-                [", ".join(r.access_modes()) for r in self]],
+                [", ".join(sorted(r.access_modes())) for r in self]],
             names=("index", "title", "description", "interfaces"),
             descriptions=(
                 "Index to access the resource within self",
@@ -455,10 +455,10 @@ class RegistryResource(dalq.Record):
 
         This will ignore VOSI (infrastructure) services.
         """
-        return [shorten_stdid(intf.standard_id) or "web" 
+        return set(shorten_stdid(intf.standard_id) or "web" 
             for intf in self.interfaces
             if (intf.standard_id or intf.type=="vr:webbrowser")
-                and not intf.is_vosi]
+                and not intf.is_vosi)
 
     def get_interface(self,
             service_type:str,
