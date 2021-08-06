@@ -10,4 +10,5 @@ from .rtcons import (Constraint,
     Freetext, Author, Servicetype, Waveband, Datamodel, Ivoid,
     UCD)
 
-__all__ = ["search"]
+__all__ = ["search", "get_RegTAP_query", "Freetext", "Author",
+    "Servicetype", "Waveband", "Datamodel", "Ivoid", "UCD"]

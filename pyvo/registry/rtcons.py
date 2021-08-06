@@ -109,7 +109,9 @@ class Constraint:
 
 
 class Freetext(Constraint):
-    """plain text to match against title, description, and person names.
+    """
+    A contraint using plain text to match against title, description, 
+    and person names.
 
     Note that in contrast to regsearch, this will not do a pattern
     search in subjects.
@@ -148,7 +150,9 @@ class Freetext(Constraint):
 
 
 class Author(Constraint):
-    """constrain by a pattern for the creator (“author”) of a resource.
+    """
+    A constraint for creators (“authors”) of a resource; you can use SQL 
+    patterns here.
 
     Note that regrettably there are no guarantees as to how authors
     are written in the VO.  This means that you will generally have
@@ -165,10 +169,12 @@ class Author(Constraint):
 
 
 class Servicetype(Constraint):
-    """constrain by the type of service.
+    """
+    A constraint for for the availability of a certain kind of service
+    on the result.
 
     The constraint is either a bespoke keyword (of which there are at least
-    image, spectrum, scs, line, and table; the fullist is in 
+    image, spectrum, scs, line, and table; the full list is in 
     SERVICE_TYPE_MAP) or the standards' ivoid (which generally looks like
     ``ivo://ivoa.net/std/<standardname>`` and have to be URIs with
     a scheme part in any case).
@@ -216,7 +222,8 @@ class Servicetype(Constraint):
 
 
 class Waveband(Constraint):
-    """A constraint on messenger particles.
+    """
+    A constraint on messenger particles.
 
     This builds a constraint against rr.resource.waveband, i.e.,
     a verbal indication of the messenger particle, coming
@@ -250,7 +257,8 @@ class Waveband(Constraint):
 
 
 class Datamodel(Constraint):
-    """A constraint on the adherence to a data model.
+    """
+    A constraint on the adherence to a data model.
 
     This constraint only lets resources pass that declare support for
     one of several well-known data models; the SQL produced depends
@@ -303,7 +311,8 @@ class Datamodel(Constraint):
 
 
 class Ivoid(Constraint):
-    """A constraint selecting a single resource by its IVOA identifier.
+    """
+    A constraint selecting a single resource by its IVOA identifier.
     """
     _keyword = "ivoid"
 
@@ -315,8 +324,9 @@ class Ivoid(Constraint):
 class UCD(Constraint):
     """
     A constraint selecting resources having tables with columns having
-    UCDs matching a SQL pattern (% as wildcard).  Multiple patterns may 
-    be passed in and are joined by OR.
+    UCDs matching a SQL pattern (% as wildcard).  
+
+    Multiple patterns may be passed in and are joined by OR.
     """
     _keyword = "ucd"
 
