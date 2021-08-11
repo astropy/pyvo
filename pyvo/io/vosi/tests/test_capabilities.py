@@ -168,3 +168,7 @@ class TestInterface:
     def test_mirrors_have_urls(self, parsed_caps):
         assert [m.content for m in parsed_caps[3].interfaces[0].mirrorurls
             ] == ['https://example.org/tap', 'https://paris.example.org/tap']
+
+    def test_testquerystring_parsed(self, parsed_caps):
+        assert (parsed_caps[3].interfaces[0].testquerystring.content
+            == 'QUERY=SELECT%20*%20FROM%20tap_schema.tables&LANG=ADQL')

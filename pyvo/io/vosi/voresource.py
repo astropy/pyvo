@@ -247,6 +247,7 @@ class Interface(Element):
         self._version = version
         self._role = role
         self._resulttype = None
+        self._testquerystring = None
 
         self._accessurls = HomogeneousList(AccessURL)
         self._securitymethods = HomogeneousList(SecurityMethod)
@@ -333,6 +334,18 @@ class Interface(Element):
         be employed to gain access.
         """
         return self._securitymethods
+
+    @xmlelement(name='testQueryString')
+    def testquerystring(self):
+        """
+        a string to be used in an interface-specific way to obtain a
+        non-empty result from the service.
+        """
+        return self._testquerystring
+
+    @testquerystring.setter
+    def testquerystring(self, testquerystring):
+        self._testquerystring = testquerystring
 
     @xmlelement
     def resulttype(self):
