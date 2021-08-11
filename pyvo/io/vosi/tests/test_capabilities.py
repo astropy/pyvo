@@ -57,12 +57,6 @@ class TestCapabilities:
     def test_stdid_parsed(self, parsed_caps):
         assert parsed_caps[3].standardid == "ivo://ivoa.net/std/TAP"
 
-    def test_interface_parsed(self, parsed_caps):
-        assert parsed_caps[3].interfaces[0].accessurls[0].use == "base"
-        assert equals(
-            parsed_caps[3].interfaces[0].accessurls[0].content,
-            "http://example.org/tap")
-
     def test_dm_parsed(self, parsed_caps):
         assert equals(
             parsed_caps[3].datamodels[0].ivo_id,
@@ -154,3 +148,23 @@ class TestCapabilities:
             vosi.parse_capabilities(get_pkg_data_filename(
                 'data/capabilities/multiple_capa_descriptions.xml'),
                 pedantic=True)
+
+
+@pytest.mark.usefixtures("parsed_caps")
+class TestInterface:
+    def test_interface_parsed(self, parsed_caps):
+        assert parsed_caps[3].interfaces[0].accessurls[0].use == "base"
+        assert equals(
+            parsed_caps[3].interfaces[0].accessurls[0].content,
+            "http://example.org/tap")
+
+    def test_mirrors_parsed(self, parsed_caps):
+        assert len(parsed_caps[3].interfaces[0].mirrorurls) == 2
+
+    def test_mirrors_have_titles(self, parsed_caps):
+        assert [m.title for m in parsed_caps[3].interfaces[0].mirrorurls
+            ] == ["https version", "Paris mirror"]
+
+    def test_mirrors_have_urls(self, parsed_caps):
+        assert [m.content for m in parsed_caps[3].interfaces[0].mirrorurls
+            ] == ['https://example.org/tap', 'https://paris.example.org/tap']

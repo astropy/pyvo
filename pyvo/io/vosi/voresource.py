@@ -146,6 +146,27 @@ class AccessURL(ContentMixin, Element):
         self._use = use
 
 
+class MirrorURL(ContentMixin, Element):
+    """
+    A URL available as a mirror of an access URL.
+
+    These come with a human-readable title intended to aid in mirror
+    selection.
+    """
+    def __init__(
+        self, config=None, pos=None, _name='accessURL', title=None, **kwargs
+    ):
+        super().__init__(config, pos, _name, **kwargs)
+        self._title = title
+
+    @xmlattribute
+    def title(self):
+        """
+        A human-readable title for the mirror.
+        """
+        return self._title
+
+
 class SecurityMethod(ContentMixin, Element):
     """
     SecurityMethod element as described in
@@ -229,6 +250,7 @@ class Interface(Element):
 
         self._accessurls = HomogeneousList(AccessURL)
         self._securitymethods = HomogeneousList(SecurityMethod)
+        self._mirrorurls = HomogeneousList(MirrorURL)
 
     def __repr__(self):
         return '<Interface role={}>...</Interface>'.format(
@@ -293,6 +315,13 @@ class Interface(Element):
         objects.
         """
         return self._accessurls
+
+    @xmlelement(name='mirrorURL', cls=MirrorURL)
+    def mirrorurls(self):
+        """
+        mirror(s) for this access URL.
+        """
+        return self._mirrorurls
 
     @xmlelement(name='securityMethod', cls=SecurityMethod)
     def securitymethods(self):
