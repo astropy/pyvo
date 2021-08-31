@@ -22,7 +22,7 @@ from .exceptions import W06
 
 __all__ = [
     "ValidationLevel", "Capability", "Interface", "AccessURL",
-    "SecurityMethod", "WebBrowser", "WebService"]
+    "SecurityMethod", "WebBrowser", "WebService", "MirrorURL"]
 
 
 ######################################################################
