@@ -168,11 +168,14 @@ class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
             # in pyvo. So pick any access url as long as it's not
             if cap.standardid.lower() == SIA2_STANDARD_ID.lower():
                 for interface in cap.interfaces:
-                    if interface.accessurls and not \
-                        [m for m in interface.securitymethods if
-                         m.standardid != 'ivo://ivoa.net/sso#BasicAA']:
+                    if interface.accessurls and \
+                            not (len(interface.securitymethods) == 1 and
+                                 interface.securitymethods[0].standardid ==
+                                 'ivo://ivoa.net/sso#BasicAA'):
                         self.query_ep = interface.accessurls[0].content
                         break
+        if not self.query_ep:
+            raise AttributeError('No valid end point found')
 
     def search(self, pos=None, band=None, time=None, pol=None,
                field_of_view=None, spatial_resolution=None,
