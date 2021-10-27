@@ -1,5 +1,6 @@
 1.4 (unreleased)
 ================
+- Added the TAP Table Manipulation prototype (cadc-tb-upload). [#274]
 
 - we now ignore namespaces in xsi-type attributes; this is a lame fix
   for services like ESO's and MAST's TAP, which do not use canonical

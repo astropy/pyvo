@@ -1,15 +1,16 @@
 import inspect
 import warnings
-from dataclasses import dataclass
 from functools import wraps
 from typing import Dict, Iterable
+from .protofeature import Feature
 
 from pyvo.dal.exceptions import PyvoUserWarning
 
-__all__ = ['features', 'prototype_feature', 'activate_features', 'Feature', 'PrototypeWarning', 'PrototypeError']
+__all__ = ['features', 'prototype_feature', 'activate_features', 'PrototypeWarning', 'PrototypeError']
+
 
 features: Dict[str, "Feature"] = {
-
+'cadc-tb-upload': Feature('cadc-tb-upload', 'https://wiki.ivoa.net/twiki/bin/view/IVOA/TAP-1_1-Next', False)
 }
 
 
@@ -37,6 +38,14 @@ def prototype_feature(*args):
     return decorator
 
 
+def _set_features(flag, *feature_names: Iterable[str]):
+    names = feature_names or set(features.keys())
+    for name in names:
+        if not _validate(name):
+            continue
+        features[name].on = flag
+
+
 def activate_features(*feature_names: Iterable[str]):
     """
     Activate one or more prototype features.
@@ -51,60 +60,24 @@ def activate_features(*feature_names: Iterable[str]):
     -------
 
     """
-    names = feature_names or set(features.keys())
-    for name in names:
-        if not _validate(name):
-            continue
-        features[name].on = True
+    _set_features(True, *feature_names)
 
 
-@dataclass
-class Feature:
+def deactivate_features(*feature_names: Iterable[str]):
     """
-    A prototype feature implementing a standard that is currently in the process of being approved, but that might
-    change as a result of the approval process. A Feature must have a name. Optionally, a feature may have a *url*
-    that is displayed to the user in case a feature is used without the user explicitly opting in on its usage.
-    The URL is expected to contain more information about the standard and its state in the approval process.
+    De-activate one or more prototype features.
+
+    Parameters
+    ----------
+    feature_names: Iterable[str]
+        An arbitrary number of feature names. If a feature with that name does not exist, a `PrototypeWarning` will
+        be issued. If no arguments are provided, all features will be de-activated
+
+    Returns
+    -------
+
     """
-    name: str
-    url: str = ''
-    on: bool = False
-
-    def should_error(self):
-        """
-        Should accessing this feature fail?
-
-        Returns
-        -------
-        bool Whether accessing this feature should result in an error.
-        """
-        return not self.on
-
-    def error(self, function_name):
-        """
-        Format an error message when the feature is being accesses without the user having opted in its usage.
-
-        This function will be used as a callback when an error message needs to be displayed to the user, with the
-        function name that was accessed as an argument. Extensions of this class may have additional information to
-        display.
-
-        Parameters
-        ----------
-        function_name: str
-            The name of the function associated to this feature and that the user called.
-
-        Returns
-        -------
-        str: The error message to be displayed to the user.
-
-        """
-        message = f'{function_name} is part of a prototype feature ({self.name}) that has not been activated. ' \
-                  f'For information about prototype features please refer to ' \
-                  f'https://pyvo.readthedocs.io/en/latest/prototypes .'
-        if self.url:
-            message += f' For more information about the {self.name} feature please visit {self.url}.'
-        message += f' To suppress this error and enable the feature use `pyvo.utils.activate_features(\'{self.name}\')`'
-        return message
+    _set_features(False, *feature_names)
 
 
 class PrototypeError(Exception):
