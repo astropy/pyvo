@@ -5,6 +5,7 @@ Tests for pyvo.dal.sia
 """
 from functools import partial
 import re
+import requests_mock
 
 import pytest
 
@@ -56,6 +57,44 @@ def test_search():
 
 
 class TestSIAService:
+
+    def test_capabilities(self):
+        # this tests the SIA2 capabilities with various combinations:
+
+        # - sia-basicauth - one interfaces with BasicAA security method - this
+        #         should fail because pyvo does not support BasicAA
+
+        with requests_mock.Mocker() as cm:
+            cm.get('https://example.com/sia/capabilities',
+                   content=get_pkg_data_contents('data/sia2/capabilities.xml'))
+            cm.get('https://example.com/sia-basicauth/capabilities',
+                   content=get_pkg_data_contents(
+                       'data/sia2/capabilities-basicauth.xml'))
+            cm.get('https://example.com/sia-newformat/capabilities',
+                   content=get_pkg_data_contents(
+                       'data/sia2/capabilities-newformat.xml'))
+            cm.get('https://example.com/sia-priv/capabilities',
+                   content=get_pkg_data_contents(
+                       'data/sia2/capabilities-priv.xml'))
+
+            # multiple interfaces with single security method each and
+            # anonymous access.
+            service = SIAService('https://example.com/sia')
+            assert service.query_ep == 'https://example.com/sia/v2query'
+
+            # one interfaces with BasicAA security method - this should fail
+            # because pyvo does not support BasicAA
+            with pytest.raises(AttributeError):
+                service = SIAService('https://example.com/sia-basicauth')
+
+            # one interface with multiple security methods
+            service = SIAService('https://example.com/sia-newformat')
+            assert service.query_ep == 'https://example.com/sia/v2query'
+
+            # multiple interfaces with single security method each (no anon)
+            service = SIAService('https://example.com/sia-priv')
+            assert service.query_ep == 'https://example.com/sia/v2query'
+
     @pytest.mark.usefixtures('sia')
     @pytest.mark.usefixtures('capabilities')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")

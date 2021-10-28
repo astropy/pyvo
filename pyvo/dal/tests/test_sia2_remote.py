@@ -10,7 +10,7 @@ from pyvo.dal.sia2 import search, SIAService
 
 import astropy.units as u
 
-CADC_SIA_URL = 'https://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/sia'
+CADC_SIA_URL = 'https://ws.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/sia'
 
 
 @pytest.mark.remote_data
