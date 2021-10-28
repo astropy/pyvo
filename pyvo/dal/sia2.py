@@ -174,6 +174,7 @@ class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
                                  'ivo://ivoa.net/sso#BasicAA'):
                         self.query_ep = interface.accessurls[0].content
                         break
+
         if not self.query_ep:
             raise AttributeError('No valid end point found')
 
