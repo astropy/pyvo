@@ -25,6 +25,8 @@ def mime(mocker):
             return b'Text content'
         elif 'image' in request.url:
             return get_pkg_data_contents('data/mimetype/ivoa_logo.jpg')
+        elif 'fits' in request.url:
+            return get_pkg_data_contents('data/mimetype/test.fits')
 
     with mocker.register_uri(
         'GET', requests_mock.ANY, content=callback
@@ -41,6 +43,11 @@ def test_mime_object_maker():
     img = mime_object_maker(mime_url+'image', 'image/jpeg')
     assert img
     assert 'JPEG' == img.format
+
+    fits = mime_object_maker(mime_url+'fits', 'application/fits')
+    assert 2 == len(fits)
+
+    # error cases
     with pytest.raises(ValueError):
         mime_object_maker(None, "not/a/mime/type")
     with pytest.raises(ValueError):
