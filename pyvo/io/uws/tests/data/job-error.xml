@@ -18,9 +18,7 @@
     <uws:parameter id="responseformat"/>
     <uws:parameter id="upload"/>
   </uws:parameters>
-  <uws:results>
-    <uws:result id="result" xlink:href="http://example.com/tap/async/1337/results/result"/>
-  </uws:results>
+  <uws:results />
   <uws:errorSummary hasDetail="false" type="fatal">
     <uws:message>We have problem</uws:message>
   </uws:errorSummary>
