@@ -439,4 +439,3 @@ class Message(ContentMixin, UWSElement):
     """The actual UWS Error message."""
     def __init__(self, config=None, pos=None, _name='message', **kwargs):
         super().__init__(config, pos, _name, **kwargs)
-
