@@ -95,6 +95,8 @@ class JobSummary(Element):
         self._destruction = None
         self._parameters = Parameters()
         self._results = Results()
+        self._errorsummary = None
+        self._message = None
 
     @uwselement(name='jobId', plain=True)
     def jobid(self):
@@ -256,6 +258,25 @@ class JobSummary(Element):
         results.parse(iterator, config)
         self._results = results
 
+    @uwselement(name='errorSummary', plain=True)
+    def errorsummary(self):
+        """The error summary of the job."""
+        return self._errorsummary
+
+    @errorsummary.adder
+    def errorsummary(self, iterator, tag, data, config, pos):
+        self._errorsummary = ErrorSummary(config, pos,
+                                          'errorSummary', **data)
+
+    @uwselement(plain=True)
+    def message(self):
+        """the error message"""
+        return self._message
+
+    @message.setter
+    def message(self, message):
+        self._message = message
+
 
 class JobList(UWSElement, HomogeneousList):
     def __init__(self, config=None, pos=None, _name='jobs', **kwargs):
@@ -375,3 +396,47 @@ class Result(Reference, UWSElement):
     @mimetype.setter
     def mimetype(self, mimetype):
         self._mimetype = mimetype
+
+
+class ErrorSummary(UWSElement):
+    """A UWS Error summary."""
+    def __init__(self, config=None, pos=None, _name='errorSummary', **kwargs):
+        super().__init__(config, pos, _name, **kwargs)
+
+        self._type = kwargs.get('type')
+        self._has_detail = _convert_boolean(kwargs.get('hasDetail'))
+        self._message = None
+
+    @xmlattribute(name='type')
+    def type_(self):
+        """the type of the error"""
+        return self._type
+
+    @type_.setter
+    def type_(self, type_):
+        self._type = type_
+
+    @xmlattribute
+    def has_detail(self):
+        """whether error has details"""
+        return self._has_detail
+
+    @has_detail.setter
+    def has_detail(self, has_detail):
+        self._has_detail = has_detail
+
+    @uwselement(name='message')
+    def message(self):
+        """The error message"""
+        return self._message
+
+    @message.adder
+    def message(self, message):
+        self._message = message
+
+
+class Message(ContentMixin, UWSElement):
+    """The actual UWS Error message."""
+    def __init__(self, config=None, pos=None, _name='message', **kwargs):
+        super().__init__(config, pos, _name, **kwargs)
+

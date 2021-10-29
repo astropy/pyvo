@@ -452,7 +452,7 @@ def ivoid2service(ivoid, servicetype=None):
         "ivo://ivoa.net/std/tap":  tap.TAPService
     }
     for result in results:
-        thistype = result["standard_id"].decode()
+        thistype = result["standard_id"]
         if thistype not in ivo_cls.keys():
             # This one is not a VO service
             continue
@@ -462,8 +462,8 @@ def ivoid2service(ivoid, servicetype=None):
             continue
         elif servicetype is not None:
             # Return only one service, the first of the requested type
-            return(cls(result["access_url"].decode()))
+            return(cls(result["access_url"]))
         else:
             # Return a list of services
-            services.append(cls(result["access_url"].decode()))
+            services.append(cls(result["access_url"]))
     return services

@@ -4,7 +4,7 @@ A module for parsing and working with mimetypes
 """
 
 import mimetypes
-import mimeparse
+import cgi
 
 from astropy.io.fits import HDUList
 
@@ -72,7 +72,12 @@ def mime_object_maker(url, mimetype, session=None):
         optional session to use for network requests
     """
     session = use_session(session)
-    mimetype = mimeparse.parse_mime_type(mimetype)
+    full_type, params = cgi.parse_header(mimetype)
+    mimetype = [x.strip() for x in full_type.split('/')] if '/' in full_type \
+        else None
+    if not mimetype or len(mimetype) > 2:
+        raise MimeTypeParseException(
+            "Can't parse type \"{}\"".format(full_type))
 
     if mimetype[0] == 'text':
         return session.get(url).text
