@@ -22,7 +22,7 @@ from .exceptions import W06
 
 __all__ = [
     "ValidationLevel", "Capability", "Interface", "AccessURL",
-    "SecurityMethod", "WebBrowser", "WebService"]
+    "SecurityMethod", "WebBrowser", "WebService", "MirrorURL"]
 
 
 ######################################################################
@@ -146,6 +146,27 @@ class AccessURL(ContentMixin, Element):
         self._use = use
 
 
+class MirrorURL(ContentMixin, Element):
+    """
+    A URL available as a mirror of an access URL.
+
+    These come with a human-readable title intended to aid in mirror
+    selection.
+    """
+    def __init__(
+        self, config=None, pos=None, _name='accessURL', title=None, **kwargs
+    ):
+        super().__init__(config, pos, _name, **kwargs)
+        self._title = title
+
+    @xmlattribute
+    def title(self):
+        """
+        A human-readable title for the mirror.
+        """
+        return self._title
+
+
 class SecurityMethod(ContentMixin, Element):
     """
     SecurityMethod element as described in
@@ -226,9 +247,11 @@ class Interface(Element):
         self._version = version
         self._role = role
         self._resulttype = None
+        self._testquerystring = None
 
         self._accessurls = HomogeneousList(AccessURL)
         self._securitymethods = HomogeneousList(SecurityMethod)
+        self._mirrorurls = HomogeneousList(MirrorURL)
 
     def __repr__(self):
         return '<Interface role={}>...</Interface>'.format(
@@ -294,6 +317,13 @@ class Interface(Element):
         """
         return self._accessurls
 
+    @xmlelement(name='mirrorURL', cls=MirrorURL)
+    def mirrorurls(self):
+        """
+        mirror(s) for this access URL.
+        """
+        return self._mirrorurls
+
     @xmlelement(name='securityMethod', cls=SecurityMethod)
     def securitymethods(self):
         """
@@ -304,6 +334,18 @@ class Interface(Element):
         be employed to gain access.
         """
         return self._securitymethods
+
+    @xmlelement(name='testQueryString')
+    def testquerystring(self):
+        """
+        a string to be used in an interface-specific way to obtain a
+        non-empty result from the service.
+        """
+        return self._testquerystring
+
+    @testquerystring.setter
+    def testquerystring(self, testquerystring):
+        self._testquerystring = testquerystring
 
     @xmlelement
     def resulttype(self):

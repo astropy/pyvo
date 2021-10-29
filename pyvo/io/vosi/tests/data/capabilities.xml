@@ -4,21 +4,27 @@
   <capability standardID="ivo://ivoa.net/std/VOSI#availability">
     <interface xsi:type="vs:ParamHTTP">
       <accessURL use="full">http://example.org/tap/availability</accessURL>
+      <mirrorURL>https://example.org/tap/availability</mirrorURL>
     </interface>
   </capability>
   <capability standardID="ivo://ivoa.net/std/VOSI#capabilities">
     <interface xsi:type="vs:ParamHTTP">
       <accessURL use="full">http://example.org/tap/capabilities</accessURL>
+      <mirrorURL>https://example.org/tap/capabilities</mirrorURL>
     </interface>
   </capability>
   <capability standardID="ivo://ivoa.net/std/VOSI#tables">
     <interface xsi:type="vs:ParamHTTP">
       <accessURL use="full">http://example.org/tap/tables</accessURL>
+      <mirrorURL>https://example.org/tap/tables</mirrorURL>
     </interface>
   </capability>
   <capability standardID="ivo://ivoa.net/std/TAP" xsi:type="tr:TableAccess">
     <interface role="std" xsi:type="vs:ParamHTTP">
       <accessURL use="base">http://example.org/tap</accessURL>
+      <mirrorURL title="https version">https://example.org/tap</mirrorURL>
+      <mirrorURL title="Paris mirror">https://paris.example.org/tap</mirrorURL>
+      <testQueryString>QUERY=SELECT%20*%20FROM%20tap_schema.tables&amp;LANG=ADQL</testQueryString>
     </interface>
     <dataModel ivo-id="ivo://ivoa.net/std/ObsCore#table-1.1">Obscore-1.1</dataModel>
     <dataModel ivo-id="ivo://ivoa.net/std/RegTAP#1.0">Registry 1.0</dataModel>

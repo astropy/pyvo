@@ -5,6 +5,8 @@
 
 - Added optional includeaux flag for regTAP search() [#258]
 
+- Added VOResource 1.1 mirrorurl and testquerystring to vosi.Interface [#269]
+
 
 1.1 (2020-06-26)
 ================
