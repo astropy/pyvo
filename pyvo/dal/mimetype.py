@@ -70,14 +70,19 @@ def mime_object_maker(url, mimetype, session=None):
         the content mimetype
     session : object
         optional session to use for network requests
+
+    Raises
+    ------
+    ValueError if the mimetype is missing or cannot be parsed correctly
     """
+    if not mimetype:
+        raise ValueError('mimetype required')
     session = use_session(session)
     full_type, params = cgi.parse_header(mimetype)
     mimetype = [x.strip() for x in full_type.split('/')] if '/' in full_type \
         else None
     if not mimetype or len(mimetype) > 2:
-        raise MimeTypeParseException(
-            "Can't parse type \"{}\"".format(full_type))
+        raise ValueError("Can't parse mimetype \"{}\"".format(full_type))
 
     if mimetype[0] == 'text':
         return session.get(url).text
