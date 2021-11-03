@@ -58,8 +58,8 @@ class Reference(UWSElement):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._type = kwargs.get('xlink:type')
-        self._href = kwargs.get('xlink:href')
+        self.type = kwargs.get('xlink:type')
+        self.href = kwargs.get('xlink:href')
 
     @xmlattribute(name='xlink:type')
     def type(self):
@@ -83,7 +83,7 @@ class Reference(UWSElement):
 class JobSummary(Element):
     def __init__(self, config=None, pos=None, _name='job', **kwargs):
         super().__init__(config, pos, _name, **kwargs)
-        self._jobid = kwargs.get('id')
+        self.jobid = kwargs.get('id')
         self._runid = None
         self._ownerid = None
         self._phase = None
@@ -320,8 +320,8 @@ class Parameter(ContentMixin, UWSElement):
     def __init__(self, config=None, pos=None, _name='parameter', **kwargs):
         super().__init__(config, pos, _name, **kwargs)
 
-        self._byreference = _convert_boolean(kwargs.get('byReference'))
-        self._id = kwargs.get('id')
+        self.byreference = _convert_boolean(kwargs.get('byReference'))
+        self.id_ = kwargs.get('id')
 
     @xmlattribute
     def byreference(self):
@@ -366,9 +366,9 @@ class Result(Reference, UWSElement):
     def __init__(self, config=None, pos=None, _name='result', **kwargs):
         super().__init__(config, pos, _name, **kwargs)
 
-        self._id = kwargs.get('id')
-        self._size = int(kwargs.get('size') or 0)
-        self._mimetype = kwargs.get('mime-type')
+        self.id_ = kwargs.get('id')
+        self.size = int(kwargs.get('size') or 0)
+        self.mimetype = kwargs.get('mime-type')
 
     @xmlattribute(name='id')
     def id_(self):
@@ -403,9 +403,9 @@ class ErrorSummary(UWSElement):
     def __init__(self, config=None, pos=None, _name='errorSummary', **kwargs):
         super().__init__(config, pos, _name, **kwargs)
 
-        self._type = kwargs.get('type')
-        self._has_detail = _convert_boolean(kwargs.get('hasDetail'))
-        self._message = None
+        self.type_ = kwargs.get('type')
+        self.has_detail = _convert_boolean(kwargs.get('hasDetail'))
+        self.message = None
 
     @xmlattribute(name='type')
     def type_(self):
@@ -430,7 +430,7 @@ class ErrorSummary(UWSElement):
         """The error message"""
         return self._message
 
-    @message.adder
+    @message.setter
     def message(self, message):
         self._message = message
 
