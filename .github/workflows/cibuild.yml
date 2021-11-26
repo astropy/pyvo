@@ -26,8 +26,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: [3.7, 3.8, 3.9]
-        astropy-version:  [latest ,astropy40, astropy41]
+        python-version: [3.7, 3.8, 3.9, 3.10]
+        astropy-version:  [latest ,astropy42, astropy43, astropy50]
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
