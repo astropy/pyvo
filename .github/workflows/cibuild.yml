@@ -27,6 +27,7 @@ jobs:
       fail-fast: true
       matrix:
         python-version: ["3.7", "3.8", "3.9", "3.10"]
+        include:
           #        astropy-version:  [latest ,astropy42, astropy43, astropy50]
           #    steps:
           #    - name: Checkout code
@@ -47,17 +48,15 @@ jobs:
           #        echo "Tox python target: " $tox_python_target
           #        tox -e $tox_python_target-test
 
-    - name: oldest dependencies
-      os: ubuntu-latest
-      python: 3.7
-      toxenv: py37-test-oldestdeps
-      toxargs: -v
+        - name: oldest dependencies
+          python: 3.7
+          toxenv: py37-test-oldestdeps
+          toxargs: -v
 
-    - name: astropy dev
-      os: ubuntu-latest
-      python: 3.9
-      toxenv: py310-test-devastropy
-      toxargs: -v
+        - name: astropy dev
+          python: 3.9
+          toxenv: py310-test-devastropy
+          toxargs: -v
 
 
   mac_windows:
