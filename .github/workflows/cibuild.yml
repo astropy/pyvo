@@ -27,25 +27,25 @@ jobs:
       fail-fast: true
       matrix:
         python-version: ["3.7", "3.8", "3.9", "3.10"]
-        astropy-version:  [latest ,astropy42, astropy43, astropy50]
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install tox
-      run: python -m pip install --upgrade tox
+          #        astropy-version:  [latest ,astropy42, astropy43, astropy50]
+          #    steps:
+          #    - name: Checkout code
+          #      uses: actions/checkout@v2
+          #      with:
+          #        fetch-depth: 0
+          #    - name: Set up Python
+          #      uses: actions/setup-python@v2
+          #      with:
+          #        python-version: ${{ matrix.python-version }}
+          #    - name: Install tox
+          #      run: python -m pip install --upgrade tox
 
-    - name: Python ${{ matrix.python-version }} with astropy
-      run: |
-        # remove "." from matrix.python-version to get the defaults tox python versions
-        tox_python_target=$(echo py${{matrix.python-version}} | sed 's/\.//')
-        echo "Tox python target: " $tox_python_target
-        tox -e $tox_python_target-test
+          #    - name: Python ${{ matrix.python-version }} with astropy
+          #      run: |
+          #        # remove "." from matrix.python-version to get the defaults tox python versions
+          #        tox_python_target=$(echo py${{matrix.python-version}} | sed 's/\.//')
+          #        echo "Tox python target: " $tox_python_target
+          #        tox -e $tox_python_target-test
 
     - name: oldest dependencies
       os: ubuntu-latest
