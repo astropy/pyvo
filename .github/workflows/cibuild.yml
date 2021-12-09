@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.9
+      - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: 3.8
       - name: Install tox
         run: python -m pip install --upgrade tox
       - name: egg-info
@@ -26,25 +26,25 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
-     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install tox
-        run: python -m pip install --upgrade tox
+        python-version: [3.7, 3.8, 3.9]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install tox
+      run: python -m pip install --upgrade tox
+    - name: Python ${{ matrix.python-version }} with astropy
+      run: |
+        # remove "." from matrix.python-version to get the defaults tox python versions
+        tox_python_target=$(echo py${{matrix.python-version}} | sed 's/\.//')
+        echo "Tox python target: " $tox_python_target
+        tox -e $tox_python_target-test
 
-      - name: Python ${{ matrix.python-version }} with astropy
-        run: |
-          # remove "." from matrix.python-version to get the defaults tox python versions
-          tox_python_target=$(echo py${{matrix.python-version}} | sed 's/\.//')
-          echo "Tox python target: " $tox_python_target
-          tox -e $tox_python_target-test
 
   mac_windows:
     runs-on: ${{ matrix.os }}
@@ -103,7 +103,7 @@ jobs:
           python-version: 3.10
       - name: Install tox
         run: python -m pip install --upgrade tox
-      - name: Run tests against astropy dev
+      - name: Run tests against devastropy
         run: tox -e py310-test-devastropy
 
   oldestastropy:
@@ -117,8 +117,8 @@ jobs:
           python-version: 3.8
       - name: Install tox
         run: python -m pip install --upgrade tox
-      - name: Run tests against astropy dev
-        run: tox -e py38-test-oldestastrop
+      - name: Run tests against oldestastropy
+        run: tox -e py38-test-oldestastropy
 
   #publish:
   #needs: coverage
