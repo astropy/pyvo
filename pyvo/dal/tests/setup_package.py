@@ -17,5 +17,7 @@ def get_package_data():
         os.path.join('data/ssa', '*.xml'),
         os.path.join('data/datalink', '*.xml'),
         os.path.join('data', '*.xml'),
+        os.path.join('data/mimetype', '*jpg'),
+        os.path.join('data/mimetype', '*fits'),
     ]
     return {'pyvo.dal.tests': paths}
