@@ -5,12 +5,12 @@ PyVO
     :target: http://www.astropy.org
     :alt: Powered by Astropy Badge
 
-.. image:: https://github.com/astropy/pyvo/workflows/CI/badge.svg?branch=master
-    :target: https://github.com/astropy/pyvo/workflows/CI/badge.svg?branch=master
+.. image:: https://github.com/astropy/pyvo/workflows/CI/badge.svg?branch=main
+    :target: https://github.com/astropy/pyvo/workflows/CI/badge.svg?branch=main
     :alt: CI Status
 
-.. image:: https://coveralls.io/repos/github/pyvirtobs/pyvo/badge.svg?branch=master
-    :target: https://coveralls.io/github/pyvirtobs/pyvo?branch=master
+.. image:: https://coveralls.io/repos/github/pyvirtobs/pyvo/badge.svg?branch=main
+    :target: https://coveralls.io/github/pyvirtobs/pyvo?branch=main
     :alt: Coverage Status
 
 .. image:: https://zenodo.org/badge/10865450.svg
