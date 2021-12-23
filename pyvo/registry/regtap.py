@@ -431,8 +431,12 @@ class RegistryResource(dalq.Record):
         """
         the URL that can be used to access the service resource.
         """
-        if len(self["access_urls"])==1:
-            return self["access_urls"][0]
+        # some services declare some data models using multiple
+        # identifiers; in this case, we'll get the same access URL
+        # multiple times in here.  Don't be alarmed when that happens:
+        access_urls = list(set(self["access_urls"]))
+        if len(access_urls)==1:
+            return access_urls[0]
         else:
             raise dalq.DALQueryError(
                 "No unique access URL.  Use get_service.")
