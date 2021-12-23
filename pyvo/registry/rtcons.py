@@ -12,6 +12,8 @@ classes.
 
 import datetime
 
+from astropy import units
+from astropy import constants
 import numpy
 
 from ..dal import tap
@@ -503,6 +505,73 @@ class Spatial(Constraint):
             raise ValueError("This constraint needs DALI-style geometries.")
         
         self._fillers = {"geom": geom}
+
+
+class Spectral(Constraint):
+    """
+    A RegTAP constraint on the sectral coverage of resources.
+
+    This is a RegTAP 1.1 extension not yet available on all Registries
+    (in 2022).  Worse, not too many resources bother declaring this
+    at this point; for robustness, it might be preferable to use
+    the `Waveband` constraint for the time being..
+    """
+    _keyword = "spectral"
+    _extra_tables = ["rr.stc_spectral"]
+    
+    takes_sequence = True
+
+    def __init__(self, spec):
+        """
+
+        Parameters
+        ----------
+        spec : astropy.Quantity or a 2-tuple of astropy.Quantity-s
+            A spectral point to cover.  This must be a wavelength,
+            a frequency, or an energy, or a pair of such quantities,
+            in which case the argument is interpreted as an interval.
+            All resources *overlapping* the interval are returned.
+        """
+        if isinstance(spec, tuple):
+            self._fillers = {
+                "spec_lo": self._to_joule(spec[0]),
+                "spec_hi": self._to_joule(spec[1])}
+            self._condition = ("1 = ivo_interval_overlaps("
+                "spectral_start, spectral_end, {spec_lo}, {spec_hi})")
+
+        else:
+            self._fillers = {
+                "spec": self._to_joule(spec)}
+            self._condition = "{spec} BETWEEN spectral_start AND spectral_end"
+
+    def _to_joule(self, quant):
+        """returns a spectral quantity as a float in joule.
+
+        A plain float is returned as-is.
+        """
+        if isinstance(quant, float):
+            return quant
+        
+        try:
+            # is it an energy?
+            return quant.to(units.Joule).value
+        except units.UnitConversionError:
+            pass # try next
+
+        try:
+            # is it a wavelength?
+            return (constants.h*constants.c/quant.to(units.m)).value
+        except units.UnitConversionError:
+            pass # try next
+
+        try:
+            # is it a frequency?
+            return (constants.h*quant.to(units.Hz)).value
+        except units.UnitConversionError:
+            pass # fall through to give up
+        
+        raise ValueError(f"Cannot make a spectral quantity out of {quant}")
+
 
 # NOTE: If you add new Contraint-s, don't forget to add them in
 # registry.__init__ and in docs/registry/index.rst.

@@ -6,9 +6,11 @@ Tests for pyvo.registry.rtcons, i.e. RegTAP constraints and query building.
 
 import datetime
 
+from astropy import units
 import numpy
 import pytest
 
+from pyvo import registry
 from pyvo.registry import rtcons
 from pyvo.dal import query as dalq
 
@@ -183,26 +185,71 @@ class TestUCDConstraint:
 
 class TestSpatialConstraint:
     def test_point(self):
-        cons = rtcons.Spatial([23, -40])
+        cons = registry.Spatial([23, -40])
         assert (cons.get_search_condition() ==
             "1 = CONTAINS(MOC(6, POINT(23, -40)), coverage)")
         assert(cons._extra_tables==["rr.stc_spatial"])
 
     def test_circle_and_order(self):
-        cons = rtcons.Spatial([23, -40, 0.25], order=7)
+        cons = registry.Spatial([23, -40, 0.25], order=7)
         assert (cons.get_search_condition() ==
             "1 = CONTAINS(MOC(7, CIRCLE(23, -40, 0.25)), coverage)")
 
     def test_polygon(self):
-        cons = rtcons.Spatial([23, -40, 26, -39, 25, -43])
+        cons = registry.Spatial([23, -40, 26, -39, 25, -43])
         assert (cons.get_search_condition() ==
             "1 = CONTAINS(MOC(6, POLYGON(23, -40, 26, -39, 25, -43)),"
                 " coverage)")
 
     def test_moc(self):
-        cons = rtcons.Spatial("0/1-3 3/")
+        cons = registry.Spatial("0/1-3 3/")
         assert (cons.get_search_condition() ==
             "1 = CONTAINS(MOC('0/1-3 3/'), coverage)")
+
+
+class TestSpectralConstraint:
+    # These tests might need some float literal fuzziness.  I'm just
+    # too lazy at this point to see if pytest has something on board
+    # that would be useful there.
+    def test_energy_float(self):
+        cons = registry.Spectral(1e-19)
+        assert (cons.get_search_condition() ==
+            "1e-19 BETWEEN spectral_start AND spectral_end")
+
+    def test_energy_eV(self):
+        cons = registry.Spectral(5*units.eV)
+        assert (cons.get_search_condition() ==
+            "8.01088317e-19 BETWEEN spectral_start AND spectral_end")
+
+    def test_energy_interval(self):
+        cons = registry.Spectral((1e-10*units.erg, 2e-10*units.erg))
+        assert (cons.get_search_condition() ==
+            "1 = ivo_interval_overlaps(spectral_start, spectral_end,"
+            " 1e-17, 2e-17)")
+
+    def test_wavelength(self):
+        cons = registry.Spectral(5000*units.Angstrom)
+        assert (cons.get_search_condition() ==
+            "3.9728917142978567e-19 BETWEEN spectral_start AND spectral_end")
+
+    def test_wavelength_interval(self):
+        cons = registry.Spectral((20*units.cm, 22*units.cm))
+        assert (cons.get_search_condition() ==
+            "1 = ivo_interval_overlaps(spectral_start, spectral_end,"
+            " 9.932229285744642e-25, 9.029299350676949e-25)")
+
+    def test_frequency(self):
+        cons = registry.Spectral(2*units.GHz)
+        assert (cons.get_search_condition() ==
+            "1.32521403e-24 BETWEEN spectral_start AND spectral_end")
+
+    def test_frequency_interval(self):
+        cons = registry.Spectral((88*units.MHz, 102*units.MHz))
+        assert (cons.get_search_condition() ==
+            "1 = ivo_interval_overlaps(spectral_start, spectral_end,"
+            " 5.830941732e-26, 6.758591553e-26)")
+
+
 
 
 class TestWhereClauseBuilding:

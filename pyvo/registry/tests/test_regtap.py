@@ -265,6 +265,12 @@ def test_spatial():
         == "1 = CONTAINS(MOC(6, POINT(23, -40)), coverage)")
 
 
+def test_spectral():
+    assert (rtcons.keywords_to_constraints({
+            "spectral": (1e-17, 2e-17)})[0].get_search_condition() == 
+        "1 = ivo_interval_overlaps(spectral_start, spectral_end, 1e-17, 2e-17)")
+
+
 @pytest.mark.usefixtures('multi_interface_fixture', 'capabilities')
 class TestResultsExtras:
     def test_to_table(self):
