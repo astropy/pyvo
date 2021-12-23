@@ -2,7 +2,7 @@
 """
 Constraints for doing registry searches.
 
-The Constraint class encapsulates a query fragment in a RegTAP query: A
+The Constraint class encapsulates a query fragment in a RegTAP query, e.g., a
 keyword, a sky location, an author name, a class of services.  They are used
 either directly as arguments to registry.search, or by passing keyword
 arguments into registry.search.  The mapping from keyword arguments to
@@ -38,12 +38,27 @@ SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/"+v)
 
 
 def make_sql_literal(value):
-    """returns the python value as a SQL-embeddable literal.
+    """makes a SQL literal from a python value.
 
     This is not suitable as a device to ward against SQL injections;
     in what we produce, callers could produce arbitrary SQL anyway.
     The point of this function is to minimize surprises when building
     constraints.
+
+    Parameters
+    ----------
+
+    value : object
+        Conceptually, the function should produces SQL literals
+        for anything that might reasonably add up in a registry
+        query.  In reality, a ValueError will be raised for anything
+        we do not know about.
+
+    Returns
+    -------
+
+    str
+        A SQL literal.
     """
     if isinstance(value, str):
         return "'{}'".format(value.replace("'", "''"))
@@ -96,6 +111,14 @@ class Constraint:
     _keyword = None
 
     def get_search_condition(self):
+        """
+        Formats this constraint to an ADQL fragment.
+
+        Returns
+        -------
+        str
+            A string ready for inclusion into a WHERE clause.
+        """
         if self._condition is None:
             raise NotImplementedError("{} is an abstract Constraint"
                 .format(self.__class__.__name__))
@@ -103,6 +126,10 @@ class Constraint:
         return self._condition.format(**self._get_sql_literals())
   
     def _get_sql_literals(self):
+        """
+        returns self._fillers as a dictionary of properly SQL-escaped
+        literals.
+        """
         if self._fillers:
             return {k: make_sql_literal(v) for k, v in self._fillers.items()}
         return {}
@@ -111,18 +138,21 @@ class Constraint:
 class Freetext(Constraint):
     """
     A contraint using plain text to match against title, description, 
-    and person names.
-
-    Note that in contrast to regsearch, this will not do a pattern
-    search in subjects.
-
-    You can pass in phrases (i.e., multiple words separated by space),
-    but behaviour can then change quite significantly between different
-    registries.
+    subjects, and person names.
     """
     _keyword = "keywords"
 
     def __init__(self, *words:str):
+        """
+
+        Parameters
+        ----------
+        *words: tuple of str
+            It is recommended to pass multiple words in multiple strings
+            arguments.  You can pass in phrases (i.e., multiple words 
+            separated by space), but behaviour might then vary quite 
+            significantly between different registries.
+        """
         # cross-table ORs kill the query planner.  We therefore 
         # write the constraint as an IN condition on a UNION
         # of subqueries; it may look as if this has to be
@@ -154,16 +184,21 @@ class Author(Constraint):
     A constraint for creators (“authors”) of a resource; you can use SQL 
     patterns here.
 
-    Note that regrettably there are no guarantees as to how authors
-    are written in the VO.  This means that you will generally have
-    to write things like ``%Hubble%`` (% being “zero or more characters”
-    in SQL) here.
-
     The match is case-sensitive.
     """
     _keyword = "author"
 
     def __init__(self, name:str):
+        """
+
+        Parameters
+        ----------
+        name: str
+            Note that regrettably there are no guarantees as to how authors
+            are written in the VO.  This means that you will generally have
+            to write things like ``%Hubble%`` (% being “zero or more 
+            characters” in SQL) here.
+        """
         self._condition = "role_name LIKE {auth} AND base_role='creator'"
         self._fillers = {"auth": name}
 
@@ -188,11 +223,21 @@ class Servicetype(Constraint):
     of a certain type in the VO.  In data discovery (where, however,
     you generally should not have Servicetype constraints), you
     can use ``Servicetype(...).include_auxiliary_services()`` or
-    use registry.search's ``includeaux`` parameter.
+    use registry.search's ``includeaux`` parameter; but, really, there
+    is little point using this constraint in data discovery in the first
+    place.
     """
     _keyword = "servicetype"
 
     def __init__(self, *stds):
+        """
+
+        Parameters
+        ----------
+        *stds: tuple of str
+            one or more standards identifiers.  The constraint will
+            match records that have any of them.
+        """
         self.stdids = set()
 
         for std in stds:
@@ -238,6 +283,15 @@ class Waveband(Constraint):
     _legal_terms = None
 
     def __init__(self, *bands):
+        """
+
+        Parameters
+        ----------
+        *bands: tuple of strings
+            One or more of the terms given in http://www.ivoa.net/messenger.
+            The constraint matches when a resource declares at least
+            one of the messengers listed.
+        """
         if self.__class__._legal_terms is None:
             self.__class__._legal_terms = {w.lower() for w in
                 vocabularies.get_vocabulary("messenger")["terms"]}
@@ -280,6 +334,13 @@ class Datamodel(Constraint):
     _known_dms = {"obscore", "epntap", "regtap"}
 
     def __init__(self, dmname):
+        """
+
+        Parameters
+        ----------
+        dmname : string
+            A well-known name; currently one of obscore, epntap, and regtap.
+        """
         dmname = dmname.lower()
         if dmname not in self._known_dms:
             raise dalq.DALQueryError("Unknown data model id {}.  Known are: {}."
@@ -317,20 +378,38 @@ class Ivoid(Constraint):
     _keyword = "ivoid"
 
     def __init__(self, ivoid):
+        """
+
+        Parameters
+        ----------
+
+        ivoid : string
+            The IVOA identifier of the resource to match.  As RegTAP
+            requires lowercasing ivoids on ingestion, the constraint 
+            lowercases the ivoid passed in, too.
+        """
         self._condition = "ivoid = {ivoid}"
-        self._fillers = {"ivoid": ivoid}
+        self._fillers = {"ivoid": ivoid.lower()}
 
 
 class UCD(Constraint):
     """
     A constraint selecting resources having tables with columns having
     UCDs matching a SQL pattern (% as wildcard).  
-
-    Multiple patterns may be passed in and are joined by OR.
     """
     _keyword = "ucd"
 
     def __init__(self, *patterns):
+        """
+
+        Parameters
+        ----------
+
+        patterns : tuple of strings
+            SQL patterns (i.e., ``%`` is 0 or more characters) for
+            UCDs.  The constraint will match when a resource has
+            at least one column matching one of the patterns.
+        """
         self._extra_tables = ["rr.table_column"]
         self._condition = " OR ".join(
             f"ucd LIKE {{ucd{i}}}" for i in range(len(patterns)))
@@ -345,6 +424,18 @@ class UCD(Constraint):
 def build_regtap_query(constraints):
     """returns a RegTAP query ready for submission from a list of
     Constraint instances.
+
+    Parameters
+    ----------
+    constraints: sequence of `Constraint`-s
+        A sequence of constraints for a RegTAP query.  All of them
+        will become part of a conjunction (i.e., all of them have
+        to be satisfied for a record to match).
+
+    Returns
+    -------
+    str
+        An ADQL literal ready for submission to a RegTAP service.
     """
     if not constraints:
         raise dalq.DALQueryError(
@@ -383,7 +474,19 @@ def build_regtap_query(constraints):
 def keywords_to_constraints(keywords):
     """returns constraints expressed as keywords as Constraint instances.
 
-    This will raise a DALQueryError for unknown keywords.
+    Parameters
+    ----------
+    keywords : dict
+        regsearch arguments as a kwargs-style dictionary.
+
+    Returns
+    -------
+    sequence of `Constraint`-s
+
+    Raises
+    ------
+    DALQueryError 
+        if an unknown keyword is encountered.
     """
     constraints = []
     for keyword, value in keywords.items():

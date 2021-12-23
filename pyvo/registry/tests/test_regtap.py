@@ -264,14 +264,14 @@ class TestResultsExtras:
     def test_to_table(self):
         t = regtap.search(
             ivoid="ivo://org.gavo.dc/flashheros/q/ssa").to_table()
-        assert (list(t.columns.keys())
-            == ['index', 'title', 'description', 'interfaces'])
+        assert (set(t.columns.keys())
+            == {'index', 'title', 'description', 'interfaces'})
         assert t["index"][0] == 0
         assert t["title"][0] == 'Flash/Heros SSAP'
         assert (t["description"][0][:40]
             == 'Spectra from the Flash and Heros Echelle')
         assert (t["interfaces"][0]
-            == 'ssa, web, tap#aux, soda#sync-1.0, datalink#links-1.0')
+            == 'datalink#links-1.0, soda#sync-1.0, ssa, tap#aux, web')
 
 
 @pytest.mark.usefixtures('multi_interface_fixture', 'capabilities',
