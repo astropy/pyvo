@@ -37,6 +37,11 @@ SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/"+v)
 ])
 
 
+class _AsIs(str):
+    """a sentinel class make `make_sql_literal` not escape a string.
+    """
+
+
 def make_sql_literal(value):
     """makes a SQL literal from a python value.
 
@@ -60,6 +65,9 @@ def make_sql_literal(value):
     str
         A SQL literal.
     """
+    if isinstance(value, _AsIs):
+        return value
+
     if isinstance(value, str):
         return "'{}'".format(value.replace("'", "''"))
 
@@ -78,6 +86,27 @@ def make_sql_literal(value):
     else:
         raise ValueError("Cannot format {} as a SQL literal"
             .format(repr(value)))
+
+
+def format_function_call(func_name, args):
+    """make an ADQL literal for a function call with arguments.
+
+    Parameters
+    ----------
+    func_name : str
+        the name of the function to call.
+
+    args : sequence of anything
+        python values for the arguments for the function.
+
+    Returns
+    -------
+    str
+        ADQL ready for inclusion into a query.
+    """
+    return "{}({})".format(
+        func_name,
+        ", ".join(make_sql_literal(a) for a in args))
 
 
 class Constraint:
@@ -103,12 +132,17 @@ class Constraint:
 
     For the legacy x_search with keywords, define a _keyword
     attribute containing the name of the parameter that should
-    generate such a constraint.
+    generate such a constraint.  When pickung up such keywords,
+    sequence values will in general be unpacked and turned into
+    sequences of constraints.  Constraints that want to the all
+    arguments in the constructor can set takes_sequence to True.
     """
     _extra_tables = []
     _condition = None
     _fillers = None
     _keyword = None
+
+    takes_sequence = False
 
     def get_search_condition(self):
         """
@@ -415,7 +449,60 @@ class UCD(Constraint):
             f"ucd LIKE {{ucd{i}}}" for i in range(len(patterns)))
         self._fillers = dict((f"ucd{index}", pattern)
             for index, pattern in enumerate(patterns))
-    
+   
+
+class Spatial(Constraint):
+    """
+    A RegTAP constraint selecting resources covering a geometry in
+    space.
+
+    This is a RegTAP 1.1 extension not yet available on all Registries
+    (in 2022).
+    """
+    _keyword = "spatial"
+    _condition = "1 = CONTAINS({geom}, coverage)"
+    _extra_tables = ["rr.stc_spatial"]
+
+    takes_sequence = True
+
+    def __init__(self, geom_spec, order=6):
+        """
+
+        Parameters
+        ----------
+        geom_spec : object
+            For now, this is DALI-style: a 2-sequence is interpreted
+            as a DALI point, a 3-sequence as a DALI circle, a 2n sequence 
+            as a DALI polygon.  Additionally, strings are interpreted
+            as ASCII MOCs.  Other types (proper geometries or pymoc 
+            objects) might be supported in the future.
+        order : int, optional
+            Non-MOC geometries are converted to MOCs before comparing
+            them to the resource coverage.  By default, this contrains
+            uses order 6, which corresponds to about a degree of resolution
+            and is what RegTAP recommends as a sane default for the
+            order actually used for the coverages in the database.
+        """
+        def tomoc(s):
+            return _AsIs("MOC({}, {})".format(order, s))
+
+        if isinstance(geom_spec, str):
+            geom = _AsIs("MOC({})".format(
+                make_sql_literal(geom_spec)))
+
+        elif len(geom_spec)==2:
+            geom = tomoc(format_function_call("POINT", geom_spec))
+
+        elif len(geom_spec)==3:
+            geom = tomoc(format_function_call("CIRCLE", geom_spec))
+
+        elif len(geom_spec)%2==0:
+            geom = tomoc(format_function_call("POLYGON", geom_spec))
+
+        else:
+            raise ValueError("This constraint needs DALI-style geometries.")
+        
+        self._fillers = {"geom": geom}
 
 # NOTE: If you add new Contraint-s, don't forget to add them in
 # registry.__init__ and in docs/registry/index.rst.
@@ -494,10 +581,13 @@ def keywords_to_constraints(keywords):
             raise TypeError(f"{keyword} is not a valid registry"
                 " constraint keyword.  Use one of {}.".format(
                     ", ".join(sorted(_KEYWORD_TO_CONSTRAINT))))
-        if isinstance(value, (tuple, list)):
-            constraints.append(_KEYWORD_TO_CONSTRAINT[keyword](*value))
+
+        constraint_class = _KEYWORD_TO_CONSTRAINT[keyword]
+        if (isinstance(value, (tuple, list)) 
+                and not constraint_class.takes_sequence):
+            constraints.append(constraint_class(*value))
         else:
-            constraints.append(_KEYWORD_TO_CONSTRAINT[keyword](value))
+            constraints.append(constraint_class(value))
     return constraints
 
 

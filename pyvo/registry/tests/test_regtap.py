@@ -11,6 +11,7 @@ from urllib.parse import parse_qsl
 import pytest
 
 from pyvo.registry import regtap
+from pyvo.registry import rtcons
 from pyvo.registry.regtap import REGISTRY_BASEURL
 from pyvo.registry import search as regsearch
 from pyvo.dal import query as dalq
@@ -257,6 +258,11 @@ def test_servicetype_aux():
 def test_bad_servicetype_aux():
     with pytest.raises(dalq.DALQueryError):
         regsearch(servicetype='bad_servicetype', includeaux=True)
+
+def test_spatial():
+    assert (rtcons.keywords_to_constraints({
+            "spatial": (23, -40)})[0].get_search_condition()
+        == "1 = CONTAINS(MOC(6, POINT(23, -40)), coverage)")
 
 
 @pytest.mark.usefixtures('multi_interface_fixture', 'capabilities')

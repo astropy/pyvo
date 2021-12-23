@@ -181,6 +181,30 @@ class TestUCDConstraint:
             "ucd LIKE 'phot.mag;em.opt.%' OR ucd LIKE 'phot.mag;em.ir.%'")
 
 
+class TestSpatialConstraint:
+    def test_point(self):
+        cons = rtcons.Spatial([23, -40])
+        assert (cons.get_search_condition() ==
+            "1 = CONTAINS(MOC(6, POINT(23, -40)), coverage)")
+        assert(cons._extra_tables==["rr.stc_spatial"])
+
+    def test_circle_and_order(self):
+        cons = rtcons.Spatial([23, -40, 0.25], order=7)
+        assert (cons.get_search_condition() ==
+            "1 = CONTAINS(MOC(7, CIRCLE(23, -40, 0.25)), coverage)")
+
+    def test_polygon(self):
+        cons = rtcons.Spatial([23, -40, 26, -39, 25, -43])
+        assert (cons.get_search_condition() ==
+            "1 = CONTAINS(MOC(6, POLYGON(23, -40, 26, -39, 25, -43)),"
+                " coverage)")
+
+    def test_moc(self):
+        cons = rtcons.Spatial("0/1-3 3/")
+        assert (cons.get_search_condition() ==
+            "1 = CONTAINS(MOC('0/1-3 3/'), coverage)")
+
+
 class TestWhereClauseBuilding:
     @staticmethod
     def where_clause_for(*args, **kwargs):
