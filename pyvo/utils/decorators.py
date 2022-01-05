@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from functools import partial
-from astropy.utils.decorators import wraps
+from functools import partial, wraps
 
 
 def stream_decode_content(func):
