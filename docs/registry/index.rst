@@ -63,12 +63,14 @@ keyword arguments.  The following constraints are available:
   IVOA identifier (that is, in effect, the primary key in the VO).
 * :py:class:`pyvo.registry.Spatial` (``spatial``): match resources
   covering a certain geometry (point, circle, polygon, or MOC).
-  *RegTAP 1.2 Extension*.
+  *RegTAP 1.2 Extension*
 * :py:class:`pyvo.registry.Spectral` (``spectral``): match resources
   covering a certain part of the spectrum (usually, but not limited to,
-  the electromagnetic spectrum).  *RegTAP 1.2 Extension*.
+  the electromagnetic spectrum).  *RegTAP 1.2 Extension*
+* :py:class:`pyvo.registry.Temporal` (``temporal``): match resources
+  covering a some point or interval in time.  *RegTAP 1.2 Extension*
 
-Multiple contratints are combined conjunctively (”AND”).
+Multiple constraints are combined conjunctively (”AND”).
 
 Constraints marked with *RegTAP 1.2 Extension* are not available on all
 IVOA RegTAP services (they are on pyVO's default RegTAP endpoint,

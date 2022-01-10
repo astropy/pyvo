@@ -467,7 +467,80 @@ class Spatial(Constraint):
     A RegTAP constraint selecting resources covering a geometry in
     space.
 
-    This is a RegTAP 1.1 extension not yet available on all Registries
+    This is a RegTAP 1.2 extension not yet available on all Registries
+    (in 2022).  Also note that not all data providers give spatial coverage
+    for their resources.
+
+    To find resources having data for RA/Dec 347.38/8.6772::
+    
+        >>> registry.Spatial((347.38, 8.6772))
+    
+    To find resources claiming to have data for a spherical circle 2 degrees
+    around that point::
+
+        >>> registry.Spatial(347.38, 8.6772, 2))
+
+    To find resources claiming to have data for a polygon described by
+    the vertices (23, -40), (26, -39), (25, -43) in ICRS RA/Dec::
+
+        >>> registry.Spatial([23, -40, 26, -39, 25, -43])
+    
+    To find resources claiming to cover a MOC, pass an ASCII MOC::
+
+        >>> registry.Spatial("0/1-3 3/")
+    """
+    _keyword = "spatial"
+    _condition = "1 = CONTAINS({geom}, coverage)"
+    _extra_tables = ["rr.stc_spatial"]
+
+    takes_sequence = True
+
+    def __init__(self, geom_spec, order=6):
+        """
+
+        Parameters
+        ----------
+        geom_spec : object
+            For now, this is DALI-style: a 2-sequence is interpreted
+            as a DALI point, a 3-sequence as a DALI circle, a 2n sequence 
+            as a DALI polygon.  Additionally, strings are interpreted
+            as ASCII MOCs.  Other types (proper geometries or pymoc 
+            objects) might be supported in the future.
+        order : int, optional
+            Non-MOC geometries are converted to MOCs before comparing
+            them to the resource coverage.  By default, this contrains
+            uses order 6, which corresponds to about a degree of resolution
+            and is what RegTAP recommends as a sane default for the
+            order actually used for the coverages in the database.
+        """
+        def tomoc(s):
+            return _AsIs("MOC({}, {})".format(order, s))
+
+        if isinstance(geom_spec, str):
+            geom = _AsIs("MOC({})".format(
+                make_sql_literal(geom_spec)))
+
+        elif len(geom_spec)==2:
+            geom = tomoc(format_function_call("POINT", geom_spec))
+
+        elif len(geom_spec)==3:
+            geom = tomoc(format_function_call("CIRCLE", geom_spec))
+
+        elif len(geom_spec)%2==0:
+            geom = tomoc(format_function_call("POLYGON", geom_spec))
+
+        else:
+            raise ValueError("This constraint needs DALI-style geometries.")
+        
+        self._fillers = {"geom": geom}
+
+
+class Spatial(Constraint):
+    """
+    A RegTAP constraint selecting resources covering a geometry in
+    space.
+
+    This is a RegTAP 1.2 extension not yet available on all Registries
     (in 2022).  Also note that not all data providers give spatial coverage
     for their resources.
 
@@ -539,7 +612,7 @@ class Spectral(Constraint):
     """
     A RegTAP constraint on the spectral coverage of resources.
 
-    This is a RegTAP 1.1 extension not yet available on all Registries
+    This is a RegTAP 1.2 extension not yet available on all Registries
     (in 2022).  Worse, not too many resources bother declaring this
     at this point.  For robustness, it might be preferable to use
     the `Waveband` constraint for the time being..
@@ -548,6 +621,10 @@ class Spectral(Constraint):
     convert them to RegTAP's representation (which is Joule of particle energy)
     if it can. This ought to work for wavelengths, frequencies, and energies.
     Plain numbers are interpreted as particle energies in Joule.
+
+    RegTAP uses the observer frame at the solar system barycenter, but
+    it is probably wise to use constraints suitably relaxed such that
+    frame and reference position (within reason) do not matter.
 
     To find resources covering the messenger particle energy 5 eV::
 
@@ -594,7 +671,7 @@ class Spectral(Constraint):
 
         A plain float is returned as-is.
         """
-        if isinstance(quant, float):
+        if isinstance(quant, (float, int)):
             return quant
         
         try:
@@ -616,6 +693,76 @@ class Spectral(Constraint):
             pass # fall through to give up
         
         raise ValueError(f"Cannot make a spectral quantity out of {quant}")
+
+
+class Temporal(Constraint):
+    """
+    A RegTAP constraint on the temporal coverage of resources.
+
+    This is a RegTAP 1.2 extension not yet available on all Registries
+    (in 2022).  Worse, not too many resources bother declaring this
+    at this point.  Until this changes, you will probably have a lot of false
+    negatives (i.e., resources that should match but do not because they
+    are not declaring their time coverage) if you use this constraint.
+
+    This constraint accepts astropy Time instances or pairs of Times
+    when specifying intervals.  Plain numbers will be interpreted as
+    MJD.  RegTAP uses TDB times at the solar system barycenter, and it is
+    probably wise to relax constraints such that such details do not matter.
+    This constraint does not attempt any conversions of time scales or
+    reference positions.
+
+    To find resources claiming to have data for Jan 10, 2022::
+
+        >>> registry.Temporal(astropy.time.Time('2022-01-10'))
+
+    To find resources claiming to have data for some time between
+    MJD 54130 and 54200::
+
+        >>> registry.Temporal((54130, 54200))
+    """
+    _keyword = "temporal"
+    _extra_tables = ["rr.stc_temporal"]
+    
+    takes_sequence = True
+
+    def __init__(self, times):
+        """
+
+        Parameters
+        ----------
+        spec : astropy.Time or a 2-tuple of astropy.Time-s
+            A point in time or time interval to cover.  Plain numbers
+            are interpreted as MJD.  All resources *overlapping* the 
+            interval are returned.
+        """
+        if isinstance(times, tuple):
+            self._fillers = {
+                "time_lo": self._to_mjd(times[0]),
+                "time_hi": self._to_mjd(times[1])}
+            self._condition = ("1 = ivo_interval_overlaps("
+                "time_start, time_end, {time_lo}, {time_hi})")
+
+        else:
+            self._fillers = {
+                "time": self._to_mjd(times)}
+            self._condition = "{time} BETWEEN time_start AND time_end"
+
+    def _to_mjd(self, quant):
+        """returns a time specification in MJD.
+
+        Times not corresponding to a single point in time are rejected.
+
+        A plain float is returned as-is.
+        """
+        if isinstance(quant, (float, int)):
+            return quant
+        
+        val = quant.to_value('mjd')
+        if not isinstance(val, numpy.number):
+            raise ValueError("RegTAP time constraints must be made from"
+                " single time instants.")
+        return val
 
 
 # NOTE: If you add new Contraint-s, don't forget to add them in

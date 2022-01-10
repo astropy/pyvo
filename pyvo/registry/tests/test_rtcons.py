@@ -6,6 +6,7 @@ Tests for pyvo.registry.rtcons, i.e. RegTAP constraints and query building.
 
 import datetime
 
+from astropy import time
 from astropy import units
 import numpy
 import pytest
@@ -250,6 +251,31 @@ class TestSpectralConstraint:
             " 5.830941732e-26, 6.758591553e-26)")
 
 
+class TestTemporalConstraint:
+    def test_plain_float(self):
+        cons = registry.Temporal((54130, 54200))
+        assert (cons.get_search_condition() ==
+            "1 = ivo_interval_overlaps(time_start, time_end,"
+            " 54130, 54200)")
+
+    def test_single_time(self):
+        cons = registry.Temporal(time.Time('2022-01-10'))
+        assert (cons.get_search_condition() ==
+            "59589.0 BETWEEN time_start AND time_end")
+
+    def test_time_interval(self):
+        cons = registry.Temporal((time.Time(2459000, format='jd'),
+            time.Time(59002, format='mjd')))
+        assert (cons.get_search_condition() ==
+            "1 = ivo_interval_overlaps(time_start, time_end, 58999.5, 59002.0)")
+
+    def test_multi_times_rejected(self):
+        with pytest.raises(ValueError) as excinfo:
+            cons = registry.Temporal(time.Time(['1999-01-01', '2010-01-01']))
+        assert (str(excinfo.value) == "RegTAP time constraints must"
+            " be made from single time instants.")
+
+
 class TestWhereClauseBuilding:
     @staticmethod
     def where_clause_for(*args, **kwargs):
@@ -290,7 +316,8 @@ class TestWhereClauseBuilding:
         # go.
         assert str(excinfo.value) == ("foo is not a valid registry"
             " constraint keyword.  Use one of"
-            " author, datamodel, ivoid, keywords, servicetype, ucd, waveband.")
+            " author, datamodel, ivoid, keywords, servicetype,"
+            " spatial, spectral, temporal, ucd, waveband.")
 
 
 class TestSelectClause:

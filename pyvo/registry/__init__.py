@@ -8,8 +8,8 @@ from .regtap import search, ivoid2service, get_RegTAP_query
     
 from .rtcons import (Constraint, 
     Freetext, Author, Servicetype, Waveband, Datamodel, Ivoid,
-    UCD, Spatial, Spectral)
+    UCD, Spatial, Spectral, Temporal)
 
 __all__ = ["search", "get_RegTAP_query", "Freetext", "Author",
     "Servicetype", "Waveband", "Datamodel", "Ivoid", "UCD",
-    "Spatial", "Spectral"]
+    "Spatial", "Spectral", "Temporal"]
