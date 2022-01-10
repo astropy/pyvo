@@ -244,11 +244,20 @@ class Servicetype(Constraint):
     A constraint for for the availability of a certain kind of service
     on the result.
 
-    The constraint is either a bespoke keyword (of which there are at least
-    image, spectrum, scs, line, and table; the full list is in 
-    SERVICE_TYPE_MAP) or the standards' ivoid (which generally looks like
+    The constraint normally is a custom keyword, one of:
+
+    * ``image``
+    * ``spectrum``
+    * ``scs`` (for cone search services)
+    * ``line`` (for SLAP services)
+    * ``table`` (for TAP services)
+
+    You can also pass in the standards' ivoid (which
+    generally looks like
     ``ivo://ivoa.net/std/<standardname>`` and have to be URIs with
-    a scheme part in any case).
+    a scheme part in any case); note, however, that for standards
+    pyVO does not know about it will not build service instances for
+    you.
 
     Multiple service types can be passed in; a match in that case
     is for records having any of the service types passed in.
@@ -310,7 +319,7 @@ class Waveband(Constraint):
     a verbal indication of the messenger particle, coming
     from the IVOA vocabulary http://www.ivoa.net/messenger.
 
-    The Spectral constraint enables selections by particle energy,
+    The :py:class:`pyvo.registry.Spectral` constraint enables selections by particle energy,
     but few resources actually give the necessary metadata (in 2021).
 
     Multiple wavebands can be given (and are effectively combined with OR).
@@ -459,7 +468,26 @@ class Spatial(Constraint):
     space.
 
     This is a RegTAP 1.1 extension not yet available on all Registries
-    (in 2022).
+    (in 2022).  Also note that not all data providers give spatial coverage
+    for their resources.
+
+    To find resources having data for RA/Dec 347.38/8.6772::
+    
+        >>> registry.Spatial((347.38, 8.6772))
+    
+    To find resources claiming to have data for a spherical circle 2 degrees
+    around that point::
+
+        >>> registry.Spatial(347.38, 8.6772, 2))
+
+    To find resources claiming to have data for a polygon described by
+    the vertices (23, -40), (26, -39), (25, -43) in ICRS RA/Dec::
+
+        >>> registry.Spatial([23, -40, 26, -39, 25, -43])
+    
+    To find resources claiming to cover a MOC, pass an ASCII MOC::
+
+        >>> registry.Spatial("0/1-3 3/")
     """
     _keyword = "spatial"
     _condition = "1 = CONTAINS({geom}, coverage)"
@@ -509,12 +537,29 @@ class Spatial(Constraint):
 
 class Spectral(Constraint):
     """
-    A RegTAP constraint on the sectral coverage of resources.
+    A RegTAP constraint on the spectral coverage of resources.
 
     This is a RegTAP 1.1 extension not yet available on all Registries
     (in 2022).  Worse, not too many resources bother declaring this
-    at this point; for robustness, it might be preferable to use
+    at this point.  For robustness, it might be preferable to use
     the `Waveband` constraint for the time being..
+
+    This constraint accepts quantities, i.e., values with units, and will
+    convert them to RegTAP's representation (which is Joule of particle energy)
+    if it can. This ought to work for wavelengths, frequencies, and energies.
+    Plain numbers are interpreted as particle energies in Joule.
+
+    To find resources covering the messenger particle energy 5 eV::
+
+        >>> registry.Spectral(5*units.eV)
+
+    To find resources overlapping the band between 5000 and 6000 Ångström::
+
+        >>> registry.Spectral((5000*units.Angstrom, 6000*units.Angstrom))
+
+    To find resources having data in the FM band::
+
+        >>> registry.Spectral((88*units.MHz, 102*units.MHz))
     """
     _keyword = "spectral"
     _extra_tables = ["rr.stc_spectral"]
@@ -527,7 +572,7 @@ class Spectral(Constraint):
         Parameters
         ----------
         spec : astropy.Quantity or a 2-tuple of astropy.Quantity-s
-            A spectral point to cover.  This must be a wavelength,
+            A spectral point or interval to cover.  This must be a wavelength,
             a frequency, or an energy, or a pair of such quantities,
             in which case the argument is interpreted as an interval.
             All resources *overlapping* the interval are returned.

@@ -53,15 +53,27 @@ keyword arguments.  The following constraints are available:
   from the vocabulary at http://www.ivoa.net/messenger giving the rough
   spectral location of the resource.
 * :py:class:`pyvo.registry.Author` (``author``): an author (“creator”).
-  This is a single SQL pattern, and given the sloppy practicies in the
-  VO, you should probably generously use wildcards.
+  This is a single SQL pattern, and given the sloppy practices in the
+  VO for how to write author names, you should probably generously use
+  wildcards.
 * :py:class:`pyvo.registry.Datamodel` (``datamodel``): one of obscore,
   epntap, or regtap: only return TAP services having tables of this
   kind.
 * :py:class:`pyvo.registry.Ivoid` (``ivoid``): exactly match a single
   IVOA identifier (that is, in effect, the primary key in the VO).
+* :py:class:`pyvo.registry.Spatial` (``spatial``): match resources
+  covering a certain geometry (point, circle, polygon, or MOC).
+  *RegTAP 1.2 Extension*.
+* :py:class:`pyvo.registry.Spectral` (``spectral``): match resources
+  covering a certain part of the spectrum (usually, but not limited to,
+  the electromagnetic spectrum).  *RegTAP 1.2 Extension*.
 
 Multiple contratints are combined conjunctively (”AND”).
+
+Constraints marked with *RegTAP 1.2 Extension* are not available on all
+IVOA RegTAP services (they are on pyVO's default RegTAP endpoint,
+though).  Also refer to the class documentation for further caveats on
+these.
 
 Hence, to look for for resources with UV data mentioning white dwarfs
 you could either run::
@@ -126,7 +138,7 @@ ignore.  For instance, you can simply construct
 :py:class:`pyvo.dal.TAPService`-s from ``tap#aux`` interfaces.
 
 Once you have found a resource you would like to query, pick it by index
-(which, obviously will not be stable across multiple executions.
+(which will not be stable across multiple executions.
 Use a resource's ivoid to identify resources over multiple runs
 of a programme; cf. the :py:class:`pyvo.registry.Ivoid`
 constraint).  Use the ``get_service`` method of

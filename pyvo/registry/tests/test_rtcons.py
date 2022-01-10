@@ -250,8 +250,6 @@ class TestSpectralConstraint:
             " 5.830941732e-26, 6.758591553e-26)")
 
 
-
-
 class TestWhereClauseBuilding:
     @staticmethod
     def where_clause_for(*args, **kwargs):
