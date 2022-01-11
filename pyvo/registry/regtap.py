@@ -157,6 +157,14 @@ class RegistryResults(dalq.DALResults):
     """
     an iterable set of results from a registry query. Each record is
     returned as RegistryResults
+
+    You can iterate over these, or access them by (numeric) index; note,
+    however, that these indexes will not be stable across different
+    executions and thus should only be used in interactive sessions.
+    Alternatively, you can use short names as indexes; there *might*
+    be clashes for these, as they are not unique VO-wide.  Where this
+    matters, you need to use full ivoids as index.
+
     """
     def getrecord(self, index):
         """
@@ -179,15 +187,46 @@ class RegistryResults(dalq.DALResults):
         """
         return table.Table([
                 list(range(len(self))),
+                [r.short_name for r in self],
                 [r.res_title for r in self],
                 [r.res_description for r in self],
                 [", ".join(sorted(r.access_modes())) for r in self]],
-            names=("index", "title", "description", "interfaces"),
+            names=("index", "short_name", "title", "description", "interfaces"),
             descriptions=(
                 "Index to access the resource within self",
+                "Short name",
                 "Resource title",
                 "Resource description",
                 "Access modes offered"))
+
+    @functools.lru_cache(maxsize=None)
+    def _get_ivo_index(self):
+        return dict((r.ivoid, index)
+            for index, r in enumerate(self))
+
+    @functools.lru_cache(maxsize=None)
+    def _get_short_name_index(self):
+        return dict((r.short_name, index)
+            for index, r in enumerate(self))
+
+    def __getitem__(self, item):
+        """
+        returns a record by numeric index, short names, or ivoid.
+
+        This will raise an IndexError or a KeyError when item does
+        not match a record returned.
+        """
+        if isinstance(item, int):
+            return self.getrecord(item)
+
+        elif isinstance(item, str):
+            if item.startswith("ivo://"):
+                return self.getrecord(self._get_ivo_index()[item])
+            else:
+                return self.getrecord(self._get_short_name_index()[item])
+
+        else:
+            raise IndexError(f"No resource matching {item}")
 
 
 class _BrowserService:

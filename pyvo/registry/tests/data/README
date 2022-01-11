@@ -1,0 +1,15 @@
+regtap.xml is used as a generic regtap query response in many of
+test_regtap's fixtures; most tests don't actually inspect its contents.
+
+To update it (necessary after changes to regtap.get_RegTAP_query), run
+this to update it:
+
+import requests
+from pyvo.registry import regtap
+
+with open("regtap.xml", "wb") as f:
+	f.write(requests.get(regtap.REGISTRY_BASEURL+"/sync", {
+		"LANG": "ADQL",
+		"QUERY": regtap.get_RegTAP_query(
+			keywords="pulsar", ucd=["pos.distance"])}).content)
+

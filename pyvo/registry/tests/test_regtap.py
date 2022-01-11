@@ -36,6 +36,14 @@ def capabilities(mocker):
 
 
 @pytest.fixture()
+def regtap_pulsar_distance_response(mocker):
+    with mocker.register_uri(
+        'POST', REGISTRY_BASEURL+'/sync',
+        content=get_pkg_data_contents('data/regtap.xml')) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
 def keywords_fixture(mocker):
     def keywordstest_callback(request, context):
         data = dict(parse_qsl(request.body))
@@ -223,6 +231,11 @@ class TestInterfaceClass:
         assert intf.is_vosi
 
 
+# The following tests have their assertions in the fixtures.
+# It would certainly not hurt to refactor this so they are
+# in the tests (we could also just rely on the rtcons tests
+# that exercise about the same thing).
+
 @pytest.mark.usefixtures('keywords_fixture', 'capabilities')
 def test_keywords():
     regsearch(keywords=['vizier', 'pulsar'])
@@ -271,19 +284,54 @@ def test_spectral():
         "1 = ivo_interval_overlaps(spectral_start, spectral_end, 1e-17, 2e-17)")
 
 
-@pytest.mark.usefixtures('multi_interface_fixture', 'capabilities')
-class TestResultsExtras:
-    def test_to_table(self):
-        t = regtap.search(
-            ivoid="ivo://org.gavo.dc/flashheros/q/ssa").to_table()
-        assert (set(t.columns.keys())
-            == {'index', 'title', 'description', 'interfaces'})
-        assert t["index"][0] == 0
-        assert t["title"][0] == 'Flash/Heros SSAP'
-        assert (t["description"][0][:40]
-            == 'Spectra from the Flash and Heros Echelle')
-        assert (t["interfaces"][0]
-            == 'datalink#links-1.0, soda#sync-1.0, ssa, tap#aux, web')
+def test_to_table(multi_interface_fixture, capabilities):
+    t = regtap.search(
+        ivoid="ivo://org.gavo.dc/flashheros/q/ssa").to_table()
+    assert (set(t.columns.keys())
+        == {'index', 'short_name', 'title', 'description', 'interfaces'})
+    assert t["index"][0] == 0
+    assert t["title"][0] == 'Flash/Heros SSAP'
+    assert (t["description"][0][:40]
+        == 'Spectra from the Flash and Heros Echelle')
+    assert (t["interfaces"][0]
+        == 'datalink#links-1.0, soda#sync-1.0, ssa, tap#aux, web')
+
+
+@pytest.fixture()
+def rt_pulsar_distance(regtap_pulsar_distance_response, capabilities):
+    return regsearch(keywords="pulsar", ucd=["pos.distance"])
+
+
+class TestResultIndexing:
+    def test_get_with_index(self, rt_pulsar_distance):
+        # this is expecte to break when the fixture is updated
+        assert (rt_pulsar_distance[0].res_title
+            == 'Pulsar Timing for Fermi Gamma-ray Space Telescope')
+    
+    def test_get_with_short_name(self, rt_pulsar_distance):
+        assert (rt_pulsar_distance["ATNF"].res_title
+            == 'ATNF Pulsar Catalog')
+
+    def test_get_with_ivoid(self, rt_pulsar_distance):
+        assert (rt_pulsar_distance["ivo://nasa.heasarc/atnfpulsar"
+            ].res_title == 'ATNF Pulsar Catalog')
+
+    def test_out_of_range(self, rt_pulsar_distance):
+        with pytest.raises(IndexError) as excinfo:
+            rt_pulsar_distance[40320]
+        assert (str(excinfo.value) 
+            == "index 40320 is out of bounds for axis 0 with size 23")
+
+    def test_bad_key(self, rt_pulsar_distance):
+        with pytest.raises(KeyError) as excinfo:
+            rt_pulsar_distance["hunkatunka"]
+        assert (str(excinfo.value) == "'hunkatunka'")
+
+    def test_not_indexable(self, rt_pulsar_distance):
+        with pytest.raises(IndexError) as excinfo:
+            rt_pulsar_distance[None]
+        assert (str(excinfo.value) 
+            == "No resource matching None")
 
 
 @pytest.mark.usefixtures('multi_interface_fixture', 'capabilities',
