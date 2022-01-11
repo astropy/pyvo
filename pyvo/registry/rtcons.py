@@ -14,6 +14,7 @@ import datetime
 
 from astropy import units
 from astropy import constants
+from astropy.coordinates import SkyCoord
 import numpy
 
 from ..dal import tap
@@ -488,79 +489,15 @@ class Spatial(Constraint):
     To find resources claiming to cover a MOC, pass an ASCII MOC::
 
         >>> registry.Spatial("0/1-3 3/")
-    """
-    _keyword = "spatial"
-    _condition = "1 = CONTAINS({geom}, coverage)"
-    _extra_tables = ["rr.stc_spatial"]
 
-    takes_sequence = True
-
-    def __init__(self, geom_spec, order=6):
-        """
-
-        Parameters
-        ----------
-        geom_spec : object
-            For now, this is DALI-style: a 2-sequence is interpreted
-            as a DALI point, a 3-sequence as a DALI circle, a 2n sequence 
-            as a DALI polygon.  Additionally, strings are interpreted
-            as ASCII MOCs.  Other types (proper geometries or pymoc 
-            objects) might be supported in the future.
-        order : int, optional
-            Non-MOC geometries are converted to MOCs before comparing
-            them to the resource coverage.  By default, this contrains
-            uses order 6, which corresponds to about a degree of resolution
-            and is what RegTAP recommends as a sane default for the
-            order actually used for the coverages in the database.
-        """
-        def tomoc(s):
-            return _AsIs("MOC({}, {})".format(order, s))
-
-        if isinstance(geom_spec, str):
-            geom = _AsIs("MOC({})".format(
-                make_sql_literal(geom_spec)))
-
-        elif len(geom_spec)==2:
-            geom = tomoc(format_function_call("POINT", geom_spec))
-
-        elif len(geom_spec)==3:
-            geom = tomoc(format_function_call("CIRCLE", geom_spec))
-
-        elif len(geom_spec)%2==0:
-            geom = tomoc(format_function_call("POLYGON", geom_spec))
-
-        else:
-            raise ValueError("This constraint needs DALI-style geometries.")
+    When you already have an astropy SkyCoord::
         
-        self._fillers = {"geom": geom}
-
-
-class Spatial(Constraint):
-    """
-    A RegTAP constraint selecting resources covering a geometry in
-    space.
-
-    This is a RegTAP 1.2 extension not yet available on all Registries
-    (in 2022).  Also note that not all data providers give spatial coverage
-    for their resources.
-
-    To find resources having data for RA/Dec 347.38/8.6772::
+        >>> from astropy.coordinates import SkyCoord
+        >>> registry.Spatial(SkyCoord("23d +3d"))
     
-        >>> registry.Spatial((347.38, 8.6772))
-    
-    To find resources claiming to have data for a spherical circle 2 degrees
-    around that point::
+    SkyCoords also work as circle centers::
 
-        >>> registry.Spatial(347.38, 8.6772, 2))
-
-    To find resources claiming to have data for a polygon described by
-    the vertices (23, -40), (26, -39), (25, -43) in ICRS RA/Dec::
-
-        >>> registry.Spatial([23, -40, 26, -39, 25, -43])
-    
-    To find resources claiming to cover a MOC, pass an ASCII MOC::
-
-        >>> registry.Spatial("0/1-3 3/")
+        >>> registry.Spatial((SkyCoord("23d +3d"), 3))
     """
     _keyword = "spatial"
     _condition = "1 = CONTAINS({geom}, coverage)"
@@ -577,8 +514,10 @@ class Spatial(Constraint):
             For now, this is DALI-style: a 2-sequence is interpreted
             as a DALI point, a 3-sequence as a DALI circle, a 2n sequence 
             as a DALI polygon.  Additionally, strings are interpreted
-            as ASCII MOCs.  Other types (proper geometries or pymoc 
-            objects) might be supported in the future.
+            as ASCII MOCs, SkyCoords as points, and a pair of a
+            SkyCoord and a float as a circle.  Other types (proper 
+            geometries or pymoc objects) might be supported in the 
+            future.
         order : int, optional
             Non-MOC geometries are converted to MOCs before comparing
             them to the resource coverage.  By default, this contrains
@@ -588,13 +527,22 @@ class Spatial(Constraint):
         """
         def tomoc(s):
             return _AsIs("MOC({}, {})".format(order, s))
-
+        
         if isinstance(geom_spec, str):
             geom = _AsIs("MOC({})".format(
                 make_sql_literal(geom_spec)))
 
+        elif isinstance(geom_spec, SkyCoord):
+            geom = tomoc(format_function_call("POINT", 
+                (geom_spec.ra.value, geom_spec.dec.value)))
+
         elif len(geom_spec)==2:
-            geom = tomoc(format_function_call("POINT", geom_spec))
+            if isinstance(geom_spec[0], SkyCoord):
+                geom = tomoc(format_function_call("CIRCLE",
+                    [geom_spec[0].ra.value, geom_spec[0].dec.value, 
+                    geom_spec[1]]))
+            else:
+                geom = tomoc(format_function_call("POINT", geom_spec))
 
         elif len(geom_spec)==3:
             geom = tomoc(format_function_call("CIRCLE", geom_spec))

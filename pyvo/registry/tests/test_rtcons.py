@@ -8,6 +8,7 @@ import datetime
 
 from astropy import time
 from astropy import units
+from astropy.coordinates import SkyCoord
 import numpy
 import pytest
 
@@ -207,6 +208,17 @@ class TestSpatialConstraint:
         assert (cons.get_search_condition() ==
             "1 = CONTAINS(MOC('0/1-3 3/'), coverage)")
 
+    def test_SkyCoord(self):
+        cons = registry.Spatial(SkyCoord(3*units.deg, -30*units.deg))
+        assert (cons.get_search_condition() ==
+            "1 = CONTAINS(MOC(6, POINT(3.0, -30.0)), coverage)")
+        assert(cons._extra_tables==["rr.stc_spatial"])
+
+    def test_SkyCoord_Circle(self):
+        cons = registry.Spatial((SkyCoord(3*units.deg, -30*units.deg), 3))
+        assert (cons.get_search_condition() ==
+            "1 = CONTAINS(MOC(6, CIRCLE(3.0, -30.0, 3)), coverage)")
+        assert(cons._extra_tables==["rr.stc_spatial"])
 
 class TestSpectralConstraint:
     # These tests might need some float literal fuzziness.  I'm just
