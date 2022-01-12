@@ -309,14 +309,12 @@ class TestWhereClauseBuilding:
             ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
                 "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
 
-
     def test_mixed(self):
         assert self.where_clause_for(
             rtcons.Waveband("EUV"),
             author="%Hubble%"
             ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
                 "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
-
 
     def test_bad_keyword(self):
         with pytest.raises(TypeError) as excinfo:
@@ -330,6 +328,19 @@ class TestWhereClauseBuilding:
             " constraint keyword.  Use one of"
             " author, datamodel, ivoid, keywords, servicetype,"
             " spatial, spectral, temporal, ucd, waveband.")
+
+    def test_with_legacy_keyword(self):
+        assert self.where_clause_for(
+            "plain", "string"
+            ) == (
+            '(ivoid IN (SELECT ivoid FROM rr.resource WHERE '
+             "1=ivo_hasword(res_description, 'plain') UNION SELECT ivoid FROM rr.resource "
+             "WHERE 1=ivo_hasword(res_title, 'plain') UNION SELECT ivoid FROM "
+             "rr.res_subject WHERE res_subject ILIKE '%plain%'))\n"
+             '  AND (ivoid IN (SELECT ivoid FROM rr.resource WHERE '
+             "1=ivo_hasword(res_description, 'string') UNION SELECT ivoid FROM rr.resource "
+             "WHERE 1=ivo_hasword(res_title, 'string') UNION SELECT ivoid FROM "
+             "rr.res_subject WHERE res_subject ILIKE '%string%'))")
 
 
 class TestSelectClause:

@@ -739,6 +739,9 @@ def build_regtap_query(constraints):
 
     serialized, extra_tables = [], set()
     for constraint in constraints:
+        if isinstance(constraint, str):
+            constraint = Freetext(constraint)
+
         serialized.append("("+constraint.get_search_condition()+")")
         extra_tables |= set(constraint._extra_tables)
     
