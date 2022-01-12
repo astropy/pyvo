@@ -1,5 +1,7 @@
-1.3 (unreleased)
-================
+1.2.1 (2022-01-12)
+==================
+
+- Get wraps decorator from functools instead of astropy (no functional change) [#283]
 
 
 1.2 (2021-12-17)
