@@ -49,7 +49,6 @@ class TestSQLLiterals:
 
         return _WithFillers()._get_sql_literals()
 
-   
     def test_strings(self, literals):
         assert literals["aString"] == "'some harmless stuff'"
         assert literals["nastyString"] == "'that''s not nasty'"
@@ -95,7 +94,7 @@ class TestServicetypeConstraint:
     def test_standardmap(self):
         assert (rtcons.Servicetype("scs").get_search_condition()
             == "standard_id IN ('ivo://ivoa.net/std/conesearch')")
-    
+
     def test_fulluri(self):
         assert (rtcons.Servicetype("http://extstandards/invention"
                 ).get_search_condition()
@@ -146,7 +145,7 @@ class TestDatamodelConstraint:
             rtcons.Datamodel("junk")
         assert str(excinfo.value) == (
             "Unknown data model id junk.  Known are: epntap, obscore, regtap.")
-    
+
     def test_obscore(self):
         cons = rtcons.Datamodel("ObsCore")
         assert (cons.get_search_condition()
@@ -219,6 +218,7 @@ class TestSpatialConstraint:
         assert (cons.get_search_condition() ==
             "1 = CONTAINS(MOC(6, CIRCLE(3.0, -30.0, 3)), coverage)")
         assert(cons._extra_tables==["rr.stc_spatial"])
+
 
 class TestSpectralConstraint:
     # These tests might need some float literal fuzziness.  I'm just
@@ -385,4 +385,3 @@ class TestSelectClause:
             "source_format, "
             "region_of_regard, "
             "waveband")
-

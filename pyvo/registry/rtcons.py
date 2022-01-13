@@ -126,7 +126,7 @@ class Constraint:
     string with {}-type replacement fields (assume all parameters are strings),
     and define ``fillers`` to be a dictionary with values for the _condition
     template.  Don't worry about SQL-serialising the values, Constraint takes
-    care of that.  If you need your Constraint to be "lazy" 
+    care of that.  If you need your Constraint to be "lazy"
     (cf. Servicetype), it's ok to overrride get_search_condition without
     an upcall to Constraint.
 
@@ -161,7 +161,7 @@ class Constraint:
                 .format(self.__class__.__name__))
 
         return self._condition.format(**self._get_sql_literals())
-  
+
     def _get_sql_literals(self):
         """
         returns self._fillers as a dictionary of properly SQL-escaped
@@ -174,7 +174,7 @@ class Constraint:
 
 class Freetext(Constraint):
     """
-    A contraint using plain text to match against title, description, 
+    A contraint using plain text to match against title, description,
     subjects, and person names.
     """
     _keyword = "keywords"
@@ -186,11 +186,11 @@ class Freetext(Constraint):
         ----------
         *words: tuple of str
             It is recommended to pass multiple words in multiple strings
-            arguments.  You can pass in phrases (i.e., multiple words 
-            separated by space), but behaviour might then vary quite 
+            arguments.  You can pass in phrases (i.e., multiple words
+            separated by space), but behaviour might then vary quite
             significantly between different registries.
         """
-        # cross-table ORs kill the query planner.  We therefore 
+        # cross-table ORs kill the query planner.  We therefore
         # write the constraint as an IN condition on a UNION
         # of subqueries; it may look as if this has to be
         # really slow, but in fact it's almost always a lot
@@ -203,7 +203,7 @@ class Freetext(Constraint):
             "SELECT ivoid FROM rr.res_subject WHERE"
                 " res_subject ILIKE {{{parpatname}}}"]
         self._fillers, subqueries = {}, []
-        
+
         for index, word in enumerate(words):
             parname = "fulltext{}".format(index)
             parpatname = "fulltextpar{}".format(index)
@@ -218,7 +218,7 @@ class Freetext(Constraint):
 
 class Author(Constraint):
     """
-    A constraint for creators (“authors”) of a resource; you can use SQL 
+    A constraint for creators (“authors”) of a resource; you can use SQL
     patterns here.
 
     The match is case-sensitive.
@@ -233,7 +233,7 @@ class Author(Constraint):
         name: str
             Note that regrettably there are no guarantees as to how authors
             are written in the VO.  This means that you will generally have
-            to write things like ``%Hubble%`` (% being “zero or more 
+            to write things like ``%Hubble%`` (% being “zero or more
             characters” in SQL) here.
         """
         self._condition = "role_name LIKE {auth} AND base_role='creator'"
@@ -431,7 +431,7 @@ class Ivoid(Constraint):
 
         ivoid : string
             The IVOA identifier of the resource to match.  As RegTAP
-            requires lowercasing ivoids on ingestion, the constraint 
+            requires lowercasing ivoids on ingestion, the constraint
             lowercases the ivoid passed in, too.
         """
         self._condition = "ivoid = {ivoid}"
@@ -441,7 +441,7 @@ class Ivoid(Constraint):
 class UCD(Constraint):
     """
     A constraint selecting resources having tables with columns having
-    UCDs matching a SQL pattern (% as wildcard).  
+    UCDs matching a SQL pattern (% as wildcard).
     """
     _keyword = "ucd"
 
@@ -461,7 +461,7 @@ class UCD(Constraint):
             f"ucd LIKE {{ucd{i}}}" for i in range(len(patterns)))
         self._fillers = dict((f"ucd{index}", pattern)
             for index, pattern in enumerate(patterns))
-   
+
 
 class Spatial(Constraint):
     """
@@ -473,9 +473,9 @@ class Spatial(Constraint):
     for their resources.
 
     To find resources having data for RA/Dec 347.38/8.6772::
-    
+
         >>> registry.Spatial((347.38, 8.6772))
-    
+
     To find resources claiming to have data for a spherical circle 2 degrees
     around that point::
 
@@ -485,16 +485,16 @@ class Spatial(Constraint):
     the vertices (23, -40), (26, -39), (25, -43) in ICRS RA/Dec::
 
         >>> registry.Spatial([23, -40, 26, -39, 25, -43])
-    
+
     To find resources claiming to cover a MOC, pass an ASCII MOC::
 
         >>> registry.Spatial("0/1-3 3/")
 
     When you already have an astropy SkyCoord::
-        
+
         >>> from astropy.coordinates import SkyCoord
         >>> registry.Spatial(SkyCoord("23d +3d"))
-    
+
     SkyCoords also work as circle centers::
 
         >>> registry.Spatial((SkyCoord("23d +3d"), 3))
@@ -512,11 +512,11 @@ class Spatial(Constraint):
         ----------
         geom_spec : object
             For now, this is DALI-style: a 2-sequence is interpreted
-            as a DALI point, a 3-sequence as a DALI circle, a 2n sequence 
+            as a DALI point, a 3-sequence as a DALI circle, a 2n sequence
             as a DALI polygon.  Additionally, strings are interpreted
             as ASCII MOCs, SkyCoords as points, and a pair of a
-            SkyCoord and a float as a circle.  Other types (proper 
-            geometries or pymoc objects) might be supported in the 
+            SkyCoord and a float as a circle.  Other types (proper
+            geometries or pymoc objects) might be supported in the
             future.
         order : int, optional
             Non-MOC geometries are converted to MOCs before comparing
@@ -527,19 +527,19 @@ class Spatial(Constraint):
         """
         def tomoc(s):
             return _AsIs("MOC({}, {})".format(order, s))
-        
+
         if isinstance(geom_spec, str):
             geom = _AsIs("MOC({})".format(
                 make_sql_literal(geom_spec)))
 
         elif isinstance(geom_spec, SkyCoord):
-            geom = tomoc(format_function_call("POINT", 
+            geom = tomoc(format_function_call("POINT",
                 (geom_spec.ra.value, geom_spec.dec.value)))
 
         elif len(geom_spec)==2:
             if isinstance(geom_spec[0], SkyCoord):
                 geom = tomoc(format_function_call("CIRCLE",
-                    [geom_spec[0].ra.value, geom_spec[0].dec.value, 
+                    [geom_spec[0].ra.value, geom_spec[0].dec.value,
                     geom_spec[1]]))
             else:
                 geom = tomoc(format_function_call("POINT", geom_spec))
@@ -552,7 +552,7 @@ class Spatial(Constraint):
 
         else:
             raise ValueError("This constraint needs DALI-style geometries.")
-        
+
         self._fillers = {"geom": geom}
 
 
@@ -588,7 +588,7 @@ class Spectral(Constraint):
     """
     _keyword = "spectral"
     _extra_tables = ["rr.stc_spectral"]
-    
+
     takes_sequence = True
 
     def __init__(self, spec):
@@ -621,7 +621,7 @@ class Spectral(Constraint):
         """
         if isinstance(quant, (float, int)):
             return quant
-        
+
         try:
             # is it an energy?
             return quant.to(units.Joule).value
@@ -639,7 +639,7 @@ class Spectral(Constraint):
             return (constants.h*quant.to(units.Hz)).value
         except units.UnitConversionError:
             pass # fall through to give up
-        
+
         raise ValueError(f"Cannot make a spectral quantity out of {quant}")
 
 
@@ -671,7 +671,7 @@ class Temporal(Constraint):
     """
     _keyword = "temporal"
     _extra_tables = ["rr.stc_temporal"]
-    
+
     takes_sequence = True
 
     def __init__(self, times):
@@ -681,7 +681,7 @@ class Temporal(Constraint):
         ----------
         spec : astropy.Time or a 2-tuple of astropy.Time-s
             A point in time or time interval to cover.  Plain numbers
-            are interpreted as MJD.  All resources *overlapping* the 
+            are interpreted as MJD.  All resources *overlapping* the
             interval are returned.
         """
         if isinstance(times, tuple):
@@ -705,7 +705,7 @@ class Temporal(Constraint):
         """
         if isinstance(quant, (float, int)):
             return quant
-        
+
         val = quant.to_value('mjd')
         if not isinstance(val, numpy.number):
             raise ValueError("RegTAP time constraints must be made from"
@@ -744,7 +744,7 @@ def build_regtap_query(constraints):
 
         serialized.append("("+constraint.get_search_condition()+")")
         extra_tables |= set(constraint._extra_tables)
-    
+
     joined_tables = ["rr.resource", "rr.capability", "rr.interface"
         ]+list(extra_tables)
 
@@ -757,7 +757,7 @@ def build_regtap_query(constraints):
             plain_columns.append(col_desc)
         else:
             select_clause.append("{} AS {}".format(*col_desc))
-    
+
     fragments = ["SELECT",
         ", ".join(select_clause),
         "FROM",
@@ -784,7 +784,7 @@ def keywords_to_constraints(keywords):
 
     Raises
     ------
-    DALQueryError 
+    DALQueryError
         if an unknown keyword is encountered.
     """
     constraints = []
@@ -795,7 +795,7 @@ def keywords_to_constraints(keywords):
                     ", ".join(sorted(_KEYWORD_TO_CONSTRAINT))))
 
         constraint_class = _KEYWORD_TO_CONSTRAINT[keyword]
-        if (isinstance(value, (tuple, list)) 
+        if (isinstance(value, (tuple, list))
                 and not constraint_class.takes_sequence):
             constraints.append(constraint_class(*value))
         else:
@@ -811,7 +811,7 @@ def _make_constraint_map():
     keyword_to_constraint = {}
     for att_name, obj in globals().items():
         if (isinstance(obj, type)
-                and issubclass(obj, Constraint) 
+                and issubclass(obj, Constraint)
                 and obj._keyword):
             keyword_to_constraint[obj._keyword] = obj
     return keyword_to_constraint

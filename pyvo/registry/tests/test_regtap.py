@@ -157,7 +157,7 @@ def aux_fixture(mocker):
 
     with mocker.register_uri(
         'POST', REGISTRY_BASEURL+'/sync',
-        content=auxtest_callback, 
+        content=auxtest_callback,
     ) as matcher:
         yield matcher
 
@@ -167,7 +167,7 @@ def multi_interface_fixture(mocker):
 # to update this, run
 # import requests
 # from pyvo.registry import regtap
-# 
+#
 # with open("data/multi-interface.xml", "wb") as f:
 # 	f.write(requests.get(regtap.REGISTRY_BASEURL+"/sync", {
 # 		"LANG": "ADQL",
@@ -197,7 +197,7 @@ class TestInterfaceClass:
         assert not intf.is_vosi
 
     def test_unknown_standard(self):
-        intf = regtap.Interface("http://example.org", "ivo://gavo/std/a", 
+        intf = regtap.Interface("http://example.org", "ivo://gavo/std/a",
             "vs:paramhttp", "std")
         assert intf.is_standard
         with pytest.raises(ValueError) as excinfo:
@@ -208,13 +208,13 @@ class TestInterfaceClass:
             " id ivo://gavo/std/a.")
 
     def test_known_standard(self):
-        intf = regtap.Interface("http://example.org", 
+        intf = regtap.Interface("http://example.org",
             "ivo://ivoa.net/std/tap#aux", "vs:paramhttp", "std")
         assert isinstance(intf.to_service(), tap.TAPService)
         assert not intf.is_vosi
 
     def test_secondary_interface(self):
-        intf = regtap.Interface("http://example.org", 
+        intf = regtap.Interface("http://example.org",
             "ivo://ivoa.net/std/tap#aux",
             "vs:webbrowser", "web")
 
@@ -225,7 +225,7 @@ class TestInterfaceClass:
             "This is not a standard interface.  PyVO cannot speak to it.")
 
     def test_VOSI(self):
-        intf = regtap.Interface("http://example.org", 
+        intf = regtap.Interface("http://example.org",
             "ivo://ivoa.net/std/vosi#capabilities",
             "vs:ParamHTTP", "std")
         assert intf.is_vosi
@@ -272,6 +272,7 @@ def test_bad_servicetype_aux():
     with pytest.raises(dalq.DALQueryError):
         regsearch(servicetype='bad_servicetype', includeaux=True)
 
+
 def test_spatial():
     assert (rtcons.keywords_to_constraints({
             "spatial": (23, -40)})[0].get_search_condition()
@@ -280,7 +281,7 @@ def test_spatial():
 
 def test_spectral():
     assert (rtcons.keywords_to_constraints({
-            "spectral": (1e-17, 2e-17)})[0].get_search_condition() == 
+            "spectral": (1e-17, 2e-17)})[0].get_search_condition() ==
         "1 = ivo_interval_overlaps(spectral_start, spectral_end, 1e-17, 2e-17)")
 
 
@@ -307,7 +308,7 @@ class TestResultIndexing:
         # this is expecte to break when the fixture is updated
         assert (rt_pulsar_distance[0].res_title
             == 'Pulsar Timing for Fermi Gamma-ray Space Telescope')
-    
+
     def test_get_with_short_name(self, rt_pulsar_distance):
         assert (rt_pulsar_distance["ATNF"].res_title
             == 'ATNF Pulsar Catalog')
@@ -319,7 +320,7 @@ class TestResultIndexing:
     def test_out_of_range(self, rt_pulsar_distance):
         with pytest.raises(IndexError) as excinfo:
             rt_pulsar_distance[40320]
-        assert (str(excinfo.value) 
+        assert (str(excinfo.value)
             == "index 40320 is out of bounds for axis 0 with size 23")
 
     def test_bad_key(self, rt_pulsar_distance):
@@ -330,7 +331,7 @@ class TestResultIndexing:
     def test_not_indexable(self, rt_pulsar_distance):
         with pytest.raises(IndexError) as excinfo:
             rt_pulsar_distance[None]
-        assert (str(excinfo.value) 
+        assert (str(excinfo.value)
             == "No resource matching None")
 
 
@@ -338,7 +339,7 @@ class TestResultIndexing:
     'flash_service')
 class TestInterfaceSelection:
     """
-    tests for the selection and generation of services within 
+    tests for the selection and generation of services within
     RegistryResource.
     """
     def test_exactly_one_result(self):
@@ -355,24 +356,24 @@ class TestInterfaceSelection:
         svc = flash_service.get_service("web")
         assert isinstance(svc,
             regtap._BrowserService)
-        assert (svc.access_url 
+        assert (svc.access_url
             == "http://dc.zah.uni-heidelberg.de/flashheros/q/web/form")
-    
+
     def test_get_aux_interface(self, flash_service):
         svc = flash_service.get_service("tap#aux")
-        assert (svc._baseurl 
+        assert (svc._baseurl
             == "http://dc.zah.uni-heidelberg.de/tap")
-        
+
     def test_get_aux_as_main(self, flash_service):
-        assert (flash_service.get_service("tap")._baseurl 
+        assert (flash_service.get_service("tap")._baseurl
             == "http://dc.zah.uni-heidelberg.de/tap")
 
     def test_get__main_from_aux(self, flash_service):
-        assert (flash_service.get_service("tap")._baseurl 
+        assert (flash_service.get_service("tap")._baseurl
             == "http://dc.zah.uni-heidelberg.de/tap")
 
     def test_get_by_alias(self, flash_service):
-        assert (flash_service.get_service("spectrum")._baseurl 
+        assert (flash_service.get_service("spectrum")._baseurl
             == "http://dc.zah.uni-heidelberg.de/fhssa?")
 
     def test_get_unsupported_standard(self, flash_service):
@@ -382,7 +383,7 @@ class TestInterfaceSelection:
         assert str(excinfo.value) == (
             "PyVO has no support for interfaces with standard id"
             " ivo://ivoa.net/std/soda#sync-1.0.")
-    
+
     def test_get_nonexisting_standard(self, flash_service):
         with pytest.raises(ValueError) as excinfo:
             flash_service.get_service("http://nonsense#fancy")
@@ -412,9 +413,11 @@ class _FakeResult:
         self.fieldnames = list(d.keys())
         vals = [regtap.TOKEN_SEP.join(v) if isinstance(v, list) else v
             for v in d.values()]
+
         class _:
             class array:
                 data = [vals]
+
         self.resultstable = _
 
 
@@ -487,8 +490,8 @@ class TestInterfaceRejection:
         rsc = _makeRegistryRecord({})
 
         with pytest.raises(ValueError) as excinfo:
-            rsc.service._baseurl 
-        
+            rsc.service._baseurl
+
         assert str(excinfo.value) == (
             "No matching interface.")
 
@@ -565,7 +568,7 @@ class TestGetTables:
 
         assert getflashcol("ssa_specend").unit == "m"
 
-        assert (getflashcol("ssa_specend").utype 
+        assert (getflashcol("ssa_specend").utype
             == "ssa:char.spectralaxis.coverage.bounds.stop")
 
         assert (getflashcol("ssa_fluxcalib").description
