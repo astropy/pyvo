@@ -44,7 +44,7 @@ class TestSQLLiterals:
                 "bytes": b"keep this ascii for now",
                 "anInt": 210,
                 "aFloat": 5e7,
-                "numpyStuff": numpy.float96(23.7),
+                "numpyStuff": numpy.float64(23.7),
                 "timestamp": datetime.datetime(2021, 6, 30, 9, 1),}
 
         return _WithFillers()._get_sql_literals()
@@ -64,7 +64,7 @@ class TestSQLLiterals:
         assert literals["aFloat"] == "50000000.0"
 
     def test_numpy(self, literals):
-        assert literals["numpyStuff"][:14] == "23.69999999999"
+        assert float(literals["numpyStuff"])-23.7<1e-10
 
     def test_timestamp(self, literals):
         assert literals["timestamp"] == "'2021-06-30T09:01:00'"
