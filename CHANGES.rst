@@ -7,7 +7,7 @@
 
 - Overhaul of the registry.regsearch as discussed in
   https://blog.g-vo.org/towards-data-discovery-in-pyvo.html.  This
-  should be backwards-compatible. [#278, #238, #176]
+  should be backwards-compatible. [#289]
 
 1.3.1 (unreleased)
 ==================

@@ -4,6 +4,7 @@
 Tests for pyvo.registry.regtap
 """
 
+import io
 import re
 from functools import partial
 from urllib.parse import parse_qsl
@@ -352,6 +353,15 @@ class TestInterfaceSelection:
             'datalink#links-1.0', 'soda#sync-1.0', 'ssa', 'tap#aux',
             'web'}
 
+    def test_standard_id_multi(self, flash_service):
+        with pytest.raises(dalq.DALQueryError) as excinfo:
+            _ = flash_service.standard_id
+
+        assert str(excinfo.value) == ("This resource supports several"
+            " standards (datalink#links-1.0, soda#sync-1.0, ssa,"
+            " tap#aux, web).  Use get_service or restrict your query"
+            " using Servicetype.")
+
     def test_get_web_interface(self, flash_service):
         svc = flash_service.get_service("web")
         assert isinstance(svc,
@@ -496,19 +506,43 @@ class TestInterfaceRejection:
             "No matching interface.")
 
 
+@pytest.mark.remote_data
+def test_get_contact():
+    rsc = _makeRegistryRecord(
+        {"ivoid": "ivo://org.gavo.dc/flashheros/q/ssa"})
+    assert (rsc.get_contact()
+        == "GAVO Data Center Team (++49 6221 54 1837)"
+            " <gavo@ari.uni-heidelberg.de>")
+
+
+@pytest.mark.usefixtures('multi_interface_fixture', 'capabilities',
+    'flash_service')
 class TestExtraResourceMethods:
     """
     tests for methods of RegistryResource containing some non-trivial
     logic (except service selection, which is in TestInterfaceSelection,
     and get_tables, which is in TestGetTables).
     """
-    @pytest.mark.remote_data
-    def test_get_contact(self):
-        rsc = _makeRegistryRecord(
-            {"ivoid": "ivo://org.gavo.dc/flashheros/q/ssa"})
-        assert (rsc.get_contact()
-            == "GAVO Data Center Team (++49 6221 54 1837)"
-                " <gavo@ari.uni-heidelberg.de>")
+
+    def test_unique_standard_id(self):
+        rsc = _makeRegistryRecord({
+            "access_urls": ["http://a"],
+            "standard_ids": ["ivo://ivoa.net/std/tap"],
+            "intf_types": ["vs:paramhttp"],
+            "intf_roles": ["std"]
+        })
+        assert rsc.standard_id == "ivo://ivoa.net/std/tap"
+
+    def test_describe_multi(self, flash_service):
+        out = io.StringIO()
+        flash_service.describe(verbose=True, file=out)
+        output = out.getvalue()
+
+        assert "Flash/Heros SSAP" in output
+        assert ("Access modes: datalink#links-1.0, soda#sync-1.0,"
+            " ssa, tap#aux, web" in output)
+
+        assert "More info: http://dc.zah" in output
 
 
 # TODO: While I suppose the contact test should keep requiring network,

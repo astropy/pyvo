@@ -484,7 +484,14 @@ class RegistryResource(dalq.Record):
         """
         the IVOA standard identifier
         """
-        return self.get("standard_id", decode=True)
+        standard_ids = list(set(self["standard_ids"]))
+        if len(standard_ids)==1:
+            return standard_ids[0]
+        else:
+            raise dalq.DALQueryError(
+                "This resource supports several standards ({})."
+                "  Use get_service or restrict your query using Servicetype."
+                .format(", ".join(sorted(self.access_modes()))))
 
     def access_modes(self):
         """
@@ -653,26 +660,16 @@ class RegistryResource(dalq.Record):
             If provided, write information to this output stream.
             Otherwise, it is written to standard out.
         """
-        restype = "Custom Service"
-        stdid = self.get("standard_id", decode=True).lower()
-        if stdid:
-            if stdid.startswith("ivo://ivoa.net/std/conesearch"):
-                restype = "Catalog Cone-search Service"
-            elif stdid.startswith("ivo://ivoa.net/std/sia"):
-                restype = "Image Data Service"
-            elif stdid.startswith("ivo://ivoa.net/std/ssa"):
-                restype = "Spectrum Data Service"
-            elif stdid.startswith("ivo://ivoa.net/std/slap"):
-                restype = "Spectral Line Database Service"
-            elif stdid.startswith("ivo://ivoa.net/std/tap"):
-                restype = "Table Access Protocol Service"
-
-        print(restype, file=file)
         print(para_format_desc(self.res_title), file=file)
         print("Short Name: " + self.short_name, file=file)
         print("IVOA Identifier: " + self.ivoid, file=file)
-        if self.access_url:
+        print("Access modes: " + ", ".join(sorted(self.access_modes())),
+            file=file)
+
+        try:
             print("Base URL: " + self.access_url, file=file)
+        except dalq.DALQueryError:
+            print("Multi-capabilty service -- use get_service()")
 
         if self.res_description:
             print(file=file)
@@ -690,8 +687,6 @@ class RegistryResource(dalq.Record):
                 file=file)
 
         if verbose:
-            if self.standard_id:
-                print("StandardID: " + self.standard_id, file=file)
             if self.reference_url:
                 print("More info: " + self.reference_url, file=file)
 
