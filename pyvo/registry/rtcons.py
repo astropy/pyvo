@@ -23,6 +23,11 @@ from ..utils import vocabularies
 from .import regtap
 
 
+__all__ = ["Freetext", "Author", "Servicetype", "Waveband",
+    "Datamodel", "Ivoid", "UCD", "Spatial", "Spectral", "Temporal",
+    "build_regtap_query"]
+
+
 # a mapping of service type shorthands to the ivoids of the
 # corresponding standards.  This is mostly to keep legacy APIs.
 # In the future, preferably rely on shorten_stdid and expand_stdid
