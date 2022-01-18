@@ -33,12 +33,11 @@ from ._astropy_init import *
 # ----------------------------------------------------------------------------
 
 # For egg_info test builds to pass, put package imports here.
-if not _ASTROPY_SETUP_:
-    from . import registry
-    from .dal import ssa, sia, sla, scs, tap
-    from . import auth
-    from .registry import search as regsearch
-    from .dal import (
-        imagesearch, spectrumsearch, conesearch, linesearch, tablesearch,
-        DALAccessError, DALProtocolError, DALFormatError, DALServiceError,
-        DALQueryError)
+from . import registry
+from .dal import ssa, sia, sla, scs, tap
+from . import auth
+from .registry import search as regsearch
+from .dal import (
+    imagesearch, spectrumsearch, conesearch, linesearch, tablesearch,
+    DALAccessError, DALProtocolError, DALFormatError, DALServiceError,
+    DALQueryError)
