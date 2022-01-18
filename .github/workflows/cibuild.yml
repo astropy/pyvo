@@ -61,11 +61,11 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: 3.9
     - name: Install tox
       run: python -m pip install --upgrade tox
-    - name: Python 3.8 with latest astropy
-      run: tox -e py38-latest
+    - name: Python 3.9 with latest astropy
+      run: tox -e py38-test
 
   docs:
     runs-on: ubuntu-latest
