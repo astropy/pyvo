@@ -65,7 +65,7 @@ jobs:
     - name: Install tox
       run: python -m pip install --upgrade tox
     - name: Python 3.9 with latest astropy
-      run: tox -e py38-test
+      run: tox -e py39-test
 
   docs:
     runs-on: ubuntu-latest
