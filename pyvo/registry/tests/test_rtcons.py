@@ -121,6 +121,10 @@ class TestServicetypeConstraint:
             " a full standard URI nor one of the bespoke identifiers"
             " image, sia, spectrum, ssap, scs, line, table, tap")
 
+    def test_legacy_term(self):
+        assert (rtcons.Servicetype("conesearch").get_search_condition()
+            == "standard_id IN ('ivo://ivoa.net/std/conesearch')")
+
 
 @pytest.mark.usefixtures('messenger_vocabulary')
 class TestWavebandConstraint:

@@ -38,8 +38,11 @@ SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/"+v)
         ("sia", "sia"),
         ("spectrum", "ssa"),
         ("ssap", "ssa"),
+        ("ssa", "ssa"),
         ("scs", "conesearch"),
+        ("conesearch", "conesearch"),
         ("line", "slap"),
+        ("slap", "slap"),
         ("table", "tap"),
         ("tap", "tap"),
 ])
