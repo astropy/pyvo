@@ -755,6 +755,9 @@ class RegistryResource(dalq.Record):
         res._columns = [
             self._build_vosi_column(row)
             for row in columns]
+
+        res.origin = self
+
         return res
 
     def get_tables(self, table_limit=20):
@@ -763,7 +766,8 @@ class RegistryResource(dalq.Record):
 
         This returns a dict with table names as keys and vosi.Table
         objects as values (pretty much what tables returns for a TAP
-        service).
+        service).  The table instances will have an ``origin`` attribute
+        pointing back to the registry record.
 
         Note that not only TAP services can (and do) define table
         structures.  The meaning of non-TAP tables is not always

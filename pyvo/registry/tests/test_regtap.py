@@ -611,6 +611,9 @@ class TestGetTables:
         assert (flash_tables["flashheros.data"].title
             == "Flash/Heros SSA table")
 
+        assert (flash_tables["flashheros.data"].origin.ivoid
+            == "ivo://org.gavo.dc/flashheros/q/ssa")
+
     @pytest.mark.remote_data
     def test_get_tables_column_meta(self, flash_tables):
         def getflashcol(name):
