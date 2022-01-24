@@ -342,6 +342,7 @@ class RegistryResource(dalq.Record):
         "creator_seq",
         "content_type",
         "source_format",
+        "source_value",
         "region_of_regard",
         "waveband",
         (f"\n  ivo_string_agg(COALESCE(access_url, ''), '{TOKEN_SEP}')",
@@ -447,6 +448,14 @@ class RegistryResource(dalq.Record):
         The format of source_value.
         """
         return self.get("source_format", decode=True)
+
+    @property
+    def source_value(self):
+        """
+        The bibliographic source for this resource (typically a bibcode
+        or a DOI).
+        """
+        return self.get("source_value", decode=True)
 
     @property
     def region_of_regard(self):

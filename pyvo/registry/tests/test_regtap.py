@@ -36,6 +36,17 @@ def capabilities(mocker):
         yield matcher
 
 
+# to update this, run
+# import requests
+# from pyvo.registry import regtap
+#
+# with open("data/regtap.xml", "wb") as f:
+# 	f.write(requests.get(regtap.REGISTRY_BASEURL+"/sync", {
+# 		"LANG": "ADQL",
+# 		"QUERY": regtap.get_RegTAP_query(
+#			keywords="pulsar", ucd=["pos.distance"])}).content)
+
+
 @pytest.fixture()
 def regtap_pulsar_distance_response(mocker):
     with mocker.register_uri(
@@ -302,6 +313,23 @@ def test_to_table(multi_interface_fixture, capabilities):
 @pytest.fixture()
 def rt_pulsar_distance(regtap_pulsar_distance_response, capabilities):
     return regsearch(keywords="pulsar", ucd=["pos.distance"])
+
+
+def test_record_fields(rt_pulsar_distance):
+    rec = rt_pulsar_distance["VII/156"]
+    assert rec.ivoid=="ivo://cds.vizier/vii/156"
+    assert rec.res_type=="vs:catalogservice"
+    assert rec.short_name=="VII/156"
+    assert rec.res_title=="Catalog of 558 Pulsars"
+    assert rec.content_levels==['research']
+    assert rec.res_description[:20]=="The catalogue is an up-to-date"[:20]
+    assert rec.reference_url=="http://cdsarc.unistra.fr/cgi-bin/cat/VII/156"
+    assert rec.creators==['Taylor J.H.', ' Manchester R.N.', ' Lyne A.G.']
+    assert rec.content_types==['catalog']
+    assert rec.source_format=="bibcode"
+    assert rec.source_value=="1993ApJS...88..529T"
+    assert rec.waveband==['radio']
+    # access URL, standard_id and friends exercised in TestInterfaceSelection
 
 
 class TestResultIndexing:

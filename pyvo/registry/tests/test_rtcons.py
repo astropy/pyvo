@@ -119,7 +119,8 @@ class TestServicetypeConstraint:
             rtcons.Servicetype("junk")
         assert str(excinfo.value) == ("Service type junk is neither"
             " a full standard URI nor one of the bespoke identifiers"
-            " image, sia, spectrum, ssap, scs, line, table, tap")
+            " image, sia, spectrum, ssap, ssa, scs, conesearch, line, slap,"
+            " table, tap")
 
     def test_legacy_term(self):
         assert (rtcons.Servicetype("conesearch").get_search_condition()
@@ -365,6 +366,7 @@ class TestSelectClause:
             "creator_seq, "
             "content_type, "
             "source_format, "
+            "source_value, "
             "region_of_regard, "
             "waveband, "
             "\n  ivo_string_agg(COALESCE(access_url, ''), ':::py VO sep:::') AS access_urls, "
@@ -387,5 +389,6 @@ class TestSelectClause:
             "creator_seq, "
             "content_type, "
             "source_format, "
+            "source_value, "
             "region_of_regard, "
             "waveband")
