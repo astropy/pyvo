@@ -110,7 +110,7 @@ class SSAService(DALService):
     a representation of an SSA service
     """
 
-    def __init__(self, baseurl):
+    def __init__(self, baseurl, session=None):
         """
         instantiate an SSA service
 
@@ -119,7 +119,7 @@ class SSAService(DALService):
         baseurl : str
            the base URL for submitting search queries to the service.
         """
-        super().__init__(baseurl)
+        super().__init__(baseurl, session=session)
 
     def _get_metadata(self):
         """

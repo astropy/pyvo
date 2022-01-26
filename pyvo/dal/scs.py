@@ -413,7 +413,7 @@ class SCSQuery(DALQuery):
         return SCSResults(self.execute_votable(), url=self.queryurl, session=self._session)
 
 
-class SCSResults(DALResults, DatalinkResultsMixin):
+class SCSResults(DatalinkResultsMixin, DALResults):
     """
     The list of matching catalog records resulting from a catalog (SCS) query.
     Each record contains a set of metadata that describes a source or
