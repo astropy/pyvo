@@ -44,7 +44,8 @@ keyword arguments.  The following constraints are available:
   freetext words, mached in the title, description or subject of the
   resource.
 * :py:class:`pyvo.registry.Servicetype` (``servicetype``): constrain to
-  one of tap, ssa, sia, conesearch.  This is the constraint you want
+  one of tap, ssa, sia, conesearch (or full ivoids for other service
+  types).  This is the constraint you want
   to use for service discovery.
 * :py:class:`pyvo.registry.UCD` (``ucd``): constrain by one or more UCD
   patterns; resources match when they serve columns having a matching

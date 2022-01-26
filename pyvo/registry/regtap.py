@@ -272,6 +272,10 @@ class Interface:
         self.role = intf_role or None
         self.is_standard = self.role=="std"
 
+    def __repr__(self):
+        return (f"Interface({self.access_url!r}, {self.standard_id!r},"
+            f" {self.type!r}, {self.role!r})")
+
     def to_service(self):
         if self.type=="vr:webbrowser":
             return _BrowserService(self.access_url)

@@ -208,6 +208,16 @@ class TestInterfaceClass:
         assert intf.is_standard == False
         assert not intf.is_vosi
 
+    def test_repr(self):
+        intf = regtap.Interface("http://example.org", "ivo://gavo/std/a",
+            "vs:paramhttp", "std")
+        assert (repr(intf) == "Interface('http://example.org',"
+            " 'ivo://gavo/std/a', 'vs:paramhttp', 'std')")
+        intf = regtap.Interface("http://example.org", "ivo://gavo/std/a",
+            None, None)
+        assert repr(intf) == ("Interface('http://example.org',"
+            " 'ivo://gavo/std/a', None, None)")
+
     def test_unknown_standard(self):
         intf = regtap.Interface("http://example.org", "ivo://gavo/std/a",
             "vs:paramhttp", "std")

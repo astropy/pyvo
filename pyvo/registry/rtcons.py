@@ -494,16 +494,19 @@ class Spatial(Constraint):
 
         >>> registry.Spatial([23, -40, 26, -39, 25, -43])
 
-    To find resources claiming to cover a MOC, pass an ASCII MOC::
+    To find resources claiming to cover a MOC_, pass an ASCII MOC::
 
         >>> registry.Spatial("0/1-3 3/")
+
+    .. _MOC: https://www.ivoa.net/documents/MOC/
 
     When you already have an astropy SkyCoord::
 
         >>> from astropy.coordinates import SkyCoord
         >>> registry.Spatial(SkyCoord("23d +3d"))
 
-    SkyCoords also work as circle centers::
+    SkyCoords also work as circle centers (plain floats for the radius
+    are interpreted in degrees)::
 
         >>> registry.Spatial((SkyCoord("23d +3d"), 3))
     """
@@ -609,6 +612,7 @@ class Spectral(Constraint):
             a frequency, or an energy, or a pair of such quantities,
             in which case the argument is interpreted as an interval.
             All resources *overlapping* the interval are returned.
+            Plain floats are interpreted as messenger energy in Joule.
         """
         if isinstance(spec, tuple):
             self._fillers = {
