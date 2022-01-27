@@ -309,7 +309,7 @@ def test_spectral():
 
 def test_to_table(multi_interface_fixture, capabilities):
     t = regtap.search(
-        ivoid="ivo://org.gavo.dc/flashheros/q/ssa").to_table()
+        ivoid="ivo://org.gavo.dc/flashheros/q/ssa").get_summary()
     assert (set(t.columns.keys())
         == {'index', 'short_name', 'title', 'description', 'interfaces'})
     assert t["index"][0] == 0

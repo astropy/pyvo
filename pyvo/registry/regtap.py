@@ -178,7 +178,7 @@ class RegistryResults(dalq.DALResults):
         """
         return RegistryResource(self, index)
 
-    def to_table(self):
+    def get_summary(self):
         """
         returns a brief overview of the matched results as an astropy table.
 
