@@ -525,10 +525,10 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         ----------
         semantics: str or list
             One or more term(s) from the datalink vocabulary
-            (http://www.ivoa.net/rdf/datalink/core).  Terms may be
-            passed in with or without a leading hash.  Note that at
-            this point non-datalink/core URIs (i.e., full resource
-            URIs) are not supported (and will be butchered).
+            (http://www.ivoa.net/rdf/datalink/core).  datalink/core
+            terms may be passed in with or without a leading hash.
+            Free URIs may also be passed an and will be compared literally,
+            i.e., without any URI normalisation.
         include_narrower: boolean
             If true, the result will include matches for any term
             that is narrower than the term passed in.
@@ -538,19 +538,33 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         Sequence of DatalinkRecord
             a sequence of dictionary-like wrappers containing the result record
         """
+        # If the URL juggling gets any more complicated here, we ought
+        # to bite the bullet and only deal with full URLs.  Sigh.
         if isinstance(semantics, str):
             semantics = [semantics]
-        semantics = [term.lstrip("#") for term in semantics]
+
+        core_terms, other_terms = [], []
+        for term in semantics:
+            if ":" in term:
+                # it's a full URI, see if it's ours
+                if term.startswith("http://www.ivoa.net/rdf/datalink/core#"):
+                    core_terms.append(term.split("#", 1)[-1])
+                else:
+                    other_terms.append(term)
+            else:
+                # it's a local term
+                core_terms.append(term.lstrip("#"))
 
         if include_narrower:
             additional_terms = []
             voc = vocabularies.get_vocabulary("datalink/core")
-            for term in semantics:
+            for term in core_terms:
                 if term in voc["terms"]:
                     additional_terms.extend(voc["terms"][term]["narrower"])
-            semantics = semantics+additional_terms
+            core_terms = core_terms+additional_terms
 
-        semantics = set("#"+term for term in semantics)
+        semantics = set("#"+term for term in core_terms
+            ) | set(other_terms)
         for record in self:
             if record.semantics in semantics:
                 yield record

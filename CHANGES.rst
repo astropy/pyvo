@@ -1,6 +1,7 @@
 1.3 (unreleased)
 ================
 
+- pyvo deals with non-core terms in datalink.bysemantics again. [#299]
 
 1.2.1 (2022-01-12)
 ==================
