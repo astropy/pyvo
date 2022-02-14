@@ -110,7 +110,7 @@ class SSAService(DALService):
     a representation of an SSA service
     """
 
-    def __init__(self, baseurl, session=session):
+    def __init__(self, baseurl, session=None):
         """
         instantiate an SSA service
 
