@@ -9,8 +9,8 @@ PyVO
     :target: https://github.com/astropy/pyvo/workflows/CI/badge.svg?branch=main
     :alt: CI Status
 
-.. image:: https://coveralls.io/repos/github/pyvirtobs/pyvo/badge.svg?branch=main
-    :target: https://coveralls.io/github/pyvirtobs/pyvo?branch=main
+.. image:: https://codecov.io/gh/astropy/pyvo/branch/main/graph/badge.svg?token=Mynyo9xoPZ
+    :target: https://codecov.io/gh/astropy/pyvo
     :alt: Coverage Status
 
 .. image:: https://zenodo.org/badge/10865450.svg
