@@ -5,7 +5,7 @@ A module for accessing remote source and observation catalogs
 from functools import partial
 from datetime import datetime
 from time import sleep
-from distutils.version import LooseVersion
+from packaging.version import Version
 
 import requests
 from urllib.parse import urlparse, urljoin
@@ -793,7 +793,7 @@ class AsyncTAPJob:
                 break
 
             # fallback for uws 1.0
-            if LooseVersion(self._job.version) < LooseVersion("1.1"):
+            if Version(self._job.version) < Version("1.1"):
                 sleep(interval)
                 interval = min(120, interval * increment)
 
