@@ -71,6 +71,16 @@
             <TD>image/jpeg</TD>
             <TD>-1</TD>
           </TR>
+          <TR>
+            <TD>ivo://org.gavo.dc/s/data/gds_big/v6a/2010/GDS_0644-0035/i_s/eq010000ms/20100927.comb_avg.0001.fits.fz</TD>
+            <TD>http://example.edu/when-will-it-be-back</TD>
+            <TD/>
+            <TD/>
+            <TD>Something requiring custom semantics.</TD>
+            <TD>urn:example:rdf/dlext#oracle</TD>
+            <TD>text/x-prediction</TD>
+            <TD>-1</TD>
+          </TR>
         </TABLEDATA>
       </DATA>
     </TABLE>
