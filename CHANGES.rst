@@ -1,4 +1,4 @@
-1.2.2 (2022-02-16)
+1.3 (2022-02-19)
 ==================
 
 - pyvo deals with non-core terms in datalink.bysemantics again. [#299]
