@@ -101,11 +101,12 @@ def search(*constraints:rtcons.Constraint, includeaux=False, **kwargs):
     """
     execute a simple query to the RegTAP registry.
 
-    Parameters
-    ----------
     The function accepts query constraints either as Constraint objects
     passed in as positional arguments or as their associated keywords.
-    For what constraints are available, see TODO.
+    For what constraints are available, see
+    `Basic Interface`_.
+
+    .. _Basic Interface: ../registry/index.html#basic-interface
 
     The values of keyword arguments may be tuples or lists when the associated
     Constraint objects take multiple arguments.
@@ -113,10 +114,21 @@ def search(*constraints:rtcons.Constraint, includeaux=False, **kwargs):
     All constraints, whether passed in directly or via keywords, are
     evaluated as a conjunction (i.e., in an AND clause).
 
+    Parameters
+    ----------
+    *constraints : `rtcons.Constraint` instances
+        The constraints (keywords to match, positions to cover, ...)
+        that the returned records need to satisfy.
+
     includeaux : bool
         Flag for whether to include auxiliary capabilities in results.
         This may result in duplicate capabilities being returned,
         especially if the servicetype is not specified.
+
+    **kwargs : strings, mostly
+        shorthands for `constraints`; see the documentation of
+        a specific constraint for what keyword it uses and what literal
+        it expects.
 
     Returns
     -------
