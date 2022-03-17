@@ -39,7 +39,7 @@ thus, it and its prerequisites can be most easily installed using ``pip``:
    pip install pyvo
 
 Alternatively, you can do a source install:
-    python setup.py install
+    pip install .[all]
 
 EXAMPLES
 --------
@@ -53,10 +53,11 @@ UNIT TESTS
 PyVO uses the Astropy framework for unit tests which is built into the
 setup script.  To run the tests, type:
 
-    python setup.py test
+    pip install .[test]
+    pytest
 
 This will run all unit tests that do not require a network
 connection.  To run all tests, including those that access the
-network, add the --remote-data (-R) option:
+network, add the --remote-data option:
 
-    python setup.py test -R
+    pytest --remote-data
