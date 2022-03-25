@@ -37,6 +37,9 @@ class Feature:
     url: str = ''
     on: bool = False
 
+    def should_error(self):
+        return not self.on
+
     def error(self, function_name):
         return f'{function_name} is part of a prototype feature ({self.name}) that has not been activated.'
 
@@ -82,7 +85,7 @@ def _warn_or_raise(function, feature_name):
     _validate(feature_name)
     feature = features[feature_name]
 
-    if not feature.on:
+    if feature.should_error():
         raise PrototypeError(feature.error(function.__name__))
 
 
