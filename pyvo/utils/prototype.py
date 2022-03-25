@@ -9,53 +9,36 @@ from pyvo.dal.exceptions import PyvoUserWarning
 features: Dict[str, "Feature"] = {}
 
 
-def prototype_feature(*args, **kwargs):
+def prototype_feature(*args):
     """
     docs stub: the decorator, to use with functions or classes to decorate all the "public" methods.
     If given with arguments, the first one is the name of the feature the function belongs to. The keyword
     arguments are passed to the Feature object initializer.
     If given without arguments, the function is added to the 'generic' feature.
     """
-    feature_name, decorated = _parse_args(*args)
-    features[feature_name] = Feature(name=feature_name, **kwargs)
+    feature_name = _parse_args(*args)
     decorator = _make_decorator(feature_name)
-    return decorator(decorated) if decorated is not None else decorator
+    return decorator
 
 
-def turn_off_features(*feature_names):
-    """turn off one or more features. Calls to prototype features will raise an Error. If no arguments are given
-    all prototype features are turned off."""
+def activate_features(*feature_names):
+    """activate one or more features. If no arguments are given
+    all prototype features are activated."""
     names = feature_names or set(features.keys())
     for name in names:
         if not _validate(name):
             continue
-        features[name].off = True
-
-
-def prototype_warnings_off(*feature_names):
-    """turn off warnings for one or more features. If no arguments are provided all warnings are turned off."""
-    names = feature_names or set(features.keys())
-    for name in names:
-        if not _validate(name):
-            continue
-        features[name].warn = False
+        features[name].on = True
 
 
 @dataclass
 class Feature:
     name: str
     url: str = ''
-    off: bool = False
-    warn: bool = True
-
-    def warning(self, function_name):
-        base = f'{function_name} is part of the {self.name} prototype feature an may change in the future.'
-        if self.url:
-            base = f'{base} Please refer to {self.url} for details.'
-        return f'{base} Use prototype_warnings_off({self.name}) to mute this warning.'
+    on: bool = False
 
     def error(self, function_name):
-        return f'{function_name} is part of an prototype feature ({self.name}) that has been turned off.'
+        return f'{function_name} is part of a prototype feature ({self.name}) that has not been activated.'
 
 
 class PrototypeError(Exception):
@@ -67,9 +50,10 @@ class PrototypeWarning(PyvoUserWarning):
 
 
 def _parse_args(*args):
-    if callable(args[0]):
-        return 'generic', args[0]
-    return args[0], None
+    if not args or callable(args[0]):
+        raise PrototypeError("The `prototype_feature` decorator must always be called with the feature name as an "
+                             "argument")
+    return args[0]
 
 
 def _make_decorator(feature_name):
@@ -98,10 +82,8 @@ def _warn_or_raise(function, feature_name):
     _validate(feature_name)
     feature = features[feature_name]
 
-    if feature.off:
+    if not feature.on:
         raise PrototypeError(feature.error(function.__name__))
-    if feature.warn:
-        warnings.warn(feature.warning(function.__name__), category=PrototypeWarning)
 
 
 def _should_wrap(member):

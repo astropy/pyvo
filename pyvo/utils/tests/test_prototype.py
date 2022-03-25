@@ -4,76 +4,86 @@ from unittest import mock
 
 import pytest
 
-from pyvo.utils import prototype_feature, turn_off_features, prototype, prototype_warnings_off
-from pyvo.utils.prototype import PrototypeError, PrototypeWarning
+from pyvo.utils import prototype_feature, activate_features, prototype
+from pyvo.utils.prototype import PrototypeError, PrototypeWarning, Feature
 
 
-@pytest.fixture(autouse=True, scope='function')
-def prototype_function():
-    previous_available = deepcopy(prototype.features)
-    prototype.features.clear()
+@pytest.fixture
+def prototype_function(features):
+    features({
+        'my-feature': Feature('my-feature', url='http://somewhere/else')
+    })
 
-    @prototype_feature('my-feature', url='https:/somewhere/else')
+    @prototype_feature('my-feature')
     def i_am_prototype(arg):
         arg('called')
 
-    yield i_am_prototype
+    return i_am_prototype
 
+
+@pytest.fixture
+def features():
+    previous_available = deepcopy(prototype.features)
+    prototype.features.clear()
+
+    def add(features):
+        prototype.features.update(features)
+
+    yield add
+
+    prototype.features.clear()
     prototype.features.update(previous_available)
 
 
-def test_warns(prototype_function):
-    probe = mock.Mock()
-    with pytest.warns(PrototypeWarning) as w:
-        prototype_function(probe)
-
-    assert len(w) == 1
-    assert str(w[0].message) == 'i_am_prototype is part of the my-feature prototype feature an may ' \
-                                'change in the future. Please refer to https:/somewhere/else for details. Use ' \
-                                'prototype_warnings_off(my-feature) to mute this warning.'
-    probe.assert_called_once_with('called')
-
-
-def test_turn_off_feature(prototype_function):
-    turn_off_features('my-feature')
-
+def test_feature_turned_off_by_default(prototype_function):
     with pytest.raises(PrototypeError) as e:
         prototype_function(None)
 
-    assert str(e.value) == 'i_am_prototype is part of an prototype feature (my-feature) that has been turned off.'
+    assert str(e.value) == 'i_am_prototype is part of a prototype feature (my-feature) that has not been activated.'
+
+
+def test_activate_feature(prototype_function):
+    probe = mock.Mock()
+
+    activate_features('my-feature')
+
+    try:
+        prototype_function(probe)
+    except Exception as exc:
+        assert False, f"Should not have raised {exc}"
+
+    probe.assert_called_once_with('called')
 
 
 def test_non_existent_feature_warning():
     with pytest.warns(PrototypeWarning) as w:
-        turn_off_features('i dont exist')
+        activate_features('i dont exist')
 
     assert len(w) == 1
     assert str(w[0].message) == 'No such feature "i dont exist"'
 
 
-def test_turn_off_all_features():
-    @prototype_feature
-    def func_one():
-        pass
+def test_activate_all_features(features):
+    features({
+        'feat-one': Feature('feat-one'),
+        'feat-two': Feature('feat-two')
+    })
 
-    @prototype_feature('feat-one')
-    def func_two():
-        pass
+    activate_features()
 
-    turn_off_features()
-
-    # my-feature comes from fixture
-    assert set(prototype.features.keys()) == {'feat-one', 'generic', 'my-feature'}
-    assert prototype.features['feat-one'].off
-    assert prototype.features['my-feature'].off
-    assert prototype.features['generic'].off
+    assert set(prototype.features.keys()) == {'feat-one', 'feat-two'}
+    assert prototype.features['feat-one'].on
+    assert prototype.features['feat-two'].on
 
 
-def test_decorate_class(recwarn):
+def test_decorate_class(features, recwarn):
+    features({
+        'class': Feature('class')
+    })
     probe = mock.Mock()
 
     @prototype_feature('class')
-    class Feature:
+    class FeatureClass:
         def method(self):
             probe('method')
 
@@ -84,44 +94,55 @@ def test_decorate_class(recwarn):
         def __ignore__(self):
             probe('ignore')
 
-    with pytest.warns(PrototypeWarning):
-        Feature.static()
+    with pytest.raises(PrototypeError):
+        FeatureClass.static()
 
+    with pytest.raises(PrototypeError):
+        FeatureClass().method()
+
+    FeatureClass().__ignore__()
+    probe.assert_called_once_with('ignore')
+    probe.reset_mock()
+
+    activate_features('class')
+
+    FeatureClass.static()
     probe.assert_called_once_with('static')
     probe.reset_mock()
 
-    with pytest.warns(PrototypeWarning):
-        Feature().method()
-
+    FeatureClass().method()
     probe.assert_called_once_with('method')
     probe.reset_mock()
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        Feature().__ignore__()
+    FeatureClass().__ignore__()
     probe.assert_called_once_with('ignore')
 
 
-def test_turn_off_warnings(prototype_function):
-    probe = mock.Mock()
+def test_decorator_without_call_errors_out():
+    with pytest.raises(PrototypeError) as e:
+        @prototype_feature
+        def function():
+            pass
 
-    prototype_warnings_off('my-feature')
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        prototype_function(probe)
-
-    probe.assert_called_once_with('called')
+    assert str(e.value) == "The `prototype_feature` decorator must always be called with the feature name as an " \
+                           "argument"
 
 
-def test_decorator_with_no_arguments():
-    probe = mock.Mock()
+def test_decorator_without_call_around_class():
+    with pytest.raises(PrototypeError) as e:
+        @prototype_feature
+        class Class:
+            pass
 
-    @prototype_feature
-    def function():
-        probe('called')
+    assert str(e.value) == "The `prototype_feature` decorator must always be called with the feature name as an " \
+                           "argument"
 
-    function()
 
-    probe.assert_called_once_with('called')
-    assert prototype.features['generic'].url == ''
+def test_decorator_with_no_arguments_and_class():
+    with pytest.raises(PrototypeError) as e:
+        @prototype_feature()
+        class Class:
+            pass
+
+    assert str(e.value) == "The `prototype_feature` decorator must always be called with the feature name as an " \
+                           "argument"
