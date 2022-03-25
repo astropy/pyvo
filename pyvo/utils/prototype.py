@@ -9,7 +9,7 @@ from pyvo.dal.exceptions import PyvoUserWarning
 features: Dict[str, "Feature"] = {}
 
 
-def experimental_feature(*args, **kwargs):
+def prototype_feature(*args, **kwargs):
     """
     docs stub: the decorator, to use with functions or classes to decorate all the "public" methods.
     If given with arguments, the first one is the name of the feature the function belongs to. The keyword
@@ -23,8 +23,8 @@ def experimental_feature(*args, **kwargs):
 
 
 def turn_off_features(*feature_names):
-    """turn off one or more features. Calls to experimental features will raise an Error. If no arguments are given
-    all experimental features are turned off."""
+    """turn off one or more features. Calls to prototype features will raise an Error. If no arguments are given
+    all prototype features are turned off."""
     names = feature_names or set(features.keys())
     for name in names:
         if not _validate(name):
@@ -32,7 +32,7 @@ def turn_off_features(*feature_names):
         features[name].off = True
 
 
-def experimental_warnings_off(*feature_names):
+def prototype_warnings_off(*feature_names):
     """turn off warnings for one or more features. If no arguments are provided all warnings are turned off."""
     names = feature_names or set(features.keys())
     for name in names:
@@ -49,20 +49,20 @@ class Feature:
     warn: bool = True
 
     def warning(self, function_name):
-        base = f'{function_name} is part of the {self.name} experimental feature an may change in the future.'
+        base = f'{function_name} is part of the {self.name} prototype feature an may change in the future.'
         if self.url:
             base = f'{base} Please refer to {self.url} for details.'
-        return f'{base} Use experimental_warnings_off({self.name}) to mute this warning.'
+        return f'{base} Use prototype_warnings_off({self.name}) to mute this warning.'
 
     def error(self, function_name):
-        return f'{function_name} is part of an experimental feature ({self.name}) that has been turned off.'
+        return f'{function_name} is part of an prototype feature ({self.name}) that has been turned off.'
 
 
-class ExperimentalError(Exception):
+class PrototypeError(Exception):
     pass
 
 
-class ExperimentalWarning(PyvoUserWarning):
+class PrototypeWarning(PyvoUserWarning):
     pass
 
 
@@ -89,7 +89,7 @@ def _make_decorator(feature_name):
 
 def _validate(feature_name):
     if feature_name not in features:
-        warnings.warn(f'No such feature "{feature_name}"', category=ExperimentalWarning)
+        warnings.warn(f'No such feature "{feature_name}"', category=PrototypeWarning)
         return False
     return True
 
@@ -99,9 +99,9 @@ def _warn_or_raise(function, feature_name):
     feature = features[feature_name]
 
     if feature.off:
-        raise ExperimentalError(feature.error(function.__name__))
+        raise PrototypeError(feature.error(function.__name__))
     if feature.warn:
-        warnings.warn(feature.warning(function.__name__), category=ExperimentalWarning)
+        warnings.warn(feature.warning(function.__name__), category=PrototypeWarning)
 
 
 def _should_wrap(member):
