@@ -96,6 +96,7 @@ class AWSDataHandler(DataHandler):
         self.data_in_aws = data_in_aws
         self.s3_info     = cloud_access
         self.user_pays   = user_pays
+        self.profile     = profile
         
 
         
@@ -158,7 +159,7 @@ class AWSDataHandler(DataHandler):
         else:
             log.info('Data mode is "in-region". User credentials provided. Using them ...')
             # we have user credentials
-            session = boto3.session.Session(profile_name=profile)
+            session = boto3.session.Session(profile_name=self.profile)
             resource = session.resource(service_name='s3')
 
         self.s3_client   = resource.meta.client
