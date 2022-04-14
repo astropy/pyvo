@@ -169,7 +169,7 @@ class AWSDataHandler(DataHandler):
         self.s3_client   = resource.meta.client
         self.session     = session
         self.s3_resource = resource
-        self.download_file_s3(*args, **kwargs)
+        self.download_file_s3(**kwargs)
     
     
     # borrowed from astroquery.mast.
