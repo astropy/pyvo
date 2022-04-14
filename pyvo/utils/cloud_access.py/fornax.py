@@ -1,6 +1,17 @@
 
 import os
 import requests
+import json
+import warnings
+import logging
+
+logging.basicConfig(level=logging.DEBUG,
+    format="%(asctime)s | %(name)s | %(message)s")
+log = logging.getLogger('fornax')
+
+
+from astropy.utils.data import download_file
+from astropy.utils.console import ProgressBarOrSpinner
 
 import boto3
 import botocore
@@ -8,149 +19,255 @@ import botocore
 from botocore.client import Config
 
 
-class Context:
-    """Context Class to do the configuration and context exploration"""
+
+class DataHandler:
+    """A base class that handles the different ways data can be accessed.
+    The base implementation is to use on-prem data. Subclasses can handle 
+    cloud data from aws, azure, google cloud etc.
     
-    cloud_datasets = ['hst', 'spitzer', 'xmm']
+    Subclasses can also handle authentication if needed.
+    
+    """
     
     
-    def __init__(self, uri, profile=None, **kwargs):
-        """Initialize a Context object
+    def __init__(self, product):
+        """Create a DataProvider object.
         
-        uri: the uri of the data
-        profile: name of the user profile for credentials in ~/.aws/config 
-            or ~/.aws/credentials. If None, use anonymous user.
+        Parameters:
+            product: ~astropy.table.Row. The data url is accessed
+                    in product['access_url']
         
+        """
+        self.product = product
+        self.access_url = product['access_url']
+        
+    
+    
+    def download_file_http(self):
+        """Download data in self.url using http"""
+        log.info('--- Downloading data from on-prem ---')
+        return download_file(self.access_url)
+    
+    
+    def download(self):
+        """Download data. Can be overloaded with different implimentation"""
+        return self.download_file_http()
+
+    
+    
+class AWSDataHandler(DataHandler):
+    """Class for managaing access to data in AWS"""
+    
+    def __init__(self, product, porfile=None, **kwargs):
+        """Handle AWS-specific authentication and data download
+        
+        Parameters:
+            product: ~astropy.table.Row. aws-s3 information should be available in
+                     product['cloud_access'], otherwise, fall back to on-prem using
+                     product['access_url']
+            profile: name of the user's profile for credentials in ~/.aws/config 
+                     or ~/.aws/credentials. If provided, we AWS api to authenticate 
+                     the user using boto3. If None, use anonymous user. 
         
         """
         
-        self.provider = kwargs.get('provider', 'aws')
+        super().__init__(product)
+        
+        # if user_pays selected, a valid profile is required #
+        user_pays = kwargs.get('user_pays', False)
+        if user_pays and profile is None:
+            raise botocore.exceptions.UnknownCredentialError('user_pays selected but no user info provided')
         
         
-        # clean uri #
-        mission, bucket, path = process_data_uri(uri)
-        
-        
-        http = False
-        requester_pays = False
-        
-        # user and data in the cloud?
-        if user_in_cloud() and data_in_cloud():
-            # Both user and data in the cloud.
-            
-                
-            # user and data in the same region?
-            # if user_in_fornax, we are in the same region by design
-            region_match = user_in_fornax() or user_region() == bucket_region(bucket)
+        # is the data in the cloud?
+        data_in_aws  = True
+        cloud_access = None
+        if 'cloud_access' in product.keys():
+            # read json provided by the archive
+            cloud_access_json = product['cloud_access']
+            cloud_access = json.loads(cloud_access_json)
 
-            if not region_match:
-                if cross_region_transfer():
-                    requester_pays = True
+            # is the data in aws?
+            if not 'aws' in cloud_access:
+                data_in_aws = True
+            
+        
+        
+        self.data_in_aws = data_in_aws
+        self.s3_info     = cloud_access
+        self.user_pays   = user_pays
+        
+
+        
+        
+    def download(self):
+        """Download data, from aws if possible, else from on-prem"""
+        
+            
+        # if user or data are not in aws; fall to on-prem
+        if not self.data_in_aws:
+            log.info('Data not in the cloud, falling to on-prem ...')
+            return self.download_file_http()
+            
+        
+        user_on_aws = self.user_on_aws()
+        if not user_on_aws:
+            log.info('User not in the cloud, falling to on-prem ...')
+            return self.download_file_http()
+        
+        
+        # TODO: more error trapping in case some info is missing
+        # read data info provided in cloud_access
+        data_region = cloud_access['region']
+        data_access = cloud_access['access'] # open | region | none
+        
+        log.info(f'data region: {data_region}')
+        log.info(f'data access mode: {data_access}')
+        
+        
+        
+        # data on aws not accessible for some reason
+        if data_access == 'none':
+            log.info('Data access mode is "none", falling to on-prem ...')
+            return self.download_file_http()
+        
+        # only in-region access is allowed
+        if data_access == 'region':
+            user_region = self.user_region()
+            if data_region != user_region and not self.user_pays:
+                log.info('Data and user are not in the same region, and user_pays not enabled')
+                return self.download_file_http()
+            
+            if self.user_pays:
+                log.info('Data and user are not in the same region, and user_pays is ENABLED')
+        
+        
+        # if we are here, we either have:
+        # data_access=open, or data_access=region with user_pays
+        # we handle each case separatly:
+        
+        # data is open to everybody; use anonymous user
+        if data_access == 'open':
+            log.info('Data mode is "open". Data is fully public.')
+            session = None
+            resource = boto3.resource(
+                service_name = 's3', 
+                config = botocore.client.Config(signature_version=botocore.UNSIGNED)
+            )
+        else:
+            log.info('Data mode is "in-region". User credentials provided. Using them ...')
+            # we have user credentials
+            session = boto3.session.Session(profile_name=profile)
+            resource = session.resource(service_name='s3')
+
+        self.s3_client   = resource.meta.client
+        self.session     = session
+        self.s3_resource = resource
+    
+    
+    # borrowed from astroquery.mast.
+    def download_file_s3(self, local_path=None, cache=True):
+        """
+        downloads the product used in inializing this object into
+        the given directory.
+        Parameters
+        ----------
+        local_path : str
+            The local filename to which toe downloaded file will be saved.
+        cache : bool
+            Default is True. If file is found on disc it will not be downloaded again.
+        """
+        log.info('--- Downloading data from S3 ---')
+
+        s3 = self.s3_resource
+        s3_client = self.s3_client
+        
+        bucket_path = self.s3_info['path']
+        bkt = s3.Bucket(self.s3_info['backet'])
+        if not bucket_path:
+            raise Exception(f"Unable to locate file {bucket_path}.")
+            
+        ## TODO: handle this in a better way
+        if local_path is None:
+            local_path = bucket_path.strip('/').split('/')[-1]
+
+        # Ask the webserver (in this case S3) what the expected content length is and use that.
+        info_lookup = s3_client.head_object(Bucket=self.pubdata_bucket, Key=bucket_path)
+        length = info_lookup["ContentLength"]
+
+        if cache and os.path.exists(local_path):
+            if length is not None:
+                statinfo = os.stat(local_path)
+                if statinfo.st_size != length:
+                    log.infoing("Found cached file {0} with size {1} that is "
+                                "different from expected size {2}"
+                                .format(local_path,
+                                        statinfo.st_size,
+                                        length))
                 else:
-                    # falls back to http
-                    http = True
-        else:
-            # either user or data not in the cloud
-            http = True
-        
-        
-        # handle the cases of s3 vs http:
-        if http:
-            # initialize a requests session
-            self.session = requests.session()
-        else:
-            if profile is None:
-                # anonymous 
-                session = None
-                resource = boto3.resource(
-                    service_name = 's3', 
-                    config = botocore.client.Config(signature_version=botocore.UNSIGNED)
-                )
-            else:
-                # we have user credentials
-                session = boto3.session.Session(profile_name=profile)
-                resource = session.resource(service_name='s3')
-            
-            client = resource.meta.client
+                    log.info("Found cached file {0} with expected size {1}."
+                             .format(local_path, statinfo.st_size))
+                    return
 
-            self.session = session
-            self.s3_resource = resource
-            self.s3_client = client
-        
-        self.http = http
-        self.requester_pays = requester_pays
+        with ProgressBarOrSpinner(length, ('Downloading URL s3://{0}/{1} to {2} ...'.format(
+                self.pubdata_bucket, bucket_path, local_path))) as pb:
+
+            # Bytes read tracks how much data has been received so far
+            # This variable will be updated in multiple threads below
+            global bytes_read
+            bytes_read = 0
+
+            progress_lock = threading.Lock()
+
+            def progress_callback(numbytes):
+                # Boto3 calls this from multiple threads pulling the data from S3
+                global bytes_read
+
+                # This callback can be called in multiple threads
+                # Access to updating the console needs to be locked
+                with progress_lock:
+                    bytes_read += numbytes
+                    pb.update(bytes_read)
+
+            bkt.download_file(bucket_path, local_path, Callback=progress_callback)
         
     
-    def process_data_uri(self, uri):
-        """Process data uri to extract mission, bucket and path names"""
-        uri_s = uri.split('/')
-        mission = uri_s[0]
-        bucket  = uri_s[1]
-        path = '/'.join(uri_s[2:])
-        return mission, bucket, path
-
-        
-    def user_in_cloud(self):
-        """Check if the user is in the cloud
-        the following works for aws. 
-        This function may be used to figure out what cloud service we are in, if any?
+    
+    
+    def user_on_aws(self):
+        """Check if the user is in on aws
+        the following works for aws, but it is not robust enough
+        This is partly from: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/identify_ec2_instances.html
         """
-        return os.path.exists('/var/lib/cloud')
-    
-    
-    def data_in_cloud(self, dataset):
-        """Check if the requested data is available in the cloud"""
-        # from some pre-defined cloud_datasets (either hard-coded or from an api)
-        return dataset in self.cloud_datasets
-    
-    
-    def user_in_fornax(self):
-        """Check if user is using the nasa-platform"""
-        return 'FORNAX' in os.environ
-    
+        uuid = '/sys/hypervisor'
+        is_aws =  os.path.exists(uuid)
+        return is_aws
     
     def user_region(self):
-        """Find region of the user.
+        """Find region of the user in an ec2 instance.
         There could be a way to do it with the python api instead of an http request.
         
-        """
-        region = None
-        if self.provider == 'aws':
+        This may be complicated:
+        Instance metadata (including region) can be access from the link-local address
+        169.254.169.254 (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-identity-documents.html)
+        So a simple http request to http://169.254.169.254/latest/dynamic/instance-identity/document gives
+        a json response that has the region info in it.
+        
+        However, in jupyterhub, that address is blocked, because it may expose sensitive information about
+        the instance and kubernetes cluster 
+        (http://z2jh.jupyter.org/en/latest/administrator/security.html#audit-cloud-metadata-server-access).
+        The region can be in $AWS_REGION
+        """        
+        
+        region = os.environ.get('AW_REGION', None)
+        
+        if region is None:
+            # try the link-local address
             session = requests.session()
-            response = session.get('http://169.254.169.254/latest/dynamic/instance-identity/document')
+            response = session.get('http://169.254.169.254/latest/dynamic/instance-identity/document', timeout=2)
             region = response.json()['region']
+            
         return region
-    
-    def cross_region_transfer(self):
-        """Check if cross region data transfer is allowd by user settings"""
-        #allow = some_user_config.allow_cross_region_transfer
-        allow = False
-        return allow
-    
-        
 
-    def bucket_region(self, bucket):
-        """Return the region of the bucket
 
-        bucket: bucket name
-
-        Note that according to [this](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLocation.html), 
-        you need to be the bucket owner to be able to use `s3_client.get_bucket_location(bucket)`, so it may not
-        be general.
-        
-        The http api works by doing: curl --head $BUCKET_NAME.s3.amazonaws.com, and parsing for x-amz-bucket-region
-        where BUCKET_NAME is a public dataset
-
-        """
-        region = None
-        if self.provider == 'aws':
-            session = requests.session()
-            response = session.get(f'http://{bucket}.s3.amazonaws')
-            region = response.json()['x-amz-bucket-region'] 
-        return region
     
-    
-
-if __name__ == '__main__':
-    
-    # local computer
