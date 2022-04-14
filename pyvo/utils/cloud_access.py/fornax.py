@@ -58,7 +58,7 @@ class DataHandler:
 class AWSDataHandler(DataHandler):
     """Class for managaing access to data in AWS"""
     
-    def __init__(self, product, porfile=None, **kwargs):
+    def __init__(self, product, profile=None, **kwargs):
         """Handle AWS-specific authentication and data download
         
         Parameters:
