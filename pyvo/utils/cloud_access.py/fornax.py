@@ -5,7 +5,7 @@ import json
 import warnings
 import logging
 
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
     format="%(asctime)s | %(name)s | %(message)s")
 log = logging.getLogger('fornax')
 
@@ -80,28 +80,33 @@ class AWSDataHandler(DataHandler):
         
         
         # is the data in the cloud?
-        data_in_aws  = True
-        cloud_access = None
+        data_in_aws  = False
+        cloud_info = None
         if 'cloud_access' in product.keys():
             # read json provided by the archive
             cloud_access_json = product['cloud_access']
             cloud_access = json.loads(cloud_access_json)
 
             # is the data in aws?
-            if not 'aws' in cloud_access:
+            if 'aws' in cloud_access:
                 data_in_aws = True
+                cloud_info  = cloud_access['aws']
+                
+                if cloud_info['path'][0] == '/':
+                    cloud_info['path'] = cloud_info['path'][1:]
+            
             
         
         
         self.data_in_aws = data_in_aws
-        self.s3_info     = cloud_access
+        self.cloud_info  = cloud_info
         self.user_pays   = user_pays
         self.profile     = profile
         
 
         
         
-    def download(self):
+    def download(self, *kwargs):
         """Download data, from aws if possible, else from on-prem"""
         
             
@@ -119,9 +124,8 @@ class AWSDataHandler(DataHandler):
         
         # TODO: more error trapping in case some info is missing
         # read data info provided in cloud_access
-        cloud_access = self.s3_info['aws']
-        data_region = cloud_access['region']
-        data_access = cloud_access['access'] # open | region | none
+        data_region = self.cloud_info['region']
+        data_access = self.cloud_info['access'] # open | region | none
         
         log.info(f'data region: {data_region}')
         log.info(f'data access mode: {data_access}')
@@ -165,6 +169,7 @@ class AWSDataHandler(DataHandler):
         self.s3_client   = resource.meta.client
         self.session     = session
         self.s3_resource = resource
+        self.download_file_s3(**kwargs)
     
     
     # borrowed from astroquery.mast.
@@ -184,8 +189,9 @@ class AWSDataHandler(DataHandler):
         s3 = self.s3_resource
         s3_client = self.s3_client
         
-        bucket_path = self.s3_info['path']
-        bkt = s3.Bucket(self.s3_info['backet'])
+        bucket_path = self.cloud_info['path']
+        bucket_name = self.cloud_info['backet']
+        bkt = s3.Bucket(bucket_name)
         if not bucket_path:
             raise Exception(f"Unable to locate file {bucket_path}.")
             
@@ -194,7 +200,7 @@ class AWSDataHandler(DataHandler):
             local_path = bucket_path.strip('/').split('/')[-1]
 
         # Ask the webserver (in this case S3) what the expected content length is and use that.
-        info_lookup = s3_client.head_object(Bucket=self.pubdata_bucket, Key=bucket_path)
+        info_lookup = s3_client.head_object(Bucket=bucket_name, Key=bucket_path)
         length = info_lookup["ContentLength"]
 
         if cache and os.path.exists(local_path):
