@@ -118,6 +118,7 @@ class AWSDataHandler(DataHandler):
         
         # TODO: more error trapping in case some info is missing
         # read data info provided in cloud_access
+        cloud_access = self.s3_info['aws']
         data_region = cloud_access['region']
         data_access = cloud_access['access'] # open | region | none
         
@@ -238,10 +239,14 @@ class AWSDataHandler(DataHandler):
         """Check if the user is in on aws
         the following works for aws, but it is not robust enough
         This is partly from: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/identify_ec2_instances.html
+        
+        Comments in user_region below are also relevant here.
+        
         """
-        uuid = '/sys/hypervisor'
-        is_aws =  os.path.exists(uuid)
+        uuid = '/sys/hypervisor/uuid'
+        is_aws =  os.path.exists(uuid) or 'AWS_REGION' in os.environ
         return is_aws
+    
     
     def user_region(self):
         """Find region of the user in an ec2 instance.
