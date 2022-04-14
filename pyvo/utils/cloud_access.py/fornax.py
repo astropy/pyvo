@@ -106,7 +106,7 @@ class AWSDataHandler(DataHandler):
 
         
         
-    def download(self, *kwargs):
+    def download(self, **kwargs):
         """Download data, from aws if possible, else from on-prem"""
         
             
@@ -169,7 +169,7 @@ class AWSDataHandler(DataHandler):
         self.s3_client   = resource.meta.client
         self.session     = session
         self.s3_resource = resource
-        self.download_file_s3(**kwargs)
+        self.download_file_s3(*args, **kwargs)
     
     
     # borrowed from astroquery.mast.
@@ -190,7 +190,7 @@ class AWSDataHandler(DataHandler):
         s3_client = self.s3_client
         
         bucket_path = self.cloud_info['path']
-        bucket_name = self.cloud_info['backet']
+        bucket_name = self.cloud_info['bucket']
         bkt = s3.Bucket(bucket_name)
         if not bucket_path:
             raise Exception(f"Unable to locate file {bucket_path}.")
