@@ -264,7 +264,7 @@ class AWSDataHandler(DataHandler):
         The region can be in $AWS_REGION
         """        
         
-        region = os.environ.get('AW_REGION', None)
+        region = os.environ.get('AWS_REGION', None)
         
         if region is None:
             # try the link-local address
