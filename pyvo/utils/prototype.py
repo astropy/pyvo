@@ -2,28 +2,80 @@ import inspect
 import warnings
 from dataclasses import dataclass
 from functools import wraps
-from typing import Dict
+from typing import Dict, Iterable
 
 from pyvo.dal.exceptions import PyvoUserWarning
 
-features: Dict[str, "Feature"] = {}
+__all__ = ['features', 'prototype_feature', 'activate_features', 'Feature', 'PrototypeWarning', 'PrototypeError']
+
+features: Dict[str, "Feature"] = {
+
+}
 
 
 def prototype_feature(*args):
     """
-    docs stub: the decorator, to use with functions or classes to decorate all the "public" methods.
-    If given with arguments, the first one is the name of the feature the function belongs to. The keyword
-    arguments are passed to the Feature object initializer.
-    If given without arguments, the function is added to the 'generic' feature.
+    Decorator for functions and classes that implement unstable standards which haven't been approved yet.
+    The decorator can be used to tag individual functions or methods::
+
+       @prototype_feature('a-feature')
+       def i_am_a_prototype(*arg, **kwargs):
+           pass
+
+    In this case, a single function or method is tagged as part of the ``a-feature`` prototype feature. If the feature
+    has a URL defined (see :ref:`pyvo-prototypes-registry`).
+
+    Alternatively, a class can be marked as belonging to a feature. All public methods will be marked as part of the
+    prototype implementation. Protected, private, and *dunder* methods (i.e. any method starting with
+    an underscore) will be ignored. The reason is that the class might be instantiated by some mediator before the
+    user can call (and more importantly not call) a higher level facade::
+
+      @prototype_feature('a-feature')
+      class Feature:
+        def method(self):
+            pass
+
+        @staticmethod
+        def static():
+            pass
+
+        def __ignore__(self):
+            pass
+
+    Any number of classes and functions can belong to a single feature, and individual methods can be tagged
+    in a class rather than the class itself.
+
+    Parameters
+    ----------
+    args: iterable of arguments.
+        Currently, the decorator must always be called with one and only one argument, a string representing
+        the feature's name associated with the decorated class or functions. Additional arguments will be ignored,
+        while using the decorator without any arguments will result in a ``PrototypeError`` error.
+
+    Returns
+    -------
+    The class or function it decorates, which will be associated to the feature provided as argument.
+
     """
     feature_name = _parse_args(*args)
     decorator = _make_decorator(feature_name)
     return decorator
 
 
-def activate_features(*feature_names):
-    """activate one or more features. If no arguments are given
-    all prototype features are activated."""
+def activate_features(*feature_names: Iterable[str]):
+    """
+    Activate one or more prototype features.
+
+    Parameters
+    ----------
+    feature_names: Iterable[str]
+        An arbitrary number of feature names. If a feature with that name does not exist, a `PrototypeWarning` will
+        be issued. If no arguments are provided, all features will be activated
+
+    Returns
+    -------
+
+    """
     names = feature_names or set(features.keys())
     for name in names:
         if not _validate(name):
@@ -33,15 +85,48 @@ def activate_features(*feature_names):
 
 @dataclass
 class Feature:
+    """
+    An unstable feature implementing a standard that is currently in the process of being approved, but that might
+    change as a result of the approval process. A Feature must have a name. Optionally, a feature may have a *url*
+    that is displayed to the user in case a feature is used without the user explicitly opting in on its usage.
+    The URL is expected to contain more information about the standard and its state in the approval process.
+    """
     name: str
     url: str = ''
     on: bool = False
 
     def should_error(self):
+        """
+        Should accessing this feature fail?
+
+        Returns
+        -------
+        bool Whether accessing this feature should result in an error.
+        """
         return not self.on
 
     def error(self, function_name):
-        return f'{function_name} is part of a prototype feature ({self.name}) that has not been activated.'
+        """
+        Format an error message when the feature is being accesses without the user having opted in its usage.
+
+        This function will be used as a callback when an error message needs to be displayed to the user, with the
+        function name that was accessed as an argument. Extensions of this class may have additional information to
+        display.
+
+        Parameters
+        ----------
+        function_name: str
+            The name of the function associated to this feature and that the user called.
+
+        Returns
+        -------
+        str: The error message to be displayed to the user.
+
+        """
+        message = f'{function_name} is part of a prototype feature ({self.name}) that has not been activated.'
+        if self.url:
+            message += f' For more information please visit {self.url}'
+        return message
 
 
 class PrototypeError(Exception):

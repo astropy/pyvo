@@ -39,7 +39,8 @@ def test_feature_turned_off_by_default(prototype_function):
     with pytest.raises(PrototypeError) as e:
         prototype_function(None)
 
-    assert str(e.value) == 'i_am_prototype is part of a prototype feature (my-feature) that has not been activated.'
+    assert str(e.value) == 'i_am_prototype is part of a prototype feature (my-feature) that has not been activated. ' \
+                           'For more information please visit http://somewhere/else'
 
 
 def test_activate_feature(prototype_function):
