@@ -148,6 +148,7 @@ def _debytify(v):
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
+@pytest.mark.remote_data
 class TestSemanticsRetrieval:
     def test_access_with_string(self):
         datalink = DatalinkResults.from_result_url('http://example.com/proc')
@@ -156,6 +157,7 @@ class TestSemanticsRetrieval:
         assert len(res)==1
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
 
+    @pytest.mark.remote_data
     def test_access_with_list(self):
         datalink = DatalinkResults.from_result_url('http://example.com/proc')
         res = [_debytify(r["access_url"])
@@ -164,6 +166,7 @@ class TestSemanticsRetrieval:
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
         assert res[1].endswith("20100927.comb_avg.0001.fits.fz?preview=True")
 
+    @pytest.mark.remote_data
     def test_access_with_expansion(self):
         datalink = DatalinkResults.from_result_url('http://example.com/proc')
         res = [_debytify(r["access_url"])
@@ -183,6 +186,7 @@ class TestSemanticsRetrieval:
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
         assert res[1].endswith("http://dc.zah.uni-heidelberg.de/wider.dat")
 
+    @pytest.mark.remote_data
     def test_with_full_url(self):
         datalink = DatalinkResults.from_result_url('http://example.com/proc')
         res = [_debytify(r["access_url"])
@@ -190,6 +194,7 @@ class TestSemanticsRetrieval:
         assert len(res)==1
         assert res[0].endswith("when-will-it-be-back")
 
+    @pytest.mark.remote_data
     def test_all_mixed(self):
         datalink = DatalinkResults.from_result_url('http://example.com/proc')
         res = [_debytify(r["access_url"])
