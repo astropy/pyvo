@@ -31,8 +31,8 @@ class TestSIACadc():
         results = search(CADC_SIA_URL, pos=(2.8425, 74.4846, 10), maxrec=55)
         ids = []
         for i in results.iter_datalinks():
-            assert i.table[0]['ID'] not in ids
-            ids.append(i.table[0]['ID'])
+            assert i.to_table()[0]['ID'] not in ids
+            ids.append(i.to_table()[0]['ID'])
         assert len(ids) == 55
 
     def test_pos(self):
