@@ -359,10 +359,6 @@ class SLAResults(DALResults):
     :py:class:`~pyvo.dal.sia.SLARecord` instances) are typically
     accessed by iterating over an ``SLAResults`` instance.
 
-    >>> results = pyvo.linesearch(url, wavelength=(0.0265,0.0280))
-    >>> for spl in results:
-    ...     print("{0}: {1}".format(spl.species_name, spl.wavelength))
-
     Alternatively, records can be accessed randomly via
     :py:meth:`getrecord` or through a Python Database API (v2)
     Cursor (via :py:meth:`~pyvo.dal.query.DALResults.cursor`).
@@ -381,7 +377,7 @@ class SLAResults(DALResults):
     as an Astropy :py:class:`~astropy.table.table.Table` via the
     following conversion:
 
-    >>> table = results.votable.to_table()
+    ``table = results.votable.to_table()``
 
     ``SLAResults`` supports the array item operator ``[...]`` in a
     read-only context.  When the argument is numerical, the result

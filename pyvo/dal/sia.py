@@ -585,10 +585,6 @@ class SIAResults(DatalinkResultsMixin, DALResults):
     :py:class:`~pyvo.dal.sia.SIARecord` instances) are typically
     accessed by iterating over an ``SIAResults`` instance.
 
-    >>> results = pyvo.imagesearch(url, pos=[12.24, -13.1], size=0.1)
-    >>> for image in results:
-    ...     print("{0}: {1}".format(image.title, title.getdataurl()))
-
     Alternatively, records can be accessed randomly via
     :py:meth:`getrecord` or through a Python Database API (v2)
     Cursor (via :py:meth:`~pyvo.dal.query.DALResults.cursor`).
@@ -607,7 +603,7 @@ class SIAResults(DatalinkResultsMixin, DALResults):
     as an Astropy :py:class:`~astropy.table.table.Table` via the
     following conversion:
 
-    >>> table = results.votable.to_table()
+    ``table = results.votable.to_table()``
 
     ``SIAResults`` supports the array item operator ``[...]`` in a
     read-only context.  When the argument is numerical, the result
