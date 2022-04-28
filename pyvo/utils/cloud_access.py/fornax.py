@@ -4,6 +4,7 @@ import requests
 import json
 import warnings
 import logging
+import threading
 
 logging.basicConfig(level=logging.INFO,
     format="%(asctime)s | %(name)s | %(message)s")
@@ -222,7 +223,7 @@ class AWSDataHandler(DataHandler):
                     return
 
         with ProgressBarOrSpinner(length, ('Downloading URL s3://{0}/{1} to {2} ...'.format(
-                self.pubdata_bucket, bucket_path, local_path))) as pb:
+                bucket_name, bucket_path, local_path))) as pb:
 
             # Bytes read tracks how much data has been received so far
             # This variable will be updated in multiple threads below
