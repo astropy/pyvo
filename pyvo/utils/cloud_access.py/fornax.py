@@ -141,6 +141,7 @@ class AWSDataHandler(DataHandler):
         # only in-region access is allowed
         if data_access == 'region':
             user_region = self.user_region()
+            log.info(f'user region: {user_region}')
             if data_region == user_region:
                 log.info('data_access=region; Data and user are in the same region; ')
             elif self.user_pays:
