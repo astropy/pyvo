@@ -16,6 +16,7 @@ htmlcov
 .coverage
 MANIFEST
 .ipynb_checkpoints
+.hypothesis
 
 # Sphinx
 docs/api
@@ -31,6 +32,7 @@ docs/_build
 
 # Packages/installer info
 *.egg
+*.eggs
 *.egg-info
 dist
 build
