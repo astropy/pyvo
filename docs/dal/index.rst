@@ -358,6 +358,7 @@ datasets and/or access to additional data services.
 
 To obtain the names of the columns in a service response, write:
 
+.. doctest-skip::
 .. doctest-remote-data::
 
 >>> print(resultset.fieldnames)
@@ -366,6 +367,7 @@ Rich metadata equivalent to what is found in VOTables (including unit,
 ucd, utype, and xtype) is available through resultset's
 :py:meth:`~pyvo.dal.query.DALResults.getdesc` method:
 
+.. doctest-skip::
 .. doctest-remote-data::
 
 >>>  print(resultset.getdesc("accref").ucd)
@@ -375,10 +377,14 @@ ucd, utype, and xtype) is available through resultset's
     physics (by UCD) or with a particular legacy data model annotation
     (by utype), like this:
 
+.. doctest-skip::
+
     >>> fieldname = resultset.fieldname_with_ucd('phot.mag;em.opt.V')
     >>> fieldname = resultset.fieldname_with_utype('Access.Reference')
 
 Iterating over a resultset gives the rows in the result:
+
+.. doctest-skip::
 
 >>> for row in resultset:
 >>>     print row['accref']
@@ -386,10 +392,14 @@ Iterating over a resultset gives the rows in the result:
 
 The total number of rows in the answer is available as its ``len()``:
 
+.. doctest-skip::
+
 >>> print(len(resultset))
 9
 
 If the row contains datasets, they are exposed by several retrieval methods:
+
+.. doctest-skip::
 
 >>> url = row.getdataurl()
 >>> fileobj = row.getdataset()
@@ -401,13 +411,19 @@ to further work on.
 As with general numpy arrays, accessing individual columns via names gives an
 array of all of their values:
 
+.. doctest-skip::
+
 >>> column = resultset['accref']
 
 whereas integers retrieve columns:
 
+.. doctest-skip::
+
 >>> row = resultset[0]
 
 and both combined gives a single value:
+
+.. doctest-skip::
 
 >>> value = resultset['accref', 0]
 
