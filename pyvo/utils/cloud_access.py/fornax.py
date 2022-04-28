@@ -140,21 +140,25 @@ class AWSDataHandler(DataHandler):
         # only in-region access is allowed
         if data_access == 'region':
             user_region = self.user_region()
-            if data_region != user_region and not self.user_pays:
-                log.info('Data and user are not in the same region, and user_pays not enabled')
+            if data_region == user_region:
+                log.info('data_access=region; Data and user are in the same region; ')
+            elif self.user_pays:
+                log.info('data_access=region; Data and user are not in the same region, and user_pays is ENABLED')
+            else:
+                log.info('data_access=region; Data and user are not in the same region, and user_pays not enabled')
                 return self.download_file_http()
-            
-            if self.user_pays:
-                log.info('Data and user are not in the same region, and user_pays is ENABLED')
+        
+        if data_access == 'open':
+            log.info('Data mode is "open". Data is fully public.')
+                
         
         
         # if we are here, we either have:
-        # data_access=open, or data_access=region with user_pays
+        # data_access=open, or data_access=region with either user_pays=True or user/data in same region
         # we handle each case separatly:
         
-        # data is open to everybody; use anonymous user
-        if data_access == 'open':
-            log.info('Data mode is "open". Data is fully public.')
+        # data is fully-open or open in region; use anonymous user
+        if data_access == 'open' or (data_access == 'region' and data_region == user_region):
             session = None
             resource = boto3.resource(
                 service_name = 's3', 
