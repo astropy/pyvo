@@ -540,4 +540,3 @@ Reference/API
 
 .. automodapi:: pyvo.dal
 .. automodapi:: pyvo.dal.adhoc
-.. automodapi:: pyvo.dal.exceptions
