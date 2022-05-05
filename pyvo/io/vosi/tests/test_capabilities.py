@@ -3,6 +3,8 @@
 """
 Tests for pyvo.io.vosi
 """
+import io
+import logging
 from operator import eq as equals
 
 import pytest
@@ -172,3 +174,35 @@ class TestInterface:
     def test_testquerystring_parsed(self, parsed_caps):
         assert (parsed_caps[3].interfaces[0].testquerystring.content
             == 'QUERY=SELECT%20*%20FROM%20tap_schema.tables&LANG=ADQL')
+
+
+@pytest.fixture()
+def cap_with_free_prefix(recwarn):
+        caps = vosi.parse_capabilities(io.BytesIO(b"""
+<ns2:capabilities xmlns:ns2="http://www.ivoa.net/xml/VOSICapabilities/v1.0">
+  <capability 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:ns4="http://www.ivoa.net/xml/TAPRegExt/v1.0" 
+    xsi:type="ns4:TableAccess" 
+    standardID="ivo://ivoa.net/std/TAP">
+    <interface xmlns:ns5="http://www.ivoa.net/xml/VODataService/v1.1" 
+        xsi:type="ns5:ParamHTTP" version="1.1" role="std">
+      <accessURL use="base">https://archive.eso.org/tap_obs</accessURL>
+    </interface>
+    <dataModel ivo-id="ivo://ivoa.net/std/ObsCore#core-1.1">ObsCore-1.1</dataModel>
+    <language>
+      <name>ADQL</name>
+      <version ivo-id="ivo://ivoa.net/std/ADQL#v2.0">2.0</version>
+      <description>ADQL-2.0</description>
+    </language>
+  </capability>
+</ns2:capabilities>"""))
+        return recwarn, caps
+
+
+# this is a test for when people ignore the canonical prefixes for
+# registry documents.
+class TestFreePrefixes:
+    def test_parses_without_warning(self, cap_with_free_prefix):
+        warnings, _ = cap_with_free_prefix
+        assert len(warnings)==0
