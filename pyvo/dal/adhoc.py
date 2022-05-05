@@ -233,14 +233,14 @@ class DatalinkRecordMixin:
 
     - ``getdataset()`` considers datalink.
     """
-    def getdatalink(self, session=None):
+    def getdatalink(self):
         try:
             datalink = self._results.get_adhocservice_by_ivoid(DATALINK_IVOID)
 
-            query = DatalinkQuery.from_resource(self, datalink, session=session)
+            query = DatalinkQuery.from_resource(self, datalink, session=self._session)
             return query.execute()
         except DALServiceError:
-            return DatalinkResults.from_result_url(self.getdataurl(), session=session)
+            return DatalinkResults.from_result_url(self.getdataurl(), session=self._session)
 
     @stream_decode_content
     def getdataset(self, timeout=None):
