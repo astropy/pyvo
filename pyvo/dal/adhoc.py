@@ -201,7 +201,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                     if batch_size is None:
                         # first call.
                         self.query = DatalinkQuery.from_resource(
-                            [_ for _ in self], self._datalink)
+                            [_ for _ in self], self._datalink, session=self._session)
                         remaining_ids = self.query['ID']
                     if not remaining_ids:
                         # we are done
