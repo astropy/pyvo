@@ -17,7 +17,7 @@ from astropy.utils.collections import HomogeneousList
 from astropy.utils.misc import indent
 
 from ...utils.xml.elements import (
-    Element, ContentMixin, xmlattribute, xmlelement)
+    Element, ElementWithXSIType, ContentMixin, xmlattribute, xmlelement)
 from .exceptions import W06
 
 __all__ = [
@@ -201,7 +201,7 @@ class SecurityMethod(ContentMixin, Element):
         self._standardid = standardid
 
 
-class Interface(Element):
+class Interface(ElementWithXSIType):
     """
     Interface element as described in
     http://www.ivoa.net/xml/VOResource/v1.0
@@ -214,28 +214,6 @@ class Interface(Element):
     Additional interface subtypes (beyond WebService and WebBrowser) are
     defined in the VODataService schema.
     """
-    _xsi_type_mapping = {}
-
-    @classmethod
-    def register_xsi_type(cls, typename):
-        """Decorator factory for registering subtypes"""
-        def register(class_):
-            """Decorator for registering subtypes"""
-            cls._xsi_type_mapping[typename] = class_
-            return class_
-        return register
-
-    def __new__(cls, *args, **kwargs):
-        if 'xsi:type' not in kwargs:
-            pass
-
-        xsi_type = kwargs.get('xsi:type')
-        dtype = cls._xsi_type_mapping.get(xsi_type, cls)
-
-        obj = Element.__new__(dtype)
-        obj.__init__(*args, **kwargs)
-        return obj
-
     def __init__(
         self, config=None, pos=None, _name='interface', version='1.0',
         role=None, **kwargs
@@ -359,7 +337,7 @@ class Interface(Element):
         self._resulttype = resulttype
 
 
-class Capability(Element):
+class Capability(ElementWithXSIType):
     """
     Capability element as described in
     http://www.ivoa.net/xml/VOResource/v1.0
@@ -368,28 +346,6 @@ class Capability(Element):
     (in terms of context-specific behavior), and how to use it
     (in terms of an interface)
     """
-    _xsi_type_mapping = {}
-
-    @classmethod
-    def register_xsi_type(cls, typename):
-        """Decorator factory for registering subtypes"""
-        def register(class_):
-            """Decorator for registering subtypes"""
-            cls._xsi_type_mapping[typename] = class_
-            return class_
-        return register
-
-    def __new__(cls, *args, **kwargs):
-        if 'xsi:type' not in kwargs:
-            pass
-
-        xsi_type = kwargs.get('xsi:type')
-        dtype = cls._xsi_type_mapping.get(xsi_type, cls)
-
-        obj = Element.__new__(dtype)
-        obj.__init__(*args, **kwargs)
-        return obj
-
     def __init__(
         self, config=None, pos=None, _name='capability', standardID=None,
         **kwargs

@@ -2,6 +2,7 @@
 
 from inspect import getmembers
 from functools import partial
+import warnings
 
 from astropy.utils.xml import iterparser
 from astropy.io.votable.exceptions import warn_or_raise
@@ -10,7 +11,7 @@ from pyvo.utils.xml.exceptions import UnknownElementWarning
 __all__ = [
     "xmlattribute", "xmlelement",
     "make_add_complexcontent", "make_add_simplecontent",
-    "Element", "ContentMixin", "parse_for_object"]
+    "Element", "ElementWithXSIType", "ContentMixin", "parse_for_object"]
 
 
 def parse_for_object(
@@ -365,17 +366,17 @@ class ElementWithXSIType(Element):
 
     When a class A is derived from this, it gains a decorator
     register_xsi_type, which classes derived from A can use to say
-    "construct me rather than A when xsi:type has the value I'm putting 
+    "construct me rather than A when xsi:type has the value I'm putting
     in.
 
-    At this point we are doing *no* namespace processing in our XML 
+    At this point we are doing *no* namespace processing in our XML
     parsing.  Hence, we discard any prefixes both when registering
     and when matching.
 
     We probably should do namespaces one day; astropy.utils.xml will
     presumably learn them when they add VO-DML support.  Let's revisit
     this when it's there safely.  Meanwhere, use canonical Registry
-    prefixes (cf. RegTAP 1.1, sect. 5) everywhere in your code; these 
+    prefixes (cf. RegTAP 1.1, sect. 5) everywhere in your code; these
     will continue to be safe no matter what.
     """
     _xsi_type_mapping = {}
@@ -410,7 +411,8 @@ class ElementWithXSIType(Element):
             try:
                 dtype = cls._xsi_type_mapping[xsi_type.split(":")[-1]]
             except KeyError:
-                raise RuntimeError(f"Unknown schema type {xsi_type}")
+                warnings.warn(f"Unknown xsi:type {xsi_type} ignored")
+                dtype = cls
 
         obj = Element.__new__(dtype)
         obj.__init__(*args, **kwargs)

@@ -11,16 +11,23 @@ from astropy.utils.xml import iterparser
 
 from pyvo.utils.xml import elements
 
+
 class TBase(elements.ElementWithXSIType):
     pass
-    
+
+
 @TBase.register_xsi_type("foo:TOther1")
 class TOther1(TBase):
-    pass   
+    pass
 
+
+# it's unclear whether we want to support unprefixed type names
+# once we properly handle XML namespaces.  Feel free to adapt
+# the following declaration.
 @TBase.register_xsi_type("TOther2")
 class TOther2(TBase):
     pass
+
 
 class _Root(elements.Element):
     def __init__(self):
@@ -37,6 +44,10 @@ class _Root(elements.Element):
 
 
 class TestXSIType:
+    # Note: most of these tests will need namespace declarations
+    # once we're properly dealing with namespaces.  However, I
+    # don't want to predicate an API to proper namespace support,
+    # so they're missing for now.
     def _parse_string(self, xml_source):
         with iterparser.get_xml_iterator(io.BytesIO(xml_source)) as i:
             return _Root().parse(i, {})
@@ -51,6 +62,8 @@ class TestXSIType:
         assert found_type.__name__ == "TOther1"
 
     def test_unprefixed_type(self):
+        # This is undesired behaviour; this test should fail once
+        # we've properly parsing XML
         found_type = self._parse_string(b'<tbase xsi:type="TOther1"/>'
             ).tbase.__class__
         assert found_type.__name__ == "TOther1"
@@ -60,8 +73,7 @@ class TestXSIType:
             ).tbase.__class__
         assert found_type.__name__ == "TOther2"
 
-    def test_bad_type(self):
-        with pytest.raises(RuntimeError) as excinfo:
-            self._parse_string(b'<tbase xsi:type="ns1:NoSuchType"/>')
-        assert str(excinfo.value) == "Unknown schema type ns1:NoSuchType"
-
+    def test_bad_type(self, recwarn):
+        self._parse_string(b'<tbase xsi:type="ns1:NoSuchType"/>')
+        assert recwarn.pop().message.args == (
+            'Unknown xsi:type ns1:NoSuchType ignored',)
