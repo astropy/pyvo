@@ -1,6 +1,9 @@
 1.4 (unreleased)
 ================
 
+- we now ignore namespaces in xsi-type attributes; this is a lame fix
+  for services like ESO's and MAST's TAP, which do not use canonical
+  prefixes while astropy.utils.xml ignores namespaces. [#323]
 
 1.3 (2022-02-19)
 ==================
