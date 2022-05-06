@@ -73,6 +73,20 @@ class TestXSIType:
             ).tbase.__class__
         assert found_type.__name__ == "TOther2"
 
+    def test_xsi_ignorable(self):
+        # This is again unwelcome behaviour, but unavoidable as long
+        # as we hack around namespaces
+        found_type = self._parse_string(b'<tbase type="ns1:TOther2"/>'
+            ).tbase.__class__
+        assert found_type.__name__ == "TOther2"
+
+    def test_xsi_preferred(self):
+        # Another piece unwelcome behaviour.
+        found_type = self._parse_string(
+            b'<tbase foo:type="TOther1" xsi:type="ns1:TOther2"/>'
+            ).tbase.__class__
+        assert found_type.__name__ == "TOther2"
+
     def test_bad_type(self, recwarn):
         self._parse_string(b'<tbase xsi:type="ns1:NoSuchType"/>')
         assert recwarn.pop().message.args == (
