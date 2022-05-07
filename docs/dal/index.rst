@@ -357,50 +357,53 @@ datasets and/or access to additional data services.
 
 To obtain the names of the columns in a service response, write:
 
-.. doctest-skip::
+.. doctest-remote-data::
 
+    >>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap")
+    >>> resultset = tap_service.search("SELECT TOP 10 * FROM ivoa.obscore")
     >>> print(resultset.fieldnames)
 
 Rich metadata equivalent to what is found in VOTables (including unit,
 ucd, utype, and xtype) is available through resultset's
 :py:meth:`~pyvo.dal.query.DALResults.getdesc` method:
 
-.. doctest-skip::
+.. doctest-rmeote-data::
 
-    >>>  print(resultset.getdesc("accref").ucd)
+    >>>  print(resultset.getdesc('s_fov').ucd)
 
 .. note::
     Two convenience functions let you retrieve columns of a specific
     physics (by UCD) or with a particular legacy data model annotation
     (by utype), like this:
 
-.. doctest-skip::
+.. doctest-remote-data::
 
-    >>> fieldname = resultset.fieldname_with_ucd('phot.mag;em.opt.V')
-    >>> fieldname = resultset.fieldname_with_utype('Access.Reference')
+    >>> fieldname = resultset.fieldname_with_ucd('phys.angSize;instr.fov')
+    >>> fieldname = resultset.fieldname_with_utype('obscore:access.reference')
 
 Iterating over a resultset gives the rows in the result:
 
-.. doctest-skip::
+.. doctest-remote-data::
 
     >>> for row in resultset:
-    ...     print row['accref']
-    ...
+    ...     print(row['s_fov'])
 
 The total number of rows in the answer is available as its ``len()``:
 
-.. doctest-skip::
+.. doctest-remote-data::
 
     >>> print(len(resultset))
-    9
+    10
 
 If the row contains datasets, they are exposed by several retrieval methods:
 
-.. doctest-skip::
+.. doctest-remote-data::
 
     >>> url = row.getdataurl()
     >>> fileobj = row.getdataset()
-    >>> obj = row.getdataobj()
+
+..    TODO: uncomment the following line once https://github.com/astropy/pyvo/issues/324 is addressed
+..    >>> obj = row.getdataobj()
 
 Returning the access url, the file-like object or the appropiate python object
 to further work on.
@@ -408,21 +411,21 @@ to further work on.
 As with general numpy arrays, accessing individual columns via names gives an
 array of all of their values:
 
-.. doctest-skip::
+.. doctest-remote-data::
 
-    >>> column = resultset['accref']
+    >>> column = resultset['obs_id']
 
-whereas integers retrieve columns:
+whereas integers retrieve rows:
 
-.. doctest-skip::
+.. doctest-remote-data::
 
     >>> row = resultset[0]
 
 and both combined gives a single value:
 
-.. doctest-skip::
+.. doctest-remote-data::
 
-    >>> value = resultset['accref', 0]
+    >>> value = resultset['obs_id', 0]
 
 Row objects may expose certain key columns as properties. See the corresponding
 API spec listed below for details.
