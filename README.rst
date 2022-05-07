@@ -36,6 +36,16 @@ Source code can be found `on GitHub <http://github.com/astropy/pyvo>`_
 Installation and Requirements
 -----------------------------
 
+Releases of PyVO are available from `PyPI <https://pypi.python.org/pypi/pyvo>`_
+thus, it and its prerequisites can be most easily installed using ``pip``:
+
+   pip install pyvo
+
+
+Releases are also conda packaged and available on the ``conda-forge``
+channel.
+
+
 PyVO requires Python 3.8 or later.
 
 The following packages are required for PyVO:
@@ -56,14 +66,11 @@ infrastructure packages are required:
 * requests-mock
 * `sphinx-astropy <https://github.com/astropy/sphinx-astropy>`__
 
-Releases of PyVO are available from `PyPI <https://pypi.python.org/pypi/pyvo>`_
-thus, it and its prerequisites can be most easily installed using ``pip``:
 
-   pip install pyvo
-
-Alternatively, you can do a source install:
+To install from source use ``pip``:
 
    pip install .[all]
+
 
 Using the developer version of PyVO in testing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -97,5 +104,3 @@ connection.  To run all tests, including those that access the
 network, add the --remote-data option:
 
     pytest --remote-data
-
-
