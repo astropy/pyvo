@@ -51,13 +51,6 @@ Requirements
 * astropy
 * requests
 
-.. note::
-  With numpy below version 1.14.0 there are some regression with float
-  representations.
-
-  See `<https://docs.scipy.org/doc/numpy/release.html>`__
-  for details.
-
 .. _getting-started:
 
 Getting started
