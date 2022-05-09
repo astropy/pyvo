@@ -148,30 +148,27 @@ def _debytify(v):
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
-@pytest.mark.remote_data
 class TestSemanticsRetrieval:
     def test_access_with_string(self):
         datalink = DatalinkResults.from_result_url('http://example.com/proc')
         res = [_debytify(r["access_url"])
-            for r in datalink.bysemantics("#this")]
-        assert len(res)==1
+               for r in datalink.bysemantics("#this")]
+        assert len(res) == 1
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
 
-    @pytest.mark.remote_data
     def test_access_with_list(self):
         datalink = DatalinkResults.from_result_url('http://example.com/proc')
         res = [_debytify(r["access_url"])
-            for r in datalink.bysemantics(["#this", "#preview-image"])]
-        assert len(res)==2
+               for r in datalink.bysemantics(["#this", "#preview-image"])]
+        assert len(res) == 2
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
         assert res[1].endswith("20100927.comb_avg.0001.fits.fz?preview=True")
 
-    @pytest.mark.remote_data
     def test_access_with_expansion(self):
         datalink = DatalinkResults.from_result_url('http://example.com/proc')
         res = [_debytify(r["access_url"])
-            for r in datalink.bysemantics(["#this", "#preview"])]
-        assert len(res)==3
+               for r in datalink.bysemantics(["#this", "#preview"])]
+        assert len(res) == 3
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
         assert res[1].endswith("20100927.comb_avg.0001.fits.fz?preview=True")
         assert res[2].endswith("http://dc.zah.uni-heidelberg.de/wider.dat")
@@ -179,31 +176,29 @@ class TestSemanticsRetrieval:
     def test_access_without_expansion(self):
         datalink = DatalinkResults.from_result_url('http://example.com/proc')
         res = [_debytify(r["access_url"])
-            for r in datalink.bysemantics(
-               ["#this", "#preview"],
-               include_narrower=False)]
-        assert len(res)==2
+               for r in datalink.bysemantics(
+                       ["#this", "#preview"],
+                       include_narrower=False)]
+        assert len(res) == 2
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
         assert res[1].endswith("http://dc.zah.uni-heidelberg.de/wider.dat")
 
-    @pytest.mark.remote_data
     def test_with_full_url(self):
         datalink = DatalinkResults.from_result_url('http://example.com/proc')
         res = [_debytify(r["access_url"])
-            for r in datalink.bysemantics("urn:example:rdf/dlext#oracle")]
-        assert len(res)==1
+               for r in datalink.bysemantics("urn:example:rdf/dlext#oracle")]
+        assert len(res) == 1
         assert res[0].endswith("when-will-it-be-back")
 
-    @pytest.mark.remote_data
     def test_all_mixed(self):
         datalink = DatalinkResults.from_result_url('http://example.com/proc')
         res = [_debytify(r["access_url"])
-            for r in datalink.bysemantics([
-                "urn:example:rdf/dlext#oracle",
-                'http://www.ivoa.net/rdf/datalink/core#preview',
-                '#this',
-                'non-existing-term'])]
-        assert len(res)==4
+               for r in datalink.bysemantics([
+                       "urn:example:rdf/dlext#oracle",
+                       'http://www.ivoa.net/rdf/datalink/core#preview',
+                       '#this',
+                       'non-existing-term'])]
+        assert len(res) == 4
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
         assert res[1].endswith("comb_avg.0001.fits.fz?preview=True")
         assert res[2].endswith("http://dc.zah.uni-heidelberg.de/wider.dat")
