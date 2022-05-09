@@ -9,8 +9,9 @@ import pytest
 
 import pyvo as vo
 from pyvo.dal.adhoc import DatalinkResults
+from pyvo.utils import vocabularies
 
-from astropy.utils.data import get_pkg_data_contents
+from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 
 get_pkg_data_contents = partial(
     get_pkg_data_contents, package=__package__, encoding='binary')
@@ -79,6 +80,25 @@ def proc(mocker):
         yield matcher
 
 
+@pytest.fixture()
+def datalink_vocabulary(mocker):
+    # astropy download_file (which get_vocabluary uses) does not use
+    # requests, so we can't mock this as we can mock the others.  We
+    # replace the entire function for a while
+    dl_voc_uri = 'http://www.ivoa.net/rdf/datalink/core'
+
+    def fake_download_file(src_url, *args, **kwargs):
+        assert src_url == dl_voc_uri
+        return get_pkg_data_filename('data/datalink/datalink.desise')
+
+    real_download_file = vocabularies.download_file
+    try:
+        vocabularies.download_file = fake_download_file
+        yield
+    finally:
+        vocabularies.download_file = real_download_file
+
+
 @pytest.mark.usefixtures('ssa_datalink', 'datalink')
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
@@ -123,7 +143,7 @@ def _debytify(v):
     return v
 
 
-@pytest.mark.usefixtures('proc')
+@pytest.mark.usefixtures('proc', 'datalink_vocabulary')
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
