@@ -21,6 +21,9 @@ from pyvo.utils import vocabularies
 class TestVocabularies:
 
     def test_basic_getting(self):
+        # clear the lru cache in case someone else has already used
+        # datalink/core.
+        vocabularies.get_vocabulary.cache_clear()
         voc = vocabularies.get_vocabulary("datalink/core")
         assert "progenitor" in voc["terms"]
         assert data.is_url_in_cache("http://www.ivoa.net/rdf/datalink/core")
