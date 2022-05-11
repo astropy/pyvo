@@ -201,7 +201,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                     if batch_size is None:
                         # first call.
                         self.query = DatalinkQuery.from_resource(
-                            [_ for _ in self], self._datalink)
+                            [_ for _ in self], self._datalink, session=self._session)
                         remaining_ids = self.query['ID']
                     if not remaining_ids:
                         # we are done
@@ -237,10 +237,10 @@ class DatalinkRecordMixin:
         try:
             datalink = self._results.get_adhocservice_by_ivoid(DATALINK_IVOID)
 
-            query = DatalinkQuery.from_resource(self, datalink)
+            query = DatalinkQuery.from_resource(self, datalink, session=self._session)
             return query.execute()
         except DALServiceError:
-            return DatalinkResults.from_result_url(self.getdataurl())
+            return DatalinkResults.from_result_url(self.getdataurl(), session=self._session)
 
     @stream_decode_content
     def getdataset(self, timeout=None):
