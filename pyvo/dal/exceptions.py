@@ -233,5 +233,6 @@ class DALQueryError(DALAccessError):
 class PyvoUserWarning(AstropyUserWarning):
     pass
 
+
 class DALOverflowWarning(UserWarning):
     pass
