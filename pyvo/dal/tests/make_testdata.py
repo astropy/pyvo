@@ -41,6 +41,17 @@ def votablefile_errorstatus():
     return votablefile
 
 
+def votablefile_overflowstatus():
+    votablefile = _votablefile()
+
+    info_ok = Info(name='QUERY_STATUS', value='OK')
+    info_overflow = Info(name='QUERY_STATUS', value='OVERFLOW')
+    votablefile.resources[0].infos[0] = info_ok
+    votablefile.resources[0].infos.append(info_overflow)
+
+    return votablefile
+
+
 def votablefile_missingtable():
     votablefile = _votablefile()
     del votablefile.resources[0].tables[0]
@@ -61,7 +72,7 @@ def votablefile_missingcolumns():
 
 def votablefile_firstresource():
     votablefile = _votablefile()
-    votablefile.resources[0]._type = ''
+    votablefile.resources[0]._type = 'results'
     return votablefile
 
 
@@ -125,6 +136,9 @@ def main():
 
     votablefile_errorstatus().to_xml(
         str(dirname / 'query/errorstatus.xml'), tabledata_format='tabledata')
+
+    votablefile_overflowstatus().to_xml(
+        str(dirname / 'query/overflowstatus.xml'), tabledata_format='tabledata')
 
     votablefile_missingtable().to_xml(
         str(dirname / 'query/missingtable.xml'), tabledata_format='tabledata')

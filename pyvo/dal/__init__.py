@@ -6,7 +6,7 @@ from .sla import search as linesearch
 from .scs import search as conesearch
 from .tap import search as tablesearch
 
-from .query import DALService, DALQuery, DALResults, Record
+from .query import DALService, DALQuery, DALResults, DALOverflowWarning, Record
 
 from .sia import SIAService, SIAQuery, SIAResults, SIARecord
 from .ssa import SSAService, SSAQuery, SSAResults, SSARecord
@@ -17,14 +17,14 @@ from .tap import TAPService, TAPQuery, TAPResults, AsyncTAPJob
 
 from .exceptions import (
     DALAccessError, DALProtocolError, DALFormatError, DALServiceError,
-    DALQueryError)
+    DALQueryError, DALOverflowWarning)
 
 __all__ = [
     "imagesearch", "spectrumsearch", "linesearch", "conesearch", "tablesearch",
     "DALService", "sia2", "imagesearch2",
     "SIAService", "SSAService", "SLAService", "SCSService", "TAPService",
     "DALQuery",  "SIAQuery", "SSAQuery", "SLAQuery", "SCSQuery", "TAPQuery",
-    "DALResults",
+    "DALResults", "DALOverflowWarning",
     "SIAResults", "SSAResults", "SLAResults", "SCSResults", "TAPResults",
     "Record",
     "SIARecord", "SSARecord", "SLARecord", "SCSRecord",

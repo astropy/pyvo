@@ -17,7 +17,8 @@ import pytest
 import numpy as np
 
 from pyvo.dal.query import DALService, DALQuery, DALResults, Record
-from pyvo.dal.exceptions import DALServiceError, DALQueryError, DALFormatError
+from pyvo.dal.exceptions import DALServiceError, DALQueryError,\
+    DALFormatError, DALOverflowWarning
 from pyvo.version import version
 from pyvo.utils.compat import ASTROPY_LT_4_1
 
@@ -90,6 +91,10 @@ def register_mocks(mocker):
             stack.enter_context(mocker.register_uri(
                 'GET', 'http://example.com/query/errorstatus',
                 content=get_pkg_data_contents('data/query/errorstatus.xml')
+            )),
+            stack.enter_context(mocker.register_uri(
+                'GET', 'http://example.com/query/overflowstatus',
+                content=get_pkg_data_contents('data/query/overflowstatus.xml')
             )),
         ]
 
@@ -203,6 +208,12 @@ class TestDALService:
         with pytest.raises(DALQueryError):
             service.search()
 
+    def test_query_warning(self):
+        service = DALService('http://example.com/query/overflowstatus')
+
+        with pytest.warns(DALOverflowWarning):
+            service.search()
+
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W53")
     def test_format_exception(self):
         with pytest.raises(DALFormatError):
@@ -282,6 +293,10 @@ class TestDALResults:
     def test_init_errorstatus(self):
         with pytest.raises(DALQueryError):
             DALResults.from_result_url('http://example.com/query/errorstatus')
+
+    def test_init_overflowstatus(self):
+        with pytest.warns(DALOverflowWarning):
+            DALResults.from_result_url('http://example.com/query/overflowstatus')
 
     def test_init_missingtable(self):
         with pytest.raises(DALFormatError):
