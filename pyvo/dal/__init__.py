@@ -24,10 +24,10 @@ __all__ = [
     "DALService", "sia2", "imagesearch2",
     "SIAService", "SSAService", "SLAService", "SCSService", "TAPService",
     "DALQuery",  "SIAQuery", "SSAQuery", "SLAQuery", "SCSQuery", "TAPQuery",
-    "DALResults", "DALOverflowWarning",
+    "DALResults",
     "SIAResults", "SSAResults", "SLAResults", "SCSResults", "TAPResults",
     "Record",
     "SIARecord", "SSARecord", "SLARecord", "SCSRecord",
     "AsyncTAPJob",
     "DALAccessError", "DALProtocolError", "DALFormatError", "DALServiceError",
-    "DALQueryError"]
+    "DALQueryError", "DALOverflowWarning"]

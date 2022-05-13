@@ -1,6 +1,10 @@
 1.4 (unreleased)
 ================
 
+1.3.1 (unreleased)
+==================
+
+- pyvo.dal warns on results with overflow status. [#329]`
 
 1.3 (2022-02-19)
 ==================
