@@ -367,7 +367,7 @@ Rich metadata equivalent to what is found in VOTables (including unit,
 ucd, utype, and xtype) is available through resultset's
 :py:meth:`~pyvo.dal.query.DALResults.getdesc` method:
 
-.. doctest-rmeote-data::
+.. doctest-remote-data::
 
     >>>  print(resultset.getdesc('s_fov').ucd)
 
