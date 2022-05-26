@@ -4,7 +4,6 @@
 <VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd">
  <RESOURCE type="results">
   <INFO ID="QUERY_STATUS" name="QUERY_STATUS" value="OK"/>
-  <INFO ID="QUERY_STATUS" name="QUERY_STATUS" value="OVERFLOW"/>
   <TABLE>
    <FIELD ID="_1" datatype="long" name="1" ucd="foo;bar"/>
    <FIELD ID="_2" arraysize="37" datatype="char" name="2" utype="foobar"/>
@@ -25,5 +24,6 @@
     </TABLEDATA>
    </DATA>
   </TABLE>
+  <INFO ID="QUERY_STATUS" name="QUERY_STATUS" value="OVERFLOW"/>
  </RESOURCE>
 </VOTABLE>
