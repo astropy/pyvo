@@ -4,7 +4,7 @@ DAL Exceptions.
 
 __all__ = [
     "DALAccessError", "DALProtocolError", "DALFormatError", "DALServiceError",
-    "DALQueryError"]
+    "DALQueryError", "DALOverflowWarning"]
 
 import re
 
@@ -231,4 +231,8 @@ class DALQueryError(DALAccessError):
 
 
 class PyvoUserWarning(AstropyUserWarning):
+    pass
+
+
+class DALOverflowWarning(UserWarning):
     pass

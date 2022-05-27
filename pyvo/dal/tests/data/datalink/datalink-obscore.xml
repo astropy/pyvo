@@ -220,7 +220,6 @@
         </TABLEDATA>
       </DATA>
     </TABLE>
-    <INFO name="QUERY_STATUS" value="OVERFLOW" />
   </RESOURCE>
   <RESOURCE type="meta" utype="adhoc:service">
     <PARAM name="resourceIdentifier" datatype="char" arraysize="*" value="ivo://test.com/caom2ops" />

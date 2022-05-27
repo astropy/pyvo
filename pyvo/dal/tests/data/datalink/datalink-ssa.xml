@@ -10,7 +10,6 @@ the name of the instrument after Flash got a second channel in 1995.</DESCRIPTIO
     <INFO name="citation" ucd="meta.bib.bibcode" value="1996A&amp;A...312..539S">This resource contains data associated with the publication 1996A&amp;A...312..539S.</INFO>
     <INFO name="citation" ucd="meta.bib" value="http://dc.zah.uni-heidelberg.de/tableinfo/flashheros.data">For advice on how to cite the resource(s) that contributed to this result, see http://dc.zah.uni-heidelberg.de/tableinfo/flashheros.data</INFO>
     <INFO name="SERVICE_PROTOCOL" value="1.04">SSAP</INFO>
-    <INFO name="QUERY_STATUS" value="OVERFLOW">Exactly 30 rows were returned.  This means your query probably reached the match limit.  Increase MAXREC.</INFO>
     <INFO name="standardID" value="ivo://ivoa.net/std/ssap"/>
     <COOSYS ID="system" system="ICRS"/>
     <COOSYS ID="system0" system="ICRS"/>
