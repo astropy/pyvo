@@ -38,7 +38,7 @@ Marking Features as Experimental
 The design restricts the possible usage of the decorator, which needs to always be called
 with a single argument being the name of the corresponding feature. More arguments are allowed
 but will be ignored. If the decorator is not used with the correct
-`@prototype_feature("feature-name")` invocation, the code will error as soon as the class is
+``@prototype_feature("feature-name")`` invocation, the code will error as soon as the class is
 imported.
 
 The decorator can be used to tag individual functions or methods::
