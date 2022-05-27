@@ -76,7 +76,7 @@ Feature Registry
 ================
 
 The feature registry is a static ``features`` dictionary in the `~pyvo.utils.prototype` package. The key is the name
-of the feature and the value is an instance of the ``Feature`` class. This class is responsible for determining
+of the feature and the value is an instance of the `~pyvo.utils.prototype.Feature` class. This class is responsible for determining
 whether an instance should error or not, and to format an error message if it's not. While the current implementation
 of the ``Feature`` class is simple, future requirements might lead to other implementations with more complex logic or
 additional documentation elements.
