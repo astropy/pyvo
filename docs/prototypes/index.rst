@@ -28,7 +28,7 @@ In order to activate a feature, users need to call the function::
 
    activate_features('feature_one', 'feature_two')
 
-Where the arguments are names of prototype features. If a feature name does not exist, a `PrototypeWarning`
+Where the arguments are names of prototype features. If a feature name does not exist, a `~pyvo.utils.prototype.PrototypeWarning`
 will be issued, but the call will not fail. If no arguments are provided, then all features are enabled.
 
 .. _pyvo-prototypes-developers:
