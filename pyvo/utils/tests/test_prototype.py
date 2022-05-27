@@ -84,7 +84,7 @@ def test_decorate_class(features, recwarn):
     probe = mock.Mock()
 
     @prototype_feature('class')
-    class FeatureClass:
+    class SomePrototype:
         def method(self):
             probe('method')
 
@@ -96,30 +96,30 @@ def test_decorate_class(features, recwarn):
             probe('ignore')
 
     with pytest.raises(PrototypeError):
-        FeatureClass.static()
+        SomePrototype.static()
 
     with pytest.raises(PrototypeError):
-        FeatureClass().method()
+        SomePrototype().method()
 
-    FeatureClass().__ignore__()
+    SomePrototype().__ignore__()
     probe.assert_called_once_with('ignore')
     probe.reset_mock()
 
     activate_features('class')
 
-    FeatureClass.static()
+    SomePrototype.static()
     probe.assert_called_once_with('static')
     probe.reset_mock()
 
-    FeatureClass().method()
+    SomePrototype().method()
     probe.assert_called_once_with('method')
     probe.reset_mock()
 
-    FeatureClass().__ignore__()
+    SomePrototype().__ignore__()
     probe.assert_called_once_with('ignore')
 
 
-def test_decorator_without_call_errors_out():
+def test_decorator_without_args_errors_out():
     with pytest.raises(PrototypeError) as e:
         @prototype_feature
         def function():
@@ -129,7 +129,7 @@ def test_decorator_without_call_errors_out():
                            "argument"
 
 
-def test_decorator_without_call_around_class():
+def test_decorator_without_args_around_class():
     with pytest.raises(PrototypeError) as e:
         @prototype_feature
         class Class:

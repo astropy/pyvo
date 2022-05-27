@@ -56,7 +56,7 @@ an underscore) will be ignored. The reason is that the class might be instantiat
 user can call (and more importantly not call) a higher level facade::
 
    @prototype_feature('a-feature')
-   class Feature:
+   class SomeFeatureClass:
        def method(self):
            pass
 
