@@ -4,7 +4,9 @@
 1.3.1 (unreleased)
 ==================
 
-- pyvo.dal warns on results with overflow status. [#329]`
+- pyvo.dal warns on results with overflow status. [#329]
+
+- Allow session to be passed through in SSA and DataLink. [#327]
 
 1.3 (2022-02-19)
 ==================
