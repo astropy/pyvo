@@ -39,8 +39,10 @@ def test_feature_turned_off_by_default(prototype_function):
     with pytest.raises(PrototypeError) as e:
         prototype_function(None)
 
-    assert str(e.value) == 'i_am_prototype is part of a prototype feature (my-feature) that has not been activated. ' \
-                           'For more information please visit http://somewhere/else'
+    assert 'i_am_prototype is part of a prototype feature (my-feature) that has not been activated. ' in str(e.value)
+    assert 'please visit http://somewhere/else' in str(e.value)
+    assert 'https://pyvo.readthedocs.io/en/latest/prototypes' in str(e.value)
+    assert "pyvo.utils.activate_features('my-feature')" in str(e.value)
 
 
 def test_activate_feature(prototype_function):
