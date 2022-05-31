@@ -16,7 +16,7 @@ features: Dict[str, "Feature"] = {
 def prototype_feature(*args):
     """
     Decorator for functions and classes that implement unstable standards which haven't been approved yet.
-    The decorator can be used to tag individual functions or methods::
+    The decorator can be used to tag individual functions or methods.
 
     Please refer to the user documentation for details.
 
