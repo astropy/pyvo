@@ -34,7 +34,7 @@ TESTED_VERSIONS['pyvo'] = version
 # Python process, and this configuration only matters if running pytest
 # directly, not from e.g. an IPython session.
 
+# Disable IERS auto download for testing (to support the local, non-remote-data scenario),
+# revisit this config when minimum supported astropy is 5.1.
 from astropy.utils.iers import conf as iers_conf
-
-# Disable IERS auto download for testing
 iers_conf.auto_download = False
