@@ -85,7 +85,7 @@ you could either run:
 
   >>> resources = registry.search(keywords="white dwarf", waveband="UV")
 
-or::
+or:
 
 .. This one fails, fix (change skip to remote-data) or remove it.
 .. doctest-skip::
@@ -237,7 +237,7 @@ queried in the same way.
 
 When that is the case, you can use each
 RegistryResource's ``service`` attribute, which contains a DAL service
-instance.  The opening example could be written like this::
+instance.  The opening example could be written like this:
 
 .. This one fails, fix (change skip to remote-data) or remove it.
 .. doctest-skip::
