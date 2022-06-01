@@ -40,7 +40,8 @@ from astropy.io.votable.ucd import parse_ucd
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .mimetype import mime_object_maker
-from .exceptions import (DALFormatError, DALServiceError, DALQueryError)
+from .exceptions import (DALFormatError, DALServiceError, DALQueryError,
+                         DALOverflowWarning)
 
 from .. import samp
 
@@ -319,6 +320,10 @@ class DALResults:
         if self._status[0].lower() not in ("ok", "overflow"):
             raise DALQueryError(self._status[1], self._status[0], url)
 
+        if self._status[0].lower() == "overflow":
+            warn("Partial result set. Potential causes MAXREC, async storage space, etc.",
+                 category=DALOverflowWarning);
+
         self._resultstable = self._findresultstable(votable)
         if not self._resultstable:
             raise DALFormatError(
@@ -376,9 +381,13 @@ class DALResults:
 
     def _findstatusinfo(self, infos):
         # this can be overridden to specialize for a particular DAL protocol
+        status = None
+        # return the last status to catch potential overflow or error sent
+        # after the results.
         for info in infos:
             if info.name.lower() == 'query_status':
-                return info
+                status = info
+        return status
 
     def _findinfos(self, votable):
         # this can be overridden to specialize for a particular DAL protocol

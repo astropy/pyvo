@@ -33,21 +33,64 @@ more VO capabilities into Astropy.
 
 Source code can be found `on GitHub <http://github.com/astropy/pyvo>`_
 
+Installation and Requirements
+-----------------------------
+
 Releases of PyVO are available from `PyPI <https://pypi.python.org/pypi/pyvo>`_
 thus, it and its prerequisites can be most easily installed using ``pip``:
 
    pip install pyvo
 
-Alternatively, you can do a source install:
-    pip install .[all]
 
-EXAMPLES
+Releases are also conda packaged and available on the ``conda-forge``
+channel.
+
+
+PyVO requires Python 3.8 or later.
+
+The following packages are required for PyVO:
+
+ * `astropy <https://astropy.org>`__ (>=4.0)
+ * `requests <http://docs.python-requests.org/en/latest/>`_
+
+The following packages are optional dependencies and are required for the
+full functionality:
+
+ * mimeparse
+ * pillow
+
+For running the tests, and building the documentation, the following
+infrastructure packages are required:
+
+* `pytest-astropy <https://github.com/astropy/pytest-astropy>`__
+* requests-mock
+* `sphinx-astropy <https://github.com/astropy/sphinx-astropy>`__
+
+
+To install from source use ``pip``:
+
+   pip install .[all]
+
+
+Using the developer version of PyVO in testing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We recommend and encourage testing against the development version of PyVO in CI,
+both for dependent libraries and notebook providers. As PyVO is a pure Python library, this can be
+done as easily as pip installing the developer version from GitHub:
+
+   pip install git+https://github.com/astropy/pyvo.git#egg=pyvo
+
+An example for setting up development version testing for a library as a GitHub Actions Workflow can
+be found in `astroquery <https://github.com/astropy/astroquery/blob/main/.github/workflows/ci_devtests.yml>`__.
+
+Examples
 --------
 
 Many instructive examples can be found in the `PyVO Documentation <http://pyvo.readthedocs.org>`_.
-Additional examples can be found in the scripts directory.
+Additional examples can be found in the examples directory.
 
-UNIT TESTS
+Unit Tests
 ----------
 
 PyVO uses the Astropy framework for unit tests which is built into the

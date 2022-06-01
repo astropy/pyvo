@@ -2,6 +2,10 @@ name: CI
 
 on:
   push:
+    branches:
+    - main
+    tags:
+    - '*'
   pull_request:
   schedule:
     - cron: "0 3 * * *"
@@ -89,13 +93,13 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           file: ./coverage.xml
-       
+
   devastropy:
     # TODO: this job should be allowed to fail except that the functionality
     # is not available in actions yet.
     runs-on: ubuntu-latest
     needs: tests
-    steps: 
+    steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.10
         uses: actions/setup-python@v2
@@ -109,7 +113,7 @@ jobs:
   oldestastropy:
     runs-on: ubuntu-latest
     needs: tests
-    steps: 
+    steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
@@ -125,6 +129,3 @@ jobs:
   #TODO - should be trigger by tagging associated with creating a new release in
   # github. The tag should be compared to the version in setup.cfg to ensure
   # consistency.
-
-
-

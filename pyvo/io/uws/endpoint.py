@@ -8,7 +8,7 @@ from astropy.utils.xml.writer import XMLWriter
 from astropy.io.votable.util import convert_to_writable_filelike
 
 from ...utils.xml.elements import xmlattribute, parse_for_object
-from .tree import JobSummary, JobList
+from .tree import JobSummary, Jobs
 
 __all__ = ["parse_job", "parse_job_list", "JobFile"]
 
@@ -18,7 +18,7 @@ def parse_job_list(
 ):
     """
     Parses a job xml file (or file-like object), and returns a
-    `~pyvo.io.uws.tree.JobList` object.
+    `~pyvo.io.uws.tree.Jobs` object.
 
     Parameters
     ----------
@@ -39,14 +39,14 @@ def parse_job_list(
 
     Returns
     -------
-    `~pyvo.io.uws.tree.JobList` object
+    `~pyvo.io.uws.tree.Jobs` object
 
     See also
     --------
     pyvo.io.vosi.exceptions : The exceptions this function may raise.
     """
-    return parse_for_object(source, JobList, pedantic, filename,
-                            _debug_python_based_parser)
+    return parse_for_object(source, Jobs, pedantic, filename,
+                            _debug_python_based_parser).joblist
 
 
 def parse_job(
