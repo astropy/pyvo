@@ -79,25 +79,36 @@ though).  Also refer to the class documentation for further caveats on
 these.
 
 Hence, to look for for resources with UV data mentioning white dwarfs
-you could either run::
+you could either run:
 
-  >>> registry.search(keywords="white dwarf", waveband="UV")
+.. doctest-remote-data::
+
+  >>> resources = registry.search(keywords="white dwarf", waveband="UV")
 
 or::
 
-  >>> registry.search(registry.Fulltext("white dwarf"),
-  ...   registry.Waveband("UV"))
+.. This one fails, fix (change skip to remote-data) or remove it.
+.. doctest-skip::
+
+  >>> resources = registry.search(registry.Fulltext("white dwarf"),
+  ...                             registry.Waveband("UV"))
 
 or a mixture between the two.  Constructing using explicit
 constraints is generally preferable with more complex queries.  Where
 the constraints accept multiple arguments, you can pass in sequences to
-the keyword arguments; for instance::
+the keyword arguments; for instance:
 
-  >>> registry.search(registry.Waveband("Radio", "Submillimeter"))
+.. This one fails, fix (change skip to remote-data) or remove it.
+.. doctest-skip::
 
-is equivalent to::
+  >>> resources = registry.search(registry.Waveband("Radio", "Submillimeter"))
 
-  >>> registry.search(waveband=["Radio", "Submillimeter"])
+is equivalent to:
+
+.. This one fails, fix (change skip to remote-data) or remove it.
+.. doctest-skip::
+
+  >>> resources = registry.search(waveband=["Radio", "Submillimeter"])
 
 There is also :py:meth:`pyvo.registry.get_RegTAP_query`, accepting the
 same arguments as :py:meth:`pyvo.registry.search`.  This function simply
@@ -112,24 +123,28 @@ Data Discovery
 In data discovery, you look for resources matching your constraints and
 then figure out in a second step how to query them.  For instance, to
 look for resources giving redshifts in connection with supernovae,
-you would say::
+you would say:
+
+.. doctest-remote-data::
 
   >>> resources = registry.search(registry.UCD("src.redshift"),
-  ...   registry.Freetext("supernova"))
+  ...                             registry.Freetext("supernova"))
 
 After that, ``resources`` is an instance of
 :py:class:`pyvo.registry.RegistryResults`, which you can iterate over.  In
 interactive data discovery, however, it is usually preferable to use the
-``to_table`` method for an overview of the resources available::
+``to_table`` method for an overview of the resources available:
 
-  >>> resources.to_table()
+.. doctest-remote-data::
+
+  >>> resources.to_table()  # doctest: +IGNORE_OUTPUT
   <Table length=158>
-  index                              title                              ...        interfaces
-  int32                              str67                              ...          str24
-  ----- --------------------------------------------------------------- ... ------------------------
-      0               Asiago Supernova Catalogue (Barbon et al., 1999-) ... conesearch, tap#aux, web
-      1                   Asiago Supernova Catalogue (Version 2008-Mar) ... conesearch, tap#aux, web
-      2      Sloan Digital Sky Survey-II Supernova Survey (Sako+, 2018) ... conesearch, tap#aux, web
+                               title                              ...        interfaces
+                               str67                              ...          str24
+  --------------------------------------------------------------- ... ------------------------
+                Asiago Supernova Catalogue (Barbon et al., 1999-) ... conesearch, tap#aux, web
+                    Asiago Supernova Catalogue (Version 2008-Mar) ... conesearch, tap#aux, web
+       Sloan Digital Sky Survey-II Supernova Survey (Sako+, 2018) ... conesearch, tap#aux, web
   ...
 
 
@@ -148,9 +163,11 @@ constraint).  Use the ``get_service`` method of
 :py:class:`pyvo.registry.RegistryResource` to obtain a DAL service
 object for a particular sort of interface.
 To query the fourth match using simple cone search, you would
-thus say::
+thus say:
 
-  >>> resources[4].get_service("conesearch").search(pos=(120, 73), sr=1)
+.. doctest-remote-data::
+
+  >>> resources[4].get_service("conesearch").search(pos=(120, 73), sr=1)  # doctest: +IGNORE_OUTPUT
   <Table length=1>
      _r    recno   SN   r_SN    z       sI     e_sI     t1     e_t1     I1     e_I1     t2     e_t2     I2     e_I2    chi2    N   Simbad    _RA       _DE
     deg                                                 d       d      mag     mag      d       d      mag     mag                           deg       deg
@@ -162,7 +179,10 @@ thus say::
 To operate TAP services, you need to know what tables make up a
 resource; you could construct a TAP service and access its ``tables``
 attribute, but you can take a shortcut and call a RegistryResource's
-``get_tables`` method for a rather similar result::
+``get_tables`` method for a rather similar result:
+
+.. This one fails, fix (change skip to remote-data) or remove it.
+.. doctest-skip::
 
   >>> tables = resources[4].get_tables()
   >>> list(tables.keys())
@@ -171,7 +191,9 @@ attribute, but you can take a shortcut and call a RegistryResource's
   [<BaseParam name="recno"/>, <BaseParam name="sn"/>, <BaseParam name="r_sn"/>, <BaseParam name="z"/>, <BaseParam name="si"/>, <BaseParam name="e_si"/>, <BaseParam name="t1"/>, <BaseParam name="e_t1"/>, <BaseParam name="i1"/>, <BaseParam name="e_i1"/>, <BaseParam name="t2"/>, <BaseParam name="e_t2"/>, <BaseParam name="i2"/>, <BaseParam name="e_i2"/>, <BaseParam name="chi2"/>, <BaseParam name="n"/>, <BaseParam name="simbad"/>, <BaseParam name="_ra"/>, <BaseParam name="_de"/>]
 
 In this case, this is a table with one of VizieR's somewhat funky names.
-To run a TAP query based on this metadata, do something like::
+To run a TAP query based on this metadata, do something like:
+
+.. doctest-remote-data::
 
   >>> resources[4].get_service("tap#aux").run_sync(
   ...   'SELECT sn, z FROM "J/A+A/437/789/table2" WHERE z>0.04')
@@ -188,9 +210,12 @@ A special sort of access mode is ``web``, which represents some facility related
 to the resource that works in a web browser.  You can ask for a
 “service” for it, too; you will then receive an object that has a
 ``search`` method, and when you call it, a browser window should open
-with the query facility (this uses python's webbrowser module)::
+with the query facility (this uses python's webbrowser module):
 
-  resources[4].get_service("web").query()
+.. This one fails, fix (change skip to remote-data) or remove it.
+.. doctest-skip::
+
+  >>> resources[4].get_service("web").query()
 
 Note that for interactive data discovery in the VO Registry, you may
 also want to have a look at Aladin's discovery tree, TOPCAT's VO menu,
@@ -214,10 +239,13 @@ When that is the case, you can use each
 RegistryResource's ``service`` attribute, which contains a DAL service
 instance.  The opening example could be written like this::
 
+.. This one fails, fix (change skip to remote-data) or remove it.
+.. doctest-skip::
+
   >>> from astropy.coordinates import SkyCoord
   >>> my_obj = SkyCoord.from_name("Bellatrix")
   >>> for res in registry.search(waveband="infrared", servicetype="spectrum"):
-  ...   print(res.service.search(pos=my_obj, size=0.001))
+  ...     print(res.service.search(pos=my_obj, size=0.001))
   ...
 
 In reality, you will have to add some error handling to this kind of
@@ -232,16 +260,22 @@ TAP services may provide tables in well-defined data models, like
 EPN-TAP or obscore.  These can be queried in similar loops, although
 in some cases you will have to adapt the queries to the resources found.
 
-In the obscore case, an all-VO query would look like this::
+In the obscore case, an all-VO query would look like this:
+
+.. This one times out, consider to refactor for a smaller query.
+   Once done change skip to remote-data
+.. doctest-skip::
 
   >>> for svc_rec in registry.search(datamodel="obscore"):
   ...     print(svc_rec.service.run_sync(
-  ...         "SELECT DISTINCT dataproduct_type FROM ivoa.obscore"))
+  ...           "SELECT DISTINCT dataproduct_type FROM ivoa.obscore"))
+
 
 Again, in production this needs explicit handling of failing services.
 For an example of how this might look like, see `GAVO's plate tutorial`_
 
 .. _GAVO's plate tutorial: http://docs.g-vo.org/gavo_plates.pdf
+
 
 Search results
 ==============
@@ -264,10 +298,12 @@ there is no telling what kind of service you will get back.
 
 When the registry query did not constrain the service type, you can use
 the ``access_modes`` method to see what capabilities are available.  For
-instance::
+instance:
+
+.. doctest-remote-data::
 
   >>> res = registry.search(ivoid="ivo://org.gavo.dc/flashheros/q/ssa")[0]
-  >>> res.access_modes()
+  >>> res.access_modes()  # doctest: +IGNORE_OUTPUT
   {'ssa', 'datalink#links-1.0', 'tap#aux', 'web', 'soda#sync-1.0'}
 
 – this service can be accessed through SSA, TAP, a web interface, and
@@ -280,7 +316,9 @@ web browser window when its ``query`` method is called.
 
 RegistryResource-s also have a ``get_contact`` method.  Use this if the
 service is down or seems to have bugs; you should in general get at
-least an e-Mail address::
+least an e-Mail address:
+
+.. doctest-remote-data::
 
   >>> res.get_contact()
   'GAVO Data Center Team (++49 6221 54 1837) <gavo@ari.uni-heidelberg.de>'
@@ -290,10 +328,12 @@ through a resource, much like the VOSI tables endpoint (as a matter of
 fact, the Registry should contain exactly what is there, as VOSI tables
 in effect just gives a part of the registry record).  Not all publishers
 properly provide table metadata to the Registry, though, but most do these days,
-and then you can run::
+and then you can run:
+
+.. doctest-remote-data::
 
   >>> res.get_tables()
-  {'ivoa.obscore': <Table name="ivoa.obscore">... 0 columns ...</Table>, 'flashheros.data': <Table name="flashheros.data">... 29 columns ...</Table>}
+  {'flashheros.data': <Table name="flashheros.data">... 29 columns ...</Table>, 'ivoa.obscore': <Table name="ivoa.obscore">... 0 columns ...</Table>}
 
 
 Reference/API
