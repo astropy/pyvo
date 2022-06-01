@@ -278,17 +278,27 @@ class JobSummary(Element):
         self._message = message
 
 
-class JobList(UWSElement, HomogeneousList):
+class Jobs(HomogeneousList, UWSElement):
+    """A parsed representation of the joblist endpoint.
+    """
     def __init__(self, config=None, pos=None, _name='jobs', **kwargs):
         HomogeneousList.__init__(self, JobSummary)
         UWSElement.__init__(self, config, pos, _name, **kwargs)
 
-    @uwselement(name='jobref')
+    @uwselement
     def jobs(self):
         return self
 
     @jobs.adder
     def jobs(self, iterator, tag, data, config, pos):
+        return
+
+    @uwselement(name='jobref')
+    def joblist(self):
+        return self
+
+    @joblist.adder
+    def joblist(self, iterator, tag, data, config, pos):
         job = JobSummary(config, pos, 'jobref', **data)
         job.parse(iterator, config)
         self.append(job)
