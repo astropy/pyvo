@@ -9,6 +9,9 @@
   https://blog.g-vo.org/towards-data-discovery-in-pyvo.html.  This
   should be backwards-compatible. [#289]
 
+- Versions of astropy <4.1 are no longer supported. [#289]
+
+
 1.3.1 (unreleased)
 ==================
 

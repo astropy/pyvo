@@ -50,7 +50,7 @@ PyVO requires Python 3.8 or later.
 
 The following packages are required for PyVO:
 
- * `astropy <https://astropy.org>`__ (>=4.0)
+ * `astropy <https://astropy.org>`__ (>=4.1)
  * `requests <http://docs.python-requests.org/en/latest/>`_
 
 The following packages are optional dependencies and are required for the
