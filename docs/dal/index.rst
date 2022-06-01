@@ -12,13 +12,18 @@ Getting started
 Service objects are created with the service url and provide service-specific
 metadata.
 
->>> service = vo.dal.SIAService("http://dc.zah.uni-heidelberg.de/lswscans/res/positions/siap/siap.xml")
->>> print(service.description)
+.. doctest-remote-data::
+
+    >>> import pyvo as vo
+    >>> service = vo.dal.SIAService("http://dc.zah.uni-heidelberg.de/lswscans/res/positions/siap/siap.xml")
+    >>> print(service.description)
 
 They provide a ``search`` method with varying standard parameters for
 submitting queries.
 
->>> resultset = service.search(pos=pos, size=size)
+.. doctest-remote-data::
+
+    >>> resultset = service.search(pos=pos, size=size)
 
 which returns a :ref:`resultset <pyvo-resultsets>`.
 
@@ -39,19 +44,21 @@ Astrometrical parameters
 Most services expose the astrometrical parameters ``pos`` and ``size`` for which
 PyVO accept `~astropy.coordinates.SkyCoord` or `~astropy.units.Quantity`
 objects as well as any other sequence containing right ascension and declination
-in degrees, which are converted to the standard coordinate frame 
+in degrees, which are converted to the standard coordinate frame
 (in the VO, that usually is ICRS) in the standard units (always degrees
 in the VO) before they are submitted to the service.
 
 Also, `~astropy.coordinates.SkyCoord` can be used to lookup names of
 astronomical objects you are searching for.
 
->>> import pyvo as vo
->>> from astropy.coordinates import SkyCoord
->>> from astropy.units import Quantity
->>> 
->>> pos = SkyCoord.from_name('NGC 4993')
->>> size = Quantity(0.5, unit="deg")
+.. doctest-remote-data::
+
+    >>> import pyvo as vo
+    >>> from astropy.coordinates import SkyCoord
+    >>> from astropy.units import Quantity
+    >>>
+    >>> pos = SkyCoord.from_name('NGC 4993')
+    >>> size = Quantity(0.5, unit="deg")
 
 See :ref:`astropy-coordinates` and :ref:`astropy-units` for details.
 
@@ -60,11 +67,9 @@ astrometrical parameter, such as waveband ranges.
 
 Some services also accept `~astropy.time.Time` as ``time`` parameter.
 
->>> from astropy.time import Time
->>> time = Time(
->>>     ('2015-01-01T00:00:00', '2018-01-01T00:00:00'),
->>>     format='isot', scale='utc'
->>> )
+    >>> from astropy.time import Time
+    >>> time = Time(('2015-01-01T00:00:00', '2018-01-01T00:00:00'),
+    ...             format='isot', scale='utc')
 
 See :ref:`astropy-time` for explanation.
 
@@ -85,12 +90,12 @@ VO services should offer some standard ”support” interfaces specified in
 VOSI.  In pyVO, the information obtained from these endpoints can be
 obtained from some service attributes.
 
-For availability (i.e., is the service up and running?), 
+For availability (i.e., is the service up and running?),
 this is :py:attr:`~pyvo.dal.mixin.AvailabilityMixin.available`
 and :py:attr:`~pyvo.dal.mixin.AvailabilityMixin.up_since`
 
 Capabilities describe specific pieces of functionality (such as “this is a
-spectral search”) and further metadata (such as ”this service will never 
+spectral search”) and further metadata (such as ”this service will never
 return more than 10000 rows”).
 
 This information is contained in the datastructure
@@ -117,23 +122,30 @@ Table Access Protocol
 Unlike the other services, this one works with tables queryable by an sql-ish
 language called *ADQL* instead of predefined search constraints.
 
->>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap")
->>> tap_results = tap_service.search("SELECT TOP 10 * FROM ivoa.obscore")
+.. doctest-remote-data::
+
+    >>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap")
+    >>> tap_results = tap_service.search("SELECT TOP 10 * FROM ivoa.obscore")
 
 As a sanity precaution, most services have some default limit of how many
 rows they will return before overflowing:
 
->>> print(tap_service.maxrec)
+.. doctest-remote-data::
+
+    >>> print(tap_service.maxrec)
 
 To retrieve more rows than that (often conservative) default limit, you
 must override maxrec in the call to ``search``:
 
->>> tap_results = tap_service.search(
->>>     "SELECT * FROM ivoa.obscore", maxrec=100000)
+.. doctest-remote-data::
+
+    >>> tap_results = tap_service.search("SELECT * FROM ivoa.obscore", maxrec=100000)
 
 Services will not let you raise maxrec beyond the hard match limit:
 
->>> print(tap_service.hardlimit)
+.. doctest-remote-data::
+
+    >>> print(tap_service.hardlimit)
 
 A list of the tables and the columns within them is available in the
 TAPService's :py:attr:`~pyvo.dal.TAPService.tables` attribute by using it as an
@@ -170,14 +182,18 @@ Basic queries are done with the ``pos`` and ``size`` parameters described in
 :ref:`pyvo-astro-params`, with ``size`` being the rectangular region around
 ``pos``.
 
->>> pos = SkyCoord.from_name('Eta Carina')
->>> size = Quantity(0.5, unit="deg")
->>> sia_service = vo.dal.SIAService("http://dc.zah.uni-heidelberg.de/hppunion/q/im/siap.xml")
->>> sia_results = sia_service.search(pos=pos, size=size)
+.. doctest-remote-data::
+
+    >>> pos = SkyCoord.from_name('Eta Carina')
+    >>> size = Quantity(0.5, unit="deg")
+    >>> sia_service = vo.dal.SIAService("http://dc.zah.uni-heidelberg.de/hppunion/q/im/siap.xml")
+    >>> sia_results = sia_service.search(pos=pos, size=size)
 
 The dataset format, 'all' by default, can be specified:
 
->>> sia_results = sia_service.search(pos=pos, size=size, format='graphics')
+.. doctest-remote-data::
+
+    >>> sia_results = sia_service.search(pos=pos, size=size, format='graphics')
 
 This would return all graphical image formats (png, jpeg, gif) available. Other
 possible values are image/* mimetypes, or ``metadata``, which returns no image
@@ -188,7 +204,9 @@ The ``intersect`` argument (defaulting to ``OVERLAPS``) lets a program
 specify the desired relationship between the region of interest and the
 coverage of the images (case-insensitively):
 
->>> sia_results = sia_service.search(pos=pos, size=size, intersect='covers')
+.. doctest-remote-data::
+
+    >>> sia_results = sia_service.search(pos=pos, size=size, intersect='covers')
 
 Available values:
     ========= ======================================================
@@ -208,15 +226,19 @@ subtile differences:
 The size parameter is called ``diameter`` here, and hence the search
 region is always circular with ``pos`` as center:
 
->>> ssa_service = vo.dal.SSAService("http://www.isdc.unige.ch/vo-services/lc")
->>> ssa_results = ssa_service.search(pos=pos, diameter=size)
+.. doctest-remote-data::
+
+    >>> ssa_service = vo.dal.SSAService("http://www.isdc.unige.ch/vo-services/lc")
+    >>> ssa_results = ssa_service.search(pos=pos, diameter=size)
 
 SSA queries can be further constrained by the ``band`` and ``time`` parameters.
 
->>> ssa_results = ssa_service.search(
->>>     pos=pos, diameter=size,
->>>     time=time, band=Quantity((1e-13, 1e-12), unit="meter")
->>> )
+.. doctest-remote-data::
+
+    >>> ssa_results = ssa_service.search(
+    ...     pos=pos, diameter=size,
+    ...     time=time, band=Quantity((1e-13, 1e-12), unit="meter")
+    ... )
 
 Simple Cone Search
 ------------------
@@ -224,9 +246,11 @@ The Simple Cone Search returns results – typically catalog entries –
 within a circular region on the sky defined by the parameters ``pos``
 (again, ICRS) and ``radius``:
 
->>> scs_srv = vo.dal.SCSService(
->>>     'http://dc.zah.uni-heidelberg.de/arihip/q/cone/scs.xml')
->>> scs_results = scs_srv.search(pos=pos, radius=size)
+.. doctest-remote-data::
+
+    >>> scs_srv = vo.dal.SCSService(
+    >>>     'http://dc.zah.uni-heidelberg.de/arihip/q/cone/scs.xml')
+    >>> scs_results = scs_srv.search(pos=pos, radius=size)
 
 This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter
 
@@ -254,32 +278,42 @@ to run several queries in parallel from one script.
 
 When you invoke ``submit job`` you will get a job object.
 
->>> async_srv = vo.dal.TAPService("http://dc.g-vo.org/tap")
->>> job = async_srv.submit_job("SELECT * FROM ivoa.obscore")
+.. doctest-remote-data::
+
+    >>> async_srv = vo.dal.TAPService("http://dc.g-vo.org/tap")
+    >>> job = async_srv.submit_job("SELECT * FROM ivoa.obscore")
 
 .. note::
     Currently, only `pyvo.dal.tap.TAPService` supports server-side jobs.
 
 This job is not yet running yet. To start it invoke ``run``
 
->>> job.run()
+.. doctest-remote-data::
+
+    >>> job.run()
 
 Get the current job phase:
 
->>> print(job.phase)
-RUN
+.. doctest-remote-data::
+
+    >>> print(job.phase)
+    RUN
 
 Maximum run time in seconds is available and can be changed with
 :py:attr:`~pyvo.dal.tap.AsyncTAPJob.execution_duration`
 
->>> print(job.execution_duration)
-3600
->>> job.execution_duration = 7200
+.. doctest-remote-data::
+
+    >>> print(job.execution_duration)
+    3600
+    >>> job.execution_duration = 7200
 
 Obtaining the job url, which is needed to reconstruct the job at a later point:
 
->>> job_url = job.url
->>> job = vo.dal.tap.AsyncTAPJob(job_url)
+.. doctest-remote-data::
+
+    >>> job_url = job.url
+    >>> job = vo.dal.tap.AsyncTAPJob(job_url)
 
 Besides ``run`` there are also several other job control methods:
 
@@ -294,16 +328,20 @@ Besides ``run`` there are also several other job control methods:
     The destruction time can be obtained and changed with
     :py:attr:`~pyvo.dal.tap.AsyncTAPJob.destruction`
 
-    Also, :py:class:`pyvo.dal.tap.AsyncTAPJob` works as a context manager which
-    takes care of this automatically:
+Also, :py:class:`pyvo.dal.tap.AsyncTAPJob` works as a context manager which
+takes care of this automatically:
+
+.. doctest-remote-data::
 
     >>> with async_srv.submit_job("SELECT * FROM ivoa.obscore") as job:
-    >>>     job.run()
+    ...     job.run()
     >>> print('Job deleted!')
 
 Check for errors in the job execution:
 
->>> job.raise_if_error()
+.. doctest-remote-data::
+
+    >>> job.raise_if_error()
 
 If the execution was successful, the resultset can be obtained using
 :py:meth:`~pyvo.dal.tap.AsyncTAPJob.fetch_result`
@@ -319,38 +357,53 @@ datasets and/or access to additional data services.
 
 To obtain the names of the columns in a service response, write:
 
->>> print(resultset.fieldnames)
+.. doctest-remote-data::
+
+    >>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap")
+    >>> resultset = tap_service.search("SELECT TOP 10 * FROM ivoa.obscore")
+    >>> print(resultset.fieldnames)
 
 Rich metadata equivalent to what is found in VOTables (including unit,
 ucd, utype, and xtype) is available through resultset's
 :py:meth:`~pyvo.dal.query.DALResults.getdesc` method:
 
->>>  print(resultset.getdesc("accref").ucd)
+.. doctest-remote-data::
+
+    >>>  print(resultset.getdesc('s_fov').ucd)
 
 .. note::
     Two convenience functions let you retrieve columns of a specific
     physics (by UCD) or with a particular legacy data model annotation
     (by utype), like this:
 
-    >>> fieldname = resultset.fieldname_with_ucd('phot.mag;em.opt.V')
-    >>> fieldname = resultset.fieldname_with_utype('Access.Reference')
+.. doctest-remote-data::
+
+    >>> fieldname = resultset.fieldname_with_ucd('phys.angSize;instr.fov')
+    >>> fieldname = resultset.fieldname_with_utype('obscore:access.reference')
 
 Iterating over a resultset gives the rows in the result:
 
->>> for row in resultset:
->>>     print row['accref']
-...
+.. doctest-remote-data::
+
+    >>> for row in resultset:
+    ...     print(row['s_fov'])
 
 The total number of rows in the answer is available as its ``len()``:
 
->>> print(len(resultset))
-9
+.. doctest-remote-data::
+
+    >>> print(len(resultset))
+    10
 
 If the row contains datasets, they are exposed by several retrieval methods:
 
->>> url = row.getdataurl()
->>> fileobj = row.getdataset()
->>> obj = row.getdataobj()
+.. doctest-remote-data::
+
+    >>> url = row.getdataurl()
+    >>> fileobj = row.getdataset()
+
+..    TODO: uncomment the following line once https://github.com/astropy/pyvo/issues/324 is addressed
+..    >>> obj = row.getdataobj()
 
 Returning the access url, the file-like object or the appropiate python object
 to further work on.
@@ -358,15 +411,21 @@ to further work on.
 As with general numpy arrays, accessing individual columns via names gives an
 array of all of their values:
 
->>> column = resultset['accref']
+.. doctest-remote-data::
 
-whereas integers retrieve columns:
+    >>> column = resultset['obs_id']
 
->>> row = resultset[0]
+whereas integers retrieve rows:
+
+.. doctest-remote-data::
+
+    >>> row = resultset[0]
 
 and both combined gives a single value:
 
->>> value = resultset['accref', 0]
+.. doctest-remote-data::
+
+    >>> value = resultset['obs_id', 0]
 
 Row objects may expose certain key columns as properties. See the corresponding
 API spec listed below for details.
@@ -383,7 +442,9 @@ To get an iterator yielding specific datasets, call
 :py:meth:`pyvo.dal.adhoc.DatalinkResults.bysemantics` with the identifier
 identifying the dataset you want it to return.
 
->>> preview = next(row.getdatalink().bysemantics('#preview')).getdataset()
+.. doctest-remote-data::
+
+    >>> preview = next(row.getdatalink().bysemantics('#preview')).getdataset()
 
 .. note::
   Since the creation of datalink objects requires a network roundtrip, it is
@@ -391,7 +452,9 @@ identifying the dataset you want it to return.
 
 Of course one can also build a datalink object from it's url.
 
->>> datalink = DatalinkResults.from_result_url(url)
+.. doctest-remote-data::
+
+    >>> datalink = DatalinkResults.from_result_url(url)
 
 Server-side processing
 ----------------------
@@ -404,26 +467,34 @@ Datalink
 Generic access to processing services is provided through the datalink
 interface.
 
->>> datalink_proc = next(row.getdatalink().bysemantics('#proc'))
+.. doctest-remote-data::
+
+    >>> datalink_proc = next(row.getdatalink().bysemantics('#proc'))
 
 .. note::
   most times there is only one processing service per result, and thats all you
   need.
+
+.. doctest-remote-data::
 
   >>> datalink_proc = row.getdatalink().get_first_proc()
 
 The returned object lets you access the available input parameters which you
 can pass as keywords to the ``process`` method.
 
->>> print(datalink_proc.input_params)
+.. doctest-remote-data::
+
+    >>> print(datalink_proc.input_params)
 
 For more details about this have a look at
 :py:class:`astropy.io.votable.tree.Param`.
 
 Calling the method will return a file-like object on sucess.
 
->>> print(datalink_proc)
->>> fobj = datalink.process(circle=(1, 1, 1))
+.. doctest-remote-data::
+
+    >>> print(datalink_proc)
+    >>> fobj = datalink.process(circle=(1, 1, 1))
 
 SODA
 ^^^^
@@ -472,4 +543,3 @@ Reference/API
 
 .. automodapi:: pyvo.dal
 .. automodapi:: pyvo.dal.adhoc
-.. automodapi:: pyvo.dal.exceptions

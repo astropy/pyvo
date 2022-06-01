@@ -468,6 +468,7 @@ class TestTAPService:
         assert job.ownerid == '222'
 
     @pytest.mark.usefixtures('async_fixture')
+    @pytest.mark.remote_data
     def test_get_job_list(self):
         service = TAPService('http://example.com/tap')
         # server returns:

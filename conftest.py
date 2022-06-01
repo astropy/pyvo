@@ -12,13 +12,6 @@ except ImportError:
     PYTEST_HEADER_MODULES = {}
     TESTED_VERSIONS = {}
 
-try:
-    from pyvo import __version__ as version
-except ImportError:
-    version = 'unknown'
-
-TESTED_VERSIONS['pyvo'] = version
-
 # Make sure we use temporary directories for the config and cache
 # so that the tests are insensitive to local configuration.
 
@@ -28,7 +21,20 @@ os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
 os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
 os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
 
+try:
+    from pyvo import __version__ as version
+except ImportError:
+    version = 'unknown'
+
+TESTED_VERSIONS['pyvo'] = version
+
+
 # Note that we don't need to change the environment variables back or remove
 # them after testing, because they are only changed for the duration of the
 # Python process, and this configuration only matters if running pytest
 # directly, not from e.g. an IPython session.
+
+# Disable IERS auto download for testing (to support the local, non-remote-data scenario),
+# revisit this config when minimum supported astropy is 5.1.
+from astropy.utils.iers import conf as iers_conf
+iers_conf.auto_download = False

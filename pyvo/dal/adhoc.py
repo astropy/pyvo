@@ -475,7 +475,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
     as an Astropy :py:class:`~astropy.table.table.Table` via the
     following conversion:
 
-    >>> table = results.to_table()
+    ``table = results.to_table()``
 
     ``DatalinkResults`` supports the array item operator ``[...]`` in a
     read-only context.  When the argument is numerical, the result

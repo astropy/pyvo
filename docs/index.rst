@@ -65,31 +65,39 @@ spectra, TAP for tables).  All of these behave in a similar way.
 
 First, there is a class describing a specific type of service:
 
->>> import pyvo as vo
->>> service = vo.dal.TAPService("http://dc.g-vo.org/tap")
+.. doctest-remote-data::
+
+    >>> import pyvo as vo
+    >>> service = vo.dal.TAPService("http://dc.g-vo.org/tap")
 
 Once you have a service object, you can run queries with parameters
 specific to the service type. In this example, a database query is enough:
 
->>> resultset = service.search("SELECT TOP 1 * FROM ivoa.obscore")
-<Table masked=True length=1>
-dataproduct_type dataproduct_subtype calib_level ... s_pixel_scale em_ucd
-                                                 ...      arcs
-     object             object          int16    ...    float64    object
----------------- ------------------- ----------- ... ------------- ------
-           image                               1 ...            --
+.. doctest-remote-data::
+
+    >>> resultset = service.search("SELECT TOP 1 * FROM ivoa.obscore")
+    <Table masked=True length=1>
+    dataproduct_type dataproduct_subtype calib_level ... s_pixel_scale em_ucd
+                                                     ...      arcs
+         object             object          int16    ...    float64    object
+    ---------------- ------------------- ----------- ... ------------- ------
+               image                               1 ...            --
 
 What is returned by the search method is a to get a resultset object, which
 esseintially works like a numpy record array.  It can be processed either by
 columns:
 
->>> row = resultset[0]
->>> column = resultset["dataproduct_type"]
+.. doctest-remote-data::
+
+    >>> row = resultset[0]
+    >>> column = resultset["dataproduct_type"]
 
 or by rows.
 
->>> for row in resultset:
->>>   calib_level = row["calib_level"]
+.. doctest-remote-data::
+
+    >>> for row in resultset:
+    >>>   calib_level = row["calib_level"]
 
 For more details on how to use data access services see :ref:`pyvo-data-access`
 
@@ -101,8 +109,10 @@ IVOA Registry in a simple way.  For instance, to iterate over all TAP
 services supporting the obscore data model (which lets people publish
 observational datasets through TAP tables), you can write:
 
->>> for service in vo.regsearch(datamodel="obscore"):
-...   print(service)
+.. doctest-remote-data::
+
+    >>> for service in vo.regsearch(datamodel="obscore"):
+    ...   print(service)
 
 
 Using `pyvo`

@@ -582,10 +582,6 @@ class SSAResults(DatalinkResultsMixin, DALResults):
     :py:class:`~pyvo.dal.ssa.SSARecord` instances) are typically
     accessed by iterating over an ``SSAResults`` instance.
 
-    >>> results = pyvo.spectrumsearch(url, pos=[12.24, -13.1], diameter=0.2)
-    >>> for spec in results:
-    ...     print("{0}: {1}".format(spec.title, spec.getdataurl()))
-
     Alternatively, records can be accessed randomly via
     :py:meth:`getrecord` or through a Python Database API (v2)
     Cursor (via :py:meth:`~pyvo.dal.query.DALResults.cursor`).
@@ -604,7 +600,7 @@ class SSAResults(DatalinkResultsMixin, DALResults):
     as an Astropy :py:class:`~astropy.table.table.Table` via the
     following conversion:
 
-    >>> table = results.votable.to_table()
+    ``table = results.votable.to_table()``
 
     ``SSAResults`` supports the array item operator ``[...]`` in a
     read-only context.  When the argument is numerical, the result

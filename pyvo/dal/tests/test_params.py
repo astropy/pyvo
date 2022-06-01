@@ -149,6 +149,7 @@ def test_serialize():
 
 @pytest.mark.usefixtures('proc')
 @pytest.mark.usefixtures('proc_ds')
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
 def test_serialize_exceptions():
     datalink = DatalinkResults.from_result_url('http://example.com/proc')
     proc = datalink[0]
@@ -173,6 +174,7 @@ def test_serialize_exceptions():
 
 @pytest.mark.usefixtures('proc_units')
 @pytest.mark.usefixtures('proc_units_ds')
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
 def test_units():
     datalink = DatalinkResults.from_result_url('http://example.com/proc_units')
     proc = datalink[0]
@@ -182,6 +184,7 @@ def test_units():
 
 @pytest.mark.usefixtures('proc_inf')
 @pytest.mark.usefixtures('proc_inf_ds')
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
 def test_inf():
     datalink = DatalinkResults.from_result_url('http://example.com/proc_inf')
     proc = datalink[0]

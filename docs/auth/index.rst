@@ -8,9 +8,3 @@ Reference/API
 =============
 
 .. automodapi:: pyvo.auth
-
-.. automodapi:: pyvo.auth.authsession
-
-.. automodapi:: pyvo.auth.authurls
-
-.. automodapi:: pyvo.auth.credentialstore

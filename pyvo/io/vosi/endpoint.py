@@ -4,7 +4,6 @@ This file contains a contains the high-level functions to read the various
 VOSI Endpoints.
 """
 
-from astropy.utils import minversion
 from astropy.utils.xml import iterparser
 from astropy.utils.collections import HomogeneousList
 from astropy.io.votable.exceptions import vo_raise, vo_warn
@@ -19,8 +18,6 @@ from .exceptions import W15, W16, E07, E10
 __all__ = [
     "parse_tables", "parse_capabilities", "parse_availability",
     "TablesFile", "CapabilitiesFile", "AvailabilityFile"]
-
-ASTROPY_GT_4 = minversion('astropy', '4.0')
 
 
 def _pedantic_settings(pedantic):
@@ -40,16 +37,12 @@ def _pedantic_settings(pedantic):
 
     Returns
     -------
-    A dict containing configuration settings for astropy, which for
-    version 4.0 and after use 'verify', and previously use 'pedantic'.
+    A dict containing 'verify' configuration settings.
     """
-    if ASTROPY_GT_4:
-        if pedantic:
-            return {'verify': 'exception'}
-        else:
-            return {'verify': 'warn'}
+    if pedantic:
+        return {'verify': 'exception'}
     else:
-        return {'pedantic': pedantic}
+        return {'verify': 'warn'}
 
 
 def parse_tables(source, pedantic=None, filename=None,

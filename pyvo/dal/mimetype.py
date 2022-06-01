@@ -25,11 +25,8 @@ def mime2extension(mimetype, default=None):
     implementations of ``suggest_extension()`` in ``Record`` subclasses.
 
       >>> mime2extension('application/fits')
-      fits
       >>> mime2extension('image/jpeg')
-      jpg
       >>> mime2extension('application/x-zed', 'dat')
-      dat
 
     Parameters
     ----------
