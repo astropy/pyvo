@@ -482,33 +482,34 @@ class Spatial(Constraint):
 
     To find resources having data for RA/Dec 347.38/8.6772::
 
-        >>> registry.Spatial((347.38, 8.6772))
+        >>> from pyvo import registry
+        >>> resources = registry.Spatial((347.38, 8.6772))
 
     To find resources claiming to have data for a spherical circle 2 degrees
     around that point::
 
-        >>> registry.Spatial(347.38, 8.6772, 2))
+        >>> resources = registry.Spatial((347.38, 8.6772, 2))
 
     To find resources claiming to have data for a polygon described by
     the vertices (23, -40), (26, -39), (25, -43) in ICRS RA/Dec::
 
-        >>> registry.Spatial([23, -40, 26, -39, 25, -43])
+        >>> resources = registry.Spatial([23, -40, 26, -39, 25, -43])
 
     To find resources claiming to cover a MOC_, pass an ASCII MOC::
 
-        >>> registry.Spatial("0/1-3 3/")
+        >>> resources = registry.Spatial("0/1-3 3/")
 
     .. _MOC: https://www.ivoa.net/documents/MOC/
 
     When you already have an astropy SkyCoord::
 
         >>> from astropy.coordinates import SkyCoord
-        >>> registry.Spatial(SkyCoord("23d +3d"))
+        >>> resources = registry.Spatial(SkyCoord("23d +3d"))
 
     SkyCoords also work as circle centers (plain floats for the radius
     are interpreted in degrees)::
 
-        >>> registry.Spatial((SkyCoord("23d +3d"), 3))
+        >>> resources = registry.Spatial((SkyCoord("23d +3d"), 3))
     """
     _keyword = "spatial"
     _condition = "1 = CONTAINS({geom}, coverage)"
@@ -587,15 +588,16 @@ class Spectral(Constraint):
 
     To find resources covering the messenger particle energy 5 eV::
 
-        >>> registry.Spectral(5*units.eV)
+        >>> from pyvo import registry
+        >>> resources =  registry.Spectral(5*units.eV)
 
     To find resources overlapping the band between 5000 and 6000 Ångström::
 
-        >>> registry.Spectral((5000*units.Angstrom, 6000*units.Angstrom))
+        >>> resources =  registry.Spectral((5000*units.Angstrom, 6000*units.Angstrom))
 
     To find resources having data in the FM band::
 
-        >>> registry.Spectral((88*units.MHz, 102*units.MHz))
+        >>> resources =  registry.Spectral((88*units.MHz, 102*units.MHz))
     """
     _keyword = "spectral"
     _extra_tables = ["rr.stc_spectral"]
@@ -674,12 +676,14 @@ class Temporal(Constraint):
 
     To find resources claiming to have data for Jan 10, 2022::
 
-        >>> registry.Temporal(astropy.time.Time('2022-01-10'))
+        >>> from pyvo import registry
+        >>> from astropy.time import Time
+        >>> resources = registry.Temporal(Time('2022-01-10'))
 
     To find resources claiming to have data for some time between
     MJD 54130 and 54200::
 
-        >>> registry.Temporal((54130, 54200))
+        >>> resources = registry.Temporal((54130, 54200))
     """
     _keyword = "temporal"
     _extra_tables = ["rr.stc_temporal"]
