@@ -22,7 +22,7 @@ from astropy.utils.xml import check as xml_check
 from astropy.io.votable.exceptions import vo_raise, vo_warn, warn_or_raise
 
 from ...utils.xml.elements import (
-    xmlattribute, xmlelement, Element, ContentMixin)
+    xmlattribute, xmlelement, Element, ElementWithXSIType, ContentMixin)
 
 from . import voresource as vr
 from .exceptions import (
@@ -682,7 +682,7 @@ class InputParam(BaseParam):
             vo_raise(E06, self._Element__name, config=config, pos=self._pos)
 
 
-class DataType(ContentMixin, Element):
+class DataType(ContentMixin, ElementWithXSIType):
     """
     DataType element as described in
     http://www.ivoa.net/xml/VODataService/v1.1
@@ -817,27 +817,6 @@ class TableDataType(DataType):
 
     Subtypes must be decorated with ``register_xsi_type('ns:name')``.
     """
-    _xsi_type_mapping = {}
-
-    @classmethod
-    def register_xsi_type(cls, typename):
-        """Decorator factory for registering subtypes"""
-        def register(class_):
-            """Decorator for registering subtypes"""
-            cls._xsi_type_mapping[typename] = class_
-            return class_
-        return register
-
-    def __new__(cls, *args, **kwargs):
-        if 'xsi:type' not in kwargs:
-            pass
-
-        xsi_type = kwargs.get('xsi:type')
-        dtype = cls._xsi_type_mapping.get(xsi_type, cls)
-
-        obj = DataType.__new__(dtype)
-        obj.__init__(*args, **kwargs)
-        return obj
 
 
 @TableDataType.register_xsi_type('vs:VOTable')

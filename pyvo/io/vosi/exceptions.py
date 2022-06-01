@@ -242,6 +242,8 @@ class W21(VOSIWarning, XMLWarning):
     """
     TAP Capabilties must have at least one outputFormat element.
     """
+    message_template = (
+        "TAP Capabilties must have at least one `outputFormat` element.")
 
 
 class W22(VOSIWarning, XMLWarning):
