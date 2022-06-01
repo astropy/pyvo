@@ -128,6 +128,7 @@ class TestServicetypeConstraint:
 
 
 @pytest.mark.usefixtures('messenger_vocabulary')
+@pytest.mark.remote_data
 class TestWavebandConstraint:
     def test_basic(self):
         assert (rtcons.Waveband("Infrared", "EUV").get_search_condition()
@@ -300,6 +301,7 @@ class TestWhereClauseBuilding:
         return rtcons.build_regtap_query(cons
             ).split("\nWHERE\n", 1)[1].split("\nGROUP BY\n")[0]
 
+    @pytest.mark.remote_data
     def test_from_constraints(self):
         assert self.where_clause_for(
             rtcons.Waveband("EUV"),
@@ -307,6 +309,7 @@ class TestWhereClauseBuilding:
             ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
                 "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
 
+    @pytest.mark.remote_data
     def test_from_keywords(self):
         assert self.where_clause_for(
             waveband="EUV",
@@ -314,6 +317,7 @@ class TestWhereClauseBuilding:
             ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
                 "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
 
+    @pytest.mark.remote_data
     def test_mixed(self):
         assert self.where_clause_for(
             rtcons.Waveband("EUV"),

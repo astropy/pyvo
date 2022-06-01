@@ -274,6 +274,7 @@ def test_servicetype():
     regsearch(servicetype='table')
 
 
+@pytest.mark.remote_data
 @pytest.mark.usefixtures('waveband_fixture', 'capabilities')
 def test_waveband():
     regsearch(waveband='optical')
