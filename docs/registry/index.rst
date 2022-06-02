@@ -87,10 +87,9 @@ you could either run:
 
 or:
 
-.. This one fails, fix (change skip to remote-data) or remove it.
-.. doctest-skip::
+.. doctest-remote-data::
 
-  >>> resources = registry.search(registry.Fulltext("white dwarf"),
+  >>> resources = registry.search(registry.Freetext("white dwarf"),
   ...                             registry.Waveband("UV"))
 
 or a mixture between the two.  Constructing using explicit
@@ -98,17 +97,15 @@ constraints is generally preferable with more complex queries.  Where
 the constraints accept multiple arguments, you can pass in sequences to
 the keyword arguments; for instance:
 
-.. This one fails, fix (change skip to remote-data) or remove it.
-.. doctest-skip::
+.. doctest-remote-data::
 
-  >>> resources = registry.search(registry.Waveband("Radio", "Submillimeter"))
+  >>> resources = registry.search(registry.Waveband("Radio", "Millimeter"))
 
 is equivalent to:
 
-.. This one fails, fix (change skip to remote-data) or remove it.
-.. doctest-skip::
+.. doctest-remote-data::
 
-  >>> resources = registry.search(waveband=["Radio", "Submillimeter"])
+  >>> resources = registry.search(waveband=["Radio", "Millimeter"])
 
 There is also :py:meth:`pyvo.registry.get_RegTAP_query`, accepting the
 same arguments as :py:meth:`pyvo.registry.search`.  This function simply
@@ -181,8 +178,7 @@ resource; you could construct a TAP service and access its ``tables``
 attribute, but you can take a shortcut and call a RegistryResource's
 ``get_tables`` method for a rather similar result:
 
-.. This one fails, fix (change skip to remote-data) or remove it.
-.. doctest-skip::
+.. doctest-remote-data::
 
   >>> tables = resources[4].get_tables()
   >>> list(tables.keys())
@@ -212,10 +208,9 @@ to the resource that works in a web browser.  You can ask for a
 ``search`` method, and when you call it, a browser window should open
 with the query facility (this uses python's webbrowser module):
 
-.. This one fails, fix (change skip to remote-data) or remove it.
-.. doctest-skip::
+.. doctest-remote-data::
 
-  >>> resources[4].get_service("web").query()
+  >>> resources[4].get_service("web").search()
 
 Note that for interactive data discovery in the VO Registry, you may
 also want to have a look at Aladin's discovery tree, TOPCAT's VO menu,
@@ -239,7 +234,7 @@ When that is the case, you can use each
 RegistryResource's ``service`` attribute, which contains a DAL service
 instance.  The opening example could be written like this:
 
-.. This one fails, fix (change skip to remote-data) or remove it.
+.. This one is too expensive to run as part of CI/testing
 .. doctest-skip::
 
   >>> from astropy.coordinates import SkyCoord
@@ -262,8 +257,7 @@ in some cases you will have to adapt the queries to the resources found.
 
 In the obscore case, an all-VO query would look like this:
 
-.. This one times out, consider to refactor for a smaller query.
-   Once done change skip to remote-data
+.. Again, that's too expensive for CI/testing
 .. doctest-skip::
 
   >>> for svc_rec in registry.search(datamodel="obscore"):
