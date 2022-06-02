@@ -520,7 +520,7 @@ class RegistryResource(dalq.Record):
 
     def access_modes(self):
         """
-        returns a list of interface identifiers available on
+        returns a set of interface identifiers available on
         this resource.
 
         For standard interfaces, get_service will return a service

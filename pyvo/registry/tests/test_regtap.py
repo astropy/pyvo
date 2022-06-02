@@ -20,6 +20,8 @@ from pyvo.dal import tap
 
 from astropy.utils.data import get_pkg_data_contents
 
+from .commonfixtures import messenger_vocabulary
+
 
 get_pkg_data_contents = partial(
     get_pkg_data_contents, package=__package__, encoding='binary')
@@ -274,8 +276,10 @@ def test_servicetype():
     regsearch(servicetype='table')
 
 
-@pytest.mark.remote_data
-@pytest.mark.usefixtures('waveband_fixture', 'capabilities')
+@pytest.mark.usefixtures(
+    'waveband_fixture', 
+    'capabilities', 
+    'messenger_vocabulary')
 def test_waveband():
     regsearch(waveband='optical')
 

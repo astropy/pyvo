@@ -16,16 +16,7 @@ from pyvo import registry
 from pyvo.registry import rtcons
 from pyvo.dal import query as dalq
 
-
-@pytest.fixture()
-def messenger_vocabulary(mocker):
-    def callback(request, context):
-        return get_pkg_data_contents('data/messenger.desise')
-
-    with mocker.register_uri(
-        'GET', 'http://www.ivoa.net/rdf/messenger', content=callback
-    ) as matcher:
-        yield matcher
+from .commonfixtures import messenger_vocabulary
 
 
 class TestAbstractConstraint:
@@ -128,7 +119,6 @@ class TestServicetypeConstraint:
 
 
 @pytest.mark.usefixtures('messenger_vocabulary')
-@pytest.mark.remote_data
 class TestWavebandConstraint:
     def test_basic(self):
         assert (rtcons.Waveband("Infrared", "EUV").get_search_condition()
@@ -301,7 +291,7 @@ class TestWhereClauseBuilding:
         return rtcons.build_regtap_query(cons
             ).split("\nWHERE\n", 1)[1].split("\nGROUP BY\n")[0]
 
-    @pytest.mark.remote_data
+    @pytest.mark.usefixtures('messenger_vocabulary')
     def test_from_constraints(self):
         assert self.where_clause_for(
             rtcons.Waveband("EUV"),
@@ -309,7 +299,7 @@ class TestWhereClauseBuilding:
             ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
                 "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
 
-    @pytest.mark.remote_data
+    @pytest.mark.usefixtures('messenger_vocabulary')
     def test_from_keywords(self):
         assert self.where_clause_for(
             waveband="EUV",
@@ -317,7 +307,7 @@ class TestWhereClauseBuilding:
             ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
                 "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
 
-    @pytest.mark.remote_data
+    @pytest.mark.usefixtures('messenger_vocabulary')
     def test_mixed(self):
         assert self.where_clause_for(
             rtcons.Waveband("EUV"),
