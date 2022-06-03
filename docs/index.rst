@@ -125,3 +125,4 @@ Using `pyvo`
    registry/index
    io/index
    auth/index
+   prototypes/index
