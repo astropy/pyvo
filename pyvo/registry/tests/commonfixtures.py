@@ -22,7 +22,7 @@ def messenger_vocabulary(mocker):
     Should we clean up after ourselves?
     """
     import_file_to_cache(
-        'http://www.ivoa.net/rdf/messenger', 
+        'http://www.ivoa.net/rdf/messenger',
         get_pkg_data_filename(
             'data/messenger.desise',
             package=__package__))

@@ -277,8 +277,8 @@ def test_servicetype():
 
 
 @pytest.mark.usefixtures(
-    'waveband_fixture', 
-    'capabilities', 
+    'waveband_fixture',
+    'capabilities',
     'messenger_vocabulary')
 def test_waveband():
     regsearch(waveband='optical')
