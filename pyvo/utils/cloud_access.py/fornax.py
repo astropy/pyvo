@@ -43,16 +43,17 @@ class DataHandler:
         self.access_url = product['access_url']
         
     
-    
-    def download_file_http(self):
-        """Download data in self.url using http"""
-        log.info('--- Downloading data from on-prem ---')
-        return download_file(self.access_url)
+    def process_data_info(self):
+        """Process data product info """
+        log.info('--- Using data from on-prem ---')
+        info = {'access_url': self.access_url}
+        return info
     
     
     def download(self):
         """Download data. Can be overloaded with different implimentation"""
-        return self.download_file_http()
+        info = self.process_data_info()
+        return download_file(info['access_url'])
 
     
     
@@ -74,129 +75,166 @@ class AWSDataHandler(DataHandler):
         
         super().__init__(product)
         
-        # if user_pays selected, a valid profile is required #
-        user_pays = kwargs.get('user_pays', False)
-        if user_pays and profile is None:
-            raise botocore.exceptions.UnknownCredentialError('user_pays selected but no user info provided')
+            
+        # set variables to be used elsewhere
+        self.requester_pays = kwargs.get('requester_pays', False)
+        self.profile = profile
+        self.product = product
         
         
-        # is the data in the cloud?
-        data_in_aws  = False
-        cloud_info = None
-        if 'cloud_access' in product.keys():
-            # read json provided by the archive
-            cloud_access_json = product['cloud_access']
-            cloud_access = json.loads(cloud_access_json)
+    
+    def _validate_aws_info(self, info):
+        """Do some basic validation of the json info in the cloud_access column
+        
+        info: a dictionary serialized from the json text returned in the cloud_access
+            column returned with the data product
+        
+        """
+        
+        # TODO; more rigorous checks
+        keys = list(info.keys())
+        assert('region' in keys)
+        assert('access' in keys)
+        assert('bucket' in keys)
+        assert('path' in keys)
+        
+        
+        if info['path'][0] == '/':
+            info['path'] = info['path'][1:]
+        
+        return info
 
-            # is the data in aws?
-            if 'aws' in cloud_access:
-                data_in_aws = True
-                cloud_info  = cloud_access['aws']
-                
-                if cloud_info['path'][0] == '/':
-                    cloud_info['path'] = cloud_info['path'][1:]
-            
-            
+    
+    
+    def process_data_info(self):
+        """Process data product info """
+        
+        # info dict to be filled and returned
+        info = {'access_url': self.access_url}
         
         
-        self.data_in_aws = data_in_aws
-        self.cloud_info  = cloud_info
-        self.user_pays   = user_pays
-        self.profile     = profile
-        
-
-        
-        
-    def download(self, **kwargs):
-        """Download data, from aws if possible, else from on-prem"""
-        
-            
-        # if user or data are not in aws; fall to on-prem
-        if not self.data_in_aws:
-            log.info('Data not in the cloud, falling to on-prem ...')
-            return self.download_file_http()
-            
-        
+        # is the user on aws? if not, fall back to on-perm
         user_on_aws = self.user_on_aws()
         if not user_on_aws:
             log.info('User not in the cloud, falling to on-prem ...')
-            return self.download_file_http()
+            return info
         
         
-        # TODO: more error trapping in case some info is missing
-        # read data info provided in cloud_access
-        data_region = self.cloud_info['region']
-        data_access = self.cloud_info['access'] # open | region | none
+        # do we have cloud_access info in the data product?
+        if not 'cloud_access' in self.product.keys():
+            log.info('Input product does not have any cloud access information')
+            return info
         
+        
+        # read json provided by the archive server
+        cloud_access = json.loads(self.product['cloud_access'])
+        
+        # do we have information specific to aws in the data product?
+        if not 'aws' in cloud_access:
+            log.info('No aws cloud access information in the data product')
+            return info
+        
+        
+        # we have info about data in aws; validate it first #
+        aws_info = cloud_access['aws']
+        aws_info = self._validate_aws_info(aws_info)
+        
+        
+        data_region = aws_info['region']
+        data_access = aws_info['access'] # open | region | none
         log.info(f'data region: {data_region}')
         log.info(f'data access mode: {data_access}')
-        
         
         
         # data on aws not accessible for some reason
         if data_access == 'none':
             log.info('Data access mode is "none", falling to on-prem ...')
-            return self.download_file_http()
+            return info
         
-        # only in-region access is allowed
+        # save information needed to access the file
+        info['s3_path']   = aws_info['path']
+        info['s3_bucket'] = aws_info['bucket']
+        
+            
+        # data have open access 
+        if data_access == 'open':
+            log.info('Accessing public data on aws ...')
+            s3_config = botocore.client.Config(signature_version=botocore.UNSIGNED)
+            s3_resource = boto3.resource(service_name='s3', config=config)
+            info['s3_resource'] = s3_resource
+            return info
+                
+        
         if data_access == 'region':
+            log.info(f'data_access=region; data_region: {data_region} ')
+            
+            # user region
             user_region = self.user_region()
             log.info(f'user region: {user_region}')
+            
+            # if same region as data, proceed
             if data_region == user_region:
-                log.info('data_access=region; Data and user are in the same region; ')
-            elif self.user_pays:
-                log.info('data_access=region; Data and user are not in the same region, and user_pays is ENABLED')
-            else:
-                log.info('data_access=region; Data and user are not in the same region, and user_pays not enabled')
-                return self.download_file_http()
-        
-        if data_access == 'open':
-            log.info('Data mode is "open". Data is fully public.')
+                log.info('data and user in the same region')
+                s3_resource = boto3.resource(service_name='s3', region_name=user_region)
+                info['s3_resource'] = s3_resource
+                return info
+            
+            
+            # user_region != data_region, but requester_pays
+            if self.requester_pays:
+                log.info('Data mode is "region", with requester_pays')
+                if profile is None:
+                    raise Exception('requester_pays selected but no user info provided')
+                
+                # we have user credentials
+                session = boto3.session.Session(profile_name=self.profile)
+                resource = session.resource(service_name='s3')
+                info['s3_resource'] = s3_resource
+                return info
                 
         
         
-        # if we are here, we either have:
-        # data_access=open, or data_access=region with either user_pays=True or user/data in same region
-        # we handle each case separatly:
+        # if no conidtion is satisfied, at least access_url should befine
+        assert('access_url' in info.keys())
+            
+        return info
         
-        # data is fully-open or open in region; use anonymous user
-        if data_access == 'open' or (data_access == 'region' and data_region == user_region):
-            session = None
-            resource = boto3.resource(
-                service_name = 's3', 
-                config = botocore.client.Config(signature_version=botocore.UNSIGNED)
-            )
+        
+        
+    def download(self, **kwargs):
+        """Download data, from aws if possible, else from on-prem"""
+        
+        data_info = self.process_data_info()
+        
+        # if no s3_resource object, default to http download
+        if 's3_resource' in data_info.keys():
+            log.info('--- Downloading data from S3 ---')
+            self._download_file_s3(data_info, **kwargs)
         else:
-            log.info('Data mode is "in-region". User credentials provided. Using them ...')
-            # we have user credentials
-            session = boto3.session.Session(profile_name=self.profile)
-            resource = session.resource(service_name='s3')
-
-        self.s3_client   = resource.meta.client
-        self.session     = session
-        self.s3_resource = resource
-        self.download_file_s3(**kwargs)
+            log.info('--- Downloading data from On-prem ---')
+            download_file(data_info['access_url'])
     
     
-    # borrowed from astroquery.mast.
-    def download_file_s3(self, local_path=None, cache=True):
+    # adapted from astroquery.mast.
+    def _download_file_s3(self, data_info, local_path=None, cache=True):
         """
         downloads the product used in inializing this object into
         the given directory.
         Parameters
         ----------
+        data_info : dict holding the data information, with keys for:
+            s3_resource, s3_path, s3_bucket
         local_path : str
             The local filename to which toe downloaded file will be saved.
         cache : bool
             Default is True. If file is found on disc it will not be downloaded again.
         """
-        log.info('--- Downloading data from S3 ---')
 
-        s3 = self.s3_resource
-        s3_client = self.s3_client
+        s3 = data_info['s3_resource']
+        s3_client = s3.meta.client
         
-        bucket_path = self.cloud_info['path']
-        bucket_name = self.cloud_info['bucket']
+        bucket_path = data_info['s3_path']
+        bucket_name = data_info['s3_bucket']
         bkt = s3.Bucket(bucket_name)
         if not bucket_path:
             raise Exception(f"Unable to locate file {bucket_path}.")
