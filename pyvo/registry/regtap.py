@@ -645,6 +645,15 @@ class RegistryResource(dalq.Record):
             If there are multiple capabilities for service_type, the
             function choose the first matching capability by default
             Pass lax=False to instead raise a DALQueryError.
+
+        Returns
+        -------
+        `pyvo.dal.DALService`
+            For standard service types, a specific DAL service instance
+            (e.g., a `pyvo.dal.tap.TAPService` when requesting ``tap``
+            services) is returned.  For ``web`` services, what is returned is
+            an opaque service object that has a ``search()`` method simply
+            opening a web browser on the access URL.
         """
         return self.get_interface(service_type, lax, std_only=True
             ).to_service()
