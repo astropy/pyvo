@@ -160,7 +160,7 @@ class AWSDataHandler(DataHandler):
         if data_access == 'open':
             log.info('Accessing public data on aws ...')
             s3_config = botocore.client.Config(signature_version=botocore.UNSIGNED)
-            s3_resource = boto3.resource(service_name='s3', config=config)
+            s3_resource = boto3.resource(service_name='s3', config=s3_config)
             info['s3_resource'] = s3_resource
             return info
                 
@@ -183,7 +183,7 @@ class AWSDataHandler(DataHandler):
             # user_region != data_region, but requester_pays
             if self.requester_pays:
                 log.info('Data mode is "region", with requester_pays')
-                if profile is None:
+                if self.profile is None:
                     raise Exception('requester_pays selected but no user info provided')
                 
                 # we have user credentials
@@ -192,6 +192,7 @@ class AWSDataHandler(DataHandler):
                 info['s3_resource'] = s3_resource
                 return info
                 
+            log.info('data_region != user_region. Fall back to on-prem')
         
         
         # if no conidtion is satisfied, at least access_url should befine
