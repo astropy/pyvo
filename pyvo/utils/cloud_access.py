@@ -110,6 +110,7 @@ class AWSDataHandler(DataHandler):
         """Process data product info """
         
         # info dict to be filled and returned
+        # access_url is added in case we fail
         info = {'access_url': self.access_url}
         
         
@@ -136,6 +137,7 @@ class AWSDataHandler(DataHandler):
         
         
         # we have info about data in aws; validate it first #
+        # TODO: add support for multiple aws access points. This may be useful
         aws_info = cloud_access['aws']
         aws_info = self._validate_aws_info(aws_info)
         
@@ -165,6 +167,7 @@ class AWSDataHandler(DataHandler):
             return info
                 
         
+        # in-region access
         if data_access == 'region':
             log.info(f'data_access=region; data_region: {data_region} ')
             
