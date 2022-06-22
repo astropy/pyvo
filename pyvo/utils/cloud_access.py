@@ -49,6 +49,14 @@ class DataHandler:
         info = {'access_url': self.access_url}
         return info
     
+    def _summary(self):
+        """A str representation of the data handler"""
+        info = self.process_data_info()
+        print('\n---- Summary ----')
+        for k,v in info.items():
+            print(f'{k:12}: {v}')
+        print('-----------------\n')
+    
     
     def download(self):
         """Download data. Can be overloaded with different implimentation"""
