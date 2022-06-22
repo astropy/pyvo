@@ -186,8 +186,17 @@ class AWSDataHandler(DataHandler):
             # if same region as data, proceed
             if data_region == user_region:
                 log.info('data and user in the same region')
-                s3_resource = boto3.resource(service_name='s3', region_name=user_region)
+                
+                # if there is a user profile, use it
+                if not self.profile is None:
+                    s3_session  = boto3.session.Session(profile_name=self.profile)
+                    s3_resource = s3_session.resource(service_name='s3')
+                    info['s3_session'] = s3_session
+                else:
+                    # attempt without user credentials
+                    s3_resource = boto3.resource(service_name='s3', region_name=user_region)
                 info['s3_resource'] = s3_resource
+                # TODO: maybe do head_object call here before returning to check we have access.
                 return info
             
             
@@ -198,9 +207,10 @@ class AWSDataHandler(DataHandler):
                     raise Exception('requester_pays selected but no user info provided')
                 
                 # we have user credentials
-                session = boto3.session.Session(profile_name=self.profile)
-                resource = session.resource(service_name='s3')
+                s3_session  = boto3.session.Session(profile_name=self.profile)
+                s3_resource = s3_session.resource(service_name='s3')
                 info['s3_resource'] = s3_resource
+                info['s3_session']  = s3_session
                 return info
                 
             log.info('data_region != user_region. Fall back to on-prem')
