@@ -16,6 +16,8 @@ import pytest
 
 import numpy as np
 
+import platform
+
 from pyvo.dal.query import DALService, DALQuery, DALResults, Record
 from pyvo.dal.exceptions import DALServiceError, DALQueryError,\
     DALFormatError, DALOverflowWarning
@@ -109,8 +111,8 @@ def register_mocks(mocker):
 
         def useragent_callback(request, context):
             assert 'User-Agent' in request.headers
-            assert request.headers['User-Agent'] == 'python-pyvo/{}'.format(
-                version)
+            assert request.headers['User-Agent'] == 'python-pyvo/{} ({})'.format(
+                version, platform.system())
             return get_pkg_data_contents('data/query/basic.xml')
 
         matchers.append(stack.enter_context(mocker.register_uri(
