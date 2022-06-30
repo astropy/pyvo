@@ -23,32 +23,32 @@ from botocore.client import Config
 
 class DataHandler:
     """A base class that handles the different ways data can be accessed.
-    The base implementation is to use on-prem data. Subclasses can handle 
+    The base implementation is to use on-prem data. Subclasses can handle
     cloud data from aws, azure, google cloud etc.
-    
+
     Subclasses can also handle authentication if needed.
-    
+
     """
-    
-    
-    def __init__(self, product):
+
+
+    def __init__(self, product, access_url_column='access_url'):
         """Create a DataProvider object.
-        
+
         Parameters:
             product: ~astropy.table.Row. The data url is accessed
                     in product['access_url']
-        
+
         """
         self.product = product
-        self.access_url = product['access_url']
-        
-    
+        self.access_url = product[access_url_column]
+
+
     def process_data_info(self):
         """Process data product info """
         log.info('--- Using data from on-prem ---')
         info = {'access_url': self.access_url}
         return info
-    
+
     def _summary(self):
         """A str representation of the data handler"""
         info = self.process_data_info()
@@ -56,137 +56,137 @@ class DataHandler:
         for k,v in info.items():
             print(f'{k:12}: {v}')
         print('-----------------\n')
-    
-    
+
+
     def download(self):
         """Download data. Can be overloaded with different implimentation"""
         info = self.process_data_info()
         return download_file(info['access_url'])
 
-    
-    
+
+
 class AWSDataHandler(DataHandler):
     """Class for managaing access to data in AWS"""
-    
+
     def __init__(self, product, profile=None, **kwargs):
         """Handle AWS-specific authentication and data download
-        
+
         Parameters:
             product: ~astropy.table.Row. aws-s3 information should be available in
                      product['cloud_access'], otherwise, fall back to on-prem using
                      product['access_url']
-            profile: name of the user's profile for credentials in ~/.aws/config 
-                     or ~/.aws/credentials. If provided, we AWS api to authenticate 
-                     the user using boto3. If None, use anonymous user. 
-        
+            profile: name of the user's profile for credentials in ~/.aws/config
+                     or ~/.aws/credentials. If provided, we AWS api to authenticate
+                     the user using boto3. If None, use anonymous user.
+
         """
-        
-        super().__init__(product)
-        
-            
+
+        super().__init__(product, **kwargs)
+
+
         # set variables to be used elsewhere
         self.requester_pays = kwargs.get('requester_pays', False)
         self.profile = profile
         self.product = product
-        
-        
-    
+
+
+
     def _validate_aws_info(self, info):
         """Do some basic validation of the json info in the cloud_access column
-        
+
         info: a dictionary serialized from the json text returned in the cloud_access
             column returned with the data product
-        
+
         """
-        
+
         # TODO; more rigorous checks
         keys = list(info.keys())
         assert('region' in keys)
         assert('access' in keys)
         assert('bucket' in keys)
         assert('path' in keys)
-        
-        
+
+
         if info['path'][0] == '/':
             info['path'] = info['path'][1:]
-        
+
         return info
 
-    
-    
+
+
     def process_data_info(self):
         """Process data product info """
-        
+
         # info dict to be filled and returned
         # access_url is added in case we fail
         info = {'access_url': self.access_url}
-        
-        
+
+
         # is the user on aws? if not, fall back to on-perm
         user_on_aws = self.user_on_aws()
         if not user_on_aws:
             log.info('User not in the cloud, falling to on-prem ...')
             return info
-        
-        
+
+
         # do we have cloud_access info in the data product?
         if not 'cloud_access' in self.product.keys():
             log.info('Input product does not have any cloud access information')
             return info
-        
-        
+
+
         # read json provided by the archive server
         cloud_access = json.loads(self.product['cloud_access'])
-        
+
         # do we have information specific to aws in the data product?
         if not 'aws' in cloud_access:
             log.info('No aws cloud access information in the data product')
             return info
-        
-        
+
+
         # we have info about data in aws; validate it first #
         # TODO: add support for multiple aws access points. This may be useful
         aws_info = cloud_access['aws']
         aws_info = self._validate_aws_info(aws_info)
-        
-        
+
+
         data_region = aws_info['region']
         data_access = aws_info['access'] # open | region | none
         log.info(f'data region: {data_region}')
         log.info(f'data access mode: {data_access}')
-        
-        
+
+
         # data on aws not accessible for some reason
         if data_access == 'none':
             log.info('Data access mode is "none", falling to on-prem ...')
             return info
-        
+
         # save information needed to access the file
         info['s3_path']   = aws_info['path']
         info['s3_bucket'] = aws_info['bucket']
-        
-            
-        # data have open access 
+
+
+        # data have open access
         if data_access == 'open':
             log.info('Accessing public data on aws ...')
             s3_config = botocore.client.Config(signature_version=botocore.UNSIGNED)
             s3_resource = boto3.resource(service_name='s3', config=s3_config)
             info['s3_resource'] = s3_resource
             return info
-                
-        
+
+
         # in-region access
         if data_access == 'region':
             log.info(f'data_access=region; data_region: {data_region} ')
-            
+
             # user region
             user_region = self.user_region()
             log.info(f'user region: {user_region}')
-            
+
             # if same region as data, proceed
             if data_region == user_region:
                 log.info('data and user in the same region')
-                
+
                 # if there is a user profile, use it
                 if not self.profile is None:
                     s3_session  = boto3.session.Session(profile_name=self.profile)
@@ -198,36 +198,36 @@ class AWSDataHandler(DataHandler):
                 info['s3_resource'] = s3_resource
                 # TODO: maybe do head_object call here before returning to check we have access.
                 return info
-            
-            
+
+
             # user_region != data_region, but requester_pays
             if self.requester_pays:
                 log.info('Data mode is "region", with requester_pays')
                 if self.profile is None:
                     raise Exception('requester_pays selected but no user info provided')
-                
+
                 # we have user credentials
                 s3_session  = boto3.session.Session(profile_name=self.profile)
                 s3_resource = s3_session.resource(service_name='s3')
                 info['s3_resource'] = s3_resource
                 info['s3_session']  = s3_session
                 return info
-                
+
             log.info('data_region != user_region. Fall back to on-prem')
-        
-        
+
+
         # if no conidtion is satisfied, at least access_url should befine
         assert('access_url' in info.keys())
-            
+
         return info
-        
-        
-        
+
+
+
     def download(self, **kwargs):
         """Download data, from aws if possible, else from on-prem"""
-        
+
         data_info = self.process_data_info()
-        
+
         # if no s3_resource object, default to http download
         if 's3_resource' in data_info.keys():
             log.info('--- Downloading data from S3 ---')
@@ -235,8 +235,40 @@ class AWSDataHandler(DataHandler):
         else:
             log.info('--- Downloading data from On-prem ---')
             download_file(data_info['access_url'])
-    
-    
+
+
+    def length_file_s3(self):
+        """
+        Gets info from s3 and prints the file length or exception.
+        """
+        data_info = self.process_data_info()
+
+        s3 = data_info.get('s3_resource', None)
+        if not s3:
+            print(f'Checking length: No AWS info available')
+            return
+
+        s3_client = s3.meta.client
+
+        bucket_path = data_info['s3_path']
+        bucket_name = data_info['s3_bucket']
+        bkt = s3.Bucket(bucket_name)
+        if not bucket_path:
+            raise Exception(f"Unable to locate file {bucket_path}.")
+
+        # Ask the webserver (in this case S3) what the expected content length is.
+        ex = ''
+        try:
+            info_lookup = s3_client.head_object(Bucket=bucket_name, Key=bucket_path)
+            length = info_lookup["ContentLength"]
+        except Exception as e:
+            ex = e
+            length = 0
+
+        print(f'Checking length: {bucket_path=}, {ex=}, {length=}')
+
+
+
     # adapted from astroquery.mast.
     def _download_file_s3(self, data_info, local_path=None, cache=True):
         """
@@ -254,13 +286,13 @@ class AWSDataHandler(DataHandler):
 
         s3 = data_info['s3_resource']
         s3_client = s3.meta.client
-        
+
         bucket_path = data_info['s3_path']
         bucket_name = data_info['s3_bucket']
         bkt = s3.Bucket(bucket_name)
         if not bucket_path:
             raise Exception(f"Unable to locate file {bucket_path}.")
-            
+
         ## TODO: handle this in a better way
         if local_path is None:
             local_path = bucket_path.strip('/').split('/')[-1]
@@ -304,48 +336,47 @@ class AWSDataHandler(DataHandler):
                     pb.update(bytes_read)
 
             bkt.download_file(bucket_path, local_path, Callback=progress_callback)
-        
-    
-    
-    
+
+
+
+
     def user_on_aws(self):
         """Check if the user is in on aws
         the following works for aws, but it is not robust enough
         This is partly from: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/identify_ec2_instances.html
-        
+
         Comments in user_region below are also relevant here.
-        
+
         """
         uuid = '/sys/hypervisor/uuid'
         is_aws =  os.path.exists(uuid) or 'AWS_REGION' in os.environ
-        return is_aws
-    
-    
+        return True  # is_aws
+
+
     def user_region(self):
         """Find region of the user in an ec2 instance.
         There could be a way to do it with the python api instead of an http request.
-        
+
         This may be complicated:
         Instance metadata (including region) can be access from the link-local address
         169.254.169.254 (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-identity-documents.html)
         So a simple http request to http://169.254.169.254/latest/dynamic/instance-identity/document gives
         a json response that has the region info in it.
-        
+
         However, in jupyterhub, that address is blocked, because it may expose sensitive information about
-        the instance and kubernetes cluster 
+        the instance and kubernetes cluster
         (http://z2jh.jupyter.org/en/latest/administrator/security.html#audit-cloud-metadata-server-access).
         The region can be in $AWS_REGION
-        """        
-        
+        """
+
         region = os.environ.get('AWS_REGION', None)
-        
+
         if region is None:
             # try the link-local address
             session = requests.session()
             response = session.get('http://169.254.169.254/latest/dynamic/instance-identity/document', timeout=2)
             region = response.json()['region']
-            
+
         return region
 
 
-    
