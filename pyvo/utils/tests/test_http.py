@@ -7,6 +7,7 @@ import platform
 from pyvo.utils.http import create_session
 from pyvo.version import version
 
+
 def test_create_session():
     system = platform.system()
     test_session = create_session()
