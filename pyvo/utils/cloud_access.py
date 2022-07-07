@@ -36,7 +36,9 @@ class DataHandler:
 
         Parameters:
             product: ~astropy.table.Row. The data url is accessed
-                    in product['access_url']
+                in product[access_url_column]
+            access_url_column: ~str. The name of the column that contains the access
+                url. This is typically the column with ucd 'VOX:Image_AccessReference' in SIA.
 
         """
         self.product = product
