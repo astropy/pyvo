@@ -245,7 +245,7 @@ instance.  The opening example could be written like this:
 
 In reality, you will have to add some error handling to this kind of
 all-VO queries: in a wide and distributed network, some service is
-always down.
+always down.  See `Appendix: Robust All-VO Queries`_
 
 The central point is: With a servicetype constraint, each result has
 a well-defined ``service`` attribute that contains some subclass of
@@ -336,3 +336,41 @@ Reference/API
 .. automodapi:: pyvo.registry
 .. automodapi:: pyvo.registry.regtap
 .. automodapi:: pyvo.registry.rtcons
+
+
+Appendix: Robust All-VO Queries
+===============================
+
+The VO contains many services, and even if all of them had 99.9% uptime
+(which not all do), at any time you would always see failures, some of
+them involving long timeouts.  Hence, if you run all-VO queries, you
+should catch errors and, at least in interactive sessions, provide some
+way to interrupt overly long queries.  Here is an example for how to
+query all obscore services; remove the ``break`` at the end of the loop
+to actually do the global query (it's there so that you don't blindly
+run all-VO queries without reading at least this sentence)::
+
+    from astropy import table
+    from pyvo import registry
+
+    QUERY = "SELECT TOP 1 dataproduct_type from ivoa.obscore"
+
+    results = []
+    for svc_rec in registry.search(
+              datamodel="obscore", servicetype="tap"):
+          print("Querying {}".format(svc_rec.res_title))
+          try:
+              svc = svc_rec.get_service("tap")
+              results.append(
+                  svc.run_sync(QUERY).to_table())
+          except KeyboardInterrupt:
+              # someone lost their patience with a service.  Query next.
+              pass
+          except Exception as msg:
+              # some service is broken; you *should* complain, but
+              print("  Broken: {} ({}).  Complain to {}.\n".format(
+                  svc_rec.ivoid, msg, svc_rec.get_contact()))
+          break
+
+    total_result = table.vstack(results)
+    print(total_result)
