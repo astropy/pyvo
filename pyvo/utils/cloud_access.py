@@ -239,10 +239,10 @@ class AWSDataHandler(DataHandler):
                 s3_config = botocore.client.Config(signature_version=botocore.UNSIGNED)
                 s3_resource = boto3.resource(service_name='s3', config=s3_config)
                 accessible, message = self.is_accessible(s3_resource, aws_info['bucket'], aws_info['path'])
+                msg = 'Accessing public data anonymously on aws ... '
                 if not accessible:
-                    msg  = f'\nCannot access data with "open" mode:\n   {message}'
+                    msg  = f'{msg}  {message}'
                     raise AWSDataHandlerException(msg)
-                msg = 'Accessing public data on aws ... '
                 
             elif data_access == 'region':
                 
@@ -255,10 +255,10 @@ class AWSDataHandler(DataHandler):
                     ## TO ACCESS REGION-RESTRICTED DATA ANONYMOUSLY.
                     ## -----------------------
                     # Attempting anonymous access: 
+                    msg = 'Accessing region data anonymously ...'
                     s3_config = botocore.client.Config(signature_version=botocore.UNSIGNED)
                     s3_resource = boto3.resource(service_name='s3', config=s3_config)
                     accessible, message = self.is_accessible(s3_resource, aws_info['bucket'], aws_info['path'])
-                    msg = 'Accessing region data anonymously ...'
                     if accessible:
                         break
                     message = f'  - {msg} {message}.'
@@ -267,26 +267,28 @@ class AWSDataHandler(DataHandler):
                         
                     # If profile is given, try to use it first as it takes precedence.
                     if self.profile is not None:
+                        msg = f'Accessing data using profile: {self.profile} ...'
                         try:
                             s3_session  = boto3.session.Session(profile_name=self.profile)
                             s3_resource = s3_session.resource(service_name='s3')
                             accessible, message = self.is_accessible(s3_resource, aws_info['bucket'], aws_info['path'])
                             if accessible:
-                                msg = f'Accessing data using profile: {self.profile}'
                                 break
-                        except botocore.exceptions.ProfileNotFound as e:
-                            message = f'  - Using profile ... {str(e)}.'
+                            else:
+                                raise AWSDataHandlerException(message)
+                        except Exception as e:
+                            message = f'  - {msg} {str(e)}.'
                         messages.append(message)
                     
                     
                     # If access with profile fails, attemp to use any credientials 
                     # in the user system e.g. environment variables etc. boto3 should find them.
+                    msg = 'Accessing region data with other credentials ...'
                     s3_resource = boto3.resource(service_name='s3')
                     accessible, message = self.is_accessible(s3_resource, aws_info['bucket'], aws_info['path'])
                     if accessible:
-                        msg = 'Accessing region data with system authentication.'
                         break
-                    message = f'  - Using other credentials ... {message}.'
+                    message = f'  - {msg} {message}.'
                     messages.append(message)
                     
                     # if profile is given, try using it
