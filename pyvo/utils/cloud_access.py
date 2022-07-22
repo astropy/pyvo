@@ -291,8 +291,6 @@ class AWSDataHandler(DataHandler):
                     message = f'  - {msg} {message}.'
                     messages.append(message)
                     
-                    # if profile is given, try using it
-
                     
                     # if we are here, then we cannot access the data. Fall back to on-prem
                     msg  = '\nUnable to authenticate or access data with "region" access mode:\n'
