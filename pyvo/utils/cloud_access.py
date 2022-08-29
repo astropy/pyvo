@@ -18,7 +18,8 @@ log = logging.getLogger('fornax')
 __all__ = ['get_data_product', 'DataHandler', 'AWSDataHandler', 'AWSDataHandlerError']
 
 
-def get_data_product(product, provider='on-prem', access_url_column='access_url', **kwargs):
+def get_data_product(product, provider='on-prem', access_url_column='access_url',
+                     access_summary_only=False, verbose=True, **kwargs):
     """Top layer function to handle cloud/non-cloud access
 
     Parameters
@@ -43,7 +44,11 @@ def get_data_product(product, provider='on-prem', access_url_column='access_url'
     else:
         raise Exception(f'Unable to handle provider {provider}')
 
-    handler._summary()
+    if verbose:
+        handler._summary()
+
+    if not access_summary_only:
+        return handler
 
 
 class DataHandler:
