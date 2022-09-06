@@ -169,7 +169,7 @@ class AWSDataHandler(DataHandler):
         keys = list(info.keys())
         assert('region' in keys)
         assert('access' in keys)
-        assert(info['access'] in ['none', 'open', 'region'])
+        assert(info['access'] in ['none', 'open', 'restricted', 'region'])
         assert('bucket' in keys)
         assert('path' in keys)
 
@@ -223,7 +223,7 @@ class AWSDataHandler(DataHandler):
                 raise AWSDataHandlerError(str(e))
 
             data_region = aws_info['region']
-            data_access = aws_info['access']  # open | region | none
+            data_access = aws_info['access']  # open | region | restricted | none
             log.info(f'data region: {data_region}')
             log.info(f'data access mode: {data_access}')
 
@@ -242,7 +242,7 @@ class AWSDataHandler(DataHandler):
                     msg = f'{msg}  {message}'
                     raise AWSDataHandlerError(msg)
 
-            elif data_access == 'region':
+            elif data_access in ['region', 'restricted']:
 
                 accessible = False
                 messages = []
@@ -253,18 +253,19 @@ class AWSDataHandler(DataHandler):
                     # TO ACCESS REGION-RESTRICTED DATA ANONYMOUSLY.
                     # -----------------------
                     # Attempting anonymous access:
-                    msg = 'Accessing region data anonymously ...'
-                    s3_config = botocore.client.Config(signature_version=botocore.UNSIGNED)
-                    s3_resource = boto3.resource(service_name='s3', config=s3_config)
-                    accessible, message = self.is_accessible(s3_resource, aws_info['bucket'], aws_info['path'])
-                    if accessible:
-                        break
-                    message = f'  - {msg} {message}.'
-                    messages.append(message)
+                    if data_access == 'region': 
+                        msg = f'Accessing {data_access} data anonymously ...'
+                        s3_config = botocore.client.Config(signature_version=botocore.UNSIGNED)
+                        s3_resource = boto3.resource(service_name='s3', config=s3_config)
+                        accessible, message = self.is_accessible(s3_resource, aws_info['bucket'], aws_info['path'])
+                        if accessible:
+                            break
+                        message = f'  - {msg} {message}.'
+                        messages.append(message)
 
                     # If profile is given, try to use it first as it takes precedence.
                     if self.profile is not None:
-                        msg = f'Accessing data using profile: {self.profile} ...'
+                        msg = f'Accessing {data_access} data using profile: {self.profile} ...'
                         try:
                             s3_session = boto3.session.Session(profile_name=self.profile)
                             s3_resource = s3_session.resource(service_name='s3')
@@ -279,7 +280,7 @@ class AWSDataHandler(DataHandler):
 
                     # If access with profile fails, attemp to use any credientials
                     # in the user system e.g. environment variables etc. boto3 should find them.
-                    msg = 'Accessing region data with other credentials ...'
+                    msg = f'Accessing {data_access} data with other credentials ...'
                     s3_resource = boto3.resource(service_name='s3')
                     accessible, message = self.is_accessible(s3_resource, aws_info['bucket'], aws_info['path'])
                     if accessible:
@@ -288,7 +289,7 @@ class AWSDataHandler(DataHandler):
                     messages.append(message)
 
                     # if we are here, then we cannot access the data. Fall back to on-prem
-                    msg = '\nUnable to authenticate or access data with "region" access mode:\n'
+                    msg = f'\nUnable to authenticate or access data with "{data_access}" access mode:\n'
                     msg += '\n'.join(messages)
                     raise AWSDataHandlerError(msg)
             else:
