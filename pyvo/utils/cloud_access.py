@@ -146,6 +146,7 @@ class AWSDataHandler(DataHandler):
     @property
     def s3_uri(self):
         if not self._s3_uri:
+            self.process_data_info()
             self._s3_uri = f's3://{self.processed_info["s3_bucket"]}/{self.processed_info["s3_path"]}'
         return self._s3_uri
 
