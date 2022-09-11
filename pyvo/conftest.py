@@ -30,8 +30,13 @@ def pytest_configure(config):
 
         # Customize the following lines to add/remove entries from the list of
         # packages for which version numbers are displayed when running the tests.
+        PYTEST_HEADER_MODULES['Astropy'] = 'astropy'  # noqa
+        PYTEST_HEADER_MODULES['requests'] = 'requests'  # noqa
+
         PYTEST_HEADER_MODULES.pop('Pandas', None)
-        PYTEST_HEADER_MODULES['scikit-image'] = 'skimage'
+        PYTEST_HEADER_MODULES.pop('h5py', None)
+        PYTEST_HEADER_MODULES.pop('Scipy', None)
+        PYTEST_HEADER_MODULES.pop('Matplotlib', None)
 
         from . import __version__
         TESTED_VERSIONS['pyvo'] = __version__
