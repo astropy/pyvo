@@ -141,6 +141,14 @@ class AWSDataHandler(DataHandler):
         self.requester_pays = requester_pays
         self.profile = profile
         self.product = product
+        self._s3_uri = None
+
+    @property
+    def s3_uri(self):
+        if not self._s3_uri:
+            self.process_data_info()
+            self._s3_uri = f's3://{self.processed_info["s3_bucket"]}/{self.processed_info["s3_path"]}'
+        return self._s3_uri
 
     def _validate_aws_info(self, info):
         """Do some basic validation of the json information provided in the
