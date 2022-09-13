@@ -32,7 +32,6 @@ of which DALAccessError is the root parent exception.
 from ._astropy_init import *
 # ----------------------------------------------------------------------------
 
-# For egg_info test builds to pass, put package imports here.
 from . import registry
 from .dal import ssa, sia, sla, scs, tap
 from . import auth
