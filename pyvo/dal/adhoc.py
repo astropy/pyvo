@@ -567,8 +567,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
                     additional_terms.extend(voc["terms"][term]["narrower"])
             core_terms = core_terms+additional_terms
 
-        semantics = set("#"+term for term in core_terms
-            ) | set(other_terms)
+        semantics = set("#"+term for term in core_terms) | set(other_terms)
         for record in self:
             if record.semantics in semantics:
                 yield record

@@ -183,6 +183,7 @@ class DALServiceError(DALProtocolError):
             code = 0
             if response is not None:
                 code = response.status_code
+            message = str(exc)
             content_type = response.headers.get('content-type', None)
             if content_type and 'text/plain' in content_type:
                 message = '{} for {}'.format(response.text, url)

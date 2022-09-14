@@ -322,7 +322,7 @@ class DALResults:
 
         if self._status[0].lower() == "overflow":
             warn("Partial result set. Potential causes MAXREC, async storage space, etc.",
-                 category=DALOverflowWarning);
+                 category=DALOverflowWarning)
 
         self._resultstable = self._findresultstable(votable)
         if not self._resultstable:
