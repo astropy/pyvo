@@ -771,8 +771,11 @@ class Record(Mapping):
             response = self._session.get(url, stream=True, timeout=timeout)
         else:
             response = self._session.get(url, stream=True)
+        try:
+            response.raise_for_status()
+        except requests.RequestException as ex:
+            raise DALServiceError.from_except(ex, url)
 
-        response.raise_for_status()
         return response.raw
 
     def cachedataset(self, filename=None, dir=".", timeout=None, bufsize=None):

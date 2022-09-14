@@ -821,7 +821,7 @@ class AsyncTAPJob:
             if theres an error
         """
         if self.phase in {"ERROR", "ABORTED"}:
-            raise DALQueryError("Query Error", self.phase, self.url)
+            raise DALQueryError("Query Error: " + self.job.message, self.phase, self.url)
 
     def fetch_result(self):
         """
