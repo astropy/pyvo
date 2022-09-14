@@ -56,7 +56,6 @@ The following packages are required for PyVO:
 The following packages are optional dependencies and are required for the
 full functionality:
 
- * mimeparse
  * pillow
 
 For running the tests, and building the documentation, the following
