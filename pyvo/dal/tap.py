@@ -646,7 +646,7 @@ class AsyncTAPJob:
         """
         self._update()
         for parameter in self._job.parameters:
-            if parameter.id_ == 'query':
+            if parameter.id_.lower() == 'query':
                 return parameter.content
         return ''
 

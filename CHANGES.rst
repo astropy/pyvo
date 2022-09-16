@@ -19,6 +19,9 @@
 
 - Allow session to be passed through in SSA and DataLink. [#327]
 
+- pyvo.dal.tap.AsyncTAPJob treats parameter names as case-insensitive when
+  retrieving the query from the job record. [#356]
+
 
 1.3 (2022-02-19)
 ==================
