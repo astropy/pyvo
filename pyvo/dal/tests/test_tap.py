@@ -12,7 +12,7 @@ from urllib.parse import parse_qsl
 import pytest
 import requests_mock
 
-from pyvo.dal.tap import escape, search, TAPService
+from pyvo.dal.tap import escape, search, AsyncTAPJob, TAPService
 from pyvo.io.uws import JobFile
 from pyvo.io.uws.tree import Parameter, Result
 
@@ -105,7 +105,7 @@ class MockAsyncTAPServer:
         job.destruction = Time.now() + TimeDelta(3600, format='sec')
 
         for key, value in data.items():
-            param = Parameter(id=key.lower())
+            param = Parameter(id=key)
             param.content = value
             job.parameters.append(param)
 
@@ -175,11 +175,11 @@ class MockAsyncTAPServer:
             if 'QUERY' in data:
                 assert data['QUERY'] == 'SELECT TOP 42 * FROM ivoa.obsCore'
                 for param in job.parameters:
-                    if param.id_ == 'query':
+                    if param.id_.lower() == 'query':
                         param.content = data['QUERY']
             if 'UPLOAD' in data:
                 for param in job.parameters:
-                    if param.id_ == 'upload':
+                    if param.id_.lower() == 'upload':
                         uploads1 = {data[0]: data[1] for data in [
                             data.split(',') for data
                             in data['UPLOAD'].split(';')
@@ -426,18 +426,45 @@ class TestTAPService:
     @pytest.mark.usefixtures('async_fixture')
     def test_submit_job(self):
         service = TAPService('http://example.com/tap')
-        job = service.submit_job(
-            'http://example.com/tap', "SELECT * FROM ivoa.obscore")
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
 
         assert job.url == 'http://example.com/tap/async/' + job.job_id
         assert job.phase == 'PENDING'
         assert job.execution_duration == TimeDelta(3600, format='sec')
         assert isinstance(job.destruction, Time)
         assert isinstance(job.quote, Time)
+        assert job.query == "SELECT * FROM ivoa.obscore"
 
         job.run()
         job.wait()
         job.delete()
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_submit_job_case(self):
+        """Test using mixed case in the QUERY parameter to a job.
+
+        DALI requires that query parameter names be case-insensitive, and
+        some TAP servers reflect the input case into the job record, so the
+        TAP client has to be prepared for any case for the QUERY parameter
+        name.
+        """
+        service = TAPService('http://example.com/tap')
+
+        # This has to be tested manually, bypassing the normal client layer,
+        # in order to force a mixed-case parameter name.
+        response = service._session.post(
+            "http://example.com/tap/async",
+            data={
+                "REQUEST": "doQuery",
+                "LANG": "ADQL",
+                "quERy": "SELECT * FROM ivoa.obscore",
+            }
+        )
+        response.raw.read = partial(response.raw.read, decode_content=True)
+        job = AsyncTAPJob(response.url, session=service._session)
+
+        assert job.url == 'http://example.com/tap/async/' + job.job_id
+        assert job.query == "SELECT * FROM ivoa.obscore"
 
     @pytest.mark.usefixtures('async_fixture')
     def test_modify_job(self):
