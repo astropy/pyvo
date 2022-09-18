@@ -503,8 +503,15 @@ class SSAQuery(DALQuery):
             except TypeError:
                 raise valerr
 
+        # It seems astropy either has seconds and microseconds (the date_hms
+        # subformat) or no seconds at all (the date_hm subformat).  SSAP
+        # probably doesn't allow microseconds.  Rather than fix this
+        # via a new astropy subformat, let's get by with local string
+        # operations.
+        literals = time.to_value('isot')
         self["TIME"] = "{start}/{end}".format(
-            start=time.isot[0], end=time.isot[1])
+            start=literals[0].split(".")[0],
+            end=literals[1].split(".")[0])
 
     @time.deleter
     def time(self):
