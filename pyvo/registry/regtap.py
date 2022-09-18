@@ -15,10 +15,13 @@ can be queried for individual datasets of interest.
 This module provides basic, low-level access to the RegTAP Registries using
 standardized TAP-based services.
 """
+
 import functools
 import os
+import warnings
 
 from astropy import table
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from . import rtcons
 from ..dal import scs, sia, ssa, sla, tap, query as dalq
@@ -374,13 +377,13 @@ class RegistryResource(dalq.Record):
         dalq.Record.__init__(self, results, index, session)
 
         self._mapping["access_urls"
-            ] = self._mapping["access_urls"].split(TOKEN_SEP)
+            ] = self._parse_pseudo_array(self._mapping["access_urls"])
         self._mapping["standard_ids"
-            ] = self._mapping["standard_ids"].split(TOKEN_SEP)
+            ] = self._parse_pseudo_array(self._mapping["standard_ids"])
         self._mapping["intf_types"
-            ] = self._mapping["intf_types"].split(TOKEN_SEP)
+            ] = self._parse_pseudo_array(self._mapping["intf_types"])
         self._mapping["intf_roles"
-            ] = self._mapping["intf_roles"].split(TOKEN_SEP)
+            ] = self._parse_pseudo_array(self._mapping["intf_roles"])
 
         self.interfaces = [Interface(*props)
             for props in zip(
@@ -388,6 +391,26 @@ class RegistryResource(dalq.Record):
                 self["standard_ids"],
                 self["intf_types"],
                 self["intf_roles"])]
+
+    @staticmethod
+    def _parse_pseudo_array(literal):
+        """
+        parses RegTAP pseudo-arrays into lists.
+
+        Parameters
+        ----------
+        literal : str
+            the result of an ivo_string_agg call with TOKEN_SEP
+
+        Returns
+        -------
+        A list of strings corresponding to the orginal, database-side
+        aggregate.
+        """
+        if not literal:
+            # As VOTable, we don't distinguish between None and ""
+            return []
+        return literal.split(TOKEN_SEP)
 
     @property
     def ivoid(self):
@@ -496,13 +519,20 @@ class RegistryResource(dalq.Record):
         """
         # some services declare some data models using multiple
         # identifiers; in this case, we'll get the same access URL
-        # multiple times in here.  Don't be alarmed when that happens:
-        access_urls = list(set(self["access_urls"]))
-        if len(access_urls)==1:
-            return access_urls[0]
-        else:
+        # multiple times in here.  Be cool about that situation:
+        access_urls = list(sorted(set(self["access_urls"])))
+
+        if len(access_urls)==0:
             raise dalq.DALQueryError(
-                "No unique access URL.  Use get_service.")
+                f"The resource {self.ivoid} has no queriable interfaces.")
+
+        elif len(access_urls)>1:
+            warnings.warn(AstropyDeprecationWarning(
+                f"The resource {self.ivoid} has multiple capabilities. "
+                " You should explicitly pick one using get_service. "
+                " Returning some access_url now, but this behaviour "
+                " may change in the future."))
+        return access_urls[0]
 
     @property
     def standard_id(self):
@@ -615,6 +645,15 @@ class RegistryResource(dalq.Record):
             If there are multiple capabilities for service_type, the
             function choose the first matching capability by default
             Pass lax=False to instead raise a DALQueryError.
+
+        Returns
+        -------
+        `pyvo.dal.DALService`
+            For standard service types, a specific DAL service instance
+            (e.g., a `pyvo.dal.tap.TAPService` when requesting ``tap``
+            services) is returned.  For ``web`` services, what is returned is
+            an opaque service object that has a ``search()`` method simply
+            opening a web browser on the access URL.
         """
         return self.get_interface(service_type, lax, std_only=True
             ).to_service()
@@ -691,10 +730,10 @@ class RegistryResource(dalq.Record):
         print("Access modes: " + ", ".join(sorted(self.access_modes())),
             file=file)
 
-        try:
+        if len(self._mapping["access_urls"])==1:
             print("Base URL: " + self.access_url, file=file)
-        except dalq.DALQueryError:
-            print("Multi-capabilty service -- use get_service()")
+        else:
+            print("Multi-capabilty service -- use get_service()", file=file)
 
         if self.res_description:
             print(file=file)

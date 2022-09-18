@@ -483,6 +483,7 @@ def _makeRegistryRecord(overrides):
         "standard_ids": "",
         "intf_types": "",
         "intf_roles": "",
+        "ivoid": "ivo://pyvo/test_regtap.py"
     }
     defaults.update(overrides)
     return regtap.RegistryResource(_FakeResult(defaults), 0)
@@ -584,8 +585,42 @@ class TestExtraResourceMethods:
         assert "Flash/Heros SSAP" in output
         assert ("Access modes: datalink#links-1.0, soda#sync-1.0,"
             " ssa, tap#aux, web" in output)
+        assert "Multi-capabilty service" in output
 
         assert "More info: http://dc.zah" in output
+
+    def test_no_access_url(self):
+        rsc = _makeRegistryRecord({
+            "access_urls": [],
+            "standard_ids": [],
+            "intf_types": [],
+            "intf_roles": []
+        })
+        with pytest.raises(dalq.DALQueryError) as excinfo:
+            rsc.access_url
+
+        assert str(excinfo.value) == ("The resource"
+            " ivo://pyvo/test_regtap.py has no queriable interfaces.")
+
+    def test_unique_access_url(self):
+        rsc = _makeRegistryRecord({
+            "access_urls": ["http://a"],
+            "standard_ids": ["ivo://ivoa.net/std/tap"],
+            "intf_types": ["vs:paramhttp"],
+            "intf_roles": [""]
+        })
+        assert rsc.access_url == "http://a"
+
+    def test_ambiguous_access_url_warns(self, recwarn):
+        rsc = _makeRegistryRecord({
+            "access_urls": ["http://a", "http://b"],
+            "standard_ids": ["ivo://ivoa.net/std/tap"]*2,
+            "intf_types": ["vs:paramhttp"]*2,
+            "intf_roles": ["std"]*2,
+        })
+        assert rsc.access_url == "http://a"
+        assert [str(w.message)[:50] for w in recwarn
+            ] == ['The resource ivo://pyvo/test_regtap.py has multipl']
 
 
 # TODO: While I suppose the contact test should keep requiring network,
