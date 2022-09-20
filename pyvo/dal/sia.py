@@ -396,19 +396,19 @@ class SIAQuery(DALQuery):
         """
         super().__init__(baseurl, session=session, **keywords)
 
-        if pos:
+        if pos is not None:
             self.pos = pos
 
         if size is not None:
             self.size = size
 
-        if format:
+        if format is not None:
             self.format = format
 
-        if intersect:
+        if intersect is not None:
             self.intersect = intersect
 
-        if verbosity:
+        if verbosity is not None:
             self.verbosity = verbosity
 
     @property
