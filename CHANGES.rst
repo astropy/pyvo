@@ -1,6 +1,10 @@
 1.4 (unreleased)
 ================
 
+- More explicit exception messages where the payload is 
+  sometimes considered if it can be presented properly (simple
+  body text or job error message). [#355]
+
 - we now ignore namespaces in xsi-type attributes; this is a lame fix
   for services like ESO's and MAST's TAP, which do not use canonical
   prefixes while astropy.utils.xml ignores namespaces. [#323]
