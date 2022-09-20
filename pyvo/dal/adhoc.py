@@ -421,9 +421,9 @@ class DatalinkQuery(DALQuery):
         """
         super().__init__(baseurl, session=session, **keywords)
 
-        if id:
+        if id is not None:
             self["ID"] = id
-        if responseformat:
+        if responseformat is not None:
             self["RESPONSEFORMAT"] = responseformat
 
     def execute(self, post=False):
@@ -866,16 +866,16 @@ class SodaQuery(DatalinkQuery, AxisParamMixin):
             **kwargs):
         super().__init__(baseurl, **kwargs)
 
-        if circle:
+        if circle is not None:
             self.circle = circle
 
-        if range:
+        if range is not None:
             self.range = range
 
-        if polygon:
+        if polygon is not None:
             self.polygon = polygon
 
-        if band:
+        if band is not None:
             self.band = band
 
     @property
