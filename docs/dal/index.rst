@@ -432,7 +432,8 @@ The total number of rows in the answer is available as its ``len()``:
 
 If the row contains datasets, they are exposed by several retrieval methods:
 
-.. doctest-remote-data::
+.. remove skip once https://github.com/astropy/pyvo/issues/361 is fixed
+.. doctest-skip::
 
     >>> url = row.getdataurl()
     >>> fileobj = row.getdataset()
@@ -475,7 +476,8 @@ To get an iterator yielding specific datasets, call
 :py:meth:`pyvo.dal.adhoc.DatalinkResults.bysemantics` with the identifier
 identifying the dataset you want it to return.
 
-.. doctest-remote-data::
+.. remove skip once https://github.com/astropy/pyvo/issues/361 is fixed
+.. doctest-skip::
 
     >>> preview = next(row.getdatalink().bysemantics('#preview')).getdataset()
 
@@ -485,7 +487,8 @@ identifying the dataset you want it to return.
 
 Of course one can also build a datalink object from it's url.
 
-.. doctest-remote-data::
+.. TODO: define DatalinkResults
+.. doctest-skip::
 
     >>> datalink = DatalinkResults.from_result_url(url)
 
@@ -500,7 +503,8 @@ Datalink
 Generic access to processing services is provided through the datalink
 interface.
 
-.. doctest-remote-data::
+.. remove skip once https://github.com/astropy/pyvo/issues/361 is fixed
+.. doctest-skip::
 
     >>> datalink_proc = next(row.getdatalink().bysemantics('#proc'))
 
@@ -508,26 +512,28 @@ interface.
   most times there is only one processing service per result, and thats all you
   need.
 
-.. doctest-remote-data::
-
-  >>> datalink_proc = row.getdatalink().get_first_proc()
 
 The returned object lets you access the available input parameters which you
 can pass as keywords to the ``process`` method.
 
-.. doctest-remote-data::
+.. remove skip once https://github.com/astropy/pyvo/issues/361 is fixed
+.. doctest-skip::
 
-    >>> print(datalink_proc.input_params)
+  >>> datalink_proc = row.getdatalink().get_first_proc()
+  >>> print(datalink_proc.input_params)
+
 
 For more details about this have a look at
 :py:class:`astropy.io.votable.tree.Param`.
 
 Calling the method will return a file-like object on sucess.
 
-.. doctest-remote-data::
+.. remove skip once https://github.com/astropy/pyvo/issues/361 is fixed
+.. doctest-skip::
 
     >>> print(datalink_proc)
     >>> fobj = datalink.process(circle=(1, 1, 1))
+
 
 SODA
 ^^^^
@@ -543,6 +549,7 @@ parameters who are dependend on the type of service.
 - ``band`` -- a sequence of two values (meters) or
   :py:class:`astropy.units.Quantity` with two bandwitdh values. The right sort
   order will be ensured if converting from frequency to wavelength.
+
 
 Interoperabillity over SAMP
 ---------------------------

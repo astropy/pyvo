@@ -25,6 +25,7 @@ class TestSIACadc():
         assert cadc.availability.notes[0] == 'service is accepting queries'
         assert cadc.capabilities
 
+    @pytest.mark.xfail(reason="https://github.com/astropy/pyvo/issues/361")
     @pytest.mark.filterwarnings("ignore::pyvo.dal.exceptions.DALOverflowWarning")
     def test_datalink_batch(self):
         # Maximum batch size in CADC SIA is around 25
