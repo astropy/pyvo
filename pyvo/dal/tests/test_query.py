@@ -310,7 +310,6 @@ class TestDALResults:
             DALResults.from_result_url(
                 'http://example.com/query/missingresource')
 
-    @pytest.mark.xfail()
     def test_init_missingcolumns(self):
         with pytest.raises(DALFormatError):
             DALResults.from_result_url(
@@ -331,7 +330,6 @@ class TestDALResults:
             'http://example.com/query/rootinfo')
         assert dalresults.status == ('OK', 'OK')
 
-    @pytest.mark.xfail(reason="ID lookup does not work")
     def test_repr(self):
         dalresults = DALResults.from_result_url(
             'http://example.com/query/basic')
@@ -357,7 +355,6 @@ class TestDALResults:
         _test_results(dalresults)
         _test_records(dalresults)
 
-    @pytest.mark.xfail(reason="ID lookup does not work")
     def test_table_conversion(self):
         dalresults = DALResults.from_result_url(
             'http://example.com/query/basic')
