@@ -76,12 +76,13 @@ specific to the service type. In this example, a database query is enough:
 .. doctest-remote-data::
 
     >>> resultset = service.search("SELECT TOP 1 * FROM ivoa.obscore")
-    <Table masked=True length=1>
-    dataproduct_type dataproduct_subtype calib_level ... s_pixel_scale em_ucd
-                                                     ...      arcs
-         object             object          int16    ...    float64    object
-    ---------------- ------------------- ----------- ... ------------- ------
-               image                               1 ...            --
+    >>> resultset
+    <Table length=1>
+    dataproduct_type dataproduct_subtype ... source_table
+                                         ...
+         object             object       ...    object
+    ---------------- ------------------- ... ------------
+               image                     ... ppakm31.maps
 
 What is returned by the search method is a to get a resultset object, which
 esseintially works like a numpy record array.  It can be processed either by
@@ -97,7 +98,7 @@ or by rows.
 .. doctest-remote-data::
 
     >>> for row in resultset:
-    >>>   calib_level = row["calib_level"]
+    ...   calib_level = row["calib_level"]
 
 For more details on how to use data access services see :ref:`pyvo-data-access`
 
@@ -112,7 +113,15 @@ observational datasets through TAP tables), you can write:
 .. doctest-remote-data::
 
     >>> for service in vo.regsearch(datamodel="obscore"):
-    ...   print(service)
+    ...   print(service['ivoid'])
+    ivo://aip.gavo.org/tap
+    ivo://archive.stsci.edu/caomtap
+    ivo://astro.ucl.ac.uk/tap
+    ivo://astron.nl/tap
+    ivo://asu.cas.cz/tap
+    ...
+    ivo://xcatdb/3xmmdr7/tap
+    ivo://xcatdb/4xmm/tap
 
 
 Using `pyvo`

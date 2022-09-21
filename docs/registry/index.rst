@@ -171,9 +171,9 @@ thus say:
 
   >>> resources["II/283"].get_service("conesearch").search(pos=(120, 73), sr=1)  # doctest: +IGNORE_OUTPUT
   <Table length=1>
-    _RAJ2000     _DEJ2000      _r    recno ... NED    RAJ2000      DEJ2000   
-      deg          deg        deg          ...        "h:m:s"      "d:m:s"   
-    float64      float64    float64  int32 ... str3    str12        str12    
+    _RAJ2000     _DEJ2000      _r    recno ... NED    RAJ2000      DEJ2000
+      deg          deg        deg          ...        "h:m:s"      "d:m:s"
+    float64      float64    float64  int32 ... str3    str12        str12
   ------------ ------------ -------- ----- ... ---- ------------ ------------
   117.98645833  73.00961111 0.588592   986 ...  NED 07 51 56.750 +73 00 34.60
 
@@ -184,7 +184,7 @@ attribute, but you can take a shortcut and call a RegistryResource's
 
 .. doctest-remote-data::
 
-  >>> tables = resources["II/283"].get_tables()
+  >>> tables = resources["II/283"].get_tables()  # doctest: +IGNORE_WARNINGS
   >>> list(tables.keys())
   ['II/283/sncat']
   >>> tables['II/283/sncat'].columns
@@ -212,9 +212,9 @@ to the resource that works in a web browser.  You can ask for a
 ``search`` method, and when you call it, a browser window should open
 with the query facility (this uses python's webbrowser module):
 
-.. doctest-remote-data::
+.. doctest-skip::
 
-  >>> resources["II/283"].get_service("web").search()
+  >>> resources["II/283"].get_service("web").search()  # doctest: +IGNORE_OUTPUT
 
 Note that for interactive data discovery in the VO Registry, you may
 also want to have a look at Aladin's discovery tree, TOPCAT's VO menu,
@@ -330,7 +330,7 @@ and then you can run:
 
 .. doctest-remote-data::
 
-  >>> res.get_tables()
+  >>> res.get_tables()  # doctest: +IGNORE_OUTPUT
   {'flashheros.data': <Table name="flashheros.data">... 29 columns ...</Table>, 'ivoa.obscore': <Table name="ivoa.obscore">... 0 columns ...</Table>}
 
 

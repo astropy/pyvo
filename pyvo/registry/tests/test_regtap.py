@@ -20,7 +20,7 @@ from pyvo.dal import tap
 
 from astropy.utils.data import get_pkg_data_contents
 
-from .commonfixtures import messenger_vocabulary
+from .commonfixtures import messenger_vocabulary  # noqa: F401
 
 
 get_pkg_data_contents = partial(
@@ -656,7 +656,7 @@ class TestGetTables:
         assert (flash_tables["ivoa.obscore"].name
             == "ivoa.obscore")
         assert (flash_tables["ivoa.obscore"].description
-            == "This data collection is queriable in GAVO Data"
+            == "This data collection is queryable in GAVO Data"
             " Center's obscore table.")
         assert (flash_tables["flashheros.data"].title
             == "Flash/Heros SSA table")

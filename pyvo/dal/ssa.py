@@ -346,19 +346,19 @@ class SSAQuery(DALQuery):
         """
         super().__init__(baseurl, session=session)
 
-        if pos:
+        if pos is not None:
             self.pos = pos
 
         if diameter is not None:
             self.diameter = diameter
 
-        if band:
+        if band is not None:
             self.band = band
 
-        if time:
+        if time is not None:
             self.time = time
 
-        if format:
+        if format is not None:
             self.format = format
 
         self.request = request
