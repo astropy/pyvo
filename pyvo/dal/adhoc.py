@@ -16,7 +16,6 @@ from astropy.io.votable.tree import Param
 from astropy import units as u
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
-from pyvo.utils.compat import ASTROPY_LT_4_1
 
 from astropy.io.votable.tree import Resource, Group
 from astropy.utils.collections import HomogeneousList
@@ -132,9 +131,7 @@ class AdhocServiceResultsMixin:
         Resource
             The resource element describing the service.
         """
-        if ASTROPY_LT_4_1 and isinstance(ivo_id, str):
-            ivo_id = ivo_id.encode('utf-8')
-        if not ASTROPY_LT_4_1 and isinstance(ivo_id, bytes):
+        if isinstance(ivo_id, bytes):
             ivo_id = ivo_id.decode('utf-8')
         for adhocservice in self.iter_adhocservices():
             if any(
@@ -592,12 +589,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         for index, row in enumerate(rows):
             votable.array[index] = row
         # now remove unreferenced services from resources
-        if ASTROPY_LT_4_1:
-            referenced_serviced = \
-                [x.decode('utf-8') for x in votable.array['service_def'] if x]
-        else:
-            referenced_serviced = \
-                [x for x in votable.array['service_def'] if x]
+        referenced_serviced = [x for x in votable.array['service_def'] if x]
         # remove customized that are not referenced by the current results
         for x in copy_tb.resources:
             if x.ID and x.ID not in referenced_serviced:
