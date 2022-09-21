@@ -301,7 +301,7 @@ class AWSDataHandler(DataHandler):
 
             # if we make it here, we have valid aws access information.
             info['s3_key'] = aws_info['key']
-            info['s3_bucket'] = aws_info['bucket_name']
+            info['s3_bucket_name'] = aws_info['bucket_name']
             info['message'] = msg
             info['s3_resource'] = s3_resource
             info['data_region'] = data_region
@@ -369,7 +369,7 @@ class AWSDataHandler(DataHandler):
         s3_client = s3.meta.client
 
         key = data_info['s3_key']
-        bucket_name = data_info['s3_bucket']
+        bucket_name = data_info['s3_bucket_name']
         bkt = s3.Bucket(bucket_name)
         if not key:
             raise Exception(f"Unable to locate file {key}.")
@@ -393,7 +393,7 @@ class AWSDataHandler(DataHandler):
         Parameters
         ----------
         data_info : dict holding the data information, with keys for:
-            s3_resource, s3_key, s3_bucket
+            s3_resource, s3_key, s3_bucket_name
         local_path : str
             The local filename to which toe downloaded file will be saved.
         cache : bool
@@ -404,7 +404,7 @@ class AWSDataHandler(DataHandler):
         s3_client = s3.meta.client
 
         key = data_info['s3_key']
-        bucket_name = data_info['s3_bucket']
+        bucket_name = data_info['s3_bucket_name']
         bkt = s3.Bucket(bucket_name)
         if not key:
             raise Exception(f"Unable to locate file {key}.")
