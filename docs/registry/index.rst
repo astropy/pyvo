@@ -152,11 +152,16 @@ standard id; this is a minor VO technicality that you can in practice
 ignore.  For instance, you can simply construct
 :py:class:`pyvo.dal.TAPService`-s from ``tap#aux`` interfaces.
 
-Once you have found a resource you would like to query, pick it by index
-(which will not be stable across multiple executions.
-Use a resource's ivoid to identify resources over multiple runs
-of a programme; cf. the :py:class:`pyvo.registry.Ivoid`
-constraint).  Use the ``get_service`` method of
+Once you have found a resource you would like to query, you can pick it
+by index; however,
+this will not be stable across multiple executions.
+Hence, RegistryResults also supports referencing results by short name,
+which is the style we recommend.  Using full ivoids is possible, too,
+and safer because these are guaranteed to be unique (which short names
+are not), but it is rather clunky, and in the real VO short name
+collisions should be very rare.
+
+Use the ``get_service`` method of
 :py:class:`pyvo.registry.RegistryResource` to obtain a DAL service
 object for a particular sort of interface.
 To query the fourth match using simple cone search, you would
@@ -164,14 +169,13 @@ thus say:
 
 .. doctest-remote-data::
 
-  >>> resources[4].get_service("conesearch").search(pos=(120, 73), sr=1)  # doctest: +IGNORE_OUTPUT
+  >>> resources["II/283"].get_service("conesearch").search(pos=(120, 73), sr=1)  # doctest: +IGNORE_OUTPUT
   <Table length=1>
-     _r    recno   SN   r_SN    z       sI     e_sI     t1     e_t1     I1     e_I1     t2     e_t2     I2     e_I2    chi2    N   Simbad    _RA       _DE
-    deg                                                 d       d      mag     mag      d       d      mag     mag                           deg       deg
-  float64  int32  str6 uint8 float32 float32 float32 float32 float32 float32 float32 float32 float32 float32 float32 float32 int16  str6   float64   float64
-  -------- ----- ----- ----- ------- ------- ------- ------- ------- ------- ------- ------- ------- ------- ------- ------- ----- ------ --------- ---------
-  0.588592    19 1995E     3   0.012   1.026   0.040   0.067   0.635  15.393   0.024  26.340   0.950  16.093   0.050    6.78    14 Simbad 117.98646  73.00961
-
+    _RAJ2000     _DEJ2000      _r    recno ... NED    RAJ2000      DEJ2000   
+      deg          deg        deg          ...        "h:m:s"      "d:m:s"   
+    float64      float64    float64  int32 ... str3    str12        str12    
+  ------------ ------------ -------- ----- ... ---- ------------ ------------
+  117.98645833  73.00961111 0.588592   986 ...  NED 07 51 56.750 +73 00 34.60
 
 To operate TAP services, you need to know what tables make up a
 resource; you could construct a TAP service and access its ``tables``
@@ -180,18 +184,18 @@ attribute, but you can take a shortcut and call a RegistryResource's
 
 .. doctest-remote-data::
 
-  >>> tables = resources[4].get_tables()
+  >>> tables = resources["II/283"].get_tables()
   >>> list(tables.keys())
-  ['J/A+A/437/789/table2']
-  >>> tables['J/A+A/437/789/table2'].columns
-  [<BaseParam name="recno"/>, <BaseParam name="sn"/>, <BaseParam name="r_sn"/>, <BaseParam name="z"/>, <BaseParam name="si"/>, <BaseParam name="e_si"/>, <BaseParam name="t1"/>, <BaseParam name="e_t1"/>, <BaseParam name="i1"/>, <BaseParam name="e_i1"/>, <BaseParam name="t2"/>, <BaseParam name="e_t2"/>, <BaseParam name="i2"/>, <BaseParam name="e_i2"/>, <BaseParam name="chi2"/>, <BaseParam name="n"/>, <BaseParam name="simbad"/>, <BaseParam name="_ra"/>, <BaseParam name="_de"/>]
+  ['II/283/sncat']
+  >>> tables['II/283/sncat'].columns
+  [<BaseParam name="n_x"/>, <BaseParam name="t"/>, <BaseParam name="recno"/>, <BaseParam name="n_sn"/>, <BaseParam name="sn"/>, <BaseParam name="u_sn"/>, <BaseParam name="galaxy"/>, <BaseParam name="rag"/>, <BaseParam name="deg"/>, <BaseParam name="mtype"/>, <BaseParam name="i"/>, <BaseParam name="pa"/>, <BaseParam name="hrv"/>, <BaseParam name="z"/>, <BaseParam name="u_z"/>, <BaseParam name="n_bmag"/>, <BaseParam name="bmag"/>, <BaseParam name="logd25"/>, <BaseParam name="x"/>, <BaseParam name="y"/>, <BaseParam name="u_y"/>, <BaseParam name="n_y"/>, <BaseParam name="band"/>, <BaseParam name="maxmag"/>, <BaseParam name="u_maxmag"/>, <BaseParam name="type"/>, <BaseParam name="epmax"/>, <BaseParam name="u_epmax"/>, <BaseParam name="disc"/>, <BaseParam name="simbad"/>, <BaseParam name="ned"/>, <BaseParam name="raj2000"/>, <BaseParam name="dej2000"/>]
 
 In this case, this is a table with one of VizieR's somewhat funky names.
 To run a TAP query based on this metadata, do something like:
 
 .. doctest-remote-data::
 
-  >>> resources[4].get_service("tap#aux").run_sync(
+  >>> resources["II/283"].get_service("tap#aux").run_sync(
   ...   'SELECT sn, z FROM "J/A+A/437/789/table2" WHERE z>0.04')
   <Table length=4>
     SN      z
@@ -210,7 +214,7 @@ with the query facility (this uses python's webbrowser module):
 
 .. doctest-remote-data::
 
-  >>> resources[4].get_service("web").search()
+  >>> resources["II/283"].get_service("web").search()
 
 Note that for interactive data discovery in the VO Registry, you may
 also want to have a look at Aladin's discovery tree, TOPCAT's VO menu,
