@@ -16,10 +16,6 @@
 
 - Versions of astropy <4.1 are no longer supported. [#289]
 
-
-1.3.1 (unreleased)
-==================
-
 - pyvo.dal warns on results with overflow status. [#329]
 
 - Allow session to be passed through in SSA and DataLink. [#327]
