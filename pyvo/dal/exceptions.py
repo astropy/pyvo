@@ -176,11 +176,18 @@ class DALServiceError(DALProtocolError):
         for the given exception that represents the underlying cause.
         """
         if isinstance(exc, requests.exceptions.RequestException):
-            message = str(exc)
             try:
-                code = exc.response.status_code
+                response = exc.response
             except AttributeError:
-                code = 0
+                response = None
+            code = 0
+            if response is not None:
+                code = response.status_code
+            message = str(exc)
+            content_type = response.headers.get('content-type', None)
+            if content_type and 'text/plain' in content_type:
+                message = '{} for {}'.format(response.text, url)
+            # TODO votable handling
 
             return DALServiceError(message, code, exc, url)
         elif isinstance(exc, Exception):

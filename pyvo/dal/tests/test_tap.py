@@ -13,6 +13,8 @@ import pytest
 import requests_mock
 
 from pyvo.dal.tap import escape, search, AsyncTAPJob, TAPService
+from pyvo.dal import DALQueryError
+
 from pyvo.io.uws import JobFile
 from pyvo.io.uws.tree import Parameter, Result
 
@@ -98,7 +100,11 @@ class MockAsyncTAPServer:
         job = JobFile()
         job.version = "1.1"
         job.jobid = newid
-        job.phase = 'PENDING'
+        if 'test_erroneus_submit.non_existent' in request.text:
+            job.phase = 'ERROR'
+            job.message = 'test_erroneus_submit.non_existent not found'
+        else:
+            job.phase = 'PENDING'
         job.quote = Time.now() + TimeDelta(1, format='sec')
         job.creationtime = Time.now()
         job.executionduration = TimeDelta(3600, format='sec')
@@ -438,6 +444,15 @@ class TestTAPService:
         job.run()
         job.wait()
         job.delete()
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_erroneus_submit_job(self):
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job(
+            "SELECT * FROM test_erroneus_submit.non_existent")
+        with pytest.raises(DALQueryError) as e:
+            job.raise_if_error()
+        assert 'test_erroneus_submit.non_existent not found' in str(e)
 
     @pytest.mark.usefixtures('async_fixture')
     def test_submit_job_case(self):

@@ -5,6 +5,7 @@ Datalink classes and mixins
 import numpy as np
 import warnings
 import copy
+import requests
 from collections import OrderedDict
 
 from .query import DALResults, DALQuery, DALService, Record
@@ -244,7 +245,10 @@ class DatalinkRecordMixin:
         try:
             url = next(self.getdatalink().bysemantics('#this')).access_url
             response = self._session.get(url, stream=True, timeout=timeout)
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except requests.RequestException as ex:
+                raise DALServiceError.from_except(ex, url)
             return response.raw
         except (DALServiceError, ValueError, StopIteration):
             # this should go to Record.getdataset()
@@ -560,8 +564,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
                     additional_terms.extend(voc["terms"][term]["narrower"])
             core_terms = core_terms+additional_terms
 
-        semantics = set("#"+term for term in core_terms
-            ) | set(other_terms)
+        semantics = set("#"+term for term in core_terms) | set(other_terms)
         for record in self:
             if record.semantics in semantics:
                 yield record
