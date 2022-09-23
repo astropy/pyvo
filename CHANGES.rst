@@ -1,5 +1,6 @@
 1.4 (unreleased)
 ================
+- Added the TAP Table Manipulation prototype (cadc-tb-upload). [#274]
 
 - More explicit exception messages where the payload is 
   sometimes considered if it can be presented properly (simple

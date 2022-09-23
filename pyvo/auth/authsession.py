@@ -69,6 +69,18 @@ class AuthSession:
         """
         return self._request('POST', url, **kwargs)
 
+    def put(self, url, **kwargs):
+        """
+        Wrapper to make a HTTP PUT request with authentication.
+        """
+        return self._request('PUT', url, **kwargs)
+
+    def delete(self, url, **kwargs):
+        """
+        Wrapper to make a HTTP DELETE request with authentication.
+        """
+        return self._request('DELETE', url, **kwargs)
+
     def _request(self, http_method, url, **kwargs):
         """
         Make an HTTP request with authentication.

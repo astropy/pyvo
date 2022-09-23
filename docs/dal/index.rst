@@ -186,6 +186,62 @@ The uploaded tables will be available as ``TAP_UPLOAD.name``.
   The supported upload methods are available under
   :py:meth:`~pyvo.dal.tap.TAPService.upload_methods`.
 
+.. _table manipulation:
+
+Table Manipulation
+^^^^^^^^^^^^^^^^^^
+
+.. note::
+    This is a prototype implementation and the interface might not be stable.
+    More details about the feature at: :ref:`cadc-tb-upload`
+
+Some services allow users to create, modify and delete tables. Typically, these
+functionality is only available to authenticated (and authorized) users.
+
+.. Requires proper credentials and authorization
+.. doctest-skip::
+
+    >>> auth_session = vo.auth.AuthSession()
+    >>> # authenticate. For ex: auth_session.credentials.set_client_certificate('<cert_file>')
+    >>> tap_service = vo.dal.TAPService("https://ws-cadc.canfar.net/youcat", auth_session)
+    >>>
+    >>> table_definition = '''
+    ... <vosi:table xmlns:vosi="http://www.ivoa.net/xml/VOSITables/v1.0" xmlns:vod="http://www.ivoa.net/xml/VODataService/v1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" type="output">
+    ...     <name>my_table</name>
+    ...     <description>This is my very own table</description>
+    ...     <column>
+    ...         <name>article</name>
+    ...         <description>some article</description>
+    ...         <dataType xsi:type="vod:VOTableType" arraysize="30*">char</dataType>
+    ...     </column>
+    ...     <column>
+    ...         <name>count</name>
+    ...         <description>how many</description>
+    ...         <dataType xsi:type="vod:VOTableType">long</dataType>
+    ...     </column>
+    ... </vosi:table> '''
+    >>> tap_service.create_table(name='test_schema.test_table', definition=StringIO(table_definition))
+
+Table content can be loaded from a file or from memory. Supported data formats:
+tab-separated values (tsv), comma-separated values (cvs) or VOTable (VOTable):
+
+.. doctest-skip::
+
+    >>> tap_service.load_table(name='test_schema.test_table',
+    ...                        source=StringIO('article,count\narticle1,10\narticle2,20\n'), format='csv')
+
+Users can also create indexes on single columns:
+.. doctest-skip::
+
+    >>> tap_service.create_index(table_name='test_schema.test_table', column_name='article', unique=True)
+
+Finally, tables and their content can be removed:
+
+.. doctest-skip::
+
+    >>> tap_service.remove_table(name='test_schema.test_table')
+
+
 .. _pyvo-sia:
 
 Simple Image Access

@@ -8,6 +8,7 @@ import datetime
 import re
 from io import BytesIO
 from urllib.parse import parse_qsl
+import tempfile
 
 import pytest
 import requests_mock
@@ -17,6 +18,7 @@ from pyvo.dal import DALQueryError
 
 from pyvo.io.uws import JobFile
 from pyvo.io.uws.tree import Parameter, Result
+from pyvo.utils import prototype
 
 from astropy.time import Time, TimeDelta
 
@@ -50,6 +52,82 @@ def sync_fixture(mocker):
         'POST', 'http://example.com/tap/sync', content=callback
     ) as matcher:
         yield matcher
+
+
+@pytest.fixture()
+def create_fixture(mocker):
+    def match_request(request):
+        data = request.text.read()
+        if b'VOSITable' in data:
+            assert request.headers['Content-Type'] == 'text/xml',\
+                'Wrong file format'
+        elif b'VOTable' in data:
+            assert request.headers['Content-Type'] == \
+                   'application/x-votable+xml', 'Wrong file format'
+        else:
+            assert False, 'BUG'
+        return True
+
+    with mocker.register_uri(
+        'PUT', 'https://example.com/tap/tables/abc',
+        additional_matcher=match_request, status_code=201
+    ) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
+def delete_fixture(mocker):
+    with mocker.register_uri(
+        'DELETE', 'https://example.com/tap/tables/abc', status_code=200,
+    ) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
+def load_fixture(mocker):
+    def match_request(request):
+        data = request.text.read()
+        if b',' in data:
+            assert request.headers['Content-Type'] == 'text/csv',\
+                'Wrong file format'
+        elif b'\t' in data:
+            assert request.headers['Content-Type'] == \
+                   'text/tab-separated-values', 'Wrong file format'
+        elif b'FITSTable' in data:
+            assert request.headers['Content-Type'] == \
+                   'application/fits', 'Wrong file format'
+        else:
+            assert False, 'BUG'
+        return True
+
+    with mocker.register_uri(
+        'POST', 'https://example.com/tap/load/abc',
+        additional_matcher=match_request, status_code=200,
+    ) as matcher:
+        yield matcher
+
+
+def get_index_job(phase):
+    return """<?xml version="1.0" encoding="UTF-8"?>
+    <uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0"
+    xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+        <uws:jobId>v3njuz4k1ebpdb5q</uws:jobId>
+        <uws:runId />
+        <uws:ownerId>user</uws:ownerId>
+        <uws:phase>{}</uws:phase>
+        <uws:quote>2021-10-29T17:34:19.638</uws:quote>
+        <uws:creationTime>2021-10-28T17:34:19.638</uws:creationTime>
+        <uws:startTime xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" />
+        <uws:endTime xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" />
+        <uws:executionDuration>14400</uws:executionDuration>
+        <uws:destruction>2021-11-04T17:34:19.638</uws:destruction>
+        <uws:parameters>
+            <uws:parameter id="index">article</uws:parameter>
+            <uws:parameter id="table">cadcauthtest1.pyvoTestTable</uws:parameter>
+            <uws:parameter id="unique">true</uws:parameter>
+        </uws:parameters>
+        <uws:results />
+    </uws:job>""".format(phase).encode('utf-8')
 
 
 class MockAsyncTAPServer:
@@ -531,3 +609,100 @@ class TestTAPService:
         assert len(service.get_job_list(phases=['EXECUTING'], last=3)) == 5
         assert len(service.get_job_list(phases=['EXECUTING'], last=3,
                                         after=datetime.datetime.now())) == 6
+
+    @pytest.mark.usefixtures('create_fixture')
+    def test_create_table(self):
+        prototype.activate_features('cadc-tb-upload')
+        try:
+            buffer = BytesIO(b'table definition in VOSITable format')
+            service = TAPService('https://example.com/tap')
+            service.create_table(name='abc', definition=buffer)
+            tmpfile = tempfile.NamedTemporaryFile('w+b', delete=False)
+            tmpfile.write(b'table definition in VOTable format here')
+            tmpfile.close()
+            with open(tmpfile.name, 'rb') as f:
+                service.create_table('abc', definition=f, format='VOTable')
+
+            with pytest.raises(ValueError):
+                service.create_table('abc', definition=buffer, format='Unknown')
+            with pytest.raises(ValueError):
+                service.create_table('abc', definition=None, format='VOSITable')
+        finally:
+            prototype.deactivate_features('cadc-tb-upload')
+
+    @pytest.mark.usefixtures('delete_fixture')
+    def test_remove_table(self):
+        prototype.activate_features('cadc-tb-upload')
+        try:
+            service = TAPService('https://example.com/tap')
+            service.remove_table(name='abc')
+        finally:
+            prototype.deactivate_features('cadc-tb-upload')
+
+    @pytest.mark.usefixtures('load_fixture')
+    def test_load_table(self):
+        # csv content in buffer
+        prototype.activate_features('cadc-tb-upload')
+        try:
+            service = TAPService('https://example.com/tap')
+            table_content = BytesIO(b'article,count\nart1,1\nart2,2\nart3,3')
+            service.load_table(name='abc', source=table_content, format='csv')
+
+            # tsv content in file
+            tmpfile = tempfile.NamedTemporaryFile('w+b', delete=False)
+            tmpfile.write(b'article\tcount\nart1\t1\nart2\t2\nart3\t3')
+            tmpfile.close()
+            with open(tmpfile.name, 'rb') as f:
+                service.load_table('abc', source=f, format='tsv')
+
+            # FITSTable content in file
+            tmpfile = tempfile.NamedTemporaryFile('w+b', delete=False)
+            tmpfile.write(b'FITSTable content here')
+            tmpfile.close()
+            with open(tmpfile.name, 'rb') as f:
+                service.load_table('abc', source=f, format='FITSTable')
+
+            with pytest.raises(ValueError):
+                service.load_table('abc', source=table_content, format='Unknown')
+
+            with pytest.raises(ValueError):
+                service.load_table('abc', source=None, format='tsv')
+        finally:
+            prototype.deactivate_features('cadc-tb-upload')
+
+    def test_create_index(self):
+        prototype.activate_features('cadc-tb-upload')
+        try:
+            service = TAPService('https://example.com/tap')
+
+            def match_request_text(request):
+                # check details of index are present
+                return 'table=abc&index=col1&unique=true' in request.text
+
+            with requests_mock.Mocker() as rm:
+                # mock initial post to table-update and the subsequent calls to
+                # get, run and check status of the job
+                rm.post('https://example.com/tap/table-update',
+                        additional_matcher=match_request_text,
+                        status_code=303,
+                        headers={'Location': 'https://example.com/tap/uws'})
+                rm.get('https://example.com/tap/uws',
+                       [{'content': get_index_job("PENDING")},
+                        {'content':get_index_job("COMPLETED")}])
+                rm.post('https://example.com/tap/uws/phase', status_code=200)
+                # finally the call
+                service.create_index(table_name='abc', column_name='col1',
+                                     unique=True)
+            # test wrong return status code
+                with requests_mock.Mocker() as rm:
+                    # mock initial post to table-update and the subsequent calls to
+                    # get, run and check status of the job
+                    rm.post('https://example.com/tap/table-update',
+                            additional_matcher=match_request_text,
+                            status_code=200,  # NOT EXPECTED!
+                            headers={'Location': 'https://example.com/tap/uws'})
+                    with pytest.raises(RuntimeError):
+                        service.create_index(table_name='abc', column_name='col1',
+                                             unique=True)
+        finally:
+            prototype.deactivate_features('cadc-tb-upload')
