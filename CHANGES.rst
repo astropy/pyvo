@@ -1,4 +1,8 @@
-1.4 (unreleased)
+1.5 (unreleased)
+================
+
+
+1.4 (2022-09-26)
 ================
 - Added the TAP Table Manipulation prototype (cadc-tb-upload). [#274]
 
