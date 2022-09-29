@@ -46,7 +46,7 @@ __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "SIARecord"]
 
 
 def search(
-        url, pos, size=1.0, format='all', intersect="overlaps", verbosity=2,
+        url, pos, size=1.0, format=None, intersect=None, verbosity=None,
         **keywords):
     """
     submit a simple SIA query that requests images overlapping a given region
@@ -186,8 +186,8 @@ class SIAService(DALService):
             return []
 
     def search(
-            self, pos, size=1.0, format='all', intersect="overlaps",
-            verbosity=2, **keywords):
+            self, pos, size=1.0, format=None, intersect=None,
+            verbosity=None, **keywords):
         """
         submit a SIA query to this service with the given parameters.
 
