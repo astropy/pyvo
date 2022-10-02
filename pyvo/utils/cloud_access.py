@@ -3,6 +3,7 @@ import requests
 import json
 import logging
 import threading
+from pathlib import Path
 
 from astropy.utils.data import download_file
 from astropy.utils.console import ProgressBarOrSpinner
@@ -16,6 +17,7 @@ log = logging.getLogger('fornax')
 
 
 __all__ = ['get_data_product', 'DataHandler', 'AWSDataHandler', 'AWSDataHandlerError']
+
 
 
 def get_data_product(product, provider='on-prem', access_url_column='access_url',
@@ -147,7 +149,7 @@ class AWSDataHandler(DataHandler):
     def s3_uri(self):
         if not self._s3_uri:
             self.process_data_info()
-            self._s3_uri = f's3://{self.processed_info["s3_bucket"]}/{self.processed_info["s3_path"]}'
+            self._s3_uri = f's3://{self.processed_info["s3_bucket_name"]}/{self.processed_info["s3_key"]}'
         return self._s3_uri
 
     def _validate_aws_info(self, info):
@@ -170,11 +172,11 @@ class AWSDataHandler(DataHandler):
         assert('region' in keys)
         assert('access' in keys)
         assert(info['access'] in ['none', 'open', 'restricted', 'region'])
-        assert('bucket' in keys)
-        assert('path' in keys)
+        assert('bucket_name' in keys)
+        assert('key' in keys)
 
-        if info['path'][0] == '/':
-            info['path'] = info['path'][1:]
+        if info['key'][0] == '/':
+            info['key'] = info['key'][1:]
 
         return info
 
@@ -184,7 +186,7 @@ class AWSDataHandler(DataHandler):
         This returns a dict which contains information on how to access
         the data. The main logic that attempts to interpret the cloud_access
         column provided for the data product. If sucessfully processed, the
-        access details (bucket, path etc) are added to the final dictionary.
+        access details (bucket_name, key etc) are added to the final dictionary.
         If any information is missing, the returned dict will return access_url
         that allows points to the data location in the on-prem servers as
         a backup.
@@ -236,7 +238,7 @@ class AWSDataHandler(DataHandler):
             if data_access == 'open':
                 s3_config = botocore.client.Config(signature_version=botocore.UNSIGNED)
                 s3_resource = boto3.resource(service_name='s3', config=s3_config)
-                accessible, message = self.is_accessible(s3_resource, aws_info['bucket'], aws_info['path'])
+                accessible, message = self.is_accessible(s3_resource, aws_info['bucket_name'], aws_info['key'])
                 msg = 'Accessing public data anonymously on aws ... '
                 if not accessible:
                     msg = f'{msg}  {message}'
@@ -253,11 +255,12 @@ class AWSDataHandler(DataHandler):
                     # TO ACCESS REGION-RESTRICTED DATA ANONYMOUSLY.
                     # -----------------------
                     # Attempting anonymous access:
-                    if data_access == 'region': 
+
+                    if data_access == 'region':
                         msg = f'Accessing {data_access} data anonymously ...'
                         s3_config = botocore.client.Config(signature_version=botocore.UNSIGNED)
                         s3_resource = boto3.resource(service_name='s3', config=s3_config)
-                        accessible, message = self.is_accessible(s3_resource, aws_info['bucket'], aws_info['path'])
+                        accessible, message = self.is_accessible(s3_resource, aws_info['bucket_name'], aws_info['key'])
                         if accessible:
                             break
                         message = f'  - {msg} {message}.'
@@ -269,7 +272,7 @@ class AWSDataHandler(DataHandler):
                         try:
                             s3_session = boto3.session.Session(profile_name=self.profile)
                             s3_resource = s3_session.resource(service_name='s3')
-                            accessible, message = self.is_accessible(s3_resource, aws_info['bucket'], aws_info['path'])
+                            accessible, message = self.is_accessible(s3_resource, aws_info['bucket_name'], aws_info['key'])
                             if accessible:
                                 break
                             else:
@@ -282,7 +285,7 @@ class AWSDataHandler(DataHandler):
                     # in the user system e.g. environment variables etc. boto3 should find them.
                     msg = f'Accessing {data_access} data with other credentials ...'
                     s3_resource = boto3.resource(service_name='s3')
-                    accessible, message = self.is_accessible(s3_resource, aws_info['bucket'], aws_info['path'])
+                    accessible, message = self.is_accessible(s3_resource, aws_info['bucket_name'], aws_info['key'])
                     if accessible:
                         break
                     message = f'  - {msg} {message}.'
@@ -297,8 +300,8 @@ class AWSDataHandler(DataHandler):
                 raise AWSDataHandlerError(msg)
 
             # if we make it here, we have valid aws access information.
-            info['s3_path'] = aws_info['path']
-            info['s3_bucket'] = aws_info['bucket']
+            info['s3_key'] = aws_info['key']
+            info['s3_bucket_name'] = aws_info['bucket_name']
             info['message'] = msg
             info['s3_resource'] = s3_resource
             info['data_region'] = data_region
@@ -310,7 +313,7 @@ class AWSDataHandler(DataHandler):
         self.processed_info = info
         return self.processed_info
 
-    def is_accessible(self, s3_resource, bucket_name, path):
+    def is_accessible(self, s3_resource, bucket_name, key):
         """Do a head_object call to test access
 
         Paramters
@@ -319,8 +322,8 @@ class AWSDataHandler(DataHandler):
             the service resource used for s3 connection.
         bucket_name : str
             bucket name.
-        path : str
-            path to file to test.
+        key : str
+            key to file to test.
 
         Return
         -----
@@ -331,7 +334,7 @@ class AWSDataHandler(DataHandler):
         s3_client = s3_resource.meta.client
 
         try:
-            header_info = s3_client.head_object(Bucket=bucket_name, Key=path)
+            header_info = s3_client.head_object(Bucket=bucket_name, Key=key)
             accessible, msg = True, ''
         except Exception as e:
             accessible = False
@@ -365,22 +368,22 @@ class AWSDataHandler(DataHandler):
 
         s3_client = s3.meta.client
 
-        bucket_path = data_info['s3_path']
-        bucket_name = data_info['s3_bucket']
+        key = data_info['s3_key']
+        bucket_name = data_info['s3_bucket_name']
         bkt = s3.Bucket(bucket_name)
-        if not bucket_path:
-            raise Exception(f"Unable to locate file {bucket_path}.")
+        if not key:
+            raise Exception(f"Unable to locate file {key}.")
 
         # Ask the webserver (in this case S3) what the expected content length is.
         ex = ''
         try:
-            info_lookup = s3_client.head_object(Bucket=bucket_name, Key=bucket_path)
+            info_lookup = s3_client.head_object(Bucket=bucket_name, Key=key)
             length = info_lookup["ContentLength"]
         except Exception as e:
             ex = e
             length = 0
 
-        print(f'Checking length: {bucket_path=}, {ex=}, {length=}')
+        print(f'Checking length: {key=}, {ex=}, {length=}')
 
     # adapted from astroquery.mast.
     def _download_file_s3(self, data_info, local_path=None, cache=True):
@@ -390,7 +393,7 @@ class AWSDataHandler(DataHandler):
         Parameters
         ----------
         data_info : dict holding the data information, with keys for:
-            s3_resource, s3_path, s3_bucket
+            s3_resource, s3_key, s3_bucket_name
         local_path : str
             The local filename to which toe downloaded file will be saved.
         cache : bool
@@ -400,36 +403,30 @@ class AWSDataHandler(DataHandler):
         s3 = data_info['s3_resource']
         s3_client = s3.meta.client
 
-        bucket_path = data_info['s3_path']
-        bucket_name = data_info['s3_bucket']
+        key = data_info['s3_key']
+        bucket_name = data_info['s3_bucket_name']
         bkt = s3.Bucket(bucket_name)
-        if not bucket_path:
-            raise Exception(f"Unable to locate file {bucket_path}.")
+        if not key:
+            raise Exception(f"Unable to locate file {key}.")
 
-        # TODO: handle this in a better way
         if local_path is None:
-            local_path = bucket_path.strip('/').split('/')[-1]
+            local_path = Path(key).name
 
         # Ask the webserver (in this case S3) what the expected content length is and use that.
-        info_lookup = s3_client.head_object(Bucket=bucket_name, Key=bucket_path)
+        info_lookup = s3_client.head_object(Bucket=bucket_name, Key=key)
         length = info_lookup["ContentLength"]
 
         if cache and os.path.exists(local_path):
             if length is not None:
                 statinfo = os.stat(local_path)
                 if statinfo.st_size != length:
-                    log.infoing("Found cached file {0} with size {1} that is "
-                                "different from expected size {2}"
-                                .format(local_path,
-                                        statinfo.st_size,
-                                        length))
+                    log.info(f"Found cached file {local_path} with size {statinfo.st_size} "
+                             f"that is different from expected size {length}.")
                 else:
-                    log.info("Found cached file {0} with expected size {1}."
-                             .format(local_path, statinfo.st_size))
+                    log.info(f"Found cached file {local_path} with expected size {statinfo.st_size}.")
                     return
 
-        with ProgressBarOrSpinner(length, ('Downloading URL s3://{0}/{1} to {2} ...'.format(
-                bucket_name, bucket_path, local_path))) as pb:
+        with ProgressBarOrSpinner(length, (f'Downloading {self.s3_uri} to {local_path} ...')) as pb:
 
             # Bytes read tracks how much data has been received so far
             # This variable will be updated in multiple threads below
@@ -448,7 +445,7 @@ class AWSDataHandler(DataHandler):
                     bytes_read += numbytes
                     pb.update(bytes_read)
 
-            bkt.download_file(bucket_path, local_path, Callback=progress_callback)
+            bkt.download_file(key, local_path, Callback=progress_callback)
 
     def user_on_aws(self):
         """Check if the user is in on aws
