@@ -421,7 +421,7 @@ class AWSDataHandler(DataHandler):
                 statinfo = os.stat(local_path)
                 if statinfo.st_size != length:
                     log.info(f"Found cached file {local_path} with size {statinfo.st_size} "
-                             f"that is different from expected size {lenght}.")
+                             f"that is different from expected size {length}.")
                 else:
                     log.info(f"Found cached file {local_path} with expected size {statinfo.st_size}.")
                     return
