@@ -19,7 +19,6 @@ log = logging.getLogger('fornax')
 __all__ = ['get_data_product', 'DataHandler', 'AWSDataHandler', 'AWSDataHandlerError']
 
 
-
 def get_data_product(product, provider='on-prem', access_url_column='access_url',
                      access_summary_only=False, verbose=True, **kwargs):
     """Top layer function to handle cloud/non-cloud access
@@ -159,8 +158,8 @@ class AWSDataHandler(DataHandler):
         Parameters
         ----------
         info : dict
-            A dictionary serialized from the json text returned in the cloud_access
-            column returned with the data product
+            A dictionary serialized from the json text returned in the
+            cloud_access column returned with the data product
 
         Returns
         -------
@@ -169,11 +168,11 @@ class AWSDataHandler(DataHandler):
 
         # TODO; more rigorous checks
         keys = list(info.keys())
-        assert('region' in keys)
-        assert('access' in keys)
-        assert(info['access'] in ['none', 'open', 'restricted', 'region'])
-        assert('bucket_name' in keys)
-        assert('key' in keys)
+        assert 'region' in keys
+        assert 'access' in keys
+        assert info['access'] in ['none', 'open', 'restricted', 'region']
+        assert 'bucket_name' in keys
+        assert 'key' in keys
 
         if info['key'][0] == '/':
             info['key'] = info['key'][1:]
@@ -186,10 +185,10 @@ class AWSDataHandler(DataHandler):
         This returns a dict which contains information on how to access
         the data. The main logic that attempts to interpret the cloud_access
         column provided for the data product. If sucessfully processed, the
-        access details (bucket_name, key etc) are added to the final dictionary.
-        If any information is missing, the returned dict will return access_url
-        that allows points to the data location in the on-prem servers as
-        a backup.
+        access details (bucket_name, key etc) are added to the final
+        dictionary. If any information is missing, the returned dict will
+        return access_url that allows points to the data location in the
+        on-prem servers as a backup.
 
         """
 
@@ -217,7 +216,7 @@ class AWSDataHandler(DataHandler):
                 raise AWSDataHandlerError(msg)
 
             # we have info about data in aws; validate it first #
-            # TODO: add support for multiple aws access points. This may be useful
+            # TODO: add support for multiple aws access points.
             aws_info = cloud_access['aws']
             try:
                 aws_info = self._validate_aws_info(aws_info)
@@ -238,7 +237,8 @@ class AWSDataHandler(DataHandler):
             if data_access == 'open':
                 s3_config = botocore.client.Config(signature_version=botocore.UNSIGNED)
                 s3_resource = boto3.resource(service_name='s3', config=s3_config)
-                accessible, message = self.is_accessible(s3_resource, aws_info['bucket_name'], aws_info['key'])
+                accessible, message = self.is_accessible(s3_resource,
+                                                         aws_info['bucket_name'], aws_info['key'])
                 msg = 'Accessing public data anonymously on aws ... '
                 if not accessible:
                     msg = f'{msg}  {message}'
@@ -251,7 +251,8 @@ class AWSDataHandler(DataHandler):
                 while not accessible:
 
                     # -----------------------
-                    # NOTE: THIS MAY NEED TO BE COMMENTED OUT BECAUSE IT MAY NOT BE POSSIBLE
+                    # NOTE: THIS MAY NEED TO BE COMMENTED OUT BECAUSE IT MAY
+                    # NOT BE POSSIBLE
                     # TO ACCESS REGION-RESTRICTED DATA ANONYMOUSLY.
                     # -----------------------
                     # Attempting anonymous access:
@@ -260,19 +261,22 @@ class AWSDataHandler(DataHandler):
                         msg = f'Accessing {data_access} data anonymously ...'
                         s3_config = botocore.client.Config(signature_version=botocore.UNSIGNED)
                         s3_resource = boto3.resource(service_name='s3', config=s3_config)
-                        accessible, message = self.is_accessible(s3_resource, aws_info['bucket_name'], aws_info['key'])
+                        accessible, message = self.is_accessible(s3_resource,
+                                                                 aws_info['bucket_name'], aws_info['key'])
                         if accessible:
                             break
                         message = f'  - {msg} {message}.'
                         messages.append(message)
 
-                    # If profile is given, try to use it first as it takes precedence.
+                    # If profile is given, try to use it first as it takes
+                    # precedence.
                     if self.profile is not None:
                         msg = f'Accessing {data_access} data using profile: {self.profile} ...'
                         try:
                             s3_session = boto3.session.Session(profile_name=self.profile)
                             s3_resource = s3_session.resource(service_name='s3')
-                            accessible, message = self.is_accessible(s3_resource, aws_info['bucket_name'], aws_info['key'])
+                            accessible, message = self.is_accessible(s3_resource,
+                                                                     aws_info['bucket_name'], aws_info['key'])
                             if accessible:
                                 break
                             else:
@@ -281,17 +285,20 @@ class AWSDataHandler(DataHandler):
                             message = f'  - {msg} {str(e)}.'
                         messages.append(message)
 
-                    # If access with profile fails, attemp to use any credientials
-                    # in the user system e.g. environment variables etc. boto3 should find them.
+                    # If access with profile fails, attemp to use any
+                    # credientials in the user system e.g. environment
+                    # variables etc. boto3 should find them.
                     msg = f'Accessing {data_access} data with other credentials ...'
                     s3_resource = boto3.resource(service_name='s3')
-                    accessible, message = self.is_accessible(s3_resource, aws_info['bucket_name'], aws_info['key'])
+                    accessible, message = self.is_accessible(s3_resource,
+                                                             aws_info['bucket_name'], aws_info['key'])
                     if accessible:
                         break
                     message = f'  - {msg} {message}.'
                     messages.append(message)
 
-                    # if we are here, then we cannot access the data. Fall back to on-prem
+                    # if we are here, then we cannot access the data.
+                    # Fall back to on-prem
                     msg = f'\nUnable to authenticate or access data with "{data_access}" access mode:\n'
                     msg += '\n'.join(messages)
                     raise AWSDataHandlerError(msg)
@@ -327,7 +334,10 @@ class AWSDataHandler(DataHandler):
 
         Return
         -----
-        (accessible, msg) where accessible is a bool and msg is the failure message
+        accessible : bool
+
+        message : str
+            the failure message
 
         """
 
@@ -370,11 +380,11 @@ class AWSDataHandler(DataHandler):
 
         key = data_info['s3_key']
         bucket_name = data_info['s3_bucket_name']
-        bkt = s3.Bucket(bucket_name)
+
         if not key:
             raise Exception(f"Unable to locate file {key}.")
 
-        # Ask the webserver (in this case S3) what the expected content length is.
+        # Ask S3 what the expected content length is.
         ex = ''
         try:
             info_lookup = s3_client.head_object(Bucket=bucket_name, Key=key)
@@ -397,7 +407,8 @@ class AWSDataHandler(DataHandler):
         local_path : str
             The local filename to which toe downloaded file will be saved.
         cache : bool
-            Default is True. If file is found on disc it will not be downloaded again.
+            Default is True. If file is found on disc it will not be
+            downloaded again.
         """
 
         s3 = data_info['s3_resource']
@@ -412,7 +423,7 @@ class AWSDataHandler(DataHandler):
         if local_path is None:
             local_path = Path(key).name
 
-        # Ask the webserver (in this case S3) what the expected content length is and use that.
+        # Ask S3 what the expected content length is and use that.
         info_lookup = s3_client.head_object(Bucket=bucket_name, Key=key)
         length = info_lookup["ContentLength"]
 
@@ -436,7 +447,7 @@ class AWSDataHandler(DataHandler):
             progress_lock = threading.Lock()
 
             def progress_callback(numbytes):
-                # Boto3 calls this from multiple threads pulling the data from S3
+                # Boto3 calls this from multiple threads pulling data from S3
                 global bytes_read
 
                 # This callback can be called in multiple threads
@@ -450,27 +461,31 @@ class AWSDataHandler(DataHandler):
     def user_on_aws(self):
         """Check if the user is in on aws
         the following works for aws, but it is not robust enough
-        This is partly from: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/identify_ec2_instances.html
+        This is partly from:
+        https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/identify_ec2_instances.html
 
         Comments in user_region below are also relevant here.
 
         """
         uuid = '/sys/hypervisor/uuid'
         is_aws = os.path.exists(uuid) or 'AWS_REGION' in os.environ
-        return True  # is_aws
+        return is_aws
 
     def user_region(self):
         """Find region of the user in an ec2 instance.
-        There could be a way to do it with the python api instead of an http request.
+        There could be a way to do it with the python api instead of an
+        http request.
 
         This may be complicated:
-        Instance metadata (including region) can be access from the link-local address
-        169.254.169.254 (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-identity-documents.html)
-        So a simple http request to http://169.254.169.254/latest/dynamic/instance-identity/document gives
-        a json response that has the region info in it.
+        Instance metadata (including region) can be access from the link-local
+        address 169.254.169.254:
+        https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-identity-documents.html)
+        So a simple http request to
+        http://169.254.169.254/latest/dynamic/instance-identity/document
+        gives a json response that has the region info in it.
 
-        However, in jupyterhub, that address is blocked, because it may expose sensitive information about
-        the instance and kubernetes cluster
+        However, in jupyterhub, that address is blocked, because it may expose
+        sensitive information about the instance and kubernetes cluster
         (http://z2jh.jupyter.org/en/latest/administrator/security.html#audit-cloud-metadata-server-access).
         The region can be in $AWS_REGION
         """
@@ -480,7 +495,8 @@ class AWSDataHandler(DataHandler):
         if region is None:
             # try the link-local address
             session = requests.session()
-            response = session.get('http://169.254.169.254/latest/dynamic/instance-identity/document', timeout=2)
+            response = session.get('http://169.254.169.254/latest/dynamic/instance-identity/document',
+                                   timeout=2)
             region = response.json()['region']
 
         return region
