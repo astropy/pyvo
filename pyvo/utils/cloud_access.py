@@ -8,10 +8,6 @@ from pathlib import Path
 from astropy.utils.data import download_file
 from astropy.utils.console import ProgressBarOrSpinner
 
-import boto3
-import botocore
-
-
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(name)s | %(message)s")
 log = logging.getLogger('fornax')
 
@@ -109,9 +105,9 @@ class AWSDataHandler(DataHandler):
     """Class for managaing access to data in AWS"""
 
     def __init__(self, product, access_url_column='access_url', profile=None, requester_pays=False):
-        """Handle AWS-specific authentication and data download
+        """Handle AWS-specific authentication and data download.
 
-        Requires boto3
+        Requires the boto3 and botocore libraries.
 
         Parameters
         ----------
@@ -191,6 +187,11 @@ class AWSDataHandler(DataHandler):
         on-prem servers as a backup.
 
         """
+
+        # Both boto3 and botocore are optional dependencies, we need to
+        # import them at the place of usage
+        import boto3
+        import botocore
 
         if self.processed_info is not None:
             return self.processed_info
