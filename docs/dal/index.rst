@@ -127,6 +127,20 @@ interface available.
 
 Table Access Protocol
 ---------------------
+The `Table Access Protocol (TAP) <https://www.ivoa.net/documents/TAP/>`_ 
+defines a service protocol for accessing 
+general table data, including astronomical catalogs as well as general 
+database tables. Access is provided for both database and table metadata 
+as well as for actual table data. This version of the protocol includes 
+support for multiple query languages, including queries specified using 
+the Astronomical Data Query Language within an integrated interface. 
+It also includes support for both synchronous and asynchronous queries. 
+Special support is provided for spatially indexed queries using the 
+spatial extensions in ADQL. A multi-position query capability permits 
+queries against an arbitrarily large list of astronomical targets, 
+providing a simple spatial cross-matching capability. 
+More sophisticated distributed cross-matching capabilities are possible by 
+orchestrating a distributed query across multiple TAP services.
 
 Unlike the other services, this one works with tables queryable by an sql-ish
 language called *ADQL* instead of predefined search constraints.
@@ -246,7 +260,20 @@ Finally, tables and their content can be removed:
 
 Simple Image Access
 -------------------
-Like the name says, this service serves astronomical images.
+The `Simple Image Access (SIA) <https://www.ivoa.net/documents/SIA/>`_ protocol 
+provides capabilities for the discovery, description, access, and retrieval 
+of multi-dimensional image datasets, including 2-D images as well as datacubes 
+of three or more dimensions. SIA data discovery is based on the ObsCore Data Model, 
+which primarily describes data products by the physical axes (spatial, spectral, 
+time, and polarization). Image datasets with dimension greater than 2 are often 
+referred to as datacubes, cube or image cube datasets and may be considered examples 
+of hypercube or n-cube data. In this document the term "image" refers to general 
+multi-dimensional datasets and is synonymous with these other terms unless the 
+image dimensionality is otherwise specified. SIA provides capabilities for 
+image discovery and access. Data discovery and metadata access (using ObsCoreDM) 
+are defined here. The capabilities for drilling down to data files 
+(and related resources) and services for remote access are defined elsewhere, 
+but SIA also allows for direct access to retrieval.
 
 Basic queries are done with the ``pos`` and ``size`` parameters described in
 :ref:`pyvo-astro-params`, with ``size`` being the rectangular region around
@@ -290,6 +317,34 @@ This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter
 
 Simple Spectrum Access
 ----------------------
+The `Simple Spectral Access (SSA) Protocol (SSAP) <https://www.ivoa.net/documents/SSA/>`_ 
+defines a uniform interface to remotely discover and access one 
+dimensional spectra. SSA is a member of an integrated family of data access 
+altogether comprising the Data Access Layer (DAL) of the IVOA. 
+SSA is based on a more general data model capable of describing most tabular 
+spectrophotometric data, including time series and spectral energy distributions 
+(SEDs) as well as 1-D spectra; however the scope of the SSA interface as 
+specified in this document is limited to simple 1-D spectra, including 
+simple aggregations of 1-D spectra. The form of the SSA interface is simple: 
+clients first query the global resource registry to find services of interest 
+and then issue a data discovery query to selected services to determine what 
+relevant data is available from each service; the candidate datasets 
+available are described uniformly in a VOTable format document which is 
+returned in response to the query. Finally, the client may retrieve selected 
+datasets for analysis. Spectrum datasets returned by an SSA spectrum service 
+may be either precomputed, archival datasets, or they may be virtual data 
+which is computed on the fly to respond to a client request. 
+Spectrum datasets may conform to a standard data model defined by SSA, 
+or may be native spectra with custom project-defined content. 
+Spectra may be returned in any of a number of standard data formats. 
+Spectral data is generally stored externally to the VO in a format specific 
+to each spectral data collection; currently there is no standard way to 
+represent astronomical spectra, and virtually every project does it 
+differently. Hence spectra may be actively mediated to the standard 
+SSA-defined data model at access time by the service, so that client analysis 
+programs do not have to be familiar with the idiosyncratic details of 
+each data collection to be accessed.
+
 Access to (one-dimensional) spectra resembles image access, with some
 subtile differences:
 
@@ -313,6 +368,13 @@ SSA queries can be further constrained by the ``band`` and ``time`` parameters.
 
 Simple Cone Search
 ------------------
+The `Simple Cone Search (SCS) <https://www.ivoa.net/documents/latest/ConeSearch.html>`_ 
+API specification defines a simple query protocol for retrieving records from 
+a catalog of astronomical sources. The query describes sky position and 
+an angular distance, defining a cone on the sky. The response returns 
+a list of astronomical sources from the catalog whose positions 
+lie within the cone, formatted as a VOTable.
+
 The Simple Cone Search returns results – typically catalog entries –
 within a circular region on the sky defined by the parameters ``pos``
 (again, ICRS) and ``radius``:
@@ -326,6 +388,22 @@ This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter
 
 Simple Line Access
 ------------------
+The `Simple Line Access Protocol (SLAP) <https://www.ivoa.net/documents/SLAP/>`_ 
+is an IVOA data access protocol which defines a protocol for retrieving 
+spectral lines coming from various Spectral Line Data Collections through 
+a uniform interface within the VO framework. These lines can be either 
+observed or theoretical and will be typically used to identify emission 
+or absorption features in astronomical spectra. It makes use of the Simple 
+Spectral Line Data Model to characterize spectral lines through the use of 
+utypes. The SLAP interface is meant to be reasonably simple to implement by 
+service providers. A basic query will be done in a wavelength range for the 
+different services. The service returns a list of spectral lines formatted 
+as a VOTable. Thus, an implementation of the service may support additional 
+search parameters (some which may be custom to that particular service) to 
+more finely control the selection of spectral lines. The specification also 
+describes how the search on extra parameters has to be done, making use of 
+the support provided by the Simple Spectral Line Data Model
+
 This service let you query for spectral lines in a certain ``wavelength``
 range. The unit of the values is meters, but any unit may be specified using
 `~astropy.units.Quantity`.
