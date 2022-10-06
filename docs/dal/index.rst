@@ -315,6 +315,8 @@ Available values:
 
 This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter
 
+.. _pyvo-ssa:
+
 Simple Spectrum Access
 ----------------------
 The `Simple Spectral Access (SSA) Protocol (SSAP) <https://www.ivoa.net/documents/SSA/>`_ 
@@ -366,6 +368,8 @@ SSA queries can be further constrained by the ``band`` and ``time`` parameters.
     ... )
 
 
+.. _pyvo-scs:
+
 Simple Cone Search
 ------------------
 The `Simple Cone Search (SCS) <https://www.ivoa.net/documents/latest/ConeSearch.html>`_ 
@@ -385,6 +389,8 @@ within a circular region on the sky defined by the parameters ``pos``
     >>> scs_results = scs_srv.search(pos=pos, radius=size)
 
 This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter
+
+.. _pyvo-slap:
 
 Simple Line Access
 ------------------
