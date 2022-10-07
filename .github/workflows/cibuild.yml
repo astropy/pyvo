@@ -26,6 +26,9 @@ jobs:
           - name: py310 with online tests, Linux
             python-version: '3.10'
             tox_env: py310-test-alldeps-online
+          - name: linkcheck
+            python-version: '3.10'
+            tox_env: linkcheck
 
     steps:
     - name: Checkout code
