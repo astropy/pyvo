@@ -109,10 +109,8 @@ def search(*constraints:rtcons.Constraint,
 
     The function accepts query constraints either as Constraint objects
     passed in as positional arguments or as their associated keywords.
-    For what constraints are available, see
-    `Basic Interface`_.
+    For what constraints are available, see ref:`registry_basic_interface`.
 
-    .. _Basic Interface: ../registry/index.html#basic-interface
 
     The values of keyword arguments may be tuples or lists when the associated
     Constraint objects take multiple arguments.

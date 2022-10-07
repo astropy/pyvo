@@ -27,6 +27,8 @@ There are two fundamental modes of searching in the VO:
 Both modes are supported by this module.
 
 
+.. _registry-basic-interface:
+
 Basic interface
 ===============
 
