@@ -145,8 +145,7 @@ def search(*constraints:rtcons.Constraint, includeaux=False, **kwargs):
     service = get_RegTAP_service()
     query = RegistryQuery(
         service.baseurl,
-        get_RegTAP_query(*constraints, includeaux=includeaux, **kwargs),
-        maxrec=service.hardlimit)
+        get_RegTAP_query(*constraints, includeaux=includeaux, **kwargs))
     return query.execute()
 
 
