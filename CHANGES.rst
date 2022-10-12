@@ -2,7 +2,7 @@
 ================
 
 - registry.regsearch now accepts an optional maxrec argument rather than
-  automatically passing the service's hard limit.
+  automatically passing the service's hard limit. [#375]
 
 
 1.4 (2022-09-26)
