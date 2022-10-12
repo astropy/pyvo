@@ -15,6 +15,7 @@ from pyvo.registry import regtap
 from pyvo.registry import rtcons
 from pyvo.registry.regtap import REGISTRY_BASEURL
 from pyvo.registry import search as regsearch
+from pyvo.dal import DALOverflowWarning
 from pyvo.dal import query as dalq
 from pyvo.dal import tap
 
@@ -548,6 +549,14 @@ class TestInterfaceRejection:
 
         assert str(excinfo.value) == (
             "No matching interface.")
+
+
+@pytest.mark.remote_data
+def test_maxrec():
+    with pytest.warns(DALOverflowWarning) as w:
+        _ = regsearch(servicetype="tap", maxrec=1)
+    assert len(w) == 1
+    assert str(w[0].message).startswith("Partial result set.")
 
 
 @pytest.mark.remote_data
