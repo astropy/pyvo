@@ -53,7 +53,7 @@ keyword arguments.  The following constraints are available:
   patterns; resources match when they serve columns having a matching
   UCD (e.g., ``phot.mag;em.ir.%`` for “any infrared magnitude”).
 * :py:class:`pyvo.registry.Waveband` (``waveband``): one or more terms
-  from the vocabulary at http://www.ivoa.net/messenger giving the rough
+  from the vocabulary at http://www.ivoa.net/rdf/messenger giving the rough
   spectral location of the resource.
 * :py:class:`pyvo.registry.Author` (``author``): an author (“creator”).
   This is a single SQL pattern, and given the sloppy practices in the
