@@ -63,7 +63,7 @@ def create_fixture(mocker):
                 'Wrong file format'
         elif b'VOTable' in data:
             assert request.headers['Content-Type'] == \
-                   'application/x-votable+xml', 'Wrong file format'
+                'application/x-votable+xml', 'Wrong file format'
         else:
             assert False, 'BUG'
         return True
@@ -92,10 +92,10 @@ def load_fixture(mocker):
                 'Wrong file format'
         elif b'\t' in data:
             assert request.headers['Content-Type'] == \
-                   'text/tab-separated-values', 'Wrong file format'
+                'text/tab-separated-values', 'Wrong file format'
         elif b'FITSTable' in data:
             assert request.headers['Content-Type'] == \
-                   'application/fits', 'Wrong file format'
+                'application/fits', 'Wrong file format'
         else:
             assert False, 'BUG'
         return True
@@ -688,7 +688,7 @@ class TestTAPService:
                         headers={'Location': 'https://example.com/tap/uws'})
                 rm.get('https://example.com/tap/uws',
                        [{'content': get_index_job("PENDING")},
-                        {'content':get_index_job("COMPLETED")}])
+                        {'content': get_index_job("COMPLETED")}])
                 rm.post('https://example.com/tap/uws/phase', status_code=200)
                 # finally the call
                 service.create_index(table_name='abc', column_name='col1',

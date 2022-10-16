@@ -34,7 +34,7 @@ def capabilities(mocker):
         return get_pkg_data_contents('data/capabilities.xml')
 
     with mocker.register_uri(
-        'GET', REGISTRY_BASEURL+'/capabilities', content=callback
+        'GET', REGISTRY_BASEURL + '/capabilities', content=callback
     ) as matcher:
         yield matcher
 
@@ -46,15 +46,14 @@ def capabilities(mocker):
 # with open("data/regtap.xml", "wb") as f:
 # 	f.write(requests.get(regtap.REGISTRY_BASEURL+"/sync", {
 # 		"LANG": "ADQL",
-# 		"QUERY": regtap.get_RegTAP_query(
-#			keywords="pulsar", ucd=["pos.distance"])}).content)
+# 		"QUERY": regtap.get_RegTAP_query(keywords="pulsar", ucd=["pos.distance"])}).content)
 
 
 @pytest.fixture()
 def regtap_pulsar_distance_response(mocker):
     with mocker.register_uri(
-        'POST', REGISTRY_BASEURL+'/sync',
-        content=get_pkg_data_contents('data/regtap.xml')) as matcher:
+        'POST', REGISTRY_BASEURL + '/sync',
+            content=get_pkg_data_contents('data/regtap.xml')) as matcher:
         yield matcher
 
 
@@ -75,7 +74,7 @@ def keywords_fixture(mocker):
         return get_pkg_data_contents('data/regtap.xml')
 
     with mocker.register_uri(
-        'POST', REGISTRY_BASEURL+'/sync',
+        'POST', REGISTRY_BASEURL + '/sync',
         content=keywordstest_callback
     ) as matcher:
         yield matcher
@@ -94,7 +93,7 @@ def single_keyword_fixture(mocker):
         return get_pkg_data_contents('data/regtap.xml')
 
     with mocker.register_uri(
-        'POST', REGISTRY_BASEURL+'/sync',
+        'POST', REGISTRY_BASEURL + '/sync',
         content=keywordstest_callback
     ) as matcher:
         yield matcher
@@ -115,7 +114,7 @@ def servicetype_fixture(mocker):
         return get_pkg_data_contents('data/regtap.xml')
 
     with mocker.register_uri(
-        'POST', REGISTRY_BASEURL+'/sync',
+        'POST', REGISTRY_BASEURL + '/sync',
         content=servicetypetest_callback
     ) as matcher:
         yield matcher
@@ -132,7 +131,7 @@ def waveband_fixture(mocker):
         return get_pkg_data_contents('data/regtap.xml')
 
     with mocker.register_uri(
-        'POST', REGISTRY_BASEURL+'/sync',
+        'POST', REGISTRY_BASEURL + '/sync',
         content=wavebandtest_callback
     ) as matcher:
         yield matcher
@@ -154,7 +153,7 @@ def datamodel_fixture(mocker):
         return get_pkg_data_contents('data/regtap.xml')
 
     with mocker.register_uri(
-        'POST', REGISTRY_BASEURL+'/sync',
+        'POST', REGISTRY_BASEURL + '/sync',
         content=datamodeltest_callback
     ) as matcher:
         yield matcher
@@ -171,7 +170,7 @@ def aux_fixture(mocker):
         return get_pkg_data_contents('data/regtap.xml')
 
     with mocker.register_uri(
-        'POST', REGISTRY_BASEURL+'/sync',
+        'POST', REGISTRY_BASEURL + '/sync',
         content=auxtest_callback,
     ) as matcher:
         yield matcher
@@ -179,17 +178,17 @@ def aux_fixture(mocker):
 
 @pytest.fixture()
 def multi_interface_fixture(mocker):
-# to update this, run
-# import requests
-# from pyvo.registry import regtap
-#
-# with open("data/multi-interface.xml", "wb") as f:
-# 	f.write(requests.get(regtap.REGISTRY_BASEURL+"/sync", {
-# 		"LANG": "ADQL",
-# 		"QUERY": regtap.get_RegTAP_query(
-# 			ivoid="ivo://org.gavo.dc/flashheros/q/ssa")}).content)
+    # to update this, run
+    # import requests
+    # from pyvo.registry import regtap
+    #
+    # with open("data/multi-interface.xml", "wb") as f:
+    # 	f.write(requests.get(regtap.REGISTRY_BASEURL+"/sync", {
+    # 		"LANG": "ADQL",
+    # 		"QUERY": regtap.get_RegTAP_query(
+    # 			ivoid="ivo://org.gavo.dc/flashheros/q/ssa")}).content)
     with mocker.register_uri(
-        'POST', REGISTRY_BASEURL+'/sync',
+        'POST', REGISTRY_BASEURL + '/sync',
         content=get_pkg_data_contents('data/multi-interface.xml')
     ) as matcher:
         yield matcher
@@ -198,7 +197,7 @@ def multi_interface_fixture(mocker):
 @pytest.fixture()
 def flash_service(multi_interface_fixture):
     return regtap.search(
-            ivoid="ivo://org.gavo.dc/flashheros/q/ssa")[0]
+        ivoid="ivo://org.gavo.dc/flashheros/q/ssa")[0]
 
 
 class TestInterfaceClass:
@@ -208,22 +207,22 @@ class TestInterfaceClass:
         assert intf.standard_id is None
         assert intf.type is None
         assert intf.role is None
-        assert intf.is_standard == False
+        assert intf.is_standard is False
         assert not intf.is_vosi
 
     def test_repr(self):
         intf = regtap.Interface("http://example.org", "ivo://gavo/std/a",
-            "vs:paramhttp", "std")
+                                "vs:paramhttp", "std")
         assert (repr(intf) == "Interface('http://example.org',"
-            " 'ivo://gavo/std/a', 'vs:paramhttp', 'std')")
+                " 'ivo://gavo/std/a', 'vs:paramhttp', 'std')")
         intf = regtap.Interface("http://example.org", "ivo://gavo/std/a",
-            None, None)
+                                None, None)
         assert repr(intf) == ("Interface('http://example.org',"
-            " 'ivo://gavo/std/a', None, None)")
+                              " 'ivo://gavo/std/a', None, None)")
 
     def test_unknown_standard(self):
         intf = regtap.Interface("http://example.org", "ivo://gavo/std/a",
-            "vs:paramhttp", "std")
+                                "vs:paramhttp", "std")
         assert intf.is_standard
         with pytest.raises(ValueError) as excinfo:
             intf.to_service()
@@ -234,14 +233,14 @@ class TestInterfaceClass:
 
     def test_known_standard(self):
         intf = regtap.Interface("http://example.org",
-            "ivo://ivoa.net/std/tap#aux", "vs:paramhttp", "std")
+                                "ivo://ivoa.net/std/tap#aux", "vs:paramhttp", "std")
         assert isinstance(intf.to_service(), tap.TAPService)
         assert not intf.is_vosi
 
     def test_secondary_interface(self):
         intf = regtap.Interface("http://example.org",
-            "ivo://ivoa.net/std/tap#aux",
-            "vs:webbrowser", "web")
+                                "ivo://ivoa.net/std/tap#aux",
+                                "vs:webbrowser", "web")
 
         with pytest.raises(ValueError) as excinfo:
             intf.to_service()
@@ -251,8 +250,8 @@ class TestInterfaceClass:
 
     def test_VOSI(self):
         intf = regtap.Interface("http://example.org",
-            "ivo://ivoa.net/std/vosi#capabilities",
-            "vs:ParamHTTP", "std")
+                                "ivo://ivoa.net/std/vosi#capabilities",
+                                "vs:ParamHTTP", "std")
         assert intf.is_vosi
 
 
@@ -304,26 +303,26 @@ def test_bad_servicetype_aux():
 def test_spatial():
     assert (rtcons.keywords_to_constraints({
             "spatial": (23, -40)})[0].get_search_condition()
-        == "1 = CONTAINS(MOC(6, POINT(23, -40)), coverage)")
+            == "1 = CONTAINS(MOC(6, POINT(23, -40)), coverage)")
 
 
 def test_spectral():
     assert (rtcons.keywords_to_constraints({
-            "spectral": (1e-17, 2e-17)})[0].get_search_condition() ==
-        "1 = ivo_interval_overlaps(spectral_start, spectral_end, 1e-17, 2e-17)")
+            "spectral": (1e-17, 2e-17)})[0].get_search_condition()
+            == "1 = ivo_interval_overlaps(spectral_start, spectral_end, 1e-17, 2e-17)")
 
 
 def test_to_table(multi_interface_fixture, capabilities):
     t = regtap.search(
         ivoid="ivo://org.gavo.dc/flashheros/q/ssa").get_summary()
     assert (set(t.columns.keys())
-        == {'index', 'short_name', 'title', 'description', 'interfaces'})
+            == {'index', 'short_name', 'title', 'description', 'interfaces'})
     assert t["index"][0] == 0
     assert t["title"][0] == 'Flash/Heros SSAP'
     assert (t["description"][0][:40]
-        == 'Spectra from the Flash and Heros Echelle')
+            == 'Spectra from the Flash and Heros Echelle')
     assert (t["interfaces"][0]
-        == 'datalink#links-1.0, soda#sync-1.0, ssa, tap#aux, web')
+            == 'datalink#links-1.0, soda#sync-1.0, ssa, tap#aux, web')
 
 
 @pytest.fixture()
@@ -333,18 +332,18 @@ def rt_pulsar_distance(regtap_pulsar_distance_response, capabilities):
 
 def test_record_fields(rt_pulsar_distance):
     rec = rt_pulsar_distance["VII/156"]
-    assert rec.ivoid=="ivo://cds.vizier/vii/156"
-    assert rec.res_type=="vs:catalogservice"
-    assert rec.short_name=="VII/156"
-    assert rec.res_title=="Catalog of 558 Pulsars"
-    assert rec.content_levels==['research']
-    assert rec.res_description[:20]=="The catalogue is an up-to-date"[:20]
-    assert rec.reference_url=="http://cdsarc.unistra.fr/cgi-bin/cat/VII/156"
-    assert rec.creators==['Taylor J.H.', ' Manchester R.N.', ' Lyne A.G.']
-    assert rec.content_types==['catalog']
-    assert rec.source_format=="bibcode"
-    assert rec.source_value=="1993ApJS...88..529T"
-    assert rec.waveband==['radio']
+    assert rec.ivoid == "ivo://cds.vizier/vii/156"
+    assert rec.res_type == "vs:catalogservice"
+    assert rec.short_name == "VII/156"
+    assert rec.res_title == "Catalog of 558 Pulsars"
+    assert rec.content_levels == ['research']
+    assert rec.res_description[:20] == "The catalogue is an up-to-date"[:20]
+    assert rec.reference_url == "http://cdsarc.unistra.fr/cgi-bin/cat/VII/156"
+    assert rec.creators == ['Taylor J.H.', ' Manchester R.N.', ' Lyne A.G.']
+    assert rec.content_types == ['catalog']
+    assert rec.source_format == "bibcode"
+    assert rec.source_value == "1993ApJS...88..529T"
+    assert rec.waveband == ['radio']
     # access URL, standard_id and friends exercised in TestInterfaceSelection
 
 
@@ -352,21 +351,21 @@ class TestResultIndexing:
     def test_get_with_index(self, rt_pulsar_distance):
         # this is expecte to break when the fixture is updated
         assert (rt_pulsar_distance[0].res_title
-            == 'Pulsar Timing for Fermi Gamma-ray Space Telescope')
+                == 'Pulsar Timing for Fermi Gamma-ray Space Telescope')
 
     def test_get_with_short_name(self, rt_pulsar_distance):
         assert (rt_pulsar_distance["ATNF"].res_title
-            == 'ATNF Pulsar Catalog')
+                == 'ATNF Pulsar Catalog')
 
     def test_get_with_ivoid(self, rt_pulsar_distance):
         assert (rt_pulsar_distance["ivo://nasa.heasarc/atnfpulsar"
-            ].res_title == 'ATNF Pulsar Catalog')
+                                   ].res_title == 'ATNF Pulsar Catalog')
 
     def test_out_of_range(self, rt_pulsar_distance):
         with pytest.raises(IndexError) as excinfo:
             rt_pulsar_distance[40320]
         assert (str(excinfo.value)
-            == "index 40320 is out of bounds for axis 0 with size 23")
+                == "index 40320 is out of bounds for axis 0 with size 23")
 
     def test_bad_key(self, rt_pulsar_distance):
         with pytest.raises(KeyError) as excinfo:
@@ -377,16 +376,17 @@ class TestResultIndexing:
         with pytest.raises(IndexError) as excinfo:
             rt_pulsar_distance[None]
         assert (str(excinfo.value)
-            == "No resource matching None")
+                == "No resource matching None")
 
 
 @pytest.mark.usefixtures('multi_interface_fixture', 'capabilities',
-    'flash_service')
+                         'flash_service')
 class TestInterfaceSelection:
     """
     tests for the selection and generation of services within
     RegistryResource.
     """
+
     def test_exactly_one_result(self):
         results = regtap.search(
             ivoid="ivo://org.gavo.dc/flashheros/q/ssa")
@@ -402,33 +402,33 @@ class TestInterfaceSelection:
             _ = flash_service.standard_id
 
         assert str(excinfo.value) == ("This resource supports several"
-            " standards (datalink#links-1.0, soda#sync-1.0, ssa,"
-            " tap#aux, web).  Use get_service or restrict your query"
-            " using Servicetype.")
+                                      " standards (datalink#links-1.0, soda#sync-1.0, ssa,"
+                                      " tap#aux, web).  Use get_service or restrict your query"
+                                      " using Servicetype.")
 
     def test_get_web_interface(self, flash_service):
         svc = flash_service.get_service("web")
         assert isinstance(svc,
-            regtap._BrowserService)
+                          regtap._BrowserService)
         assert (svc.access_url
-            == "http://dc.zah.uni-heidelberg.de/flashheros/q/web/form")
+                == "http://dc.zah.uni-heidelberg.de/flashheros/q/web/form")
 
     def test_get_aux_interface(self, flash_service):
         svc = flash_service.get_service("tap#aux")
         assert (svc._baseurl
-            == "http://dc.zah.uni-heidelberg.de/tap")
+                == "http://dc.zah.uni-heidelberg.de/tap")
 
     def test_get_aux_as_main(self, flash_service):
         assert (flash_service.get_service("tap")._baseurl
-            == "http://dc.zah.uni-heidelberg.de/tap")
+                == "http://dc.zah.uni-heidelberg.de/tap")
 
     def test_get__main_from_aux(self, flash_service):
         assert (flash_service.get_service("tap")._baseurl
-            == "http://dc.zah.uni-heidelberg.de/tap")
+                == "http://dc.zah.uni-heidelberg.de/tap")
 
     def test_get_by_alias(self, flash_service):
         assert (flash_service.get_service("spectrum")._baseurl
-            == "http://dc.zah.uni-heidelberg.de/fhssa?")
+                == "http://dc.zah.uni-heidelberg.de/fhssa?")
 
     def test_get_unsupported_standard(self, flash_service):
         with pytest.raises(ValueError) as excinfo:
@@ -463,10 +463,11 @@ class _FakeResult:
     regtap.TOKEN_SEP -- this is how they ought to come in from
     RegTAP services.
     """
+
     def __init__(self, d):
         self.fieldnames = list(d.keys())
         vals = [regtap.TOKEN_SEP.join(v) if isinstance(v, list) else v
-            for v in d.values()]
+                for v in d.values()]
 
         class _:
             class array:
@@ -494,12 +495,13 @@ class TestInterfaceRejection:
     """tests for various artificial corner cases where interface selection
     should fail (or just not fail).
     """
+
     def test_nonunique(self):
         rsc = _makeRegistryRecord({
             "access_urls": ["http://a", "http://b"],
-            "standard_ids": ["ivo://ivoa.net/std/tap"]*2,
-            "intf_types": ["vs:paramhttp"]*2,
-            "intf_roles": ["std"]*2,
+            "standard_ids": ["ivo://ivoa.net/std/tap"] * 2,
+            "intf_types": ["vs:paramhttp"] * 2,
+            "intf_roles": ["std"] * 2,
         })
         with pytest.raises(ValueError) as excinfo:
             rsc.get_service("tap", lax=False)
@@ -512,24 +514,24 @@ class TestInterfaceRejection:
     def test_nonunique_lax(self):
         rsc = _makeRegistryRecord({
             "access_urls": ["http://a", "http://b"],
-            "standard_ids": ["ivo://ivoa.net/std/tap"]*2,
-            "intf_types": ["vs:paramhttp"]*2,
-            "intf_roles": ["std"]*2,
+            "standard_ids": ["ivo://ivoa.net/std/tap"] * 2,
+            "intf_types": ["vs:paramhttp"] * 2,
+            "intf_roles": ["std"] * 2,
         })
 
         assert (rsc.get_service("tap")._baseurl
-            == "http://a")
+                == "http://a")
 
     def test_nonstd_ignored(self):
         rsc = _makeRegistryRecord({
             "access_urls": ["http://a", "http://b"],
-            "standard_ids": ["ivo://ivoa.net/std/tap"]*2,
-            "intf_types": ["vs:paramhttp"]*2,
+            "standard_ids": ["ivo://ivoa.net/std/tap"] * 2,
+            "intf_types": ["vs:paramhttp"] * 2,
             "intf_roles": ["std", ""]
         })
 
         assert (rsc.get_service("tap", lax=False)._baseurl
-            == "http://a")
+                == "http://a")
 
     def test_select_single_matching_service(self):
         rsc = _makeRegistryRecord({
@@ -564,12 +566,12 @@ def test_get_contact():
     rsc = _makeRegistryRecord(
         {"ivoid": "ivo://org.gavo.dc/flashheros/q/ssa"})
     assert (rsc.get_contact()
-        == "GAVO Data Center Team (++49 6221 54 1837)"
+            == "GAVO Data Center Team (++49 6221 54 1837)"
             " <gavo@ari.uni-heidelberg.de>")
 
 
 @pytest.mark.usefixtures('multi_interface_fixture', 'capabilities',
-    'flash_service')
+                         'flash_service')
 class TestExtraResourceMethods:
     """
     tests for methods of RegistryResource containing some non-trivial
@@ -593,7 +595,7 @@ class TestExtraResourceMethods:
 
         assert "Flash/Heros SSAP" in output
         assert ("Access modes: datalink#links-1.0, soda#sync-1.0,"
-            " ssa, tap#aux, web" in output)
+                " ssa, tap#aux, web" in output)
         assert "Multi-capabilty service" in output
 
         assert "More info: http://dc.zah" in output
@@ -609,7 +611,7 @@ class TestExtraResourceMethods:
             rsc.access_url
 
         assert str(excinfo.value) == ("The resource"
-            " ivo://pyvo/test_regtap.py has no queriable interfaces.")
+                                      " ivo://pyvo/test_regtap.py has no queriable interfaces.")
 
     def test_unique_access_url(self):
         rsc = _makeRegistryRecord({
@@ -623,13 +625,13 @@ class TestExtraResourceMethods:
     def test_ambiguous_access_url_warns(self, recwarn):
         rsc = _makeRegistryRecord({
             "access_urls": ["http://a", "http://b"],
-            "standard_ids": ["ivo://ivoa.net/std/tap"]*2,
-            "intf_types": ["vs:paramhttp"]*2,
-            "intf_roles": ["std"]*2,
+            "standard_ids": ["ivo://ivoa.net/std/tap"] * 2,
+            "intf_types": ["vs:paramhttp"] * 2,
+            "intf_roles": ["std"] * 2,
         })
         assert rsc.access_url == "http://a"
         assert [str(w.message)[:50] for w in recwarn
-            ] == ['The resource ivo://pyvo/test_regtap.py has multipl']
+                ] == ['The resource ivo://pyvo/test_regtap.py has multipl']
 
 
 # TODO: While I suppose the contact test should keep requiring network,
@@ -653,31 +655,31 @@ class TestGetTables:
             rsc.get_tables()
 
         assert re.match(r"Resource ivo://org.gavo.dc/tap reports \d+ tables."
-            "  Pass a higher table_limit to see them all.", str(excinfo.value))
+                        "  Pass a higher table_limit to see them all.", str(excinfo.value))
 
     @pytest.mark.remote_data
     def test_get_tables_names(self, flash_tables):
         assert (list(sorted(flash_tables.keys()))
-            == ["flashheros.data", "ivoa.obscore"])
+                == ["flashheros.data", "ivoa.obscore"])
 
     @pytest.mark.remote_data
     def test_get_tables_table_instance(self, flash_tables):
         assert (flash_tables["ivoa.obscore"].name
-            == "ivoa.obscore")
+                == "ivoa.obscore")
         assert (flash_tables["ivoa.obscore"].description
-            == "This data collection is queryable in GAVO Data"
-            " Center's obscore table.")
+                == "This data collection is queryable in GAVO Data"
+                " Center's obscore table.")
         assert (flash_tables["flashheros.data"].title
-            == "Flash/Heros SSA table")
+                == "Flash/Heros SSA table")
 
         assert (flash_tables["flashheros.data"].origin.ivoid
-            == "ivo://org.gavo.dc/flashheros/q/ssa")
+                == "ivo://org.gavo.dc/flashheros/q/ssa")
 
     @pytest.mark.remote_data
     def test_get_tables_column_meta(self, flash_tables):
         def getflashcol(name):
             for col in flash_tables["flashheros.data"].columns:
-                if name==col.name:
+                if name == col.name:
                     return col
             raise KeyError(name)
 
@@ -693,7 +695,7 @@ class TestGetTables:
         assert getflashcol("ssa_specend").unit == "m"
 
         assert (getflashcol("ssa_specend").utype
-            == "ssa:char.spectralaxis.coverage.bounds.stop")
+                == "ssa:char.spectralaxis.coverage.bounds.stop")
 
         assert (getflashcol("ssa_fluxcalib").description
-            == "Type of flux calibration")
+                == "Type of flux calibration")

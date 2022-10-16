@@ -18,7 +18,7 @@ get_pkg_data_contents = partial(
     get_pkg_data_contents, package=__package__, encoding='binary')
 
 try:
-    from PIL import Image
+    from PIL import Image  # noqa: F401
     HAS_PILLOW = True
 except ImportError:
     HAS_PILLOW = False
@@ -44,14 +44,14 @@ def mime(mocker):
 @pytest.mark.skipif('not HAS_PILLOW')
 def test_mime_object_maker():
 
-    assert 'Text content' == mime_object_maker(mime_url+'mime-text',
+    assert 'Text content' == mime_object_maker(mime_url + 'mime-text',
                                                'text/csv')
 
-    img = mime_object_maker(mime_url+'image', 'image/jpeg')
+    img = mime_object_maker(mime_url + 'image', 'image/jpeg')
     assert img
     assert 'JPEG' == img.format
 
-    fits = mime_object_maker(mime_url+'fits', 'application/fits')
+    fits = mime_object_maker(mime_url + 'fits', 'application/fits')
     assert 2 == len(fits)
 
     # error cases

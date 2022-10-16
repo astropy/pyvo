@@ -1,4 +1,3 @@
-import warnings
 from copy import deepcopy
 from unittest import mock
 
@@ -39,7 +38,8 @@ def test_feature_turned_off_by_default(prototype_function):
     with pytest.raises(PrototypeError) as e:
         prototype_function(None)
 
-    assert 'i_am_prototype is part of a prototype feature (my-feature) that has not been activated. ' in str(e.value)
+    assert 'i_am_prototype is part of a prototype feature (my-feature) that has not been activated. ' in str(
+        e.value)
     assert 'please visit http://somewhere/else' in str(e.value)
     assert 'https://pyvo.readthedocs.io/en/latest/utils/prototypes.html' in str(e.value)
     assert "pyvo.utils.activate_features('my-feature')" in str(e.value)
@@ -127,8 +127,8 @@ def test_decorator_without_args_errors_out():
         def function():
             pass
 
-    assert str(e.value) == "The `prototype_feature` decorator must always be called with the feature name as an " \
-                           "argument"
+    assert str(e.value) == ("The `prototype_feature` decorator must always be called with the feature "
+                            "name as an argument")
 
 
 def test_decorator_without_args_around_class():
@@ -137,8 +137,8 @@ def test_decorator_without_args_around_class():
         class Class:
             pass
 
-    assert str(e.value) == "The `prototype_feature` decorator must always be called with the feature name as an " \
-                           "argument"
+    assert str(e.value) == ("The `prototype_feature` decorator must always be called with the feature "
+                            "name as an argument")
 
 
 def test_decorator_with_no_arguments_and_class():
@@ -147,5 +147,5 @@ def test_decorator_with_no_arguments_and_class():
         class Class:
             pass
 
-    assert str(e.value) == "The `prototype_feature` decorator must always be called with the feature name as an " \
-                           "argument"
+    assert str(e.value) == ("The `prototype_feature` decorator must always be called with the feature "
+                            "name as an argument")

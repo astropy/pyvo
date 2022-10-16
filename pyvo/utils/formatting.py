@@ -35,7 +35,7 @@ def para_format_desc(text, width=78):
 
 
 _musubs = [
-    (re.compile(r"&lt;"), "<"),  (re.compile(r"&gt;"), ">"),
+    (re.compile(r"&lt;"), "<"), (re.compile(r"&gt;"), ">"),
     (re.compile(r"&amp;"), "&"), (re.compile(r"<br\s*/?>"), ''),
     (re.compile(r"</p>"), ''), (re.compile(r"&#176;"), " deg"),
     (re.compile(r"\$((?:[^\$]*[\*\+=/^_~><\\][^\$]*)|(?:\w+))\$"), r'\1'),

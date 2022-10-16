@@ -107,6 +107,7 @@ class AdhocServiceResultsMixin:
     """
     Mixing for adhoc:service functionallity for results classes.
     """
+
     def __init__(self, votable, url=None, session=None):
         super().__init__(votable, url=url, session=session)
 
@@ -231,6 +232,7 @@ class DatalinkRecordMixin:
 
     - ``getdataset()`` considers datalink.
     """
+
     def getdatalink(self):
         try:
             datalink = self._results.get_adhocservice_by_ivoid(DATALINK_IVOID)
@@ -384,9 +386,9 @@ class DatalinkQuery(DALQuery):
             elif np.isscalar(input_param.value) and input_param.value:
                 query_params[name] = input_param.value
             elif (
-                    not np.isscalar(input_param.value) and
-                    input_param.value.all() and
-                    len(input_param.value)
+                    not np.isscalar(input_param.value)
+                    and input_param.value.all()
+                    and len(input_param.value)
             ):
                 query_params[name] = " ".join(
                     str(_) for _ in input_param.value)
@@ -562,9 +564,9 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
             for term in core_terms:
                 if term in voc["terms"]:
                     additional_terms.extend(voc["terms"][term]["narrower"])
-            core_terms = core_terms+additional_terms
+            core_terms = core_terms + additional_terms
 
-        semantics = set("#"+term for term in core_terms) | set(other_terms)
+        semantics = set("#" + term for term in core_terms) | set(other_terms)
         for record in self:
             if record.semantics in semantics:
                 yield record
@@ -636,6 +638,7 @@ class SodaRecordMixin:
     If used, it's result class must have
     `pyvo.dal.datalink.AdhocServiceResultsMixin` mixed in.
     """
+
     def _get_soda_resource(self):
         try:
             return self._results.get_adhocservice_by_ivoid(SODA_SYNC_IVOID)
@@ -856,6 +859,7 @@ class SodaQuery(DatalinkQuery, AxisParamMixin):
     """
     a class for preparing a query to a SODA Service.
     """
+
     def __init__(
             self, baseurl, circle=None, range=None, polygon=None, band=None,
             **kwargs):

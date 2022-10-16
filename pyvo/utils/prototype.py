@@ -10,13 +10,16 @@ __all__ = ['features', 'prototype_feature', 'activate_features', 'PrototypeWarni
 
 
 features: Dict[str, "Feature"] = {
-'cadc-tb-upload': Feature('cadc-tb-upload', 'https://wiki.ivoa.net/twiki/bin/view/IVOA/TAP-1_1-Next', False)
+    'cadc-tb-upload': Feature('cadc-tb-upload',
+                              'https://wiki.ivoa.net/twiki/bin/view/IVOA/TAP-1_1-Next',
+                              False)
 }
 
 
 def prototype_feature(*args):
     """
-    Decorator for functions and classes that implement unstable standards which haven't been approved yet.
+    Decorator for functions and classes that implement unstable standards
+    which haven't been approved yet.
     The decorator can be used to tag individual functions or methods.
 
     Please refer to the user documentation for details.
@@ -24,13 +27,16 @@ def prototype_feature(*args):
     Parameters
     ----------
     args: iterable of arguments.
-        Currently, the decorator must always be called with one and only one argument, a string representing
-        the feature's name associated with the decorated class or functions. Additional arguments will be ignored,
-        while using the decorator without any arguments will result in a ``PrototypeError`` error.
+        Currently, the decorator must always be called with one and only one
+        argument, a string representing the feature's name associated with
+        the decorated class or functions. Additional arguments will be ignored,
+        while using the decorator without any arguments will result in a
+        ``PrototypeError`` error.
 
     Returns
     -------
-    The class or function it decorates, which will be associated to the feature provided as argument.
+    The class or function it decorates, which will be associated to the
+    feature provided as argument.
 
     """
     feature_name = _parse_args(*args)
@@ -53,8 +59,9 @@ def activate_features(*feature_names: Iterable[str]):
     Parameters
     ----------
     feature_names: Iterable[str]
-        An arbitrary number of feature names. If a feature with that name does not exist, a `PrototypeWarning` will
-        be issued. If no arguments are provided, all features will be activated
+        An arbitrary number of feature names. If a feature with that name does
+        not exist, a `PrototypeWarning` will be issued. If no arguments are
+        provided, all features will be activated
 
     Returns
     -------
@@ -70,8 +77,9 @@ def deactivate_features(*feature_names: Iterable[str]):
     Parameters
     ----------
     feature_names: Iterable[str]
-        An arbitrary number of feature names. If a feature with that name does not exist, a `PrototypeWarning` will
-        be issued. If no arguments are provided, all features will be de-activated
+        An arbitrary number of feature names. If a feature with that name does
+        not exist, a `PrototypeWarning` will be issued. If no arguments are
+        provided, all features will be de-activated
 
     Returns
     -------
@@ -90,8 +98,8 @@ class PrototypeWarning(PyvoUserWarning):
 
 def _parse_args(*args):
     if not args or callable(args[0]):
-        raise PrototypeError("The `prototype_feature` decorator must always be called with the feature name as an "
-                             "argument")
+        raise PrototypeError("The `prototype_feature` decorator must always be called with the "
+                             "feature name as an argument")
     return args[0]
 
 

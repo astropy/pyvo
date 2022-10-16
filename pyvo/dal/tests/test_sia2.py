@@ -50,7 +50,7 @@ def _test_result(record):
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
 def test_search():
     results = search('https://example.com/sia',
-                     pos=(33.3*u.deg, 4.2*u.deg, 0.0166*u.deg))
+                     pos=(33.3 * u.deg, 4.2 * u.deg, 0.0166 * u.deg))
     result = results[0]
 
     _test_result(result)
@@ -106,10 +106,10 @@ class TestSIAService:
         positions = [
             (2, 4, 0.0166 * u.deg),
             (12, 12.5, 34, 36),
-            (12.0*u.deg, 34.0*u.deg,
-             14.0*u.deg, 35.0*u.deg,
-             14.0*u.deg, 36.0*u.deg,
-             12.0*u.deg, 35.0*u.deg)]
+            (12.0 * u.deg, 34.0 * u.deg,
+             14.0 * u.deg, 35.0 * u.deg,
+             14.0 * u.deg, 36.0 * u.deg,
+             12.0 * u.deg, 35.0 * u.deg)]
 
         # each position
         for pos in positions:
@@ -129,10 +129,10 @@ class TestSIAQuery():
         query = SIAQuery('someurl')
         query.field_of_view.add((10, 20))
         assert query['FOV'] == ['10.0 20.0']
-        query.field_of_view.add((1*u.rad, 60))
+        query.field_of_view.add((1 * u.rad, 60))
         assert query['FOV'] == ['10.0 20.0', '57.29577951308232 60.0']
 
-        query.spatial_resolution.add((1*u.arcsec, 2))
+        query.spatial_resolution.add((1 * u.arcsec, 2))
         assert query['SPATRES'] == ['1.0 2.0']
 
         query.spectral_resolving_power.add((3, 5))

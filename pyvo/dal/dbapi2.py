@@ -91,7 +91,8 @@ class TypeObject:
         self._values = values
 
     @property
-    def id(self): return self._values[0]
+    def id(self):
+        return self._values[0]
 
     def __eq__(self, other):
         if not isinstance(other, TypeObject):

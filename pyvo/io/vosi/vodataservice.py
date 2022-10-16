@@ -80,6 +80,7 @@ class TableSet(Element, HomogeneousList):
 
     The set of tables hosted by a resource.
     """
+
     def __init__(
         self, config=None, pos=None, _name='tableset', version='1.1', **kwargs
     ):
@@ -140,6 +141,7 @@ class TableSchema(Element, HomogeneousList):
 
     A detailed description of a logically-related set of tables.
     """
+
     def __init__(self, config=None, pos=None, _name='schema', **kwargs):
         HomogeneousList.__init__(self, Table)
         Element.__init__(self, config, pos, _name, **kwargs)
@@ -251,9 +253,10 @@ class ParamHTTP(vr.Interface):
     Note that the URL for help with this service can be put into
     the Service/ReferenceURL element.
     """
+
     def __init__(self, config=None, pos=None, _name='', **kwargs):
         super().__init__(
-                config=config, pos=pos, _name=_name, **kwargs)
+            config=config, pos=pos, _name=_name, **kwargs)
 
         self._querytypes = HomogeneousList(str)
         self._resulttype = None
@@ -290,6 +293,7 @@ class Table(Element):
     Table element as described in
     http://www.ivoa.net/xml/VODataService/v1.1
     """
+
     def __init__(
         self, config=None, pos=None, _name='table', version='1.1', **kwargs
     ):
@@ -455,9 +459,10 @@ class BaseParam(Element):
     normally employ a sub-class of this type (e.g. Param), rather than this
     type directly.
     """
+
     def __init__(self, config=None, pos=None, _name='', **kwargs):
         super().__init__(
-                config=config, pos=pos, _name=_name, **kwargs)
+            config=config, pos=pos, _name=_name, **kwargs)
 
         self._name = None
         self._description = None
@@ -561,7 +566,7 @@ class TableParam(BaseParam):
 
     def __init__(self, config=None, pos=None, _name='', std=None, **kwargs):
         super().__init__(
-                config=config, pos=pos, _name=_name, **kwargs)
+            config=config, pos=pos, _name=_name, **kwargs)
 
         self._datatype = None
         self._flags = HomogeneousList(str)
@@ -627,6 +632,7 @@ class InputParam(BaseParam):
 
     A description of a service or function parameter having a fixed data type.
     """
+
     def __init__(
             self, config=None, pos=None, _name='', use="optional", std="1",
             **kwargs):
@@ -693,6 +699,7 @@ class DataType(ContentMixin, ElementWithXSIType):
     This XML type is used as a parent for defining data types with a restricted
     set of names.
     """
+
     def __init__(
             self, config=None, pos=None, _name='dataType',
             arraysize=None, delim=None, extendedType=None, extendedSchema=None,
@@ -799,6 +806,7 @@ class SimpleDataType(DataType):
     This set is intended for describing simple input parameters to a service or
     function.
     """
+
     def _content_check(self, value):
         if value is not None:
             valid_values = {
@@ -826,6 +834,7 @@ class VOTableType(TableDataType):
     VOTableType element as described in
     http://www.ivoa.net/xml/VODataService/v1.1
     """
+
     def _content_check(self, value):
         if value is not None:
             valid_values = (
@@ -844,6 +853,7 @@ class TAPDataType(TableDataType):
     an abstract parent for the specific data types supported by the
     Table Access Protocol.
     """
+
     def __init__(
         self, config=None, pos=None, _name='dataType', size=None, **kwargs
     ):
@@ -880,6 +890,7 @@ class TAPType(TAPDataType):
 
     a data type supported explicitly by the Table Access Protocol (v1.0).
     """
+
     def _content_check(self, value):
         if value is not None:
             valid_values = (
@@ -895,9 +906,10 @@ class FKColumn(Element):
     FKColumn element as described in
     http://www.ivoa.net/xml/VODataService/v1.1
     """
+
     def __init__(self, config=None, pos=None, _name='fkColumn', **kwargs):
         super().__init__(
-                config=config, pos=pos, _name=_name, **kwargs)
+            config=config, pos=pos, _name=_name, **kwargs)
 
         self._fromcolumn = None
         self._targetcolumn = None
@@ -942,6 +954,7 @@ class ForeignKey(Element):
     ForeignKey element as described in
     http://www.ivoa.net/xml/VODataService/v1.1
     """
+
     def __init__(self, config=None, pos=None, _name='foreignKey', **kwargs):
         Element.__init__(self, config, pos, _name, **kwargs)
 

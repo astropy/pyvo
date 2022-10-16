@@ -17,34 +17,33 @@ from astropy import constants
 from astropy.coordinates import SkyCoord
 import numpy
 
-from ..dal import tap
 from ..dal import query as dalq
 from ..utils import vocabularies
 from .import regtap
 
 
 __all__ = ["Freetext", "Author", "Servicetype", "Waveband",
-    "Datamodel", "Ivoid", "UCD", "Spatial", "Spectral", "Temporal",
-    "build_regtap_query"]
+           "Datamodel", "Ivoid", "UCD", "Spatial", "Spectral", "Temporal",
+           "build_regtap_query"]
 
 
 # a mapping of service type shorthands to the ivoids of the
 # corresponding standards.  This is mostly to keep legacy APIs.
 # In the future, preferably rely on shorten_stdid and expand_stdid
 # from regtap.
-SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/"+v)
-    for k, v in [
-        ("image", "sia"),
-        ("sia", "sia"),
-        ("spectrum", "ssa"),
-        ("ssap", "ssa"),
-        ("ssa", "ssa"),
-        ("scs", "conesearch"),
-        ("conesearch", "conesearch"),
-        ("line", "slap"),
-        ("slap", "slap"),
-        ("table", "tap"),
-        ("tap", "tap"),
+SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/" + v)
+                        for k, v in [
+    ("image", "sia"),
+    ("sia", "sia"),
+    ("spectrum", "ssa"),
+    ("ssap", "ssa"),
+    ("ssa", "ssa"),
+    ("scs", "conesearch"),
+    ("conesearch", "conesearch"),
+    ("line", "slap"),
+    ("slap", "slap"),
+    ("table", "tap"),
+    ("tap", "tap"),
 ])
 
 
@@ -96,7 +95,7 @@ def make_sql_literal(value):
 
     else:
         raise ValueError("Cannot format {} as a SQL literal"
-            .format(repr(value)))
+                         .format(repr(value)))
 
 
 def format_function_call(func_name, args):
@@ -166,7 +165,7 @@ class Constraint:
         """
         if self._condition is None:
             raise NotImplementedError("{} is an abstract Constraint"
-                .format(self.__class__.__name__))
+                                      .format(self.__class__.__name__))
 
         return self._condition.format(**self._get_sql_literals())
 
@@ -187,7 +186,7 @@ class Freetext(Constraint):
     """
     _keyword = "keywords"
 
-    def __init__(self, *words:str):
+    def __init__(self, *words: str):
         """
 
         Parameters
@@ -205,18 +204,18 @@ class Freetext(Constraint):
         # faster than direct ORs.
         base_queries = [
             "SELECT ivoid FROM rr.resource WHERE"
-                " 1=ivo_hasword(res_description, {{{parname}}})",
+            " 1=ivo_hasword(res_description, {{{parname}}})",
             "SELECT ivoid FROM rr.resource WHERE"
-                " 1=ivo_hasword(res_title, {{{parname}}})",
+            " 1=ivo_hasword(res_title, {{{parname}}})",
             "SELECT ivoid FROM rr.res_subject WHERE"
-                " res_subject ILIKE {{{parpatname}}}"]
+            " res_subject ILIKE {{{parpatname}}}"]
         self._fillers, subqueries = {}, []
 
         for index, word in enumerate(words):
             parname = "fulltext{}".format(index)
             parpatname = "fulltextpar{}".format(index)
             self._fillers[parname] = word
-            self._fillers[parpatname] = '%'+word+'%'
+            self._fillers[parpatname] = '%' + word + '%'
             for q in base_queries:
                 subqueries.append(q.format(**locals()))
 
@@ -233,7 +232,7 @@ class Author(Constraint):
     """
     _keyword = "author"
 
-    def __init__(self, name:str):
+    def __init__(self, name: str):
         """
 
         Parameters
@@ -301,8 +300,8 @@ class Servicetype(Constraint):
                 self.stdids.add(std)
             else:
                 raise dalq.DALQueryError("Service type {} is neither a full"
-                    " standard URI nor one of the bespoke identifiers"
-                    " {}".format(std, ", ".join(SERVICE_TYPE_MAP)))
+                                         " standard URI nor one of the bespoke identifiers"
+                                         " {}".format(std, ", ".join(SERVICE_TYPE_MAP)))
 
     def get_search_condition(self):
         # we sort the stdids to make it easy for tests (and it's
@@ -317,7 +316,7 @@ class Servicetype(Constraint):
         This is a convenience to maintain registry.search's signature.
         """
         return Servicetype(*(self.stdids | set(
-            std+'#aux' for std in self.stdids)))
+            std + '#aux' for std in self.stdids)))
 
 
 class Waveband(Constraint):
@@ -348,7 +347,7 @@ class Waveband(Constraint):
         """
         if self.__class__._legal_terms is None:
             self.__class__._legal_terms = {w.lower() for w in
-                vocabularies.get_vocabulary("messenger")["terms"]}
+                                           vocabularies.get_vocabulary("messenger")["terms"]}
 
         bands = [band.lower() for band in bands]
         for band in bands:
@@ -398,7 +397,7 @@ class Datamodel(Constraint):
         dmname = dmname.lower()
         if dmname not in self._known_dms:
             raise dalq.DALQueryError("Unknown data model id {}.  Known are: {}."
-                .format(dmname, ", ".join(sorted(self._known_dms))))
+                                     .format(dmname, ", ".join(sorted(self._known_dms))))
         self._condition = getattr(self, f"_make_{dmname}_constraint")()
 
     def _make_obscore_constraint(self):
@@ -407,7 +406,7 @@ class Datamodel(Constraint):
         self._extra_tables = ["rr.res_detail"]
         obscore_pat = 'ivo://ivoa.net/std/obscore%'
         return ("detail_xpath = '/capability/dataModel/@ivo-id'"
-            f" AND 1 = ivo_nocasematch(detail_value, '{obscore_pat}')")
+                f" AND 1 = ivo_nocasematch(detail_value, '{obscore_pat}')")
 
     def _make_epntap_constraint(self):
         self._extra_tables = ["rr.res_table"]
@@ -415,14 +414,14 @@ class Datamodel(Constraint):
         # any new identifiers (utypes case-fold).
         return " OR ".join(
             f"table_utype LIKE {pat}'" for pat in
-                ['ivo://vopdc.obspm/std/epncore#schema-2.%',
-                    'ivo://ivoa.net/std/epntap#table-2.%'])
+            ['ivo://vopdc.obspm/std/epncore#schema-2.%',
+             'ivo://ivoa.net/std/epntap#table-2.%'])
 
     def _make_regtap_constraint(self):
         self._extra_tables = ["rr.res_detail"]
         regtap_pat = 'ivo://ivoa.net/std/RegTAP#1.%'
         return ("detail_xpath = '/capability/dataModel/@ivo-id'"
-            f" AND 1 = ivo_nocasematch(detail_value, '{regtap_pat}')")
+                f" AND 1 = ivo_nocasematch(detail_value, '{regtap_pat}')")
 
 
 class Ivoid(Constraint):
@@ -468,7 +467,7 @@ class UCD(Constraint):
         self._condition = " OR ".join(
             f"ucd LIKE {{ucd{i}}}" for i in range(len(patterns)))
         self._fillers = dict((f"ucd{index}", pattern)
-            for index, pattern in enumerate(patterns))
+                             for index, pattern in enumerate(patterns))
 
 
 class Spatial(Constraint):
@@ -546,20 +545,20 @@ class Spatial(Constraint):
 
         elif isinstance(geom_spec, SkyCoord):
             geom = tomoc(format_function_call("POINT",
-                (geom_spec.ra.value, geom_spec.dec.value)))
+                                              (geom_spec.ra.value, geom_spec.dec.value)))
 
-        elif len(geom_spec)==2:
+        elif len(geom_spec) == 2:
             if isinstance(geom_spec[0], SkyCoord):
                 geom = tomoc(format_function_call("CIRCLE",
-                    [geom_spec[0].ra.value, geom_spec[0].dec.value,
-                    geom_spec[1]]))
+                                                  [geom_spec[0].ra.value, geom_spec[0].dec.value,
+                                                   geom_spec[1]]))
             else:
                 geom = tomoc(format_function_call("POINT", geom_spec))
 
-        elif len(geom_spec)==3:
+        elif len(geom_spec) == 3:
             geom = tomoc(format_function_call("CIRCLE", geom_spec))
 
-        elif len(geom_spec)%2==0:
+        elif len(geom_spec) % 2 == 0:
             geom = tomoc(format_function_call("POLYGON", geom_spec))
 
         else:
@@ -621,7 +620,7 @@ class Spectral(Constraint):
                 "spec_lo": self._to_joule(spec[0]),
                 "spec_hi": self._to_joule(spec[1])}
             self._condition = ("1 = ivo_interval_overlaps("
-                "spectral_start, spectral_end, {spec_lo}, {spec_hi})")
+                               "spectral_start, spectral_end, {spec_lo}, {spec_hi})")
 
         else:
             self._fillers = {
@@ -640,19 +639,19 @@ class Spectral(Constraint):
             # is it an energy?
             return quant.to(units.Joule).value
         except units.UnitConversionError:
-            pass # try next
+            pass  # try next
 
         try:
             # is it a wavelength?
-            return (constants.h*constants.c/quant.to(units.m)).value
+            return (constants.h * constants.c / quant.to(units.m)).value
         except units.UnitConversionError:
-            pass # try next
+            pass  # try next
 
         try:
             # is it a frequency?
-            return (constants.h*quant.to(units.Hz)).value
+            return (constants.h * quant.to(units.Hz)).value
         except units.UnitConversionError:
-            pass # fall through to give up
+            pass  # fall through to give up
 
         raise ValueError(f"Cannot make a spectral quantity out of {quant}")
 
@@ -705,7 +704,7 @@ class Temporal(Constraint):
                 "time_lo": self._to_mjd(times[0]),
                 "time_hi": self._to_mjd(times[1])}
             self._condition = ("1 = ivo_interval_overlaps("
-                "time_start, time_end, {time_lo}, {time_hi})")
+                               "time_start, time_end, {time_lo}, {time_hi})")
 
         else:
             self._fillers = {
@@ -725,7 +724,7 @@ class Temporal(Constraint):
         val = quant.to_value('mjd')
         if not isinstance(val, numpy.number):
             raise ValueError("RegTAP time constraints must be made from"
-                " single time instants.")
+                             " single time instants.")
         return val
 
 
@@ -758,11 +757,11 @@ def build_regtap_query(constraints):
         if isinstance(constraint, str):
             constraint = Freetext(constraint)
 
-        serialized.append("("+constraint.get_search_condition()+")")
+        serialized.append("(" + constraint.get_search_condition() + ")")
         extra_tables |= set(constraint._extra_tables)
 
     joined_tables = ["rr.resource", "rr.capability", "rr.interface"
-        ]+list(extra_tables)
+                     ] + list(extra_tables)
 
     # see comment in regtap.RegistryResource for the following
     # oddity
@@ -775,13 +774,13 @@ def build_regtap_query(constraints):
             select_clause.append("{} AS {}".format(*col_desc))
 
     fragments = ["SELECT",
-        ", ".join(select_clause),
-        "FROM",
-        "\nNATURAL LEFT OUTER JOIN ".join(joined_tables),
-        "WHERE",
-        "\n  AND ".join(serialized),
-        "GROUP BY",
-        ", ".join(plain_columns)]
+                 ", ".join(select_clause),
+                 "FROM",
+                 "\nNATURAL LEFT OUTER JOIN ".join(joined_tables),
+                 "WHERE",
+                 "\n  AND ".join(serialized),
+                 "GROUP BY",
+                 ", ".join(plain_columns)]
 
     return "\n".join(fragments)
 
@@ -807,8 +806,8 @@ def keywords_to_constraints(keywords):
     for keyword, value in keywords.items():
         if keyword not in _KEYWORD_TO_CONSTRAINT:
             raise TypeError(f"{keyword} is not a valid registry"
-                " constraint keyword.  Use one of {}.".format(
-                    ", ".join(sorted(_KEYWORD_TO_CONSTRAINT))))
+                            " constraint keyword.  Use one of {}.".format(
+                                ", ".join(sorted(_KEYWORD_TO_CONSTRAINT))))
 
         constraint_class = _KEYWORD_TO_CONSTRAINT[keyword]
         if (isinstance(value, (tuple, list))

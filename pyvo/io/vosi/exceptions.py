@@ -188,8 +188,8 @@ class W15(VOSIWarning, XMLWarning):
     """
 
     message_template = (
-        'pyvo.dal is designed for VOSITables version 1.0, and 1.1, but ' +
-        'this file is {}')
+        'pyvo.dal is designed for VOSITables version 1.0, and 1.1, but '
+        + 'this file is {}')
     default_args = ('x',)
 
 
