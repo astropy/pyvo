@@ -10,9 +10,13 @@ import functools
 import json
 import os
 import time
+import warnings
 from urllib import request
 
 from astropy.utils.data import download_file, clear_download_cache
+
+from pyvo.dal.exceptions import PyvoUserWarning
+
 
 IVOA_VOCABULARY_ROOT = "http://www.ivoa.net/rdf/"
 
@@ -54,8 +58,9 @@ def get_vocabulary(voc_name, force_update=False):
                 cache="update", show_progress=False,
                 http_headers={"accept": "application/x-desise+json"})
         except Exception as msg:
-            base.ui.notifyWarning("Updating cache for the vocabulary"
-                " {} failed: {}".format(voc_name, msg))
+            warnings.warn("Updating cache for the vocabulary"
+                f" {voc_name} failed: {msg}",
+                category=PyvoUserWarning)
 
     with open(src_name, "r", encoding="utf-8") as f:
         return json.load(f)
