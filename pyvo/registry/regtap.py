@@ -134,7 +134,8 @@ def search(*constraints:rtcons.Constraint,
     maxrec : int
         Overrides the RegTAP server's default limit on the number of rows to
         return.  You may need to use this if you want to retrieve more
-        than a few thousand matches.  Note that truncated search results
+        than a few thousand matches.  The server may also have a hard limit
+        that ``maxrec`` cannot override.  Note that truncated search results
         are not reproducible.
 
     **kwargs : strings, mostly
