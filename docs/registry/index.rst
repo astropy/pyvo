@@ -187,8 +187,8 @@ attribute, but you can take a shortcut and call a RegistryResource's
   >>> tables = resources["II/283"].get_tables()  # doctest: +IGNORE_WARNINGS
   >>> list(tables.keys())
   ['II/283/sncat']
-  >>> tables['II/283/sncat'].columns
-  [<BaseParam name="n_x"/>, <BaseParam name="t"/>, <BaseParam name="recno"/>, <BaseParam name="n_sn"/>, <BaseParam name="sn"/>, <BaseParam name="u_sn"/>, <BaseParam name="galaxy"/>, <BaseParam name="rag"/>, <BaseParam name="deg"/>, <BaseParam name="mtype"/>, <BaseParam name="i"/>, <BaseParam name="pa"/>, <BaseParam name="hrv"/>, <BaseParam name="z"/>, <BaseParam name="u_z"/>, <BaseParam name="n_bmag"/>, <BaseParam name="bmag"/>, <BaseParam name="logd25"/>, <BaseParam name="x"/>, <BaseParam name="y"/>, <BaseParam name="u_y"/>, <BaseParam name="n_y"/>, <BaseParam name="band"/>, <BaseParam name="maxmag"/>, <BaseParam name="u_maxmag"/>, <BaseParam name="type"/>, <BaseParam name="epmax"/>, <BaseParam name="u_epmax"/>, <BaseParam name="disc"/>, <BaseParam name="simbad"/>, <BaseParam name="ned"/>, <BaseParam name="raj2000"/>, <BaseParam name="dej2000"/>]
+  >>> sorted(c.name for c in tables['II/283/sncat'].columns)
+  ['band', 'bmag', 'deg', 'dej2000', 'disc', 'epmax', 'galaxy', 'hrv', 'i', 'logd25', 'maxmag', 'mtype', 'n_bmag', 'n_sn', 'n_x', 'n_y', 'ned', 'pa', 'rag', 'raj2000', 'recno', 'simbad', 'sn', 't', 'type', 'u_epmax', 'u_maxmag', 'u_sn', 'u_y', 'u_z', 'x', 'y', 'z']
 
 In this case, this is a table with one of VizieR's somewhat funky names.
 To run a TAP query based on this metadata, do something like:

@@ -100,7 +100,10 @@ def get_RegTAP_query(*constraints:rtcons.Constraint,
     return rtcons.build_regtap_query(constraints)
 
 
-def search(*constraints:rtcons.Constraint, includeaux=False, **kwargs):
+def search(*constraints:rtcons.Constraint,
+        includeaux:bool=False,
+        maxrec:int=None,
+        **kwargs):
     """
     execute a simple query to the RegTAP registry.
 
@@ -128,6 +131,13 @@ def search(*constraints:rtcons.Constraint, includeaux=False, **kwargs):
         This may result in duplicate capabilities being returned,
         especially if the servicetype is not specified.
 
+    maxrec : int
+        Overrides the RegTAP server's default limit on the number of rows to
+        return.  You may need to use this if you want to retrieve more
+        than a few thousand matches.  The server may also have a hard limit
+        that ``maxrec`` cannot override.  Note that truncated search results
+        are not reproducible.
+
     **kwargs : strings, mostly
         shorthands for `constraints`; see the documentation of
         a specific constraint for what keyword it uses and what literal
@@ -146,7 +156,7 @@ def search(*constraints:rtcons.Constraint, includeaux=False, **kwargs):
     query = RegistryQuery(
         service.baseurl,
         get_RegTAP_query(*constraints, includeaux=includeaux, **kwargs),
-        maxrec=service.hardlimit)
+        maxrec=maxrec)
     return query.execute()
 
 
