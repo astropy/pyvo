@@ -58,8 +58,8 @@ def get_vocabulary(voc_name, force_update=False):
                 http_headers={"accept": "application/x-desise+json"})
         except Exception as msg:
             warnings.warn("Updating cache for the vocabulary"
-                f" {voc_name} failed: {msg}",
-                category=PyvoUserWarning)
+                          f" {voc_name} failed: {msg}",
+                          category=PyvoUserWarning)
 
     with open(src_name, "r", encoding="utf-8") as f:
         return json.load(f)
