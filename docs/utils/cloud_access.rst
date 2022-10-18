@@ -1,5 +1,7 @@
 .. pyvo-cloud_access:
 
+.. doctest-skip-all
+
 
 Cloud Access
 ************
@@ -62,4 +64,3 @@ and location of the client a decision is
 >>> data_product = table_result[0]
 
 >>> pyvo.utils.cloud_access.get_data_product(data_product, 'aws', access_url_column=col_name)
-
