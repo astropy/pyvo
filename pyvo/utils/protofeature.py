@@ -45,7 +45,7 @@ class Feature:
         """
         message = f'{function_name} is part of a prototype feature ({self.name}) that has not been activated. ' \
                   f'For information about prototype features please refer to ' \
-                  f'https://pyvo.readthedocs.io/en/latest/prototypes .'
+                  f'https://pyvo.readthedocs.io/en/latest/utils/prototypes.html .'
         if self.url:
             message += f' For more information about the {self.name} feature please visit {self.url}.'
         message += f' To suppress this error and enable the feature use `pyvo.utils.activate_features(\'{self.name}\')`'
