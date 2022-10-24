@@ -5,7 +5,7 @@ Introduction
 ------------
 
 This is the documentation for PyVO, an affiliated package for the
-`astropy <http://www.astropy.org>`__ package.
+`astropy <https://www.astropy.org>`__ package.
 
 PyVO lets you find and retrieve astronomical data available from archives that
 support standard `IVOA <http://www.ivoa.net/>`__ virtual observatory service
@@ -25,7 +25,7 @@ protocols.
 .. note::
   If you need to access data which is not available via the Virtual Observatory
   standards, try the astropy affiliated package
-  `astroquery <http://astroquery.readthedocs.io/en/latest/>`__ (and, of
+  `astroquery <https://astroquery.readthedocs.io/en/latest/>`__ (and, of
   course, ask the data providers to do the right thing and use the proper
   standards for their publication).
 

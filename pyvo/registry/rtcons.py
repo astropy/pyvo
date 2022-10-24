@@ -326,7 +326,7 @@ class Waveband(Constraint):
 
     This builds a constraint against rr.resource.waveband, i.e.,
     a verbal indication of the messenger particle, coming
-    from the IVOA vocabulary http://www.ivoa.net/messenger.
+    from the IVOA vocabulary http://www.ivoa.net/rdf/messenger.
 
     The :py:class:`pyvo.registry.Spectral` constraint enables selections by particle energy,
     but few resources actually give the necessary metadata (in 2021).
@@ -342,7 +342,7 @@ class Waveband(Constraint):
         Parameters
         ----------
         *bands: tuple of strings
-            One or more of the terms given in http://www.ivoa.net/messenger.
+            One or more of the terms given in http://www.ivoa.net/rdf/messenger.
             The constraint matches when a resource declares at least
             one of the messengers listed.
         """

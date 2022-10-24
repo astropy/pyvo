@@ -2,7 +2,7 @@ PyVO
 ===================================
 
 .. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
-    :target: http://www.astropy.org
+    :target: https://www.astropy.org
     :alt: Powered by Astropy Badge
 
 .. image:: https://github.com/astropy/pyvo/workflows/CI/badge.svg?branch=main
