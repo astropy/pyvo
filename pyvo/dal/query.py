@@ -437,7 +437,7 @@ class DALResults:
     def table(self):
         warn(AstropyDeprecationWarning(
             'Using the table property is deprecated. '
-            'Please use se to_table() instead.'
+            'Please use the to_table() instead.'
         ))
         return self.to_table()
 
