@@ -163,12 +163,12 @@ class TestInterface:
         assert len(parsed_caps[3].interfaces[0].mirrorurls) == 2
 
     def test_mirrors_have_titles(self, parsed_caps):
-        assert [m.title for m in parsed_caps[3].interfaces[0].mirrorurls
-                ] == ["https version", "Paris mirror"]
+        assert ([m.title for m in parsed_caps[3].interfaces[0].mirrorurls]
+                == ["https version", "Paris mirror"])
 
     def test_mirrors_have_urls(self, parsed_caps):
-        assert [m.content for m in parsed_caps[3].interfaces[0].mirrorurls
-                ] == ['https://example.org/tap', 'https://paris.example.org/tap']
+        assert ([m.content for m in parsed_caps[3].interfaces[0].mirrorurls]
+                == ['https://example.org/tap', 'https://paris.example.org/tap'])
 
     def test_testquerystring_parsed(self, parsed_caps):
         assert (parsed_caps[3].interfaces[0].testquerystring.content

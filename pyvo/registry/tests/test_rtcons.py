@@ -75,8 +75,8 @@ class TestFreetextConstraint:
     def test_interesting_literal(self):
         assert rtcons.Freetext("α Cen's planets").get_search_condition() == (
             "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'α Cen''s planets')"
-            " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'α Cen''s planets') "
-            "UNION SELECT ivoid FROM rr.res_subject WHERE res_subject ILIKE '%α Cen''s planets%')")
+            " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'α Cen''s planets')"
+            " UNION SELECT ivoid FROM rr.res_subject WHERE res_subject ILIKE '%α Cen''s planets%')")
 
 
 class TestAuthorConstraint:
@@ -282,8 +282,7 @@ class TestWhereClauseBuilding:
     @staticmethod
     def where_clause_for(*args, **kwargs):
         cons = list(args) + rtcons.keywords_to_constraints(kwargs)
-        return rtcons.build_regtap_query(cons
-                                         ).split("\nWHERE\n", 1)[1].split("\nGROUP BY\n")[0]
+        return rtcons.build_regtap_query(cons).split("\nWHERE\n", 1)[1].split("\nGROUP BY\n")[0]
 
     @pytest.mark.usefixtures('messenger_vocabulary')
     def test_from_constraints(self):
