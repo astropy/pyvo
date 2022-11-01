@@ -531,8 +531,8 @@ as quantities):
 
 .. doctest-remote-data::
 
-    >>>> astropy_table = resultset.to_table()
-    >>>> astropy_qtable = resultset.to_qtable()
+    >>> astropy_table = resultset.to_table()
+    >>> astropy_qtable = resultset.to_qtable()
 
 Multiple datasets
 -----------------
