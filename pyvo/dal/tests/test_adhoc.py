@@ -15,7 +15,7 @@ def test_pos():
     class TestClass(dict, AxisParamMixin):
         pass
     test_obj = TestClass()
-    test_obj.pos.add((1, 2, 3)*u.deg)
+    test_obj.pos.add((1, 2, 3) * u.deg)
     assert len(test_obj._pos) == 1
     assert test_obj['POS'] == ['CIRCLE 1.0 2.0 3.0']
 
@@ -41,9 +41,9 @@ def test_pos():
                                'POLYGON 1.0 2.0 3.0 4.0 5.0 6.0']
 
     # test borders
-    test_obj.pos.discard((1, 2, 3)*u.deg)
+    test_obj.pos.discard((1, 2, 3) * u.deg)
     test_obj.pos.discard((1, 2, 3, 4, 5, 6))
-    assert(len(test_obj._pos) == 0)
+    assert (len(test_obj._pos) == 0)
     test_obj.pos.add((0, 90, 90))
     assert len(test_obj._pos) == 1
     assert test_obj['POS'] == ['CIRCLE 0.0 90.0 90.0']
@@ -92,12 +92,12 @@ def test_band():
     test_obj.band.add(33)
     assert 33 in test_obj.band
     assert test_obj['BAND'] == ['33.0 33.0']
-    test_obj.band.add((50*u.meter, 500))
+    test_obj.band.add((50 * u.meter, 500))
     assert 33 in test_obj.band
-    assert (50*u.meter, 500) in test_obj.band
+    assert (50 * u.meter, 500) in test_obj.band
     assert test_obj['BAND'] == ['33.0 33.0', '50.0 500.0']
     test_obj.band.discard(33)
-    assert (50*u.meter, 500) in test_obj.band
+    assert (50 * u.meter, 500) in test_obj.band
     assert test_obj['BAND'] == ['50.0 500.0']
     test_obj.band.pop()
     assert not test_obj.band
@@ -198,7 +198,7 @@ def test_soda_query():
     assert not hasattr(test_obj, '_polygon')
     assert not hasattr(test_obj, '_range')
 
-    test_obj.range = (8, 9, 3, 4)*u.deg
+    test_obj.range = (8, 9, 3, 4) * u.deg
     assert test_obj['POS'] == 'RANGE 8.0 9.0 3.0 4.0'
     assert test_obj._range is not None
     assert not hasattr(test_obj, '_polygon')

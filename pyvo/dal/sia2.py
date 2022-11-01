@@ -169,9 +169,9 @@ class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
             if cap.standardid.lower() == SIA2_STANDARD_ID.lower():
                 for interface in cap.interfaces:
                     if interface.accessurls and \
-                            not (len(interface.securitymethods) == 1 and
-                                 interface.securitymethods[0].standardid ==
-                                 'ivo://ivoa.net/sso#BasicAA'):
+                            not (len(interface.securitymethods) == 1
+                                 and interface.securitymethods[0].standardid
+                                 == 'ivo://ivoa.net/sso#BasicAA'):
                         self.query_ep = interface.accessurls[0].content
                         break
 
@@ -712,7 +712,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         required. Provision of dataset size estimates is important whenever it
         is possible that datasets can be very large.
         """
-        return self.get('access_estsize')*1000*u.byte
+        return self.get('access_estsize') * 1000 * u.byte
 
     #           SPATIAL CHARACTERISATION
     @property
@@ -720,14 +720,14 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         """
         ICRS Right Ascension of the center of the observation
         """
-        return self.get('s_ra')*u.deg
+        return self.get('s_ra') * u.deg
 
     @property
     def s_dec(self):
         """
         CRS Declination of the center of the observation
         """
-        return self.get('s_dec')*u.deg
+        return self.get('s_dec') * u.deg
 
     @property
     def s_fov(self):
@@ -744,7 +744,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         data product. The spatial coverage of a data product can be more
         precisely specified using the region attribute.
         """
-        return self.get('s_fov')*u.deg
+        return self.get('s_fov') * u.deg
 
     @property
     def s_region(self):
@@ -773,7 +773,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         characterisation may be necessary to fully specify the spatial
         characteristics of the data.
         """
-        return self.get('s_resolution')*u.arcsec
+        return self.get('s_resolution') * u.arcsec
 
     @property
     def s_xel1(self):
@@ -809,7 +809,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         Resolution min value on spatial axis (FHWM of PSF)
         """
         rmin = self.get('s_resolution_min', default=None)
-        return rmin if not rmin else rmin*u.arcsec
+        return rmin if not rmin else rmin * u.arcsec
 
     @property
     def s_resolution_max(self):
@@ -898,14 +898,14 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         often adjusted to achieve similar signal to noise ratio for different
         targets.
         """
-        return self.get('t_exptime')*u.second
+        return self.get('t_exptime') * u.second
 
     @property
     def t_resolution(self):
         """
         Estimated or average value of the temporal resolution.
         """
-        return self.get('t_resolution')*u.second
+        return self.get('t_resolution') * u.second
 
     @property
     def t_calib_status(self):
@@ -922,7 +922,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         Time coord statistical error on the time measurements in seconds
         """
         ter = self.get('t_stat_error', default=None)
-        return ter if not ter else ter*u.second
+        return ter if not ter else ter * u.second
 
     #           SPECTRAL CHARACTERISATION
     @property
@@ -961,14 +961,14 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         """
         Minimum of the spectral interval covered by the observation
         """
-        return self.get('em_min')*u.meter
+        return self.get('em_min') * u.meter
 
     @property
     def em_max(self):
         """
         Maximum of the spectral interval covered by the observation
         """
-        return self.get('em_max')*u.meter
+        return self.get('em_max') * u.meter
 
     @property
     def em_res_power(self):
@@ -1001,7 +1001,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         power is preferable due to the LSF variation along the spectral axis.
         """
         if 'em_resolution' in self.keys():
-            return self.get('em_resolution')*u.meter
+            return self.get('em_resolution') * u.meter
         return None
 
     @property
@@ -1010,7 +1010,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         Spectral coord statistical error (accuracy along the spectral axis)
         """
         if 'em_stat_error' in self.keys():
-            return self.get('em_stat_error')*u.meter
+            return self.get('em_stat_error') * u.meter
         return None
 
     #           OBSERVABLE AXIS

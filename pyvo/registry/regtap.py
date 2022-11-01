@@ -30,10 +30,10 @@ from ..utils.formatting import para_format_desc
 
 
 __all__ = ["search", "get_RegTAP_query",
-    "RegistryResource", "RegistryResults", "ivoid2service"]
+           "RegistryResource", "RegistryResults", "ivoid2service"]
 
 REGISTRY_BASEURL = os.environ.get("IVOA_REGISTRY", "http://reg.g-vo.org/tap"
-    ).rstrip("/")
+                                  ).rstrip("/")
 
 
 # ADQL only has string_agg, where we need string arrays.  We fake arrays
@@ -65,7 +65,7 @@ def expand_stdid(s):
     """
     if s is None or "://" in s:
         return s
-    return "ivo://ivoa.net/std/"+s
+    return "ivo://ivoa.net/std/" + s
 
 
 @functools.lru_cache(1)
@@ -80,15 +80,15 @@ def get_RegTAP_service():
     return tap.TAPService(REGISTRY_BASEURL)
 
 
-def get_RegTAP_query(*constraints:rtcons.Constraint,
-        includeaux=False, **kwargs):
+def get_RegTAP_query(*constraints: rtcons.Constraint,
+                     includeaux=False, **kwargs):
     """returns SQL for a RegTAP query for constraints and keywords.
 
     This function's parameters are as for search; this is basically
     a wrapper for rtcons.build_regtap_query maintaining the legacy
     keyword-based interface.
     """
-    constraints = list(constraints)+rtcons.keywords_to_constraints(kwargs)
+    constraints = list(constraints) + rtcons.keywords_to_constraints(kwargs)
 
     # maintain legacy includeaux by locating any Servicetype constraints
     # and replacing them with ones that includes auxiliaries.
@@ -100,10 +100,8 @@ def get_RegTAP_query(*constraints:rtcons.Constraint,
     return rtcons.build_regtap_query(constraints)
 
 
-def search(*constraints:rtcons.Constraint,
-        includeaux:bool=False,
-        maxrec:int=None,
-        **kwargs):
+def search(*constraints: rtcons.Constraint, includeaux: bool = False, maxrec: int = None, **kwargs):
+
     """
     execute a simple query to the RegTAP registry.
 
@@ -189,6 +187,7 @@ class RegistryResults(dalq.DALResults):
     matters, you need to use full ivoids as index.
 
     """
+
     def getrecord(self, index):
         """
         return all the attributes of a resource record with the given index
@@ -209,11 +208,11 @@ class RegistryResults(dalq.DALResults):
         like to inspect the matches in, perhaps, notebooks.
         """
         return table.Table([
-                list(range(len(self))),
-                [r.short_name for r in self],
-                [r.res_title for r in self],
-                [r.res_description for r in self],
-                [", ".join(sorted(r.access_modes())) for r in self]],
+            list(range(len(self))),
+            [r.short_name for r in self],
+            [r.res_title for r in self],
+            [r.res_description for r in self],
+            [", ".join(sorted(r.access_modes())) for r in self]],
             names=("index", "short_name", "title", "description", "interfaces"),
             descriptions=(
                 "Index to access the resource within self",
@@ -225,12 +224,12 @@ class RegistryResults(dalq.DALResults):
     @functools.lru_cache(maxsize=None)
     def _get_ivo_index(self):
         return dict((r.ivoid, index)
-            for index, r in enumerate(self))
+                    for index, r in enumerate(self))
 
     @functools.lru_cache(maxsize=None)
     def _get_short_name_index(self):
         return dict((r.short_name, index)
-            for index, r in enumerate(self))
+                    for index, r in enumerate(self))
 
     def __getitem__(self, item):
         """
@@ -256,6 +255,7 @@ class _BrowserService:
     """A pseudo-service class just opening a web browser for browser-based
     services.
     """
+
     def __init__(self, access_url):
         self.access_url = access_url
 
@@ -281,11 +281,11 @@ class Interface:
     as in regtap (e.g., lowercased for the standardIDs).
     """
     service_for_standardid = {
-           "ivo://ivoa.net/std/conesearch":  scs.SCSService,
-           "ivo://ivoa.net/std/sia":  sia.SIAService,
-           "ivo://ivoa.net/std/ssa":  ssa.SSAService,
-           "ivo://ivoa.net/std/sla":  sla.SLAService,
-           "ivo://ivoa.net/std/tap":  tap.TAPService}
+        "ivo://ivoa.net/std/conesearch": scs.SCSService,
+        "ivo://ivoa.net/std/sia": sia.SIAService,
+        "ivo://ivoa.net/std/ssa": ssa.SSAService,
+        "ivo://ivoa.net/std/sla": sla.SLAService,
+        "ivo://ivoa.net/std/tap": tap.TAPService}
 
     def __init__(self, access_url, standard_id, intf_type, intf_role):
         self.access_url = access_url
@@ -293,25 +293,25 @@ class Interface:
         self.is_vosi = standard_id.startswith("ivo://ivoa.net/std/vosi")
         self.type = intf_type or None
         self.role = intf_role or None
-        self.is_standard = self.role=="std"
+        self.is_standard = self.role == "std"
 
     def __repr__(self):
         return (f"Interface({self.access_url!r}, {self.standard_id!r},"
-            f" {self.type!r}, {self.role!r})")
+                f" {self.type!r}, {self.role!r})")
 
     def to_service(self):
-        if self.type=="vr:webbrowser":
+        if self.type == "vr:webbrowser":
             return _BrowserService(self.access_url)
 
         if self.standard_id is None or not self.is_standard:
             raise ValueError("This is not a standard interface.  PyVO"
-                " cannot speak to it.")
+                             " cannot speak to it.")
 
         service_class = self.service_for_standardid.get(
             self.standard_id.split("#")[0])
         if service_class is None:
             raise ValueError("PyVO has no support for interfaces with"
-                f" standard id {self.standard_id}.")
+                             f" standard id {self.standard_id}.")
 
         return service_class(self.access_url)
 
@@ -334,7 +334,7 @@ class Interface:
         """
         if not self.standard_id:
             return False
-        return self.standard_id.split("#")[0]==standard_id.split("#")[0]
+        return self.standard_id.split("#")[0] == standard_id.split("#")[0]
 
 
 class RegistryResource(dalq.Record):
@@ -379,26 +379,26 @@ class RegistryResource(dalq.Record):
         (f"\n  ivo_string_agg(COALESCE(intf_type, ''), '{TOKEN_SEP}')",
             "intf_types"),
         (f"\n  ivo_string_agg(COALESCE(intf_role, ''), '{TOKEN_SEP}')",
-            "intf_roles"),]
+            "intf_roles"), ]
 
     def __init__(self, results, index, session=None):
         dalq.Record.__init__(self, results, index, session)
 
         self._mapping["access_urls"
-            ] = self._parse_pseudo_array(self._mapping["access_urls"])
+                      ] = self._parse_pseudo_array(self._mapping["access_urls"])
         self._mapping["standard_ids"
-            ] = self._parse_pseudo_array(self._mapping["standard_ids"])
+                      ] = self._parse_pseudo_array(self._mapping["standard_ids"])
         self._mapping["intf_types"
-            ] = self._parse_pseudo_array(self._mapping["intf_types"])
+                      ] = self._parse_pseudo_array(self._mapping["intf_types"])
         self._mapping["intf_roles"
-            ] = self._parse_pseudo_array(self._mapping["intf_roles"])
+                      ] = self._parse_pseudo_array(self._mapping["intf_roles"])
 
         self.interfaces = [Interface(*props)
-            for props in zip(
-                self["access_urls"],
-                self["standard_ids"],
-                self["intf_types"],
-                self["intf_roles"])]
+                           for props in zip(
+            self["access_urls"],
+            self["standard_ids"],
+            self["intf_types"],
+            self["intf_roles"])]
 
     @staticmethod
     def _parse_pseudo_array(literal):
@@ -530,11 +530,11 @@ class RegistryResource(dalq.Record):
         # multiple times in here.  Be cool about that situation:
         access_urls = list(sorted(set(self["access_urls"])))
 
-        if len(access_urls)==0:
+        if len(access_urls) == 0:
             raise dalq.DALQueryError(
                 f"The resource {self.ivoid} has no queriable interfaces.")
 
-        elif len(access_urls)>1:
+        elif len(access_urls) > 1:
             warnings.warn(AstropyDeprecationWarning(
                 f"The resource {self.ivoid} has multiple capabilities. "
                 " You should explicitly pick one using get_service. "
@@ -548,7 +548,7 @@ class RegistryResource(dalq.Record):
         the IVOA standard identifier
         """
         standard_ids = list(set(self["standard_ids"]))
-        if len(standard_ids)==1:
+        if len(standard_ids) == 1:
             return standard_ids[0]
         else:
             raise dalq.DALQueryError(
@@ -568,14 +568,14 @@ class RegistryResource(dalq.Record):
         This will ignore VOSI (infrastructure) services.
         """
         return set(shorten_stdid(intf.standard_id) or "web"
-            for intf in self.interfaces
-            if (intf.standard_id or intf.type=="vr:webbrowser")
-                and not intf.is_vosi)
+                   for intf in self.interfaces
+                   if (intf.standard_id or intf.type == "vr:webbrowser")
+                   and not intf.is_vosi)
 
     def get_interface(self,
-            service_type:str,
-            lax:bool=True,
-            std_only:bool=False):
+                      service_type: str,
+                      lax: bool = True,
+                      std_only: bool = False):
         """returns a regtap.Interface class for service_type.
 
         Parameters
@@ -591,11 +591,11 @@ class RegistryResource(dalq.Record):
             want when you want to construct pyVO service objects later.
             This parameter is ignored for the "web" service type.
         """
-        if service_type=="web":
+        if service_type == "web":
             # this works very much differently in the Registry
             # than do the proper services
             candidates = [intf for intf in self.interfaces
-                if intf.type=="vr:webbrowser"]
+                          if intf.type == "vr:webbrowser"]
 
         else:
             service_type = expand_stdid(
@@ -603,23 +603,23 @@ class RegistryResource(dalq.Record):
                     service_type, service_type))
 
             candidates = [intf for intf in self.interfaces
-                if ((not std_only) or intf.is_standard)
-                    and not intf.is_vosi
-                    and ((not service_type) or intf.supports(service_type))]
+                          if ((not std_only) or intf.is_standard)
+                          and not intf.is_vosi
+                          and ((not service_type) or intf.supports(service_type))]
 
         if not candidates:
             raise ValueError(
                 "No matching interface.")
-        if len(candidates)>1 and not lax:
+        if len(candidates) > 1 and not lax:
             raise ValueError("Multiple matching interfaces found."
-                "  Perhaps pass in service_type or use a Servicetype"
-                " constrain in the registry.search?  Or use lax=True?")
+                             "  Perhaps pass in service_type or use a Servicetype"
+                             " constrain in the registry.search?  Or use lax=True?")
 
         return candidates[0]
 
     def get_service(self,
-            service_type:str=None,
-            lax:bool=True):
+                    service_type: str = None,
+                    lax: bool = True):
         """
         return an appropriate DALService subclass for this resource that
         can be used to search the resource using service_type.
@@ -664,7 +664,7 @@ class RegistryResource(dalq.Record):
             opening a web browser on the access URL.
         """
         return self.get_interface(service_type, lax, std_only=True
-            ).to_service()
+                                  ).to_service()
 
     @property
     def service(self):
@@ -736,9 +736,9 @@ class RegistryResource(dalq.Record):
         print("Short Name: " + self.short_name, file=file)
         print("IVOA Identifier: " + self.ivoid, file=file)
         print("Access modes: " + ", ".join(sorted(self.access_modes())),
-            file=file)
+              file=file)
 
-        if len(self._mapping["access_urls"])==1:
+        if len(self._mapping["access_urls"]) == 1:
             print("Base URL: " + self.access_url, file=file)
         else:
             print("Multi-capabilty service -- use get_service()", file=file)
@@ -774,7 +774,7 @@ class RegistryResource(dalq.Record):
             WHERE
                 base_role='contact'
                 AND ivoid={}""".format(
-                    rtcons.make_sql_literal(self.ivoid)))
+            rtcons.make_sql_literal(self.ivoid)))
 
         contacts = []
         for row in res:
@@ -845,11 +845,11 @@ class RegistryResource(dalq.Record):
             """SELECT table_name, table_description, table_index, table_title
             FROM rr.res_table
             WHERE ivoid={}""".format(
-                    rtcons.make_sql_literal(self.ivoid)))
-        if len(tables)>table_limit:
+                rtcons.make_sql_literal(self.ivoid)))
+        if len(tables) > table_limit:
             raise dalq.DALQueryError(f"Resource {self.ivoid} reports"
-                f" {len(tables)} tables.  Pass a higher table_limit"
-                " to see them all.")
+                                     f" {len(tables)} tables.  Pass a higher table_limit"
+                                     " to see them all.")
 
         res = {}
         for table_row in tables:
@@ -881,10 +881,10 @@ def ivoid2service(ivoid, servicetype=None):
     if servicetype is not None:
         constraints.append(rtcons.Servicetype(servicetype))
     resources = search(*constraints)
-    if len(resources)==0:
+    if len(resources) == 0:
         if servicetype:
             raise dalq.DALQueryError(f"No resource {ivoid} with"
-                f" {servicetype} capability.")
+                                     f" {servicetype} capability.")
         else:
             raise dalq.DALQueryError(f"No resource {ivoid}")
 

@@ -11,7 +11,6 @@ import json
 import os
 import time
 import warnings
-from urllib import request
 
 from astropy.utils.data import download_file, clear_download_cache
 
@@ -36,7 +35,7 @@ def get_vocabulary(voc_name, force_update=False):
     This will use a cache to avoid repeated updates, but it
     will attempt to re-download if the cached copy is older than 6 months.
     """
-    src_url = IVOA_VOCABULARY_ROOT+voc_name
+    src_url = IVOA_VOCABULARY_ROOT + voc_name
     if force_update:
         clear_download_cache(src_url)
 
@@ -50,17 +49,17 @@ def get_vocabulary(voc_name, force_update=False):
         raise VocabularyError("No such vocabulary: {} ({})".format(
             voc_name, msg))
 
-    if time.time()-os.path.getmtime(src_name)>3600*60*150:
+    if time.time() - os.path.getmtime(src_name) > 3600 * 60 * 150:
         # attempt a re-retrieval, but ignore failure
         try:
             src_name = download_file(
-                IVOA_VOCABULARY_ROOT+voc_name,
+                IVOA_VOCABULARY_ROOT + voc_name,
                 cache="update", show_progress=False,
                 http_headers={"accept": "application/x-desise+json"})
         except Exception as msg:
             warnings.warn("Updating cache for the vocabulary"
-                f" {voc_name} failed: {msg}",
-                category=PyvoUserWarning)
+                          f" {voc_name} failed: {msg}",
+                          category=PyvoUserWarning)
 
     with open(src_name, "r", encoding="utf-8") as f:
         return json.load(f)

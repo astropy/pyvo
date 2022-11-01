@@ -167,7 +167,7 @@ class TestSemanticsRetrieval:
     def test_access_without_expansion(self):
         datalink = DatalinkResults.from_result_url('http://example.com/proc')
         res = [r["access_url"] for r in datalink.bysemantics(
-                       ["#this", "#preview"], include_narrower=False)]
+            ["#this", "#preview"], include_narrower=False)]
         assert len(res) == 2
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
         assert res[1].endswith("http://dc.zah.uni-heidelberg.de/wider.dat")
@@ -183,10 +183,10 @@ class TestSemanticsRetrieval:
         datalink = DatalinkResults.from_result_url('http://example.com/proc')
         res = [r["access_url"]
                for r in datalink.bysemantics([
-                       "urn:example:rdf/dlext#oracle",
-                       'http://www.ivoa.net/rdf/datalink/core#preview',
-                       '#this',
-                       'non-existing-term'])]
+                   "urn:example:rdf/dlext#oracle",
+                   'http://www.ivoa.net/rdf/datalink/core#preview',
+                   '#this',
+                   'non-existing-term'])]
         assert len(res) == 4
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
         assert res[1].endswith("comb_avg.0001.fits.fz?preview=True")

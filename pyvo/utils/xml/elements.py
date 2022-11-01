@@ -96,6 +96,7 @@ class xmlelement(property):
     """
 
     """
+
     def __init__(
         self, fget=None, fset=None, fdel=None, fadd=None, fformat=None,
         doc=None, name=None, ns=None, plain=False, cls=None, multiple_exc=None
@@ -291,6 +292,7 @@ class Element:
     Subclasses and Mixins must initialize their independent attributes after
     calling ``super().__init__``.
     """
+
     def __init__(self, config=None, pos=None, _name='', _ns='', **kwargs):
         if config is None:
             config = {}
@@ -399,10 +401,10 @@ class ElementWithXSIType(Element):
         # really needs to be fixed when we switch to namespace-aware
         # parsing.
         for name, val in kwargs.items():
-            if name=="xsi:type":
+            if name == "xsi:type":
                 xsi_type = val
                 break
-            elif name.split(":")[-1]=="type":
+            elif name.split(":")[-1] == "type":
                 xsi_type = val
 
         if xsi_type is None:
@@ -423,6 +425,7 @@ class ContentMixin(Element):
     """
     Mixin class for elements with inner content.
     """
+
     def __init__(self, config=None, pos=None, _name=None, _ns=None, **kwargs):
         super().__init__(config, pos, _name, _ns, **kwargs)
         self._content = None

@@ -9,6 +9,5 @@ from pyvo.version import version
 
 
 def test_create_session():
-    system = platform.system()
     test_session = create_session()
     assert test_session.headers['User-Agent'] == 'python-pyvo/{} ({})'.format(version, platform.system())

@@ -6,7 +6,6 @@ Tests for pyvo.utils.xml.elements
 
 import io
 
-import pytest
 from astropy.utils.xml import iterparser
 
 from pyvo.utils.xml import elements
@@ -58,33 +57,33 @@ class TestXSIType:
 
     def test_prefixed_type(self):
         found_type = self._parse_string(b'<tbase xsi:type="foo:TOther1"/>'
-            ).tbase.__class__
+                                        ).tbase.__class__
         assert found_type.__name__ == "TOther1"
 
     def test_unprefixed_type(self):
         # This is undesired behaviour; this test should fail once
         # we've properly parsing XML
         found_type = self._parse_string(b'<tbase xsi:type="TOther1"/>'
-            ).tbase.__class__
+                                        ).tbase.__class__
         assert found_type.__name__ == "TOther1"
 
     def test_badprefixed_type(self):
         found_type = self._parse_string(b'<tbase xsi:type="ns1:TOther2"/>'
-            ).tbase.__class__
+                                        ).tbase.__class__
         assert found_type.__name__ == "TOther2"
 
     def test_xsi_ignorable(self):
         # This is again unwelcome behaviour, but unavoidable as long
         # as we hack around namespaces
         found_type = self._parse_string(b'<tbase type="ns1:TOther2"/>'
-            ).tbase.__class__
+                                        ).tbase.__class__
         assert found_type.__name__ == "TOther2"
 
     def test_xsi_preferred(self):
         # Another piece unwelcome behaviour.
         found_type = self._parse_string(
             b'<tbase foo:type="TOther1" xsi:type="ns1:TOther2"/>'
-            ).tbase.__class__
+        ).tbase.__class__
         assert found_type.__name__ == "TOther2"
 
     def test_bad_type(self, recwarn):

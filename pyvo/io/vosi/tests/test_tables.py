@@ -376,8 +376,8 @@ class TestTables:
         """Test handling of describing tables with no description
         """
         tableset = vosi.parse_tables(
-                get_pkg_data_filename(
-                    "data/tables/no_table_description.xml"))
+            get_pkg_data_filename(
+                "data/tables/no_table_description.xml"))
         nodesc_table = tableset.get_first_table()
         assert nodesc_table.description is None
 
@@ -390,8 +390,8 @@ class TestTables:
         """Test describing a table with a single description
         """
         tableset = vosi.parse_tables(
-                get_pkg_data_filename(
-                    "data/tables/single_table_description.xml"))
+            get_pkg_data_filename(
+                "data/tables/single_table_description.xml"))
         onedesc_table = tableset.get_first_table()
         describe_string = 'A test table with a single description'
         assert describe_string in onedesc_table.description

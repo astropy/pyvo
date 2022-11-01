@@ -4,7 +4,6 @@
 Tests for pyvo.io.vosi
 """
 import io
-import logging
 from operator import eq as equals
 
 import pytest
@@ -20,7 +19,7 @@ from astropy.utils.data import get_pkg_data_filename
 @pytest.fixture()
 def parsed_caps():
     return vosi.parse_capabilities(get_pkg_data_filename(
-            "data/capabilities.xml"))
+        "data/capabilities.xml"))
 
 
 @pytest.mark.usefixtures("parsed_caps")
@@ -164,21 +163,21 @@ class TestInterface:
         assert len(parsed_caps[3].interfaces[0].mirrorurls) == 2
 
     def test_mirrors_have_titles(self, parsed_caps):
-        assert [m.title for m in parsed_caps[3].interfaces[0].mirrorurls
-            ] == ["https version", "Paris mirror"]
+        assert ([m.title for m in parsed_caps[3].interfaces[0].mirrorurls]
+                == ["https version", "Paris mirror"])
 
     def test_mirrors_have_urls(self, parsed_caps):
-        assert [m.content for m in parsed_caps[3].interfaces[0].mirrorurls
-            ] == ['https://example.org/tap', 'https://paris.example.org/tap']
+        assert ([m.content for m in parsed_caps[3].interfaces[0].mirrorurls]
+                == ['https://example.org/tap', 'https://paris.example.org/tap'])
 
     def test_testquerystring_parsed(self, parsed_caps):
         assert (parsed_caps[3].interfaces[0].testquerystring.content
-            == 'QUERY=SELECT%20*%20FROM%20tap_schema.tables&LANG=ADQL')
+                == 'QUERY=SELECT%20*%20FROM%20tap_schema.tables&LANG=ADQL')
 
 
 @pytest.fixture()
 def cap_with_free_prefix(recwarn):
-        caps = vosi.parse_capabilities(io.BytesIO(b"""
+    caps = vosi.parse_capabilities(io.BytesIO(b"""
 <ns2:capabilities xmlns:ns2="http://www.ivoa.net/xml/VOSICapabilities/v1.0">
   <capability
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -198,7 +197,7 @@ def cap_with_free_prefix(recwarn):
     </language>
   </capability>
 </ns2:capabilities>"""))
-        return recwarn, caps
+    return recwarn, caps
 
 
 # this is a test for when people ignore the canonical prefixes for
@@ -206,7 +205,7 @@ def cap_with_free_prefix(recwarn):
 class TestFreePrefixes:
     def test_parses_without_warning(self, cap_with_free_prefix):
         warnings, _ = cap_with_free_prefix
-        assert len(warnings)==0
+        assert len(warnings) == 0
 
     def test_parses_as_tapregext(self, cap_with_free_prefix):
         _, cap = cap_with_free_prefix

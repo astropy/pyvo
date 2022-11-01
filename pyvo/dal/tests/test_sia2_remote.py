@@ -161,7 +161,7 @@ class TestSIACadc():
         results = search(CADC_SIA_URL, spatial_resolution=(1, 2), maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert 1*u.arcsec <= rr.s_resolution <= 2*u.arcsec
+            assert 1 * u.arcsec <= rr.s_resolution <= 2 * u.arcsec
 
     @pytest.mark.filterwarnings("ignore::pyvo.dal.exceptions.DALOverflowWarning")
     def test_spec_resp(self):
@@ -176,7 +176,7 @@ class TestSIACadc():
                          maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert 1*u.second <= rr.t_exptime <= 2*u.second
+            assert 1 * u.second <= rr.t_exptime <= 2 * u.second
 
     @pytest.mark.filterwarnings("ignore::pyvo.dal.exceptions.DALOverflowWarning")
     def test_timeres(self):
@@ -238,4 +238,4 @@ class TestSIACadc():
         assert len(results) == 5
         for rr in results:
             assert rr.access_format == \
-                   'application/x-votable+xml;content=datalink'
+                'application/x-votable+xml;content=datalink'
