@@ -4,6 +4,9 @@
 - registry.regsearch now accepts an optional maxrec argument rather than
   automatically passing the service's hard limit. [#375]
 
+- Added convenience method DALResults.to_qtable() that returns an
+  astropy.table.QTable object. [#384]
+
 
 1.4 (2022-09-26)
 ================
