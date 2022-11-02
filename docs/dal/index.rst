@@ -120,16 +120,31 @@ See :py:mod:`pyvo.dal.exceptions`.
 Services
 ========
 
-There are five types of services with different purposes but a similiar
-interface available.
+There are five types of services with different purposes but a mostly
+similiar interface available.
 
 .. _pyvo_tap:
 
 Table Access Protocol
 ---------------------
 
-Unlike the other services, this one works with tables queryable by an sql-ish
-language called *ADQL* instead of predefined search constraints.
+.. pull-quote::
+
+    This protocol defines a service protocol for accessing 
+    general table data, including astronomical catalogs as well as general 
+    database tables. Access is provided for both database and table metadata 
+    as well as for actual table data. This protocol supports the query language
+    `Astronomical Data Query Language (ADQL) <https://www.ivoa.net/documents/ADQL/>`_ 
+    within an integrated interface. 
+    It also includes support for both synchronous and asynchronous queries. 
+    Special support is provided for spatially indexed queries using the 
+    spatial extensions in ADQL. A multi-position query capability permits 
+    queries against an arbitrarily large list of astronomical targets, 
+    providing a simple spatial cross-matching capability. 
+    More sophisticated distributed cross-matching capabilities are possible by 
+    orchestrating a distributed query across multiple TAP services.
+
+    -- `Table Access Protocol <https://www.ivoa.net/documents/TAP/>`_
 
 .. doctest-remote-data::
 
@@ -246,7 +261,20 @@ Finally, tables and their content can be removed:
 
 Simple Image Access
 -------------------
-Like the name says, this service serves astronomical images.
+
+.. pull-quote::
+
+    The Simple Image Access (SIA) protocol 
+    provides capabilities for the discovery, description, access, and retrieval 
+    of multi-dimensional image datasets, including 2-D images as well as datacubes 
+    of three or more dimensions. SIA data discovery is based on the 
+    `ObsCore Data Model <https://www.ivoa.net/documents/ObsCore/>`_, 
+    which primarily describes data products by the physical axes (spatial, spectral, 
+    time, and polarization). Image datasets with dimension greater than 2 are often 
+    referred to as datacubes, cube or image cube datasets and may be considered examples 
+    of hypercube or n-cube data. PyVO supports both versions of SIA.
+
+    -- `Simple IMage Access <https://www.ivoa.net/documents/SIA/>`_
 
 Basic queries are done with the ``pos`` and ``size`` parameters described in
 :ref:`pyvo-astro-params`, with ``size`` being the rectangular region around
@@ -288,8 +316,19 @@ Available values:
 
 This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter
 
+.. _pyvo-ssa:
+
 Simple Spectrum Access
 ----------------------
+
+.. pull-quote::
+
+    The Simple Spectral Access (SSA) Protocol (SSAP)
+    defines a uniform interface to remotely discover and access one 
+    dimensional spectra.
+
+    -- `Simple Spectral Access Protocol <https://www.ivoa.net/documents/SSA/>`_ 
+
 Access to (one-dimensional) spectra resembles image access, with some
 subtile differences:
 
@@ -311,8 +350,22 @@ SSA queries can be further constrained by the ``band`` and ``time`` parameters.
     ... )
 
 
+.. _pyvo-scs:
+
 Simple Cone Search
 ------------------
+
+.. pull-quote::
+
+    The Simple Cone Search (SCS) 
+    API specification defines a simple query protocol for retrieving records from 
+    a catalog of astronomical sources. The query describes sky position and 
+    an angular distance, defining a cone on the sky. The response returns 
+    a list of astronomical sources from the catalog whose positions 
+    lie within the cone, formatted as a VOTable.
+
+    -- `Simple Cone Search <https://www.ivoa.net/documents/latest/ConeSearch.html>`_ 
+
 The Simple Cone Search returns results – typically catalog entries –
 within a circular region on the sky defined by the parameters ``pos``
 (again, ICRS) and ``radius``:
@@ -324,8 +377,20 @@ within a circular region on the sky defined by the parameters ``pos``
 
 This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter
 
+.. _pyvo-slap:
+
 Simple Line Access
 ------------------
+
+.. pull-quote::
+
+    The Simple Line Access Protocol (SLAP) 
+    is an IVOA data access protocol which defines a protocol for retrieving 
+    spectral lines coming from various Spectral Line Data Collections through 
+    a uniform interface within the VO framework.
+
+    -- `Simple Line Access Protocol <https://www.ivoa.net/documents/SLAP/>`_ 
+
 This service let you query for spectral lines in a certain ``wavelength``
 range. The unit of the values is meters, but any unit may be specified using
 `~astropy.units.Quantity`.

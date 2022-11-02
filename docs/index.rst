@@ -11,15 +11,15 @@ PyVO lets you find and retrieve astronomical data available from archives that
 support standard `IVOA <http://www.ivoa.net/>`__ virtual observatory service
 protocols.
 
-* `Table Access Protocol (TAP) <http://www.ivoa.net/documents/TAP/>`_
+* :ref:`Table Access Protocol (TAP) <pyvo_tap>`
   -- accessing source catalogs using sql-ish queries.
-* `Simple Image Access (SIA) <http://www.ivoa.net/documents/SIA/>`_
+* :ref:`Simple Image Access (SIA) <pyvo-sia>`
   -- finding images in an archive.
-* `Simple Spectral Access (SSA) <http://www.ivoa.net/documents/SSA/>`_
+* :ref:`Simple Spectral Access (SSA) <pyvo-ssa>`
   -- finding spectra in an archive.
-* `Simple Cone Search (SCS) <http://www.ivoa.net/documents/latest/ConeSearch.html>`_
+* :ref:`Simple Cone Search (SCS) <pyvo-scs>`
   -- for positional searching a source catalog or an observation log.
-* `Simple Line Access (SLAP) <http://www.ivoa.net/documents/SLAP/>`_
+* :ref:`Simple Line Access (SLAP) <pyvo-slap>`
   -- finding data about spectral lines, including their rest frequencies.
 
 .. note::
