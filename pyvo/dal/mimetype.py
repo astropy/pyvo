@@ -4,7 +4,7 @@ A module for parsing and working with mimetypes
 """
 
 import mimetypes
-import cgi
+from email.message import Message
 
 from astropy.io.fits import HDUList
 
@@ -75,32 +75,37 @@ def mime_object_maker(url, mimetype, session=None):
     if not mimetype:
         raise ValueError('mimetype required')
     session = use_session(session)
-    full_type, params = cgi.parse_header(mimetype)
-    mimetype = [x.strip() for x in full_type.split('/')] if '/' in full_type \
+    m = Message()
+    m['content-type'] = mimetype
+    pp = m.get_params()
+    full_type = pp[0][0]
+    params = pp[1:]
+    mtype = [x.strip() for x in full_type.split('/')] if '/' in full_type \
         else None
-    if not mimetype or len(mimetype) > 2:
+    if not mtype or len(mtype) > 2:
         raise ValueError("Can't parse mimetype \"{}\"".format(full_type))
 
-    if mimetype[0] == 'text':
+    if mtype[0] == 'text':
         return session.get(url).text
 
-    if mimetype[1] == 'fits' or mimetype[1] == 'x-fits':
+    if mtype[1] == 'fits' or mtype[1] == 'x-fits':
         response = session.get(url)
         return HDUList.fromstring(response.content)
 
-    if mimetype[0] == 'image':
+    if mtype[0] == 'image':
         from PIL import Image
         from io import BytesIO
         response = session.get(url)
         bio = BytesIO(response.content)
         return Image.open(bio)
 
-    if mimetype[1] == 'x-votable' or mimetype[1] == 'x-votable+xml':
+    if mtype[1] == 'x-votable' or mtype[1] == 'x-votable+xml':
         # As soon as there are some kind of recursive data structures,
         # things start to get messy
-        if mimetype[2].get('content', None) == 'datalink':
-            from .adhoc import DatalinkResults
-            return DatalinkResults.from_result_url(url)
-        else:
-            from .query import DALResults
-            return DALResults.from_result_url(url)
+        for param in params:
+            if (param[0].lower() == 'content') and \
+                    (param[1].lower() == 'datalink'):
+                from .adhoc import DatalinkResults
+                return DatalinkResults.from_result_url(url)
+        from .query import DALResults
+        return DALResults.from_result_url(url)
