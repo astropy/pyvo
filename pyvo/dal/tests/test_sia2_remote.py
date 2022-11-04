@@ -14,7 +14,7 @@ import astropy.units as u
 CADC_SIA_URL = 'https://ws.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/sia'
 
 
-#@pytest.mark.remote_data
+@pytest.mark.remote_data
 class TestSIACadc():
     # Tests the SIA2 client against the CADC SIA service
 
