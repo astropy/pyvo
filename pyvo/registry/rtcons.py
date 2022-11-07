@@ -156,9 +156,13 @@ class Constraint:
 
     takes_sequence = False
 
-    def get_search_condition(self):
+    def get_search_condition(self, service):
         """
         Formats this constraint to an ADQL fragment.
+
+        This takes the service the constraint is being executed on
+        as an argument because constraints may be written differently
+        depending on the service's features or refuse to run altogether.
 
         Returns
         -------
@@ -321,7 +325,7 @@ class Servicetype(Constraint):
         new_constraint.extra_fragments = self.extra_fragments[:]
         return new_constraint
 
-    def get_search_condition(self):
+    def get_search_condition(self, service):
         # we sort the stdids to make it easy for tests (and it's
         # virtually free for the small sets we have here).
         fragments = []
@@ -783,7 +787,7 @@ class Temporal(Constraint):
 # of regtap.query.
 
 
-def build_regtap_query(constraints):
+def build_regtap_query(constraints, service):
     """returns a RegTAP query ready for submission from a list of
     Constraint instances.
 
@@ -793,6 +797,11 @@ def build_regtap_query(constraints):
         A sequence of constraints for a RegTAP query.  All of them
         will become part of a conjunction (i.e., all of them have
         to be satisfied for a record to match).
+
+    service: `dal.tap.TAPService`
+        The RegTAP service the query is supposed to be run on
+        (that is relevant because we adapt to the features available
+        on given services).
 
     Returns
     -------
@@ -808,7 +817,8 @@ def build_regtap_query(constraints):
         if isinstance(constraint, str):
             constraint = Freetext(constraint)
 
-        serialized.append("(" + constraint.get_search_condition() + ")")
+        serialized.append(
+            "(" + constraint.get_search_condition(service) + ")")
         extra_tables |= set(constraint._extra_tables)
 
     joined_tables = ["rr.resource", "rr.capability", "rr.interface",

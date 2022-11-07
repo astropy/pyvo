@@ -23,7 +23,7 @@ from pyvo.dal import tap, sia2
 
 from astropy.utils.data import get_pkg_data_contents
 
-from .commonfixtures import messenger_vocabulary  # noqa: F401
+from .commonfixtures import messenger_vocabulary, FAKE_GAVO  # noqa: F401
 
 
 get_pkg_data_contents = partial(
@@ -348,13 +348,13 @@ def get_regtap_results(**kwargs):
 
 def test_spatial():
     assert (rtcons.keywords_to_constraints({
-            "spatial": (23, -40)})[0].get_search_condition()
+            "spatial": (23, -40)})[0].get_search_condition(FAKE_GAVO)
             == "1 = CONTAINS(MOC(6, POINT(23, -40)), coverage)")
 
 
 def test_spectral():
     assert (rtcons.keywords_to_constraints({
-            "spectral": (1e-17, 2e-17)})[0].get_search_condition()
+            "spectral": (1e-17, 2e-17)})[0].get_search_condition(FAKE_GAVO)
             == "1 = ivo_interval_overlaps(spectral_start, spectral_end, 1e-17, 2e-17)")
 
 
@@ -884,3 +884,14 @@ def test_sia2_service_operation():
             time.Time(58795, format="mjd")))
     assert len(res) > 10
     assert "s_dec" in res.to_table().columns
+
+
+def test_endpoint_switching():
+    alt_svc = "http://vao.stsci.edu/RegTAP/TapService.aspx"
+    previous_url = regtap.REGISTRY_BASEURL
+    try:
+        regtap.choose_RegTAP_service(alt_svc)
+        assert (regtap.get_RegTAP_service()._baseurl
+            == alt_svc)
+    finally:
+        regtap.choose_RegTAP_service(previous_url)

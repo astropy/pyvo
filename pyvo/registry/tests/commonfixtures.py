@@ -24,3 +24,17 @@ def messenger_vocabulary(mocker):
         get_pkg_data_filename(
             'data/messenger.desise',
             package=__package__))
+
+
+# We need an object standing in for TAP services for query generation.
+# It would perhaps be nice to pull up a real TAPService instance from
+# capabilities and tables, but that's a non-trivial amount of XML.
+# Let's see how far we get with faking it.
+
+
+class _FakeTAPService:
+    def __init__(self):
+        pass
+
+
+FAKE_GAVO = _FakeTAPService()
