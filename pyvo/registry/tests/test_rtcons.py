@@ -265,6 +265,24 @@ class TestSpatialConstraint:
                            " or 'overlaps' but its current value is 'wrong'."):
             registry.Spatial("0/1-3", intersect="wrong")
 
+    def test_no_MOC(self):
+        cons = registry.Spatial((SkyCoord(3 * u.deg, -30 * u.deg), 3))
+        with pytest.raises(rtcons.RegTAPFeatureMissing) as excinfo:
+            cons.get_search_condition(FAKE_PLAIN)
+        assert (str(excinfo.value)
+            == "Current RegTAP service does not support MOC.")
+
+    def test_no_spatial_table(self):
+        cons = registry.Spatial((SkyCoord(3 * u.deg, -30 * u.deg), 3))
+        previous = FAKE_GAVO.tables.pop("rr.stc_spatial")
+        try:
+            with pytest.raises(rtcons.RegTAPFeatureMissing) as excinfo:
+                cons.get_search_condition(FAKE_GAVO)
+            assert (str(excinfo.value)
+                == "stc_spatial missing on current RegTAP service")
+        finally:
+            FAKE_GAVO.tables["rr.spatial"] = previous
+
 
 class TestSpectralConstraint:
     # These tests might need some float literal fuzziness.  I'm just

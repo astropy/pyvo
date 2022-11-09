@@ -39,7 +39,7 @@ class _FakeLanguage:
     def __init__(self, features):
         self.features = features
 
-    def has_feature(self, type, form):
+    def get_feature(self, type, form):
         return (type, form) in self.features
 
 
@@ -48,8 +48,11 @@ class _FakeTAPService:
     A stand-in for a TAP service intended for rtcons.Constraints.
 
     features is a set of (type, form) tuples for now.
+    tables is a dict with table names as keys (let's worry about the values
+    later).
     """
-    def __init__(self, features={}):
+    def __init__(self, features, tables):
+        self.tables = tables
         adql_lang = _FakeLanguage(features)
 
         class _:
@@ -61,6 +64,8 @@ class _FakeTAPService:
         return self.tap_cap
 
 
-FAKE_GAVO = _FakeTAPService(features={
-        ("ivo://ivoa.net/std/TAPRegExt#features-adql-sets", "UNION")})
-FAKE_PLAIN = _FakeTAPService({})
+FAKE_GAVO = _FakeTAPService({
+        ("ivo://ivoa.net/std/TAPRegExt#features-adql-sets", "UNION"),
+        ("ivo://org.gavo.dc/std/exts#extra-adql-keywords", "MOC"),},
+        {"rr.stc_spatial": None})
+FAKE_PLAIN = _FakeTAPService(frozenset(), {})

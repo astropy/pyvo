@@ -24,7 +24,7 @@ from .import regtap
 
 __all__ = ["Freetext", "Author", "Servicetype", "Waveband",
            "Datamodel", "Ivoid", "UCD", "Spatial", "Spectral", "Temporal",
-           "Constraint", "build_regtap_query"]
+           "Constraint", "build_regtap_query", "RegTAPFeatureMissing"]
 
 
 # a mapping of service type shorthands to the ivoids of the
@@ -47,6 +47,20 @@ SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/" + v)
     ("table", "tap"),
     ("tap", "tap"),
 ])
+
+
+class RegTAPFeatureMissing(dalq.DALQueryError):
+    """
+    Raised when the current RegTAP server does not support a feature
+    needed for a constraint.
+
+    This could be that it is missing some ADQL feature indispensible
+    to write that constraint, or because it is missing a table or column.
+
+    To recover, choose another RegTAP service. Search constraining
+    ``datamodel="regtap"``, and then use `pyvo.registry.switch_RegTAP_service`
+    with a TAP access URL discoveredin this way.
+    """
 
 
 class _AsIs(str):
@@ -211,7 +225,7 @@ class Freetext(Constraint):
         # of subqueries if we can (i.e., the service has UNION);
         # It may look as if this has to be really slow, but in fact it's almost
         # always a lot faster than direct ORs.
-        if service.get_tap_cap().get_adql().has_feature(
+        if service.get_tap_cap().get_adql().get_feature(
                 "ivo://ivoa.net/std/TAPRegExt#features-adql-sets", "UNION"):
             return self._get_union_condition(service)
         else:
@@ -652,6 +666,26 @@ class Spatial(Constraint):
         else:
             raise ValueError("'intersect' should be one of 'covers', 'enclosed', or 'overlaps' "
                              f"but its current value is '{intersect}'.")
+
+    def get_search_condition(self, service):
+        # we *could* make this a bit less demanding on the server
+        # if we MOC-ified the geometries locally -- but then we'd
+        # have to depend on pymoc, and that's too high a price for
+        # something as esoteric as a server that understands
+        # MOC-based geometries but does not have a MOC function.
+        if not service.get_tap_cap().get_adql().get_feature(
+                    "ivo://org.gavo.dc/std/exts#extra-adql-keywords", "MOC"):
+                raise RegTAPFeatureMissing("Current RegTAP service"
+                    " does not support MOC.")
+
+        # We should compare case-insensitively here, but then we don't
+        # with delimited identifiers -- in the end, that would have to
+        # be handled in dal.vosi.VOSITables.
+        if not "rr.stc_spatial" in service.tables:
+                raise RegTAPFeatureMissing("stc_spatial missing on"
+                    " current RegTAP service")
+
+        return super().get_search_condition(service)
 
 
 class Spectral(Constraint):

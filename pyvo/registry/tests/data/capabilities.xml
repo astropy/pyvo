@@ -50,6 +50,16 @@
           <form>POINT</form>
         </feature>
       </languageFeatures>
+      <languageFeatures type="ivo://org.gavo.dc/std/exts#extra-adql-keywords">
+        <feature>
+          <form>TABLESAMPLE</form>
+          <description>Written after a table reference, ...</description>
+        </feature>
+        <feature>
+          <form>MOC</form>
+          <description>A geometry function creating MOCs...</description>
+        </feature>
+      </languageFeatures>
     </language>
     <outputFormat ivo-id="ivo://ivoa.net/std/TAPRegExt#output-votable-binary">
       <mime>text/xml</mime>
