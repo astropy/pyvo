@@ -9,7 +9,7 @@ from ...utils.xml.elements import (
 from . import voresource as vr
 from .exceptions import (
     W05, W06, W19, W20, W21, W22, W23, W24, W25, W26, W27, W28, W29, W30, W31,
-    E06, E08, E09)
+    E06, E08, E09, VOSIError)
 
 __all__ = [
     "TAPCapRestriction", "TableAccess", "DataModelType", "Language", "Version",
@@ -250,6 +250,79 @@ class Language(Element):
 
             print()
 
+    def get_feature_list(self, ivoid):
+        """
+        returns a list of features groupd with the features id ivoid.
+
+        ivoid (regrettably) has to be compared case-insensitively.
+
+        Returns
+        -------
+        A (possibly empty) list of `LanguageFeature` elements
+        """
+        ivoid = ivoid.lower()
+        for features in self.languagefeaturelists:
+            if features.type.lower()==ivoid:
+                return features
+        return []
+
+    def get_feature(self, ivoid, form):
+        """
+        returns the `LanguageFeature` with ivoid and form if present.
+
+        We return None rather than raising an error because we expect
+        the normal pattern of usage here will be "if feature is present",
+        and with None-s this is simpler to write than with exceptions.
+
+        Since it's hard to predict the form of UDFs, for those rather
+        use the get_udf method.
+
+        ivoid (regrettably) has to be compared case-insensitively;
+        form is compared case-sensitively.
+
+        Parameters
+        ----------
+        ivoid : str
+            The IVOA identifier of the feature group the form is in
+        form : str
+            The form of the feature requested
+
+        Returns
+        -------
+        A `LanguageFeature` or None.
+        """
+        for feature in self.get_feature_list(ivoid):
+            if feature.form==form:
+                return feature
+
+        return None
+
+    def get_udf(self, function_name):
+        """
+        returns a `LanguageFeature` corresponding to an ADQL user defined
+        function on the server, on None if the UDF is not available.
+
+        This is a bit heuristic in that it tries to parse the form, which
+        is specified only so-so.
+
+        Parameters
+        ----------
+        function_name : str
+            A function name.  This is matched against the server's function
+            names case-insensitively, as guided by ADQL's case insensitivity.
+
+        Returns:
+            A `LanguageFeature` instance or None.
+        """
+        function_name = function_name.lower()
+        for udf in self.get_feature_list(
+                "ivo://ivoa.net/std/TAPRegExt#features-udf"):
+            this_name = udf.form.split("(")[0].strip()
+            if this_name.lower() == function_name:
+                return udf
+
+        return None
+
     @xmlelement(plain=True, multiple_exc=W05)
     def name(self):
         return self._name
@@ -420,6 +493,19 @@ class TableAccess(TAPCapRestriction):
             print(indent("Maximum {} {}".format(
                 self.uploadlimit.hard.content, self.uploadlimit.hard.unit)))
             print()
+
+    def get_adql(self):
+        """
+        returns the (first) ADQL language element on this service.
+
+        ADQL support is mandatory for IVOA TAP, so in general you can
+        rely on this being present.
+        """
+        for lang in self.languages:
+            if lang.name == "ADQL":
+                return lang
+        raise VOSIError(
+            "Invalid TAP service: Does not declare an ADQL language")
 
     @xmlelement(name='dataModel', cls=DataModelType)
     def datamodels(self):

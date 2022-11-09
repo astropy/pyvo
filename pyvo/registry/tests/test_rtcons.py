@@ -16,7 +16,7 @@ from pyvo import registry
 from pyvo.registry import rtcons
 from pyvo.dal import query as dalq
 
-from .commonfixtures import messenger_vocabulary, FAKE_GAVO  # noqa: F401
+from .commonfixtures import messenger_vocabulary, FAKE_GAVO, FAKE_PLAIN  # noqa: F401
 
 
 def _build_regtap_query_with_fake(
@@ -85,6 +85,23 @@ class TestFreetextConstraint:
             "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'α Cen''s planets')"
             " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'α Cen''s planets')"
             " UNION SELECT ivoid FROM rr.res_subject WHERE res_subject ILIKE '%α Cen''s planets%')")
+
+    def test_multipleLiterals(self):
+        assert rtcons.Freetext("term1", "term2"
+            ).get_search_condition(FAKE_GAVO) == (
+            "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'term1')"
+            " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'term1')"
+            " UNION SELECT ivoid FROM rr.res_subject WHERE res_subject ILIKE '%term1%')"
+        " AND "
+        "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'term2')"
+        " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'term2')"
+        " UNION SELECT ivoid FROM rr.res_subject WHERE res_subject ILIKE '%term2%')")
+
+    def test_adaption_to_service(self):
+        assert rtcons.Freetext("term1", "term2"
+            ).get_search_condition(FAKE_PLAIN) == (
+            "( 1=ivo_hasword(res_description, 'term1') OR  1=ivo_hasword(res_title, 'term1') OR  res_subject ILIKE '%term1%')"
+            " AND ( 1=ivo_hasword(res_description, 'term2') OR  1=ivo_hasword(res_title, 'term2') OR  res_subject ILIKE '%term2%')")
 
 
 class TestAuthorConstraint:

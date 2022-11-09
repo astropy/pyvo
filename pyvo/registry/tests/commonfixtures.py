@@ -32,9 +32,35 @@ def messenger_vocabulary(mocker):
 # Let's see how far we get with faking it.
 
 
+class _FakeLanguage:
+    """
+    a stand-in for vosi.tapregext.Language for rtcons.Constrants.
+    """
+    def __init__(self, features):
+        self.features = features
+
+    def has_feature(self, type, form):
+        return (type, form) in self.features
+
+
 class _FakeTAPService:
-    def __init__(self):
-        pass
+    """
+    A stand-in for a TAP service intended for rtcons.Constraints.
+
+    features is a set of (type, form) tuples for now.
+    """
+    def __init__(self, features={}):
+        adql_lang = _FakeLanguage(features)
+
+        class _:
+            def get_adql(otherself):
+                return adql_lang
+        self.tap_cap = _()
+
+    def get_tap_cap(self):
+        return self.tap_cap
 
 
-FAKE_GAVO = _FakeTAPService()
+FAKE_GAVO = _FakeTAPService(features={
+        ("ivo://ivoa.net/std/TAPRegExt#features-adql-sets", "UNION")})
+FAKE_PLAIN = _FakeTAPService({})

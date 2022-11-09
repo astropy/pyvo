@@ -203,11 +203,21 @@ class Freetext(Constraint):
             separated by space), but behaviour might then vary quite
             significantly between different registries.
         """
+        self.words = words
+
+    def get_search_condition(self, service):
         # cross-table ORs kill the query planner.  We therefore
         # write the constraint as an IN condition on a UNION
-        # of subqueries; it may look as if this has to be
-        # really slow, but in fact it's almost always a lot
-        # faster than direct ORs.
+        # of subqueries if we can (i.e., the service has UNION);
+        # It may look as if this has to be really slow, but in fact it's almost
+        # always a lot faster than direct ORs.
+        if service.get_tap_cap().get_adql().has_feature(
+                "ivo://ivoa.net/std/TAPRegExt#features-adql-sets", "UNION"):
+            return self._get_union_condition(service)
+        else:
+            return self._get_or_condition(service)
+
+    def _get_union_condition(self, service):
         base_queries = [
             "SELECT ivoid FROM rr.resource WHERE"
             " 1=ivo_hasword(res_description, {{{parname}}})",
@@ -217,16 +227,40 @@ class Freetext(Constraint):
             " res_subject ILIKE {{{parpatname}}}"]
         self._fillers, subqueries = {}, []
 
-        for index, word in enumerate(words):
+        for index, word in enumerate(self.words):
             parname = "fulltext{}".format(index)
             parpatname = "fulltextpar{}".format(index)
             self._fillers[parname] = word
             self._fillers[parpatname] = '%' + word + '%'
-            for q in base_queries:
-                subqueries.append(q.format(**locals()))
+            args = locals()
+            subqueries.append(" UNION ".join(
+                q.format(**args) for q in base_queries))
 
-        self._condition = "ivoid IN ({})".format(
-            " UNION ".join(subqueries))
+        self._condition = " AND ".join(
+            f"ivoid IN ({part})" for part in subqueries)
+
+        return super().get_search_condition(service)
+
+    def _get_or_condition(self, service):
+        base_queries = [
+            " 1=ivo_hasword(res_description, {{{parname}}})",
+            " 1=ivo_hasword(res_title, {{{parname}}})",
+            " res_subject ILIKE {{{parpatname}}}"]
+        self._fillers, conditions = {}, []
+
+        for index, word in enumerate(self.words):
+            parname = "fulltext{}".format(index)
+            parpatname = "fulltextpar{}".format(index)
+            self._fillers[parname] = word
+            self._fillers[parpatname] = '%' + word + '%'
+            args = locals()
+            conditions.append(" OR ".join(
+                q.format(**args) for q in base_queries))
+
+        self._condition = " AND ".join(f"({part})"
+            for part in conditions)
+
+        return super().get_search_condition(service)
 
 
 class Author(Constraint):

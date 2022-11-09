@@ -14,10 +14,11 @@ import pytest
 import requests_mock
 
 from pyvo.dal.tap import escape, search, AsyncTAPJob, TAPService
-from pyvo.dal import DALQueryError
+from pyvo.dal import DALQueryError, DALServiceError
 
 from pyvo.io.uws import JobFile
 from pyvo.io.uws.tree import Parameter, Result, ErrorSummary, Message
+from pyvo.io.vosi.exceptions import VOSIError
 from pyvo.utils import prototype
 
 from astropy.time import Time, TimeDelta
@@ -411,6 +412,17 @@ def capabilities(mocker):
         yield matcher
 
 
+@pytest.fixture()
+def tapservice(capabilities):
+    """
+    preferably use this fixture when you need a generic TAP service;
+    it saves a bit of parsing overhead.
+
+    (but of course make sure you don't modify it).
+    """
+    return TAPService('http://example.com/tap')
+
+
 def test_escape():
     query = 'SELECT * FROM ivoa.obscore WHERE dataproduct_type = {}'
     query = query.format(escape("'image'"))
@@ -717,3 +729,61 @@ class TestTAPService:
                                              unique=True)
         finally:
             prototype.deactivate_features('cadc-tb-upload')
+
+
+@pytest.mark.usefixtures("tapservice")
+class TestTAPCapabilities:
+    def test_no_tap_cap(self):
+        svc = TAPService('http://example.com/tap')
+        svc.capabilities = []
+        with pytest.raises(DALServiceError) as excinfo:
+            svc.get_tap_cap()
+        assert str(excinfo.value) == ("Invalid TAP service:"
+            " Does not expose a tr:TableAccess capability")
+
+    def test_no_adql(self):
+        svc = TAPService('http://example.com/tap')
+        svc.get_tap_cap()._languages = []
+        with pytest.raises(VOSIError) as excinfo:
+            svc.get_tap_cap().get_adql()
+        assert str(excinfo.value) == ("Invalid TAP service:"
+            " Does not declare an ADQL language")
+
+    def test_get_adql(self, tapservice):
+        assert tapservice.get_tap_cap().get_adql().name == "ADQL"
+
+    def test_missing_featurelist(self, tapservice):
+        assert (
+            tapservice.get_tap_cap().get_adql().get_feature_list("fump")
+            == [])
+
+    def test_get_featurelist(self, tapservice):
+        features = tapservice.get_tap_cap().get_adql().get_feature_list(
+                "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo")
+        assert set(f.form for f in features) == {
+                'CENTROID', 'CONTAINS', 'COORD1', 'POLYGON',
+                'INTERSECTS', 'COORD2', 'BOX', 'AREA', 'DISTANCE',
+                'REGION', 'CIRCLE', 'POINT'}
+
+    def test_get_missing_feature(self, tapservice):
+        assert tapservice.get_tap_cap().get_adql().get_feature(
+                "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo",
+                "Garage") == None
+
+    def test_get_feature(self, tapservice):
+        feature = tapservice.get_tap_cap().get_adql().get_feature(
+                "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo",
+                "AREA")
+        assert feature.form == "AREA"
+        assert feature.description == None
+
+    def test_missing_udf(self, tapservice):
+        assert (tapservice.get_tap_cap().get_adql(
+            ).get_udf("duff function")
+            == None)
+
+    def test_get_udf(self, tapservice):
+        func = tapservice.get_tap_cap().get_adql(
+            ).get_udf("IVO_hasword") # case insensitive!
+        assert (func.form
+            == "ivo_hasword(haystack TEXT, needle TEXT) -> INTEGER")
