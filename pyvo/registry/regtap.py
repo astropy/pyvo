@@ -749,7 +749,7 @@ class RegistryResource(dalq.Record):
         Returns
         -------
 
-        `~pyvo.registry.regtap.Interface`
+        ~`pyvo.registry.regtap.Interface`
         """
         if service_type == "web":
             # this works very much differently in the Registry

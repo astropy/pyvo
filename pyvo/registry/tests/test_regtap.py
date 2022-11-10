@@ -88,8 +88,8 @@ def single_keyword_fixture(mocker):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
 
-        assert "WHERE res_subject ILIKE '%single%'" in query
-        assert "WHERE 1=ivo_hasword(res_description, 'single') UNION" in query
+        assert "OR  res_subject ILIKE '%single%'" in query
+        assert "1=ivo_hasword(res_description, 'single') " in query
         assert "1=ivo_hasword(res_title, 'single')" in query
 
         return get_pkg_data_contents('data/regtap.xml')
