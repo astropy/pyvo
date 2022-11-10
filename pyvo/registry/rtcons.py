@@ -777,6 +777,13 @@ class Spectral(Constraint):
 
         raise ValueError(f"Cannot make a spectral quantity out of {quant}")
 
+    def get_search_condition(self, service):
+        if not "rr.stc_spectral" in service.tables:
+                raise RegTAPFeatureMissing("stc_spectral missing on"
+                    " current RegTAP service")
+
+        return super().get_search_condition(service)
+
 
 class Temporal(Constraint):
     """
@@ -848,6 +855,13 @@ class Temporal(Constraint):
             raise ValueError("RegTAP time constraints must be made from"
                              " single time instants.")
         return val
+
+    def get_search_condition(self, service):
+        if not "rr.stc_temporal" in service.tables:
+                raise RegTAPFeatureMissing("stc_temporal missing on"
+                    " current RegTAP service")
+
+        return super().get_search_condition(service)
 
 
 # NOTE: If you add new Contraint-s, don't forget to add them in

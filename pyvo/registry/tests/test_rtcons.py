@@ -322,6 +322,13 @@ class TestSpectralConstraint:
                 == "1 = ivo_interval_overlaps(spectral_start, spectral_end,"
                 " 5.830941732e-26, 6.758591553e-26)")
 
+    def test_no_spectral(self):
+        cons = registry.Spectral((88 * units.MHz, 102 * units.MHz))
+        with pytest.raises(rtcons.RegTAPFeatureMissing) as excinfo:
+            cons.get_search_condition(FAKE_PLAIN)
+        assert (str(excinfo.value)
+            == "stc_spectral missing on current RegTAP service")
+
 
 class TestTemporalConstraint:
     def test_plain_float(self):
@@ -345,6 +352,15 @@ class TestTemporalConstraint:
             registry.Temporal(Time(['1999-01-01', '2010-01-01']))
         assert (str(excinfo.value) == "RegTAP time constraints must"
                 " be made from single time instants.")
+
+    def test_no_temporal(self):
+        cons = registry.Temporal((time.Time(2459000, format='jd'),
+                                  time.Time(59002, format='mjd')))
+        with pytest.raises(rtcons.RegTAPFeatureMissing) as excinfo:
+            cons.get_search_condition(FAKE_PLAIN)
+        assert (str(excinfo.value)
+            == "stc_temporal missing on current RegTAP service")
+
 
 
 class TestWhereClauseBuilding:
