@@ -75,13 +75,12 @@ def mime_object_maker(url, mimetype, session=None):
     if not mimetype:
         raise ValueError('mimetype required')
     session = use_session(session)
-    m = Message()
-    m['content-type'] = mimetype
-    pp = m.get_params()
+    msg = Message()
+    msg['content-type'] = mimetype
+    pp = msg.get_params()
     full_type = pp[0][0]
     params = pp[1:]
-    mtype = [x.strip() for x in full_type.split('/')] if '/' in full_type \
-        else None
+    mtype = [x.strip() for x in full_type.split('/')] if '/' in full_type else None
     if not mtype or len(mtype) > 2:
         raise ValueError("Can't parse mimetype \"{}\"".format(full_type))
 
@@ -103,8 +102,7 @@ def mime_object_maker(url, mimetype, session=None):
         # As soon as there are some kind of recursive data structures,
         # things start to get messy
         for param in params:
-            if (param[0].lower() == 'content') and \
-                    (param[1].lower() == 'datalink'):
+            if (param[0].lower() == 'content') and (param[1].lower() == 'datalink'):
                 from .adhoc import DatalinkResults
                 return DatalinkResults.from_result_url(url)
         from .query import DALResults
