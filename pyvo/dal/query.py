@@ -726,7 +726,7 @@ class Record(Mapping):
 
     def getdataobj(self):
         """
-        return the appropiate data object suitable for the data content behind
+        return the appropriate data object suitable for the data content behind
         this record.
         """
         return mime_object_maker(self.getdataurl(), self.getdataformat())

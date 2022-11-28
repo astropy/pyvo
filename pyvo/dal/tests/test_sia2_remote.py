@@ -7,6 +7,7 @@ Tests for pyvo.dal.sia2 against remote services
 import pytest
 
 from pyvo.dal.sia2 import search, SIAService
+from pyvo.dal.adhoc import DatalinkResults
 
 import astropy.units as u
 
@@ -41,6 +42,9 @@ class TestSIACadc():
     def test_pos(self):
         results = search(CADC_SIA_URL, pos=(2.8425, 74.4846, 0.001))
         assert len(results) > 10
+
+        # check that results are datalink
+        assert isinstance(results[0].getdataobj(), DatalinkResults)
 
         # limit results to 5 to expedite tests
         results = search(CADC_SIA_URL, pos=(2.8425, 74.4846, 0.001), maxrec=5)

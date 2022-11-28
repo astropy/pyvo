@@ -14,12 +14,12 @@ _ptag = re.compile(r"\s*(?:<p\s*/?>)|(?:\\para(?:\\ )*)\s*")
 
 def para_format_desc(text, width=78):
     """
-    format description text into paragraphs suiteable for display in the
+    format description text into paragraphs suitable for display in the
     shell.  That is, the output will be one or more plain text paragraphs
     of the prescribed width (78 characters, the default).  The text will
-    be split into separate paragraphs whwre there occurs (1) a two or more
-    consecutive carriage return, (2) an HTMS paragraph tag, or (2)
-    a LaTeX parabraph control sequence.  It will attempt other substitutions
+    be split into separate paragraphs where there occurs (1) a two or more
+    consecutive carriage return, (2) an HTML paragraph tag, or (2)
+    a LaTeX paragraph control sequence.  It will attempt other substitutions
     of HTML and LaTeX markup that sometimes find their way into resource
     descriptions.
     """
@@ -27,7 +27,7 @@ def para_format_desc(text, width=78):
     paras = filter(
         bool, chain.from_iterable(_ptag.split(para) for para in paras))
     paras = ("\n".join(
-        map(lambda l: l.strip(), para.splitlines())
+        map(lambda ll: ll.strip(), para.splitlines())
     ) for para in paras)
     paras = map(deref_markup, paras)
 
