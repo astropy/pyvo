@@ -151,22 +151,28 @@ Getting started
 
 Let's start with a quick example using PyVO to perform a TAP/ADQL query.
 For instance we want to retrieve 5 objects from the GAIA DR3 database, 
-showing their id, position and mean G-band magnitude.
+showing their id, position and mean G-band magnitude between 19 - 20.
 
 .. doctest-remote-data::
     >>> import pyvo as vo
     >>> tap_service = vo.dal.TAPservice("http://dc.g-vo.org/tap")
-    >>> tap_service.search("SELECT TOP 5 source_id, ra, dec, phot_g_mean_mag FROM gaia.dr3lite")
+    >>> tap_service.search(
+            """ SELECT TOP 5 
+            source_id, ra, dec, phot_g_mean_mag 
+            FROM gaia.dr3lite
+            WHERE phot_g_mean_mag BETWEEN 19 AND 20
+            ORDER BY phot_g_mean_mag
+            """)
     <Table length=5>
         source_id              ra                dec         phot_g_mean_mag
                             deg                deg               mag      
         int64             float64            float64           float32    
     ------------------- ------------------ ------------------ ---------------
-    2165092154924732928 319.82640223047326 49.371803949190934       19.633097
-    2165092159226514688  319.8317684883249  49.37350866387902       20.997982
-    2165092159225251200   319.836141859182  49.37380423843978       20.928877
-    2165092159226252416  319.8357919050182  49.37715751142902       20.565428
-    2165092159224999296 319.82331035942707  49.37621068543158       20.367767
+    2162809607452221440 315.96596187101636 45.945474015208106            19.0
+    2000273643933171456  337.1829026565382   50.7218533537033            19.0
+    2171530448339798784  323.9151025188806  51.27690705826792            19.0
+    2171810342771336704 323.25913736080776  51.94305655940998            19.0
+    2180349528028140800  310.5233961869657   50.3486391034819            19.0
 
 Using the class :py:class:`~pyvo.dal.TAPService` we can instantiate an available 
 TAP service by inserting their URL. Here we use the 
@@ -193,7 +199,7 @@ the results. Since the next query can only start once the previous one
 is done. In this case it is advantageous to use the asynchronous 
 query instead. This allows you to assign multiple queries to the 
 TAP server and returns controls inmmediately with a promise to execute 
-all the queries and notify you the result later.
+all the queries and notify you the result later. 
 
 The asynchronous query is indeed slower but it is convenient when you 
 have to run many queries since you don't have to wait for each query 
@@ -203,6 +209,10 @@ faster and often used for one simpler query. It depends on the situation.
 Note that the ``search()`` method performs the synchronous query by default.
 To specify the query mode, you can use either ``run_sync()`` for 
 synchronous query or ``run_async()`` for asynchronous query.
+
+#
+Here explain how run_async() works witn submit_jobs etc.. 
+#
 
 Query limit
 ^^^^^^^^^^^
