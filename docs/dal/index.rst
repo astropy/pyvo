@@ -146,10 +146,66 @@ Table Access Protocol
 
     -- `Table Access Protocol <https://www.ivoa.net/documents/TAP/>`_
 
-.. doctest-remote-data::
+Getting started
+^^^^^^^^^^^^^^^
 
-    >>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap")
-    >>> tap_results = tap_service.search("SELECT TOP 10 * FROM ivoa.obscore")
+Let's start with a quick example using PyVO to perform a TAP/ADQL query.
+For instance we want to retrieve 5 objects from the GAIA DR3 database, 
+showing their id, position and mean G-band magnitude.
+
+.. doctest-remote-data::
+    >>> import pyvo as vo
+    >>> tap_service = vo.dal.TAPservice("http://dc.g-vo.org/tap")
+    >>> tap_service.search("SELECT TOP 5 source_id, ra, dec, phot_g_mean_mag FROM gaia.dr3lite")
+    <Table length=5>
+        source_id              ra                dec         phot_g_mean_mag
+                            deg                deg               mag      
+        int64             float64            float64           float32    
+    ------------------- ------------------ ------------------ ---------------
+    2165092154924732928 319.82640223047326 49.371803949190934       19.633097
+    2165092159226514688  319.8317684883249  49.37350866387902       20.997982
+    2165092159225251200   319.836141859182  49.37380423843978       20.928877
+    2165092159226252416  319.8357919050182  49.37715751142902       20.565428
+    2165092159224999296 319.82331035942707  49.37621068543158       20.367767
+
+Using the class :py:class:`~pyvo.dal.TAPService` we can instantiate an available 
+TAP service by inserting their URL. Here we use the 
+`GAVO DC TAP <http://dc.g-vo.org/tap>`_ service to demonstrate. To perform a query using 
+ADQL, the ``search()`` method is used. You should know from which metadata you 
+want to query your objects and also the name of the parameters, after running 
+these code you would obtain a table that displays your desired data. 
+
+# 
+how do you know the column description of a metadata? I would like to insert 
+a tutorial on how to check the column description with pyvo 
+#
+
+To get an idea how to use ADQL in further detail, read this 
+`documentation <https://www.ivoa.net/documents/ADQL/20180112/PR-ADQL-2.1-20180112.html>`_. 
+It is basically a query language developed based on SQL92. 
+
+Synchronous vs. asynchronous query
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+With PyVO you can use two ways of query. Synchronous means that your 
+queries will be performed sequentially and once you have multiple 
+queries that are quite complex, it can take a lot of time waiting for 
+the results. Since the next query can only start once the previous one 
+is done. In this case it is advantageous to use the asynchronous 
+query instead. This allows you to assign multiple queries to the 
+TAP server and returns controls inmmediately with a promise to execute 
+all the queries and notify you the result later.
+
+The asynchronous query is indeed slower but it is convenient when you 
+have to run many queries since you don't have to wait for each query 
+to be finished in order to start the next task. Synchronous query is 
+faster and often used for one simpler query. It depends on the situation.
+
+Note that the ``search()`` method performs the synchronous query by default.
+To specify the query mode, you can use either ``run_sync()`` for 
+synchronous query or ``run_async()`` for asynchronous query.
+
+Query limit
+^^^^^^^^^^^
 
 As a sanity precaution, most services have some default limit of how many
 rows they will return before overflowing:
