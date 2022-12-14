@@ -210,9 +210,35 @@ Note that the ``search()`` method performs the synchronous query by default.
 To specify the query mode, you can use either ``run_sync()`` for 
 synchronous query or ``run_async()`` for asynchronous query.
 
-#
-Here explain how run_async() works witn submit_jobs etc.. 
-#
+.. doctest-remote-data::
+
+    >>> tap_service.submit_job(
+            """ SELECT TOP 5 
+            source_id, ra, dec, phot_g_mean_mag 
+            FROM gaia.dr3lite
+            WHERE phot_g_mean_mag BETWEEN 19 AND 20
+            ORDER BY phot_g_mean_mag
+            """).url 
+    http://dc.zah.uni-heidelberg.de/__system__/tap/run/async/job_id
+
+To learn more details from the asynchronous query, let's look at the 
+``submit_job()`` method. This submits an asynchronous query without 
+starting it, it creates an new object :py:class:`~pyvo.dal.AsyncTAPJob`. 
+To get the URL of the query, we add an ``url`` attribute. Note that the 
+example query does not return a real URL since the last part of the 
+URL is a string composed by 8 numbers/alphabets which represents the 
+job's ID. It will be different every time you run the ``submit_job()`` method. 
+Clicking on the URL leads you to the query itself, where you can check 
+the status(phase) of the query and decide to run, modify or delete 
+the job. After the job is completed, you can download the result in 
+VOTable format. There are other attributes/methods besides ``url`` 
+available for you to configure the job via commands, without getting 
+to the website directly. Please read the description for the object 
+:py:class:`~pyvo.dal.AsyncTAPJob`. 
+
+With ``run_async()`` you basically submit an asynchronous query and 
+return its result. It is like running ``submit_job()`` first and then 
+run the query manually.
 
 Query limit
 ^^^^^^^^^^^
