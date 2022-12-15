@@ -521,7 +521,7 @@ one at the TAP access URL http://reg.g-vo.org/tap.  You can use
 alternative ones, for instance, because they are nearer to you or
 because the default endpoint is down.
 
-You can pre-select the URI by setting the ``IVOA_REGISTRY`` environment
+You can pre-select the URL by setting the ``IVOA_REGISTRY`` environment
 variable to the TAP access URL of the service you would like to use.  In
 a bash-like shell, you would say::
 

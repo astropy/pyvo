@@ -254,7 +254,10 @@ class Language(Element):
         """
         returns a list of features groupd with the features id ivoid.
 
-        ivoid (regrettably) has to be compared case-insensitively.
+        Parameters
+        ----------
+        ivoid : the ivoid of a TAPRegExt feature list.  It is compared
+            case-insensitively against the service's ivoids.
 
         Returns
         -------

@@ -178,6 +178,13 @@ class Constraint:
         as an argument because constraints may be written differently
         depending on the service's features or refuse to run altogether.
 
+        Parameters
+        ----------
+        service : `dal.tap.TAPService`
+            The RegTAP service the query is supposed to be run on
+            (that is relevant because we adapt to the features available
+            on given services).
+
         Returns
         -------
         str
@@ -211,7 +218,7 @@ class Freetext(Constraint):
 
         Parameters
         ----------
-        *words: tuple of str
+        *words : tuple of str
             It is recommended to pass multiple words in multiple strings
             arguments.  You can pass in phrases (i.e., multiple words
             separated by space), but behaviour might then vary quite
@@ -291,7 +298,7 @@ class Author(Constraint):
 
         Parameters
         ----------
-        name: str
+        name : str
             Note that regrettably there are no guarantees as to how authors
             are written in the VO.  This means that you will generally have
             to write things like ``%Hubble%`` (% being “zero or more
@@ -345,7 +352,7 @@ class Servicetype(Constraint):
 
         Parameters
         ----------
-        *stds: tuple of str
+        *stds : tuple of str
             one or more standards identifiers.  The constraint will
             match records that have any of them.
         """
@@ -420,7 +427,7 @@ class Waveband(Constraint):
 
         Parameters
         ----------
-        *bands: tuple of strings
+        *bands : tuple of strings
             One or more of the terms given in http://www.ivoa.net/rdf/messenger.
             The constraint matches when a resource declares at least
             one of the messengers listed.
@@ -875,12 +882,12 @@ def build_regtap_query(constraints, service):
 
     Parameters
     ----------
-    constraints: sequence of `Constraint`-s
+    constraints : sequence of `Constraint`-s
         A sequence of constraints for a RegTAP query.  All of them
         will become part of a conjunction (i.e., all of them have
         to be satisfied for a record to match).
 
-    service: `dal.tap.TAPService`
+    service : `dal.tap.TAPService`
         The RegTAP service the query is supposed to be run on
         (that is relevant because we adapt to the features available
         on given services).
