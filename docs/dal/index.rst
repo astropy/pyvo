@@ -149,11 +149,12 @@ Table Access Protocol
 Getting started
 ^^^^^^^^^^^^^^^
 
-Let's start with a quick example using PyVO to perform a TAP/ADQL query.
-For instance we want to retrieve 5 objects from the GAIA DR3 database, 
-showing their id, position and mean G-band magnitude between 19 - 20.
+Consider the following example for using TAP and ADQL, retrieving 5
+objects from the GAIA DR3 database, showing their id, position and
+mean G-band magnitude between 19 - 20:
 
 .. doctest-remote-data::
+
     >>> import pyvo as vo
     >>> tap_service = vo.dal.TAPservice("http://dc.g-vo.org/tap")
     >>> tap_service.search(
@@ -174,37 +175,41 @@ showing their id, position and mean G-band magnitude between 19 - 20.
     2171810342771336704 323.25913736080776  51.94305655940998            19.0
     2180349528028140800  310.5233961869657   50.3486391034819            19.0
 
-Using the class :py:class:`~pyvo.dal.TAPService` we can instantiate an available 
-TAP service by inserting their URL. Here we use the 
-`GAVO DC TAP <http://dc.g-vo.org/tap>`_ service to demonstrate. To perform a query using 
-ADQL, the ``search()`` method is used. You should know from which metadata you 
-want to query your objects and also the name of the parameters, after running 
-these code you would obtain a table that displays your desired data. 
+If you know a TAP service's access URL, you can directly pass it to
+:py:class:`~pyvo.dal.TAPService` to obtain a service object (see
+:ref:`pyvo.registry <pyvo-registry>` for when you do not know this access URL). 
+Here we use the `GAVO DC TAP <http://dc.g-vo.org/tap>`_ service to demonstrate. 
+To perform a query using ADQL, the ``search()`` method is used. 
+TAPService instances have several methods to inspect the metadata
+of the service - in particular, what tables with what columns are
+available - discussed below.  Note that for exploratory query
+construction, you can also use interactive TAP clients such as
+TOPCAT_, which include table browsers.
 
-# 
-how do you know the column description of a metadata? I would like to insert 
-a tutorial on how to check the column description with pyvo 
-#
+.. _TOPCAT: http://www.star.bris.ac.uk/~mbt/topcat/ 
 
-To get an idea how to use ADQL in further detail, read this 
-`documentation <https://www.ivoa.net/documents/ADQL/20180112/PR-ADQL-2.1-20180112.html>`_. 
-It is basically a query language developed based on SQL92. 
+To get an idea of how to write queries in ADQL, have a look at
+`GAVO's ADQL course`_; it is basically a standardised subset of SQL
+with some extensions to make it work better for astronomy.
+
+.. _GAVO's ADQL course: https://docs.g-vo.org/adql 
 
 Synchronous vs. asynchronous query
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-With PyVO you can use two ways of query. Synchronous means that your 
-queries will be performed sequentially and once you have multiple 
-queries that are quite complex, it can take a lot of time waiting for 
-the results. Since the next query can only start once the previous one 
-is done. In this case it is advantageous to use the asynchronous 
-query instead. This allows you to assign multiple queries to the 
-TAP server and returns controls inmmediately with a promise to execute 
-all the queries and notify you the result later. 
+In synchronous (“sync”) mode, the client keeps a connection for the
+entire runtime of the query, and query processing generally starts
+when the request is submitted.  This is convenient but becomes
+brittle as queries have runtimes of the order of minutes, when you
+may encounter query timeouts.  Also, many data providers impose
+rather strict limits on the runtime alotted to sync queries. 
 
-The asynchronous query is indeed slower but it is convenient when you 
-have to run many queries since you don't have to wait for each query 
-to be finished in order to start the next task. Synchronous query is 
-faster and often used for one simpler query. It depends on the situation.
+In asynchronous (“async”) mode, on the other hand, the client just
+submits a query and receives a URL that let us inspect the
+execution status (and retrieve its result) later.  This means that
+no connection needs to be held, which makes this mode a lot more
+robust of long-running queries.  It also supports queuing queries,
+which allows service operators to be a lot more generous with
+resource limits.
 
 Note that the ``search()`` method performs the synchronous query by default.
 To specify the query mode, you can use either ``run_sync()`` for 
@@ -212,28 +217,87 @@ synchronous query or ``run_async()`` for asynchronous query.
 
 .. doctest-remote-data::
 
-    >>> tap_service.submit_job(
-            """ SELECT TOP 5 
-            source_id, ra, dec, phot_g_mean_mag 
-            FROM gaia.dr3lite
-            WHERE phot_g_mean_mag BETWEEN 19 AND 20
-            ORDER BY phot_g_mean_mag
-            """).url 
-    http://dc.zah.uni-heidelberg.de/__system__/tap/run/async/job_id
+    >>> job = tap_service.submit_job(
+                """ SELECT TOP 5 
+                source_id, ra, dec, phot_g_mean_mag 
+                FROM gaia.dr3lite
+                WHERE phot_g_mean_mag BETWEEN 19 AND 20
+                ORDER BY phot_g_mean_mag
+                """)
 
 To learn more details from the asynchronous query, let's look at the 
 ``submit_job()`` method. This submits an asynchronous query without 
-starting it, it creates an new object :py:class:`~pyvo.dal.AsyncTAPJob`. 
-To get the URL of the query, we add an ``url`` attribute. Note that the 
-example query does not return a real URL since the last part of the 
-URL is a string composed by 8 numbers/alphabets which represents the 
-job's ID. It will be different every time you run the ``submit_job()`` method. 
+starting it, it creates a new object :py:class:`~pyvo.dal.AsyncTAPJob`.
+
+.. doctest-remote-data::
+
+    >>> job.url
+    (...)
+
+The job URL mentioned before is available in the ``url`` attribute;
+you can use that URL later to resume the job even from clients like TOPCAT. 
 Clicking on the URL leads you to the query itself, where you can check 
 the status(phase) of the query and decide to run, modify or delete 
-the job. After the job is completed, you can download the result in 
-VOTable format. There are other attributes/methods besides ``url`` 
-available for you to configure the job via commands, without getting 
-to the website directly. Please read the description for the object 
+the job. You can also do it via various attributes:
+
+.. doctest-remote-data::
+
+    >>> job.phase
+    'PENDING'
+
+A newly created job is in the PENDING state.
+While it is pending, it can be configured, for instance, overriding
+the server's default time limit (after which the query will be
+canceled):
+
+.. doctest-remote-data::
+
+    >>> job.executionduration = 700
+    >>> job.executionduration
+    700
+
+When you are ready, you can start the job:
+
+.. doctest-remote-data::
+
+    >>> job.run()
+
+This will put the job into the QUEUED state.  Depending on how busy
+the server is, it will immediately go to the EXECUTING status:
+
+.. doctest-remote-data::
+
+    >>> job.phase
+    'EXECUTING'
+
+The job will eventually end up in one of the phases:
+
+* COMPLETED - if all went to plan,
+* ERROR -   if the query failed for some reason;
+            look at the error
+            attribute of the job to find out details,
+* ABORTED - if you manually killed the query using the ``abort()``
+            method or the server killed your query, presumably because it hit
+            the time limit.
+
+After the job ends up in COMPLETED, you can retrieve the result:
+
+.. doctest-remote-data::
+
+    >>> job.phase
+    'COMPLETED'
+    >>> job.result
+    (...table object)
+
+Eventually, it is friendly to clean up the job rather than relying
+on the server to clean it up once ``job.destruction`` (a datetime
+that you can change if you need to) is reached.
+
+.. doctest-remote-data::
+
+    >>> job.delete()
+
+For more attributes please read the description for the job object 
 :py:class:`~pyvo.dal.AsyncTAPJob`. 
 
 With ``run_async()`` you basically submit an asynchronous query and 
