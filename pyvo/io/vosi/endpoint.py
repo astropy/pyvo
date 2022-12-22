@@ -70,7 +70,7 @@ def parse_tables(source, pedantic=None, filename=None,
 
     Returns
     -------
-    votable : `~pyvo.io.vosi.endpoint.TableSetFile` object
+    tables_file : `~pyvo.io.vosi.endpoint.TableSetFile` object
 
     See also
     --------
@@ -116,7 +116,7 @@ def parse_capabilities(source, pedantic=None, filename=None,
 
     Returns
     -------
-    votable : `~pyvo.io.vosi.endpoint.CapabilitiesFile` object
+    capabilities_file : `~pyvo.io.vosi.endpoint.CapabilitiesFile` object
 
     See also
     --------
@@ -162,7 +162,7 @@ def parse_availability(source, pedantic=None, filename=None,
 
     Returns
     -------
-    votable : `~pyvo.io.vosi.endpoint.AvailabilityFile` object
+    availability_file : `~pyvo.io.vosi.endpoint.AvailabilityFile` object
 
     See also
     --------
