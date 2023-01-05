@@ -181,12 +181,15 @@ class DALServiceError(DALProtocolError):
             except AttributeError:
                 response = None
             code = 0
+            message = str(exc)
+
+            # if there is a response, refine the error message
             if response is not None:
                 code = response.status_code
-            message = str(exc)
-            content_type = response.headers.get('content-type', None)
-            if content_type and 'text/plain' in content_type:
-                message = '{} for {}'.format(response.text, url)
+                content_type = response.headers.get('content-type', None)
+                if content_type and 'text/plain' in content_type:
+                    message = '{} for {}'.format(response.text, url)
+
             # TODO votable handling
 
             return DALServiceError(message, code, exc, url)
