@@ -196,6 +196,7 @@ with some extensions to make it work better for astronomy.
 
 Synchronous vs. asynchronous query
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 In synchronous (“sync”) mode, the client keeps a connection for the
 entire runtime of the query, and query processing generally starts
 when the request is submitted.  This is convenient but becomes
@@ -286,7 +287,7 @@ After the job ends up in COMPLETED, you can retrieve the result:
 
     >>> job.phase
     'COMPLETED'
-    >>> job.result
+    >>> job.fetch_result()
     (...table object)
 
 Eventually, it is friendly to clean up the job rather than relying
