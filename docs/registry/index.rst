@@ -546,8 +546,8 @@ RegTAP services using:
   ...   for r in res)))
   http://dc.zah.uni-heidelberg.de/tap
   http://gavo.aip.de/tap
-  http://vao.stsci.edu/RegTAP/TapService.aspx
   http://voparis-rr.obspm.fr:80/tap
+  https://vao.stsci.edu/RegTAP/TapService.aspx
 
 
 

@@ -78,30 +78,30 @@ class TestFreetextConstraint:
         assert rtcons.Freetext("star").get_search_condition(FAKE_GAVO) == (
             "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'star') "
             "UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'star') "
-            "UNION SELECT ivoid FROM rr.res_subject WHERE res_subject ILIKE '%star%')")
+            "UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%star%')")
 
     def test_interesting_literal(self):
         assert rtcons.Freetext("α Cen's planets").get_search_condition(FAKE_GAVO) == (
             "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'α Cen''s planets')"
             " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'α Cen''s planets')"
-            " UNION SELECT ivoid FROM rr.res_subject WHERE res_subject ILIKE '%α Cen''s planets%')")
+            " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%α Cen''s planets%')")
 
     def test_multipleLiterals(self):
         assert rtcons.Freetext("term1", "term2"
             ).get_search_condition(FAKE_GAVO) == (
             "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'term1')"
             " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'term1')"
-            " UNION SELECT ivoid FROM rr.res_subject WHERE res_subject ILIKE '%term1%')"
+            " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%term1%')"
         " AND "
         "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'term2')"
         " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'term2')"
-        " UNION SELECT ivoid FROM rr.res_subject WHERE res_subject ILIKE '%term2%')")
+        " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%term2%')")
 
     def test_adaption_to_service(self):
         assert rtcons.Freetext("term1", "term2"
             ).get_search_condition(FAKE_PLAIN) == (
-            "( 1=ivo_hasword(res_description, 'term1') OR  1=ivo_hasword(res_title, 'term1') OR  res_subject ILIKE '%term1%')"
-            " AND ( 1=ivo_hasword(res_description, 'term2') OR  1=ivo_hasword(res_title, 'term2') OR  res_subject ILIKE '%term2%')")
+            "( 1=ivo_hasword(res_description, 'term1') OR  1=ivo_hasword(res_title, 'term1') OR  rr.res_subject.res_subject ILIKE '%term1%')"
+            " AND ( 1=ivo_hasword(res_description, 'term2') OR  1=ivo_hasword(res_title, 'term2') OR  rr.res_subject.res_subject ILIKE '%term2%')")
 
 
 class TestAuthorConstraint:
@@ -323,7 +323,7 @@ class TestSpectralConstraint:
                 " 5.830941732e-26, 6.758591553e-26)")
 
     def test_no_spectral(self):
-        cons = registry.Spectral((88 * units.MHz, 102 * units.MHz))
+        cons = registry.Spectral((88 * u.MHz, 102 * u.MHz))
         with pytest.raises(rtcons.RegTAPFeatureMissing) as excinfo:
             cons.get_search_condition(FAKE_PLAIN)
         assert (str(excinfo.value)
@@ -354,13 +354,12 @@ class TestTemporalConstraint:
                 " be made from single time instants.")
 
     def test_no_temporal(self):
-        cons = registry.Temporal((time.Time(2459000, format='jd'),
-                                  time.Time(59002, format='mjd')))
+        cons = registry.Temporal((Time(2459000, format='jd'),
+                                  Time(59002, format='mjd')))
         with pytest.raises(rtcons.RegTAPFeatureMissing) as excinfo:
             cons.get_search_condition(FAKE_PLAIN)
         assert (str(excinfo.value)
             == "stc_temporal missing on current RegTAP service")
-
 
 
 class TestWhereClauseBuilding:
@@ -414,11 +413,11 @@ class TestWhereClauseBuilding:
             '(ivoid IN (SELECT ivoid FROM rr.resource WHERE '
             "1=ivo_hasword(res_description, 'plain') UNION SELECT ivoid FROM rr.resource "
             "WHERE 1=ivo_hasword(res_title, 'plain') UNION SELECT ivoid FROM "
-            "rr.res_subject WHERE res_subject ILIKE '%plain%'))\n"
+            "rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%plain%'))\n"
             '  AND (ivoid IN (SELECT ivoid FROM rr.resource WHERE '
             "1=ivo_hasword(res_description, 'string') UNION SELECT ivoid FROM rr.resource "
             "WHERE 1=ivo_hasword(res_title, 'string') UNION SELECT ivoid FROM "
-            "rr.res_subject WHERE res_subject ILIKE '%string%'))")
+            "rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%string%'))")
 
 
 class TestSelectClause:

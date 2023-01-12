@@ -69,7 +69,7 @@ def keywords_fixture(mocker):
         assert "ivo_hasword(res_description, 'vizier')" in query
         assert "1=ivo_hasword(res_title, 'vizier')" in query
 
-        assert " res_subject ILIKE '%pulsar%'" in query
+        assert ".res_subject ILIKE '%pulsar%'" in query
         assert "1=ivo_hasword(res_description, 'pulsar')" in query
         assert "1=ivo_hasword(res_title, 'pulsar')" in query
 
@@ -88,7 +88,7 @@ def single_keyword_fixture(mocker):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
 
-        assert "OR  res_subject ILIKE '%single%'" in query
+        assert "OR  rr.res_subject.res_subject ILIKE '%single%'" in query
         assert "1=ivo_hasword(res_description, 'single') " in query
         assert "1=ivo_hasword(res_title, 'single')" in query
 
@@ -886,6 +886,7 @@ def test_sia2_service_operation():
     assert "s_dec" in res.to_table().columns
 
 
+@pytest.mark.remote_data
 def test_endpoint_switching():
     alt_svc = "http://vao.stsci.edu/RegTAP/TapService.aspx"
     previous_url = regtap.REGISTRY_BASEURL

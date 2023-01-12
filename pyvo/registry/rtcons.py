@@ -245,7 +245,7 @@ class Freetext(Constraint):
             "SELECT ivoid FROM rr.resource WHERE"
             " 1=ivo_hasword(res_title, {{{parname}}})",
             "SELECT ivoid FROM rr.res_subject WHERE"
-            " res_subject ILIKE {{{parpatname}}}"]
+            " rr.res_subject.res_subject ILIKE {{{parpatname}}}"]
         self._fillers, subqueries = {}, []
 
         for index, word in enumerate(self.words):
@@ -266,7 +266,7 @@ class Freetext(Constraint):
         base_queries = [
             " 1=ivo_hasword(res_description, {{{parname}}})",
             " 1=ivo_hasword(res_title, {{{parname}}})",
-            " res_subject ILIKE {{{parpatname}}}"]
+            " rr.res_subject.res_subject ILIKE {{{parpatname}}}"]
         self._fillers, conditions = {}, []
 
         for index, word in enumerate(self.words):
@@ -681,7 +681,7 @@ class Spatial(Constraint):
         # something as esoteric as a server that understands
         # MOC-based geometries but does not have a MOC function.
         if not service.get_tap_cap().get_adql().get_feature(
-                    "ivo://org.gavo.dc/std/exts#extra-adql-keywords", "MOC"):
+                "ivo://org.gavo.dc/std/exts#extra-adql-keywords", "MOC"):
                 raise RegTAPFeatureMissing("Current RegTAP service"
                     " does not support MOC.")
 

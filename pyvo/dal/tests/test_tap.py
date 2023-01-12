@@ -759,21 +759,21 @@ class TestTAPCapabilities:
 
     def test_get_featurelist(self, tapservice):
         features = tapservice.get_tap_cap().get_adql().get_feature_list(
-                "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo")
+            "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo")
         assert set(f.form for f in features) == {
-                'CENTROID', 'CONTAINS', 'COORD1', 'POLYGON',
-                'INTERSECTS', 'COORD2', 'BOX', 'AREA', 'DISTANCE',
-                'REGION', 'CIRCLE', 'POINT'}
+            'CENTROID', 'CONTAINS', 'COORD1', 'POLYGON',
+            'INTERSECTS', 'COORD2', 'BOX', 'AREA', 'DISTANCE',
+            'REGION', 'CIRCLE', 'POINT'}
 
     def test_get_missing_feature(self, tapservice):
         assert tapservice.get_tap_cap().get_adql().get_feature(
-                "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo",
-                "Garage") == None
+            "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo",
+            "Garage") == None
 
     def test_get_feature(self, tapservice):
         feature = tapservice.get_tap_cap().get_adql().get_feature(
-                "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo",
-                "AREA")
+            "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo",
+            "AREA")
         assert feature.form == "AREA"
         assert feature.description == None
 
