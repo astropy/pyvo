@@ -111,6 +111,9 @@ class DALService:
         return q
 
     def describe(self):
+        """
+        display the base URL for the DAL service
+        """
         print('DAL Service at {}'.format(self.baseurl))
 
 

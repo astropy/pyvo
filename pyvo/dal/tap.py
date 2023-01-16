@@ -858,6 +858,9 @@ class AsyncTAPJob:
 
     @property
     def uws_version(self):
+        """
+        displays the UWS version
+        """
         self._update()
         return self._job.version
 
@@ -1038,6 +1041,9 @@ class TAPQuery(DALQuery):
 
     @property
     def queryurl(self):
+        """
+        The URL that encodes the current query
+        """
         return '{baseurl}/{mode}'.format(baseurl=self.baseurl, mode=self._mode)
 
     def execute_stream(self, post=False):
