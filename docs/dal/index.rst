@@ -590,6 +590,15 @@ API spec listed below for details.
 * :py:class:`pyvo.dal.scs.SCSRecord`
 * :py:class:`pyvo.dal.sla.SLARecord`
 
+Convenience methods are available to transform the results into
+:py:class:`astropy.table.Table` or :py:class:`astropy.table.QTable` (values
+as quantities):
+
+.. doctest-remote-data::
+
+    >>> astropy_table = resultset.to_table()
+    >>> astropy_qtable = resultset.to_qtable()
+
 Multiple datasets
 -----------------
 PyVO supports multiple datasets exposed on record level through the datalink.
@@ -689,8 +698,10 @@ Underlying data structures
 --------------------------
 PyVO also allows access to underlying data structures.
 
-The astropy data class :py:class:`astropy.table.Table` is accessible with the
-method :py:meth:`pyvo.dal.DALResults.to_table`, following astropy naming
+The astropy data classes :py:class:`astropy.table.Table` and
+:py:class:`astropy.table.QTable` are accessible with the
+method :py:meth:`pyvo.dal.DALResults.to_table` and
+:py:meth:`pyvo.dal.DALResults.to_qtable`, following astropy naming
 conventions.
 
 If you want to work with the XML data structures

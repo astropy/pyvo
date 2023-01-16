@@ -23,7 +23,7 @@ from pyvo.dal.exceptions import DALServiceError, DALQueryError,\
     DALFormatError, DALOverflowWarning
 from pyvo.version import version
 
-from astropy.table import Table
+from astropy.table import Table, QTable
 from astropy.io.votable.tree import VOTableFile, Table as VOTable
 from astropy.io.fits import HDUList
 
@@ -357,7 +357,9 @@ class TestDALResults:
             'http://example.com/query/basic')
 
         assert isinstance(dalresults.to_table(), Table)
+        assert isinstance(dalresults.to_qtable(), QTable)
         assert len(dalresults) == len(dalresults.to_table())
+        assert len(dalresults) == len(dalresults.to_qtable())
 
     def test_id_over_name(self):
         dalresults = DALResults.from_result_url(

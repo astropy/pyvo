@@ -34,7 +34,7 @@ import collections
 
 from warnings import warn
 
-from astropy.table import Table
+from astropy.table import Table, QTable
 from astropy.io.votable import parse as votableparse
 from astropy.io.votable.ucd import parse_ucd
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -432,6 +432,17 @@ class DALResults:
         `astropy.table.Table`
         """
         return self.resultstable.to_table(use_names_over_ids=True)
+
+    def to_qtable(self):
+        """
+        Returns a astropy QTable object containing quantities instead of simple
+        values
+
+        Returns
+        -------
+        `astropy.table.QTable`
+        """
+        return QTable(self.resultstable.to_table(use_names_over_ids=True))
 
     @property
     def table(self):
