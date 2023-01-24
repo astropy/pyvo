@@ -632,18 +632,19 @@ def test_get_contact():
 
 @pytest.mark.remote_data
 class TestDatamodelQueries:
-# right now, the data model queries are all rather sui generis, and
-# rather fickly on top.  Let's make sure they actually return something
-# against the live registry.  Admittedly, this is about as much
-# a test of the VO infrastructure as of pyvo.
+    # right now, the data model queries are all rather sui generis, and
+    # rather fickly on top.  Let's make sure they actually return something
+    # against the live registry.  Admittedly, this is about as much
+    # a test of the VO infrastructure as of pyvo.
+
     def test_obscore(self):
-        assert len(regsearch(rtcons.Datamodel('obscore')))>0
+        assert len(regsearch(rtcons.Datamodel('obscore'))) > 0
 
     def test_epntap(self):
-        assert len(regsearch(rtcons.Datamodel('epntap')))>0
+        assert len(regsearch(rtcons.Datamodel('epntap'))) > 0
 
     def test_regtap(self):
-        assert len(regsearch(rtcons.Datamodel('regtap')))>0
+        assert len(regsearch(rtcons.Datamodel('regtap'))) > 0
 
 
 @pytest.mark.usefixtures('multi_interface_fixture', 'capabilities',
@@ -707,7 +708,7 @@ class TestExtraResourceMethods:
         })
         assert rsc.access_url == "http://a"
         assert ('The resource ivo://pyvo/test_regtap.py has multipl' in
-            [str(w.message)[:50] for w in recwarn])
+                [str(w.message)[:50] for w in recwarn])
 
 
 # TODO: While I suppose the contact test should keep requiring network,
