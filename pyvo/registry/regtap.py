@@ -17,6 +17,7 @@ standardized TAP-based services.
 """
 
 import functools
+import itertools
 import os
 import warnings
 
@@ -394,7 +395,7 @@ class RegistryResource(dalq.Record):
                       ] = self._parse_pseudo_array(self._mapping["intf_roles"])
 
         self.interfaces = [Interface(*props)
-                           for props in zip(
+                           for props in itertools.zip_longest(
             self["access_urls"],
             self["standard_ids"],
             self["intf_types"],

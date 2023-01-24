@@ -300,6 +300,44 @@ def test_bad_servicetype_aux():
         regsearch(servicetype='bad_servicetype', includeaux=True)
 
 
+class _NS:
+    """a namespace exposing its keyword arguments as attributes.
+
+    We need this here to let us conveniently construct _FakeResults.
+    """
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+
+class _FakeResults:
+    """
+    a minimal standin for dal.query.Results to be used with dal.query.Record.
+
+    It is constructed with a dictionary that should eventually be
+    used as the mapping in the Record.
+    """
+    def __init__(self, valdict):
+        self.fieldnames = list(valdict.keys())
+        self.resultstable = _NS(array=_NS(data=[list(valdict.values())]))
+
+
+def get_regtap_results(**kwargs):
+    """
+    return a RegTAP result as expected by RegistryResult with all values
+    empty, completed with what's in kwargs.
+    """
+    res = {}
+    for key in regtap.RegistryResource.expected_columns:
+        if isinstance(key, str):
+            res[key] = None
+        else:
+            res[key[-1]] = None
+
+    res.update(kwargs)
+    return _FakeResults(res)
+
+
 def test_spatial():
     assert (rtcons.keywords_to_constraints({
             "spatial": (23, -40)})[0].get_search_condition()
@@ -453,6 +491,28 @@ class TestInterfaceSelection:
             "Multiple matching interfaces found.  Perhaps pass in"
             " service_type or use a Servicetype constrain in the"
             " registry.search?  Or use lax=True?")
+
+    def test_interface_without_role(self):
+        # There's an ugly corner case in our array simulation for
+        # capabilities and interfaces: if there's a single untyped
+        # interface, the returned type (or role) will be an empty
+        # string, and the split() will return an empty list.
+        # This swallowed the interface in pyVO 1.3.
+        rec = get_regtap_results(
+            access_urls="http://example.org/tap",
+            standard_ids="ivo://ivoa.net/std/TAP",
+            intf_types="vr:webbrowser",
+            intf_roles="")
+
+        resource = regtap.RegistryResource(rec, 0)
+        assert len(resource.interfaces) == 1
+        assert resource.interfaces[0].standard_id == 'ivo://ivoa.net/std/TAP'
+
+        # get_service still won't work because it needs a paramhttp
+        # interface (and a role="std").
+        with pytest.raises(ValueError) as excinfo:
+            resource.get_service('tap')
+        assert (str(excinfo.value) == "No matching interface.")
 
 
 class _FakeResult:
