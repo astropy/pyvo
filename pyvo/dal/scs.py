@@ -418,8 +418,8 @@ class SCSResults(DatalinkResultsMixin, DALResults):
     The list of matching catalog records resulting from a catalog (SCS) query.
     Each record contains a set of metadata that describes a source or
     observation within the requested circular region (i.e. a "cone").  The
-    number of records in the results is available via the :py:attr:`nrecs
-    attribute or by passing it to the Python built-in ``len()`` function.
+    number of records in the results is available by passing it to the Python built-in
+    ``len()`` function.
 
     This class supports iterable semantics; thus,
     individual records (in the form of
