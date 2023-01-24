@@ -158,8 +158,8 @@ class TestDatamodelConstraint:
     def test_epntap(self):
         cons = rtcons.Datamodel("epntap")
         assert (cons.get_search_condition()
-                == "table_utype LIKE ivo://vopdc.obspm/std/epncore#schema-2.%'"
-                " OR table_utype LIKE ivo://ivoa.net/std/epntap#table-2.%'")
+                == "table_utype LIKE 'ivo://vopdc.obspm/std/epncore#schema-2.%'"
+                " OR table_utype LIKE 'ivo://ivoa.net/std/epntap#table-2.%'")
         assert (cons._extra_tables == ["rr.res_table"])
 
     def test_regtap(self):

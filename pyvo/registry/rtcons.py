@@ -413,7 +413,7 @@ class Datamodel(Constraint):
         # we include legacy, pre-IVOA utypes for matches; lowercase
         # any new identifiers (utypes case-fold).
         return " OR ".join(
-            f"table_utype LIKE {pat}'" for pat in
+            f"table_utype LIKE '{pat}'" for pat in
             ['ivo://vopdc.obspm/std/epncore#schema-2.%',
              'ivo://ivoa.net/std/epntap#table-2.%'])
 
