@@ -7,12 +7,16 @@
 - Added convenience method DALResults.to_qtable() that returns an
   astropy.table.QTable object. [#384]
 
+- fixed the RegTAP fragment for the discovery of EPN-TAP tables. [#395]
+
+
 
 1.4 (2022-09-26)
 ================
+
 - Added the TAP Table Manipulation prototype (cadc-tb-upload). [#274]
 
-- More explicit exception messages where the payload is 
+- More explicit exception messages where the payload is
   sometimes considered if it can be presented properly (simple
   body text or job error message). [#355]
 
