@@ -179,7 +179,8 @@ If you know a TAP service's access URL, you can directly pass it to
 :py:class:`~pyvo.dal.TAPService` to obtain a service object (see
 :ref:`pyvo.registry <pyvo-registry>` for when you do not know this access URL). 
 Here we use the `GAVO DC TAP <http://dc.g-vo.org/tap>`_ service to demonstrate. 
-To perform a query using ADQL, the ``search()`` method is used. 
+To perform a query using ADQL, the ``search()`` method is used (note 
+that this method performs the synchronous query by default). 
 TAPService instances have several methods to inspect the metadata
 of the service - in particular, what tables with what columns are
 available - discussed below.  Note that for exploratory query
@@ -212,7 +213,6 @@ robust of long-running queries.  It also supports queuing queries,
 which allows service operators to be a lot more generous with
 resource limits.
 
-Note that the ``search()`` method performs the synchronous query by default.
 To specify the query mode, you can use either ``run_sync()`` for 
 synchronous query or ``run_async()`` for asynchronous query.
 
