@@ -577,8 +577,7 @@ class SIAResults(DatalinkResultsMixin, DALResults):
     The list of matching images resulting from an image (SIA) query.
     Each record contains a set of metadata that describes an available
     image matching the query constraints.  The number of records in
-    the results is available via the :py:attr:`nrecs` attribute or by
-    passing it to the Python built-in ``len()`` function.
+    the results is available by passing it to the Python built-in ``len()`` function.
 
     This class supports iterable semantics; thus,
     individual records (in the form of
