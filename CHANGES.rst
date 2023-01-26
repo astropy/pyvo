@@ -6,6 +6,8 @@
 
 - fixed the RegTAP fragment for the discovery of EPN-TAP tables. [#395]
 
+- Removing defaults for optional SIAv1 and SSA query parameters to avoid
+  unnecessarily overriding the server-side defaults. [#366]
 
 1.4 (2022-09-26)
 ================
