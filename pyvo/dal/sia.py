@@ -46,7 +46,7 @@ __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "SIARecord"]
 
 
 def search(
-        url, pos, size=1.0, format='all', intersect="overlaps", verbosity=2,
+        url, pos, size=1.0, format=None, intersect=None, verbosity=2,
         **keywords):
     """
     submit a simple SIA query that requests images overlapping a given region
@@ -64,7 +64,7 @@ def search(
         converted if it's a iterable containing scalars,
         assuming decimal degrees.
     format : str
-        the image format(s) of interest.  "all" (default)
+        the image format(s) of interest.  "all" (server-side default)
         indicates all available formats; "graphic" indicates
         graphical images (e.g. jpeg, png, gif; not FITS);
         "metadata" indicates that no images should be
@@ -78,7 +78,7 @@ def search(
         ========= ======================================================
         COVERS    select images that completely cover the search region
         ENCLOSED  select images that are complete enclosed by the region
-        OVERLAPS  select any image that overlaps with the search region
+        OVERLAPS  select any image that overlaps the search region (server-side default)
         CENTER    select images whose center is within the search region
         ========= ======================================================
 
@@ -86,6 +86,7 @@ def search(
         an integer value that indicates the volume of columns
         to return in the result table.  0 means the minimum
         set of columsn, 3 means as many columns as are  available.
+        (client-side default == 2)
     **keywords :
         additional parameters can be given via arbitrary
         case insensitive keyword arguments. Where there is overlap
@@ -186,7 +187,7 @@ class SIAService(DALService):
             return []
 
     def search(
-            self, pos, size=1.0, format='all', intersect="overlaps",
+            self, pos, size=1.0, format=None, intersect=None,
             verbosity=2, **keywords):
         """
         submit a SIA query to this service with the given parameters.
@@ -205,7 +206,7 @@ class SIAService(DALService):
             the size of the rectangular region around pos.
             assuming icrs decimal degrees if unit is not specified.
         format : str
-            the image format(s) of interest.  "all" (default)
+            the image format(s) of interest.  "all" (server-side default)
             indicates all available formats; "graphic" indicates
             graphical images (e.g. jpeg, png, gif; not FITS);
             "metadata" indicates that no images should be
@@ -219,7 +220,7 @@ class SIAService(DALService):
             ========= ======================================================
             COVERS    select images that completely cover the search region
             ENCLOSED  select images that are complete enclosed by the region
-            OVERLAPS  select any image that overlaps with the search region
+            OVERLAPS  select any image that overlaps the search region (server-side default)
             CENTER    select images whose center is within the search region
             ========= ======================================================
 
@@ -227,6 +228,7 @@ class SIAService(DALService):
             an integer value that indicates the volume of columns
             to return in the result table.  0 means the minimum
             set of columns, 3 means as many columns as are  available.
+            (client-side default == 2)
         **keywords :
             additional parameters can be given via arbitrary
             case insensitive keyword arguments. Where there is overlap
@@ -277,7 +279,7 @@ class SIAService(DALService):
             the size of the rectangular region around pos.
             assuming icrs decimal degrees if unit is not specified.
         format : str
-            the image format(s) of interest.  "all" (default)
+            the image format(s) of interest.  "all" (server-side default)
             indicates all available formats; "graphic" indicates
             graphical images (e.g. jpeg, png, gif; not FITS);
             "metadata" indicates that no images should be
@@ -291,7 +293,7 @@ class SIAService(DALService):
             ========= ======================================================
             COVERS    select images that completely cover the search region
             ENCLOSED  select images that are complete enclosed by the region
-            OVERLAPS  select any image that overlaps with the search region
+            OVERLAPS  select any image that overlaps the search region (server-side default)
             CENTER    select images whose center is within the search region
             ========= ======================================================
 
@@ -364,7 +366,7 @@ class SIAQuery(DALQuery):
             the size of the rectangular region around pos.
             assuming icrs decimal degrees if unit is not specified.
         format : str
-            the image format(s) of interest.  "all" (default)
+            the image format(s) of interest.  "all" (server-side default)
             indicates all available formats; "graphic" indicates
             graphical images (e.g. jpeg, png, gif; not FITS);
             "metadata" indicates that no images should be
@@ -378,7 +380,7 @@ class SIAQuery(DALQuery):
             ========= ======================================================
             COVERS    select images that completely cover the search region
             ENCLOSED  select images that are complete enclosed by the region
-            OVERLAPS  select any image that overlaps with the search region
+            OVERLAPS  select any image that overlaps the search region (server-side default)
             CENTER    select images whose center is within the search region
             ========= ======================================================
 
