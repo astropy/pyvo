@@ -105,7 +105,7 @@ return more than 10000 rows”).
 
 This information is contained in the data structure
 :py:class:`~pyvo.io.vosi.endpoint.CapabilitiesFile` available through
-:py:attr:`~pyvo.dal.mixin.CapabilityMixin.capabilities`.
+:py:attr:`~pyvo.dal.CapabilityMixin.capabilities`.
 
 Exceptions
 ----------

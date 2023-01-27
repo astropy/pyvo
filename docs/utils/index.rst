@@ -1,4 +1,4 @@
-.. _pyvo.utils:
+.. _pyvo-utils:
 
 *************************
 PyVO utils (`pyvo.utils`)

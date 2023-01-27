@@ -228,7 +228,7 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
 
 class SIA2Query(DALQuery, AxisParamMixin):
     """
-    a class very similar to :py:attr:`~pyvo.dal.query.SIAQuery` class but
+    a class very similar to :py:attr:`~pyvo.dal.SIAQuery` class but
     used to interact with SIA2 services.
     """
 
@@ -278,8 +278,8 @@ class SIA2Query(DALQuery, AxisParamMixin):
         See Also
         --------
         SIA2Results
-        pyvo.dal.query.DALServiceError
-        pyvo.dal.query.DALQueryError
+        pyvo.dal.DALServiceError
+        pyvo.dal.DALQueryError
 
         """
         super().__init__(url, session=session)
@@ -485,18 +485,18 @@ class SIA2Results(DatalinkResultsMixin, DALResults):
 
     Alternatively, records can be accessed randomly via
     :py:meth:`getrecord` or through a Python Database API (v2)
-    Cursor (via :py:meth:`~pyvo.dal.query.DALResults.cursor`).
+    Cursor (via :py:meth:`~pyvo.dal.DALResults.cursor`).
     Column-based data access is possible via the
-    :py:meth:`~pyvo.dal.query.DALResults.getcolumn` method.
+    :py:meth:`~pyvo.dal.DALResults.getcolumn` method.
 
     ``SIA2Results`` is essentially a wrapper around an Astropy
     :py:mod:`~astropy.io.votable`
     :py:class:`~astropy.io.votable.tree.TableElement` instance where the
     columns contain the various metadata describing the images.
     One can access that VOTable directly via the
-    :py:attr:`~pyvo.dal.query.DALResults.votable` attribute.  Thus,
+    :py:attr:`~pyvo.dal.DALResults.votable` attribute.  Thus,
     when one retrieves a whole column via
-    :py:meth:`~pyvo.dal.query.DALResults.getcolumn`, the result is
+    :py:meth:`~pyvo.dal.DALResults.getcolumn`, the result is
     a Numpy array.  Alternatively, one can manipulate the results
     as an Astropy :py:class:`~astropy.table.table.Table` via the
     following conversion:

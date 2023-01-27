@@ -170,7 +170,7 @@ def search(*constraints: rtcons.Constraint,
 
     The function accepts query constraints either as Constraint objects
     passed in as positional arguments or as their associated keywords.
-    For what constraints are available, see ref:`registry_basic_interface`.
+    For what constraints are available, see ref:`registry-basic-interface`.
 
 
     The values of keyword arguments may be tuples or lists when the associated
@@ -228,7 +228,7 @@ def search(*constraints: rtcons.Constraint,
         are not reproducible.
 
     **kwargs : strings, mostly
-        shorthands for `constraints`; see the documentation of
+        shorthands for ``constraints``; see the documentation of
         a specific constraint for what keyword it uses and what literal
         it expects.
 

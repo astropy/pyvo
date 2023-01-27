@@ -42,35 +42,35 @@ This function accepts one or more search constraints, which can be
 either specified using constraint objects as positional arguments or as
 keyword arguments.  The following constraints are available:
 
-* :py:class:`pyvo.registry.Freetext` (``keywords``): one or more
+* :py:class:`~pyvo.registry.Freetext` (``keywords``): one or more
   freetext words, mached in the title, description or subject of the
   resource.
-* :py:class:`pyvo.registry.Servicetype` (``servicetype``): constrain to
+* :py:class:`~pyvo.registry.Servicetype` (``servicetype``): constrain to
   one of tap, ssa, sia, conesearch (or full ivoids for other service
   types).  This is the constraint you want
   to use for service discovery.
-* :py:class:`pyvo.registry.UCD` (``ucd``): constrain by one or more UCD
+* :py:class:`~pyvo.registry.UCD` (``ucd``): constrain by one or more UCD
   patterns; resources match when they serve columns having a matching
   UCD (e.g., ``phot.mag;em.ir.%`` for “any infrared magnitude”).
-* :py:class:`pyvo.registry.Waveband` (``waveband``): one or more terms
+* :py:class:`~pyvo.registry.Waveband` (``waveband``): one or more terms
   from the vocabulary at http://www.ivoa.net/rdf/messenger giving the rough
   spectral location of the resource.
-* :py:class:`pyvo.registry.Author` (``author``): an author (“creator”).
+* :py:class:`~pyvo.registry.Author` (``author``): an author (“creator”).
   This is a single SQL pattern, and given the sloppy practices in the
   VO for how to write author names, you should probably generously use
   wildcards.
-* :py:class:`pyvo.registry.Datamodel` (``datamodel``): one of obscore,
+* :py:class:`~pyvo.registry.Datamodel` (``datamodel``): one of obscore,
   epntap, or regtap: only return TAP services having tables of this
   kind.
-* :py:class:`pyvo.registry.Ivoid` (``ivoid``): exactly match a single
+* :py:class:`~pyvo.registry.Ivoid` (``ivoid``): exactly match a single
   IVOA identifier (that is, in effect, the primary key in the VO).
-* :py:class:`pyvo.registry.Spatial` (``spatial``): match resources
+* :py:class:`~pyvo.registry.Spatial` (``spatial``): match resources
   covering, enclosed or overlapping a certain geometry
   (point, circle, polygon, or MOC). *RegTAP 1.2 Extension*
-* :py:class:`pyvo.registry.Spectral` (``spectral``): match resources
+* :py:class:`~pyvo.registry.Spectral` (``spectral``): match resources
   covering a certain part of the spectrum (usually, but not limited to,
   the electromagnetic spectrum).  *RegTAP 1.2 Extension*
-* :py:class:`pyvo.registry.Temporal` (``temporal``): match resources
+* :py:class:`~pyvo.registry.Temporal` (``temporal``): match resources
   covering a some point or interval in time.  *RegTAP 1.2 Extension*
 
 Multiple constraints are combined conjunctively (”AND”).
@@ -109,7 +109,7 @@ is equivalent to:
 
   >>> resources = registry.search(waveband=["Radio", "Millimeter"])
 
-There is also :py:meth:`pyvo.registry.get_RegTAP_query`, accepting the
+There is also :py:meth:`~pyvo.registry.get_RegTAP_query`, accepting the
 same arguments as :py:meth:`pyvo.registry.search`.  This function simply
 returns the ADQL query that search would execute.  This is may be useful
 to construct custom RegTAP queries, which could then be executed on
@@ -130,7 +130,7 @@ you would say:
   ...                             registry.Freetext("supernova"))
 
 After that, ``resources`` is an instance of
-:py:class:`pyvo.registry.regtap.RegistryResults`, which you can iterate over.  In
+:py:class:`~pyvo.registry.regtap.RegistryResults`, which you can iterate over.  In
 interactive data discovery, however, it is usually preferable to use the
 ``to_table`` method for an overview of the resources available:
 
@@ -171,7 +171,7 @@ title, description, and perhaps the access mode (“interface”) offered.
 In the list of interfaces, you will sometimes spot an ``#aux`` after a
 standard id; this is a minor VO technicality that you can in practice
 ignore.  For instance, you can simply construct
-:py:class:`pyvo.dal.TAPService`-s from ``tap#aux`` interfaces.
+:py:class:`~pyvo.dal.TAPService`-s from ``tap#aux`` interfaces.
 
 Once you have found a resource you would like to query, you can pick it
 by index; however,
@@ -183,7 +183,7 @@ are not), but it is rather clunky, and in the real VO short name
 collisions should be very rare.
 
 Use the ``get_service`` method of
-:py:class:`pyvo.registry.regtap.RegistryResource` to obtain a DAL service
+:py:class:`~pyvo.registry.regtap.RegistryResource` to obtain a DAL service
 object for a particular sort of interface.
 To query the fourth match using simple cone search, you would
 thus say:
@@ -410,7 +410,7 @@ similar to :ref:`pyvo-resultsets`; just remember that for interactive
 use there is the ``to_tables`` method discussed above.
 
 The individual items are instances of
-:py:class:`pyvo.registry.regtap.RegistryResource`, which expose many
+:py:class:`~pyvo.registry.regtap.RegistryResource`, which expose many
 pieces of metadata (e.g., title, description, creators, etc) in
 attributes named like their RegTAP counterparts (see the class
 documentation).  Some attributes deserve a second look.
@@ -597,7 +597,7 @@ should catch errors and, at least in interactive sessions, provide some
 way to interrupt overly long queries.  Here is an example for how to
 query all obscore services; remove the ``break`` at the end of the loop
 to actually do the global query (it's there so that you don't blindly
-run all-VO queries without reading at least this sentence)::
+run all-VO queries without reading at least this sentence):
 
 .. doctest-remote-data::
 

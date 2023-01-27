@@ -54,7 +54,7 @@ def parse_job(
 ):
     """
     Parses a job xml file (or file-like object), and returns a
-    `~pyvo.io.uws.tree.JobFile` object.
+    `~pyvo.io.uws.endpoint.JobFile` object.
 
     Parameters
     ----------

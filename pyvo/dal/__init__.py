@@ -9,7 +9,7 @@ from .tap import search as tablesearch
 from .query import DALService, DALQuery, DALResults, Record
 
 from .sia import SIAService, SIAQuery, SIAResults, SIARecord
-from .sia2 import SIA2Service, SIA2Query, SIA2Results
+from .sia2 import SIA2Service, SIA2Query, SIA2Results, ObsCoreRecord
 from .ssa import SSAService, SSAQuery, SSAResults, SSARecord
 from .sla import SLAService, SLAQuery, SLAResults, SLARecord
 from .scs import SCSService, SCSQuery, SCSResults, SCSRecord
@@ -27,7 +27,7 @@ __all__ = [
     "DALQuery", "SIAQuery", "SIA2Query", "SSAQuery", "SLAQuery", "SCSQuery", "TAPQuery",
     "DALResults",
     "SIAResults", "SIA2Results", "SSAResults", "SLAResults", "SCSResults", "TAPResults",
-    "Record",
+    "Record", "ObsCoreRecord",
     "SIARecord", "SSARecord", "SLARecord", "SCSRecord",
     "AsyncTAPJob",
     "DALAccessError", "DALProtocolError", "DALFormatError", "DALServiceError",
