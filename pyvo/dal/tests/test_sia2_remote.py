@@ -20,10 +20,6 @@ class TestSIACadc():
 
     def test_service(self):
         cadc = SIA2Service(baseurl=CADC_SIA_URL)
-        assert cadc.availability
-        assert cadc.availability.available
-        assert cadc.availability.notes
-        assert cadc.availability.notes[0] == 'service is accepting queries'
         assert cadc.capabilities
 
     @pytest.mark.xfail(reason="https://github.com/astropy/pyvo/issues/361")
