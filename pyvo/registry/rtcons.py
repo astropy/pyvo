@@ -24,7 +24,7 @@ from .import regtap
 
 __all__ = ["Freetext", "Author", "Servicetype", "Waveband",
            "Datamodel", "Ivoid", "UCD", "Spatial", "Spectral", "Temporal",
-           "build_regtap_query"]
+           "Constraint", "build_regtap_query"]
 
 
 # a mapping of service type shorthands to the ivoids of the
@@ -254,11 +254,15 @@ class Servicetype(Constraint):
 
     The constraint normally is a custom keyword, one of:
 
-    * ``image``
-    * ``spectrum``
-    * ``scs`` (for cone search services)
+    * ``image`` (image services; at this point equivalent to sia, but
+      scheduled to include sia2, too)
+    * ``sia`` (SIAP version 1 services)
+    * ``spectrum``, ``ssa``, ``ssap`` (all synonymous for spectral
+      services, prefer ``spectrum``)
+    * ``scs``, ``conesearch`` (synonymous for cone search services, prefer
+      ``scs``)
     * ``line`` (for SLAP services)
-    * ``table`` (for TAP services)
+    * ``tap``, ``table`` (synonymous for TAP services, prefer ``tap``)
 
     You can also pass in the standards' ivoid (which
     generally looks like
@@ -273,8 +277,7 @@ class Servicetype(Constraint):
     The match is literal (i.e., no patterns are allowed); this means
     that you will not receive records that only have auxiliary
     services, which is what you want when enumerating all services
-    of a certain type in the VO.  In data discovery (where, however,
-    you generally should not have Servicetype constraints), you
+    of a certain type in the VO.  In data discovery, you
     can use ``Servicetype(...).include_auxiliary_services()`` or
     use registry.search's ``includeaux`` parameter; but, really, there
     is little point using this constraint in data discovery in the first
