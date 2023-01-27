@@ -202,7 +202,7 @@ thus say:
 This method will raise an error if there is more than one service of the desired
 type. If you know for sure that all declared conesearch will be the same, you can
 safely use ``get_service(service_type='conesearch', lax=True)`` that will return
-the first conesearch it finds. 
+the first conesearch it finds.
 
 However some providers provide multiple services of the same type
 -- for example in VizieR you'll find one conesearch per table.
@@ -599,27 +599,38 @@ query all obscore services; remove the ``break`` at the end of the loop
 to actually do the global query (it's there so that you don't blindly
 run all-VO queries without reading at least this sentence)::
 
-    from astropy import table
-    from pyvo import registry
+.. doctest-remote-data::
 
-    QUERY = "SELECT TOP 1 s_ra, s_dec from ivoa.obscore"
-
-    results = []
-    for svc_rec in registry.search(
-              datamodel="obscore", servicetype="tap"):
-          print("Querying {}".format(svc_rec.res_title))
-          try:
-              svc = svc_rec.get_service(service_type="tap", lax=True)
-              results.append(
-                  svc.run_sync(QUERY).to_table())
-          except KeyboardInterrupt:
-              # someone lost their patience with a service.  Query next.
-              pass
-          except Exception as msg:
-              # some service is broken; you *should* complain, but
-              print("  Broken: {} ({}).  Complain to {}.\n".format(
-                  svc_rec.ivoid, msg, svc_rec.get_contact()))
-          break
-
-    total_result = table.vstack(results)
-    print(total_result)
+   >>> from astropy.table import vstack
+   >>> from pyvo import registry
+   >>>
+   >>> QUERY = "SELECT TOP 1 s_ra, s_dec from ivoa.obscore"
+   >>>
+   >>> results = []
+   >>> for i, svc_rec in enumerate(registry.search(datamodel="obscore", servicetype="tap")):
+   ...       # print("Querying {}".format(svc_rec.res_title))
+   ...       try:
+   ...           svc = svc_rec.get_service(service_type="tap", lax=True)
+   ...           results.append(
+   ...               svc.run_sync(QUERY).to_table())
+   ...       except KeyboardInterrupt:
+   ...           # someone lost their patience with a service.  Query next.
+   ...           pass
+   ...       except Exception as msg:
+   ...           # some service is broken; you *should* complain, but
+   ...           #print("  Broken: {} ({}).  Complain to {}.\n".format(
+   ...           pass #    svc_rec.ivoid, msg, svc_rec.get_contact()))
+   ...       if i == 5:
+   ...           break
+   >>> total_result = vstack(results)  # doctest: +IGNORE_WARNINGS
+   >>> total_result  # doctest: +IGNORE_OUTPUT
+   <Table length=5>
+          s_ra               s_dec
+          deg                 deg
+        float64             float64
+   ------------------ -------------------
+             350.4619            -9.76139
+     208.360833592735    52.3611106494996
+     148.204840298431    29.1690999975089
+           243.044008          -51.778222
+   321.63278049999997 -54.579285999999996
