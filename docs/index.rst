@@ -113,7 +113,7 @@ observational datasets through TAP tables), you can write:
 .. doctest-remote-data::
 
     >>> for service in vo.regsearch(datamodel="obscore"):
-    ...   print(service['ivoid'])
+    ...   print(service['ivoid'])  # doctest: +IGNORE_OUTPUT
     ivo://aip.gavo.org/tap
     ivo://archive.stsci.edu/caomtap
     ivo://astro.ucl.ac.uk/tap
