@@ -359,7 +359,7 @@ run all-VO queries without reading at least this sentence)::
     from astropy import table
     from pyvo import registry
 
-    QUERY = "SELECT TOP 1 dataproduct_type from ivoa.obscore"
+    QUERY = "SELECT TOP 1 s_ra, s_dec from ivoa.obscore"
 
     results = []
     for svc_rec in registry.search(
