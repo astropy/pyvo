@@ -12,7 +12,7 @@ classes.
 
 import datetime
 
-from astropy import units
+from astropy import units as u
 from astropy import constants
 from astropy.coordinates import SkyCoord
 import numpy
@@ -590,16 +590,17 @@ class Spectral(Constraint):
 
     To find resources covering the messenger particle energy 5 eV::
 
+        >>> from astropy import units as u
         >>> from pyvo import registry
-        >>> resources =  registry.Spectral(5*units.eV)
+        >>> resources =  registry.Spectral(5*u.eV)
 
     To find resources overlapping the band between 5000 and 6000 Ångström::
 
-        >>> resources =  registry.Spectral((5000*units.Angstrom, 6000*units.Angstrom))
+        >>> resources =  registry.Spectral((5000*u.Angstrom, 6000*u.Angstrom))
 
     To find resources having data in the FM band::
 
-        >>> resources =  registry.Spectral((88*units.MHz, 102*units.MHz))
+        >>> resources =  registry.Spectral((88*u.MHz, 102*u.MHz))
     """
     _keyword = "spectral"
     _extra_tables = ["rr.stc_spectral"]
@@ -640,20 +641,20 @@ class Spectral(Constraint):
 
         try:
             # is it an energy?
-            return quant.to(units.Joule).value
-        except units.UnitConversionError:
+            return quant.to(u.Joule).value
+        except u.UnitConversionError:
             pass  # try next
 
         try:
             # is it a wavelength?
-            return (constants.h * constants.c / quant.to(units.m)).value
-        except units.UnitConversionError:
+            return (constants.h * constants.c / quant.to(u.m)).value
+        except u.UnitConversionError:
             pass  # try next
 
         try:
             # is it a frequency?
-            return (constants.h * quant.to(units.Hz)).value
-        except units.UnitConversionError:
+            return (constants.h * quant.to(u.Hz)).value
+        except u.UnitConversionError:
             pass  # fall through to give up
 
         raise ValueError(f"Cannot make a spectral quantity out of {quant}")

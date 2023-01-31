@@ -11,7 +11,7 @@ endpoint.
 """
 
 from astropy import units as u
-from astropy import time
+from astropy.time import Time
 
 from .query import DALResults, DALQuery, DALService, Record
 from .adhoc import DatalinkResultsMixin, AxisParamMixin, SodaRecordMixin,\
@@ -622,7 +622,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         Date when the dataset was created
         """
         cd = self.get('obs_create_date', default=None)
-        return cd if not cd else time.Time(cd)
+        return cd if not cd else Time(cd)
 
     @property
     def obs_creator_name(self):
@@ -645,7 +645,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         Observation release date
         """
         rt = self.get('obs_release_date', default=None, decode=True)
-        return rt if not rt else time.Time(rt)
+        return rt if not rt else Time(rt)
 
     @property
     def obs_publisher_did(self):
@@ -867,7 +867,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         products result of the combination of multiple frames, min time must
         be the minimum of the start times
         """
-        return time.Time(self.get('t_min'), format='mjd')
+        return Time(self.get('t_min'), format='mjd')
 
     @property
     def t_max(self):
@@ -876,7 +876,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         products result of the combination of multiple frames, t_max must
         be the maximum of the stop times
         """
-        return time.Time(self.get('t_min'), format='mjd')
+        return Time(self.get('t_min'), format='mjd')
 
     @property
     def t_exptime(self):
