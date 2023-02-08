@@ -16,8 +16,8 @@ from pyvo.io.vosi.exceptions import W06
 from astropy.utils.data import get_pkg_data_filename
 
 
-@pytest.fixture()
-def parsed_caps():
+@pytest.fixture(name='parsed_caps')
+def _parsed_caps():
     return vosi.parse_capabilities(get_pkg_data_filename(
         "data/capabilities.xml"))
 
@@ -175,8 +175,8 @@ class TestInterface:
                 == 'QUERY=SELECT%20*%20FROM%20tap_schema.tables&LANG=ADQL')
 
 
-@pytest.fixture()
-def cap_with_free_prefix(recwarn):
+@pytest.fixture(name='cap_with_free_prefix')
+def _cap_with_free_prefix(recwarn):
     caps = vosi.parse_capabilities(io.BytesIO(b"""
 <ns2:capabilities xmlns:ns2="http://www.ivoa.net/xml/VOSICapabilities/v1.0">
   <capability

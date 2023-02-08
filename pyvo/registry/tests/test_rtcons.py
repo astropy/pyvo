@@ -6,8 +6,8 @@ Tests for pyvo.registry.rtcons, i.e. RegTAP constraints and query building.
 
 import datetime
 
-from astropy import time
-from astropy import units
+from astropy.time import Time
+from astropy import units as u
 from astropy.coordinates import SkyCoord
 import numpy
 import pytest
@@ -205,12 +205,12 @@ class TestSpatialConstraint:
         assert cons.get_search_condition() == "1 = CONTAINS(MOC('0/1-3 3/'), coverage)"
 
     def test_SkyCoord(self):
-        cons = registry.Spatial(SkyCoord(3 * units.deg, -30 * units.deg))
+        cons = registry.Spatial(SkyCoord(3 * u.deg, -30 * u.deg))
         assert cons.get_search_condition() == "1 = CONTAINS(MOC(6, POINT(3.0, -30.0)), coverage)"
         assert cons._extra_tables == ["rr.stc_spatial"]
 
     def test_SkyCoord_Circle(self):
-        cons = registry.Spatial((SkyCoord(3 * units.deg, -30 * units.deg), 3))
+        cons = registry.Spatial((SkyCoord(3 * u.deg, -30 * u.deg), 3))
         assert cons.get_search_condition() == "1 = CONTAINS(MOC(6, CIRCLE(3.0, -30.0, 3)), coverage)"
         assert cons._extra_tables == ["rr.stc_spatial"]
 
@@ -224,31 +224,31 @@ class TestSpectralConstraint:
         assert cons.get_search_condition() == "1e-19 BETWEEN spectral_start AND spectral_end"
 
     def test_energy_eV(self):
-        cons = registry.Spectral(5 * units.eV)
+        cons = registry.Spectral(5 * u.eV)
         assert cons.get_search_condition() == "8.01088317e-19 BETWEEN spectral_start AND spectral_end"
 
     def test_energy_interval(self):
-        cons = registry.Spectral((1e-10 * units.erg, 2e-10 * units.erg))
+        cons = registry.Spectral((1e-10 * u.erg, 2e-10 * u.erg))
         assert cons.get_search_condition() == (
             "1 = ivo_interval_overlaps(spectral_start, spectral_end, 1e-17, 2e-17)")
 
     def test_wavelength(self):
-        cons = registry.Spectral(5000 * units.Angstrom)
+        cons = registry.Spectral(5000 * u.Angstrom)
         assert cons.get_search_condition() == "3.9728917142978567e-19 BETWEEN spectral_start AND spectral_end"
 
     def test_wavelength_interval(self):
-        cons = registry.Spectral((20 * units.cm, 22 * units.cm))
+        cons = registry.Spectral((20 * u.cm, 22 * u.cm))
         assert (cons.get_search_condition()
                 == "1 = ivo_interval_overlaps(spectral_start, spectral_end,"
                 " 9.932229285744642e-25, 9.029299350676949e-25)")
 
     def test_frequency(self):
-        cons = registry.Spectral(2 * units.GHz)
+        cons = registry.Spectral(2 * u.GHz)
         assert (cons.get_search_condition()
                 == "1.32521403e-24 BETWEEN spectral_start AND spectral_end")
 
     def test_frequency_interval(self):
-        cons = registry.Spectral((88 * units.MHz, 102 * units.MHz))
+        cons = registry.Spectral((88 * u.MHz, 102 * u.MHz))
         assert (cons.get_search_condition()
                 == "1 = ivo_interval_overlaps(spectral_start, spectral_end,"
                 " 5.830941732e-26, 6.758591553e-26)")
@@ -261,19 +261,19 @@ class TestTemporalConstraint:
                 == "1 = ivo_interval_overlaps(time_start, time_end, 54130, 54200)")
 
     def test_single_time(self):
-        cons = registry.Temporal(time.Time('2022-01-10'))
+        cons = registry.Temporal(Time('2022-01-10'))
         assert (cons.get_search_condition()
                 == "59589.0 BETWEEN time_start AND time_end")
 
     def test_time_interval(self):
-        cons = registry.Temporal((time.Time(2459000, format='jd'),
-                                  time.Time(59002, format='mjd')))
+        cons = registry.Temporal((Time(2459000, format='jd'),
+                                  Time(59002, format='mjd')))
         assert (cons.get_search_condition()
                 == "1 = ivo_interval_overlaps(time_start, time_end, 58999.5, 59002.0)")
 
     def test_multi_times_rejected(self):
         with pytest.raises(ValueError) as excinfo:
-            registry.Temporal(time.Time(['1999-01-01', '2010-01-01']))
+            registry.Temporal(Time(['1999-01-01', '2010-01-01']))
         assert (str(excinfo.value) == "RegTAP time constraints must"
                 " be made from single time instants.")
 

@@ -115,8 +115,8 @@ class JobFile(JobSummary):
         return super().parse(iterator, config)
 
     def to_xml(self, fd):
-        with convert_to_writable_filelike(fd) as fd:
-            w = XMLWriter(fd)
+        with convert_to_writable_filelike(fd) as _fd:
+            w = XMLWriter(_fd)
 
             xml_header = (
                 '<?xml version="1.0" encoding="utf-8"?>\n'

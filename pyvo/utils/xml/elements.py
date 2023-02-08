@@ -262,7 +262,9 @@ def make_add_simplecontent(
     This means elements with no child elements.
     If exc_class is given, warn or raise if element was already set.
     """
-    def add_simplecontent(iterator, tag, data, config, pos):
+    def add_simplecontent(iterator, tag_ignored, data_ignored, config, pos_ignored):
+        # Ignored parameters are kept in the API signature to be compatible
+        # with other functions.
         for start, tag, data, pos in iterator:
             if not start and tag == element_name:
                 attr = getattr(self, attr_name)

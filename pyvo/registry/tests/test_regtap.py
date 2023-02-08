@@ -28,8 +28,8 @@ get_pkg_data_contents = partial(
     get_pkg_data_contents, package=__package__, encoding='binary')
 
 
-@pytest.fixture()
-def capabilities(mocker):
+@pytest.fixture(name='capabilities')
+def _capabilities(mocker):
     def callback(request, context):
         return get_pkg_data_contents('data/capabilities.xml')
 
@@ -49,8 +49,8 @@ def capabilities(mocker):
 # 		"QUERY": regtap.get_RegTAP_query(keywords="pulsar", ucd=["pos.distance"])}).content)
 
 
-@pytest.fixture()
-def regtap_pulsar_distance_response(mocker):
+@pytest.fixture(name='regtap_pulsar_distance_response')
+def _regtap_pulsar_distance_response(mocker):
     with mocker.register_uri(
         'POST', REGISTRY_BASEURL + '/sync',
             content=get_pkg_data_contents('data/regtap.xml')) as matcher:
@@ -176,8 +176,8 @@ def aux_fixture(mocker):
         yield matcher
 
 
-@pytest.fixture()
-def multi_interface_fixture(mocker):
+@pytest.fixture(name='multi_interface_fixture')
+def _multi_interface_fixture(mocker):
     # to update this, run
     # import requests
     # from pyvo.registry import regtap
@@ -194,8 +194,8 @@ def multi_interface_fixture(mocker):
         yield matcher
 
 
-@pytest.fixture()
-def flash_service(multi_interface_fixture):
+@pytest.fixture(name='flash_service')
+def _flash_service(multi_interface_fixture):
     return regtap.search(
         ivoid="ivo://org.gavo.dc/flashheros/q/ssa")[0]
 
@@ -363,8 +363,8 @@ def test_to_table(multi_interface_fixture, capabilities):
             == 'datalink#links-1.0, soda#sync-1.0, ssa, tap#aux, web')
 
 
-@pytest.fixture()
-def rt_pulsar_distance(regtap_pulsar_distance_response, capabilities):
+@pytest.fixture(name='rt_pulsar_distance')
+def _rt_pulsar_distance(regtap_pulsar_distance_response, capabilities):
     return regsearch(keywords="pulsar", ucd=["pos.distance"])
 
 
@@ -715,8 +715,8 @@ class TestExtraResourceMethods:
 # I think we should can the network responses involved in the following;
 # the stuff might change upstream any time and then break our unit tests.
 @pytest.mark.remote_data
-@pytest.fixture()
-def flash_tables():
+@pytest.fixture(name='flash_tables')
+def _flash_tables():
     rsc = _makeRegistryRecord(
         {"ivoid": "ivo://org.gavo.dc/flashheros/q/ssa"})
     return rsc.get_tables()
