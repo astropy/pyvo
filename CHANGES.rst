@@ -12,6 +12,12 @@
 - Removing defaults for optional SIAv1 and SSA query parameters to avoid
   unnecessarily overriding the server-side defaults. [#366]
 
+- Classes ``SIAService``, ``SIAQuery``, ``SIAResults`` for SIA v2 have been
+  renamed to ``SIAv2Service``, ``SIAv2Query``, ``SIAv2Results`` respectively
+  as well as the variable ``SIA_PARAMETERS_DESC`` to
+  ``SIAv2_PARAMETERS_DESC``. The old names now issue an
+  ``AstropyDeprecationWarning``. [#419]
+
 
 1.4 (2022-09-26)
 ================
