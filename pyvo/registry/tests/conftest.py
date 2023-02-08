@@ -25,5 +25,5 @@ class ContextAdapter(requests_mock.Adapter):
 def mocker():
     with requests_mock.Mocker(
         adapter=ContextAdapter(case_sensitive=True)
-    ) as mocker:
-        yield mocker
+    ) as mocker_ins:
+        yield mocker_ins

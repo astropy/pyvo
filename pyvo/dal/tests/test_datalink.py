@@ -108,18 +108,18 @@ def test_datalink():
     results = vo.spectrumsearch(
         'http://example.com/ssa_datalink', (30, 30))
 
-    datalink = next(results.iter_datalinks())
+    datalinks = next(results.iter_datalinks())
 
-    row = datalink[0]
+    row = datalinks[0]
     assert row.semantics == "#progenitor"
 
-    row = datalink[1]
+    row = datalinks[1]
     assert row.semantics == "#proc"
 
-    row = datalink[2]
+    row = datalinks[2]
     assert row.semantics == "#this"
 
-    row = datalink[3]
+    row = datalinks[3]
     assert row.semantics == "#preview"
 
 
@@ -142,47 +142,47 @@ def test_datalink_batch():
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
 class TestSemanticsRetrieval:
     def test_access_with_string(self):
-        datalink = DatalinkResults.from_result_url('http://example.com/proc')
-        res = [r["access_url"] for r in datalink.bysemantics("#this")]
+        datalinks = DatalinkResults.from_result_url('http://example.com/proc')
+        res = [r["access_url"] for r in datalinks.bysemantics("#this")]
         assert len(res) == 1
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
 
     def test_access_with_list(self):
-        datalink = DatalinkResults.from_result_url('http://example.com/proc')
+        datalinks = DatalinkResults.from_result_url('http://example.com/proc')
         res = [r["access_url"]
-               for r in datalink.bysemantics(["#this", "#preview-image"])]
+               for r in datalinks.bysemantics(["#this", "#preview-image"])]
         assert len(res) == 2
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
         assert res[1].endswith("20100927.comb_avg.0001.fits.fz?preview=True")
 
     def test_access_with_expansion(self):
-        datalink = DatalinkResults.from_result_url('http://example.com/proc')
+        datalinks = DatalinkResults.from_result_url('http://example.com/proc')
         res = [r["access_url"]
-               for r in datalink.bysemantics(["#this", "#preview"])]
+               for r in datalinks.bysemantics(["#this", "#preview"])]
         assert len(res) == 3
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
         assert res[1].endswith("20100927.comb_avg.0001.fits.fz?preview=True")
         assert res[2].endswith("http://dc.zah.uni-heidelberg.de/wider.dat")
 
     def test_access_without_expansion(self):
-        datalink = DatalinkResults.from_result_url('http://example.com/proc')
-        res = [r["access_url"] for r in datalink.bysemantics(
+        datalinks = DatalinkResults.from_result_url('http://example.com/proc')
+        res = [r["access_url"] for r in datalinks.bysemantics(
             ["#this", "#preview"], include_narrower=False)]
         assert len(res) == 2
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
         assert res[1].endswith("http://dc.zah.uni-heidelberg.de/wider.dat")
 
     def test_with_full_url(self):
-        datalink = DatalinkResults.from_result_url('http://example.com/proc')
+        datalinks = DatalinkResults.from_result_url('http://example.com/proc')
         res = [r["access_url"]
-               for r in datalink.bysemantics("urn:example:rdf/dlext#oracle")]
+               for r in datalinks.bysemantics("urn:example:rdf/dlext#oracle")]
         assert len(res) == 1
         assert res[0].endswith("when-will-it-be-back")
 
     def test_all_mixed(self):
-        datalink = DatalinkResults.from_result_url('http://example.com/proc')
+        datalinks = DatalinkResults.from_result_url('http://example.com/proc')
         res = [r["access_url"]
-               for r in datalink.bysemantics([
+               for r in datalinks.bysemantics([
                    "urn:example:rdf/dlext#oracle",
                    'http://www.ivoa.net/rdf/datalink/core#preview',
                    '#this',

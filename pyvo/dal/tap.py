@@ -612,10 +612,10 @@ class AsyncTAPJob:
         session : object
            optional session to use for network requests
         """
-        query = TAPQuery(
+        tapquery = TAPQuery(
             baseurl, query, mode="async", language=language, maxrec=maxrec,
             uploads=uploads, session=session, **keywords)
-        response = query.submit()
+        response = tapquery.submit()
         job = cls(response.url, session=session)
         return job
 

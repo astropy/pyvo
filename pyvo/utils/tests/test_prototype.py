@@ -7,8 +7,8 @@ from pyvo.utils import prototype_feature, activate_features, prototype
 from pyvo.utils.prototype import PrototypeError, PrototypeWarning, Feature
 
 
-@pytest.fixture
-def prototype_function(features):
+@pytest.fixture(name='prototype_function')
+def _prototype_function(features):
     features({
         'my-feature': Feature('my-feature', url='http://somewhere/else')
     })
@@ -20,8 +20,8 @@ def prototype_function(features):
     return i_am_prototype
 
 
-@pytest.fixture
-def features():
+@pytest.fixture(name='features')
+def _features():
     previous_available = deepcopy(prototype.features)
     prototype.features.clear()
 

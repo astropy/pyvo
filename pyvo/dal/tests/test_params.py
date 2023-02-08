@@ -106,8 +106,8 @@ def proc_inf_ds(mocker):
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
 def test_find_param_by_keyword():
     datalink = DatalinkResults.from_result_url('http://example.com/proc')
-    proc = datalink[0]
-    input_params = {param.name: param for param in proc.input_params}
+    proc_dl = datalink[0]
+    input_params = {param.name: param for param in proc_dl.input_params}
 
     polygon_lower = find_param_by_keyword('polygon', input_params)
     polygon_upper = find_param_by_keyword('POLYGON', input_params)
@@ -125,8 +125,8 @@ def test_find_param_by_keyword():
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
 def test_serialize():
     datalink = DatalinkResults.from_result_url('http://example.com/proc')
-    proc = datalink[0]
-    input_params = {param.name: param for param in proc.input_params}
+    proc_dl = datalink[0]
+    input_params = {param.name: param for param in proc_dl.input_params}
 
     polygon_conv = get_converter(
         find_param_by_keyword('polygon', input_params))
@@ -152,8 +152,8 @@ def test_serialize():
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
 def test_serialize_exceptions():
     datalink = DatalinkResults.from_result_url('http://example.com/proc')
-    proc = datalink[0]
-    input_params = {param.name: param for param in proc.input_params}
+    proc_dl = datalink[0]
+    input_params = {param.name: param for param in proc_dl.input_params}
 
     polygon_conv = get_converter(
         find_param_by_keyword('polygon', input_params))
@@ -177,9 +177,9 @@ def test_serialize_exceptions():
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
 def test_units():
     datalink = DatalinkResults.from_result_url('http://example.com/proc_units')
-    proc = datalink[0]
+    proc_dl = datalink[0]
 
-    proc.process(band=(6000 * u.Angstrom, 80000 * u.Angstrom))
+    proc_dl.process(band=(6000 * u.Angstrom, 80000 * u.Angstrom))
 
 
 @pytest.mark.usefixtures('proc_inf')
@@ -187,9 +187,9 @@ def test_units():
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
 def test_inf():
     datalink = DatalinkResults.from_result_url('http://example.com/proc_inf')
-    proc = datalink[0]
+    proc_dl = datalink[0]
 
-    proc.process(band=(6000, +np.inf) * u.Angstrom)
+    proc_dl.process(band=(6000, +np.inf) * u.Angstrom)
 
 
 def test_dal_query_param():

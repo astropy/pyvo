@@ -17,8 +17,8 @@ from pyvo.auth.authsession import AuthSession
 from pyvo.dal.tests.test_tap import MockAsyncTAPServer
 
 
-@pytest.fixture()
-def security_methods():
+@pytest.fixture(name='security_methods')
+def _security_methods():
     return [None]
 
 

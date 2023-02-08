@@ -26,10 +26,8 @@ import os
 import shutil
 import re
 import requests
-try:
-    from collections.abc import Mapping
-except ImportError:
-    from collections import Mapping
+from collections.abc import Mapping
+
 import collections
 
 from warnings import warn
