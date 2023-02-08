@@ -9,10 +9,11 @@ import requests_mock
 
 import pytest
 
-from pyvo.dal.sia2 import search, SIAv2Service, SIAv2Query
+from pyvo.dal.sia2 import search, SIAv2Service, SIAv2Query, SIAService, SIAQuery
 
 import astropy.units as u
 from astropy.utils.data import get_pkg_data_contents
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 get_pkg_data_contents = partial(
     get_pkg_data_contents, package=__package__, encoding='binary')
@@ -122,6 +123,13 @@ class TestSIAv2Service:
         result = results[0]
         _test_result(result)
 
+        # test the deprecation
+        with pytest.warns(AstropyDeprecationWarning):
+            deprecated_service = SIAService('https://example.com/sia')
+            deprecated_results = deprecated_service.search(pos=positions)
+            result = deprecated_results[0]
+            _test_result(result)
+
 
 class TestSIAv2Query():
 
@@ -182,3 +190,16 @@ class TestSIAv2Query():
 
         query = SIAv2Query('someurl', custom_param=[('-Inf', 0), (2, '+Inf')])
         assert query['custom_param'] == ['-Inf 0', '2 +Inf']
+
+        with pytest.warns(AstropyDeprecationWarning):
+            deprecated_query = SIAQuery('someurl')
+            deprecated_query.field_of_view.add((10, 20))
+            assert deprecated_query['FOV'] == ['10.0 20.0']
+
+
+def test_variable_deprecation():
+    # Test this while we are in the deprecation period, as the variable is durectly
+    # used at least by astroquery.alma
+    with pytest.warns(AstropyDeprecationWarning):
+        from pyvo.dal.sia2 import SIA_PARAMETERS_DESC
+        assert SIA_PARAMETERS_DESC

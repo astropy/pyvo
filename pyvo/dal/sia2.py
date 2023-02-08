@@ -10,9 +10,12 @@ The ``SIAv2Service`` class can represent a specific service available at a URL
 endpoint.
 """
 
+import warnings
+
 from astropy import units as u
 from astropy.time import Time
 from astropy.utils.decorators import deprecated
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .query import DALResults, DALQuery, DALService, Record
 from .adhoc import DatalinkResultsMixin, AxisParamMixin, SodaRecordMixin,\
@@ -89,6 +92,14 @@ max_records : int
     parameters need to follow the SIAv2 format and represent the
     appropriate quantities (where applicable).
 """
+
+
+def __getattr__(name):
+    if name == 'SIA_PARAMETERS_DESC':
+        warnings.warn("The name SIA_PARAMETERS_DESC is deprecated in v1.5 for SIA v2 services, "
+                      "use SIAv2_PARAMETERS_DESC instead.", AstropyDeprecationWarning)
+        return SIAv2_PARAMETERS_DESC
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def search(url, pos=None, band=None, time=None, pol=None,
@@ -1087,3 +1098,18 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         Identifier of proposal to which observation belongs
         """
         return self.get('proposal_id', default=None, decode=True)
+
+
+@deprecated("1.5", alternative="SIAv2Service")
+class SIAService(SIAv2Service):
+    pass
+
+
+@deprecated("1.5", alternative="SIAv2Query")
+class SIAQuery(SIAv2Query):
+    pass
+
+
+@deprecated("1.5", alternative="SIAv2Results")
+class SIAResults(SIAv2Results):
+    pass
