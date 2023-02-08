@@ -437,11 +437,11 @@ class TestTAPService:
     @pytest.mark.usefixtures('tables')
     def test_tables(self):
         service = TAPService('http://example.com/tap')
-        tables = service.tables
+        vositables = service.tables
 
-        assert list(tables.keys()) == ['test.table1', 'test.table2']
+        assert list(vositables.keys()) == ['test.table1', 'test.table2']
 
-        table1, table2 = list(tables)
+        table1, table2 = list(vositables)
         self._test_tables(table1, table2)
 
     def _test_examples(self, exampleXHTML):
@@ -450,9 +450,9 @@ class TestTAPService:
     @pytest.mark.usefixtures('examples')
     def test_examples(self):
         service = TAPService('http://example.com/tap')
-        examples = service.examples
+        service_examples = service.examples
 
-        self._test_examples(examples)
+        self._test_examples(service_examples)
 
     @pytest.mark.usefixtures('capabilities')
     def test_maxrec(self):

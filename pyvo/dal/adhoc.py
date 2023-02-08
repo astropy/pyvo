@@ -23,8 +23,7 @@ from astropy.utils.collections import HomogeneousList
 
 from ..utils.decorators import stream_decode_content
 from ..utils import vocabularies
-from .params import PosQueryParam, IntervalQueryParam, TimeQueryParam,\
-    EnumQueryParam
+from .params import PosQueryParam, IntervalQueryParam, TimeQueryParam, EnumQueryParam
 from ..dam.obscore import POLARIZATION_STATES
 
 # calls to DataLink from the results pages are batched for performance
@@ -216,10 +215,10 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                             'Could not retrieve datalinks for: {}'.format(
                                 ', '.join([_ for _ in remaining_ids])))
                     batch_size = len(current_ids)
-                id = current_ids.pop(0)
-                processed_ids.append(id)
-                remaining_ids.remove(id)
-                yield current_batch.clone_byid(id)
+                id1 = current_ids.pop(0)
+                processed_ids.append(id1)
+                remaining_ids.remove(id1)
+                yield current_batch.clone_byid(id1)
             elif row.access_format == DATALINK_MIME_TYPE:
                 yield DatalinkResults.from_result_url(row.getdataurl())
             else:
