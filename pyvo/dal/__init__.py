@@ -6,9 +6,10 @@ from .sla import search as linesearch
 from .scs import search as conesearch
 from .tap import search as tablesearch
 
-from .query import DALService, DALQuery, DALResults, DALOverflowWarning, Record
+from .query import DALService, DALQuery, DALResults, Record
 
 from .sia import SIAService, SIAQuery, SIAResults, SIARecord
+from .sia2 import SIA2Service, SIA2Query, SIA2Results
 from .ssa import SSAService, SSAQuery, SSAResults, SSARecord
 from .sla import SLAService, SLAQuery, SLAResults, SLARecord
 from .scs import SCSService, SCSQuery, SCSResults, SCSRecord
@@ -21,11 +22,11 @@ from .exceptions import (
 
 __all__ = [
     "imagesearch", "spectrumsearch", "linesearch", "conesearch", "tablesearch",
-    "DALService", "sia2", "imagesearch2",
-    "SIAService", "SSAService", "SLAService", "SCSService", "TAPService",
-    "DALQuery",  "SIAQuery", "SSAQuery", "SLAQuery", "SCSQuery", "TAPQuery",
+    "DALService", "imagesearch2",
+    "SIAService", "SIA2Service", "SSAService", "SLAService", "SCSService", "TAPService",
+    "DALQuery", "SIAQuery", "SIA2Query", "SSAQuery", "SLAQuery", "SCSQuery", "TAPQuery",
     "DALResults",
-    "SIAResults", "SSAResults", "SLAResults", "SCSResults", "TAPResults",
+    "SIAResults", "SIA2Results", "SSAResults", "SLAResults", "SCSResults", "TAPResults",
     "Record",
     "SIARecord", "SSARecord", "SLARecord", "SCSRecord",
     "AsyncTAPJob",
