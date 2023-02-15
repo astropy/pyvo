@@ -50,7 +50,7 @@ __all__ = ["search", "SSAService", "SSAQuery", "SSAResults", "SSARecord"]
 
 
 def search(
-        baseurl, pos=None, diameter=None, band=None, time=None, format='None',
+        baseurl, pos=None, diameter=None, band=None, time=None, format=None,
         **keywords):
     """
     submit a simple SSA query that requests spectra overlapping a given region
@@ -161,7 +161,7 @@ class SSAService(DALService):
             return []
 
     def search(
-            self, pos=None, diameter=None, band=None, time=None, format='None',
+            self, pos=None, diameter=None, band=None, time=None, format=None,
             **keywords):
         """
         submit a SSA query to this service with the given constraints.
