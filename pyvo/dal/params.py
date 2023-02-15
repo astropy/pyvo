@@ -224,7 +224,7 @@ class AbstractDalQueryParam(MutableSet, metaclass=abc.ABCMeta):
     behaves like a set that stores all the values.
 
     When a value is added to an attribute, it is validated and formatted
-    to conform to the using service (SIAv2 or SODA) and value errors might be
+    to conform to the using service (SIA2 or SODA) and value errors might be
     raised. The `dal` attribute stores the current list of formatted
     attributes.
 

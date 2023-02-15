@@ -13,9 +13,9 @@
   unnecessarily overriding the server-side defaults. [#366]
 
 - Classes ``SIAService``, ``SIAQuery``, ``SIAResults`` for SIA v2 have been
-  renamed to ``SIAv2Service``, ``SIAv2Query``, ``SIAv2Results`` respectively
+  renamed to ``SIA2Service``, ``SIA2Query``, ``SIA2Results`` respectively
   as well as the variable ``SIA_PARAMETERS_DESC`` to
-  ``SIAv2_PARAMETERS_DESC``. The old names now issue an
+  ``SIA2_PARAMETERS_DESC``. The old names now issue an
   ``AstropyDeprecationWarning``. [#419]
 
 
@@ -79,7 +79,7 @@
 
 - Properly handle single string keywords value for regsearch(). [#201]
 
-- Add support for SIAv2. [#206]
+- Add support for SIA2. [#206]
 
 - Add kwargs to sia2. [#222]
 

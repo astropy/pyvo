@@ -9,7 +9,7 @@ import requests_mock
 
 import pytest
 
-from pyvo.dal.sia2 import search, SIAv2Service, SIAv2Query, SIAService, SIAQuery
+from pyvo.dal.sia2 import search, SIA2Service, SIA2Query, SIAService, SIAQuery
 
 import astropy.units as u
 from astropy.utils.data import get_pkg_data_contents
@@ -57,7 +57,7 @@ def test_search():
     _test_result(result)
 
 
-class TestSIAv2Service:
+class TestSIA2Service:
 
     def test_capabilities(self):
         # this tests the SIA2 capabilities with various combinations:
@@ -80,20 +80,20 @@ class TestSIAv2Service:
 
             # multiple interfaces with single security method each and
             # anonymous access.
-            service = SIAv2Service('https://example.com/sia')
+            service = SIA2Service('https://example.com/sia')
             assert service.query_ep == 'https://example.com/sia/v2query'
 
             # one interfaces with BasicAA security method - this should fail
             # because pyvo does not support BasicAA
             with pytest.raises(AttributeError):
-                service = SIAv2Service('https://example.com/sia-basicauth')
+                service = SIA2Service('https://example.com/sia-basicauth')
 
             # one interface with multiple security methods
-            service = SIAv2Service('https://example.com/sia-newformat')
+            service = SIA2Service('https://example.com/sia-newformat')
             assert service.query_ep == 'https://example.com/sia/v2query'
 
             # multiple interfaces with single security method each (no anon)
-            service = SIAv2Service('https://example.com/sia-priv')
+            service = SIA2Service('https://example.com/sia-priv')
             assert service.query_ep == 'https://example.com/sia/v2query'
 
     @pytest.mark.usefixtures('sia')
@@ -102,7 +102,7 @@ class TestSIAv2Service:
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")
     def test_search(self):
-        service = SIAv2Service('https://example.com/sia')
+        service = SIA2Service('https://example.com/sia')
 
         positions = [
             (2, 4, 0.0166 * u.deg),
@@ -131,10 +131,10 @@ class TestSIAv2Service:
             _test_result(result)
 
 
-class TestSIAv2Query():
+class TestSIA2Query():
 
     def test_query(self):
-        query = SIAv2Query('someurl')
+        query = SIA2Query('someurl')
         query.field_of_view.add((10, 20))
         assert query['FOV'] == ['10.0 20.0']
         query.field_of_view.add((1 * u.rad, 60))
@@ -182,13 +182,13 @@ class TestSIAv2Query():
         query.maxrec = 1000
         assert query['MAXREC'] == '1000'
 
-        query = SIAv2Query('someurl', custom_param=23)
+        query = SIA2Query('someurl', custom_param=23)
         assert query['custom_param'] == ['23']
 
         query['custom_param'].append('-Inf 0')
         assert query['custom_param'] == ['23', '-Inf 0']
 
-        query = SIAv2Query('someurl', custom_param=[('-Inf', 0), (2, '+Inf')])
+        query = SIA2Query('someurl', custom_param=[('-Inf', 0), (2, '+Inf')])
         assert query['custom_param'] == ['-Inf 0', '2 +Inf']
 
         with pytest.warns(AstropyDeprecationWarning):
