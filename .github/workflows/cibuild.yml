@@ -8,11 +8,12 @@ on:
     - '*'
   pull_request:
   schedule:
-    - cron: "0 3 * * *"
+    - cron: "0 3 * * 6"
 
 jobs:
   tests:
     runs-on: ubuntu-latest
+    needs: stylecheck
     strategy:
       fail-fast: true
       matrix:
@@ -23,9 +24,9 @@ jobs:
           - name: py39 mandatory dependencies only, Linux
             python-version: '3.9'
             tox_env: py39-test
-          - name: py310 with online tests, Linux
-            python-version: '3.10'
-            tox_env: py310-test-alldeps-online
+          - name: py311 with online tests, Linux
+            python-version: '3.11'
+            tox_env: py311-test-alldeps-online
           - name: linkcheck
             python-version: '3.10'
             tox_env: linkcheck
@@ -46,7 +47,7 @@ jobs:
 
   mac_windows:
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }}
+    name: ${{ matrix.os }} py310
     needs: tests
     strategy:
       fail-fast: true
@@ -60,16 +61,15 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: '3.10'
     - name: Install tox
       run: python -m pip install --upgrade tox
-    - name: Python 3.9 with latest astropy
-      run: tox -e py39-test-alldeps
+    - name: Python 3.10 with latest astropy
+      run: tox -e py310-test-alldeps
 
 
   stylecheck:
     runs-on: ubuntu-latest
-    needs: tests
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.8
@@ -83,20 +83,18 @@ jobs:
 
 
   devdeps:
-    # TODO: this job should be allowed to fail except that the functionality
-    # is not available in actions yet.
     runs-on: ubuntu-latest
     needs: tests
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python 3.10
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.11"
       - name: Install tox
         run: python -m pip install --upgrade tox
       - name: Run tests against dev dependencies
-        run: tox -e py310-test-devdeps-alldeps-cov
+        run: tox -e py311-test-devdeps-alldeps-cov
 
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@v3
