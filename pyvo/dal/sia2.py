@@ -2,16 +2,20 @@
 """
 A module for searching for images in a remote archive.
 
-A Simple Image Access (SIA) service allows a client to search for
+A Simple Image Access v2 (SIA2) service allows a client to search for
 images based on a number of criteria/parameters. The results are
 represented in `pyvo.dam.obscore.ObsCoreMetadata` format.
 
-The ``SIAService`` class can represent a specific service available at a URL
+The ``SIA2Service`` class can represent a specific service available at a URL
 endpoint.
 """
 
+import warnings
+
 from astropy import units as u
 from astropy.time import Time
+from astropy.utils.decorators import deprecated
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .query import DALResults, DALQuery, DALService, Record
 from .adhoc import DatalinkResultsMixin, AxisParamMixin, SodaRecordMixin,\
@@ -21,12 +25,12 @@ from .vosi import AvailabilityMixin, CapabilityMixin
 from ..dam import ObsCoreMetadata, CALIBRATION_LEVELS
 
 
-__all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "ObsCoreRecord"]
+__all__ = ["search", "SIA2Service", "SIA2Query", "SIA2Results", "ObsCoreRecord"]
 
 SIA2_STANDARD_ID = 'ivo://ivoa.net/std/SIA#query-2.0'
 
 
-SIA_PARAMETERS_DESC = """
+SIA2_PARAMETERS_DESC = """
 pos : single or list of tuples
     angle units (default: deg)
     the positional region(s) to be searched for data. Each region can
@@ -85,9 +89,17 @@ max_records : int
 **kwargs : custom query parameters
     single or a list of values (or tuples for intervals) custom query
     parameters that a specific service accepts. The values of the
-    parameters need to follow the SIAv2 format and represent the
+    parameters need to follow the SIA2 format and represent the
     appropriate quantities (where applicable).
 """
+
+
+def __getattr__(name):
+    if name == 'SIA_PARAMETERS_DESC':
+        warnings.warn("The name SIA_PARAMETERS_DESC is deprecated in v1.5 for SIA v2 services, "
+                      "use SIA2_PARAMETERS_DESC instead.", AstropyDeprecationWarning)
+        return SIA2_PARAMETERS_DESC
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def search(url, pos=None, band=None, time=None, pol=None,
@@ -98,7 +110,7 @@ def search(url, pos=None, band=None, time=None, pol=None,
            target_name=None, res_format=None, maxrec=None, session=None,
            **kwargs):
     """
-    submit a simple SIA query to a SIAv2 compatible service
+    submit a simple SIA query to a SIA2 compatible service
 
     Parameters
     ----------
@@ -108,7 +120,7 @@ def search(url, pos=None, band=None, time=None, pol=None,
     _SIA2_PARAMETERS
 
     """
-    service = SIAService(url)
+    service = SIA2Service(url)
     return service.search(pos=pos, band=band, time=time, pol=pol,
                           field_of_view=field_of_view,
                           spatial_resolution=spatial_resolution,
@@ -123,7 +135,7 @@ def search(url, pos=None, band=None, time=None, pol=None,
 
 
 search.__doc__ = search.__doc__.replace('_SIA2_PARAMETERS',
-                                        SIA_PARAMETERS_DESC)
+                                        SIA2_PARAMETERS_DESC)
 
 
 def _tolist(value):
@@ -135,19 +147,19 @@ def _tolist(value):
     return [value]
 
 
-class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
+class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
     """
     a representation of an SIA2 service
     """
 
     def __init__(self, baseurl, session=None):
         """
-        instantiate an SIA service
+        instantiate an SIA2 service
 
         Parameters
         ----------
         url : str
-           url - URL of the SIA service (base or query endpoint)
+           url - URL of the SIA2service (base or query endpoint)
         session : object
            optional session to use for network requests
         """
@@ -186,31 +198,31 @@ class SIAService(DALService, AvailabilityMixin, CapabilityMixin):
                target_name=None, res_format=None, maxrec=None, session=None,
                **kwargs):
         """
-        Performs a SIAv2 search against a SIAv2 service
+        Performs a SIA2 search against a SIA2 service
 
         See Also
         --------
-        pyvo.dal.sia2.SIAQuery
+        pyvo.dal.sia2.SIA2Query
 
         """
-        return SIAQuery(self.query_ep, pos=pos, band=band,
-                        time=time, pol=pol,
-                        field_of_view=field_of_view,
-                        spatial_resolution=spatial_resolution,
-                        spectral_resolving_power=spectral_resolving_power,
-                        exptime=exptime, timeres=timeres,
-                        publisher_did=publisher_did,
-                        facility=facility, collection=collection,
-                        instrument=instrument, data_type=data_type,
-                        calib_level=calib_level, target_name=target_name,
-                        res_format=res_format, maxrec=maxrec,
-                        session=session, **kwargs).execute()
+        return SIA2Query(self.query_ep, pos=pos, band=band,
+                         time=time, pol=pol,
+                         field_of_view=field_of_view,
+                         spatial_resolution=spatial_resolution,
+                         spectral_resolving_power=spectral_resolving_power,
+                         exptime=exptime, timeres=timeres,
+                         publisher_did=publisher_did,
+                         facility=facility, collection=collection,
+                         instrument=instrument, data_type=data_type,
+                         calib_level=calib_level, target_name=target_name,
+                         res_format=res_format, maxrec=maxrec,
+                         session=session, **kwargs).execute()
 
 
-class SIAQuery(DALQuery, AxisParamMixin):
+class SIA2Query(DALQuery, AxisParamMixin):
     """
     a class very similar to :py:attr:`~pyvo.dal.query.SIAQuery` class but
-    used to interact with SIAv2 services.
+    used to interact with SIA2 services.
     """
 
     def __init__(self, url, pos=None, band=None, time=None, pol=None,
@@ -225,7 +237,7 @@ class SIAQuery(DALQuery, AxisParamMixin):
         initialize the query object with a url and the given parameters
 
         Note: The majority of the attributes represent constraints used to
-        query the SIA service and are represented through lists. Multiple value
+        query the SIA2 service and are represented through lists. Multiple value
         attributes are OR-ed in the query, however the values of different
         attributes are AND-ed. Intervals are represented with tuples and
         open-ended intervals should be expressed with float("-inf") or
@@ -244,7 +256,7 @@ class SIAQuery(DALQuery, AxisParamMixin):
 
         Returns
         -------
-        SIAResults
+        SIA2Results
             a container holding a table of matching image records. Records are
             represented in IVOA ObsCore format
 
@@ -258,7 +270,7 @@ class SIAQuery(DALQuery, AxisParamMixin):
 
         See Also
         --------
-        SIAResults
+        SIA2Results
         pyvo.dal.query.DALServiceError
         pyvo.dal.query.DALQueryError
 
@@ -329,7 +341,7 @@ class SIAQuery(DALQuery, AxisParamMixin):
         self.maxrec = maxrec
 
     __init__.__doc__ = \
-        __init__.__doc__.replace('_SIA2_PARAMETERS', SIA_PARAMETERS_DESC)
+        __init__.__doc__.replace('_SIA2_PARAMETERS', SIA2_PARAMETERS_DESC)
 
     @property
     def field_of_view(self):
@@ -437,7 +449,7 @@ class SIAQuery(DALQuery, AxisParamMixin):
 
     def execute(self):
         """
-        submit the query and return the results as a SIAResults instance
+        submit the query and return the results as a SIA2Results instance
 
         Raises
         ------
@@ -449,12 +461,12 @@ class SIAQuery(DALQuery, AxisParamMixin):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SIAResults(self.execute_votable(), url=self.queryurl, session=self._session)
+        return SIA2Results(self.execute_votable(), url=self.queryurl, session=self._session)
 
 
-class SIAResults(DatalinkResultsMixin, DALResults):
+class SIA2Results(DatalinkResultsMixin, DALResults):
     """
-    The list of matching images resulting from an image (SIA) query.
+    The list of matching images resulting from an image (SIA2) query.
     Each record contains a set of metadata that describes an available
     image matching the query constraints.  The number of records in
     the results is available by passing it to the Python built-in ``len()`` function.
@@ -462,7 +474,7 @@ class SIAResults(DatalinkResultsMixin, DALResults):
     This class supports iterable semantics; thus,
     individual records (in the form of
     :py:class:`~pyvo.dal.sia2.ObsCoreRecord` instances) are typically
-    accessed by iterating over an ``SIAResults`` instance.
+    accessed by iterating over an ``SIA2Results`` instance.
 
     Alternatively, records can be accessed randomly via
     :py:meth:`getrecord` or through a Python Database API (v2)
@@ -470,7 +482,7 @@ class SIAResults(DatalinkResultsMixin, DALResults):
     Column-based data access is possible via the
     :py:meth:`~pyvo.dal.query.DALResults.getcolumn` method.
 
-    ``SIAResults`` is essentially a wrapper around an Astropy
+    ``SIA2Results`` is essentially a wrapper around an Astropy
     :py:mod:`~astropy.io.votable`
     :py:class:`~astropy.io.votable.tree.Table` instance where the
     columns contain the various metadata describing the images.
@@ -484,7 +496,7 @@ class SIAResults(DatalinkResultsMixin, DALResults):
 
     ``table = results.votable.to_table()``
 
-    ``SIAResults`` supports the array item operator ``[...]`` in a
+    ``SIA2Results`` supports the array item operator ``[...]`` in a
     read-only context.  When the argument is numerical, the result
     is an
     :py:class:`~pyvo.dal.sia2.ObsCoreRecord` instance, representing the
@@ -496,7 +508,7 @@ class SIAResults(DatalinkResultsMixin, DALResults):
 
     def getrecord(self, index):
         """
-        return a representation of a sia result record that follows
+        return a representation of a SIA2 result record that follows
         dictionary semantics. The keys of the dictionary are those returned by
         this instance's fieldnames attribute. The returned record has
         additional image-specific properties
@@ -529,9 +541,9 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
                     ObsCoreMetadata):
     """
     a dictionary-like container for data in a record from the results of an
-    image (SIAv2) search, describing an available image in ObsCore format.
+    image (SIA2) search, describing an available image in ObsCore format.
 
-    The commonly accessed metadata which are stadardized by the SIA
+    The commonly accessed metadata which are stadardized by the SIA2
     protocol are available as attributes.  If the metadatum accessible
     via an attribute is not available, the value of that attribute
     will be None.  All metadata, including non-standard metadata, are also
@@ -1086,3 +1098,18 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         Identifier of proposal to which observation belongs
         """
         return self.get('proposal_id', default=None, decode=True)
+
+
+@deprecated("1.5", alternative="SIA2Service")
+class SIAService(SIA2Service):
+    pass
+
+
+@deprecated("1.5", alternative="SIA2Query")
+class SIAQuery(SIA2Query):
+    pass
+
+
+@deprecated("1.5", alternative="SIA2Results")
+class SIAResults(SIA2Results):
+    pass

@@ -6,7 +6,7 @@ Tests for pyvo.dal.sia2 against remote services
 
 import pytest
 
-from pyvo.dal.sia2 import search, SIAService
+from pyvo.dal.sia2 import search, SIA2Service
 from pyvo.dal.adhoc import DatalinkResults
 
 import astropy.units as u
@@ -19,7 +19,7 @@ class TestSIACadc():
     # Tests the SIA2 client against the CADC SIA service
 
     def test_service(self):
-        cadc = SIAService(baseurl=CADC_SIA_URL)
+        cadc = SIA2Service(baseurl=CADC_SIA_URL)
         assert cadc.availability
         assert cadc.availability.available
         assert cadc.availability.notes
