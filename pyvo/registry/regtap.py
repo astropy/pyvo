@@ -25,7 +25,7 @@ from astropy import table
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from . import rtcons
-from ..dal import scs, sia, ssa, sla, tap, query as dalq
+from ..dal import scs, sia, sia2, ssa, sla, tap, query as dalq
 from ..io.vosi import vodataservice
 from ..utils.formatting import para_format_desc
 
@@ -284,6 +284,7 @@ class Interface:
     service_for_standardid = {
         "ivo://ivoa.net/std/conesearch": scs.SCSService,
         "ivo://ivoa.net/std/sia": sia.SIAService,
+        "ivo://ivoa.net/std/sia#query-2.0": sia2.SIA2Service,
         "ivo://ivoa.net/std/ssa": ssa.SSAService,
         "ivo://ivoa.net/std/sla": sla.SLAService,
         "ivo://ivoa.net/std/tap": tap.TAPService}
@@ -874,7 +875,7 @@ def ivoid2service(ivoid, servicetype=None):
     return service(s) for a given IVOID.
 
     The servicetype option specifies the kind of service requested
-    (conesearch, sia, ssa, slap, or tap).  By default, if none is
+    (conesearch, sia, sia2, ssa, slap, or tap).  By default, if none is
     given, a list of all matching services is returned.
 
     """

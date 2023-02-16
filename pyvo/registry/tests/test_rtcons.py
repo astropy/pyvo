@@ -114,7 +114,7 @@ class TestServicetypeConstraint:
             rtcons.Servicetype("junk")
         assert str(excinfo.value) == ("Service type junk is neither"
                                       " a full standard URI nor one of the bespoke identifiers"
-                                      " image, sia, spectrum, ssap, ssa, scs, conesearch, line, slap,"
+                                      " image, sia, sia2, spectrum, ssap, ssa, scs, conesearch, line, slap,"
                                       " table, tap")
 
     def test_legacy_term(self):
