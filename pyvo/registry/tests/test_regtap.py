@@ -776,3 +776,15 @@ class TestGetTables:
 
         assert (getflashcol("ssa_fluxcalib").description
                 == "Type of flux calibration")
+
+
+@pytest.mark.remote_data
+def test_sia_registry_searches():
+    # SIA2 services, e.g. Spitzer SEIP were originally not found by the registry search
+    image_services_v1 = regsearch(servicetype='sia')
+    image_services_v2 = regsearch(servicetype='sia2')
+
+    assert image_services_v1 != image_services_v2
+
+    assert len([s.ivoid for s in image_services_v2 if 'spitzer/images/seip' in s.ivoid]) > 0
+    assert len([s.ivoid for s in image_services_v1 if 'spitzer/images/seip' in s.ivoid]) == 0

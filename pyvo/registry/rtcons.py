@@ -35,6 +35,7 @@ SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/" + v)
                         for k, v in [
     ("image", "sia"),
     ("sia", "sia"),
+    ("sia2", "sia#query-2.0"),
     ("spectrum", "ssa"),
     ("ssap", "ssa"),
     ("ssa", "ssa"),
@@ -257,6 +258,7 @@ class Servicetype(Constraint):
     * ``image`` (image services; at this point equivalent to sia, but
       scheduled to include sia2, too)
     * ``sia`` (SIAP version 1 services)
+    * ``sia2`` (SIAP version 2 services)
     * ``spectrum``, ``ssa``, ``ssap`` (all synonymous for spectral
       services, prefer ``spectrum``)
     * ``scs``, ``conesearch`` (synonymous for cone search services, prefer
