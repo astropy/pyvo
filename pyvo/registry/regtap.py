@@ -25,6 +25,8 @@ from astropy import table
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
+import numpy
+
 from . import rtcons
 from ..dal import scs, sia, sia2, ssa, sla, tap, query as dalq
 from ..io.vosi import vodataservice
@@ -539,7 +541,11 @@ class RegistryResource(dalq.Record):
         by which a positional query against this resource should be "blurred"
         in order to get an appropriate match.
         """
-        return float(self.get("region_of_regard", 0))
+        # we get NULLs as NaNs here
+        val = self["region_of_regard"]
+        if numpy.isnan(val):
+            return None
+        return val
 
     @property
     def waveband(self):
@@ -734,15 +740,16 @@ class RegistryResource(dalq.Record):
 
         Raises
         ------
-        RuntimeError
+        DALServiceError
            if the resource does not describe a searchable service.
         """
-        if not self.service:
+        try:
+            return self.service.search(*args, **keys)
+        except ValueError:
+            # I blindly assume the ValueError comes out of get_interface.
+            # But then that's likely enough.
             raise dalq.DALServiceError(
-                "resource, {}, is not a searchable service".format(
-                    self.short_name))
-
-        return self.service.search(*args, **keys)
+                f"Resource {self.ivoid} is not a searchable service")
 
     def describe(self, verbose=False, width=78, file=None):
         """

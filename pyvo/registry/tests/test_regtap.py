@@ -383,6 +383,7 @@ def test_record_fields(rt_pulsar_distance):
     assert rec.content_types == ['catalog']
     assert rec.source_format == "bibcode"
     assert rec.source_value == "1993ApJS...88..529T"
+    assert rec.region_of_regard is None
     assert rec.waveband == ['radio']
     # access URL, standard_id and friends exercised in TestInterfaceSelection
 
@@ -452,6 +453,17 @@ class TestInterfaceSelection:
                           regtap._BrowserService)
         assert (svc.access_url
                 == "http://dc.zah.uni-heidelberg.de/flashheros/q/web/form")
+
+        import webbrowser
+        orig_open = webbrowser.open
+        try:
+            open_args = []
+            webbrowser.open = lambda *args: open_args.append(args)
+            svc.search()
+            assert open_args == [
+                ("http://dc.zah.uni-heidelberg.de/flashheros/q/web/form", 2)]
+        finally:
+            webbrowser.open = orig_open
 
     def test_get_aux_interface(self, flash_service):
         svc = flash_service.get_service("tap#aux")
@@ -540,6 +552,22 @@ class TestInterfaceSelection:
         assert rec.get_interface("sia2").access_url == 'http://sia2.example.com'
         assert rec.get_interface("sia").access_url == 'http://sia.example.com'
 
+    def test_non_standard_interface(self):
+        intf = regtap.Interface("http://url", "", "", "")
+        assert intf.supports("ivo://ivoa.net/std/sia") is False
+
+    def test_supports_none(self):
+        intf = regtap.Interface("http://url", "", "", "")
+        assert intf.supports(None) is False
+
+    def test_non_searchable_service(self):
+        rec = _makeRegistryRecord()
+        with pytest.raises(dalq.DALServiceError) as excinfo:
+            rec.search()
+
+        assert str(excinfo.value) == (
+            "Resource ivo://pyvo/test_regtap.py is not a searchable service")
+
 
 class _FakeResult:
     """A fake class just sufficient for giving dal.query.Record enough
@@ -622,6 +650,9 @@ class TestInterfaceRejection:
             intf_types=["vs:webbrowser", "vs:paramhttp"],
             intf_roles=["", "std"])
 
+        assert (rsc.service._baseurl == "http://b")
+        # this makes sure caching the service obtained doesn't break
+        # things
         assert (rsc.service._baseurl == "http://b")
 
     def test_capless(self):
