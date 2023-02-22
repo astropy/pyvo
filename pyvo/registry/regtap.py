@@ -123,33 +123,33 @@ def search(*constraints: rtcons.Constraint, includeaux: bool = False, maxrec: in
         The constraints (keywords to match, positions to cover, ...)
         that the returned records need to satisfy.
         The accepted constraints are:
-            
+
             - keywords: one or more freetext words, mached in the title,
-                description or subject of the resource.
+              description or subject of the resource.
             - servicetype: constrain to one of tap, ssa, sia, conesearch
-                (or full ivoids for other service types). This is the
-                constraint you want to use for service discovery.
+              (or full ivoids for other service types). This is the
+              constraint you want to use for service discovery.
             - ucd: constrain by one or more UCD patterns; resources match
-                when they serve columns having a matching UCD
-                (e.g., phot.mag;em.ir.% for "any infrared magnitude").
+              when they serve columns having a matching UCD
+              (e.g., phot.mag;em.ir.% for "any infrared magnitude").
             - waveband: one or more terms from the vocabulary at
-                http://www.ivoa.net/rdf/messenger giving the rough spectral
-                location of the resource.
+              http://www.ivoa.net/rdf/messenger giving the rough spectral
+              location of the resource.
             - author: an author ("creator"). This is a single SQL pattern,
-                and given the sloppy practices in the VO for how to write
-                author names, you should probably generously use wildcards.
+              and given the sloppy practices in the VO for how to write
+              author names, you should probably generously use wildcards.
             - datamodel: one of obscore, epntap, or regtap: only return TAP
-                services having tables of this kind.
+              services having tables of this kind.
             - ivoid: exactly match a single IVOA identifier (that is,
-                in effect, the primary key in the VO).
+              in effect, the primary key in the VO).
             - spatial: match resources covering a certain geometry (point,
-                circle, polygon, or MOC). RegTAP 1.2 Extension.
+              circle, polygon, or MOC). RegTAP 1.2 Extension.
             - spectral: match resources covering a certain part of the spectrum
-                (usually, but not limited to, the electromagnetic spectrum).
-                RegTAP 1.2 Extension
-            - temporal: match resources covering a some point or interval in 
-                time. RegTAP 1.2 Extension
-                
+              (usually, but not limited to, the electromagnetic spectrum).
+              RegTAP 1.2 Extension
+            - temporal: match resources covering a some point or interval in
+              time. RegTAP 1.2 Extension
+
         Multiple constraints are combined conjunctively ("AND").
 
 
