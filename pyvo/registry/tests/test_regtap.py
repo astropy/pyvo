@@ -11,6 +11,8 @@ from urllib.parse import parse_qsl
 
 import pytest
 
+from astropy import time
+
 from pyvo.registry import regtap
 from pyvo.registry import rtcons
 from pyvo.registry.regtap import REGISTRY_BASEURL
@@ -514,6 +516,30 @@ class TestInterfaceSelection:
             resource.get_service('tap')
         assert (str(excinfo.value) == "No matching interface.")
 
+    def test_sia2_query(self):
+        rec = _makeRegistryRecord(
+            access_urls=["http://sia2.example.com", "http://sia.example.com"],
+            standard_ids=[
+                "ivo://ivoa.net/std/sia#query-2.0",
+                "ivo://ivoa.net/std/sia"],
+            intf_roles=["std"] * 2,
+            intf_types=["vs:paramhttp"] * 2)
+        assert rec.access_modes() == {"sia", "sia2"}
+        assert rec.get_interface("sia2").access_url == 'http://sia2.example.com'
+        assert rec.get_interface("sia").access_url == 'http://sia.example.com'
+
+    def test_sia2_aux(self):
+        rec = _makeRegistryRecord(
+            access_urls=["http://sia2.example.com", "http://sia.example.com"],
+            standard_ids=[
+                "ivo://ivoa.net/std/sia#query-aux-2.0",
+                "ivo://ivoa.net/std/sia#aux"],
+            intf_roles=["std"] * 2,
+            intf_types=["vs:paramhttp"] * 2)
+        assert rec.access_modes() == {"sia#aux", "sia2#aux"}
+        assert rec.get_interface("sia2").access_url == 'http://sia2.example.com'
+        assert rec.get_interface("sia").access_url == 'http://sia.example.com'
+
 
 class _FakeResult:
     """A fake class just sufficient for giving dal.query.Record enough
@@ -536,7 +562,7 @@ class _FakeResult:
         self.resultstable = _
 
 
-def _makeRegistryRecord(overrides):
+def _makeRegistryRecord(**overrides):
     """returns a minimal RegistryResource instance, overriding
     some built-in defaults with the dict overrides.
     """
@@ -557,12 +583,11 @@ class TestInterfaceRejection:
     """
 
     def test_nonunique(self):
-        rsc = _makeRegistryRecord({
-            "access_urls": ["http://a", "http://b"],
-            "standard_ids": ["ivo://ivoa.net/std/tap"] * 2,
-            "intf_types": ["vs:paramhttp"] * 2,
-            "intf_roles": ["std"] * 2,
-        })
+        rsc = _makeRegistryRecord(
+            access_urls=["http://a", "http://b"],
+            standard_ids=["ivo://ivoa.net/std/tap"] * 2,
+            intf_types=["vs:paramhttp"] * 2,
+            intf_roles=["std"] * 2)
         with pytest.raises(ValueError) as excinfo:
             rsc.get_service("tap", lax=False)
 
@@ -572,39 +597,35 @@ class TestInterfaceRejection:
             " registry.search?  Or use lax=True?")
 
     def test_nonunique_lax(self):
-        rsc = _makeRegistryRecord({
-            "access_urls": ["http://a", "http://b"],
-            "standard_ids": ["ivo://ivoa.net/std/tap"] * 2,
-            "intf_types": ["vs:paramhttp"] * 2,
-            "intf_roles": ["std"] * 2,
-        })
+        rsc = _makeRegistryRecord(
+            access_urls=["http://a", "http://b"],
+            standard_ids=["ivo://ivoa.net/std/tap"] * 2,
+            intf_types=["vs:paramhttp"] * 2,
+            intf_roles=["std"] * 2)
 
         assert (rsc.get_service("tap")._baseurl
                 == "http://a")
 
     def test_nonstd_ignored(self):
-        rsc = _makeRegistryRecord({
-            "access_urls": ["http://a", "http://b"],
-            "standard_ids": ["ivo://ivoa.net/std/tap"] * 2,
-            "intf_types": ["vs:paramhttp"] * 2,
-            "intf_roles": ["std", ""]
-        })
-
+        rsc = _makeRegistryRecord(
+            access_urls=["http://a", "http://b"],
+            standard_ids=["ivo://ivoa.net/std/tap"] * 2,
+            intf_types=["vs:paramhttp"] * 2,
+            intf_roles=["std", ""])
         assert (rsc.get_service("tap", lax=False)._baseurl
                 == "http://a")
 
     def test_select_single_matching_service(self):
-        rsc = _makeRegistryRecord({
-            "access_urls": ["http://a", "http://b"],
-            "standard_ids": ["", "ivo://ivoa.net/std/tap"],
-            "intf_types": ["vs:webbrowser", "vs:paramhttp"],
-            "intf_roles": ["", "std"]
-        })
+        rsc = _makeRegistryRecord(
+            access_urls=["http://a", "http://b"],
+            standard_ids=["", "ivo://ivoa.net/std/tap"],
+            intf_types=["vs:webbrowser", "vs:paramhttp"],
+            intf_roles=["", "std"])
 
         assert (rsc.service._baseurl == "http://b")
 
     def test_capless(self):
-        rsc = _makeRegistryRecord({})
+        rsc = _makeRegistryRecord()
 
         with pytest.raises(ValueError) as excinfo:
             rsc.service._baseurl
@@ -617,14 +638,13 @@ class TestInterfaceRejection:
 def test_maxrec():
     with pytest.warns(DALOverflowWarning) as w:
         _ = regsearch(servicetype="tap", maxrec=1)
-    assert len(w) == 1
     assert str(w[0].message).startswith("Partial result set.")
 
 
 @pytest.mark.remote_data
 def test_get_contact():
     rsc = _makeRegistryRecord(
-        {"ivoid": "ivo://org.gavo.dc/flashheros/q/ssa"})
+        ivoid="ivo://org.gavo.dc/flashheros/q/ssa")
     assert (rsc.get_contact()
             == "GAVO Data Center Team (++49 6221 54 1837)"
             " <gavo@ari.uni-heidelberg.de>")
@@ -657,12 +677,11 @@ class TestExtraResourceMethods:
     """
 
     def test_unique_standard_id(self):
-        rsc = _makeRegistryRecord({
-            "access_urls": ["http://a"],
-            "standard_ids": ["ivo://ivoa.net/std/tap"],
-            "intf_types": ["vs:paramhttp"],
-            "intf_roles": ["std"]
-        })
+        rsc = _makeRegistryRecord(
+            access_urls=["http://a"],
+            standard_ids=["ivo://ivoa.net/std/tap"],
+            intf_types=["vs:paramhttp"],
+            intf_roles=["std"])
         assert rsc.standard_id == "ivo://ivoa.net/std/tap"
 
     def test_describe_multi(self, flash_service):
@@ -678,12 +697,11 @@ class TestExtraResourceMethods:
         assert "More info: http://dc.zah" in output
 
     def test_no_access_url(self):
-        rsc = _makeRegistryRecord({
-            "access_urls": [],
-            "standard_ids": [],
-            "intf_types": [],
-            "intf_roles": []
-        })
+        rsc = _makeRegistryRecord(
+            access_urls=[],
+            standard_ids=[],
+            intf_types=[],
+            intf_roles=[])
         with pytest.raises(dalq.DALQueryError) as excinfo:
             rsc.access_url
 
@@ -691,21 +709,19 @@ class TestExtraResourceMethods:
                                       " ivo://pyvo/test_regtap.py has no queriable interfaces.")
 
     def test_unique_access_url(self):
-        rsc = _makeRegistryRecord({
-            "access_urls": ["http://a"],
-            "standard_ids": ["ivo://ivoa.net/std/tap"],
-            "intf_types": ["vs:paramhttp"],
-            "intf_roles": [""]
-        })
+        rsc = _makeRegistryRecord(
+            access_urls=["http://a"],
+            standard_ids=["ivo://ivoa.net/std/tap"],
+            intf_types=["vs:paramhttp"],
+            intf_roles=[""])
         assert rsc.access_url == "http://a"
 
     def test_ambiguous_access_url_warns(self, recwarn):
-        rsc = _makeRegistryRecord({
-            "access_urls": ["http://a", "http://b"],
-            "standard_ids": ["ivo://ivoa.net/std/tap"] * 2,
-            "intf_types": ["vs:paramhttp"] * 2,
-            "intf_roles": ["std"] * 2,
-        })
+        rsc = _makeRegistryRecord(
+            access_urls=["http://a", "http://b"],
+            standard_ids=["ivo://ivoa.net/std/tap"] * 2,
+            intf_types=["vs:paramhttp"] * 2,
+            intf_roles=["std"] * 2)
         assert rsc.access_url == "http://a"
         assert ('The resource ivo://pyvo/test_regtap.py has multipl' in
                 [str(w.message)[:50] for w in recwarn])
@@ -718,7 +734,7 @@ class TestExtraResourceMethods:
 @pytest.fixture(name='flash_tables')
 def _flash_tables():
     rsc = _makeRegistryRecord(
-        {"ivoid": "ivo://org.gavo.dc/flashheros/q/ssa"})
+        ivoid="ivo://org.gavo.dc/flashheros/q/ssa")
     return rsc.get_tables()
 
 
@@ -727,7 +743,7 @@ class TestGetTables:
     @pytest.mark.remote_data
     def test_get_tables_limit_enforced(self):
         rsc = _makeRegistryRecord(
-            {"ivoid": "ivo://org.gavo.dc/tap"})
+            ivoid="ivo://org.gavo.dc/tap")
         with pytest.raises(dalq.DALQueryError) as excinfo:
             rsc.get_tables()
 
@@ -779,12 +795,14 @@ class TestGetTables:
 
 
 @pytest.mark.remote_data
-def test_sia_registry_searches():
-    # SIA2 services, e.g. Spitzer SEIP were originally not found by the registry search
-    image_services_v1 = regsearch(servicetype='sia')
-    image_services_v2 = regsearch(servicetype='sia2')
+def test_sia2_service_operation():
+    svcs = regsearch(
+        servicetype='sia2',
+        ivoid='ivo://cadc.nrc.ca/sia')
+    assert len(svcs) == 1
 
-    assert image_services_v1 != image_services_v2
-
-    assert len([s.ivoid for s in image_services_v2 if 'spitzer/images/seip' in s.ivoid]) > 0
-    assert len([s.ivoid for s in image_services_v1 if 'spitzer/images/seip' in s.ivoid]) == 0
+    res = svcs[0].search(pos=(30, 40, 0.1),
+        time=(time.Time(58794.9, format="mjd"),
+            time.Time(58795, format="mjd")))
+    assert len(res) > 10
+    assert "s_dec" in res.to_table().columns

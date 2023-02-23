@@ -69,6 +69,29 @@ def expand_stdid(s):
     return "ivo://ivoa.net/std/" + s
 
 
+def regularize_SIA2_id(standard_id):
+    """returns standard_id with SIA2 standard ids modified to what they should
+    have been.
+
+    Regrettably, SIA2 uses the same standardID as SIA1; sure, they use
+    different fragments, but that doesn't really help with the logic
+    we have here.
+
+    To make up for that, we replace them with the sia2 ids they should
+    have had on input.  This function assumes lowercased ids as they
+    come from RegTAP services.
+    """
+    if standard_id.startswith("ivo://ivoa.net/std/sia#query-2"):
+        return "ivo://ivoa.net/std/sia2"
+    elif standard_id.startswith("ivo://ivoa.net/std/sia#query-aux-2"):
+        # query-aux-2 is mentioned in discovering data collections,
+        # which isn't really the place to define this.  But then
+        # it's endorsed, and SIA2 doesn't say anything about it.
+        return "ivo://ivoa.net/std/sia2#aux"
+    else:
+        return standard_id
+
+
 @functools.lru_cache(1)
 def get_RegTAP_service():
     """
@@ -284,7 +307,7 @@ class Interface:
     service_for_standardid = {
         "ivo://ivoa.net/std/conesearch": scs.SCSService,
         "ivo://ivoa.net/std/sia": sia.SIAService,
-        "ivo://ivoa.net/std/sia#query-2.0": sia2.SIA2Service,
+        "ivo://ivoa.net/std/sia2": sia2.SIA2Service,
         "ivo://ivoa.net/std/ssa": ssa.SSAService,
         "ivo://ivoa.net/std/sla": sla.SLAService,
         "ivo://ivoa.net/std/tap": tap.TAPService}
@@ -336,6 +359,7 @@ class Interface:
         """
         if not self.standard_id:
             return False
+        standard_id = regularize_SIA2_id(standard_id)
         return self.standard_id.split("#")[0] == standard_id.split("#")[0]
 
 
@@ -388,8 +412,9 @@ class RegistryResource(dalq.Record):
 
         self._mapping["access_urls"
                       ] = self._parse_pseudo_array(self._mapping["access_urls"])
-        self._mapping["standard_ids"
-                      ] = self._parse_pseudo_array(self._mapping["standard_ids"])
+        self._mapping["standard_ids"] = [
+            regularize_SIA2_id(id) for id in
+                self._parse_pseudo_array(self._mapping["standard_ids"])]
         self._mapping["intf_types"
                       ] = self._parse_pseudo_array(self._mapping["intf_types"])
         self._mapping["intf_roles"

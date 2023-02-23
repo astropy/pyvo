@@ -114,12 +114,24 @@ class TestServicetypeConstraint:
             rtcons.Servicetype("junk")
         assert str(excinfo.value) == ("Service type junk is neither"
                                       " a full standard URI nor one of the bespoke identifiers"
-                                      " image, sia, sia2, spectrum, ssap, ssa, scs, conesearch, line, slap,"
-                                      " table, tap")
+                                      " image, sia, spectrum, ssap, ssa, scs, conesearch, line, slap,"
+                                      " table, tap, sia2")
 
     def test_legacy_term(self):
         assert (rtcons.Servicetype("conesearch").get_search_condition()
                 == "standard_id IN ('ivo://ivoa.net/std/conesearch')")
+
+    def test_sia2(self):
+        assert (rtcons.Servicetype("conesearch", "sia2").get_search_condition()
+                == ("standard_id IN ('ivo://ivoa.net/std/conesearch')"
+                    " OR standard_id like 'ivo://ivoa.net/std/sia#query-2.%'"))
+
+    def test_sia2_aux(self):
+        constraint = rtcons.Servicetype("conesearch", "sia2").include_auxiliary_services()
+        assert (constraint.get_search_condition()
+                == ("standard_id IN ('ivo://ivoa.net/std/conesearch', 'ivo://ivoa.net/std/conesearch#aux')"
+                    " OR standard_id like 'ivo://ivoa.net/std/sia#query-2.%'"
+                    " OR standard_id like 'ivo://ivoa.net/std/sia#query-aux-2.%'"))
 
 
 @pytest.mark.usefixtures('messenger_vocabulary')
