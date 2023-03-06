@@ -176,11 +176,12 @@ mean G-band magnitude between 19 - 20:
     2180349528028140800  310.5233961869657   50.3486391034819            19.0
 
 If you know a TAP service's access URL, you can directly pass it to
-:py:class:`~pyvo.dal.TAPService` to obtain a service object (see
-:ref:`pyvo.registry <pyvo-registry>` for when you do not know this access URL). 
-Here we use the `GAVO DC TAP <http://dc.g-vo.org/tap>`_ service to demonstrate. 
-To perform a query using ADQL, the ``search()`` method is used (note 
-that this method performs the synchronous query by default). 
+:py:class:`~pyvo.dal.TAPService` to obtain a service object. 
+Sometimes, such URLs are published in papers or passed around through
+other channels. Most commonly, you will discover them in the VO 
+registry (cf. :ref:`pyvo.registry<pyvo-registry>`).
+
+To perform a query using ADQL, the ``search()`` method is used. 
 TAPService instances have several methods to inspect the metadata
 of the service - in particular, what tables with what columns are
 available - discussed below.  Note that for exploratory query
