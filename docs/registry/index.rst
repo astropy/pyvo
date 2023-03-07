@@ -488,10 +488,8 @@ and then you can run:
   >>> res.get_tables()  # doctest: +IGNORE_OUTPUT
   {'flashheros.data': <Table name="flashheros.data">... 29 columns ...</Table>, 'ivoa.obscore': <Table name="ivoa.obscore">... 0 columns ...</Table>}
 
-As we end this discussion of the service objects, you can hopefully
-see that there is a straight-forward chain of discovery classes that
-connect the registry down through to a dataset.  Spelled out in all
-its detail, it looks like this:
+Summing up, there is a chain of classes connecting global discovery 
+with the individual datasets:
 
 .. doctest-remote-data::
 
