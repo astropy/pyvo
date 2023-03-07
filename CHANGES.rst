@@ -9,6 +9,10 @@
 - Removing defaults for optional SIAv1 and SSA query parameters to avoid
   unnecessarily overriding the server-side defaults. [#366]
 
+- Error messages from uws jobs are now in job.errorsummary.message
+  rather than job.message (where one wouldn't expect them given the UWS
+  schema). [#432]
+
 1.4 (2022-09-26)
 ================
 

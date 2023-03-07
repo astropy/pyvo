@@ -3,6 +3,7 @@
 """
 Tests for pyvo.io.vosi
 """
+
 import pyvo.io.uws as uws
 
 from astropy.utils.data import get_pkg_data_filename
@@ -30,4 +31,4 @@ class TestJob:
 
         assert not job.errorsummary.has_detail
         assert job.errorsummary.type_ == 'fatal'
-        assert job.message == 'We have problem'
+        assert job.errorsummary.message.content == 'We have problem'

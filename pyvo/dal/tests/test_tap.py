@@ -17,7 +17,7 @@ from pyvo.dal.tap import escape, search, AsyncTAPJob, TAPService
 from pyvo.dal import DALQueryError
 
 from pyvo.io.uws import JobFile
-from pyvo.io.uws.tree import Parameter, Result
+from pyvo.io.uws.tree import Parameter, Result, ErrorSummary, Message
 from pyvo.utils import prototype
 
 from astropy.time import Time, TimeDelta
@@ -180,7 +180,10 @@ class MockAsyncTAPServer:
         job.jobid = newid
         if 'test_erroneus_submit.non_existent' in request.text:
             job.phase = 'ERROR'
-            job.message = 'test_erroneus_submit.non_existent not found'
+            job._errorsummary = ErrorSummary()
+            job.errorsummary.message = Message()
+            job.errorsummary.message.content =\
+                'test_erroneus_submit.non_existent not found'
         else:
             job.phase = 'PENDING'
         job.quote = Time.now() + TimeDelta(1, format='sec')

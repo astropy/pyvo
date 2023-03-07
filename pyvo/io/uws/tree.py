@@ -265,17 +265,9 @@ class JobSummary(Element):
 
     @errorsummary.adder
     def errorsummary(self, iterator, tag, data, config, pos):
-        self._errorsummary = ErrorSummary(config, pos,
-                                          'errorSummary', **data)
-
-    @uwselement(plain=True)
-    def message(self):
-        """the error message"""
-        return self._message
-
-    @message.setter
-    def message(self, message):
-        self._message = message
+        res = ErrorSummary(config, pos, 'errorSummary', **data)
+        res.parse(iterator, config)
+        self._errorsummary = res
 
 
 class Jobs(HomogeneousList, UWSElement):
