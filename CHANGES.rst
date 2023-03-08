@@ -1,4 +1,4 @@
-1.4.1 (unreleased)
+1.4.1 (2023-03-07)
 ==================
 
 - registry.regsearch now accepts an optional maxrec argument rather than
