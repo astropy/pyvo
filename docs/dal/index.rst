@@ -414,6 +414,7 @@ Finally, tables and their content can be removed:
 
     >>> tap_service.remove_table(name='test_schema.test_table')
 
+For further information about the service's parameters, see :py:class:`~pyvo.dal.TAPService`.
 
 .. _pyvo-sia:
 
@@ -432,7 +433,7 @@ Simple Image Access
     referred to as datacubes, cube or image cube datasets and may be considered examples 
     of hypercube or n-cube data. PyVO supports both versions of SIA.
 
-    -- `Simple IMage Access <https://www.ivoa.net/documents/SIA/>`_
+    -- `Simple Image Access <https://www.ivoa.net/documents/SIA/>`_
 
 Basic queries are done with the ``pos`` and ``size`` parameters described in
 :ref:`pyvo-astro-params`, with ``size`` being the rectangular region around
@@ -474,6 +475,8 @@ Available values:
 
 This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter
 
+For further information about the service's parameters, see :py:class:`~pyvo.dal.SIAService`.
+
 .. _pyvo-ssa:
 
 Simple Spectrum Access
@@ -507,6 +510,7 @@ SSA queries can be further constrained by the ``band`` and ``time`` parameters.
     ...     time=time, band=Quantity((1e-13, 1e-12), unit="meter")
     ... )
 
+For further information about the service's parameters, see :py:class:`~pyvo.dal.SSAService`.
 
 .. _pyvo-scs:
 
@@ -533,7 +537,8 @@ within a circular region on the sky defined by the parameters ``pos``
     >>> scs_srv = vo.dal.SCSService('http://dc.zah.uni-heidelberg.de/arihip/q/cone/scs.xml')
     >>> scs_results = scs_srv.search(pos=pos, radius=size)
 
-This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter
+This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter.
+For further information about the service's parameters, see :py:class:`~pyvo.dal.SCSService`.
 
 .. _pyvo-slap:
 
@@ -552,6 +557,7 @@ Simple Line Access
 This service let you query for spectral lines in a certain ``wavelength``
 range. The unit of the values is meters, but any unit may be specified using
 `~astropy.units.Quantity`.
+For further information about the service's parameters, see :py:class:`~pyvo.dal.SLAService`.
 
 Jobs
 ====
@@ -569,7 +575,7 @@ to run several queries in parallel from one script.
 .. note::
     It is good practice to test the query with a maxrec constraint first.
 
-When you invoke ``submit job`` you will get a job object.
+When you invoke ``submit_job`` you will get a job object.
 
 .. doctest-remote-data::
 
