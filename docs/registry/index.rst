@@ -339,7 +339,7 @@ for the desired object.
   822
 
 Sometimes you are looking for a type of object. For this purpose, the  
-``keywords``parameter is useful here. For example, you want to find 
+``keywords`` parameter is useful here. For example, you want to find 
 all catalogs related to blazars observed with Fermi:
 
 .. doctest-remote-data::
