@@ -156,7 +156,7 @@ mean G-band magnitude between 19 - 20:
 .. doctest-remote-data::
 
     >>> import pyvo as vo
-    >>> tap_service = vo.dal.TAPservice("http://dc.g-vo.org/tap")
+    >>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap")
     >>> tap_service.search(
             """ SELECT TOP 5 
             source_id, ra, dec, phot_g_mean_mag 
