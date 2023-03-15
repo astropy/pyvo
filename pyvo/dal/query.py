@@ -112,7 +112,7 @@ class DALService:
 
     def describe(self):
         """
-        display the base URL for the DAL service
+        describe the general information about the DAL service
         """
         print('DAL Service at {}'.format(self.baseurl))
 
