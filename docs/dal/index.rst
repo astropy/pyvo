@@ -158,12 +158,12 @@ mean G-band magnitude between 19 - 20:
     >>> import pyvo as vo
     >>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap")
     >>> tap_service.search(
-            """ SELECT TOP 5 
-            source_id, ra, dec, phot_g_mean_mag 
-            FROM gaia.dr3lite
-            WHERE phot_g_mean_mag BETWEEN 19 AND 20
-            ORDER BY phot_g_mean_mag
-            """)
+    >>>        """ SELECT TOP 5 
+    >>>        source_id, ra, dec, phot_g_mean_mag 
+    >>>        FROM gaia.dr3lite
+    >>>        WHERE phot_g_mean_mag BETWEEN 19 AND 20
+    >>>        ORDER BY phot_g_mean_mag
+    >>>        """)
     <Table length=5>
         source_id              ra                dec         phot_g_mean_mag
                             deg                deg               mag      
