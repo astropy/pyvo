@@ -155,13 +155,14 @@ mean G-band magnitude between 19 - 20:
 
     >>> import pyvo as vo
     >>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap")
-    >>> tap_service.search(
-    ...        """ SELECT TOP 5 
-    ...        source_id, ra, dec, phot_g_mean_mag 
-    ...        FROM gaia.dr3lite
-    ...        WHERE phot_g_mean_mag BETWEEN 19 AND 20
-    ...        ORDER BY phot_g_mean_mag
-    ...        """)
+    >>> ex_query = """
+    ...     SELECT TOP 5 
+    ...     source_id, ra, dec, phot_g_mean_mag 
+    ...     FROM gaia.dr3lite
+    ...     WHERE phot_g_mean_mag BETWEEN 19 AND 20
+    ...     ORDER BY phot_g_mean_mag
+    ...     """
+    >>> tap_service.search(ex_query)
     <Table length=5>
         source_id              ra                dec         phot_g_mean_mag
                             deg                deg               mag      
@@ -213,13 +214,7 @@ synchronous query or ``run_async()`` for asynchronous query.
 
 .. doctest-remote-data::
 
-    >>> job = tap_service.submit_job(
-                """ SELECT TOP 5 
-                source_id, ra, dec, phot_g_mean_mag 
-                FROM gaia.dr3lite
-                WHERE phot_g_mean_mag BETWEEN 19 AND 20
-                ORDER BY phot_g_mean_mag
-                """)
+    >>> job = tap_service.submit_job(ex_query)
 
 To learn more details from the asynchronous query, let's look at the 
 ``submit_job()`` method. This submits an asynchronous query without 
@@ -227,8 +222,8 @@ starting it, it creates a new object :py:class:`~pyvo.dal.AsyncTAPJob`.
 
 .. doctest-remote-data::
 
-    >>> job.url
-    (...)
+    >>> job.url     # doctest: +SKIP
+    <job-url>
 
 The job URL mentioned before is available in the ``url`` attribute. 
 Clicking on the URL leads you to the query itself, where you can check 
@@ -255,14 +250,14 @@ When you are ready, you can start the job:
 
 .. doctest-remote-data::
 
-    >>> job.run()
+    >>> job.run()   # doctest: +SKIP
 
 This will put the job into the QUEUED state.  Depending on how busy
 the server is, it will immediately go to the EXECUTING status:
 
 .. doctest-remote-data::
 
-    >>> job.phase
+    >>> job.phase   # doctest: +SKIP
     'EXECUTING'
 
 The job will eventually end up in one of the phases:
@@ -279,10 +274,10 @@ After the job ends up in COMPLETED, you can retrieve the result:
 
 .. doctest-remote-data::
 
-    >>> job.phase
+    >>> job.phase   # doctest: +SKIP
     'COMPLETED'
-    >>> job.fetch_result()
-    (...table object)
+    >>> job.fetch_result()  # doctest: +SKIP
+    (result table as shown before)
 
 Eventually, it is friendly to clean up the job rather than relying
 on the server to clean it up once ``job.destruction`` (a datetime
