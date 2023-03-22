@@ -146,8 +146,6 @@ Table Access Protocol
 
     -- `Table Access Protocol <https://www.ivoa.net/documents/TAP/>`_
 
-Getting started
-^^^^^^^^^^^^^^^
 
 Consider the following example for using TAP and ADQL, retrieving 5
 objects from the GAIA DR3 database, showing their id, position and
@@ -158,12 +156,12 @@ mean G-band magnitude between 19 - 20:
     >>> import pyvo as vo
     >>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap")
     >>> tap_service.search(
-    >>>        """ SELECT TOP 5 
-    >>>        source_id, ra, dec, phot_g_mean_mag 
-    >>>        FROM gaia.dr3lite
-    >>>        WHERE phot_g_mean_mag BETWEEN 19 AND 20
-    >>>        ORDER BY phot_g_mean_mag
-    >>>        """)
+    ...        """ SELECT TOP 5 
+    ...        source_id, ra, dec, phot_g_mean_mag 
+    ...        FROM gaia.dr3lite
+    ...        WHERE phot_g_mean_mag BETWEEN 19 AND 20
+    ...        ORDER BY phot_g_mean_mag
+    ...        """)
     <Table length=5>
         source_id              ra                dec         phot_g_mean_mag
                             deg                deg               mag      
@@ -184,11 +182,7 @@ registry (cf. :ref:`pyvo.registry<pyvo-registry>`).
 To perform a query using ADQL, the ``search()`` method is used. 
 TAPService instances have several methods to inspect the metadata
 of the service - in particular, what tables with what columns are
-available - discussed below.  Note that for exploratory query
-construction, you can also use interactive TAP clients such as
-TOPCAT_, which include table browsers.
-
-.. _TOPCAT: http://www.star.bris.ac.uk/~mbt/topcat/ 
+available - discussed below.
 
 To get an idea of how to write queries in ADQL, have a look at
 `GAVO's ADQL course`_; it is basically a standardised subset of SQL
@@ -236,8 +230,7 @@ starting it, it creates a new object :py:class:`~pyvo.dal.AsyncTAPJob`.
     >>> job.url
     (...)
 
-The job URL mentioned before is available in the ``url`` attribute;
-you can use that URL later to resume the job even from clients like TOPCAT. 
+The job URL mentioned before is available in the ``url`` attribute. 
 Clicking on the URL leads you to the query itself, where you can check 
 the status(phase) of the query and decide to run, modify or delete 
 the job. You can also do it via various attributes:
