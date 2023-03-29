@@ -321,21 +321,21 @@ and access URL:
 
 .. doctest-remote-data::
 
-  >>> for service in archives:
-  >>>     print(service.res_title, service.access_url)
+  >>> for service in archives:    # doctest: +SKIP
+  ...     print(service.res_title, service.access_url)
   (...)
   <Service titles> <Access URL>
   (...)
 
 It is not neccessary to keep track of the URL because you can search 
-images directly from the registry record, for example using the first 
-service and the ``search`` method, inserting the position and size 
-for the desired object.
+images directly from the registry record, for example using the Chandra 
+X-ray Observatory (CDA) service and the ``search`` method, inserting 
+the position and size for the desired object.
 
 .. doctest-remote-data::
 
-  >>> images = archives[0].search(pos=pos, size=0.25)
-  >>> len(images)
+  >>> images = archives["CDA"].search(pos=pos, size=0.25)
+  >>> len(images)   # doctest: +SKIP
   822
 
 Sometimes you are looking for a type of object. For this purpose, the  
@@ -345,8 +345,8 @@ all catalogs related to blazars observed with Fermi:
 .. doctest-remote-data::
 
   >>> cats = vo.regsearch(keywords=['blazar','Fermi'])
-  >>> len(cats)
-  532
+  >>> len(cats)   # doctest: +SKIP
+  541
 
 Or you already know the particular catalog but not the base URL for 
 that service. For example, you want to get cutout images from the 
@@ -356,17 +356,9 @@ NRAO VLA Sky Survey (NVSS):
 
   >>> colls = vo.regsearch(keywords=['NVSS'], servicetype='sia')
   >>> for coll in colls:
-  >>>     print(coll.res_title, coll.access_url)
-  NRA) VLA Sky Survey <Access URL>
-  Sydney University Molonglo Sky Survey <Access URL>
-
-
-Next you can save the list of images to a CSV file:
-
-.. doctest-remote-data::
-
-  with open usw...
-
+  ...     print(coll.res_title, coll.access_url)
+  NRA) VLA Sky Survey https://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
+  Sydney University Molonglo Sky Survey https://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=sumss&
 
 
 Search results
@@ -387,7 +379,7 @@ documentation).  Some attributes deserve a second look.
 
   >>> import pyvo as vo
   >>> colls = vo.regsearch(keywords=["NVSS"], servicetype='sia')
-  >>> nvss = colls[0]
+  >>> nvss = colls["NVSS"]
   >>> nvss.res_title
   'NRA) VLA Sky Survey'
 
@@ -402,7 +394,7 @@ the ``describe`` function.
 
 .. doctest-remote-data::
 
-  >>> nvss.describe()
+  >>> nvss.describe()   # doctest: +SKIP
   <title, shortname, IVOA ID, Acces modes, URL, description...>
 
 The method ``service`` will, for resources that only have a single
@@ -413,8 +405,8 @@ there is no telling what kind of service you will get back.
 
 .. doctest-remote-data::
 
-  >>> nvss = colls[0].service  # converts record to service object
-  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits")
+  >>> nvss = colls["NVSS"].service  # converts record to service object
+  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits") # doctest: +SKIP
 
 With this service object, we can either call its ``search`` function 
 directly or create query objects to get cutouts for a whole list of 
@@ -437,9 +429,9 @@ that takes the form of a
 
   >>> colls = vo.regsearch(keywords=["NVSS"], servicetype='sia')
   >>> for coll in colls:
-  >>>     print(coll.ivoid)
-  'ivo://nasa.heasarc/skyview/nvss'
-  'ivo://nasa.heasarc/skyview/sumss'
+  ...     print(coll.ivoid)
+  ivo://nasa.heasarc/skyview/nvss
+  ivo://nasa.heasarc/skyview/sumss
 
 This identifier can be used to retrieve a specific service from the 
 registry.
@@ -447,7 +439,7 @@ registry.
 .. doctest-remote-data::
 
   >>> nvss = vo.registry.ivoid2service('ivo://nasa.heasarc/skyview/nvss',servicetype='sia')
-  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits")
+  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits") # doctest: +SKIP
 
 When the registry query did not constrain the service type, you can use
 the ``access_modes`` method to see what capabilities are available.  For
@@ -487,40 +479,7 @@ and then you can run:
 
   >>> res.get_tables()  # doctest: +IGNORE_OUTPUT
   {'flashheros.data': <Table name="flashheros.data">... 29 columns ...</Table>, 'ivoa.obscore': <Table name="ivoa.obscore">... 0 columns ...</Table>}
-
-Summing up, there is a chain of classes connecting global discovery 
-with the individual datasets:
-
-.. doctest-remote-data::
-
-  >>> services = vo.regsearch(keywords=["NVSS"],
-                        servicetype='sia') 
-  >>> nvss_resource = services[0]
-  >>> nvss_service = nvss_resource.service 
-  >>> nvss_query = nvss_service.create_query(pos=(350.85, 58.815),
-                          size=0.25, 
-                          format="image/fits")
-  >>> images = nvss_query.execute()
-  >>> firstim = images[0]
-
-  >>> print(type(services))
-  >>> print(type(nvss_resource))
-  >>> print(type(nvss_service))
-  >>> print(type(nvss_query))
-  >>> print(type(images))
-  >>> print(type(firstim))
-  <class 'pyvo.registry.regtap.RegistryResults'>
-  <class 'pyvo.registry.regtap.RegistryResource'>
-  <class 'pyvo.dal.sia.SIAService'>
-  <class 'pyvo.dal.sia.SIAQuery'>
-  <class 'pyvo.dal.sia.SIAResults'>
-  <class 'pyvo.dal.sia.SIARecord'>
-
-Most of the time, it's not necessary to follow all these steps
-yourself, so there are functions and methods that provide syntactic
-shortcuts.  However, when you need some finer control over the
-process, it is possible to jump off the fast track and work directly
-with an underlying object.  
+ 
 
 Reference/API
 =============
