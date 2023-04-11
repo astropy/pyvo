@@ -18,7 +18,7 @@
   ``SIA2_PARAMETERS_DESC``. The old names now issue an
   ``AstropyDeprecationWarning``. [#419]
 
-- Registry search now finds SIA v2 services. [#422]
+- Registry search now finds SIA v2 services. [#422, #428]
 
 
 1.4 (2022-09-26)
