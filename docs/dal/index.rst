@@ -180,16 +180,16 @@ the ``examples`` attribute.
 
 .. doctest-remote-data::
 
-    >>> for e in tap_service.examples:
-    ...     print(e['QUERY'])   # doctest: +SKIP
+    >>> for entry in tap_service.examples:
+    ...     print(entry['QUERY'])   # doctest: +SKIP
     <query examples>
 
 Furthermore, one can find the names of the tables using:
 
 .. doctest-remote-data::
 
-    >>> for t in tap_service.tables.keys():
-    ...     print(t)    # doctest: +SKIP
+    >>> for tab_name in tap_service.tables.keys():
+    ...     print(tab_name)    # doctest: +SKIP
     <table names>
 
 And also the names of their columns:
