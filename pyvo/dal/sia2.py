@@ -150,6 +150,11 @@ def _tolist(value):
 class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
     """
     a representation of an SIA2 service
+
+    Note that within pyVO, SIA2 services are associated with the
+    (non-existing) standard id ivo://ivoa.net/std/sia2 rather than
+    ivo://ivoa.net/std/sia#query-2.0 as in the standard; users should
+    generally not notice that, though.
     """
 
     def __init__(self, baseurl, session=None):

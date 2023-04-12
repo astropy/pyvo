@@ -35,7 +35,8 @@ SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/" + v)
                         for k, v in [
     ("image", "sia"),
     ("sia", "sia"),
-    ("sia2", "sia#query-2.0"),
+    # SIA2 is irregular
+    # funky scheme used by SIA2 without breaking everything else
     ("spectrum", "ssa"),
     ("ssap", "ssa"),
     ("ssa", "ssa"),
@@ -268,10 +269,10 @@ class Servicetype(Constraint):
 
     You can also pass in the standards' ivoid (which
     generally looks like
-    ``ivo://ivoa.net/std/<standardname>`` and have to be URIs with
-    a scheme part in any case); note, however, that for standards
-    pyVO does not know about it will not build service instances for
-    you.
+    ``ivo://ivoa.net/std/<standardname>`` (except for SIA2) and have
+    to be URIs with a scheme part in any case); note, however, that for
+    standards pyVO does not know about it will not build service instances
+    for you.
 
     Multiple service types can be passed in; a match in that case
     is for records having any of the service types passed in.
@@ -297,22 +298,39 @@ class Servicetype(Constraint):
             match records that have any of them.
         """
         self.stdids = set()
+        self.extra_fragments = []
 
         for std in stds:
             if std in SERVICE_TYPE_MAP:
                 self.stdids.add(SERVICE_TYPE_MAP[std])
             elif "://" in std:
                 self.stdids.add(std)
+            elif std == 'sia2':
+                self.extra_fragments.append(
+                    "standard_id like 'ivo://ivoa.net/std/sia#query-2.%'")
             else:
                 raise dalq.DALQueryError("Service type {} is neither a full"
                                          " standard URI nor one of the bespoke identifiers"
-                                         " {}".format(std, ", ".join(SERVICE_TYPE_MAP)))
+                                         " {}, sia2".format(std, ", ".join(SERVICE_TYPE_MAP)))
+
+    def clone(self):
+        """returns a copy of this servicetype constraint.
+        """
+        new_constraint = Servicetype()
+        new_constraint.stdids = set(self.stdids)
+        new_constraint.extra_fragments = self.extra_fragments[:]
+        return new_constraint
 
     def get_search_condition(self):
         # we sort the stdids to make it easy for tests (and it's
         # virtually free for the small sets we have here).
-        return "standard_id IN ({})".format(
-            ", ".join(make_sql_literal(s) for s in sorted(self.stdids)))
+        fragments = []
+        std_ids = ", ".join(make_sql_literal(s)
+            for s in sorted(self.stdids))
+        if std_ids:
+            fragments.append(f"standard_id IN ({std_ids})")
+
+        return " OR ".join(fragments + self.extra_fragments)
 
     def include_auxiliary_services(self):
         """returns a Servicetype constraint that has self's
@@ -320,8 +338,13 @@ class Servicetype(Constraint):
 
         This is a convenience to maintain registry.search's signature.
         """
-        return Servicetype(*(self.stdids | set(
-            std + '#aux' for std in self.stdids)))
+        expanded = self.clone()
+        expanded.stdids |= set(
+            std + '#aux' for std in expanded.stdids)
+        if "standard_id like 'ivo://ivoa.net/std/sia#query-2.%'" in expanded.extra_fragments:
+            expanded.extra_fragments.append(
+                "standard_id like 'ivo://ivoa.net/std/sia#query-aux-2.%'")
+        return expanded
 
 
 class Waveband(Constraint):
@@ -735,7 +758,8 @@ class Temporal(Constraint):
 
 
 # NOTE: If you add new Contraint-s, don't forget to add them in
-# registry.__init__ and in docs/registry/index.rst.
+# registry.__init__, in docs/registry/index.rst and in the docstring
+# of regtap.query.
 
 
 def build_regtap_query(constraints):
