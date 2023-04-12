@@ -174,6 +174,31 @@ mean G-band magnitude between 19 - 20:
     2171810342771336704 323.25913736080776  51.94305655940998            19.0
     2180349528028140800  310.5233961869657   50.3486391034819            19.0
 
+To explore more query examples, you can try either the ``description`` 
+attribute for some services. For other services like this one, try 
+the ``examples`` attribute.
+
+.. doctest-remote-data::
+
+    >>> for e in tap_service.examples:
+    ...     print(e['QUERY'])   # doctest: +SKIP
+    <query examples>
+
+Furthermore, one can find the names of the tables using:
+
+.. doctest-remote-data::
+
+    >>> for t in tap_service.tables.keys():
+    ...     print(t)    # doctest: +SKIP
+    <table names>
+
+And also the names of their columns:
+
+.. doctest-remote-data::
+
+    >>> tap_service.search('select * from gaia.dr3lite', maxrec=1).table.columns    # doctest: +SKIP
+    <column names>
+
 If you know a TAP service's access URL, you can directly pass it to
 :py:class:`~pyvo.dal.TAPService` to obtain a service object. 
 Sometimes, such URLs are published in papers or passed around through
