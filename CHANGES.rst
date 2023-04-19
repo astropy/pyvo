@@ -14,7 +14,8 @@
 
 - Deprecate VOSI ``AvailabilityMixin``, this mean the deprecation of the
   inherited ``availability``, ``available``, and ``up_since`` properties
-  of DAL service classes, too. [#413]
+
+- Deprecating ``ivoid2service`` because it is ill-defined. [#439]
 
 
 1.4.1 (2023-03-07)

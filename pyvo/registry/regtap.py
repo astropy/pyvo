@@ -22,6 +22,7 @@ import os
 import warnings
 
 from astropy import table
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from . import rtcons
@@ -895,6 +896,9 @@ class RegistryResource(dalq.Record):
         return res
 
 
+@deprecated("1.5", "ivoid2service does not work in the presence of"
+    " multiple capabilities.  Use"
+    " registry.search(ivoid=...)[0].get_service('capname') instead.")
 def ivoid2service(ivoid, servicetype=None):
     """
     return service(s) for a given IVOID.
