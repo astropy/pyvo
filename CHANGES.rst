@@ -12,6 +12,10 @@
 
 - Registry search now finds SIA v2 services. [#422, #428]
 
+- Deprecate VOSI ``AvailabilityMixin``, this mean the deprecation of the
+  inherited ``availability``, ``available``, and ``up_since`` properties
+  of DAL service classes, too. [#413]
+
 
 1.4.1 (2023-03-07)
 ==================

@@ -5,7 +5,7 @@ VOSI classes and mixins
 from itertools import chain
 import requests
 
-from astropy.utils.decorators import lazyproperty
+from astropy.utils.decorators import lazyproperty, deprecated
 
 from .exceptions import DALServiceError
 from ..io import vosi
@@ -13,8 +13,7 @@ from ..utils.url import url_sibling
 from ..utils.decorators import stream_decode_content, response_decode_content
 from ..utils.http import use_session
 
-__all__ = [
-    'AvailabilityMixin', 'CapabilityMixin', 'VOSITables']
+__all__ = ['CapabilityMixin', 'VOSITables']
 
 
 class EndpointMixin():
@@ -44,10 +43,12 @@ class EndpointMixin():
         return response.raw
 
 
+@deprecated(since="1.5")
 class AvailabilityMixin(EndpointMixin):
     """
     Mixing for VOSI availability
     """
+    @deprecated(since="1.5")
     @stream_decode_content
     def _availability(self):
         """
@@ -57,10 +58,12 @@ class AvailabilityMixin(EndpointMixin):
         return self._get_endpoint('availability')
 
     @lazyproperty
+    @deprecated(since="1.5")
     def availability(self):
         return vosi.parse_availability(self._availability().read)
 
     @property
+    @deprecated(since="1.5")
     def available(self):
         """
         True if the service is available, False otherwise
@@ -68,6 +71,7 @@ class AvailabilityMixin(EndpointMixin):
         return self.availability.available
 
     @property
+    @deprecated(since="1.5")
     def up_since(self):
         """
         datetime the service was started

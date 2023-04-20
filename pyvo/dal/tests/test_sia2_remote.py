@@ -6,10 +6,12 @@ Tests for pyvo.dal.sia2 against remote services
 
 import pytest
 
+import astropy.units as u
+from astropy.utils.exceptions import AstropyDeprecationWarning
+
 from pyvo.dal.sia2 import search, SIA2Service
 from pyvo.dal.adhoc import DatalinkResults
 
-import astropy.units as u
 
 CADC_SIA_URL = 'https://ws.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/sia'
 
@@ -20,10 +22,19 @@ class TestSIACadc():
 
     def test_service(self):
         cadc = SIA2Service(baseurl=CADC_SIA_URL)
-        assert cadc.availability
-        assert cadc.availability.available
-        assert cadc.availability.notes
-        assert cadc.availability.notes[0] == 'service is accepting queries'
+
+        with pytest.raises(AstropyDeprecationWarning):
+            assert cadc.availability
+
+        with pytest.raises(AstropyDeprecationWarning):
+            assert cadc.availability.available
+
+        with pytest.raises(AstropyDeprecationWarning):
+            assert cadc.availability.notes
+
+        with pytest.raises(AstropyDeprecationWarning):
+            assert cadc.availability.notes[0] == 'service is accepting queries'
+
         assert cadc.capabilities
 
     @pytest.mark.xfail(reason="https://github.com/astropy/pyvo/issues/361")
