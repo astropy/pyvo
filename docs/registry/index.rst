@@ -394,8 +394,13 @@ the ``describe`` function.
 
 .. doctest-remote-data::
 
-  >>> nvss.describe()   # doctest: +SKIP
-  <title, shortname, IVOA ID, Acces modes, URL, description...>
+  >>> nvss.describe()   # doctest: +ELLIPSIS
+  NRA) VLA Sky Survey
+  Short Name: NVSS
+  IVOA Identifier: ivo://nasa.heasarc/skyview/nvss
+  Access modes: sia
+  Base URL: https://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
+  ...
 
 The method ``service`` will, for resources that only have a single
 capability, return a DAL service object ready for querying using the
@@ -406,7 +411,7 @@ there is no telling what kind of service you will get back.
 .. doctest-remote-data::
 
   >>> nvss = colls["NVSS"].service  # converts record to service object
-  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits") # doctest: +SKIP
+  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits") # doctest: +IGNORE_OUTPUT
 
 With this service object, we can either call its ``search`` function 
 directly or create query objects to get cutouts for a whole list of 
@@ -439,7 +444,7 @@ registry.
 .. doctest-remote-data::
 
   >>> nvss = vo.registry.ivoid2service('ivo://nasa.heasarc/skyview/nvss',servicetype='sia')
-  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits") # doctest: +SKIP
+  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits") # doctest: +IGNORE_OUTPUT
 
 When the registry query did not constrain the service type, you can use
 the ``access_modes`` method to see what capabilities are available.  For
