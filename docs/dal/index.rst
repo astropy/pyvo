@@ -174,30 +174,43 @@ mean G-band magnitude between 19 - 20:
     2171810342771336704 323.25913736080776  51.94305655940998            19.0
     2180349528028140800  310.5233961869657   50.3486391034819            19.0
 
-To explore more query examples, you can try either the ``description`` 
+One can find the names of the tables using:
+
+.. doctest-remote-data::
+
+    >>> print([tab_name for tab_name in tap_service.tables.keys()])  # doctest: +ELLIPSIS 
+    ['amanda.nucand', 'annisred.main', 'antares.data', ... , 'wfpdb.main', 'wise.main', 'zcosmos.data']
+
+And also the names of the columns from a known table:
+
+.. doctest-remote-data::
+
+    >>> tap_service.search('select * from gaia.dr3lite', maxrec=1).table.columns    # doctest: +ELLIPSIS
+    <TableColumns names=('source_id','ra','dec', ... ,'random_index','ruwe')>
+
+Furthermore, to explore more query examples, you can try either the ``description`` 
 attribute for some services. For other services like this one, try 
 the ``examples`` attribute.
 
 .. doctest-remote-data::
 
     >>> for entry in tap_service.examples:
-    ...     print(entry['QUERY'])   # doctest: +SKIP
-    <query examples>
-
-Furthermore, one can find the names of the tables using:
-
-.. doctest-remote-data::
-
-    >>> for tab_name in tap_service.tables.keys():
-    ...     print(tab_name)    # doctest: +SKIP
-    <table names>
-
-And also the names of their columns:
-
-.. doctest-remote-data::
-
-    >>> tap_service.search('select * from gaia.dr3lite', maxrec=1).table.columns    # doctest: +SKIP
-    <column names>
+    ...     print(entry['QUERY'])   # doctest: +ELLIPSIS
+    SELECT TOP 50 l.id, l.pmra as lpmra, l.pmde as lpmde,
+    g.source_id, g.pmra as gpmra, g.pmdec as gpmde
+    FROM
+    lspm.main as l
+    JOIN gaia.dr3lite AS g
+    ON (DISTANCE(g.ra, g.dec, l.raj2000, l.dej2000)<0.01) -- rough pre-selection
+    WHERE
+    DISTANCE(
+        ivo_epoch_prop_pos(
+        g.ra, g.dec, g.parallax,
+        g.pmra, g.pmdec, g.radial_velocity,
+        2016, 2000),
+        POINT(l.raj2000, l.dej2000)
+    )<0.0002                            -- fine selection with PMs
+    ...
 
 If you know a TAP service's access URL, you can directly pass it to
 :py:class:`~pyvo.dal.TAPService` to obtain a service object. 
@@ -247,8 +260,8 @@ starting it, it creates a new object :py:class:`~pyvo.dal.AsyncTAPJob`.
 
 .. doctest-remote-data::
 
-    >>> job.url     # doctest: +SKIP
-    <job-url>
+    >>> job.url     # doctest: +ELLIPSIS
+    'http://dc.zah.uni-heidelberg.de/__system__/tap/run/async/...'
 
 The job URL mentioned before is available in the ``url`` attribute. 
 Clicking on the URL leads you to the query itself, where you can check 
@@ -275,14 +288,14 @@ When you are ready, you can start the job:
 
 .. doctest-remote-data::
 
-    >>> job.run()   # doctest: +SKIP
+    >>> job.run()   # doctest: +IGNORE_OUTPUT
 
 This will put the job into the QUEUED state.  Depending on how busy
 the server is, it will immediately go to the EXECUTING status:
 
 .. doctest-remote-data::
 
-    >>> job.phase   # doctest: +SKIP
+    >>> job.phase   # doctest: +IGNORE_OUTPUT
     'EXECUTING'
 
 The job will eventually end up in one of the phases:
@@ -299,9 +312,9 @@ After the job ends up in COMPLETED, you can retrieve the result:
 
 .. doctest-remote-data::
 
-    >>> job.phase   # doctest: +SKIP
+    >>> job.phase   # doctest: +IGNORE_OUTPUT
     'COMPLETED'
-    >>> job.fetch_result()  # doctest: +SKIP
+    >>> job.fetch_result()  # doctest: +IGNORE_OUTPUT
     (result table as shown before)
 
 Eventually, it is friendly to clean up the job rather than relying
