@@ -302,7 +302,7 @@ it returns 33 matching services.
 
   >>> archives = vo.regsearch(servicetype='image', waveband='x-ray') 
   >>> pos = SkyCoord.from_name('Cas A')
-  >>> len(archives)
+  >>> len(archives)   # doctest: +IGNORE_OUTPUT
   33
 
 There are also other type of services that you can choose via the 
@@ -321,11 +321,12 @@ and access URL:
 
 .. doctest-remote-data::
 
-  >>> for service in archives:    # doctest: +SKIP
+  >>> for service in archives:    # doctest: +ELLIPSIS
   ...     print(service.res_title, service.access_url)
-  (...)
-  <Service titles> <Access URL>
-  (...)
+  Chandra X-ray Observatory Data Archive https://cda.harvard.edu/cxcsiap/queryImages?
+  Chandra Source Catalog http://cda.cfa.harvard.edu/cscsiap/queryImages?
+  Chandra Source Catalog Release 1 http://cda.cfa.harvard.edu/csc1siap/queryImages?
+  ...
 
 It is not neccessary to keep track of the URL because you can search 
 images directly from the registry record, for example using the Chandra 
@@ -335,7 +336,7 @@ the position and size for the desired object.
 .. doctest-remote-data::
 
   >>> images = archives["CDA"].search(pos=pos, size=0.25)
-  >>> len(images)   # doctest: +SKIP
+  >>> len(images)   # doctest: +IGNORE_OUTPUT
   822
 
 Sometimes you are looking for a type of object. For this purpose, the  
@@ -345,8 +346,8 @@ all catalogs related to blazars observed with Fermi:
 .. doctest-remote-data::
 
   >>> cats = vo.regsearch(keywords=['blazar','Fermi'])
-  >>> len(cats)   # doctest: +SKIP
-  541
+  >>> len(cats)   # doctest: +IGNORE_OUTPUT
+  551
 
 Or you already know the particular catalog but not the base URL for 
 that service. For example, you want to get cutout images from the 
@@ -385,7 +386,7 @@ documentation).  Some attributes deserve a second look.
 
 If you are looking for a particular data collection or catalog, as 
 we did above when we looked for the NVSS archive, often simply 
-reviweing the titles is sufficient. Other times, particularly when 
+reviewing the titles is sufficient. Other times, particularly when 
 you are not sure what you are looking for, it helps to look deeper. 
 
 A selection of the resource metadata, including the title, shortname and
@@ -411,7 +412,12 @@ there is no telling what kind of service you will get back.
 .. doctest-remote-data::
 
   >>> nvss = colls["NVSS"].service  # converts record to service object
-  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits") # doctest: +IGNORE_OUTPUT
+  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits") # doctest: +ELLIPSIS
+  <Table length=1>
+  Survey    Ra   ... LogicalName
+  object float64 ...    object  
+  ------ ------- ... -----------
+    nvss  350.85 ...           1
 
 With this service object, we can either call its ``search`` function 
 directly or create query objects to get cutouts for a whole list of 
@@ -444,7 +450,12 @@ registry.
 .. doctest-remote-data::
 
   >>> nvss = vo.registry.ivoid2service('ivo://nasa.heasarc/skyview/nvss',servicetype='sia')
-  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits") # doctest: +IGNORE_OUTPUT
+  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits") # doctest: +ELLIPSIS
+  <Table length=1>
+  Survey    Ra   ... LogicalName
+  object float64 ...    object  
+  ------ ------- ... -----------
+    nvss  350.85 ...           1
 
 When the registry query did not constrain the service type, you can use
 the ``access_modes`` method to see what capabilities are available.  For
