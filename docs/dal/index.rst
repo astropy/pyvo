@@ -162,7 +162,8 @@ mean G-band magnitude between 19 - 20:
     ...     WHERE phot_g_mean_mag BETWEEN 19 AND 20
     ...     ORDER BY phot_g_mean_mag
     ...     """
-    >>> tap_service.search(ex_query)
+    >>> result = tap_service.search(ex_query)
+    >>> print(result)
     <Table length=5>
         source_id              ra                dec         phot_g_mean_mag
                             deg                deg               mag      
@@ -174,28 +175,13 @@ mean G-band magnitude between 19 - 20:
     2171810342771336704 323.25913736080776  51.94305655940998            19.0
     2180349528028140800  310.5233961869657   50.3486391034819            19.0
 
-One can find the names of the tables using:
-
-.. doctest-remote-data::
-
-    >>> print([tab_name for tab_name in tap_service.tables.keys()])  # doctest: +ELLIPSIS 
-    ['amanda.nucand', 'annisred.main', 'antares.data', ... , 'wfpdb.main', 'wise.main', 'zcosmos.data']
-
-And also the names of the columns from a known table:
-
-.. doctest-remote-data::
-
-    >>> tap_service.search('select * from gaia.dr3lite', maxrec=1).table.columns    # doctest: +ELLIPSIS
-    <TableColumns names=('source_id','ra','dec', ... ,'random_index','ruwe')>
-
-Furthermore, to explore more query examples, you can try either the ``description`` 
+To explore more query examples, you can try either the ``description`` 
 attribute for some services. For other services like this one, try 
 the ``examples`` attribute.
 
 .. doctest-remote-data::
 
-    >>> for entry in tap_service.examples:
-    ...     print(entry['QUERY'])   # doctest: +ELLIPSIS
+    >>> print(tap_service.examples[0]['QUERY'])  
     SELECT TOP 50 l.id, l.pmra as lpmra, l.pmde as lpmde,
     g.source_id, g.pmra as gpmra, g.pmdec as gpmde
     FROM
@@ -210,7 +196,22 @@ the ``examples`` attribute.
         2016, 2000),
         POINT(l.raj2000, l.dej2000)
     )<0.0002                            -- fine selection with PMs
-    ...
+
+Furthermore, one can find the names of the tables using:
+
+.. doctest-remote-data::
+
+    >>> print([tab_name for tab_name in tap_service.tables.keys()])  # doctest: +ELLIPSIS, +IGNORE_WARNINGS
+    ['amanda.nucand', 'annisred.main', 'antares.data', ..., 'wfpdb.main', 'wise.main', 'zcosmos.data']
+    
+
+And also the names of the columns from a known table, for instance 
+the first three columns:
+
+.. doctest-remote-data::
+
+    >>> result.table.columns[:3]    # doctest: +IGNORE_WARNINGS
+    <TableColumns names=('source_id','ra','dec')>
 
 If you know a TAP service's access URL, you can directly pass it to
 :py:class:`~pyvo.dal.TAPService` to obtain a service object. 
@@ -288,7 +289,8 @@ When you are ready, you can start the job:
 
 .. doctest-remote-data::
 
-    >>> job.run()   # doctest: +IGNORE_OUTPUT
+    >>> job.run()   # doctest: +ELLIPSIS
+    <pyvo.dal.tap.AsyncTAPJob object at 0x...>
 
 This will put the job into the QUEUED state.  Depending on how busy
 the server is, it will immediately go to the EXECUTING status:
@@ -312,9 +314,9 @@ After the job ends up in COMPLETED, you can retrieve the result:
 
 .. doctest-remote-data::
 
-    >>> job.phase   # doctest: +IGNORE_OUTPUT
+    >>> job.phase  # doctest: +IGNORE_OUTPUT
     'COMPLETED'
-    >>> job.fetch_result()  # doctest: +IGNORE_OUTPUT
+    >>> job.fetch_result()  # doctest: +SKIP
     (result table as shown before)
 
 Eventually, it is friendly to clean up the job rather than relying
