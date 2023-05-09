@@ -11,6 +11,7 @@ sphinx:
 # Install regular dependencies.
 # Then, install special pinning for RTD.
 build:
+  os: ubuntu-22.04
   tools:
     python: "3.10"
 
