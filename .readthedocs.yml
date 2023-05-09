@@ -10,8 +10,11 @@ sphinx:
 
 # Install regular dependencies.
 # Then, install special pinning for RTD.
+build:
+  tools:
+    python: "3.10"
+
 python:
-  version: 3.8
   system_packages: false
   install:
     - requirements: docs/requirements.txt
