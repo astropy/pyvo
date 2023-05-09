@@ -449,7 +449,7 @@ registry.
 
 .. doctest-remote-data::
 
-  >>> nvss = vo.registry.ivoid2service('ivo://nasa.heasarc/skyview/nvss',servicetype='sia')
+  >>> nvss = vo.registry.search(ivoid='ivo://nasa.heasarc/skyview/nvss')[0].get_service('sia')
   >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits") # doctest: +ELLIPSIS
   <Table length=1>
   Survey    Ra   ... LogicalName
