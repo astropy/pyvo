@@ -17,6 +17,9 @@
 
 - Deprecating ``ivoid2service`` because it is ill-defined. [#439]
 
+- Fix poor polling behavior when running an async query against a
+  TAP v1.1 service with unsupported WAIT parameter. [#440]
+
 
 1.4.1 (2023-03-07)
 ==================

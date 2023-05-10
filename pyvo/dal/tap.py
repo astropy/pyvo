@@ -5,7 +5,6 @@ A module for accessing remote source and observation catalogs
 from functools import partial
 from datetime import datetime
 from time import sleep
-from packaging.version import Version
 
 import requests
 from urllib.parse import urlparse, urljoin
@@ -922,10 +921,9 @@ class AsyncTAPJob:
             if cur_phase in phases:
                 break
 
-            # fallback for uws 1.0
-            if Version(self._job.version) < Version("1.1"):
-                sleep(interval)
-                interval = min(120, interval * increment)
+            # fallback for uws 1.0 or unsupported WAIT parameter
+            sleep(interval)
+            interval = min(120, interval * increment)
 
         return self
 
