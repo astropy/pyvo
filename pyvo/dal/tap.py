@@ -922,10 +922,9 @@ class AsyncTAPJob:
             if cur_phase in phases:
                 break
 
-            # fallback for uws 1.0
-            if Version(self._job.version) < Version("1.1"):
-                sleep(interval)
-                interval = min(120, interval * increment)
+            # fallback for uws 1.0 or unsupported WAIT parameter
+            sleep(interval)
+            interval = min(120, interval * increment)
 
         return self
 
