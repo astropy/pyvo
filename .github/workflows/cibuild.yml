@@ -14,9 +14,8 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    needs: stylecheck
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           - name: py38 oldest dependencies, Linux
@@ -49,9 +48,8 @@ jobs:
   mac_windows:
     runs-on: ${{ matrix.os }}
     name: ${{ matrix.os }} py310
-    needs: tests
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
     steps:
@@ -85,7 +83,6 @@ jobs:
 
   devdeps:
     runs-on: ubuntu-latest
-    needs: tests
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.11
