@@ -265,7 +265,7 @@ class Language(Element):
         """
         ivoid = ivoid.lower()
         for features in self.languagefeaturelists:
-            if features.type.lower()==ivoid:
+            if features.type.lower() == ivoid:
                 return features
         return []
 
@@ -295,7 +295,7 @@ class Language(Element):
         A `LanguageFeature` or None.
         """
         for feature in self.get_feature_list(ivoid):
-            if feature.form==form:
+            if feature.form == form:
                 return feature
 
         return None

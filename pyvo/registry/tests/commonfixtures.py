@@ -66,9 +66,8 @@ class _FakeTAPService:
 
 FAKE_GAVO = _FakeTAPService({
     ("ivo://ivoa.net/std/TAPRegExt#features-adql-sets", "UNION"),
-        ("ivo://org.gavo.dc/std/exts#extra-adql-keywords", "MOC"),
-    }, {
+    ("ivo://org.gavo.dc/std/exts#extra-adql-keywords", "MOC"), }, {
         "rr.stc_spatial": None,
         "rr.stc_spectral": None,
-        "rr.stc_temporal": None,})
+        "rr.stc_temporal": None, })
 FAKE_PLAIN = _FakeTAPService(frozenset(), {})

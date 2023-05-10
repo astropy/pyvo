@@ -768,22 +768,18 @@ class TestTAPCapabilities:
     def test_get_missing_feature(self, tapservice):
         assert tapservice.get_tap_cap().get_adql().get_feature(
             "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo",
-            "Garage") == None
+            "Garage") is None
 
     def test_get_feature(self, tapservice):
         feature = tapservice.get_tap_cap().get_adql().get_feature(
             "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo",
             "AREA")
         assert feature.form == "AREA"
-        assert feature.description == None
+        assert feature.description is None
 
     def test_missing_udf(self, tapservice):
-        assert (tapservice.get_tap_cap().get_adql(
-            ).get_udf("duff function")
-            == None)
+        assert tapservice.get_tap_cap().get_adql().get_udf("duff function") is None
 
     def test_get_udf(self, tapservice):
-        func = tapservice.get_tap_cap().get_adql(
-            ).get_udf("IVO_hasword") # case insensitive!
-        assert (func.form
-            == "ivo_hasword(haystack TEXT, needle TEXT) -> INTEGER")
+        func = tapservice.get_tap_cap().get_adql().get_udf("IVO_hasword")  # case insensitive!
+        assert func.form == "ivo_hasword(haystack TEXT, needle TEXT) -> INTEGER"

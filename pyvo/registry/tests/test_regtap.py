@@ -892,9 +892,9 @@ def test_endpoint_switching():
     previous_url = regtap.REGISTRY_BASEURL
     try:
         regtap.choose_RegTAP_service(alt_svc)
-        assert (regtap.get_RegTAP_service()._baseurl
-            == alt_svc)
+        assert regtap.get_RegTAP_service()._baseurl == alt_svc
 
         res = regtap.search(keywords="wirr")
+        assert len(res) > 0
     finally:
         regtap.choose_RegTAP_service(previous_url)

@@ -24,7 +24,7 @@ def _build_regtap_query_with_fake(
         service=FAKE_GAVO,
         **kwargs):
     return rtcons.build_regtap_query(
-        *args,  service=service, **kwargs)
+        *args, service=service, **kwargs)
 
 
 class TestAbstractConstraint:
@@ -84,24 +84,25 @@ class TestFreetextConstraint:
         assert rtcons.Freetext("α Cen's planets").get_search_condition(FAKE_GAVO) == (
             "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'α Cen''s planets')"
             " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'α Cen''s planets')"
-            " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%α Cen''s planets%')")
+            " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject"
+            " ILIKE '%α Cen''s planets%')")
 
     def test_multipleLiterals(self):
-        assert rtcons.Freetext("term1", "term2"
-            ).get_search_condition(FAKE_GAVO) == (
+        assert rtcons.Freetext("term1", "term2").get_search_condition(FAKE_GAVO) == (
             "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'term1')"
             " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'term1')"
             " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%term1%')"
-        " AND "
-        "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'term2')"
-        " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'term2')"
-        " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%term2%')")
+            " AND "
+            "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'term2')"
+            " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'term2')"
+            " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%term2%')")
 
     def test_adaption_to_service(self):
-        assert rtcons.Freetext("term1", "term2"
-            ).get_search_condition(FAKE_PLAIN) == (
-            "( 1=ivo_hasword(res_description, 'term1') OR  1=ivo_hasword(res_title, 'term1') OR  rr.res_subject.res_subject ILIKE '%term1%')"
-            " AND ( 1=ivo_hasword(res_description, 'term2') OR  1=ivo_hasword(res_title, 'term2') OR  rr.res_subject.res_subject ILIKE '%term2%')")
+        assert rtcons.Freetext("term1", "term2").get_search_condition(FAKE_PLAIN) == (
+            "( 1=ivo_hasword(res_description, 'term1') OR  1=ivo_hasword(res_title, 'term1')"
+            " OR  rr.res_subject.res_subject ILIKE '%term1%')"
+            " AND ( 1=ivo_hasword(res_description, 'term2') OR  1=ivo_hasword(res_title, 'term2')"
+            " OR  rr.res_subject.res_subject ILIKE '%term2%')")
 
 
 class TestAuthorConstraint:
@@ -150,7 +151,7 @@ class TestServicetypeConstraint:
         assert (
             rtcons.Servicetype("conesearch", "sia2").get_search_condition(FAKE_GAVO)
             == ("standard_id IN ('ivo://ivoa.net/std/conesearch')"
-                    " OR standard_id like 'ivo://ivoa.net/std/sia#query-2.%'"))
+                " OR standard_id like 'ivo://ivoa.net/std/sia#query-2.%'"))
 
     def test_sia2_aux(self):
         constraint = rtcons.Servicetype("conesearch", "sia2").include_auxiliary_services()
@@ -294,7 +295,8 @@ class TestSpectralConstraint:
 
     def test_energy_eV(self):
         cons = registry.Spectral(5 * u.eV)
-        assert cons.get_search_condition(FAKE_GAVO) == "8.01088317e-19 BETWEEN spectral_start AND spectral_end"
+        assert (cons.get_search_condition(FAKE_GAVO)
+                == "8.01088317e-19 BETWEEN spectral_start AND spectral_end")
 
     def test_energy_interval(self):
         cons = registry.Spectral((1e-10 * u.erg, 2e-10 * u.erg))
@@ -303,7 +305,8 @@ class TestSpectralConstraint:
 
     def test_wavelength(self):
         cons = registry.Spectral(5000 * u.Angstrom)
-        assert cons.get_search_condition(FAKE_GAVO) == "3.9728917142978567e-19 BETWEEN spectral_start AND spectral_end"
+        assert (cons.get_search_condition(FAKE_GAVO)
+                == "3.9728917142978567e-19 BETWEEN spectral_start AND spectral_end")
 
     def test_wavelength_interval(self):
         cons = registry.Spectral((20 * u.cm, 22 * u.cm))
@@ -366,8 +369,7 @@ class TestWhereClauseBuilding:
     @staticmethod
     def where_clause_for(*args, **kwargs):
         cons = list(args) + rtcons.keywords_to_constraints(kwargs)
-        return _build_regtap_query_with_fake(cons
-            ).split("\nWHERE\n", 1)[1].split("\nGROUP BY\n")[0]
+        return _build_regtap_query_with_fake(cons).split("\nWHERE\n", 1)[1].split("\nGROUP BY\n")[0]
 
     @pytest.mark.usefixtures('messenger_vocabulary')
     def test_from_constraints(self):
@@ -469,5 +471,5 @@ class TestSelectClause:
                     "source_format, "
                     "source_value, "
                     "region_of_regard, "
-                    "waveband, "
-                    "alt_identifier"))
+                    "alt_identifier, "
+                    "waveband"))

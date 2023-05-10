@@ -682,15 +682,13 @@ class Spatial(Constraint):
         # MOC-based geometries but does not have a MOC function.
         if not service.get_tap_cap().get_adql().get_feature(
                 "ivo://org.gavo.dc/std/exts#extra-adql-keywords", "MOC"):
-                raise RegTAPFeatureMissing("Current RegTAP service"
-                    " does not support MOC.")
+            raise RegTAPFeatureMissing("Current RegTAP service does not support MOC.")
 
         # We should compare case-insensitively here, but then we don't
         # with delimited identifiers -- in the end, that would have to
         # be handled in dal.vosi.VOSITables.
-        if not "rr.stc_spatial" in service.tables:
-                raise RegTAPFeatureMissing("stc_spatial missing on"
-                    " current RegTAP service")
+        if "rr.stc_spatial" not in service.tables:
+            raise RegTAPFeatureMissing("stc_spatial missing on current RegTAP service")
 
         return super().get_search_condition(service)
 
@@ -785,9 +783,8 @@ class Spectral(Constraint):
         raise ValueError(f"Cannot make a spectral quantity out of {quant}")
 
     def get_search_condition(self, service):
-        if not "rr.stc_spectral" in service.tables:
-                raise RegTAPFeatureMissing("stc_spectral missing on"
-                    " current RegTAP service")
+        if "rr.stc_spectral" not in service.tables:
+            raise RegTAPFeatureMissing("stc_spectral missing on current RegTAP service")
 
         return super().get_search_condition(service)
 
@@ -864,9 +861,8 @@ class Temporal(Constraint):
         return val
 
     def get_search_condition(self, service):
-        if not "rr.stc_temporal" in service.tables:
-                raise RegTAPFeatureMissing("stc_temporal missing on"
-                    " current RegTAP service")
+        if "rr.stc_temporal" not in service.tables:
+            raise RegTAPFeatureMissing("stc_temporal missing on current RegTAP service")
 
         return super().get_search_condition(service)
 
