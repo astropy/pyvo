@@ -5,7 +5,6 @@ A module for accessing remote source and observation catalogs
 from functools import partial
 from datetime import datetime
 from time import sleep
-from packaging.version import Version
 
 import requests
 from urllib.parse import urlparse, urljoin
