@@ -878,11 +878,10 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         to retrieve the dataset described by this record.  None is returned
         if no such column exists.
         """
-        dataurl = super().getdataurl()
-        if dataurl is None:
+        if self.acref is not None:
             return self.acref
         else:
-            return dataurl
+            return super().getdataurl()
 
     def suggest_dataset_basename(self):
         """
