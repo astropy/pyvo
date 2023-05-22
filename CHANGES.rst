@@ -1,6 +1,8 @@
 1.5 (unreleased)
 ================
 
+- Fixed TAPRecord to inherit session (as already in S*ARecord). 
+
 - Added convenience method DALResults.to_qtable() that returns an
   astropy.table.QTable object. [#384]
 
