@@ -1,8 +1,6 @@
 1.5 (unreleased)
 ================
 
-- Fixed TAPRecord to inherit session (as already in S*ARecord). 
-
 - Added convenience method DALResults.to_qtable() that returns an
   astropy.table.QTable object. [#384]
 
@@ -22,6 +20,10 @@
 - Fix poor polling behavior when running an async query against a
   TAP v1.1 service with unsupported WAIT parameter. [#440]
 
+1.4.2 (unreleased)
+==================
+
+- Fixed TapResults to inherit session. [#447]
 
 1.4.1 (2023-03-07)
 ==================
@@ -62,7 +64,7 @@
 
 - pyvo.dal warns on results with overflow status. [#329]
 
-- Allow session to be passed through in SSA and DataLink. [#327]
+- Allow session to be passed through in SSA, SCR, and DataLink. [#327]
 
 - pyvo.dal.tap.AsyncTAPJob treats parameter names as case-insensitive when
   retrieving the query from the job record. [#357]
