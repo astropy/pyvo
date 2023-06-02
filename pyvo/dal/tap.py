@@ -1179,7 +1179,7 @@ class TAPResults(DatalinkResultsMixin, DALResults):
         --------
         Record
         """
-        return TAPRecord(self, index)
+        return TAPRecord(self, index, session=self._session)
 
 
 class TAPRecord(SodaRecordMixin, DatalinkRecordMixin, Record):
