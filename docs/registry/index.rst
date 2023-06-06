@@ -296,10 +296,10 @@ it returns 33 matching services.
 
   >>> import pyvo as vo
   >>> from astropy.coordinates import SkyCoord
-
+  >>>
   >>> import warnings
   >>> warnings.filterwarnings('ignore', module="astropy.io.votable.*")
-
+  >>>
   >>> archives = vo.regsearch(servicetype='image', waveband='x-ray') 
   >>> pos = SkyCoord.from_name('Cas A')
   >>> len(archives)   # doctest: +IGNORE_OUTPUT
