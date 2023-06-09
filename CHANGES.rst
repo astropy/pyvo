@@ -49,7 +49,11 @@ Enhancements and Fixes
 Deprecations and Removals
 -------------------------
 
+
 - SodaRecordMixin no longer will use a datalink#links endpoint for soda [#580]
+
+- Deprecating the use of "image" and "spectrum" in registry Servicetype
+  constraints [#449]
 
 
 1.5.3 (unreleased)

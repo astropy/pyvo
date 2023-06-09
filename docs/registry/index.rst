@@ -303,13 +303,13 @@ instance.  The opening example could be written like this:
 
   >>> from astropy.coordinates import SkyCoord
   >>> my_obj = SkyCoord.from_name("Bellatrix")
-  >>> for res in registry.search(waveband="infrared", servicetype="spectrum"):
+  >>> for res in registry.search(waveband="infrared", servicetype="ssap"):
   ...     print(res.service.search(pos=my_obj, size=0.001))
   ...
 
 In reality, you will have to add some error handling to this kind of
 all-VO queries: in a wide and distributed network, some service is
-always down.  See `Appendix: Robust All-VO Queries`_
+always down.  See `Appendix: Robust All-VO Queries`_.
 
 The central point is: With a ``servicetype`` constraint,
 each result has a well-defined ``service`` attribute that contains some
@@ -644,3 +644,7 @@ run all-VO queries without reading at least this sentence):
      148.204840298431    29.1690999975089
            243.044008          -51.778222
    321.63278049999997 -54.579285999999996
+
+Note that even this is not enough to reliably cover use cases like „give
+me all images of M1 in the X-Ray in the VO“.  In some future version,
+pyVO will come with higher-level functionality for such tasks.
