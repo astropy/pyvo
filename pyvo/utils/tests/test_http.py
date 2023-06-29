@@ -4,10 +4,12 @@ Tests for pyvo.utils.http
 """
 
 import platform
+
 from pyvo.utils.http import create_session
 from pyvo.version import version
 
 
 def test_create_session():
     test_session = create_session()
-    assert test_session.headers['User-Agent'] == 'python-pyvo/{} ({})'.format(version, platform.system())
+    assert (test_session.headers['User-Agent']
+            == f'python-pyvo/{version} ({platform.system()} {platform.python_version()})')
