@@ -6,10 +6,7 @@ import contextlib
 import os
 import tempfile
 
-try:
-    from astropy.samp import SAMPIntegratedClient
-except ImportError:
-    from astropy.vo.samp import SAMPIntegratedClient
+from astropy.samp import SAMPIntegratedClient
 
 
 __all__ = [

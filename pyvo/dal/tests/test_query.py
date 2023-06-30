@@ -5,10 +5,7 @@ Tests for pyvo.dal.query
 """
 from functools import partial
 
-try:
-    from contextlib import ExitStack
-except ImportError:
-    from contextlib2 import ExitStack
+from contextlib import ExitStack
 
 from os import listdir
 
