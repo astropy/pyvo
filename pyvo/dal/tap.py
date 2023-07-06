@@ -857,6 +857,15 @@ class AsyncTAPJob:
 
     @property
     def uws_version(self):
+        """
+        the version of the UWS serving this async job
+
+        Asynchronous TAP jobs are managed using a standard called Universal
+        Worker Service (UWS). For instance, starting version 1.1, you can
+        have long polls, which save on monitoring requests.  Normal users
+        generally will not have to look at this.
+
+        """
         self._update()
         return self._job.version
 
@@ -1036,6 +1045,13 @@ class TAPQuery(DALQuery):
 
     @property
     def queryurl(self):
+        """
+        the URL to which to submit queries
+
+        In TAP, that varies depending on whether we run sync or async
+        queries.
+
+        """
         return '{baseurl}/{mode}'.format(baseurl=self.baseurl, mode=self._mode)
 
     def execute_stream(self, post=False):
