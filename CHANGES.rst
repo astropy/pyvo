@@ -20,6 +20,9 @@
 - Fix poor polling behavior when running an async query against a
   TAP v1.1 service with unsupported WAIT parameter. [#440]
 
+- Adding python version to User-Agent. [#452]
+
+
 1.4.2 (unreleased)
 ==================
 

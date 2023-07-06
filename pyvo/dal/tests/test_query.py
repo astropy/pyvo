@@ -107,8 +107,8 @@ def register_mocks(mocker):
 
         def useragent_callback(request, context):
             assert 'User-Agent' in request.headers
-            assert request.headers['User-Agent'] == 'python-pyvo/{} ({})'.format(
-                version, platform.system())
+            assert request.headers['User-Agent'] == 'pyVO/{} Python/{} ({})'.format(
+                version, platform.python_version(), platform.system())
             return get_pkg_data_contents('data/query/basic.xml')
 
         matchers.append(stack.enter_context(mocker.register_uri(
