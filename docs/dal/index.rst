@@ -337,7 +337,7 @@ region is always circular with ``pos`` as center:
 
 .. doctest-remote-data::
 
-    >>> ssa_service = vo.dal.SSAService("http://www.isdc.unige.ch/vo-services/lc")
+    >>> ssa_service = vo.dal.SSAService("https://irsa.ipac.caltech.edu/SSA")
     >>> ssa_results = ssa_service.search(pos=pos, diameter=size)
 
 SSA queries can be further constrained by the ``band`` and ``time`` parameters.
@@ -346,8 +346,7 @@ SSA queries can be further constrained by the ``band`` and ``time`` parameters.
 
     >>> ssa_results = ssa_service.search(
     ...     pos=pos, diameter=size,
-    ...     time=time, band=Quantity((1e-13, 1e-12), unit="meter")
-    ... )
+    ...     time=Time((53000, 54000), format='mjd'), band=Quantity((1e-13, 1e-12), unit="m"))
 
 
 .. _pyvo-scs:
