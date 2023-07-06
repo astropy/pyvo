@@ -146,10 +146,196 @@ Table Access Protocol
 
     -- `Table Access Protocol <https://www.ivoa.net/documents/TAP/>`_
 
+
+Consider the following example for using TAP and ADQL, retrieving 5
+objects from the GAIA DR3 database, showing their id, position and
+mean G-band magnitude between 19 - 20:
+
 .. doctest-remote-data::
 
+    >>> import pyvo as vo
     >>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap")
-    >>> tap_results = tap_service.search("SELECT TOP 10 * FROM ivoa.obscore")
+    >>> ex_query = """
+    ...     SELECT TOP 5 
+    ...     source_id, ra, dec, phot_g_mean_mag 
+    ...     FROM gaia.dr3lite
+    ...     WHERE phot_g_mean_mag BETWEEN 19 AND 20
+    ...     ORDER BY phot_g_mean_mag
+    ...     """
+    >>> result = tap_service.search(ex_query)
+    >>> print(result)
+    <Table length=5>
+        source_id              ra                dec         phot_g_mean_mag
+                            deg                deg               mag      
+        int64             float64            float64           float32    
+    ------------------- ------------------ ------------------ ---------------
+    2162809607452221440 315.96596187101636 45.945474015208106            19.0
+    2000273643933171456  337.1829026565382   50.7218533537033            19.0
+    2171530448339798784  323.9151025188806  51.27690705826792            19.0
+    2171810342771336704 323.25913736080776  51.94305655940998            19.0
+    2180349528028140800  310.5233961869657   50.3486391034819            19.0
+
+To explore more query examples, you can try either the ``description`` 
+attribute for some services. For other services like this one, try 
+the ``examples`` attribute.
+
+.. doctest-remote-data::
+
+    >>> print(tap_service.examples[0]['QUERY'])  
+    SELECT TOP 50 l.id, l.pmra as lpmra, l.pmde as lpmde,
+    g.source_id, g.pmra as gpmra, g.pmdec as gpmde
+    FROM
+    lspm.main as l
+    JOIN gaia.dr3lite AS g
+    ON (DISTANCE(g.ra, g.dec, l.raj2000, l.dej2000)<0.01) -- rough pre-selection
+    WHERE
+    DISTANCE(
+        ivo_epoch_prop_pos(
+        g.ra, g.dec, g.parallax,
+        g.pmra, g.pmdec, g.radial_velocity,
+        2016, 2000),
+        POINT(l.raj2000, l.dej2000)
+    )<0.0002                            -- fine selection with PMs
+
+Furthermore, one can find the names of the tables using:
+
+.. doctest-remote-data::
+
+    >>> print([tab_name for tab_name in tap_service.tables.keys()])  # doctest: +ELLIPSIS, +IGNORE_WARNINGS
+    ['amanda.nucand', 'annisred.main', 'antares.data', ..., 'wfpdb.main', 'wise.main', 'zcosmos.data']
+    
+
+And also the names of the columns from a known table, for instance 
+the first three columns:
+
+.. doctest-remote-data::
+
+    >>> result.table.columns[:3]    # doctest: +IGNORE_WARNINGS
+    <TableColumns names=('source_id','ra','dec')>
+
+If you know a TAP service's access URL, you can directly pass it to
+:py:class:`~pyvo.dal.TAPService` to obtain a service object. 
+Sometimes, such URLs are published in papers or passed around through
+other channels. Most commonly, you will discover them in the VO 
+registry (cf. :ref:`pyvo.registry<pyvo-registry>`).
+
+To perform a query using ADQL, the ``search()`` method is used. 
+TAPService instances have several methods to inspect the metadata
+of the service - in particular, what tables with what columns are
+available - discussed below.
+
+To get an idea of how to write queries in ADQL, have a look at
+`GAVO's ADQL course`_; it is basically a standardised subset of SQL
+with some extensions to make it work better for astronomy.
+
+.. _GAVO's ADQL course: https://docs.g-vo.org/adql 
+
+Synchronous vs. asynchronous query
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In synchronous (“sync”) mode, the client keeps a connection for the
+entire runtime of the query, and query processing generally starts
+when the request is submitted.  This is convenient but becomes
+brittle as queries have runtimes of the order of minutes, when you
+may encounter query timeouts.  Also, many data providers impose
+rather strict limits on the runtime alotted to sync queries. 
+
+In asynchronous (“async”) mode, on the other hand, the client just
+submits a query and receives a URL that let us inspect the
+execution status (and retrieve its result) later.  This means that
+no connection needs to be held, which makes this mode a lot more
+robust of long-running queries.  It also supports queuing queries,
+which allows service operators to be a lot more generous with
+resource limits.
+
+To specify the query mode, you can use either ``run_sync()`` for 
+synchronous query or ``run_async()`` for asynchronous query.
+
+.. doctest-remote-data::
+
+    >>> job = tap_service.submit_job(ex_query)
+
+To learn more details from the asynchronous query, let's look at the 
+``submit_job()`` method. This submits an asynchronous query without 
+starting it, it creates a new object :py:class:`~pyvo.dal.AsyncTAPJob`.
+
+.. doctest-remote-data::
+
+    >>> job.url     # doctest: +ELLIPSIS
+    'http://dc.zah.uni-heidelberg.de/__system__/tap/run/async/...'
+
+The job URL mentioned before is available in the ``url`` attribute. 
+Clicking on the URL leads you to the query itself, where you can check 
+the status(phase) of the query and decide to run, modify or delete 
+the job. You can also do it via various attributes:
+
+.. doctest-remote-data::
+
+    >>> job.phase
+    'PENDING'
+
+A newly created job is in the PENDING state.
+While it is pending, it can be configured, for instance, overriding
+the server's default time limit (after which the query will be
+canceled):
+
+.. doctest-remote-data::
+
+    >>> job.executionduration = 700
+    >>> job.executionduration
+    700
+
+When you are ready, you can start the job:
+
+.. doctest-remote-data::
+
+    >>> job.run()   # doctest: +ELLIPSIS
+    <pyvo.dal.tap.AsyncTAPJob object at 0x...>
+
+This will put the job into the QUEUED state.  Depending on how busy
+the server is, it will immediately go to the EXECUTING status:
+
+.. doctest-remote-data::
+
+    >>> job.phase   # doctest: +IGNORE_OUTPUT
+    'EXECUTING'
+
+The job will eventually end up in one of the phases:
+
+* COMPLETED - if all went to plan,
+* ERROR -   if the query failed for some reason;
+            look at the error
+            attribute of the job to find out details,
+* ABORTED - if you manually killed the query using the ``abort()``
+            method or the server killed your query, presumably because it hit
+            the time limit.
+
+After the job ends up in COMPLETED, you can retrieve the result:
+
+.. doctest-remote-data::
+
+    >>> job.phase  # doctest: +IGNORE_OUTPUT
+    'COMPLETED'
+    >>> job.fetch_result()  # doctest: +SKIP
+    (result table as shown before)
+
+Eventually, it is friendly to clean up the job rather than relying
+on the server to clean it up once ``job.destruction`` (a datetime
+that you can change if you need to) is reached.
+
+.. doctest-remote-data::
+
+    >>> job.delete()
+
+For more attributes please read the description for the job object 
+:py:class:`~pyvo.dal.AsyncTAPJob`. 
+
+With ``run_async()`` you basically submit an asynchronous query and 
+return its result. It is like running ``submit_job()`` first and then 
+run the query manually.
+
+Query limit
+^^^^^^^^^^^
 
 As a sanity precaution, most services have some default limit of how many
 rows they will return before overflowing:
@@ -256,6 +442,7 @@ Finally, tables and their content can be removed:
 
     >>> tap_service.remove_table(name='test_schema.test_table')
 
+For further information about the service's parameters, see :py:class:`~pyvo.dal.TAPService`.
 
 .. _pyvo-sia:
 
@@ -274,7 +461,7 @@ Simple Image Access
     referred to as datacubes, cube or image cube datasets and may be considered examples 
     of hypercube or n-cube data. PyVO supports both versions of SIA.
 
-    -- `Simple IMage Access <https://www.ivoa.net/documents/SIA/>`_
+    -- `Simple Image Access <https://www.ivoa.net/documents/SIA/>`_
 
 Basic queries are done with the ``pos`` and ``size`` parameters described in
 :ref:`pyvo-astro-params`, with ``size`` being the rectangular region around
@@ -316,6 +503,8 @@ Available values:
 
 This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter
 
+For further information about the service's parameters, see :py:class:`~pyvo.dal.SIAService`.
+
 .. _pyvo-ssa:
 
 Simple Spectrum Access
@@ -348,6 +537,7 @@ SSA queries can be further constrained by the ``band`` and ``time`` parameters.
     ...     pos=pos, diameter=size,
     ...     time=Time((53000, 54000), format='mjd'), band=Quantity((1e-13, 1e-12), unit="m"))
 
+For further information about the service's parameters, see :py:class:`~pyvo.dal.SSAService`.
 
 .. _pyvo-scs:
 
@@ -374,7 +564,8 @@ within a circular region on the sky defined by the parameters ``pos``
     >>> scs_srv = vo.dal.SCSService('http://dc.zah.uni-heidelberg.de/arihip/q/cone/scs.xml')
     >>> scs_results = scs_srv.search(pos=pos, radius=size)
 
-This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter
+This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter.
+For further information about the service's parameters, see :py:class:`~pyvo.dal.SCSService`.
 
 .. _pyvo-slap:
 
@@ -393,6 +584,7 @@ Simple Line Access
 This service let you query for spectral lines in a certain ``wavelength``
 range. The unit of the values is meters, but any unit may be specified using
 `~astropy.units.Quantity`.
+For further information about the service's parameters, see :py:class:`~pyvo.dal.SLAService`.
 
 Jobs
 ====
@@ -410,7 +602,7 @@ to run several queries in parallel from one script.
 .. note::
     It is good practice to test the query with a maxrec constraint first.
 
-When you invoke ``submit job`` you will get a job object.
+When you invoke ``submit_job`` you will get a job object.
 
 .. doctest-remote-data::
 
