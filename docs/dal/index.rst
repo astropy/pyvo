@@ -152,8 +152,8 @@ mean G-band magnitude between 19 - 20:
     >>> import pyvo as vo
     >>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap")
     >>> ex_query = """
-    ...     SELECT TOP 5 
-    ...     source_id, ra, dec, phot_g_mean_mag 
+    ...     SELECT TOP 5
+    ...     source_id, ra, dec, phot_g_mean_mag
     ...     FROM gaia.dr3lite
     ...     WHERE phot_g_mean_mag BETWEEN 19 AND 20
     ...     ORDER BY phot_g_mean_mag
@@ -162,8 +162,8 @@ mean G-band magnitude between 19 - 20:
     >>> print(result)
     <Table length=5>
         source_id              ra                dec         phot_g_mean_mag
-                            deg                deg               mag      
-        int64             float64            float64           float32    
+                            deg                deg               mag
+        int64             float64            float64           float32
     ------------------- ------------------ ------------------ ---------------
     2162809607452221440 315.96596187101636 45.945474015208106            19.0
     2000273643933171456  337.1829026565382   50.7218533537033            19.0
@@ -171,13 +171,13 @@ mean G-band magnitude between 19 - 20:
     2171810342771336704 323.25913736080776  51.94305655940998            19.0
     2180349528028140800  310.5233961869657   50.3486391034819            19.0
 
-To explore more query examples, you can try either the ``description`` 
-attribute for some services. For other services like this one, try 
+To explore more query examples, you can try either the ``description``
+attribute for some services. For other services like this one, try
 the ``examples`` attribute.
 
 .. doctest-remote-data::
 
-    >>> print(tap_service.examples[0]['QUERY'])  
+    >>> print(tap_service.examples[0]['QUERY'])
     SELECT TOP 50 l.id, l.pmra as lpmra, l.pmde as lpmde,
     g.source_id, g.pmra as gpmra, g.pmdec as gpmde
     FROM
@@ -197,11 +197,11 @@ Furthermore, one can find the names of the tables using:
 
 .. doctest-remote-data::
 
-    >>> print([tab_name for tab_name in tap_service.tables.keys()])  # doctest: +ELLIPSIS, +IGNORE_WARNINGS
-    ['amanda.nucand', 'annisred.main', 'antares.data', ..., 'wfpdb.main', 'wise.main', 'zcosmos.data']
-    
+    >>> print([tab_name for tab_name in tap_service.tables.keys()])  # doctest: +IGNORE_WARNINGS
+    ['amanda.nucand', 'annisred.main', 'antares.data', ..., 'wise.main', 'xpparams.main', 'zcosmos.data']
 
-And also the names of the columns from a known table, for instance 
+
+And also the names of the columns from a known table, for instance
 the first three columns:
 
 .. doctest-remote-data::
@@ -210,12 +210,12 @@ the first three columns:
     <TableColumns names=('source_id','ra','dec')>
 
 If you know a TAP service's access URL, you can directly pass it to
-:py:class:`~pyvo.dal.TAPService` to obtain a service object. 
+:py:class:`~pyvo.dal.TAPService` to obtain a service object.
 Sometimes, such URLs are published in papers or passed around through
-other channels. Most commonly, you will discover them in the VO 
+other channels. Most commonly, you will discover them in the VO
 registry (cf. :ref:`pyvo.registry<pyvo-registry>`).
 
-To perform a query using ADQL, the ``search()`` method is used. 
+To perform a query using ADQL, the ``search()`` method is used.
 TAPService instances have several methods to inspect the metadata
 of the service - in particular, what tables with what columns are
 available - discussed below.
@@ -224,7 +224,7 @@ To get an idea of how to write queries in ADQL, have a look at
 `GAVO's ADQL course`_; it is basically a standardised subset of SQL
 with some extensions to make it work better for astronomy.
 
-.. _GAVO's ADQL course: https://docs.g-vo.org/adql 
+.. _GAVO's ADQL course: https://docs.g-vo.org/adql
 
 Synchronous vs. asynchronous query
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -234,7 +234,7 @@ entire runtime of the query, and query processing generally starts
 when the request is submitted.  This is convenient but becomes
 brittle as queries have runtimes of the order of minutes, when you
 may encounter query timeouts.  Also, many data providers impose
-rather strict limits on the runtime alotted to sync queries. 
+rather strict limits on the runtime alotted to sync queries.
 
 In asynchronous (“async”) mode, on the other hand, the client just
 submits a query and receives a URL that let us inspect the
@@ -244,15 +244,15 @@ robust of long-running queries.  It also supports queuing queries,
 which allows service operators to be a lot more generous with
 resource limits.
 
-To specify the query mode, you can use either ``run_sync()`` for 
+To specify the query mode, you can use either ``run_sync()`` for
 synchronous query or ``run_async()`` for asynchronous query.
 
 .. doctest-remote-data::
 
     >>> job = tap_service.submit_job(ex_query)
 
-To learn more details from the asynchronous query, let's look at the 
-``submit_job()`` method. This submits an asynchronous query without 
+To learn more details from the asynchronous query, let's look at the
+``submit_job()`` method. This submits an asynchronous query without
 starting it, it creates a new object :py:class:`~pyvo.dal.AsyncTAPJob`.
 
 .. doctest-remote-data::
@@ -260,9 +260,9 @@ starting it, it creates a new object :py:class:`~pyvo.dal.AsyncTAPJob`.
     >>> job.url     # doctest: +ELLIPSIS
     'http://dc.zah.uni-heidelberg.de/__system__/tap/run/async/...'
 
-The job URL mentioned before is available in the ``url`` attribute. 
-Clicking on the URL leads you to the query itself, where you can check 
-the status(phase) of the query and decide to run, modify or delete 
+The job URL mentioned before is available in the ``url`` attribute.
+Clicking on the URL leads you to the query itself, where you can check
+the status(phase) of the query and decide to run, modify or delete
 the job. You can also do it via various attributes:
 
 .. doctest-remote-data::
@@ -323,11 +323,11 @@ that you can change if you need to) is reached.
 
     >>> job.delete()
 
-For more attributes please read the description for the job object 
-:py:class:`~pyvo.dal.AsyncTAPJob`. 
+For more attributes please read the description for the job object
+:py:class:`~pyvo.dal.AsyncTAPJob`.
 
-With ``run_async()`` you basically submit an asynchronous query and 
-return its result. It is like running ``submit_job()`` first and then 
+With ``run_async()`` you basically submit an asynchronous query and
+return its result. It is like running ``submit_job()`` first and then
 run the query manually.
 
 Query limit
