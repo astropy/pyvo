@@ -12,6 +12,7 @@ import pytest
 from pyvo.dal.sia2 import search, SIA2Service, SIA2Query, SIAService, SIAQuery
 
 import astropy.units as u
+from astropy.coordinates import SkyCoord
 from astropy.utils.data import get_pkg_data_contents
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -101,7 +102,8 @@ class TestSIA2Service:
                  (12.0 * u.deg, 34.0 * u.deg,
                   14.0 * u.deg, 35.0 * u.deg,
                   14.0 * u.deg, 36.0 * u.deg,
-                  12.0 * u.deg, 35.0 * u.deg)]
+                  12.0 * u.deg, 35.0 * u.deg),
+                 (SkyCoord(2, 4, unit='deg'), 0.166 * u.deg)]
 
     @pytest.mark.usefixtures('sia')
     @pytest.mark.usefixtures('capabilities')
