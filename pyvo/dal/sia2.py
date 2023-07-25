@@ -11,6 +11,7 @@ endpoint.
 """
 
 import warnings
+import numpy as np
 
 from astropy import units as u
 from astropy.time import Time
@@ -884,7 +885,11 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         products result of the combination of multiple frames, min time must
         be the minimum of the start times
         """
-        return Time(self.get('t_min'), format='mjd')
+        t_min = self.get('t_min')
+        if np.isfinite(t_min):
+            return Time(t_min, format='mjd')
+        else:
+            return t_min
 
     @property
     def t_max(self):
@@ -893,7 +898,11 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         products result of the combination of multiple frames, t_max must
         be the maximum of the stop times
         """
-        return Time(self.get('t_min'), format='mjd')
+        t_max = self.get('t_max')
+        if np.isfinite(t_max):
+            return Time(t_max, format='mjd')
+        else:
+            return t_max
 
     @property
     def t_exptime(self):
