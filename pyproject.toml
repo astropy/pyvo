@@ -1,7 +1,3 @@
-[tool.astropy-bot]
-[tool.astropy-bot.changelog_checker]
-filename = "CHANGES.rst"
-
 [build-system]
 
 requires = ["setuptools",
