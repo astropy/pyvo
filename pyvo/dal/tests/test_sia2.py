@@ -95,30 +95,31 @@ class TestSIAService:
             service = SIAService('https://example.com/sia-priv')
             assert service.query_ep == 'https://example.com/sia/v2query'
 
+    POSITIONS = [(2, 4, 0.0166 * u.deg),
+                 (12, 12.5, 34, 36),
+                 (12.0 * u.deg, 34.0 * u.deg,
+                  14.0 * u.deg, 35.0 * u.deg,
+                  14.0 * u.deg, 36.0 * u.deg,
+                  12.0 * u.deg, 35.0 * u.deg)]
+
     @pytest.mark.usefixtures('sia')
     @pytest.mark.usefixtures('capabilities')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")
-    def test_search(self):
+    @pytest.mark.parametrize("position", POSITIONS)
+    def test_search_scalar(self, position):
         service = SIAService('https://example.com/sia')
 
-        positions = [
-            (2, 4, 0.0166 * u.deg),
-            (12, 12.5, 34, 36),
-            (12.0 * u.deg, 34.0 * u.deg,
-             14.0 * u.deg, 35.0 * u.deg,
-             14.0 * u.deg, 36.0 * u.deg,
-             12.0 * u.deg, 35.0 * u.deg)]
+        results = service.search(pos=position)
+        result = results[0]
+        _test_result(result)
 
-        # each position
-        for pos in positions:
-            results = service.search(pos=pos)
-            result = results[0]
-            _test_result(result)
-
-        # all positions
-        results = service.search(pos=positions)
+    @pytest.mark.usefixtures('sia')
+    @pytest.mark.usefixtures('capabilities')
+    def test_search_vector(self, pos=POSITIONS):
+        service = SIAService('https://example.com/sia')
+        results = service.search(pos=pos)
         result = results[0]
         _test_result(result)
 
