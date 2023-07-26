@@ -7,13 +7,18 @@ get picked up when running the tests inside an interpreter using
 
 """
 
-from astropy.version import version as astropy_version
+import numpy as np
+from astropy.utils import minversion
 
 try:
     from pytest_astropy_header.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS
     ASTROPY_HEADER = True
 except ImportError:
     ASTROPY_HEADER = False
+
+# Keep this until we require numpy to be >=2.0
+if minversion(np, "2.0.0.dev0+151"):
+    np.set_printoptions(legacy="1.25")
 
 
 def pytest_configure(config):
