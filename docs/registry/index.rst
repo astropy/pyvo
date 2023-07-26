@@ -306,15 +306,7 @@ it returns 33 matching services.
   33
 
 There are also other type of services that you can choose via the 
-``servicetype`` parameter:
-
-  ===== ======================================
-  sia   Simple Image Access (SIA) services
-  ssa   Simple Spectral Access (SSA) services
-  scs   Simple Cone Search (SCS) services
-  slap  Simple Line Access (SLA) services
-  tap   Table Access Protocol (TAP) services
-  ===== ======================================
+``servicetype`` parameter, for more details see :py:class:`~pyvo.registry.Servicetype`.
 
 You can learn more about the archives by printing their titles 
 and access URL:
@@ -345,7 +337,7 @@ all catalogs related to blazars observed with Fermi:
 
 .. doctest-remote-data::
 
-  >>> cats = vo.regsearch(keywords=['blazar','Fermi'])
+  >>> cats = vo.regsearch(keywords=['blazar', 'Fermi'])
   >>> len(cats)   # doctest: +IGNORE_OUTPUT
   551
 
