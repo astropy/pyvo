@@ -7,6 +7,7 @@ get picked up when running the tests inside an interpreter using
 
 """
 
+import numpy as np
 from astropy.version import version as astropy_version
 
 try:
@@ -15,6 +16,8 @@ try:
 except ImportError:
     ASTROPY_HEADER = False
 
+# Keep this until we require numpy to be >=2.0
+np.set_printoptions(legacy="1.25")
 
 def pytest_configure(config):
     """Configure Pytest with Astropy.
