@@ -10,6 +10,8 @@ The ``SIAService`` class can represent a specific service available at a URL
 endpoint.
 """
 
+import numpy as np
+
 from astropy import units as u
 from astropy.time import Time
 
@@ -863,20 +865,30 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
     @property
     def t_min(self):
         """
-        The start time of the observation specified in MJD. In case of data
-        products result of the combination of multiple frames, min time must
-        be the minimum of the start times
+        The start time of the observation specified in MJD as an
+        `~astropy.time.Time` instance. In case of data products result of the
+        combination of multiple frames, min time must be the minimum of the
+        start times. ``None`` is used for NaN response values.
         """
-        return Time(self.get('t_min'), format='mjd')
+        t_min = self.get('t_min')
+        if np.isfinite(t_min):
+            return Time(t_min, format='mjd')
+        else:
+            return None
 
     @property
     def t_max(self):
         """
-        The stop time of the observation specified in MJD. In case of data
-        products result of the combination of multiple frames, t_max must
-        be the maximum of the stop times
+        The stop time of the observation specified in MJD as an
+        `~astropy.time.Time` instance. In case of data products result of the
+        combination of multiple frames, t_max must be the maximum of the
+        stop times. ``None`` is used for NaN response values.
         """
-        return Time(self.get('t_min'), format='mjd')
+        t_max = self.get('t_max')
+        if np.isfinite(t_max):
+            return Time(t_max, format='mjd')
+        else:
+            return None
 
     @property
     def t_exptime(self):

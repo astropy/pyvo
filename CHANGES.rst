@@ -3,6 +3,8 @@
 
 - Fixed TapResults to inherit session. [#447]
 
+- Fix handling of nan values for Time properties in SIA2 records. [#463]
+
 
 1.4.1 (2023-03-07)
 ==================
