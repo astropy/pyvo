@@ -276,29 +276,182 @@ For an example of how this might look like, see `GAVO's plate tutorial`_
 
 .. _GAVO's plate tutorial: http://docs.g-vo.org/gavo_plates.pdf
 
+More examples
+-------------
+
+Discover archives
+^^^^^^^^^^^^^^^^^
+
+You can use the registry ``search`` method (or the ``regsearch`` function)
+to discover archives that may have x-ray images and then query those archives
+to find what x-ray images that have of CasA. For the arguments you will
+enter ``'image'`` for the service type and ``'x-ray'`` for the waveband.
+The position is provided by the Astropy library.
+
+The query returns a :py:class:`~pyvo.registry.regtap.RegistryResults` object
+which is a container holding a table of matching services. In this example
+it returns 33 matching services.
+
+.. doctest-remote-data::
+
+  >>> import pyvo as vo
+  >>> from astropy.coordinates import SkyCoord
+  >>>
+  >>> import warnings
+  >>> warnings.filterwarnings('ignore', module="astropy.io.votable.*")
+  >>>
+  >>> archives = vo.regsearch(servicetype='image', waveband='x-ray')
+  >>> pos = SkyCoord.from_name('Cas A')
+  >>> len(archives)   # doctest: +IGNORE_OUTPUT
+  33
+
+There are also other type of services that you can choose via the
+``servicetype`` parameter, for more details see :py:class:`~pyvo.registry.Servicetype`.
+
+You can learn more about the archives by printing their titles
+and access URL:
+
+.. doctest-remote-data::
+
+  >>> for service in archives:
+  ...     print(service.res_title, service.access_url)
+  Chandra X-ray Observatory Data Archive https://cda.harvard.edu/cxcsiap/queryImages?
+  Chandra Source Catalog http://cda.cfa.harvard.edu/cscsiap/queryImages?
+  Chandra Source Catalog Release 1 http://cda.cfa.harvard.edu/csc1siap/queryImages?
+  ...
+
+It is not neccessary to keep track of the URL because you can search
+images directly from the registry record, for example using the Chandra
+X-ray Observatory (CDA) service and the ``search`` method, inserting
+the position and size for the desired object.
+
+.. doctest-remote-data::
+
+  >>> images = archives["CDA"].search(pos=pos, size=0.25)
+  >>> len(images)   # doctest: +IGNORE_OUTPUT
+  822
+
+Sometimes you are looking for a type of object. For this purpose, the
+``keywords`` parameter is useful here. For example, you want to find
+all catalogs related to blazars observed with Fermi:
+
+.. doctest-remote-data::
+
+  >>> cats = vo.regsearch(keywords=['blazar', 'Fermi'])
+  >>> len(cats)   # doctest: +IGNORE_OUTPUT
+  551
+
+Or you already know the particular catalog but not the base URL for
+that service. For example, you want to get cutout images from the
+NRAO VLA Sky Survey (NVSS):
+
+.. doctest-remote-data::
+
+  >>> colls = vo.regsearch(keywords=['NVSS'], servicetype='sia')
+  >>> for coll in colls:
+  ...     print(coll.res_title, coll.access_url)
+  NRA) VLA Sky Survey https://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
+  Sydney University Molonglo Sky Survey https://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=sumss&
+
 
 Search results
 ==============
 
-What is coming back from registry.search is rather similar to
-:ref:`pyvo-resultsets`; just remember that for interactive use there is
-the ``to_tables`` method discussed above.
+What is coming back from registry.search is
+:py:class:`pyvo.registry.regtap.RegistryResults` which is rather
+similar to :ref:`pyvo-resultsets`; just remember that for interactive
+use there is the ``to_tables`` method discussed above.
 
 The individual items are instances of
 :py:class:`pyvo.registry.regtap.RegistryResource`, which expose many
 pieces of metadata (e.g., title, description, creators, etc) in
 attributes named like their RegTAP counterparts (see the class
-documentation).  A few attributes deserve a second look.
+documentation).  Some attributes deserve a second look.
 
-First, ``service`` will, for resources that only have a single
+.. doctest-remote-data::
+
+  >>> import pyvo as vo
+  >>> colls = vo.regsearch(keywords=["NVSS"], servicetype='sia')
+  >>> nvss = colls["NVSS"]
+  >>> nvss.res_title
+  'NRA) VLA Sky Survey'
+
+If you are looking for a particular data collection or catalog, as
+we did above when we looked for the NVSS archive, often simply
+reviewing the titles is sufficient. Other times, particularly when
+you are not sure what you are looking for, it helps to look deeper.
+
+A selection of the resource metadata, including the title, shortname and
+desription, can be printed out in a summary form with
+the ``describe`` function.
+
+.. doctest-remote-data::
+
+  >>> nvss.describe()
+  NRA) VLA Sky Survey
+  Short Name: NVSS
+  IVOA Identifier: ivo://nasa.heasarc/skyview/nvss
+  Access modes: sia
+  Base URL: https://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
+  ...
+
+The method ``service`` will, for resources that only have a single
 capability, return a DAL service object ready for querying using the
 respective protocol.  You should only use that attribute when the
-original reqistry query constrained the service type, because otherwise
+original registry query constrained the service type, because otherwise
 there is no telling what kind of service you will get back.
+
+.. doctest-remote-data::
+
+  >>> nvss = colls["NVSS"].service  # converts record to service object
+  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits")
+  <Table length=1>
+  Survey    Ra   ... LogicalName
+  object float64 ...    object
+  ------ ------- ... -----------
+    nvss  350.85 ...           1
+
+With this service object, we can either call its ``search`` function
+directly or create query objects to get cutouts for a whole list of
+sources.
+
+.. doctest-remote-data::
+
+  >>> cutouts1 = nvss.search(pos=(148.8888, 69.065), size=0.2)
+  >>> nvssq = nvss.create_query(size=0.2)  # or create a query object
+  >>> nvssq.pos = (350.85, 58.815)
+  >>> cutouts2 = nvssq.execute()
+
+Our discussion of service metadata offers an opportunity to highlight
+another important property, the service's *IVOA Identifier* (sometimes
+referred to as its *ivoid*).  This is a globally-unique identifier
+that takes the form of a
+`URI <http://en.wikipedia.org/wiki/Uniform_resource_identifier>`_:
+
+.. doctest-remote-data::
+
+  >>> colls = vo.regsearch(keywords=["NVSS"], servicetype='sia')
+  >>> for coll in colls:
+  ...     print(coll.ivoid)
+  ivo://nasa.heasarc/skyview/nvss
+  ivo://nasa.heasarc/skyview/sumss
+
+This identifier can be used to retrieve a specific service from the
+registry.
+
+.. doctest-remote-data::
+
+  >>> nvss = vo.registry.search(ivoid='ivo://nasa.heasarc/skyview/nvss')[0].get_service('sia')
+  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits")
+  <Table length=1>
+  Survey    Ra   ... LogicalName
+  object float64 ...    object
+  ------ ------- ... -----------
+    nvss  350.85 ...           1
 
 When the registry query did not constrain the service type, you can use
 the ``access_modes`` method to see what capabilities are available.  For
-instance:
+instance with this identifier:
 
 .. doctest-remote-data::
 
@@ -307,14 +460,14 @@ instance:
   {'ssa', 'datalink#links-1.0', 'tap#aux', 'web', 'soda#sync-1.0'}
 
 – this service can be accessed through SSA, TAP, a web interface, and
-two special capabilities that pyvo cannot produce services for (mainly
+two special capabilities that pyVO cannot produce services for (mainly
 because standalone service objects do not make much sense for them).
 
 To obtain a service for one of the access modes pyVO does support, use
 ``get_service(mode)``.  For ``web``, this returns an object that opens a
 web browser window when its ``query`` method is called.
 
-RegistryResource-s also have a ``get_contact`` method.  Use this if the
+RegistryResources also have a ``get_contact`` method.  Use this if the
 service is down or seems to have bugs; you should in general get at
 least an e-Mail address:
 
