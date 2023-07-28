@@ -257,7 +257,7 @@ starting it, it creates a new object :py:class:`~pyvo.dal.AsyncTAPJob`.
 
 .. doctest-remote-data::
 
-    >>> job.url     # doctest: +ELLIPSIS
+    >>> job.url
     'http://dc.zah.uni-heidelberg.de/__system__/tap/run/async/...'
 
 The job URL mentioned before is available in the ``url`` attribute.
@@ -285,7 +285,7 @@ When you are ready, you can start the job:
 
 .. doctest-remote-data::
 
-    >>> job.run()   # doctest: +ELLIPSIS
+    >>> job.run()
     <pyvo.dal.tap.AsyncTAPJob object at 0x...>
 
 This will put the job into the QUEUED state.  Depending on how busy

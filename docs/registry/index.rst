@@ -282,14 +282,14 @@ More examples
 Discover archives
 ^^^^^^^^^^^^^^^^^
 
-You can use the registry ``search`` method (or the ``regsearch`` function) 
-to discover archives that may have x-ray images and then query those archives 
-to find what x-ray images that have of CasA. For the arguments you will 
-enter ``'image'`` for the service type and ``'x-ray'`` for the waveband. 
+You can use the registry ``search`` method (or the ``regsearch`` function)
+to discover archives that may have x-ray images and then query those archives
+to find what x-ray images that have of CasA. For the arguments you will
+enter ``'image'`` for the service type and ``'x-ray'`` for the waveband.
 The position is provided by the Astropy library.
 
-The query returns a :py:class:`~pyvo.registry.regtap.RegistryResults` object 
-which is a container holding a table of matching services. In this example 
+The query returns a :py:class:`~pyvo.registry.regtap.RegistryResults` object
+which is a container holding a table of matching services. In this example
 it returns 33 matching services.
 
 .. doctest-remote-data::
@@ -300,29 +300,29 @@ it returns 33 matching services.
   >>> import warnings
   >>> warnings.filterwarnings('ignore', module="astropy.io.votable.*")
   >>>
-  >>> archives = vo.regsearch(servicetype='image', waveband='x-ray') 
+  >>> archives = vo.regsearch(servicetype='image', waveband='x-ray')
   >>> pos = SkyCoord.from_name('Cas A')
   >>> len(archives)   # doctest: +IGNORE_OUTPUT
   33
 
-There are also other type of services that you can choose via the 
+There are also other type of services that you can choose via the
 ``servicetype`` parameter, for more details see :py:class:`~pyvo.registry.Servicetype`.
 
-You can learn more about the archives by printing their titles 
+You can learn more about the archives by printing their titles
 and access URL:
 
 .. doctest-remote-data::
 
-  >>> for service in archives:    # doctest: +ELLIPSIS
+  >>> for service in archives:
   ...     print(service.res_title, service.access_url)
   Chandra X-ray Observatory Data Archive https://cda.harvard.edu/cxcsiap/queryImages?
   Chandra Source Catalog http://cda.cfa.harvard.edu/cscsiap/queryImages?
   Chandra Source Catalog Release 1 http://cda.cfa.harvard.edu/csc1siap/queryImages?
   ...
 
-It is not neccessary to keep track of the URL because you can search 
-images directly from the registry record, for example using the Chandra 
-X-ray Observatory (CDA) service and the ``search`` method, inserting 
+It is not neccessary to keep track of the URL because you can search
+images directly from the registry record, for example using the Chandra
+X-ray Observatory (CDA) service and the ``search`` method, inserting
 the position and size for the desired object.
 
 .. doctest-remote-data::
@@ -331,8 +331,8 @@ the position and size for the desired object.
   >>> len(images)   # doctest: +IGNORE_OUTPUT
   822
 
-Sometimes you are looking for a type of object. For this purpose, the  
-``keywords`` parameter is useful here. For example, you want to find 
+Sometimes you are looking for a type of object. For this purpose, the
+``keywords`` parameter is useful here. For example, you want to find
 all catalogs related to blazars observed with Fermi:
 
 .. doctest-remote-data::
@@ -341,8 +341,8 @@ all catalogs related to blazars observed with Fermi:
   >>> len(cats)   # doctest: +IGNORE_OUTPUT
   551
 
-Or you already know the particular catalog but not the base URL for 
-that service. For example, you want to get cutout images from the 
+Or you already know the particular catalog but not the base URL for
+that service. For example, you want to get cutout images from the
 NRAO VLA Sky Survey (NVSS):
 
 .. doctest-remote-data::
@@ -357,9 +357,9 @@ NRAO VLA Sky Survey (NVSS):
 Search results
 ==============
 
-What is coming back from registry.search is 
-:py:class:`pyvo.registry.regtap.RegistryResults` which is rather 
-similar to :ref:`pyvo-resultsets`; just remember that for interactive 
+What is coming back from registry.search is
+:py:class:`pyvo.registry.regtap.RegistryResults` which is rather
+similar to :ref:`pyvo-resultsets`; just remember that for interactive
 use there is the ``to_tables`` method discussed above.
 
 The individual items are instances of
@@ -376,10 +376,10 @@ documentation).  Some attributes deserve a second look.
   >>> nvss.res_title
   'NRA) VLA Sky Survey'
 
-If you are looking for a particular data collection or catalog, as 
-we did above when we looked for the NVSS archive, often simply 
-reviewing the titles is sufficient. Other times, particularly when 
-you are not sure what you are looking for, it helps to look deeper. 
+If you are looking for a particular data collection or catalog, as
+we did above when we looked for the NVSS archive, often simply
+reviewing the titles is sufficient. Other times, particularly when
+you are not sure what you are looking for, it helps to look deeper.
 
 A selection of the resource metadata, including the title, shortname and
 desription, can be printed out in a summary form with
@@ -387,7 +387,7 @@ the ``describe`` function.
 
 .. doctest-remote-data::
 
-  >>> nvss.describe()   # doctest: +ELLIPSIS
+  >>> nvss.describe()
   NRA) VLA Sky Survey
   Short Name: NVSS
   IVOA Identifier: ivo://nasa.heasarc/skyview/nvss
@@ -404,15 +404,15 @@ there is no telling what kind of service you will get back.
 .. doctest-remote-data::
 
   >>> nvss = colls["NVSS"].service  # converts record to service object
-  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits") # doctest: +ELLIPSIS
+  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits")
   <Table length=1>
   Survey    Ra   ... LogicalName
-  object float64 ...    object  
+  object float64 ...    object
   ------ ------- ... -----------
     nvss  350.85 ...           1
 
-With this service object, we can either call its ``search`` function 
-directly or create query objects to get cutouts for a whole list of 
+With this service object, we can either call its ``search`` function
+directly or create query objects to get cutouts for a whole list of
 sources.
 
 .. doctest-remote-data::
@@ -425,7 +425,7 @@ sources.
 Our discussion of service metadata offers an opportunity to highlight
 another important property, the service's *IVOA Identifier* (sometimes
 referred to as its *ivoid*).  This is a globally-unique identifier
-that takes the form of a 
+that takes the form of a
 `URI <http://en.wikipedia.org/wiki/Uniform_resource_identifier>`_:
 
 .. doctest-remote-data::
@@ -436,16 +436,16 @@ that takes the form of a
   ivo://nasa.heasarc/skyview/nvss
   ivo://nasa.heasarc/skyview/sumss
 
-This identifier can be used to retrieve a specific service from the 
+This identifier can be used to retrieve a specific service from the
 registry.
 
 .. doctest-remote-data::
 
   >>> nvss = vo.registry.search(ivoid='ivo://nasa.heasarc/skyview/nvss')[0].get_service('sia')
-  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits") # doctest: +ELLIPSIS
+  >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits")
   <Table length=1>
   Survey    Ra   ... LogicalName
-  object float64 ...    object  
+  object float64 ...    object
   ------ ------- ... -----------
     nvss  350.85 ...           1
 
@@ -487,7 +487,7 @@ and then you can run:
 
   >>> res.get_tables()  # doctest: +IGNORE_OUTPUT
   {'flashheros.data': <Table name="flashheros.data">... 29 columns ...</Table>, 'ivoa.obscore': <Table name="ivoa.obscore">... 0 columns ...</Table>}
- 
+
 
 Reference/API
 =============
