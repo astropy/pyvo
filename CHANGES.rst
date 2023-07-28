@@ -5,6 +5,8 @@
 
 - Fix handling of nan values for Time properties in SIA2 records. [#463]
 
+- Fix SIA2 search to accept SkyCoord position inputs. [#459]
+
 
 1.4.1 (2023-03-07)
 ==================

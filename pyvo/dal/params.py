@@ -7,6 +7,7 @@ from collections.abc import MutableSet
 import abc
 
 from astropy import units as u
+from astropy.coordinates import SkyCoord
 from astropy.units import Quantity, Unit
 from astropy.time import Time
 from astropy.io.votable.converters import (
@@ -301,7 +302,7 @@ class PosQueryParam(AbstractDalQueryParam):
         entries in values are either quantities or assumed to be degrees
         """
         self._validate_pos(val)
-        if len(val) == 3:
+        if len(val) == 2 or len(val) == 3:
             shape = 'CIRCLE'
         elif len(val) == 4:
             shape = 'RANGE'
@@ -313,6 +314,7 @@ class PosQueryParam(AbstractDalQueryParam):
                 'even 6 and above (POLYGON) accepted.'.format(val))
         return '{} {}'.format(shape, ' '.join(
             [str(val.to(u.deg).value) if isinstance(val, Quantity) else
+             val.transform_to('icrs').to_string() if isinstance(val, SkyCoord) else
              str((val * u.deg).value) for val in val]))
 
     def _validate_pos(self, pos):
@@ -321,7 +323,17 @@ class PosQueryParam(AbstractDalQueryParam):
 
         This has probably done already somewhere else
         """
-        if len(pos) == 3:
+
+        if len(pos) == 2:
+            if not isinstance(pos[0], SkyCoord):
+                raise ValueError
+            if not isinstance(pos[1], Quantity):
+                radius = pos[1] * u.deg
+            else:
+                radius = pos[1]
+            if radius <= 0 * u.deg or radius.to(u.deg) > 90 * u.deg:
+                raise ValueError('Invalid circle radius: {}'.format(radius))
+        elif len(pos) == 3:
             self._validate_ra(pos[0])
             self._validate_dec(pos[1])
             if not isinstance(pos[2], Quantity):
