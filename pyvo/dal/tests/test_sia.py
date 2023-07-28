@@ -11,6 +11,7 @@ import pytest
 from pyvo.dal.sia import search, SIAService
 
 from astropy.io.fits import HDUList
+from astropy.coordinates import SkyCoord
 from astropy.utils.data import get_pkg_data_contents
 
 get_pkg_data_contents = partial(
@@ -45,8 +46,9 @@ def _test_result(result):
 @pytest.mark.usefixtures('sia')
 @pytest.mark.usefixtures('register_mocks')
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
-def test_search():
-    results = search('http://example.com/sia', pos=(288, 15))
+@pytest.mark.parametrize("position", ((288, 15), SkyCoord(288, 15, unit="deg")))
+def test_search(position):
+    results = search('http://example.com/sia', pos=position)
     result = results[0]
 
     _test_result(result)
