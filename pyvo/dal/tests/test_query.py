@@ -16,8 +16,7 @@ import numpy as np
 import platform
 
 from pyvo.dal.query import DALService, DALQuery, DALResults, Record
-from pyvo.dal.exceptions import DALServiceError, DALQueryError,\
-    DALFormatError, DALOverflowWarning
+from pyvo.dal.exceptions import DALServiceError, DALQueryError, DALFormatError, DALOverflowWarning
 from pyvo.version import version
 
 from astropy.table import Table, QTable

@@ -36,7 +36,7 @@ class TestTables:
         assert col.ucd == "meta.id;meta.main"
         assert col.utype == "utype"
 
-        assert type(col.datatype) == vs.TAPType
+        assert isinstance(col.datatype, vs.TAPType)
         assert str(col.datatype) == "<DataType arraysize=*>VARCHAR</DataType>"
         assert col.datatype.arraysize == "*"
         assert col.datatype.delim == ";"

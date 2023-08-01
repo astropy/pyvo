@@ -59,8 +59,7 @@ def create_fixture(mocker):
     def match_request(request):
         data = request.text.read()
         if b'VOSITable' in data:
-            assert request.headers['Content-Type'] == 'text/xml',\
-                'Wrong file format'
+            assert request.headers['Content-Type'] == 'text/xml', 'Wrong file format'
         elif b'VOTable' in data:
             assert request.headers['Content-Type'] == \
                 'application/x-votable+xml', 'Wrong file format'
@@ -88,8 +87,7 @@ def load_fixture(mocker):
     def match_request(request):
         data = request.text.read()
         if b',' in data:
-            assert request.headers['Content-Type'] == 'text/csv',\
-                'Wrong file format'
+            assert request.headers['Content-Type'] == 'text/csv', 'Wrong file format'
         elif b'\t' in data:
             assert request.headers['Content-Type'] == \
                 'text/tab-separated-values', 'Wrong file format'

@@ -19,8 +19,7 @@ from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .query import DALResults, DALQuery, DALService, Record
-from .adhoc import DatalinkResultsMixin, AxisParamMixin, SodaRecordMixin,\
-    DatalinkRecordMixin
+from .adhoc import DatalinkResultsMixin, AxisParamMixin, SodaRecordMixin, DatalinkRecordMixin
 from .params import IntervalQueryParam, StrQueryParam, EnumQueryParam
 from .vosi import AvailabilityMixin, CapabilityMixin
 from ..dam import ObsCoreMetadata, CALIBRATION_LEVELS
