@@ -5,7 +5,10 @@
  <RESOURCE type="results">
   <INFO ID="QUERY_STATUS" name="QUERY_STATUS" value="OK">OK</INFO>
   <TABLE>
-    <FIELD ID="accref" arraysize="*" datatype="char" name="accref" utype="Access.Reference">
+    <FIELD ID="not_data_url" arraysize="*" datatype="char" name="not_data_url" utype="obscore:access.reference" ucd="meta.ref.url">
+      <DESCRIPTION>Not the access key for the data</DESCRIPTION>
+    </FIELD>
+    <FIELD ID="accref" arraysize="*" datatype="char" name="accref" ucd="VOX:Image_AccessReference" utype="Access.Reference">
       <DESCRIPTION>Access key for the data</DESCRIPTION>
     </FIELD>
     <FIELD ID="mime" arraysize="*" datatype="char" name="mime" ucd="VOX:Image_Format" utype="Access.Format">
@@ -42,6 +45,7 @@
    <DATA>
     <TABLEDATA>
      <TR>
+      <TD>This should not be the dataurl</TD>
       <TD>http://example.com/querydata/image.fits</TD>
       <TD>image/fits</TD>
       <TD>153280</TD>
