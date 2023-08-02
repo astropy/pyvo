@@ -7,6 +7,8 @@
 
 - Fix SIA2 search to accept SkyCoord position inputs. [#459]
 
+- Favouring ``VOX:Image_AccessReference`` for data url for SIA1 queries. [#445]
+
 
 1.4.1 (2023-03-07)
 ==================
