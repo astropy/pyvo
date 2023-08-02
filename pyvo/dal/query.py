@@ -135,7 +135,7 @@ class DALQuery(dict):
         """
         initialize the query object with a baseurl
         """
-        if type(baseurl) == bytes:
+        if isinstance(baseurl, bytes):
             baseurl = baseurl.decode("utf-8")
 
         self._baseurl = baseurl.rstrip("?")

@@ -28,7 +28,7 @@ class TestCapabilities:
         assert equals(
             parsed_caps[0].standardid,
             "ivo://ivoa.net/std/VOSI#availability")
-        assert type(parsed_caps[0].interfaces[0]) == vs.ParamHTTP
+        assert isinstance(parsed_caps[0].interfaces[0], vs.ParamHTTP)
         assert parsed_caps[0].interfaces[0].accessurls[0].use == "full"
         assert equals(
             parsed_caps[0].interfaces[0].accessurls[0].content,
@@ -38,7 +38,7 @@ class TestCapabilities:
         assert equals(
             parsed_caps[1].standardid,
             "ivo://ivoa.net/std/VOSI#capabilities")
-        assert type(parsed_caps[1].interfaces[0]) == vs.ParamHTTP
+        assert isinstance(parsed_caps[1].interfaces[0], vs.ParamHTTP)
         assert parsed_caps[1].interfaces[0].accessurls[0].use == "full"
         assert equals(
             parsed_caps[1].interfaces[0].accessurls[0].content,
@@ -46,14 +46,14 @@ class TestCapabilities:
 
     def test_tablesendpoint(self, parsed_caps):
         assert parsed_caps[2].standardid == "ivo://ivoa.net/std/VOSI#tables"
-        assert type(parsed_caps[2].interfaces[0]) == vs.ParamHTTP
+        assert isinstance(parsed_caps[2].interfaces[0], vs.ParamHTTP)
         assert parsed_caps[2].interfaces[0].accessurls[0].use == "full"
         assert equals(
             parsed_caps[2].interfaces[0].accessurls[0].content,
             "http://example.org/tap/tables")
 
     def test_type_parsed(self, parsed_caps):
-        assert type(parsed_caps[3]) == tr.TableAccess
+        assert isinstance(parsed_caps[3], tr.TableAccess)
 
     def test_stdid_parsed(self, parsed_caps):
         assert parsed_caps[3].standardid == "ivo://ivoa.net/std/TAP"

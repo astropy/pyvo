@@ -16,8 +16,7 @@ from astropy import units as u
 from astropy.time import Time
 
 from .query import DALResults, DALQuery, DALService, Record
-from .adhoc import DatalinkResultsMixin, AxisParamMixin, SodaRecordMixin,\
-    DatalinkRecordMixin
+from .adhoc import DatalinkResultsMixin, AxisParamMixin, SodaRecordMixin, DatalinkRecordMixin
 from .params import IntervalQueryParam, StrQueryParam, EnumQueryParam
 from .vosi import AvailabilityMixin, CapabilityMixin
 from ..dam import ObsCoreMetadata, CALIBRATION_LEVELS
