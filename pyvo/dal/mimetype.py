@@ -46,7 +46,7 @@ def mime2extension(mimetype, default=None):
     if not mimetype:
         return default
 
-    if type(mimetype) == str:
+    if isinstance(mimetype, str):
         mimetype = mimetype.encode('utf-8')
 
     ext = mimetypes.guess_extension(mimetype, strict=False)

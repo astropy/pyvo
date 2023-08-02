@@ -533,7 +533,7 @@ class SSAQuery(DALQuery):
     def format(self, val):
         setattr(self, "_format", val)
 
-        if type(val) in (str, bytes):
+        if isinstance(val, (str, bytes)):
             val = [val]
 
         self["FORMAT"] = ",".join(val)
@@ -746,7 +746,7 @@ class SSARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         ``make_dataset_filename()``.
         """
         out = self.title
-        if type(out) == bytes:
+        if isinstance(out, bytes):
             out = out.decode('utf-8')
 
         if not out:
