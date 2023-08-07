@@ -683,7 +683,8 @@ class Spatial(SubqueriedConstraint):
 
     takes_sequence = True
 
-    def __init__(self, geom_spec, order=6, intersect="covers"):
+    def __init__(self, geom_spec,
+            *, order=6, intersect="covers", inclusive=False):
         """
 
         Parameters
@@ -708,8 +709,13 @@ class Spatial(SubqueriedConstraint):
             that completely cover the *geom_spec* region, 'enclosed' for services
             completely enclosed in the region and 'overlaps' for services which
             coverage intersect the region.
-
+        inclusive : bool, optional
+            Normally, this constraint will remove all resources that do
+            not declare their spatial coverage.  Pass inclusive=True to
+            retain these.
         """
+        self.inclusive = inclusive
+
         def tomoc(s):
             return _AsIs("MOC({}, {})".format(order, s))
 
@@ -763,15 +769,24 @@ class Spatial(SubqueriedConstraint):
         # MOC-based geometries but does not have a MOC function.
         if not service.get_tap_capability().get_adql().get_feature(
                 "ivo://org.gavo.dc/std/exts#extra-adql-keywords", "MOC"):
-            raise RegTAPFeatureMissing("Current RegTAP service does not support MOC.")
+            raise RegTAPFeatureMissing(
+                "Current RegTAP service does not support MOC.")
 
         # We should compare case-insensitively here, but then we don't
         # with delimited identifiers -- in the end, that would have to
         # be handled in dal.vosi.VOSITables.
         if "rr.stc_spatial" not in service.tables:
-            raise RegTAPFeatureMissing("stc_spatial missing on current RegTAP service")
+            raise RegTAPFeatureMissing(
+                "stc_spatial missing on current RegTAP service")
 
-        return super().get_search_condition(service)
+        self._fillers = {
+            "geom": geom,}
+
+        cond = super().get_search_condition()
+        if self.inclusive:
+            return cond+" OR coverage IS NULL"
+        else:
+            return cond
 
 
 class Spectral(SubqueriedConstraint):
@@ -811,7 +826,7 @@ class Spectral(SubqueriedConstraint):
 
     takes_sequence = True
 
-    def __init__(self, spec):
+    def __init__(self, spec, *, inclusive=False):
         """
 
         Parameters
@@ -822,7 +837,14 @@ class Spectral(SubqueriedConstraint):
             in which case the argument is interpreted as an interval.
             All resources *overlapping* the interval are returned.
             Plain floats are interpreted as messenger energy in Joule.
+
+        inclusive : bool, optional
+            Normally, this constraint will remove all resources that do
+            not declare their spectral coverage.  Pass inclusive=True to
+            retain these.
         """
+        self.inclusive = inclusive
+
         if isinstance(spec, tuple):
             self._fillers = {
                 "spec_lo": self._to_joule(spec[0]),
@@ -863,11 +885,17 @@ class Spectral(SubqueriedConstraint):
 
         raise ValueError(f"Cannot make a spectral quantity out of {quant}")
 
-    def get_search_condition(self, service):
+    def get_search_condition(self):
         if "rr.stc_spectral" not in service.tables:
-            raise RegTAPFeatureMissing("stc_spectral missing on current RegTAP service")
-
-        return super().get_search_condition(service)
+            raise RegTAPFeatureMissing(
+                "stc_spectral missing on current RegTAP service")
+        cond = super().get_search_condition()
+        if self.inclusive:
+            return (f"({cond}) OR NOT EXISTS("
+                "SELECT 1 FROM rr.stc_spectral AS inner_s WHERE"
+                    " inner_s.ivoid=rr.resource.ivoid)")
+        else:
+            return cond
 
 
 class Temporal(SubqueriedConstraint):
@@ -903,7 +931,7 @@ class Temporal(SubqueriedConstraint):
 
     takes_sequence = True
 
-    def __init__(self, times):
+    def __init__(self, times, *, inclusive=False):
         """
 
         Parameters
@@ -912,7 +940,14 @@ class Temporal(SubqueriedConstraint):
             A point in time or time interval to cover.  Plain numbers
             are interpreted as MJD.  All resources *overlapping* the
             interval are returned.
+
+        inclusive : bool, optional
+            Normally, this constraint will remove all resources that do
+            not declare their temproal coverage.  Pass inclusive=True to
+            retain these.
         """
+        self.inclusive = inclusive
+
         if isinstance(times, tuple):
             self._fillers = {
                 "time_lo": self._to_mjd(times[0]),
@@ -941,11 +976,18 @@ class Temporal(SubqueriedConstraint):
                              " single time instants.")
         return val
 
-    def get_search_condition(self, service):
+    def get_search_condition(self):
         if "rr.stc_temporal" not in service.tables:
-            raise RegTAPFeatureMissing("stc_temporal missing on current RegTAP service")
+            raise RegTAPFeatureMissing(
+                "stc_temporal missing on current RegTAP service")
 
-        return super().get_search_condition(service)
+        cond = super().get_search_condition()
+        if self.inclusive:
+            return (f"({cond}) OR NOT EXISTS("
+                "SELECT 1 FROM rr.stc_temporal AS inner_t WHERE"
+                    " inner_t.ivoid=rr.resource.ivoid)")
+        else:
+            return cond
 
 
 # NOTE: If you add new Contraint-s, don't forget to add them in

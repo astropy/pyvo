@@ -293,6 +293,11 @@ class TestSpatialConstraint:
         assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
             "rr.stc_spatial", "1 = CONTAINS(MOC('0/1-3 3/'), coverage)")
 
+    def test_moc_and_inclusive(self):
+        cons = registry.Spatial("0/1-3 3/", inclusive=True)
+        assert cons.get_search_condition(FAKE_GAVO
+            ) == "1 = CONTAINS(MOC('0/1-3 3/'), coverage) OR coverage IS NULL"
+
     def test_SkyCoord(self):
         cons = registry.Spatial(SkyCoord(3 * u.deg, -30 * u.deg))
         assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
@@ -390,6 +395,13 @@ class TestSpectralConstraint:
                     "rr.stc_spectral",
                     "1.32521403e-24 BETWEEN spectral_start AND spectral_end"))
 
+    def test_frequency_and_inclusive(self):
+        cons = registry.Spectral(2 * u.GHz, inclusive=True)
+        assert (cons.get_search_condition(FAKE_GAVO)
+                == "(1.32521403e-24 BETWEEN spectral_start AND spectral_end)"
+                    " OR NOT EXISTS(SELECT 1 FROM rr.stc_spectral AS inner_s"
+                        " WHERE inner_s.ivoid=rr.resource.ivoid)")
+
     def test_frequency_interval(self):
         cons = registry.Spectral((88 * u.MHz, 102 * u.MHz))
         assert (cons.get_search_condition(FAKE_GAVO)
@@ -413,6 +425,13 @@ class TestTemporalConstraint:
                 == _make_subquery(
                     "rr.stc_temporal",
                     "1 = ivo_interval_overlaps(time_start, time_end, 54130, 54200)"))
+
+    def test_plain_float_and_inclusive(self):
+        cons = registry.Temporal((54130, 54200), inclusive=True)
+        assert (cons.get_search_condition(FAKE_GAVO)
+                == "(1 = ivo_interval_overlaps(time_start, time_end, 54130, 54200))"
+                " OR NOT EXISTS(SELECT 1 FROM rr.stc_temporal AS inner_t"
+                " WHERE inner_t.ivoid=rr.resource.ivoid)")
 
     def test_single_time(self):
         cons = registry.Temporal(Time('2022-01-10'))
