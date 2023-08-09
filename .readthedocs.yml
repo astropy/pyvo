@@ -16,6 +16,9 @@ build:
     python: "3.10"
   apt_packages:
     - graphviz
+  jobs:
+    post_checkout:
+      - git fetch --unshallow || true
 
 python:
   system_packages: false
