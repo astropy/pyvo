@@ -17,7 +17,7 @@ except ImportError:
     ASTROPY_HEADER = False
 
 # Keep this until we require numpy to be >=2.0
-if minversion(np, "2.0.0.dev0+151"):
+if minversion(np, "2.0.0.dev0+git20230726"):
     np.set_printoptions(legacy="1.25")
 
 
