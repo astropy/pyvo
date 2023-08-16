@@ -1,4 +1,4 @@
-1.4.2 (unreleased)
+1.4.2 (2013-08-16)
 ==================
 
 - Fixed TapResults to inherit session. [#447]
