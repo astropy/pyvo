@@ -14,6 +14,7 @@
 
 - Deprecate VOSI ``AvailabilityMixin``, this mean the deprecation of the
   inherited ``availability``, ``available``, and ``up_since`` properties
+  of DAL service classes, too. [#413]
 
 - Deprecating ``ivoid2service`` because it is ill-defined. [#439]
 
@@ -23,7 +24,11 @@
 - Adding python version to User-Agent. [#452]
 
 
-1.4.2 (unreleased)
+1.4.3 (unreleased)
+==================
+
+
+1.4.2 (2023-08-16)
 ==================
 
 - Fixed TapResults to inherit session. [#447]
