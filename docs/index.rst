@@ -77,7 +77,7 @@ specific to the service type. In this example, a database query is enough:
 
     >>> resultset = service.search("SELECT TOP 1 * FROM ivoa.obscore")
     >>> resultset
-    <Table length=1>
+    <DALResultsTable length=1>
     dataproduct_type dataproduct_subtype ... source_table
                                          ...
          object             object       ...    object
