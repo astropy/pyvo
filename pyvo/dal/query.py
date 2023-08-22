@@ -401,10 +401,7 @@ class DALResults:
         return infos
 
     def __repr__(self):
-        s = repr(self.to_table())
-        if s.startswith("<Table"):
-            s = "<DALResults" + s[1:]
-        return s
+        return f"<DALResults{repr(self.to_table())[1:]}"
 
     @property
     def queryurl(self):
