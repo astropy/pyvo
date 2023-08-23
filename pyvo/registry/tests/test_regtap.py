@@ -762,7 +762,6 @@ class TestExtraResourceMethods:
 # TODO: While I suppose the contact test should keep requiring network,
 # I think we should can the network responses involved in the following;
 # the stuff might change upstream any time and then break our unit tests.
-@pytest.mark.remote_data
 @pytest.fixture(name='flash_tables')
 def _flash_tables():
     rsc = _makeRegistryRecord(
