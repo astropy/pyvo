@@ -486,7 +486,7 @@ and then you can run:
 .. doctest-remote-data::
 
   >>> res.get_tables()  # doctest: +IGNORE_OUTPUT
-  {'flashheros.data': <Table name="flashheros.data">... 29 columns ...</Table>, 'ivoa.obscore': <Table name="ivoa.obscore">... 0 columns ...</Table>}
+  {'flashheros.data': <VODataServiceTable name="flashheros.data">... 29 columns ...</VODataServiceTable>, 'ivoa.obscore': <VODataServiceTable name="ivoa.obscore">... 0 columns ...</VODataServiceTable>}
 
 
 Reference/API

@@ -873,10 +873,10 @@ class RegistryResource(dalq.Record):
 
     def _build_vosi_table(self, table_row, columns):
         """
-        return a io.vosi.vodataservice.Table element for a
+        return a io.vosi.vodataservice.VODataServiceTable element for a
         query result from get_tables.
         """
-        res = vodataservice.Table()
+        res = vodataservice.VODataServiceTable()
         res.name = table_row["table_name"]
         res.title = table_row["table_title"]
         res.description = table_row["table_description"]
@@ -892,7 +892,7 @@ class RegistryResource(dalq.Record):
         """
         return the structure of the tables underlying the service.
 
-        This returns a dict with table names as keys and vosi.Table
+        This returns a dict with table names as keys and vodataservice.VODataServiceTable
         objects as values (pretty much what tables returns for a TAP
         service).  The table instances will have an ``origin`` attribute
         pointing back to the registry record.

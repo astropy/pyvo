@@ -16,6 +16,7 @@ defining a `value` property.
 
 import re
 
+from astropy.utils import deprecated
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.misc import indent
 from astropy.utils.xml import check as xml_check
@@ -31,7 +32,7 @@ from .exceptions import (
     E01, E02, E03, E04, E05, E06)
 
 __all__ = [
-    "TableSet", "TableSchema", "ParamHTTP", "Table", "BaseParam", "TableParam",
+    "TableSet", "TableSchema", "ParamHTTP", "VODataServiceTable", "BaseParam", "TableParam",
     "InputParam", "DataType", "SimpleDataType", "TableDataType", "VOTableType",
     "TAPDataType", "TAPType", "FKColumn", "ForeignKey"]
 
@@ -143,7 +144,7 @@ class TableSchema(Element, HomogeneousList):
     """
 
     def __init__(self, config=None, pos=None, _name='schema', **kwargs):
-        HomogeneousList.__init__(self, Table)
+        HomogeneousList.__init__(self, VODataServiceTable)
         Element.__init__(self, config, pos, _name, **kwargs)
 
         self._name = None
@@ -230,7 +231,7 @@ class TableSchema(Element, HomogeneousList):
 
     @tables.adder
     def tables(self, iterator, tag, data, config, pos):
-        table = Table(config, pos, 'table', **data)
+        table = VODataServiceTable(config, pos, 'table', **data)
         table.parse(iterator, config)
         self.append(table)
 
@@ -288,7 +289,7 @@ class ParamHTTP(vr.Interface):
             warn_or_raise(W18, W18, config=config, pos=self._pos)
 
 
-class Table(Element):
+class VODataServiceTable(Element):
     """
     Table element as described in
     http://www.ivoa.net/xml/VODataService/v1.1
@@ -310,7 +311,7 @@ class Table(Element):
         self._foreignkeys = HomogeneousList(ForeignKey)
 
     def __repr__(self):
-        return '<Table name="{}">... {} columns ...</Table>'.format(
+        return '<VODataServiceTable name="{}">... {} columns ...</VODataServiceTable>'.format(
             self.name, len(self.columns))
 
     def describe(self):
@@ -447,6 +448,11 @@ class Table(Element):
 
         if not self.name:
             vo_raise(E06, self._Element__name, config=config, pos=self._pos)
+
+
+@deprecated("1.5", alternative="VODataServiceTable")
+class Table(VODataServiceTable):
+    pass
 
 
 class BaseParam(Element):
