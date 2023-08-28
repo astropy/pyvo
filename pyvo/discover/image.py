@@ -21,36 +21,62 @@ from .. import registry
 
 
 # imports for type hints
+from typing import List, Set
 from astropy.units.quantity import Quantity
-from ..registry.regtap import RegistryResults, RegistryResource
 from ..dal.sia import SIARecord
 
 
-def _clean_for(records: RegistryResults, to_remove: Set[str]):
-    """ cleans records with ivoids in to_remove from records.
+class Queriable:
+    """A facade for a queriable service.
 
-    This modified records in place.
+    We keep these rather than work on
+    `pyvo.registry.regtap.RegistryResource`-s directly because the latter
+    actually live in VOTables which are very hard to manipulate.
+
+    They are constructed with a resource record.
     """
-    indexes_to_remove = []
-    for index, rec in enumerate(records):
-        if rec["ivoid"] in to_remove:
-            indexes_to_remove.append(index)
-
-    # I'm not happy about in-place modifications using a private attribute,
-    # either, but it seems constructing DALResults on the fly is
-    # really painful, too.
-
-    # TODO: Oh dang... who do I take out rows for the _votable?
-    records._votable.resources[0].tables[0].remove_rows(indexes_to_remove)
+    def __init__(self, res_rec):
+        self.res_rec = res_rec
+        self.ivoid = res_rec.ivoid
 
 
-def sia1_to_obscore(sia1_result: SIARecord) -> ObsCoreRecord:
-    """returns an obscore record filled from SIA1 metadata.
+class ImageFound(obscore.ObsCoreMetadata):
+    """Obscore metadata for a found record.
 
-    This probably is a bad idea given the way ObsCoreRecord is done;
-    we probably need to do per-service mapping.
+    We're pulling these out from the various VOTables that we
+    retrieve because we need to do some manipulation of them
+    that's simpler to do if they are proper Python objects.
+
+    This is an implementation detail, though; eventually, we're
+    turning these into an astropy table and further into a VOTable
+    to make this as compatible with the DAL services as possible.
     """
-    raise NotImplementedError("We need a SIA1 -> Obscore mapping")
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items()
+            setattr(self, k, v)
+
+    @classmethod
+    def from_obscore_recs(cls, obscore_result):
+        return TODO
+
+    @classmethod
+    def from_sia2_recs(cls, sia2_result):
+        return TODO
+
+    @classmethod
+    def from_sia1_recs(cls, sia1_result, filter_func):
+        result = []
+        for rec in sia1_result:
+            if filter_func(rec):
+                result.append(cls(**mapped))
+        return result
+
+
+def _clean_for(records: List[Queriable], ivoids_to_remove: Set[str]):
+    """returns the Queriables in records the ivoids of which are
+    not in ivoids_to_remove.
+    """
+    return [r for r in records if r.ivoid not in ivoids_to_remove]
 
 
 class _ImageDiscoverer:
@@ -98,12 +124,12 @@ class _ImageDiscoverer:
             constraints.append(
                 registry.Temporal(self.time, inclusive=self.inclusive))
 
-        self.sia1_recs = registry.search(
-            registry.Servicetype("sia"), *constraints)
-        self.sia2_recs = registry.search(
-            registry.Servicetype("sia2"), *constraints)
-        self.obscore_recs = registry.search(
-            registry.Datamodel("obscore"), *constraints)
+        self.sia1_recs = [Queriable(r) for r in registry.search(
+            registry.Servicetype("sia"), *constraints)]
+        self.sia2_recs = [Queriable(r) for r in registry.search(
+            registry.Servicetype("sia2"), *constraints)]
+        self.obscore_recs = [Queriable(r) for r in registry.search(
+            registry.Datamodel("obscore"), *constraints)]
 
         # Now remove resources presumably operating on the same underlying
         # data collection.  First, we deselect by ivoid, where a more powerful
@@ -111,15 +137,15 @@ class _ImageDiscoverer:
         def ids(recs):
             return set(r.ivoid for r in recs)
 
-        _clean_for(self.sia1_recs,
+        self.sia1_recs = _clean_for(self.sia1_recs,
                 ids(self.sia2_recs)|ids(self.obscore_recs))
-        _clean_for(self.sia2_recs, ids(self.obscore_recs))
+        self.sia2_recs = _clean_for(self.sia2_recs, ids(self.obscore_recs))
 
         # TODO: use futher heuristics to further cut down on dupes:
         # Use relationships.  I think we should tell people to use
         # IsDerivedFrom for SIA2 services built on top of TAP services.
 
-    def _query_one_sia1(self, rec: RegistryResource):
+    def _query_one_sia1(self, rec: Queriable):
         """runs our query against a SIA1 capability of rec.
 
         Since SIA1 cannot do spectral and temporal constraints itself,
@@ -127,18 +153,21 @@ class _ImageDiscoverer:
         If metadata is missing, we keep or discard accoding to
         self.inclusive.
         """
-        svc = rec.get_service("sia")
-        for res in svc.search(pos=self.center, size=self.radius,
-                intersect='overlaps'):
-            new_rec = sia1_to_obscore(res)
-
+        def non_spatial_filter(sia1_rec):
             if not inclusive and self.spectral:
                 if not new_rec.em_min<self.spectral<new_rec.em_max:
-                    continue
+                    return False
             if not inclusive and self.time:
                 if not new_rec.time_min<self.time<new_rec.time_max:
-                    continue
+                    return False
+            return True
 
+        svc = rec.res_rec.get_service("sia")
+        self.results.extend(
+            ImageFound.from_sia1_recs(
+                svc.search(
+                    pos=self.center, size=self.radius, intersect='overlaps'),
+                non_spatial_filter))
             self.results.append(new_rec)
 
     def _query_sia1(self):
@@ -158,13 +187,13 @@ class _ImageDiscoverer:
             except Exception as msg:
                 self.log.append(f"SIA1 {rec['ivoid']} skipped: {msg}")
 
-    def _query_one_sia2(self, rec: RegistryResource):
+    def _query_one_sia2(self, rec: Queriable):
         """runs our query against a SIA2 capability of rec.
         """
-        svc = rec.get_service("sia2")
-        for res in svc.search(pos=self.space, band=self.spectrum,
-                time=self.time):
-            self.results.append(new_rec)
+        svc = rec.res_rec.get_service("sia2")
+        self.results.extend(
+            ImageFound.from_sia2_recs(
+                svc.search(pos=self.space, band=self.spectrum, time=self.time)))
 
     def _query_sia2(self):
         """runs the SIA2 part of our discovery.
@@ -175,13 +204,13 @@ class _ImageDiscoverer:
             except Exception as msg:
                 self.log.append(f"SIA2 {rec['ivoid']} skipped: {msg}")
 
-    def _query_one_obscore(self, rec: RegistryResource, where_clause:str):
+    def _query_one_obscore(self, rec: Queriable, where_clause:str):
         """runs our query against a Obscore capability of rec.
         """
-        svc = rec.get_service("tap")
-
-        for res in svc.query("select * from ivoa.obscore"+where_clause):
-            self.results.append(ObsCoreRecord(res))
+        svc = rec.res_rec.get_service("tap")
+        self.results.extend(
+            ImageFound.from_obscore_recs(
+                svc.query("select * from ivoa.obscore"+where_clause)))
 
     def _query_obscore(self):
         """runs the Obscore part of our discovery.
