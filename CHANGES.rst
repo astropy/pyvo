@@ -36,6 +36,8 @@
 - Output of ``repr`` for DALResults instance now clearly shows it is a
   DALResultsTable and not a generic astropy Table. [#478]
 
+- TAP examples now support the continuation property [#483]
+
 
 1.4.3 (unreleased)
 ==================

@@ -149,6 +149,38 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
                 vosi.parse_tables(response.raw.read), tables_url)
         return self._tables
 
+    def _parse_examples(self, examples_uri, /, depth=0):
+        """returns the TAP queries from a DALI examples URI.
+        """
+        if depth > 5:
+            raise Exception("Suspecting endless recursion when"
+                " parsing TAP examples")
+
+        response = self._session.get(examples_uri, stream=True)
+        if response.status_code == 404:
+            return []
+
+        try:
+            response.raise_for_status()
+        except requests.RequestException as ex:
+            raise DALServiceError.from_except(ex, examples_uri)
+
+        try:
+            root = xml.etree.ElementTree.parse(
+                io.BytesIO(response.content)).getroot()
+            exampleElements = root.findall('.//*[@property="query"]')
+        except Exception as ex:
+            raise DALServiceError.from_except(ex, examples_uri)
+
+        examples = [TAPQuery(self.baseurl, example.text)
+            for example in exampleElements]
+
+        for continuation in root.findall('.//*[@property="continuation"]'):
+            examples.extend(
+                self._parse_examples(continuation.get("href"), depth + 1))
+
+        return examples
+
     @property
     def examples(self):
         """
@@ -157,23 +189,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         if self._examples is None:
             examples_url = '{}/examples'.format(self.baseurl)
 
-            response = self._session.get(examples_url, stream=True)
-            if response.status_code == 404:
-                return []
-
-            try:
-                response.raise_for_status()
-            except requests.RequestException as ex:
-                raise DALServiceError.from_except(ex, examples_url)
-
-            try:
-                root = xml.etree.ElementTree.parse(io.BytesIO(response.content)).getroot()
-                exampleElements = root.findall('.//*[@property="query"]')
-            except Exception as ex:
-                raise DALServiceError.from_except(ex, examples_url)
-
-            self._examples = [TAPQuery(self.baseurl, example.text) for example in exampleElements]
-
+            self._examples = self._parse_examples(examples_url)
         return self._examples
 
     @property

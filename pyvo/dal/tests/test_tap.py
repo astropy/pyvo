@@ -386,10 +386,16 @@ def tables(mocker):
 @pytest.fixture()
 def examples(mocker):
     def callback_examplesXHTML(request, context):
-        return get_pkg_data_contents('data/tap/examples.htm')
+        uri = f"://{request.netloc}{request.path}"
+        if uri == '://example.com/tap/examples':
+            return get_pkg_data_contents('data/tap/examples.htm')
+        elif uri == '://example.org/obscore-examples.html':
+            return get_pkg_data_contents('data/tap/obscore-examples.html')
+        else:
+            assert False, f"Unexpected examples URI: {uri}"
 
     with mocker.register_uri(
-        'GET', 'http://example.com/tap/examples', content=callback_examplesXHTML
+        'GET', requests_mock.ANY, content=callback_examplesXHTML
     ) as matcher:
         yield matcher
 
@@ -445,8 +451,12 @@ class TestTAPService:
         table1, table2 = list(vositables)
         self._test_tables(table1, table2)
 
-    def _test_examples(self, exampleXHTML):
-        assert "SELECT * FROM rosmaster" in exampleXHTML[0]['QUERY']
+    def _test_examples(self, parsed_examples):
+        assert len(parsed_examples) == 6
+        assert "SELECT * FROM rosmaster" in parsed_examples[0]['QUERY']
+        # the last query is from the continuation
+        assert parsed_examples[-1]['QUERY'].startswith(
+            "\nSELECT access_url, t_exptime, t_min FROM ivoa.obscore")
 
     @pytest.mark.usefixtures('examples')
     def test_examples(self):
