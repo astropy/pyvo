@@ -21,7 +21,6 @@ build:
       - git fetch --unshallow || true
 
 python:
-  system_packages: false
   install:
     - requirements: docs/requirements.txt
     - method: pip
