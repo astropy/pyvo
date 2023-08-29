@@ -10,6 +10,10 @@
   ``SIA2_PARAMETERS_DESC``. The old names now issue an
   ``AstropyDeprecationWarning``. [#419]
 
+- Class ``pyvo.vosi.vodataservice.Table`` has been renamed to
+  ``VODataServiceTable`` to avoid sharing the name with a more generic
+  ``astropy.table.Table`` while having different API. [#484]
+
 - Registry search now finds SIA v2 services. [#422, #428]
 
 - Deprecate VOSI ``AvailabilityMixin``, this mean the deprecation of the
