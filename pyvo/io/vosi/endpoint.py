@@ -245,10 +245,10 @@ class TablesFile(Element):
         tableset.parse(iterator, config)
         self._tableset = tableset
 
-    @xmlelement(cls=vs.Table)
+    @xmlelement(cls=vs.VODataServiceTable)
     def table(self):
         """
-        The `Table` root element if present.
+        The `VODataServiceTable` root element if present.
         """
         return self._table
 
