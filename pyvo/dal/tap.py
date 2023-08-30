@@ -149,11 +149,11 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
                 vosi.parse_tables(response.raw.read), tables_url)
         return self._tables
 
-    def _parse_examples(self, examples_uri, /, depth=0):
+    def _parse_examples(self, examples_uri, *, depth=0):
         """returns the TAP queries from a DALI examples URI.
         """
         if depth > 5:
-            raise Exception("Suspecting endless recursion when"
+            raise DALServiceError("Suspecting endless recursion when"
                 " parsing TAP examples")
 
         response = self._session.get(examples_uri, stream=True)
@@ -177,7 +177,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
 
         for continuation in root.findall('.//*[@property="continuation"]'):
             examples.extend(
-                self._parse_examples(continuation.get("href"), depth + 1))
+                self._parse_examples(continuation.get("href"), depth=depth + 1))
 
         return examples
 
