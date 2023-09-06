@@ -802,11 +802,13 @@ identifying the dataset you want it to return.
   Since the creation of datalink objects requires a network roundtrip, it is
   recommended to call ``getdatalink`` only once.
 
-Of course one can also build a datalink object from it's url.
+Of course one can also build a datalink object from its url.
 
-.. TODO: define DatalinkResults
-.. doctest-skip::
+.. doctest-remote-data::
 
+    >>> from pyvo.dal.adhoc import DatalinkResults
+    >>> # In this example you know the URL from somewhere
+    >>> url = 'https://ws.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/datalink?ID=ivo%3A%2F%2Fcadc.nrc.ca%2FHSTHLA%3Fhst_12477_28_acs_wfc_f606w_01%2Fhst_12477_28_acs_wfc_f606w_01_drz'
     >>> datalink = DatalinkResults.from_result_url(url)
 
 Server-side processing
