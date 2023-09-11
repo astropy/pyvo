@@ -327,7 +327,7 @@ class TestDALResults:
         dalresults = DALResults.from_result_url(
             'http://example.com/query/basic')
 
-        assert repr(dalresults) == repr(dalresults.to_table())
+        assert repr(dalresults)[0:26] == "<DALResultsTable length=3>"
 
     def test_iter(self):
         dalresults = DALResults.from_result_url(

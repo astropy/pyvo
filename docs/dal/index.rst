@@ -160,7 +160,7 @@ mean G-band magnitude between 19 - 20:
     ...     """
     >>> result = tap_service.search(ex_query)
     >>> print(result)
-    <Table length=5>
+    <DALResultsTable length=5>
         source_id              ra                dec         phot_g_mean_mag
                             deg                deg               mag
         int64             float64            float64           float32

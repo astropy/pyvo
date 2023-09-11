@@ -401,7 +401,7 @@ class DALResults:
         return infos
 
     def __repr__(self):
-        return repr(self.to_table())
+        return f"<DALResults{repr(self.to_table())[1:]}"
 
     @property
     def queryurl(self):

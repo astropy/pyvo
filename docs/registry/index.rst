@@ -171,10 +171,10 @@ thus say:
 
 .. doctest-remote-data::
 
-  >>> resources["II/283"].get_service("conesearch").search(pos=(120, 73), sr=1)  # doctest: +IGNORE_OUTPUT
-  <Table length=1>
+  >>> resources["II/283"].get_service("conesearch").search(pos=(120, 73), sr=1)
+  <DALResultsTable length=1>
     _RAJ2000     _DEJ2000      _r    recno ... NED    RAJ2000      DEJ2000
-      deg          deg        deg          ...        "h:m:s"      "d:m:s"
+      deg          deg                     ...
     float64      float64    float64  int32 ... str3    str12        str12
   ------------ ------------ -------- ----- ... ---- ------------ ------------
   117.98645833  73.00961111 0.588592   986 ...  NED 07 51 56.750 +73 00 34.60
@@ -199,7 +199,7 @@ To run a TAP query based on this metadata, do something like:
 
   >>> resources["II/283"].get_service("tap#aux").run_sync(
   ...   'SELECT sn, z FROM "J/A+A/437/789/table2" WHERE z>0.04')
-  <Table length=4>
+  <DALResultsTable length=4>
     SN      z
   object float64
   ------ -------
@@ -405,7 +405,7 @@ there is no telling what kind of service you will get back.
 
   >>> nvss = colls["NVSS"].service  # converts record to service object
   >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits")
-  <Table length=1>
+  <DALResultsTable length=1>
   Survey    Ra   ... LogicalName
   object float64 ...    object
   ------ ------- ... -----------
@@ -443,7 +443,7 @@ registry.
 
   >>> nvss = vo.registry.search(ivoid='ivo://nasa.heasarc/skyview/nvss')[0].get_service('sia')
   >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits")
-  <Table length=1>
+  <DALResultsTable length=1>
   Survey    Ra   ... LogicalName
   object float64 ...    object
   ------ ------- ... -----------

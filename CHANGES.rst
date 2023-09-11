@@ -27,6 +27,9 @@
 
 - Adding python version to User-Agent. [#452]
 
+- Output of ``repr`` for DALResults instance now clearly shows it is a
+  DALResultsTable and not a generic astropy Table. [#478]
+
 
 1.4.3 (unreleased)
 ==================
