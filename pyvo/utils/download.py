@@ -120,20 +120,21 @@ def _s3_is_accessible(s3_resource, bucket_name, key):
 
     Return
     -----
-    (accessible, msg) where accessible is a bool and msg is the failure message
+    (accessible, exception) where accessible is a bool and exception is the error exception
 
     """
 
     s3_client = s3_resource.meta.client
+    exception = None
 
     try:
         header_info = s3_client.head_object(Bucket=bucket_name, Key=key)
-        accessible, msg = True, ''
+        accessible = True
     except Exception as e:
         accessible = False
-        msg = str(e)
+        exception = e
 
-    return accessible, msg
+    return accessible, exception
 
 
 # adapted from astroquery.mast.
@@ -205,31 +206,34 @@ def aws_download(uri=None,
             raise ValueError('session has to be instance of boto3.session.Session')
         s3_config = botocore.client.Config(connect_timeout=timeout)
         s3_resource = session.resource(service_name='s3', config=s3_config)
+        msg1 = 'Access with session'
     else:
         if aws_profile is None:
             s3_config = botocore.client.Config(signature_version=botocore.UNSIGNED, connect_timeout=timeout)
             s3_resource = boto3.resource(service_name='s3', config=s3_config)
+            msg1 = 'Annonymous access'
         else:
             session = boto3.session.Session(profile_name=aws_profile)
             s3_config = botocore.client.Config(connect_timeout=timeout)
             s3_resource = session.resource(service_name='s3', config=s3_config)
+            msg1 = f'Access with profile ({aws_profile})'
 
     # check access
-    accessible, message1 = _s3_is_accessible(s3_resource, bucket_name, key)
+    accessible, exception1 = _s3_is_accessible(s3_resource, bucket_name, key)
     if verbose:
-        print(f'Access with profile or annonymous: {accessible}. Message: {message1}')
+        print(f'{msg1}: {accessible}. Message: {str(exception1)}')
 
     # If access with profile fails, attemp to use any credientials
     # in the user system e.g. environment variables etc. boto3 should find them.
     if not accessible:
+        msg2 = 'Access with system credentials'
         s3_resource = boto3.resource(service_name='s3')
-        accessible, message2 = _s3_is_accessible(s3_resource, bucket_name, key)
+        accessible, exception2 = _s3_is_accessible(s3_resource, bucket_name, key)
         if verbose:
-            print(f'Access with system credentials: {accessible}. Message: {message1}')
+            print(f'{msg2}: {accessible}. Message: {str(exception2)}')
         # is still not accessible, fail
         if not accessible:
-            raise PermissionError((f'{key} in {bucket_name} is '
-                                   f'inaccessible:\n{message1}\n{message2}'))
+            raise exception2
 
     # proceed with download
     s3_client = s3_resource.meta.client
@@ -249,9 +253,9 @@ def aws_download(uri=None,
                 if verbose:
                     print(f'Found cached file {local_filepath}.')
                 return local_filepath
-            if verbose:
-                print(f'Found cached file {local_filepath} with size {statinfo.st_size} '
-                      f'that is different from expected size {length}')
+            else:
+                warn(f'Found cached file but it has the wrong size. Overwriting ...',
+                     category=PyvoUserWarning)
 
     with ProgressBarOrSpinner(length, (f'Downloading {key} to {local_filepath} ...')) as pb:
 
@@ -274,6 +278,7 @@ def aws_download(uri=None,
 
         bkt.download_file(key, local_filepath, Callback=progress_callback)
     return local_filepath
+
 
 def _filename_from_url(url):
     """Extract file name from uri/url
