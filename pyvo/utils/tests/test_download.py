@@ -25,11 +25,10 @@ try:
 except ImportError:
     HAS_MOTO = False
 
-
 # Useful variables
 # For http_download:
 get_pkg_data_contents = partial(
-   get_pkg_data_contents, package=__package__, encoding='binary')
+    get_pkg_data_contents, package=__package__, encoding='binary')
 data_re = re.compile('http://example.com/data.*')
 # For aws_download:
 s3_bucket = 'pyvo-bucket'
@@ -70,7 +69,7 @@ def test__filename_from_url():
 
     for url in urls:
         filename = _filename_from_url(url)
-        assert(filename == 'myfile.pdf')
+        assert filename == 'myfile.pdf'
 
 
 @pytest.fixture(name='http_mock')
@@ -80,7 +79,7 @@ def _data_downloader(mocker):
         return get_pkg_data_contents(f'data/{fname}')
 
     with mocker.register_uri(
-        'GET', data_re, content=callback, headers={'content-length':'901'},
+        'GET', data_re, content=callback, headers={'content-length': '901'},
     ) as matcher:
         yield matcher
 
@@ -88,20 +87,20 @@ def _data_downloader(mocker):
 def test_http_download__noPath(http_mock):
     filename = http_download('http://example.com/data/basic.xml',
                              local_filepath=None, cache=False)
-    assert(filename == 'basic.xml')
+    assert filename == 'basic.xml'
     os.remove('basic.xml')
 
 
 def test_http_download__noFile(http_mock):
     with pytest.raises(urllib.error.URLError):
-        filename = http_download('http://example.com/data/nofile.fits')
+        http_download('http://example.com/data/nofile.fits')
 
 
 def test_http_download__wPath(http_mock):
     filename = http_download('http://example.com/data/basic.xml',
                              local_filepath='basic2.xml', cache=False)
-    assert(filename == 'basic2.xml')
-    assert(os.path.exists('basic2.xml'))
+    assert filename == 'basic2.xml'
+    assert os.path.exists('basic2.xml')
     os.remove('basic2.xml')
 
 
@@ -111,11 +110,10 @@ def test_http_download__wrong_cache(http_mock):
         fp.write('some content')
     # get it from cache
     with pytest.warns(PyvoUserWarning):
-        filename = http_download('http://example.com/data/basic.xml',
-                                 local_filepath='basic.xml', cache=True)
-    assert(os.path.getsize('basic.xml') == 901)
+        http_download('http://example.com/data/basic.xml',
+                      local_filepath='basic.xml', cache=True)
+    assert os.path.getsize('basic.xml') == 901
     os.remove('basic.xml')
-
 
 
 @pytest.mark.skipif('not HAS_MOTO')
@@ -131,7 +129,6 @@ def _s3_mock(mocker):
 
 @pytest.mark.skipif('not HAS_MOTO')
 def test_s3_mock_basic(s3_mock):
-    s3 = s3_mock.meta.client
     body = s3_mock.Object(s3_bucket, s3_key).get()['Body']
     content = body.read().decode('utf-8')
     assert content == 'my content'
@@ -140,47 +137,47 @@ def test_s3_mock_basic(s3_mock):
 @pytest.mark.skipif('not HAS_MOTO')
 def test__s3_is_accessible_yes(s3_mock):
     accessible, exc = _s3_is_accessible(s3_mock, s3_bucket, s3_key)
-    assert(accessible)
-    assert(exc is None)
+    assert accessible
+    assert exc is None
 
 
 @pytest.mark.skipif('not HAS_MOTO')
 def test__s3_is_accessible_no_bucket(s3_mock):
     accessible, exc = _s3_is_accessible(s3_mock, 'some-bucket', s3_key)
-    assert(not accessible)
-    assert('NoSuchBucket' in str(exc))
+    assert not accessible
+    assert 'NoSuchBucket' in str(exc)
 
 
 @pytest.mark.skipif('not HAS_MOTO')
 def test__s3_is_accessible_no_key(s3_mock):
     accessible, exc = _s3_is_accessible(s3_mock, s3_bucket, 'does/not/exist')
-    assert(not accessible)
-    assert(isinstance(exc, ClientError))
+    assert not accessible
+    assert isinstance(exc, ClientError)
     errmsg = str(exc)
-    assert('Not Found' in errmsg and '404' in errmsg)
+    assert 'Not Found' in errmsg and '404' in errmsg
 
 
 @pytest.mark.skipif('not HAS_MOTO')
 def test_s3_download__noPath(s3_mock):
     filename = aws_download(f's3://{s3_bucket}/{s3_key}',
-                             local_filepath=None, cache=False)
+                            local_filepath=None, cache=False)
     fname = s3_key.split('/')[-1]
-    assert(filename == fname)
+    assert filename == fname
     os.remove(fname)
 
 
 @pytest.mark.skipif('not HAS_MOTO')
 def test_s3_download__noKey(s3_mock):
     with pytest.raises(ClientError):
-        filename = aws_download(f's3://{s3_bucket}/does/not/exist')
+        aws_download(f's3://{s3_bucket}/does/not/exist')
 
 
 @pytest.mark.skipif('not HAS_MOTO')
 def test_s3_download__wPath(s3_mock):
     filename = aws_download(f's3://{s3_bucket}/{s3_key}',
-                             local_filepath='newkey.txt', cache=False)
-    assert(filename == 'newkey.txt')
-    assert(os.path.exists('newkey.txt'))
+                            local_filepath='newkey.txt', cache=False)
+    assert filename == 'newkey.txt'
+    assert os.path.exists('newkey.txt')
     os.remove(filename)
 
 
@@ -191,7 +188,7 @@ def test_aws_download__wrong_cache(s3_mock):
         fp.write('not my content')
     # get it from cache
     with pytest.warns(PyvoUserWarning):
-        filename = aws_download(f's3://{s3_bucket}/{s3_key}',
-                                local_filepath='somekey.txt', cache=True)
-    assert(os.path.getsize('somekey.txt') == 10)
+        aws_download(f's3://{s3_bucket}/{s3_key}',
+                     local_filepath='somekey.txt', cache=True)
+    assert os.path.getsize('somekey.txt') == 10
     os.remove('somekey.txt')

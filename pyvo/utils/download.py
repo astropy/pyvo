@@ -29,7 +29,7 @@ def http_download(url,
                   verbose=False,
                   **kwargs):
     """Download file from http(s) url
-    
+
     Parameters
     ----------
     url: str
@@ -44,7 +44,7 @@ def http_download(url,
         Session to use. If None, create a new one.
     verbose: bool
         If True, print progress and debug text
-        
+
     Keywords
     --------
     additional keywords to be passed to session.request()
@@ -61,11 +61,9 @@ def http_download(url,
     if not local_filepath:
         local_filepath = _filename_from_url(url)
 
-
     response = _session.request(method, url, timeout=timeout,
-                               stream=True, **kwargs)
+                                stream=True, **kwargs)
 
-    
     response.raise_for_status()
     if 'content-length' in response.headers:
         length = int(response.headers['content-length'])
@@ -75,10 +73,9 @@ def http_download(url,
     else:
         length = None
 
-
     if cache and os.path.exists(local_filepath):
         if length is not None and os.path.getsize(local_filepath) != length:
-            warn(f'Found cached file but it has the wrong size. Overwriting ...',
+            warn('Found cached file but it has the wrong size. Overwriting ...',
                  category=PyvoUserWarning)
         else:
             if verbose:
@@ -89,7 +86,6 @@ def http_download(url,
     response = _session.request(method, url, timeout=timeout,
                                 stream=True, **kwargs)
     response.raise_for_status()
-
 
     blocksize = astropy.utils.data.conf.download_block_size
     n_bytes = 0
@@ -128,11 +124,11 @@ def _s3_is_accessible(s3_resource, bucket_name, key):
     exception = None
 
     try:
-        header_info = s3_client.head_object(Bucket=bucket_name, Key=key)
+        _ = s3_client.head_object(Bucket=bucket_name, Key=key)
         accessible = True
-    except Exception as e:
+    except Exception as ex:
         accessible = False
-        exception = e
+        exception = ex
 
     return accessible, exception
 
@@ -171,7 +167,7 @@ def aws_download(uri=None,
         name of the user's profile for credentials in ~/.aws/config
         or ~/.aws/credentials. Use to authenticate the AWS user with boto3.
     session: boto3.session.Session
-        Session to use that include authentication if needed. 
+        Session to use that include authentication if needed.
         If None, create an annonymous one. If given, aws_profile is ignored
     verbose: bool
         If True, print progress and debug text
@@ -199,7 +195,6 @@ def aws_download(uri=None,
 
     if not local_filepath:
         local_filepath = _filename_from_url(f's3://{bucket_name}/{key}')
-
 
     if session:
         if not isinstance(session, boto3.session.Session):
@@ -254,7 +249,7 @@ def aws_download(uri=None,
                     print(f'Found cached file {local_filepath}.')
                 return local_filepath
             else:
-                warn(f'Found cached file but it has the wrong size. Overwriting ...',
+                warn('Found cached file but it has the wrong size. Overwriting ...',
                      category=PyvoUserWarning)
 
     with ProgressBarOrSpinner(length, (f'Downloading {key} to {local_filepath} ...')) as pb:
@@ -286,12 +281,12 @@ def _filename_from_url(url):
         - https://example.com/files/myfile.pdf?user_id=123
         - https://example.com/files/myfile.pdf
         - http://example.com/service?file=/location/myfile.pdf&size=large
-    
+
     Parameters
     ----------
     url: str
         url of the file
-    
+
     """
     parsed_url = urlparse(url)
     path = parsed_url.path
@@ -304,5 +299,5 @@ def _filename_from_url(url):
                 filename = os.path.basename(unquote(values[0]))
                 if '.' in filename:
                     break
-    
+
     return filename
