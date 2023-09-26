@@ -112,7 +112,10 @@ def test_http_download__wrong_cache(http_mock):
     with pytest.warns(PyvoUserWarning):
         http_download('http://example.com/data/basic.xml',
                       local_filepath='basic.xml', cache=True)
-    assert os.path.getsize('basic.xml') == 901
+    with open('basic.xml') as fp:
+        lines = fp.readlines()
+        assert len(lines) == 28
+        assert '<?xml version="1.0" encoding="utf-8"?>' in lines[0]
     os.remove('basic.xml')
 
 
