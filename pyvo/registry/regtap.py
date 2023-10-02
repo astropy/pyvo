@@ -837,7 +837,8 @@ class RegistryResource(dalq.Record):
         if verbose:
             if self.source_value:
                 print(f"\nSource: {self.source_value}", file=file)
-            if self.creators:
+            # don't print creators if its first value is overly long
+            if self.creators and len(self.creators[0]) < width:
                 nmax_authors = 5
                 if len(self.creators) <= nmax_authors:
                     print(f"Authors: {', '.join(self.creators)}", file=file)
