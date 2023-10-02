@@ -824,10 +824,6 @@ class RegistryResource(dalq.Record):
             print(para_format_desc(self.res_description), file=file)
             print(file=file)
 
-        if self.short_name:
-            print(
-                para_format_desc("Subjects: {}".format(self.short_name)),
-                file=file)
         if self.waveband:
             val = (str(v) for v in self.waveband)
             print(
