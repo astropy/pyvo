@@ -371,7 +371,8 @@ class TestSelectClause:
             "\n  ivo_string_agg(COALESCE(access_url, ''), ':::py VO sep:::') AS access_urls, "
             "\n  ivo_string_agg(COALESCE(standard_id, ''), ':::py VO sep:::') AS standard_ids, "
             "\n  ivo_string_agg(COALESCE(intf_type, ''), ':::py VO sep:::') AS intf_types, "
-            "\n  ivo_string_agg(COALESCE(intf_role, ''), ':::py VO sep:::') AS intf_roles")
+            "\n  ivo_string_agg(COALESCE(intf_role, ''), ':::py VO sep:::') AS intf_roles, "
+            "alt_identifier")
 
     def test_group_by_columns(self):
         # Again, this will break as regtap.RegistryResource.expected_columns
@@ -390,4 +391,5 @@ class TestSelectClause:
             "source_format, "
             "source_value, "
             "region_of_regard, "
-            "waveband")
+            "waveband, "
+            "alt_identifier")

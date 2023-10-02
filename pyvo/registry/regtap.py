@@ -438,7 +438,8 @@ class RegistryResource(dalq.Record):
         (f"\n  ivo_string_agg(COALESCE(intf_type, ''), '{TOKEN_SEP}')",
             "intf_types"),
         (f"\n  ivo_string_agg(COALESCE(intf_role, ''), '{TOKEN_SEP}')",
-            "intf_roles"), ]
+            "intf_roles"),
+        "alt_identifier"]
 
     def __init__(self, results, index, session=None):
         dalq.Record.__init__(self, results, index, session)
@@ -533,6 +534,14 @@ class RegistryResource(dalq.Record):
         URL pointing to a human-readable document describing this resource.
         """
         return self.get("reference_url", decode=True)
+
+    @property
+    def alt_identifier(self):
+        """Alternative identifier.
+
+        It is often used to provide the resource associated DOI.
+        """
+        return self.get("alt_identifier", decode=True)
 
     @property
     def creators(self):
@@ -789,8 +798,10 @@ class RegistryResource(dalq.Record):
         ----------
         verbose : bool
             If false (default), only user-oriented information is
-            printed; if true, additional information will be printed
-            as well.
+            printed.
+            If true, additional information -- reference url,
+            reference to the related article, and alternative identifier
+            (often a DOI) -- will be printed if available.
         width : int
             Format the description with given character-width.
         out : writable file-like object
@@ -806,7 +817,7 @@ class RegistryResource(dalq.Record):
         if len(self._mapping["access_urls"]) == 1:
             print("Base URL: " + self.access_url, file=file)
         else:
-            print("Multi-capabilty service -- use get_service()", file=file)
+            print("Multi-capability service -- use get_service()", file=file)
 
         if self.res_description:
             print(file=file)
@@ -826,6 +837,10 @@ class RegistryResource(dalq.Record):
         if verbose:
             if self.reference_url:
                 print("More info: " + self.reference_url, file=file)
+            if self.alt_identifier:
+                print(f"Alternative identifier: {self.alt_identifier}", file=file)
+            if self.source_value:
+                print(f"Source: {self.source_value}", file=file)
 
     def get_contact(self):
         """

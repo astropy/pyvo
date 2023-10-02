@@ -726,7 +726,7 @@ class TestExtraResourceMethods:
                 " ssa, tap#aux, web" in output)
         assert "Multi-capability service" in output
         assert "Source: 1996A&A...312..539S" in output
-        assert "Reference url: http://dc.zah" in output
+        assert "More info: http://dc.zah" in output
         assert "Alternative identifier: doi:10.21938/" in output
 
     def test_no_access_url(self):
