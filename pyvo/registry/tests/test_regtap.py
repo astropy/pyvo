@@ -726,8 +726,28 @@ class TestExtraResourceMethods:
                 " ssa, tap#aux, web" in output)
         assert "Multi-capability service" in output
         assert "Source: 1996A&A...312..539S" in output
-        assert "More info: http://dc.zah" in output
+        assert "Authors: Wolf" in output
         assert "Alternative identifier: doi:10.21938/" in output
+        assert "More info: http://dc.zah" in output
+
+    def test_describe_long_authors_list(self):
+        # generate a registry record with minimum
+        # information for the describe method and
+        # a long list of authors
+        rsc = _makeRegistryRecord(
+            access_urls=[],
+            standard_ids=["ivo://pyvo/test"],
+            short_name=["name"],
+            intf_types=[],
+            intf_roles=[],
+            creator_seq=["a;" * 6],
+            res_title=["title"]
+        )
+        out = io.StringIO()
+        rsc.describe(verbose=True, file=out)
+        output = out.getvalue()
+        # output should cut at 5 authors
+        assert "Authors: a, a, a, a, a et al." in output
 
     def test_no_access_url(self):
         rsc = _makeRegistryRecord(

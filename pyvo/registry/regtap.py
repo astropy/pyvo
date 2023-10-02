@@ -835,12 +835,19 @@ class RegistryResource(dalq.Record):
                 file=file)
 
         if verbose:
-            if self.reference_url:
-                print("More info: " + self.reference_url, file=file)
+            if self.source_value:
+                print(f"\nSource: {self.source_value}", file=file)
+            if self.creators:
+                nmax_authors = 5
+                if len(self.creators) <= nmax_authors:
+                    print(f"Authors: {', '.join(self.creators)}", file=file)
+                else:
+                    print(f"Authors: {', '.join(self.creators[:nmax_authors])} et al.\n"
+                    "See creators attribute for the complete list of authors.", file=file)
             if self.alt_identifier:
                 print(f"Alternative identifier: {self.alt_identifier}", file=file)
-            if self.source_value:
-                print(f"Source: {self.source_value}", file=file)
+            if self.reference_url:
+                print("More info: " + self.reference_url, file=file)
 
     def get_contact(self):
         """
