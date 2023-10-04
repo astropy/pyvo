@@ -736,9 +736,7 @@ class TestExtraResourceMethods:
         assert "More info: http://dc.zah" in output
 
     def test_describe_long_authors_list(self):
-        # generate a registry record with minimum
-        # information for the describe method and
-        # a long list of authors
+        """Check that long list of authors use et al.."""
         rsc = _makeRegistryRecord(
             access_urls=[],
             standard_ids=["ivo://pyvo/test"],
@@ -753,6 +751,23 @@ class TestExtraResourceMethods:
         output = out.getvalue()
         # output should cut at 5 authors
         assert "Authors: a, a, a, a, a et al." in output
+
+    def test_describe_long_author_name(self):
+        """Check that long author names are truncated."""
+        rsc = _makeRegistryRecord(
+            access_urls=[],
+            standard_ids=["ivo://pyvo/test"],
+            short_name=["name"],
+            intf_types=[],
+            intf_roles=[],
+            creator_seq=["a" * 71],
+            res_title=["title"]
+        )
+        out = io.StringIO()
+        rsc.describe(verbose=True, file=out)
+        output = out.getvalue()
+        # should cut the long author name at 70 characters
+        assert f"Authors: {'a'*70}..." in output
 
     def test_no_access_url(self):
         rsc = _makeRegistryRecord(

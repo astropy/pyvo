@@ -855,13 +855,16 @@ class RegistryResource(dalq.Record):
         if verbose:
             if self.source_value:
                 print(f"\nSource: {self.source_value}", file=file)
-            # don't print creators if its first value is overly long
-            if self.creators and len(self.creators[0]) < width:
+            if self.creators:
+                # if any creator has a name longer than 70 characters, we
+                # truncate it.
+                creators = [f"{creator[:70]}..." if len(creator) > 70
+                            else creator for creator in self.creators]
                 nmax_authors = 5
-                if len(self.creators) <= nmax_authors:
-                    print(f"Authors: {', '.join(self.creators)}", file=file)
+                if len(creators) <= nmax_authors:
+                    print(f"Authors: {', '.join(creators)}", file=file)
                 else:
-                    print(f"Authors: {', '.join(self.creators[:nmax_authors])} et al.\n"
+                    print(f"Authors: {', '.join(creators[:nmax_authors])} et al.\n"
                     "See creators attribute for the complete list of authors.", file=file)
             if self.alt_identifier:
                 print(f"Alternative identifier: {self.alt_identifier}", file=file)
