@@ -387,13 +387,18 @@ the ``describe`` function.
 
 .. doctest-remote-data::
 
-  >>> nvss.describe()
+  >>> nvss.describe(verbose=True)
   NRA) VLA Sky Survey
   Short Name: NVSS
   IVOA Identifier: ivo://nasa.heasarc/skyview/nvss
   Access modes: sia
   Base URL: https://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
   ...
+
+The verbose option in ``describe`` will output more information about
+the content of the resource, if available. Possible added entries are
+the authors of the resource, an associated DOI, an url where more
+information is provided, or a reference to a related paper.
 
 The method ``service`` will, for resources that only have a single
 capability, return a DAL service object ready for querying using the
