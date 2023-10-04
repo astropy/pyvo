@@ -566,10 +566,10 @@ class RegistryResource(dalq.Record):
 
     @property
     def rights(self):
-        """Rights information about the content of the resource.
+        """A statement of usage conditions for the content of the resource.
 
         This information is often incomplete in the registry, you
-        might get more information with the ``reference_url``.
+        might get more information at the ``reference_url``.
         """
         return self.get("rights", decode=True)
 
