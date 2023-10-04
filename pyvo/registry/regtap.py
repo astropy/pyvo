@@ -426,6 +426,9 @@ class RegistryResource(dalq.Record):
         "res_description",
         "reference_url",
         "creator_seq",
+        "created",
+        "updated",
+        "rights",
         "content_type",
         "source_format",
         "source_value",
@@ -438,7 +441,8 @@ class RegistryResource(dalq.Record):
         (f"\n  ivo_string_agg(COALESCE(intf_type, ''), '{TOKEN_SEP}')",
             "intf_types"),
         (f"\n  ivo_string_agg(COALESCE(intf_role, ''), '{TOKEN_SEP}')",
-            "intf_roles"), ]
+            "intf_roles"),
+        "alt_identifier"]
 
     def __init__(self, results, index, session=None):
         dalq.Record.__init__(self, results, index, session)
@@ -535,12 +539,39 @@ class RegistryResource(dalq.Record):
         return self.get("reference_url", decode=True)
 
     @property
+    def alt_identifier(self):
+        """Alternative identifier.
+
+        It is often used to provide the resource associated DOI.
+        """
+        return self.get("alt_identifier", decode=True)
+
+    @property
     def creators(self):
         """
         The creator(s) of the resource
         in the ordergiven by the resource record author
         """
         return self.get("creator_seq", default="", decode=True).split(";")
+
+    @property
+    def created(self):
+        """Date of creation of the resource."""
+        return self.get("created", decode=True)
+
+    @property
+    def updated(self):
+        """Date of last modification of the resource."""
+        return self.get("updated", decode=True)
+
+    @property
+    def rights(self):
+        """A statement of usage conditions for the content of the resource.
+
+        This information is often incomplete in the registry, you
+        might get more information at the ``reference_url``.
+        """
+        return self.get("rights", decode=True)
 
     @property
     def content_types(self):
@@ -789,8 +820,10 @@ class RegistryResource(dalq.Record):
         ----------
         verbose : bool
             If false (default), only user-oriented information is
-            printed; if true, additional information will be printed
-            as well.
+            printed.
+            If true, additional information -- reference url,
+            reference to the related article, and alternative identifier
+            (often a DOI) -- will be printed if available.
         width : int
             Format the description with given character-width.
         out : writable file-like object
@@ -806,17 +839,13 @@ class RegistryResource(dalq.Record):
         if len(self._mapping["access_urls"]) == 1:
             print("Base URL: " + self.access_url, file=file)
         else:
-            print("Multi-capabilty service -- use get_service()", file=file)
+            print("Multi-capability service -- use get_service()", file=file)
 
         if self.res_description:
             print(file=file)
             print(para_format_desc(self.res_description), file=file)
             print(file=file)
 
-        if self.short_name:
-            print(
-                para_format_desc("Subjects: {}".format(self.short_name)),
-                file=file)
         if self.waveband:
             val = (str(v) for v in self.waveband)
             print(
@@ -824,6 +853,21 @@ class RegistryResource(dalq.Record):
                 file=file)
 
         if verbose:
+            if self.source_value:
+                print(f"\nSource: {self.source_value}", file=file)
+            if self.creators:
+                # if any creator has a name longer than 70 characters, we
+                # truncate it.
+                creators = [f"{creator[:70]}..." if len(creator) > 70
+                            else creator for creator in self.creators]
+                nmax_authors = 5
+                if len(creators) <= nmax_authors:
+                    print(f"Authors: {', '.join(creators)}", file=file)
+                else:
+                    print(f"Authors: {', '.join(creators[:nmax_authors])} et al.\n"
+                    "See creators attribute for the complete list of authors.", file=file)
+            if self.alt_identifier:
+                print(f"Alternative identifier: {self.alt_identifier}", file=file)
             if self.reference_url:
                 print("More info: " + self.reference_url, file=file)
 

@@ -4,7 +4,7 @@
 Data Access (`pyvo.dal`)
 ************************
 
-This subpackage provides access to the various data servies in the VO.
+This subpackage provides access to the various data services in the VO.
 
 Getting started
 ===============
@@ -47,10 +47,10 @@ See :ref:`pyvo-services` for a explanation of the different interfaces.
 
 .. _pyvo-astro-params:
 
-Astrometrical parameters
-------------------------
+Astrometric parameters
+----------------------
 
-Most services expose the astrometrical parameters ``pos`` and ``size`` for which
+Most services expose the astrometric parameters ``pos`` and ``size`` for which
 PyVO accept `~astropy.coordinates.SkyCoord` or `~astropy.units.Quantity`
 objects as well as any other sequence containing right ascension and declination
 in degrees, which are converted to the standard coordinate frame
@@ -72,7 +72,7 @@ astronomical objects you are searching for.
 See :ref:`astropy-coordinates` and :ref:`astropy-units` for details.
 
 The `~astropy.units.Quantity` object is also suitable for any other
-astrometrical parameter, such as waveband ranges.
+astrometric parameter, such as waveband ranges.
 
 Some services also accept `~astropy.time.Time` as ``time`` parameter.
 
@@ -103,7 +103,7 @@ Capabilities describe specific pieces of functionality (such as “this is a
 spectral search”) and further metadata (such as ”this service will never
 return more than 10000 rows”).
 
-This information is contained in the datastructure
+This information is contained in the data structure
 :py:class:`~pyvo.io.vosi.endpoint.CapabilitiesFile` available through
 :py:attr:`~pyvo.dal.mixin.CapabilityMixin.capabilities`.
 
@@ -117,7 +117,7 @@ Services
 ========
 
 There are five types of services with different purposes but a mostly
-similiar interface available.
+similar interface available.
 
 .. _pyvo_tap:
 
@@ -234,7 +234,7 @@ entire runtime of the query, and query processing generally starts
 when the request is submitted.  This is convenient but becomes
 brittle as queries have runtimes of the order of minutes, when you
 may encounter query timeouts.  Also, many data providers impose
-rather strict limits on the runtime alotted to sync queries.
+rather strict limits on the runtime allotted to sync queries.
 
 In asynchronous (“async”) mode, on the other hand, the client just
 submits a query and receives a URL that let us inspect the
@@ -592,7 +592,7 @@ These have a ``submit_job`` method, which has the same
 parameters as their ``search`` but start a server-side job instead of waiting
 for the result to return.
 
-This is particulary useful for longer-running queries or when you want
+This is particularly useful for longer-running queries or when you want
 to run several queries in parallel from one script.
 
 .. note::
@@ -747,7 +747,7 @@ If the row contains datasets, they are exposed by several retrieval methods:
     >>> fileobj = row.getdataset()
     >>> obj = row.getdataobj()
 
-Returning the access url, the file-like object or the appropiate python object
+Returning the access url, the file-like object or the appropriate python object
 to further work on.
 
 As with general numpy arrays, accessing individual columns via names gives an
@@ -845,7 +845,7 @@ can pass as keywords to the ``process`` method.
 For more details about this have a look at
 :py:class:`astropy.io.votable.tree.Param`.
 
-Calling the method will return a file-like object on sucess.
+Calling the method will return a file-like object on success.
 
 .. remove skip once https://github.com/astropy/pyvo/issues/361 is fixed
 .. doctest-skip::
@@ -858,7 +858,7 @@ SODA
 ^^^^
 SODA is a service with predefined parameters, available on row-level through
 :py:meth:`pyvo.dal.adhoc.SodaRecordMixin.processed` which exposes a set of
-parameters who are dependend on the type of service.
+parameters which are dependent on the type of service.
 
 - ``circle`` -- a sequence (degrees) or :py:class:`astropy.units.Quantity` of
   longitude, latitude and radius
@@ -866,7 +866,7 @@ parameters who are dependend on the type of service.
   two longitude values and two latitude values describing a rectangle.
 - ``polygon`` -- multiple pairs of longitude and latitude points
 - ``band`` -- a sequence of two values (meters) or
-  :py:class:`astropy.units.Quantity` with two bandwitdh values. The right sort
+  :py:class:`astropy.units.Quantity` with two bandwidth values. The right sort
   order will be ensured if converting from frequency to wavelength.
 
 
@@ -880,7 +880,7 @@ resultset or a single product (image, spectrum) by calling this method on the
 SIA or SSA record.
 
 .. note::
-  Don't forget to start the application and make sure there is a runnung SAMP
+  Don't forget to start the application and make sure there is a running SAMP
   Hub.
 
 Underlying data structures

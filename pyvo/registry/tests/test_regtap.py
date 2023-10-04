@@ -362,7 +362,7 @@ def test_to_table(multi_interface_fixture, capabilities):
     assert (t["description"][0][:40]
             == 'Spectra from the Flash and Heros Echelle')
     assert (t["interfaces"][0]
-            == 'datalink#links-1.0, soda#sync-1.0, ssa, tap#aux, web')
+            == 'datalink#links-1.1, soda#sync-1.0, ssa, tap#aux, web')
 
 
 @pytest.fixture(name='rt_pulsar_distance')
@@ -378,13 +378,18 @@ def test_record_fields(rt_pulsar_distance):
     assert rec.res_title == "Catalog of 558 Pulsars"
     assert rec.content_levels == ['research']
     assert rec.res_description[:20] == "The catalogue is an up-to-date"[:20]
-    assert rec.reference_url == "http://cdsarc.unistra.fr/cgi-bin/cat/VII/156"
+    assert rec.reference_url == "https://cdsarc.cds.unistra.fr/viz-bin/cat/VII/156"
     assert rec.creators == ['Taylor J.H.', ' Manchester R.N.', ' Lyne A.G.']
     assert rec.content_types == ['catalog']
     assert rec.source_format == "bibcode"
     assert rec.source_value == "1993ApJS...88..529T"
     assert rec.region_of_regard is None
     assert rec.waveband == ['radio']
+    assert rec.created == "1999-03-02T10:21:53"
+    # updated might break when regenerating data/regtap.xml,
+    # replace by the new date
+    assert rec.updated == "2021-10-21T00:00:00"
+    assert rec.rights == "https://cds.unistra.fr/vizier-org/licences_vizier.html"
     # access URL, standard_id and friends exercised in TestInterfaceSelection
 
 
@@ -406,7 +411,7 @@ class TestResultIndexing:
         with pytest.raises(IndexError) as excinfo:
             rt_pulsar_distance[40320]
         assert (str(excinfo.value)
-                == "index 40320 is out of bounds for axis 0 with size 23")
+                == f"index 40320 is out of bounds for axis 0 with size {len(rt_pulsar_distance)}")
 
     def test_bad_key(self, rt_pulsar_distance):
         with pytest.raises(KeyError) as excinfo:
@@ -435,7 +440,7 @@ class TestInterfaceSelection:
 
     def test_access_modes(self, flash_service):
         assert set(flash_service.access_modes()) == {
-            'datalink#links-1.0', 'soda#sync-1.0', 'ssa', 'tap#aux',
+            'datalink#links-1.1', 'soda#sync-1.0', 'ssa', 'tap#aux',
             'web'}
 
     def test_standard_id_multi(self, flash_service):
@@ -443,7 +448,7 @@ class TestInterfaceSelection:
             _ = flash_service.standard_id
 
         assert str(excinfo.value) == ("This resource supports several"
-                                      " standards (datalink#links-1.0, soda#sync-1.0, ssa,"
+                                      " standards (datalink#links-1.1, soda#sync-1.0, ssa,"
                                       " tap#aux, web).  Use get_service or restrict your query"
                                       " using Servicetype.")
 
@@ -722,11 +727,47 @@ class TestExtraResourceMethods:
         output = out.getvalue()
 
         assert "Flash/Heros SSAP" in output
-        assert ("Access modes: datalink#links-1.0, soda#sync-1.0,"
+        assert ("Access modes: datalink#links-1.1, soda#sync-1.0,"
                 " ssa, tap#aux, web" in output)
-        assert "Multi-capabilty service" in output
-
+        assert "Multi-capability service" in output
+        assert "Source: 1996A&A...312..539S" in output
+        assert "Authors: Wolf" in output
+        assert "Alternative identifier: doi:10.21938/" in output
         assert "More info: http://dc.zah" in output
+
+    def test_describe_long_authors_list(self):
+        """Check that long list of authors use et al.."""
+        rsc = _makeRegistryRecord(
+            access_urls=[],
+            standard_ids=["ivo://pyvo/test"],
+            short_name=["name"],
+            intf_types=[],
+            intf_roles=[],
+            creator_seq=["a;" * 6],
+            res_title=["title"]
+        )
+        out = io.StringIO()
+        rsc.describe(verbose=True, file=out)
+        output = out.getvalue()
+        # output should cut at 5 authors
+        assert "Authors: a, a, a, a, a et al." in output
+
+    def test_describe_long_author_name(self):
+        """Check that long author names are truncated."""
+        rsc = _makeRegistryRecord(
+            access_urls=[],
+            standard_ids=["ivo://pyvo/test"],
+            short_name=["name"],
+            intf_types=[],
+            intf_roles=[],
+            creator_seq=["a" * 71],
+            res_title=["title"]
+        )
+        out = io.StringIO()
+        rsc.describe(verbose=True, file=out)
+        output = out.getvalue()
+        # should cut the long author name at 70 characters
+        assert f"Authors: {'a'*70}..." in output
 
     def test_no_access_url(self):
         rsc = _makeRegistryRecord(

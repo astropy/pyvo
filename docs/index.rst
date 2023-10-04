@@ -85,7 +85,7 @@ specific to the service type. In this example, a database query is enough:
                image                     ... ppakm31.maps
 
 What is returned by the search method is a to get a resultset object, which
-esseintially works like a numpy record array.  It can be processed either by
+essentially works like a numpy record array.  It can be processed either by
 columns:
 
 .. doctest-remote-data::

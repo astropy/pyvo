@@ -39,7 +39,7 @@ the examples below assume::
   >>> from pyvo import registry
 
 This function accepts one or more search constraints, which can be
-either specificed using constraint objects as positional arguments or as
+either specified using constraint objects as positional arguments or as
 keyword arguments.  The following constraints are available:
 
 * :py:class:`pyvo.registry.Freetext` (``keywords``): one or more
@@ -212,7 +212,7 @@ A special sort of access mode is ``web``, which represents some facility related
 to the resource that works in a web browser.  You can ask for a
 “service” for it, too; you will then receive an object that has a
 ``search`` method, and when you call it, a browser window should open
-with the query facility (this uses python's webbrowser module):
+with the query facility (this uses python's ``webbrowser`` module):
 
 .. doctest-skip::
 
@@ -229,10 +229,10 @@ or at services like DataScope_ or WIRR_ in your web browser.
 Service Discovery
 =================
 
-Service discovery is what you want typcially in connection with a search
+Service discovery is what you want typically in connection with a search
 for datasets, as in “Give me all infrared spectra of Bellatrix“.  To do
 that, you want to run the same DAL query against all the services of a
-given sort.  This means that you will have to include a servicetype
+given sort.  This means that you will have to include a ``servicetype``
 constraint such that all resources in your registry results can be
 queried in the same way.
 
@@ -253,9 +253,9 @@ In reality, you will have to add some error handling to this kind of
 all-VO queries: in a wide and distributed network, some service is
 always down.  See `Appendix: Robust All-VO Queries`_
 
-The central point is: With a servicetype constraint, each result has
-a well-defined ``service`` attribute that contains some subclass of
-dal.Service and that can be queried in a uniform fashion.
+The central point is: With a ``servicetype`` constraint,
+each result has a well-defined ``service`` attribute that contains some
+subclass of dal.Service and that can be queried in a uniform fashion.
 
 TAP services may provide tables in well-defined data models, like
 EPN-TAP or obscore.  These can be queried in similar loops, although
@@ -320,7 +320,7 @@ and access URL:
   Chandra Source Catalog Release 1 http://cda.cfa.harvard.edu/csc1siap/queryImages?
   ...
 
-It is not neccessary to keep track of the URL because you can search
+It is not necessary to keep track of the URL because you can search
 images directly from the registry record, for example using the Chandra
 X-ray Observatory (CDA) service and the ``search`` method, inserting
 the position and size for the desired object.
@@ -382,18 +382,23 @@ reviewing the titles is sufficient. Other times, particularly when
 you are not sure what you are looking for, it helps to look deeper.
 
 A selection of the resource metadata, including the title, shortname and
-desription, can be printed out in a summary form with
+description, can be printed out in a summary form with
 the ``describe`` function.
 
 .. doctest-remote-data::
 
-  >>> nvss.describe()
+  >>> nvss.describe(verbose=True)
   NRA) VLA Sky Survey
   Short Name: NVSS
   IVOA Identifier: ivo://nasa.heasarc/skyview/nvss
   Access modes: sia
   Base URL: https://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
   ...
+
+The verbose option in ``describe`` will output more information about
+the content of the resource, if available. Possible added entries are
+the authors of the resource, an associated DOI, an url where more
+information is provided, or a reference to a related paper.
 
 The method ``service`` will, for resources that only have a single
 capability, return a DAL service object ready for querying using the

@@ -790,7 +790,8 @@ def build_regtap_query(constraints):
         serialized.append("(" + constraint.get_search_condition() + ")")
         extra_tables |= set(constraint._extra_tables)
 
-    joined_tables = ["rr.resource", "rr.capability", "rr.interface"
+    joined_tables = ["rr.resource", "rr.capability", "rr.interface",
+                     "rr.alt_identifier"
                      ] + list(extra_tables)
 
     # see comment in regtap.RegistryResource for the following

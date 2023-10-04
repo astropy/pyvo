@@ -1,6 +1,12 @@
 1.5 (unreleased)
 ================
 
+- Added ``alt_identifier``, ``created``, ``updated`` and ``rights`` to the
+  attributes of ``pyvo.registry.regtap.RegistryResource`` [#492]
+
+- Added the ``source_value`` and ``alt_identifier`` information to the verbose
+  output of ``describe()`` in ``regtap``. [#492]
+
 - Added convenience method DALResults.to_qtable() that returns an
   astropy.table.QTable object. [#384]
 
