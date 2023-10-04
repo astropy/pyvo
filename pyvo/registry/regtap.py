@@ -426,6 +426,9 @@ class RegistryResource(dalq.Record):
         "res_description",
         "reference_url",
         "creator_seq",
+        "created",
+        "updated",
+        "rights",
         "content_type",
         "source_format",
         "source_value",
@@ -550,6 +553,25 @@ class RegistryResource(dalq.Record):
         in the ordergiven by the resource record author
         """
         return self.get("creator_seq", default="", decode=True).split(";")
+
+    @property
+    def created(self):
+        """Date of creation of the resource."""
+        return self.get("created", decode=True)
+
+    @property
+    def updated(self):
+        """Date of last modification of the resource."""
+        return self.get("updated", decode=True)
+
+    @property
+    def rights(self):
+        """Rights information about the content of the resource.
+
+        This information is often incomplete in the registry, you
+        might get more information with the ``reference_url``.
+        """
+        return self.get("rights", decode=True)
 
     @property
     def content_types(self):

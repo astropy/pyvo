@@ -385,6 +385,11 @@ def test_record_fields(rt_pulsar_distance):
     assert rec.source_value == "1993ApJS...88..529T"
     assert rec.region_of_regard is None
     assert rec.waveband == ['radio']
+    assert rec.created == "1999-03-02T10:21:53"
+    # updated might break when regenerating data/regtap.xml,
+    # replace by the new date
+    assert rec.updated == "2021-10-21T00:00:00"
+    assert rec.rights == "https://cds.unistra.fr/vizier-org/licences_vizier.html"
     # access URL, standard_id and friends exercised in TestInterfaceSelection
 
 
