@@ -127,7 +127,7 @@ def test_time():
         pass
     test_obj = TestClass()
     assert not hasattr(test_obj, '_time')
-    now = Time(datetime.datetime.now())
+    now = Time(datetime.datetime.now(tz=datetime.timezone.utc))
     test_obj.time.add(now)
     assert now in test_obj.time
     assert test_obj['TIME'] == ['{now} {now}'.format(now=now.mjd)]

@@ -598,7 +598,7 @@ class TestTAPService:
         #       - 1 job for after attribute
         # Tests consists in counting the cumulative number of jobs as per
         # above rules
-        after = datetime.datetime.now()
+        after = datetime.datetime.now(tz=datetime.timezone.utc)
         assert len(service.get_job_list()) == 0
         assert len(service.get_job_list(last=3)) == 3
         assert len(service.get_job_list(after='2018-04-25T17:46:01Z')) == 1
@@ -609,7 +609,7 @@ class TestTAPService:
                                         last=3)) == 4
         assert len(service.get_job_list(phases=['EXECUTING'], last=3)) == 5
         assert len(service.get_job_list(phases=['EXECUTING'], last=3,
-                                        after=datetime.datetime.now())) == 6
+                                        after=datetime.datetime.now(tz=datetime.timezone.utc))) == 6
 
     @pytest.mark.usefixtures('create_fixture')
     def test_create_table(self):

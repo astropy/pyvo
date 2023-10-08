@@ -72,7 +72,7 @@ rst_epilog += """
 project = setup_cfg['name']
 author = setup_cfg['author']
 copyright = '{}, {}'.format(
-    datetime.datetime.now().year, setup_cfg['author'])
+    datetime.datetime.now(tz=datetime.timezone.utc).year, setup_cfg['author'])
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
