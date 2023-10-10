@@ -144,13 +144,13 @@ class _ImageDiscoverer:
         Obscore, SIA2, SIA.
         """
         constraints = []
-        if self.space:
+        if self.space is not None:
             constraints.append(
                 registry.Spatial(self.space, inclusive=self.inclusive))
-        if self.spectrum:
+        if self.spectrum is not None:
             constraints.append(
                 registry.Spectral(self.spectrum, inclusive=self.inclusive))
-        if self.time:
+        if self.time is not None:
             constraints.append(
                 registry.Temporal(self.time, inclusive=self.inclusive))
 
@@ -284,7 +284,7 @@ class _ImageDiscoverer:
         self._query_obscore()
 
 
-def discover_images(
+def images_globally(
         space: Optional[Tuple[float, float, float]]=None,
         spectrum: Optional[Quantity]=None,
         time: Optional[float]=None,
