@@ -120,7 +120,7 @@ def search(url, pos=None, band=None, time=None, pol=None,
     _SIA2_PARAMETERS
 
     """
-    service = SIA2Service(url)
+    service = SIA2Service(url, session=session)
     return service.search(pos=pos, band=band, time=time, pol=pol,
                           field_of_view=field_of_view,
                           spatial_resolution=spatial_resolution,
@@ -130,8 +130,7 @@ def search(url, pos=None, band=None, time=None, pol=None,
                           facility=facility, collection=collection,
                           instrument=instrument, data_type=data_type,
                           calib_level=calib_level, target_name=target_name,
-                          res_format=res_format, maxrec=maxrec,
-                          session=session, **kwargs)
+                          res_format=res_format, maxrec=maxrec, **kwargs)
 
 
 search.__doc__ = search.__doc__.replace('_SIA2_PARAMETERS',
@@ -200,8 +199,7 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
                spectral_resolving_power=None, exptime=None,
                timeres=None, publisher_did=None, facility=None, collection=None,
                instrument=None, data_type=None, calib_level=None,
-               target_name=None, res_format=None, maxrec=None, session=None,
-               **kwargs):
+               target_name=None, res_format=None, maxrec=None, **kwargs):
         """
         Performs a SIA2 search against a SIA2 service
 
@@ -221,7 +219,7 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
                          instrument=instrument, data_type=data_type,
                          calib_level=calib_level, target_name=target_name,
                          res_format=res_format, maxrec=maxrec,
-                         session=session, **kwargs).execute()
+                         session=self._session, **kwargs).execute()
 
 
 class SIA2Query(DALQuery, AxisParamMixin):
