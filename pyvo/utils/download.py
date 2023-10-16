@@ -10,14 +10,12 @@ import astropy
 from astropy.utils.console import ProgressBarOrSpinner
 from astropy.utils.exceptions import AstropyUserWarning
 
+from pyvo.dal.exceptions import PyvoUserWarning
+from pyvo.utils.http import use_session
 
-from .http import use_session
 
 __all__ = ['http_download', 'aws_download']
 
-
-class PyvoUserWarning(AstropyUserWarning):
-    pass
 
 
 # adapted from astroquery._download_file.
@@ -26,6 +24,7 @@ def http_download(url,
                   cache=True,
                   timeout=None,
                   session=None,
+                  auth=None,
                   verbose=False):
     """Download file from http(s) url
 
@@ -41,6 +40,8 @@ def http_download(url,
         Time to attempt download before failing
     session: requests.Session
         Session to use. If None, create a new one.
+    auth: dict or None
+        to be passed to seesionr.request for authentication when needed.
     verbose: bool
         If True, print progress and debug text
 
@@ -58,19 +59,20 @@ def http_download(url,
         local_filepath = _filename_from_url(url)
 
     response = _session.request(method, url, timeout=timeout,
-                                stream=True)
+                                stream=True, auth=auth)
 
     response.raise_for_status()
     if 'content-length' in response.headers:
         length = int(response.headers['content-length'])
         if length == 0:
             if verbose:
-                print(f'URL {url} has length=0')
+                warn(f'URL {url} has length=0', category=PyvoUserWarning)
     else:
         length = None
 
     if cache and os.path.exists(local_filepath):
-        if length is not None and os.path.getsize(local_filepath) != length:
+        local_size = os.stat(local_filepath).st_size
+        if length is not None and local_size != length:
             warn('Found cached file but it has the wrong size. Overwriting ...',
                  category=PyvoUserWarning)
         else:
