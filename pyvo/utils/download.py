@@ -190,7 +190,7 @@ def aws_download(uri=None,
     if not local_filepath:
         local_filepath = _filename_from_url(f's3://{bucket_name}/{key}')
 
-    if session:
+    if session is not None:
         if not isinstance(session, boto3.session.Session):
             raise ValueError('session has to be instance of boto3.session.Session')
         s3_config = botocore.client.Config(connect_timeout=timeout)

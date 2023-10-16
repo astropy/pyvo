@@ -7,6 +7,7 @@ from functools import partial
 import re
 import pytest
 import requests_mock
+import requests
 from contextlib import contextmanager
 import urllib
 
@@ -19,6 +20,7 @@ try:
     # Both boto3, botocore and moto are optional dependencies, but the former 2 are
     # dependencies of the latter, so it's enough to handle them with one variable
     import boto3
+    import botocore
     from botocore.exceptions import ClientError
     from moto import mock_s3
     HAS_MOTO = True
@@ -91,17 +93,24 @@ def test_http_download__noPath(http_mock):
     os.remove('basic.xml')
 
 
-def test_http_download__noFile(http_mock):
-    with pytest.raises(urllib.error.URLError):
-        http_download('http://example.com/data/nofile.fits')
-
-
 def test_http_download__wPath(http_mock):
     filename = http_download('http://example.com/data/basic.xml',
                              local_filepath='basic2.xml', cache=False)
     assert filename == 'basic2.xml'
     assert os.path.exists('basic2.xml')
     os.remove('basic2.xml')
+
+
+def test_http_download__wCache(http_mock, capsys):
+    filename1 = http_download('http://example.com/data/basic.xml',
+                             local_filepath=None, cache=False)
+    assert filename1 == 'basic.xml'
+
+    filename2 = http_download('http://example.com/data/basic.xml',
+                             local_filepath=None, cache=True, verbose=True)
+    assert filename1 == filename2
+    assert 'Found cached file' in capsys.readouterr().out
+    os.remove('basic.xml')
 
 
 def test_http_download__wrong_cache(http_mock):
@@ -166,6 +175,7 @@ def test_s3_download__noPath(s3_mock):
                             local_filepath=None, cache=False)
     fname = s3_key.split('/')[-1]
     assert filename == fname
+    assert os.path.exists(filename)
     os.remove(fname)
 
 
@@ -195,3 +205,88 @@ def test_aws_download__wrong_cache(s3_mock):
                      local_filepath='somekey.txt', cache=True)
     assert os.path.getsize('somekey.txt') == 10
     os.remove('somekey.txt')
+
+## ---------------------- ##
+## ---- Remote Tests ---- ##
+
+@pytest.mark.remote_data
+def test_http_download__noFile():
+    with pytest.raises(requests.exceptions.HTTPError):
+        http_download('https://heasarc.gsfc.nasa.gov/FTP/data/nofile.fits')
+
+
+@pytest.mark.remote_data
+def test_http_download__remote():
+    url = 'https://heasarc.gsfc.nasa.gov/FTP/asca/README'
+    filename1 = http_download(url, local_filepath=None, cache=False)
+    assert filename1 == 'README'
+    with open('README', 'r') as fp:
+        lines = fp.readlines()
+        assert len(lines) == 26
+        assert 'The asca directory' in lines[1]
+    os.remove('README')
+
+
+@pytest.mark.remote_data
+def test_http_download__remote_cache(capsys):
+    url = 'https://heasarc.gsfc.nasa.gov/FTP/asca/README'
+    filename1 = http_download(url, local_filepath=None, cache=False)
+
+    filename2 = http_download(url, local_filepath=None, cache=True, verbose=True)
+    assert filename1 == filename2
+    assert 'Found cached file' in capsys.readouterr().out
+    os.remove('README')
+
+
+@pytest.mark.remote_data
+@pytest.mark.skipif('not HAS_MOTO')
+def test__s3_is_accessible_no_bucket_remote():
+    s3config = botocore.client.Config(signature_version=botocore.UNSIGNED, connect_timeout=100)
+    s3_resource = boto3.resource(service_name='s3', config=s3config)
+    accessible, exc = _s3_is_accessible(s3_resource, 'pyvo-nonexistent-bucket', s3_key)
+    assert not accessible
+    assert '404' in str(exc)
+
+@pytest.mark.remote_data
+@pytest.mark.skipif('not HAS_MOTO')
+def test__s3_is_accessible_no_key_remote():
+    s3config = botocore.client.Config(signature_version=botocore.UNSIGNED, connect_timeout=100)
+    s3_resource = boto3.resource(service_name='s3', config=s3config)
+    accessible, exc = _s3_is_accessible(s3_resource, 'nasa-heasarc', 'README')
+    assert not accessible
+    assert isinstance(exc, ClientError)
+    errmsg = str(exc)
+    assert 'Not Found' in errmsg and '404' in errmsg
+
+
+@pytest.mark.remote_data
+@pytest.mark.skipif('not HAS_MOTO')
+def test__s3_is_accessible_yes_remote():
+    s3config = botocore.client.Config(signature_version=botocore.UNSIGNED, connect_timeout=100)
+    s3_resource = boto3.resource(service_name='s3', config=s3config)
+    key = 'asca/data/rev2/97006000/aux/ad97006000_002_source_info.html.gz'
+    accessible, exc = _s3_is_accessible(s3_resource, 'nasa-heasarc', key)
+    assert accessible
+    assert exc is None
+
+@pytest.mark.remote_data
+@pytest.mark.skipif('not HAS_MOTO')
+def test__s3_is_accessible_download_remote():
+    s3config = botocore.client.Config(signature_version=botocore.UNSIGNED, connect_timeout=100)
+    s3_resource = boto3.resource(service_name='s3', config=s3config)
+    key = 'asca/data/rev2/97006000/aux/ad97006000_002_source_info.html.gz'
+    accessible, exc = _s3_is_accessible(s3_resource, 'nasa-heasarc', key)
+    assert accessible
+    assert exc is None
+
+
+@pytest.mark.remote_data
+@pytest.mark.skipif('not HAS_MOTO')
+def test_s3_download__noPath_remote():
+    key = 'asca/data/rev2/97006000/aux/ad97006000_002_source_info.html.gz'
+    filename = aws_download(f's3://nasa-heasarc/{key}',
+                            local_filepath=None, cache=False)
+    fname = 'ad97006000_002_source_info.html.gz'
+    assert filename == fname
+    assert os.path.exists(filename)
+    os.remove(fname)
