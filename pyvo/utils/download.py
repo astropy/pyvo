@@ -26,8 +26,7 @@ def http_download(url,
                   cache=True,
                   timeout=None,
                   session=None,
-                  verbose=False,
-                  **kwargs):
+                  verbose=False):
     """Download file from http(s) url
 
     Parameters
@@ -45,9 +44,6 @@ def http_download(url,
     verbose: bool
         If True, print progress and debug text
 
-    Keywords
-    --------
-    additional keywords to be passed to session.request()
 
     Return
     ------
@@ -62,7 +58,7 @@ def http_download(url,
         local_filepath = _filename_from_url(url)
 
     response = _session.request(method, url, timeout=timeout,
-                                stream=True, **kwargs)
+                                stream=True)
 
     response.raise_for_status()
     if 'content-length' in response.headers:
@@ -82,10 +78,6 @@ def http_download(url,
                 print(f'Found cached file {local_filepath}.')
             response.close()
             return local_filepath
-
-    response = _session.request(method, url, timeout=timeout,
-                                stream=True, **kwargs)
-    response.raise_for_status()
 
     blocksize = astropy.utils.data.conf.download_block_size
     n_bytes = 0
