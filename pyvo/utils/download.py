@@ -8,14 +8,12 @@ from warnings import warn
 
 import astropy
 from astropy.utils.console import ProgressBarOrSpinner
-from astropy.utils.exceptions import AstropyUserWarning
 
 from pyvo.dal.exceptions import PyvoUserWarning
 from pyvo.utils.http import use_session
 
 
 __all__ = ['http_download', 'aws_download']
-
 
 
 # adapted from astroquery._download_file.

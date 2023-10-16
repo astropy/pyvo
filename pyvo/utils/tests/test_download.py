@@ -9,7 +9,6 @@ import pytest
 import requests_mock
 import requests
 from contextlib import contextmanager
-import urllib
 
 from astropy.utils.data import get_pkg_data_contents
 
@@ -206,8 +205,9 @@ def test_aws_download__wrong_cache(s3_mock):
     assert os.path.getsize('somekey.txt') == 10
     os.remove('somekey.txt')
 
-## ---------------------- ##
-## ---- Remote Tests ---- ##
+# ----------------------
+# ---- Remote Tests ----
+
 
 @pytest.mark.remote_data
 def test_http_download__noFile():
@@ -247,6 +247,7 @@ def test__s3_is_accessible_no_bucket_remote():
     assert not accessible
     assert '404' in str(exc)
 
+
 @pytest.mark.remote_data
 @pytest.mark.skipif('not HAS_MOTO')
 def test__s3_is_accessible_no_key_remote():
@@ -268,6 +269,7 @@ def test__s3_is_accessible_yes_remote():
     accessible, exc = _s3_is_accessible(s3_resource, 'nasa-heasarc', key)
     assert accessible
     assert exc is None
+
 
 @pytest.mark.remote_data
 @pytest.mark.skipif('not HAS_MOTO')
