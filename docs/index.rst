@@ -135,3 +135,4 @@ Using `pyvo`
    io/index
    auth/index
    utils/prototypes
+   utils/download

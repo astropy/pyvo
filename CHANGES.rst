@@ -36,6 +36,9 @@
 - Output of ``repr`` for DALResults instance now clearly shows it is a
   DALResultsTable and not a generic astropy Table. [#478]
 
+- Add ``utils.http_download`` and ``utils.aws_download`` for downling data
+  files from on-prem servers and the aws cloud. [#489]
+
 
 1.4.3 (unreleased)
 ==================
