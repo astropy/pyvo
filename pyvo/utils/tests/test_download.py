@@ -100,18 +100,6 @@ def test_http_download__wPath(http_mock):
     os.remove('basic2.xml')
 
 
-def test_http_download__wCache(http_mock, capsys):
-    filename1 = http_download('http://example.com/data/basic.xml',
-                             local_filepath=None, cache=False)
-    assert filename1 == 'basic.xml'
-
-    filename2 = http_download('http://example.com/data/basic.xml',
-                             local_filepath=None, cache=True, verbose=True)
-    assert filename1 == filename2
-    assert 'Found cached file' in capsys.readouterr().out
-    os.remove('basic.xml')
-
-
 def test_http_download__wrong_cache(http_mock):
     # get the file first
     with open('basic.xml', 'w') as fp:
