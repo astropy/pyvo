@@ -20,9 +20,15 @@ from pyvo.dal.exceptions import DALServiceError, DALQueryError, DALFormatError, 
 from pyvo.version import version
 
 from astropy.table import Table, QTable
-from astropy.io.votable.tree import VOTableFile, Table as VOTable
-from astropy.io.fits import HDUList
+from astropy.io.votable.tree import VOTableFile
 
+try:
+    # Workaround astropy deprecation, remove try/except once >=6.0 is required
+    from astropy.io.votable.tree import TableElement
+except ImportError:
+    from astropy.io.votable.tree import Table as TableElement
+
+from astropy.io.fits import HDUList
 from astropy.utils.data import get_pkg_data_contents
 
 get_pkg_data_contents = partial(
@@ -271,7 +277,7 @@ class TestDALResults:
 
         assert dalresults.queryurl == 'http://example.com/query/basic'
         assert isinstance(dalresults.votable, VOTableFile)
-        assert isinstance(dalresults.resultstable, VOTable)
+        assert isinstance(dalresults.resultstable, TableElement)
 
         assert dalresults.fieldnames == ('1', '2')
         assert (

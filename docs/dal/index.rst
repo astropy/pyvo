@@ -895,7 +895,7 @@ conventions.
 
 If you want to work with the XML data structures
 :py:class:`astropy.io.votable.tree.VOTableFile` or
-:py:class:`astropy.io.votable.tree.Table`, they are accessible by the
+:py:class:`astropy.io.votable.tree.TableElement`, they are accessible by the
 attributes :py:attr:`pyvo.dal.DALResults.resultstable` and
 :py:attr:`pyvo.dal.DALResults.votable`, respectively.
 

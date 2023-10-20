@@ -367,7 +367,7 @@ class SLAResults(DALResults):
 
     ``SLAResults`` is essentially a wrapper around an Astropy
     :py:mod:`~astropy.io.votable`
-    :py:class:`~astropy.io.votable.tree.Table` instance where the
+    :py:class:`~astropy.io.votable.tree.TableElement` instance where the
     columns contain the various metadata describing the images.
     One can access that VOTable directly via the
     :py:attr:`~pyvo.dal.query.DALResults.votable` attribute.  Thus,
