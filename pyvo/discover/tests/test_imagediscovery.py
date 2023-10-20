@@ -18,8 +18,17 @@ def _all_constraint_responses(requests_mock):
     requests_mock.add_matcher(matcher)
 
 
-def test_with_all_constraints(_all_constraint_responses):
-    res = discover.images_globally(
-        space=(132, 14, 0.1),
-        time=time.Time(58794.9, format="mjd"),
+def test_cone_and_spectral_point(_all_constraint_responses):
+    images, logs = discover.images_globally(
+        space=(134, 11, 0.1),
         spectrum=600*u.eV)
+
+    assert ("SIA2 service <ivo://org.gavo.dc/__system__/siap2/sitewide>: 8 recs"
+        in logs)
+
+    assert len(images) == 8
+    assert images[0].obs_collection == "RASS"
+
+    # expected failure: the rosat SIA1 record should be filtered out
+    # by its relationship to the sitewide SIA2
+    assert len(logs) == 1
