@@ -13,6 +13,7 @@ The code here looks for data in SIA1, SIA2, and Obscore services for now.
 import functools
 
 from astropy import units as u
+from astropy import time
 from astropy.coordinates import SkyCoord
 
 from ..dam import obscore
@@ -36,6 +37,9 @@ class Queriable:
     def __init__(self, res_rec):
         self.res_rec = res_rec
         self.ivoid = res_rec.ivoid
+
+    def __str__(self):
+        return f"<{self.ivoid}>"
 
 
 @functools.cache
@@ -123,14 +127,29 @@ class _ImageDiscoverer:
 
     See discover_images for a discussion of its constructor parameters.
     """
+    # Constraint defaults
+    # a float in metres
+    spectrum = None
+    # an MJD float
+    time = None
+    # a center as a 2-tuple in ICRS degrees
+    center = None
+    # a radius as a float in degrees
+    radius = None
+
     def __init__(self, space, spectrum, time, inclusive):
-        self.space, self.spectrum, self.time = space, spectrum, time
-        if self.space:
-            self.center = SkyCoord(self.space[0], self.space[1], unit='deg')
-            self.radius = self.space[2]*u.deg
+        if space:
+            self.center = (space[0], space[1])
+            self.radius = space[2]
+
+        if spectrum is not None:
+            self.spectrum = spectrum.to(u.m, equivalencies=u.spectral()).value
+        # a float in MJD
+        if time is not None:
+            self.time = time.mjd
 
         self.inclusive = inclusive
-        self.result: List[obscore.ObsCoreMetadata] = []
+        self.results: List[obscore.ObsCoreMetadata] = []
         self.log: List[str] = []
 
     def collect_services(self):
@@ -144,12 +163,14 @@ class _ImageDiscoverer:
         Obscore, SIA2, SIA.
         """
         constraints = []
-        if self.space is not None:
+        if self.center is not None:
             constraints.append(
-                registry.Spatial(self.space, inclusive=self.inclusive))
+                registry.Spatial(list(self.center)+[self.radius],
+                    inclusive=self.inclusive))
         if self.spectrum is not None:
             constraints.append(
-                registry.Spectral(self.spectrum, inclusive=self.inclusive))
+                registry.Spectral(self.spectrum*u.m,
+                    inclusive=self.inclusive))
         if self.time is not None:
             constraints.append(
                 registry.Temporal(self.time, inclusive=self.inclusive))
@@ -173,7 +194,7 @@ class _ImageDiscoverer:
 
         # TODO: use futher heuristics to further cut down on dupes:
         # Use relationships.  I think we should tell people to use
-        # IsDerivedFrom for SIA2 services built on top of TAP services.
+        # IsServiceFor for (say) SIA2 services built on top of TAP services.
 
     def _query_one_sia1(self, rec: Queriable):
         """runs our query against a SIA1 capability of rec.
@@ -212,8 +233,8 @@ class _ImageDiscoverer:
         This will be a no-op without a space constraint due to
         limitations of SIA1.
         """
-        if self.space is None:
-            self.log.append("SIA1 servies skipped do to missing space"
+        if self.center is None:
+            self.log.append("SIA1 service skipped do to missing space"
                 " constraint")
             return
 
@@ -227,9 +248,22 @@ class _ImageDiscoverer:
         """runs our query against a SIA2 capability of rec.
         """
         svc = rec.res_rec.get_service("sia2")
-        self.results.extend(
-            ImageFound.from_obscore_recs(
-                svc.search(pos=self.space, band=self.spectrum, time=self.time)))
+        constraints = {}
+        if self.center is not None:
+            constraints["pos"] = self.center+(self.radius,)
+        if self.spectrum is not None:
+            constraints["band"] = self.spectrum
+        if self.time is not None:
+            constraints["time"] = time.Time(self.time, format="mjd")
+
+        matches = list(
+            ImageFound.from_obscore_recs(svc.search(**constraints)))
+        if len(matches):
+            self.log.append(f"SIA2 service {rec}: {len(matches)} recs")
+        else:
+            self.log.append(f"SIA2 service {rec}: no matches")
+
+        self.results.extend(matches)
 
     def _query_sia2(self):
         """runs the SIA2 part of our discovery.
@@ -239,14 +273,15 @@ class _ImageDiscoverer:
                 self._query_one_sia2(rec)
             except Exception as msg:
                 self.log.append(f"SIA2 {rec.ivoid} skipped: {msg}")
+                raise
 
     def _query_one_obscore(self, rec: Queriable, where_clause:str):
         """runs our query against a Obscore capability of rec.
         """
         svc = rec.res_rec.get_service("tap")
+        recs = svc.query("select * from ivoa.obscore"+where_clause)
         self.results.extend(
-            ImageFound.from_obscore_recs(
-                svc.query("select * from ivoa.obscore"+where_clause)))
+            ImageFound.from_obscore_recs(recs))
 
     def _query_obscore(self):
         """runs the Obscore part of our discovery.
@@ -255,15 +290,14 @@ class _ImageDiscoverer:
         # configurable.
         where_parts = ["dataproduct_type='image'"]
         # TODO: we'd need extra logic for inclusive here, too
-        if self.space:
+        if self.center is not None:
             where_parts.append("distance(s_ra, s_dec, {}, {}) < {}".format(
-                *self.space))
-        if self.spectrum:
-            meters = self.spectrum.to(u.m, equivalancies=u.spectral()).value
-            where_parts.append(f"(em_min<={meters} AND em_max>={meters})")
-        if self.time:
-            mjd = self.time.mjd.value
-            where_parts.append(f"(t_min<={mjd} AND t_max>={mjd})")
+                self.center[0], self.center[1], self.radius))
+        if self.spectrum is not None:
+            where_parts.append(
+                f"(em_min<={self.spectrum} AND em_max>={self.spectrum})")
+        if self.time is not None:
+            where_parts.append(f"(t_min<={self.time} AND t_max>={self.time})")
 
         where_clause = "WHERE "+(" AND ".join(where_parts))
 
@@ -320,4 +354,4 @@ def images_globally(
     discoverer.query_services()
     # TODO: We should un-dupe by image access URL
     # TODO: We could compute SODA cutout URLs here in addition.
-    return discoverer.result, discoverer.log
+    return discoverer.results, discoverer.log
