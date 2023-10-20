@@ -223,7 +223,7 @@ class DALQuery(dict):
 
         Returns
         -------
-        astropy.io.votable.tree.Table
+        astropy.io.votable.tree.TableElement
            an Astropy votable Table instance
 
         Raises
@@ -420,7 +420,7 @@ class DALResults:
     @property
     def resultstable(self):
         """
-        The votable XML element `astropy.io.votable.tree.Table`
+        The votable XML element `astropy.io.votable.tree.TableElement`
         """
         return self._resultstable
 
