@@ -37,7 +37,10 @@ request produces two files:
 * <base-name>: the resonse body, which you may very well want to edit.
 
 All these must become part of the package for later tests to run without
-network interaction.
+network interaction.  The <base-name> is intended to facilitate figuring
+out which response belongs to which request; it consists of the method,
+the host, the start of the payload (if any), and hashes of the full URL
+and a payload.
 
 When the upstream response changes, all you have to do is remove the
 cached files and re-run test with ``--remote-data=any``.
