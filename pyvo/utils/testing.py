@@ -73,30 +73,37 @@ class LearnableRequestMocker(requests_mock.Mocker):
             fixture_name)
         os.makedirs(self.response_dir, exist_ok=True)
 
-    def _get_cache_name(self, method, url, args):
+    def _get_cache_name(self, method, url, payload):
         """returns a file name for a request characterised by our
         arguments.
 
         The plan is that we have a manageable file name that is uniquely
         derivable from the arguments and yet gives folks a chance to match
         it up with requests in their code.
+
+        payload is either a query string or a request payload or None.
+        It's used to produce a unique hash, and the first characters
+        for the query string are in the file name to make it simpler
+        to find responses.
         """
-        payload_hash = ""
-        args = {}
-        if isinstance(args, str):
-            args = urlparse.parse_qsl(args)
+        if payload:
+            payload_hash = hashify_request_payload(payload)
+            payload_snippet = payload[:16]
+            if isinstance(payload_snippet, bytes):
+                payload_snippet = payload_snippet.decode("utf-8", "ignore")
         else:
-            args = list(args.items())
+            payload_hash = payload_snippet = ""
 
-        payload_hash = hashify_request_payload(args)
-        param_names = "#".join(k for k, _ in args)
+        payload_snippet = payload_snippet.replace("/", "_")
 
-        netloc = urlparse.urlparse(url).netloc
+        parsed = urlparse.urlparse(url)
+        last_segment = parsed.path.split("/")[-1]
         urlhash = get_digest(url+payload_hash)
 
         return os.path.join(
             self.response_dir,
-            f"{method}-{netloc}-{param_names}-{urlhash}")
+            f"{method}-{parsed.netloc}-{last_segment}_{payload_snippet}"
+            f"-{urlhash}{payload_hash}")
 
     def pickle_response(self, request, response, cache_name):
         # requests will already have dealt with content-encoding,
@@ -129,10 +136,20 @@ class LearnableRequestMocker(requests_mock.Mocker):
         # signature.
         method, url, data, params = \
             request.method, request.url, request.text, request.qs
-        assert not (params and data)  # >= 1 of them must be null.
-        args = params and data or None
 
-        cache_name = self._get_cache_name(method, url, args)
+        # we have to try to make the request payload (if any)
+        # as reproducable as possible, which is why we're trying
+        # to sort by parameter name
+        payload = ""
+        if params:
+            assert not data
+            payload = "&".join(f"{k}={v}" for k, v in sorted(
+                params.items()))
+        if data:
+            assert not params
+            payload = "&".join(p for p in sorted(data.split("&")))
+
+        cache_name = self._get_cache_name(method, url, payload)
         if os.path.exists(cache_name):
             return self.unpickle_response(cache_name)
 
