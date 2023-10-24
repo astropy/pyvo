@@ -138,3 +138,4 @@ Using ``pyvo``
    mivot/index
    utils/index
    utils/prototypes
+   utils/testing

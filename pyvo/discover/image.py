@@ -17,6 +17,7 @@ from astropy import time
 from astropy.coordinates import SkyCoord
 
 from ..dam import obscore
+from .. import dal
 from .. import registry
 
 
@@ -84,22 +85,23 @@ class ImageFound(obscore.ObsCoreMetadata):
         for rec in sia1_result:
             if not filter_func(rec):
                 continue
-
             mapped = {
                 "dataproduct_type": "image" if rec.naxes == 2 else "cube",
                 "access_url": rec.acref,
-                "bandpass_hilimit": rec.em_max.to(u.m).value,
-                "bandpass_lolimit": rec.em_min.to(u.m).value,
+                "em_max": rec.bandpass_hilimit is not None
+                    and rec.bandpass_hilimit.to(u.m).value,
+                "em_min": rec.bandpass_lolimit is not None
+                    and rec.bandpass_lolimit.to(u.m).value,
                 # Sigh.  Try to guess exposure time?
-                "t_min": rec.dateobs,
-                "t_max": rec.dateobs,
+                "t_min": rec.dateobs.mjd,
+                "t_max": rec.dateobs.mjd,
                 "access_estsize": rec.filesize/1024,
                 "access_format": rec.format,
                 "instrument_name": rec.instr,
-                "s_xsel1": rec.naxis[0],
-                "s_xsel2": rec.naxis[1],
-                "s_ra": rec.pos[0],
-                "s_dec": rec.pos[1],
+                "s_xel1": rec.naxis[0].to(u.pix).value,
+                "s_xel2": rec.naxis[1].to(u.pix).value,
+                "s_ra": rec.pos.icrs.ra.to(u.deg).value,
+                "s_dec": rec.pos.icrs.dec.to(u.deg).value,
                 "obs_title": rec.title,
                 # TODO: do more (s_resgion!) on the basis of the WCS parts
             }
@@ -120,12 +122,17 @@ class _ImageDiscoverer:
     diagnostics.  This probably should not be considered API but
     rather as an implementation detail of discover_images.
 
-    For now, we expose several methods to be called in succession
-    (see discover_images); that's because we *may* want to make
-    this API after all and admit user manipulation of our state
-    in between the larger steps.
+    The normal usage is do call discover_services(), which will locate
+    all VO services that may have relevant data.  Alternatively, call
+    set_services(registry_results) with some result of a registry.search()
+    call.  _ImageDiscoverer will then pick capabilities it can use out
+    of the resource records.  Records without usable capabilities are
+    silently ignored.
 
-    See discover_images for a discussion of its constructor parameters.
+    Then call query_services to execute the discovery query on these
+    services.
+
+    See images_globally for a discussion of its constructor parameters.
     """
     # Constraint defaults
     # a float in metres
@@ -137,7 +144,8 @@ class _ImageDiscoverer:
     # a radius as a float in degrees
     radius = None
 
-    def __init__(self, space, spectrum, time, inclusive):
+    def __init__(self,
+            space=None, spectrum=None, time=None, inclusive=False):
         if space:
             self.center = (space[0], space[1])
             self.radius = space[2]
@@ -151,8 +159,24 @@ class _ImageDiscoverer:
         self.inclusive = inclusive
         self.results: List[obscore.ObsCoreMetadata] = []
         self.log: List[str] = []
+        self.sia1_recs, self.sia2_recs, self.obscore_recs = [], [], []
 
-    def collect_services(self):
+    def _purge_redundant_services(self):
+        """removes services querying data already covered by more capable
+        services from our current services lists.
+        """
+        def ids(recs):
+            return set(r.ivoid for r in recs)
+
+        self.sia1_recs = _clean_for(self.sia1_recs,
+                ids(self.sia2_recs)|ids(self.obscore_recs))
+        self.sia2_recs = _clean_for(self.sia2_recs, ids(self.obscore_recs))
+
+        # TODO: use futher heuristics to further cut down on dupes:
+        # Use relationships.  I think we should tell people to use
+        # IsServiceFor for (say) SIA2 services built on top of TAP services.
+
+    def discover_services(self):
         """fills the X_recs attributes with resources declaring coverage
         for our constraints.
 
@@ -182,19 +206,27 @@ class _ImageDiscoverer:
         self.obscore_recs = [Queriable(r) for r in registry.search(
             registry.Datamodel("obscore"), *constraints)]
 
-        # Now remove resources presumably operating on the same underlying
-        # data collection.  First, we deselect by ivoid, where a more powerful
-        # interface is available
-        def ids(recs):
-            return set(r.ivoid for r in recs)
+        self._purge_redundant_services()
 
-        self.sia1_recs = _clean_for(self.sia1_recs,
-                ids(self.sia2_recs)|ids(self.obscore_recs))
-        self.sia2_recs = _clean_for(self.sia2_recs, ids(self.obscore_recs))
+    def set_services(self,
+            registry_results: registry.RegistryResults) -> None:
+        """as an alternative to discover_services, this sets the services
+        to be queried to the result of a custom registry query.
 
-        # TODO: use futher heuristics to further cut down on dupes:
-        # Use relationships.  I think we should tell people to use
-        # IsServiceFor for (say) SIA2 services built on top of TAP services.
+        This will pick the "most capabable" interface from each record
+        and ignore records without image discovery capabilities.
+        """
+        for rsc in registry_results:
+            if "tap" in rsc.access_modes():
+                # TODO: we ought to ensure there's an obscore
+                # table on this; but then: let's rather fix obscore
+                # discovery
+                self.obscore_recs.append(Queriable(rsc))
+            elif "sia2" in rsc.access_modes():
+                self.sia2_recs.append(Queriable(rsc))
+            elif "sia" in rsc.access_modes():
+                self.sia1_recs.append(Queriable(rsc))
+            # else ignore this record
 
     def _query_one_sia1(self, rec: Queriable):
         """runs our query against a SIA1 capability of rec.
@@ -216,7 +248,7 @@ class _ImageDiscoverer:
             # metadata.  TODO: require time to be an interval and
             # then replace check for dateobs to be within that interval.
             if self.time and not self.inclusive and sia1_rec.dateobs:
-                if not self.time-1<sia1_rec.dateobs<self.time+1:
+                if not self.time-1<sia1_rec.dateobs.mjd<self.time+1:
                     return False
             return True
 
@@ -243,6 +275,7 @@ class _ImageDiscoverer:
                 self._query_one_sia1(rec)
             except Exception as msg:
                 self.log.append(f"SIA1 {rec.ivoid} skipped: {msg}")
+                raise
 
     def _query_one_sia2(self, rec: Queriable):
         """runs our query against a SIA2 capability of rec.
@@ -313,6 +346,12 @@ class _ImageDiscoverer:
 
         This creates fills the results and the log attributes.
         """
+        if (not self.sia1_recs
+                and not self.sia2_recs
+                and not self.obscore_recs):
+            raise dal.DALQueryError("No services to query.  Unless"
+                " you overrode service selection, you will have to"
+                " loosen your constraints.")
         self._query_sia1()
         self._query_sia2()
         self._query_obscore()
@@ -350,7 +389,7 @@ def images_globally(
     comparisons with NULL-s false.
     """
     discoverer = _ImageDiscoverer(space, spectrum, time, inclusive)
-    discoverer.collect_services()
+    discoverer.discover_services()
     discoverer.query_services()
     # TODO: We should un-dupe by image access URL
     # TODO: We could compute SODA cutout URLs here in addition.

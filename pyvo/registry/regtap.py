@@ -238,6 +238,9 @@ def search(*constraints: rtcons.Constraint,
     ~pyvo.registry.RegistryResults`
        a container holding a table of matching resource (e.g. services)
 
+    See Also
+    --------
+    RegistryResults
     """
     service = get_RegTAP_service()
     query = RegistryQuery(
