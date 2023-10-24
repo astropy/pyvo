@@ -226,6 +226,19 @@ class TestSpatialConstraint:
         assert cons.get_search_condition() == "1 = CONTAINS(MOC(6, CIRCLE(3.0, -30.0, 3)), coverage)"
         assert cons._extra_tables == ["rr.stc_spatial"]
 
+    def test_enclosed(self):
+        cons = registry.Spatial("0/1-3", intersect="enclosed")
+        assert cons.get_search_condition() == "1 = CONTAINS(coverage, MOC('0/1-3'))"
+
+    def test_overlaps(self):
+        cons = registry.Spatial("0/1-3", intersect="overlaps")
+        assert cons.get_search_condition() == "1 = INTERSECTS(coverage, MOC('0/1-3'))"
+
+    def test_not_an_intersect_mode(self):
+        with pytest.raises(ValueError, match="'intersect' should be one of 'covers', 'enclosed',"
+                           " or 'overlaps' but its current value is 'wrong'."):
+            registry.Spatial("0/1-3", intersect="wrong")
+
 
 class TestSpectralConstraint:
     # These tests might need some float literal fuzziness.  I'm just

@@ -1,6 +1,8 @@
 1.5 (unreleased)
 ================
 
+- Add intersect modes for the spatial constraint in the registry module ``pyvo.registry.Spatial`` [#495]
+
 - Added ``alt_identifier``, ``created``, ``updated`` and ``rights`` to the
   attributes of ``pyvo.registry.regtap.RegistryResource`` [#492]
 
