@@ -65,8 +65,8 @@ keyword arguments.  The following constraints are available:
 * :py:class:`pyvo.registry.Ivoid` (``ivoid``): exactly match a single
   IVOA identifier (that is, in effect, the primary key in the VO).
 * :py:class:`pyvo.registry.Spatial` (``spatial``): match resources
-  covering a certain geometry (point, circle, polygon, or MOC).
-  *RegTAP 1.2 Extension*
+  covering, enclosed or overlapping a certain geometry
+  (point, circle, polygon, or MOC). *RegTAP 1.2 Extension*
 * :py:class:`pyvo.registry.Spectral` (``spectral``): match resources
   covering a certain part of the spectrum (usually, but not limited to,
   the electromagnetic spectrum).  *RegTAP 1.2 Extension*
@@ -146,6 +146,25 @@ interactive data discovery, however, it is usually preferable to use the
        Sloan Digital Sky Survey-II Supernova Survey (Sako+, 2018) ... conesearch, tap#aux, web
   ...
 
+And to look for tap resources *in* a specific cone, you would do
+
+.. doctest-remote-data::
+
+  >>> from astropy.coordinates import SkyCoord
+  >>> registry.search(registry.Servicetype("tap"),
+  ...                 registry.Spatial((SkyCoord("23d +3d"), 3), intersect="enclosed"),
+  ...                 includeaux=True) # doctest: +IGNORE_OUTPUT
+  <DALResultsTable length=1>
+              ivoid                   res_type       short_name                   res_title                  ...  intf_types  intf_roles          alt_identifier         
+                                                                                                             ...                                                         
+              object                   object          object                       object                   ...    object      object                object             
+  ------------------------------ ----------------- ------------- ------------------------------------------- ... ------------ ---------- --------------------------------
+  ivo://cds.vizier/j/apj/835/123 vs:catalogservice J/ApJ/835/123 Globular clusters in NGC 474 from CFHT obs. ... vs:paramhttp        std doi:10.26093/cds/vizier.18350123
+
+Where ``intersect`` can take the following values:
+  * 'covers' is the default and returns resources that cover the geometry provided,
+  * 'enclosed' is for services in the given region,
+  * 'overlaps' returns services intersecting with the region.
 
 The idea is that in notebook-like interfaces you can pick resources by
 title, description, and perhaps the access mode (“interface”) offered.

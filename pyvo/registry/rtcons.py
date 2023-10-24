@@ -528,6 +528,14 @@ class Spatial(Constraint):
 
     .. _MOC: https://www.ivoa.net/documents/MOC/
 
+    To find resources which coverage is enclosed in a region,
+
+        >>> enclosed = registry.Spatial("0/0-11", intersect="enclosed")
+
+    To find resources which coverage intersects a region,
+
+        >>> overlaps = registry.Spatial("0/0-11", intersect="overlaps")
+
     When you already have an astropy SkyCoord::
 
         >>> from astropy.coordinates import SkyCoord
@@ -539,12 +547,11 @@ class Spatial(Constraint):
         >>> resources = registry.Spatial((SkyCoord("23d +3d"), 3))
     """
     _keyword = "spatial"
-    _condition = "1 = CONTAINS({geom}, coverage)"
     _extra_tables = ["rr.stc_spatial"]
 
     takes_sequence = True
 
-    def __init__(self, geom_spec, order=6):
+    def __init__(self, geom_spec, intersect="covers", order=6):
         """
 
         Parameters
@@ -555,11 +562,17 @@ class Spatial(Constraint):
             as a DALI polygon.  Additionally, strings are interpreted
             as ASCII MOCs, SkyCoords as points, and a pair of a
             SkyCoord and a float as a circle.  Other types (proper
-            geometries or pymoc objects) might be supported in the
+            geometries or MOCPy objects) might be supported in the
             future.
+        intersect : str, optional
+            Allows to specify the connection between the resource coverage
+            and the *geom_spec*. The possible values are 'covers' for services
+            that completely cover the *geom_spec* region, 'enclosed' for services
+            completely enclosed in the region and 'overlaps' for services which
+            coverage intersect the region.
         order : int, optional
             Non-MOC geometries are converted to MOCs before comparing
-            them to the resource coverage.  By default, this contrains
+            them to the resource coverage.  By default, this constraint
             uses order 6, which corresponds to about a degree of resolution
             and is what RegTAP recommends as a sane default for the
             order actually used for the coverages in the database.
@@ -592,7 +605,15 @@ class Spatial(Constraint):
         else:
             raise ValueError("This constraint needs DALI-style geometries.")
 
-        self._fillers = {"geom": geom}
+        if intersect == "covers":
+            self._condition = f"1 = CONTAINS({geom}, coverage)"
+        elif intersect == "enclosed":
+            self._condition = f"1 = CONTAINS(coverage, {geom})"
+        elif intersect == "overlaps":
+            self._condition = f"1 = INTERSECTS(coverage, {geom})"
+        else:
+            raise ValueError("'intersect' should be one of 'covers', 'enclosed', or 'overlaps' "
+                             f"but its current value is '{intersect}'.")
 
 
 class Spectral(Constraint):
