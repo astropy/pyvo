@@ -136,3 +136,4 @@ Using ``pyvo``
    auth/index
    utils/index
    utils/prototypes
+   utils/testing
