@@ -3,4 +3,4 @@
 Various functions dealing with global data disovery.
 """
 
-from .image import images_globally
+from .image import images_globally, ImageDiscoverer

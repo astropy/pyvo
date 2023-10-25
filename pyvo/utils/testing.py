@@ -11,6 +11,7 @@ import hashlib
 import inspect
 import io
 import os
+import re
 import pickle
 from urllib import parse as urlparse
 
@@ -40,6 +41,12 @@ def get_digest(data):
     """
     if isinstance(data, str):
         data = data.encode("utf-8")
+
+    # requests has random mime/multipart separators.  Heuristically
+    # try to remove them so we get constant hashes.
+    mat = re.match(b"boundary=(.*?)[\r\n]", data)
+    if mat:
+        data = data.replace(mat.group(1), "")
 
     return base64.b64encode(
             hashlib.md5(data).digest(), b"+%"

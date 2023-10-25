@@ -5,6 +5,10 @@ Helpers for Testing (`pyvo.utils.testing`)
 ******************************************
 
 This package contains a few helpers to make testing pyvo code simpler.
+This is *not* intended to be used by user code or other libraries at
+this point; the API might change at any time depending on the testing
+needs of pyVO itself, and this documentation (mainly) addresses pyVO
+developers.
 
 
 The LearnableRequestMocker
