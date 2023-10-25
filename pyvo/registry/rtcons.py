@@ -779,10 +779,7 @@ class Spatial(SubqueriedConstraint):
             raise RegTAPFeatureMissing(
                 "stc_spatial missing on current RegTAP service")
 
-        self._fillers = {
-            "geom": geom,}
-
-        cond = super().get_search_condition()
+        cond = super().get_search_condition(service)
         if self.inclusive:
             return cond+" OR coverage IS NULL"
         else:
@@ -885,11 +882,11 @@ class Spectral(SubqueriedConstraint):
 
         raise ValueError(f"Cannot make a spectral quantity out of {quant}")
 
-    def get_search_condition(self):
+    def get_search_condition(self, service):
         if "rr.stc_spectral" not in service.tables:
             raise RegTAPFeatureMissing(
                 "stc_spectral missing on current RegTAP service")
-        cond = super().get_search_condition()
+        cond = super().get_search_condition(service)
         if self.inclusive:
             return (f"({cond}) OR NOT EXISTS("
                 "SELECT 1 FROM rr.stc_spectral AS inner_s WHERE"
@@ -976,12 +973,12 @@ class Temporal(SubqueriedConstraint):
                              " single time instants.")
         return val
 
-    def get_search_condition(self):
+    def get_search_condition(self, service):
         if "rr.stc_temporal" not in service.tables:
             raise RegTAPFeatureMissing(
                 "stc_temporal missing on current RegTAP service")
 
-        cond = super().get_search_condition()
+        cond = super().get_search_condition(service)
         if self.inclusive:
             return (f"({cond}) OR NOT EXISTS("
                 "SELECT 1 FROM rr.stc_temporal AS inner_t WHERE"
