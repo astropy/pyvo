@@ -1,0 +1,767 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
+  xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/v1.3">
+
+  <DESCRIPTION>
+    VizieR Astronomical Server vizier.u-strasbg.fr
+    Date: 2021-02-26T16:32:38 [V1.99+ (14-Oct-2013)]
+    Explanations and
+    Statistics of UCDs: See LINK below
+    In case of problem, please report to: cds-question@unistra.fr
+    In this version, NULL integer
+    columns are written as an empty string
+    &lt;TD&gt;&lt;/TD&gt;, explicitely possible from VOTable-1.3
+  </DESCRIPTION>
+  <!-- VOTable description at http://www.ivoa.net/Documents/latest/VOT.html -->
+  <INFO ID="VERSION" name="votable-version" value="1.99+ (14-Oct-2013)" />
+  <INFO ID="Ref" name="-ref" value="VIZ603922695e95" />
+  <INFO ID="MaxTuples" name="-out.max" value="50" />
+
+  <!-- Execution Reports -->
+
+  <RESOURCE ID="yCat_9057" name="IX/57" type="results">
+
+    <RESOURCE type="meta">
+      <VODML xmlns:dm-mapping="http://www.ivoa.net/xml/merged-syntax">
+        <REPORT status="OK">hand-made mapping</REPORT>
+
+        <MODEL name="meas" url="https://www.ivoa.net/xml/Meas/20200908/Meas-v1.0.vo-dml.xml" />
+        <MODEL name="coords" url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml" />
+        <MODEL name="ivoa" url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml" />
+
+        <GLOBALS>
+          <INSTANCE dmid="SpaceFrame_ICRS" dmtype="coords:SpaceSys">
+            <INSTANCE dmrole="coords:PhysicalCoordSys.frame" dmtype="coords:SpaceFrame">
+              <INSTANCE dmrole="coords:SpaceFrame.refPosition" dmtype="coords:StdRefLocation">
+                <ATTRIBUTE dmrole="coords:StdRefLocation.position" dmtype="ivoa:string" value="NoSet" />
+              </INSTANCE>
+              <ATTRIBUTE dmrole="coords:SpaceFrame.spaceRefFrame" dmtype="ivoa:string" value="ICRS" />
+              <ATTRIBUTE dmrole="coords:SpaceFrame.equinox" dmtype="coords:Epoch" value="NoSet" />
+            </INSTANCE>
+          </INSTANCE>
+          <INSTANCE dmid="SpaceFrame_Galactic" dmtype="coords:SpaceSys">
+            <INSTANCE dmrole="coords:PhysicalCoordSys.frame" dmtype="coords:SpaceFrame">
+              <INSTANCE dmrole="coords:SpaceFrame.refPosition" dmtype="coords:StdRefLocation">
+                <ATTRIBUTE dmrole="coords:StdRefLocation.position" dmtype="ivoa:string" value="NoSet" />
+              </INSTANCE>
+              <ATTRIBUTE dmrole="coords:SpaceFrame.spaceRefFrame" dmtype="ivoa:string" value="Galactic" />
+              <ATTRIBUTE dmrole="coords:SpaceFrame.equinox" dmtype="coords:Epoch" value="NoSet" />
+            </INSTANCE>
+          </INSTANCE>
+        </GLOBALS>
+
+        <TEMPLATES tableref="Results">
+
+          <INSTANCE dmrole="" dmtype="meas:Position">
+            <ATTRIBUTE dmrole="meas:Measure.ucd" dmtype="ivoa:string" value="pos" />
+            <INSTANCE dmrole="meas:Measure.coord" dmtype="coords:LonLatPoint">
+              <INSTANCE dmtype="ivoa:RealQuantity" dmrole="coords:LonLatPoint.lon">
+                <ATTRIBUTE dmrole="ivoa:Quantity.val" dmtype="ivoa:real" ref="RAICRS" />
+                <ATTRIBUTE dmrole="ivoa:Quantity.unit" dmtype="ivoa:Unit" value="deg" />
+              </INSTANCE>
+              <INSTANCE dmtype="ivoa:RealQuantity" dmrole="coords:LonLatPoint.lat">
+                <ATTRIBUTE dmrole="ivoa:Quantity.val" dmtype="ivoa:real" ref="DEICRS" />
+                <ATTRIBUTE dmrole="ivoa:Quantity.unit" dmtype="ivoa:Unit" value="deg" />
+              </INSTANCE>
+              <REFERENCE dmrole="coords:Coordinate.coordSys" dmref="SpaceFrame_ICRS" />
+            </INSTANCE>
+            <INSTANCE dmrole="meas:Measure.error" dmtype="meas:Ellipse">
+              <COLLECTION dmrole="meas:Ellipse.semiAxis">
+                <INSTANCE dmtype="ivoa:RealQuantity">
+                  <ATTRIBUTE dmrole="ivoa:Quantity.val" dmtype="ivoa:real" ref="r0" />
+                  <ATTRIBUTE dmrole="ivoa:Quantity.unit" dmtype="ivoa:Unit" value="arcsec" />
+                </INSTANCE>
+                <INSTANCE dmtype="ivoa:RealQuantity">
+                  <ATTRIBUTE dmrole="ivoa:Quantity.val" dmtype="ivoa:real" ref="r1" />
+                  <ATTRIBUTE dmrole="ivoa:Quantity.unit" dmtype="ivoa:Unit" value="arcsec" />
+                </INSTANCE>
+              </COLLECTION>
+              <INSTANCE dmrole="meas:Ellipse.posAngle" dmtype="ivoa:RealQuantity">
+                <ATTRIBUTE dmrole="ivoa:Quantity.val" dmtype="ivoa:real" ref="PA" />
+                <ATTRIBUTE dmrole="ivoa:Quantity.unit" dmtype="ivoa:Unit" value="deg" />
+              </INSTANCE>
+            </INSTANCE>
+          </INSTANCE>
+
+          <INSTANCE dmrole="" dmtype="meas:Position">
+            <ATTRIBUTE dmrole="meas:Measure.ucd" dmtype="ivoa:string" value="pos" />
+            <INSTANCE dmrole="meas:Measure.coord" dmtype="coords:LonLatPoint">
+              <INSTANCE dmtype="ivoa:RealQuantity" dmrole="coords:LonLatPoint.lon">
+                <ATTRIBUTE dmrole="ivoa:Quantity.val" dmtype="ivoa:real" ref="GLON" />
+                <ATTRIBUTE dmrole="ivoa:Quantity.unit" dmtype="ivoa:Unit" value="deg" />
+              </INSTANCE>
+              <INSTANCE dmtype="ivoa:RealQuantity" dmrole="coords:LonLatPoint.lat">
+                <ATTRIBUTE dmrole="ivoa:Quantity.val" dmtype="ivoa:real" ref="GLAT" />
+                <ATTRIBUTE dmrole="ivoa:Quantity.unit" dmtype="ivoa:Unit" value="deg" />
+              </INSTANCE>
+              <REFERENCE dmrole="coords:Coordinate.coordSys" dmref="SpaceFrame_Galactic" />
+            </INSTANCE>
+            <INSTANCE dmrole="meas:Measure.error" dmtype="meas:Ellipse">
+              <COLLECTION dmrole="meas:Ellipse.semiAxis">
+                <INSTANCE dmtype="ivoa:RealQuantity">
+                  <ATTRIBUTE dmrole="ivoa:Quantity.val" dmtype="ivoa:real" ref="r0" />
+                  <ATTRIBUTE dmrole="ivoa:Quantity.unit" dmtype="ivoa:Unit" value="arcsec" />
+                </INSTANCE>
+                <INSTANCE dmtype="ivoa:RealQuantity">
+                  <ATTRIBUTE dmrole="ivoa:Quantity.val" dmtype="ivoa:real" ref="r1" />
+                  <ATTRIBUTE dmrole="ivoa:Quantity.unit" dmtype="ivoa:Unit" value="arcsec" />
+                </INSTANCE>
+              </COLLECTION>
+              <INSTANCE dmrole="meas:Ellipse.posAngle" dmtype="ivoa:RealQuantity">
+                <ATTRIBUTE dmrole="ivoa:Quantity.val" dmtype="ivoa:real" ref="PA" />
+                <ATTRIBUTE dmrole="ivoa:Quantity.unit" dmtype="ivoa:Unit" value="deg" />
+              </INSTANCE>
+            </INSTANCE>
+          </INSTANCE>
+        </TEMPLATES>
+      </VODML>
+    </RESOURCE>
+
+    <DESCRIPTION>The Chandra Source Catalog (CSC), Release 2.0 (Evans+, 2019)</DESCRIPTION>
+    <COOSYS ID="H" system="ICRS" />
+    <COOSYS ID="J2000" system="eq_FK5" equinox="J2000" />
+    <TABLE ID="Results" name="IX/57/csc2master">
+      <DESCRIPTION>Chandra Source Catalog, V2.0; master sources</DESCRIPTION>
+      <!-- Chandra Source Catalog, V2.0; master sources (\originalcolumnnames) -->
+
+      <!-- Definitions of GROUPs and FIELDs -->
+
+      <!-- +++No column could be found to attach a LINK in table: IX/57/csc2master -->
+      <FIELD name="_RAJ2000" ucd="pos.eq.ra" ref="J2000" datatype="double" width="13" precision="9" unit="deg"><!-- ucd="POS_EQ_RA" -->
+        <DESCRIPTION>Right ascension (FK5, Equinox=J2000.0) (computed by VizieR, not part of the original data. The format may
+          include more digits than the original data because of internal accuracy requirements in VizieR and across other CDS
+          services)
+        </DESCRIPTION>
+      </FIELD>
+      <FIELD name="_DEJ2000" ucd="pos.eq.dec" ref="J2000" datatype="double" width="13" precision="9" unit="deg"><!-- ucd="POS_EQ_DEC" -->
+        <DESCRIPTION>Declination (FK5, Equinox=J2000.0) (computed by VizieR, not part of the original data. The format may
+          include more digits than the original data because of internal accuracy requirements in VizieR and across other CDS
+          services)
+        </DESCRIPTION>
+      </FIELD>
+      <FIELD name="2CXO" ucd="meta.id;meta.main" datatype="char" arraysize="18"><!-- ucd="ID_MAIN" -->
+        <DESCRIPTION>Source name (Jhhmmss.s+ddmmssX) (name)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="RAICRS" ucd="pos.eq.ra;meta.main" ref="H" datatype="double" width="11" precision="7" unit="deg"><!-- ucd="POS_EQ_RA_MAIN" -->
+        <DESCRIPTION>Source position, ICRS right ascension (ra)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="DEICRS" ucd="pos.eq.dec;meta.main" ref="H" datatype="double" width="11" precision="7" unit="deg"><!-- ucd="POS_EQ_DEC_MAIN" -->
+        <DESCRIPTION>Source position, ICRS declination (dec)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="r0" ucd="phys.angSize;pos.errorEllipse" datatype="float" width="6" precision="3" unit="arcsec"><!-- ucd="EXTENSION_RAD" -->
+        <DESCRIPTION>[0.7/65] Major radius of the 95% confidence level position error ellipse (err_ellipse_r0)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="r1" ucd="phys.angSize;src" datatype="float" width="6" precision="3" unit="arcsec"><!-- ucd="EXTENSION_SMIN" -->
+        <DESCRIPTION>[0.7/65] Minor radius of the 95% confidence level position error ellipse (err_ellipse_r1)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="PA" ucd="pos.posAng" datatype="float" width="10" precision="E3" unit="deg"><!-- ucd="POS_POS-ANG" -->
+        <DESCRIPTION>? Position angle (referenced from local true north) of the major axis of the 95% confidence level error
+          ellipse (err_ellipse_ang)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="GLON" ucd="pos.galactic.lon" datatype="double" width="12" precision="E5" unit="deg"><!-- ucd="POS_GAL_LON" -->
+        <DESCRIPTION>[-90/90] Source position, Galactic latitude (equinox J2000, epoch J2000) (gal_b)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="GLAT" ucd="pos.galactic.lat" datatype="double" width="12" precision="E5" unit="deg"><!-- ucd="POS_GAL_LAT" -->
+        <DESCRIPTION>[0/360] Source position, Galactic longitude (gal_l)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="fe" ucd="meta.code" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Extension flag (extent_flag) (1)</DESCRIPTION>
+        <LINK
+          href="http://vizier.u-strasbg.fr/viz-bin/nph-htx/A?%5cifnum%7b${fe}%7d=0%7b${fe}%7d%5celse%5cvNote%7b%26lt%3b%26quot%3bNote%26quot%3b%5c%26catid=9057%5c%26notid=1%5c%26-out.emph=${fe}%7d%7b${fe}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="fc" ucd="meta.code" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1]? Confusion flag (conf_flag) (2) [NULL integer written as an empty string]</DESCRIPTION>
+        <VALUES null="255" />
+        <LINK
+          href="http://vizier.u-strasbg.fr/viz-bin/VizieR?-6N&amp;-info=XML&amp;-out.add=.&amp;&amp;lt;&amp;quot;Note&amp;quot;&amp;catid=9057&amp;notid=2&amp;-out.emph=${fc}" />
+      </FIELD>
+      <FIELD name="fp" ucd="meta.code" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1]? Pile-up flag (pileup_flag) (3) [NULL integer written as an empty string]</DESCRIPTION>
+        <VALUES null="255" />
+        <LINK
+          href="http://vizier.u-strasbg.fr/viz-bin/VizieR?-6N&amp;-info=XML&amp;-out.add=.&amp;&amp;lt;&amp;quot;Note&amp;quot;&amp;catid=9057&amp;notid=3&amp;-out.emph=${fp}" />
+      </FIELD>
+      <FIELD name="fv" ucd="meta.code" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1]? Variability flag (var_flag) (4) [NULL integer written as an empty string]</DESCRIPTION>
+        <VALUES null="255" />
+        <LINK
+          href="http://vizier.u-strasbg.fr/viz-bin/VizieR?-6N&amp;-info=XML&amp;-out.add=.&amp;&amp;lt;&amp;quot;Note&amp;quot;&amp;catid=9057&amp;notid=4&amp;-out.emph=${fv}" />
+      </FIELD>
+      <FIELD name="fst" ucd="meta.code" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] ACIS readout streak flag (streak_src_flag) (5)</DESCRIPTION>
+        <LINK
+          href="http://vizier.u-strasbg.fr/viz-bin/nph-htx/A?%5cifnum%7b${fst}%7d=0%7b${fst}%7d%5celse%5cvNote%7b%26lt%3b%26quot%3bNote%26quot%3b%5c%26catid=9057%5c%26notid=5%5c%26-out.emph=${fst}%7d%7b${fst}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="fs" ucd="meta.code" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1]? Saturation flag (sat_src_flag) (6) [NULL integer written as an empty string]</DESCRIPTION>
+        <VALUES null="255" />
+        <LINK
+          href="http://vizier.u-strasbg.fr/viz-bin/VizieR?-6N&amp;-info=XML&amp;-out.add=.&amp;&amp;lt;&amp;quot;Note&amp;quot;&amp;catid=9057&amp;notid=6&amp;-out.emph=${fs}" />
+      </FIELD>
+      <FIELD name="fa" ucd="meta.code" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Human review flag (man_add_flag) (7)</DESCRIPTION>
+        <LINK
+          href="http://vizier.u-strasbg.fr/viz-bin/nph-htx/A?%5cifnum%7b${fa}%7d=0%7b${fa}%7d%5celse%5cvNote%7b%26lt%3b%26quot%3bNote%26quot%3b%5c%26catid=9057%5c%26notid=7%5c%26-out.emph=${fa}%7d%7b${fa}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="fi" ucd="meta.code" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Human review after automated rejection flag (man_inc_flag) (8)</DESCRIPTION>
+        <LINK
+          href="http://vizier.u-strasbg.fr/viz-bin/nph-htx/A?%5cifnum%7b${fi}%7d=0%7b${fi}%7d%5celse%5cvNote%7b%26lt%3b%26quot%3bNote%26quot%3b%5c%26catid=9057%5c%26notid=8%5c%26-out.emph=${fi}%7d%7b${fi}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="fr" ucd="meta.code" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Region flag (man_reg_flag) (9)</DESCRIPTION>
+        <LINK
+          href="http://vizier.u-strasbg.fr/viz-bin/nph-htx/A?%5cifnum%7b${fr}%7d=0%7b${fr}%7d%5celse%5cvNote%7b%26lt%3b%26quot%3bNote%26quot%3b%5c%26catid=9057%5c%26notid=9%5c%26-out.emph=${fr}%7d%7b${fr}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="fm" ucd="meta.code" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Match flag (man_match_flag) (10)</DESCRIPTION>
+        <LINK
+          href="http://vizier.u-strasbg.fr/viz-bin/nph-htx/A?%5cifnum%7b${fm}%7d=0%7b${fm}%7d%5celse%5cvNote%7b%26lt%3b%26quot%3bNote%26quot%3b%5c%26catid=9057%5c%26notid=10%5c%26-out.emph=${fm}%7d%7b${fm}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="ff" ucd="meta.code" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Position flag (man_pos_flag) (11)</DESCRIPTION>
+        <LINK
+          href="http://vizier.u-strasbg.fr/viz-bin/nph-htx/A?%5cifnum%7b${ff}%7d=0%7b${ff}%7d%5celse%5cvNote%7b%26lt%3b%26quot%3bNote%26quot%3b%5c%26catid=9057%5c%26notid=11%5c%26-out.emph=${ff}%7d%7b${ff}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="fVi" ucd="meta.code" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1]? Hardness ratio flag (var_inter_hard_flag) (12) [NULL integer written as an empty string]
+        </DESCRIPTION>
+        <VALUES null="255" />
+        <LINK
+          href="http://vizier.u-strasbg.fr/viz-bin/VizieR?-6N&amp;-info=XML&amp;-out.add=.&amp;&amp;lt;&amp;quot;Note&amp;quot;&amp;catid=9057&amp;notid=12&amp;-out.emph=${fVi}" />
+      </FIELD>
+      <FIELD name="Ns" ucd="meta.number" datatype="short" width="2"><!-- ucd="NUMBER" -->
+        <DESCRIPTION>[1/15] Number of sources fit simultaneously to compute aperture photometry quantities (phot_nsrcs)
+        </DESCRIPTION>
+      </FIELD>
+      <FIELD name="PFluxb" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.09]? Aperture-corrected net photon flux in ACIS broad (0.5-7.0keV) energy band (photflux_aper_b) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PFluxh" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.07]? Aperture-corrected net photon flux in ACIS hard (2.0-7.0keV) energy band (photflux_aper_h) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PFluxm" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.007]? Aperture-corrected net photon flux in ACIS medium (1.2-2.0keV) energy band (photflux_aper_m)
+          (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PFluxs" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.008]? Aperture-corrected net photon flux in ACIS soft (0.5-1.2keV) energy band (photflux_aper_s) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PFluxu" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.2]? Aperture-corrected net photon flux in ACIS ultrasoft (0.2-0.5keV) energy band (photflux_aper_u)
+          (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PFluxw" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.3]? Aperture-corrected net photon flux in HRC wide (~0.1-10.0keV) energy band (photflux_aper_w) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PF90b" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.04]? Aperture-corrected net photon flux inferred from the PSF 90% ECF aperture; ACIS broad
+          (0.5-7.0keV) energy band (photflux_aper90_b) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PF90h" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.03]? Aperture-corrected net photon flux inferred from the PSF 90% ECF aperture; ACIS hard (2.0-7.0keV)
+          energy band (photflux_aper90_h) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PF90m" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.004]? Aperture-corrected net photon flux inferred from the PSF 90% ECF aperture; ACIS medium
+          (1.2-2.0keV) energy band (photflux_aper90_m) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PF90s" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.008]? Aperture-corrected net photon flux inferred from the PSF 90% ECF aperture; ACIS soft
+          (0.5-1.2keV) energy band (photflux_aper90_s) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PF90u" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.2]? Aperture-corrected net photon flux inferred from the PSF 90% ECF aperture; ACIS ultrasoft
+          (0.2-0.5keV) energy band (photflux_aper90_u) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PF90w" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.3]? Aperture-corrected net photon flux inferred from the PSF 90% ECF aperture; HRC wide (~0.1-10.0keV)
+          energy band (photflux_aper90_w) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Fluxb" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/5.5e-10]? Aperture-corrected net energy flux inferred from the source region aperture; ACIS broad
+          (0.5-7.0keV) band, in erg/s/cm^2^ (flux_aper_b) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Fluxh" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/5.4e-10]? Aperture-corrected net energy flux inferred from the source region aperture; ACIS hard
+          (2.0-7.0keV) band in erg/s/cm^2^ (flux_aper_h) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Fluxm" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/1.9e-11]? Aperture-corrected net energy flux inferred from the source region aperture; ACIS medium
+          (1.2-2keV) band in erg/s/cm^2^ (flux_aper_m) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Fluxs" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/1.8e-11]? Aperture-corrected net energy flux inferred from the source region aperture; ACIS soft
+          (0.5-1.2keV) band in erg/s/cm^2^ (flux_aper_s) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Fluxu" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.0002]? Aperture-corrected net energy flux inferred from the source region aperture; ACIS ultrasoft
+          (0.2-0.5keV) band in erg/s/cm^2^ (flux_aper_u) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Fluxw" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/5.4e-10]? Aperture-corrected net energy flux inferred from the source region aperture; HRC wide
+          (~0.1-10.0keV) band in erg/s/cm^2^ (flux_aper_w) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="F90b" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/2.3e-10]? Aperture-corrected net energy flux from the PSF 90% ECF aperture; ACIS broad (0.5-7.0keV)
+          band, in erg/s/cm^2^ (flux_aper90_b) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="F90h" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/2.7e-10]? Aperture-corrected net energy flux from the PSF 90% ECF aperture; ACIS hard (2.0-7.0keV) band,
+          in erg/s/cm^2^ (flux_aper90_h) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="F90m" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/9.2e-12]? Aperture-corrected net energy flux from the PSF 90% ECF aperture; ACIS medium (1.2-2.0keV)
+          band in erg/s/cm^2^ (flux_aper90_m) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="F90s" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/1.8e-11]? Aperture-corrected net energy flux from the PSF 90% ECF aperture; ACIS soft (0.5-1.2keV) band,
+          in erg/s/cm^2^ (flux_aper90_s) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="F90u" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/7.4e-05]? Aperture-corrected net energy flux from the PSF 90% ECF aperture; ACIS ultrasoft (0.2-0.5keV)
+          band, in erg/s/cm^2^ (flux_aper90_u) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="F90w" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/5e-10]? Aperture-corrected net energy flux from the PSF 90% ECF aperture; HRC wide (~0.1-10.0keV) band,
+          in erg/s/cm^2^ (flux_aper90_w) (14)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PFavgb" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/19.8]? Aperture-corrected net photon flux inferred from the source region, averaged; ACIS broad
+          (0.5-7.0keV) energy band (photflux_aper_avg_b) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PFavgh" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/4.9]? Aperture-corrected net photon flux inferred from the source region, averaged; ACIS hard
+          (2.0-7.0keV) energy band (photflux_aper_avg_h) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PFavgm" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/4.3]? Aperture-corrected net photon flux inferred from the source region, averaged; ACIS medium
+          (1.2-2.0keV) energy band (photflux_aper_avg_m) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PFavgs" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/5.2]? Aperture-corrected net photon flux inferred from the source region, averaged; ACIS soft
+          (0.5-1.2keV) energy band (photflux_aper_avg_s) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PFavgu" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/1.3]? Aperture-corrected net photon flux inferred from the source region, averaged; ACIS ultrasoft
+          (0.2-0.5keV) energy band (photflux_aper_avg_u) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PFavgw" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/3.2]? Aperture-corrected net photon flux inferred from the source region, averaged; HRC wide
+          (~0.1-10.0keV) energy band (photflux_aper_avg_w) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PF90avgb" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.04]? Aperture-corrected net photon flux inferred from the PSF 90% ECF aperture, averaged; ACIS broad
+          (0.5-7.0keV) energy band (photflux_aper90_avg_b) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PF90avgh" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.03]? Aperture-corrected net photon flux inferred from the PSF 90% ECF aperture, averaged; ACIS hard
+          (2.0-7.0keV) energy band (photflux_aper90_avg_h) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PF90avgm" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.004]? Aperture-corrected net photon flux inferred from the PSF 90% ECF aperture, averaged; ACIS medium
+          (1.2-2.0keV) energy band (photflux_aper90_avg_m) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PF90avgs" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.008]? Aperture-corrected net photon flux inferred from the PSF 90% ECF aperture, averaged; ACIS soft
+          (0.5-1.2keV) energy band (photflux_aper90_avg_s) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PF90avgu" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.2]? Aperture-corrected net photon flux inferred from the PSF 90% ECF aperture, averaged; ACIS
+          ultrasoft (0.2-0.5keV) energy band (photflux_aper90_avg_u) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PF90avgw" ucd="phot.flux;em.X-ray" datatype="double" width="22" precision="E15" unit="ph/s/cm2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.3]? Aperture-corrected net photon flux inferred from the PSF 90% ECF aperture, averaged; HRC wide
+          (~0.1-10.0keV) energy band (photflux_aper90_avg_w) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Favgb" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/4.4e-08]? Aperture-corrected net energy flux inferred from the source region aperture, averaged; ACIS
+          broad (0.5-7.0keV) energy band in erg/s/cm^2^ (flux_aper_avg_b) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Favgh" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/3.1e-08]? Aperture-corrected net energy flux inferred from the source region aperture, averaged; ACIS
+          hard (2.0-7.0keV) energy band in erg/s/cm^2^ (flux_aper_avg_h) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Favgm" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/9.8e-09]? Aperture-corrected net energy flux inferred from the source region aperture, averaged; ACIS
+          medium (1.2-2.0keV) energy band in erg/s/cm^2^ (flux_aper_avg_m) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Favgs" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/8.1e-09]? Aperture-corrected net energy flux inferred from the source region aperture, averaged; ACIS
+          soft (0.5-1.2keV) energy band in erg/s/cm^2^ (flux_aper_avg_s) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Favgu" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/0.0002]? Aperture-corrected net energy flux inferred from the source region aperture, averaged; ACIS
+          ultrasoft (0.2-0.5keV) energy band in erg/s/cm^2^ (flux_aper_avg_u) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Favgw" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/8.1e-09]? Aperture-corrected net energy flux inferred from the source region aperture, averaged; HRC
+          wide (~0.1-10.0keV) energy band in erg/s/cm^2^ (flux_aper_avg_w) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="F90avgb" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/2.3e-10]? Aperture-corrected net energy flux from the PSF 90% ECF aperture, averaged; ACIS broad
+          (0.5-7.0keV) energy band in erg/s/cm^2^ (flux_aper90_avg_b) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="F90avgh" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/2.7e-10]? Aperture-corrected net energy flux from the PSF 90% ECF aperture, averaged; ACIS hard
+          (2.0-7.0keV) energy band in erg/s/cm^2^ (flux_aper90_avg_h) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="F90avgm" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/9.2e-12]? Aperture-corrected net energy flux from the PSF 90% ECF aperture, averaged; ACIS medium
+          (1.2-2.0keV) energy band in erg/s/cm^2^ (flux_aper90_avg_m) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="F90avgs" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/1.8e-11]? Aperture-corrected net energy flux inferred from the PSF 90% ECF aperture, averaged; ACIS soft
+          (0.5-1.2keV) energy band in erg/s/cm^2^ (flux_aper90_avg_s) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="F90avgu" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/7.4e-05]? Aperture-corrected net energy flux inferred from the PSF 90% ECF aperture, averaged; ACIS
+          ultrasoft (0.2-0.5keV) energy band in erg/s/cm^2^ (flux_aper90_avg_u) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="F90avgw" ucd="phot.flux;em.X-ray" datatype="double" width="20" precision="E13" unit="mW/m2"><!-- ucd="PHOT_FLUX_X" -->
+        <DESCRIPTION>[0/5e-10]? Aperture-corrected net energy flux from the PSF 90% ECF aperture, averaged; HRC wide
+          (~0.1-10.0keV) energy band in erg/s/cm^2^ (flux_aper90_avg_w) (15)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Ldet" ucd="stat.likelihood;phys.energy;obs" datatype="double" width="13" precision="E6"><!-- ucd="STAT_LIKELIHOOD" -->
+        <DESCRIPTION>[0/1.7e+9]? Highest detection log likelihood across all stacked observations and energy bands (likelihood)
+          (20)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="LClass" ucd="meta.code" datatype="char" arraysize="8*"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>Highest detection likelihood classification across all stacked observations and energy bands ("MARGINAL";
+          or "TRUE", 245257 occurrences) (likelihood_class)
+        </DESCRIPTION>
+      </FIELD>
+      <FIELD name="S/N" ucd="stat.fit.goodness" datatype="double" width="9" precision="3"><!-- ucd="STAT_SIGNIFICANCE" -->
+        <DESCRIPTION>[0/11088] Highest flux significance (S/N) across all stacked observations and energy bands (significance)
+        </DESCRIPTION>
+      </FIELD>
+      <FIELD name="NHGal" ucd="phys.columnDensity" datatype="float" width="6" precision="2" unit="10+20/cm2"><!-- ucd="PHYS_COLUMN_DENSITY" -->
+        <DESCRIPTION>[0/251] Galactic N_H_ column density in direction of source (nh_gal)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="HRhm" ucd="phot.flux;arith.ratio" datatype="double" width="8" precision="5"><!-- ucd="SPECT_HARDNESS-RATIO" -->
+        <DESCRIPTION>[-1/1]? ACIS hard-medium (1.2-2.0keV) energy band hardness ratio (hard_hm)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="HRhs" ucd="phot.flux;arith.ratio" datatype="double" width="8" precision="5"><!-- ucd="SPECT_HARDNESS-RATIO" -->
+        <DESCRIPTION>[-1/1]? ACIS hard-soft (0.5-1.2keV) energy band hardness ratio (hard_hs)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="HRms" ucd="phot.flux;arith.ratio" datatype="double" width="8" precision="5"><!-- ucd="SPECT_HARDNESS-RATIO" -->
+        <DESCRIPTION>[-1/1]? ACIS medium-soft (0.5-1.2keV) energy band hardness ratio (hard_ms)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="fdw" ucd="meta.code" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Highest statistically significant peak in the power spectrum of the source region count rate occurs
+          at the dither frequency or at a beat frequency of the dither frequency in one or more observations
+          (dither_warning_flag)
+        </DESCRIPTION>
+      </FIELD>
+      <FIELD name="Nac" ucd="meta.number" datatype="short" width="3"><!-- ucd="NUMBER" -->
+        <DESCRIPTION>[0/234] Total number of ACIS imaging observations contributing to the Master Sources Table record of the
+          source (acis_num)
+        </DESCRIPTION>
+      </FIELD>
+      <FIELD name="ExpAC" ucd="time.duration;obs.exposure" datatype="double" width="11" precision="3" unit="s"><!-- ucd="TIME_EXPTIME" -->
+        <DESCRIPTION>[0/6.3e+06]? Total exposure time (seconds of good time) for all ACIS imaging observations contributing to
+          the Master Sources Table record of the source (acis_time)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Nhrc" ucd="meta.number" datatype="short" width="3"><!-- ucd="NUMBER" -->
+        <DESCRIPTION>[0/295] Total number of HRC imaging observations contributing to the Master Sources Table record of the
+          source (hrc_num)
+        </DESCRIPTION>
+      </FIELD>
+      <FIELD name="ExpHRC" ucd="time.duration;obs.exposure" datatype="double" width="11" precision="3" unit="s"><!-- ucd="TIME_EXPTIME" -->
+        <DESCRIPTION>[0/1.1e+06]? Total exposure time (seconds of good time) for all HRC imaging observations contributing to
+          the Master Sources Table record of the source (hrc_time)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <DATA>
+        <TABLEDATA>
+          <TR>
+            <TD>253.923544021</TD>
+            <TD>-42.827158060</TD>
+            <TD> J165541.6-424937</TD>
+            <TD>253.9235440</TD>
+            <TD>-42.8271581</TD>
+            <TD>21.157</TD>
+            <TD>13.738</TD>
+            <TD>6.184e+01</TD>
+            <TD>3.34360e-01</TD>
+            <TD>3.42863e+02</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>1</TD>
+            <TD>2.986798386781600e-05</TD>
+            <TD>0.000000000000000e+00</TD>
+            <TD>7.284557809935000e-06</TD>
+            <TD>1.813935792497800e-05</TD>
+            <TD>1.914690111531500e-04</TD>
+            <TD></TD>
+            <TD>2.909852994980600e-05</TD>
+            <TD>0.000000000000000e+00</TD>
+            <TD>6.339676663587000e-06</TD>
+            <TD>1.693183102198800e-05</TD>
+            <TD>2.602955028306100e-04</TD>
+            <TD></TD>
+            <TD>0.0000000000000e+00</TD>
+            <TD>0.0000000000000e+00</TD>
+            <TD>2.1450852886754e-14</TD>
+            <TD>4.4527319366029e-14</TD>
+            <TD>1.8787862758380e-13</TD>
+            <TD></TD>
+            <TD>7.5244614293304e-14</TD>
+            <TD>0.0000000000000e+00</TD>
+            <TD>1.6852701655823e-14</TD>
+            <TD>4.3961366277121e-14</TD>
+            <TD>2.5103218410464e-13</TD>
+            <TD></TD>
+            <TD>2.986798386781600e-05</TD>
+            <TD>0.000000000000000e+00</TD>
+            <TD>7.284557809935000e-06</TD>
+            <TD>1.813935792497800e-05</TD>
+            <TD>1.914690111531500e-04</TD>
+            <TD></TD>
+            <TD>2.909852994980600e-05</TD>
+            <TD>0.000000000000000e+00</TD>
+            <TD>6.339676663587000e-06</TD>
+            <TD>1.693183102198800e-05</TD>
+            <TD>2.602955028306100e-04</TD>
+            <TD></TD>
+            <TD>0.0000000000000e+00</TD>
+            <TD>0.0000000000000e+00</TD>
+            <TD>2.1450852886754e-14</TD>
+            <TD>4.4527319366029e-14</TD>
+            <TD>1.8787862758380e-13</TD>
+            <TD></TD>
+            <TD>7.5244614293304e-14</TD>
+            <TD>0.0000000000000e+00</TD>
+            <TD>1.6852701655823e-14</TD>
+            <TD>4.3961366277121e-14</TD>
+            <TD>2.5103218410464e-13</TD>
+            <TD></TD>
+            <TD>1.244831e+01</TD>
+            <TD>MARGINAL</TD>
+            <TD>2.324</TD>
+            <TD>175.85</TD>
+            <TD>-0.48470</TD>
+            <TD>-0.99938</TD>
+            <TD>-0.47720</TD>
+            <TD>0</TD>
+            <TD>1</TD>
+            <TD>2614.710</TD>
+            <TD>0</TD>
+            <TD></TD>
+          </TR>
+          <TR>
+            <TD>254.182201993</TD>
+            <TD>-42.758986735</TD>
+            <TD> J165643.7-424532</TD>
+            <TD>254.1822020</TD>
+            <TD>-42.7589867</TD>
+            <TD>3.141</TD>
+            <TD>2.636</TD>
+            <TD>1.543e+02</TD>
+            <TD>2.29009e-01</TD>
+            <TD>3.43035e+02</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>1</TD>
+            <TD>1.721863304813000e-05</TD>
+            <TD>8.257219679354600e-06</TD>
+            <TD>3.449065962001800e-06</TD>
+            <TD>0.000000000000000e+00</TD>
+            <TD>0.000000000000000e+00</TD>
+            <TD></TD>
+            <TD>1.381330509236900e-05</TD>
+            <TD>7.991937873147000e-06</TD>
+            <TD>2.066329980517200e-06</TD>
+            <TD>0.000000000000000e+00</TD>
+            <TD>0.000000000000000e+00</TD>
+            <TD></TD>
+            <TD>5.8276004439708e-14</TD>
+            <TD>5.0320796338196e-14</TD>
+            <TD>1.0319366118511e-14</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>5.6389887181102e-14</TD>
+            <TD>5.1129416327360e-14</TD>
+            <TD>6.2713720848806e-15</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>1.721863304813000e-05</TD>
+            <TD>8.257219679354600e-06</TD>
+            <TD>3.449065962001800e-06</TD>
+            <TD>0.000000000000000e+00</TD>
+            <TD>0.000000000000000e+00</TD>
+            <TD></TD>
+            <TD>1.381330509236900e-05</TD>
+            <TD>7.991937873147000e-06</TD>
+            <TD>2.066329980517200e-06</TD>
+            <TD>0.000000000000000e+00</TD>
+            <TD>0.000000000000000e+00</TD>
+            <TD></TD>
+            <TD>5.8276004439708e-14</TD>
+            <TD>5.0320796338196e-14</TD>
+            <TD>1.0319366118511e-14</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>5.6389887181102e-14</TD>
+            <TD>5.1129416327360e-14</TD>
+            <TD>6.2713720848806e-15</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>2.136462e+01</TD>
+            <TD>TRUE</TD>
+            <TD>2.914</TD>
+            <TD>181.36</TD>
+            <TD>0.43348</TD>
+            <TD>0.99938</TD>
+            <TD>0.99938</TD>
+            <TD>0</TD>
+            <TD>1</TD>
+            <TD>2614.589</TD>
+            <TD>0</TD>
+            <TD></TD>
+          </TR>
+        </TABLEDATA>
+      </DATA>
+    </TABLE>
+    <INFO name="matches" value="50">matching records</INFO>
+
+    <INFO name="Warning" value="No center provided++++" />
+    <INFO name="Warning" value="increase the precision for computed column 10" />
+    <INFO name="Warning" value="increase the precision for computed column 10" />
+    <INFO name="Warning" value="+++No column for LINK to a row in table: IX/57/csc2master" />
+    <INFO name="Warning" value="truncated result (maxtup=50)" />
+    <INFO name="QUERY_STATUS" value="OVERFLOW">truncated result (maxtup=50)</INFO>
+
+  </RESOURCE>
+</VOTABLE>

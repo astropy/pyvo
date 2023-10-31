@@ -1,0 +1,40 @@
+<INSTANCE xmlns:dm-mapping="http://www.ivoa.net/xml/merged-syntax" dmid="_ts_data" dmrole="" dmtype="cube:NDPoint">
+              <COLLECTION dmrole="cube:NDPoint.observable">
+                <INSTANCE dmtype="cube:Observable">
+                  <ATTRIBUTE dmrole="cube:DataAxis.dependent" dmtype="ivoa:boolean" value="False"/>
+                  <INSTANCE dmrole="cube:MeasurementAxis.measure" dmtype="meas:Time">
+                    <INSTANCE dmrole="meas:Time.coord" dmtype="coords:MJD">
+                      <ATTRIBUTE dmrole="coords:MJD.date" dmtype="ivoa:real" ref="_obstime"/>
+                      <REFERENCE_3 dmrole="coords:Coordinate.coordSys" dmref="_timesys"/>
+                    </INSTANCE>
+                  </INSTANCE>
+                </INSTANCE>
+                <INSTANCE dmtype="cube:Observable">
+                  <ATTRIBUTE dmrole="cube:DataAxis.dependent" dmtype="ivoa:boolean" value="True"/>
+                  <INSTANCE dmrole="cube:MeasurementAxis.measure" dmtype="meas:GenericMeasure">
+                    <INSTANCE dmrole="meas:GenericMeasure.coord" dmtype="coords:PhysicalCoordinate">
+                      <ATTRIBUTE dmrole="coords:PhysicalCoordinate.cval" dmtype="ivoa:RealQuantity" ref="_mag"/>
+                      <REFERENCE_4 dmrole="coords:Coordinate.coordSys" sourceref="_CoordinateSystems">
+                        <FOREIGN_KEY ref="_band"/>
+                      </REFERENCE_4>
+                    </INSTANCE>
+                  </INSTANCE>
+                </INSTANCE>
+                <INSTANCE dmtype="cube:Observable">
+                  <ATTRIBUTE dmrole="cube:DataAxis.dependent" dmtype="ivoa:boolean" value="True"/>
+                  <INSTANCE dmrole="cube:MeasurementAxis.measure" dmtype="meas:GenericMeasure">
+                    <INSTANCE dmrole="meas:GenericMeasure.coord" dmtype="coords:PhysicalCoordinate">
+                      <ATTRIBUTE dmrole="coords:PhysicalCoordinate.cval" dmtype="ivoa:RealQuantity" ref="_flux"/>
+                      <REFERENCE_5 dmrole="coords:Coordinate.coordSys" sourceref="_CoordinateSystems">
+                        <FOREIGN_KEY ref="_band"/>
+                      </REFERENCE_5>
+                    </INSTANCE>
+                    <INSTANCE dmrole="meas:Measure.error" dmtype="meas:Error">
+                      <INSTANCE dmrole="meas:Error.statError" dmtype="meas:Symmetrical">
+                        <ATTRIBUTE dmrole="meas:Symmetrical.radius" dmtype="ivoa:RealQuantity" ref="_fluxerr"/>
+                      </INSTANCE>
+                    </INSTANCE>
+                  </INSTANCE>
+                </INSTANCE>
+              </COLLECTION>
+            </INSTANCE>

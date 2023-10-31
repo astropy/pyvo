@@ -12,7 +12,10 @@ __all__ = ['features', 'prototype_feature', 'activate_features', 'PrototypeWarni
 features: Dict[str, "Feature"] = {
     'cadc-tb-upload': Feature('cadc-tb-upload',
                               'https://wiki.ivoa.net/twiki/bin/view/IVOA/TAP-1_1-Next',
-                              False)
+                              False),
+    'MIVOT': Feature('MIVOT',
+                      'https://ivoa.net/documents/MIVOT/20230620/REC-mivot-1.0.pdf',
+                      False)
 }
 
 

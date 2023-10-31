@@ -1,0 +1,32 @@
+<VODML>
+  <TEMPLATES xmlns:dm-mapping="http://www.ivoa.net/xml/merged-syntax">
+    <INSTANCE dmid="_ts_data" dmrole="" dmtype="cube:NDPoint">
+      <COLLECTION dmrole="cube:NDPoint.observable">
+        <INSTANCE dmtype="cube:Observable">
+          <ATTRIBUTE dmrole="cube:DataAxis.dependent" dmtype="ivoa:boolean" value="False"/>
+        </INSTANCE>
+        <INSTANCE dmtype="cube:Observable">
+          <ATTRIBUTE dmrole="cube:DataAxis.dependent" dmtype="ivoa:boolean" value="True"/>
+        </INSTANCE>
+        <INSTANCE dmtype="cube:Observable">
+          <ATTRIBUTE dmrole="cube:DataAxis.dependent" dmtype="ivoa:boolean" value="True"/>
+        </INSTANCE>
+      </COLLECTION>
+    </INSTANCE>
+  </TEMPLATES>
+  <TEMPLATES xmlns:dm-mapping="http://www.ivoa.net/xml/merged-syntax">
+    <INSTANCE dmid="_ts_data" dmrole="" dmtype="cube:NDPoint">
+      <COLLECTION dmrole="cube:NDPoint.observable">
+        <INSTANCE dmtype="cube:Observable">
+          <ATTRIBUTE dmrole="cube:DataAxis.dependent" dmtype="ivoa:boolean" value="False"/>
+        </INSTANCE>
+        <INSTANCE dmtype="cube:Observable">
+          <ATTRIBUTE dmrole="cube:DataAxis.dependent" dmtype="ivoa:boolean" value="True"/>
+        </INSTANCE>
+        <INSTANCE dmtype="cube:Observable">
+          <ATTRIBUTE dmrole="cube:DataAxis.dependent" dmtype="ivoa:boolean" value="True"/>
+        </INSTANCE>
+      </COLLECTION>
+    </INSTANCE>
+  </TEMPLATES>
+</VODML>

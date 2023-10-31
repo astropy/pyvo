@@ -1,0 +1,10 @@
+<TEMPLATES tableref="_PKTable">
+            <INSTANCE dmid="_TimeSeries" dmrole="" dmtype="cube:SparseCube">
+              <REFERENCE_2 dmrole="cube:DataProduct.dataset" sourceref="_Datasets">
+                </REFERENCE_2>
+              <COLLECTION dmrole="cube:SparseCube.data">
+                <JOIN_6 dmref="_ts_data">
+                  </JOIN_6>
+              </COLLECTION>
+            </INSTANCE>
+          </TEMPLATES>
