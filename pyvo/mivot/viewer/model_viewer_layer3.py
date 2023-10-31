@@ -79,19 +79,14 @@ class ModelViewerLayer3(object):
 
     def _instance_to_dict(self, child):
         """
-        INSTANCE is recursively well managed by the function _to_dict, except for one case:
+        INSTANCE is recursively well managed by the function _to_dict,
         if the INSTANCE is in a COLLECTION, it will start a list
         """
-        # if child.getparent().tag == "COLLECTION":
-        #     retour = []
-        #     retour.append(self._to_dict(child))
-        #     return retour
-        # else:
         return self._to_dict(child)
 
     def _collection_to_dict(self, child):
         """
-        COLLECTION is always represented as a list, we add each
+        COLLECTION is always represented as a list, we add each element of the COLLECTION in the list.
         """
         retour = []
         for child_coll in child:
