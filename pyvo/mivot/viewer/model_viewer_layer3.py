@@ -20,7 +20,7 @@ class ModelViewerLayer3(object):
     def get_row_instance(self):
         """
         Returns the dictionary of the `~pyvo.mivot.viewer.mivot_class.MivotClass`,
-        i.e., the dictionary of all objects of the xml instance. It can be easily navigated
+        i.e., the dictionary of all objects of the xml instance. It can be easily navigated.
         """
         return self.mivot_class.__dict__
 
@@ -35,9 +35,9 @@ class ModelViewerLayer3(object):
         Create recursively a nested dictionary from the XML tree structure keeping the hierarchy.
         Each object is represented in the dictionary by a new dictionary as dmrole: {}.
         Depending on the tag, elements will be processed differently:
-         - INSTANCE will lead to a new dictionary
-         - COLLECTION will lead to a list
-         - ATTRIBUTE will lead to a leaf in the tree structure, with dmtype, dmrole, value, unit, ref
+         - INSTANCE will lead to a new dictionary.
+         - COLLECTION will lead to a list.
+         - ATTRIBUTE will lead to a leaf in the tree structure, with dmtype, dmrole, value, unit, ref.
         """
         dict_result = {}
 
@@ -46,11 +46,10 @@ class ModelViewerLayer3(object):
 
         for child in element:
             dmrole = child.get("dmrole")
-            # del child.attrib["dmrole"]
             if child.tag == "ATTRIBUTE":
                 dict_result[dmrole] = self._attribute_to_dict(child)
-            elif child.tag == "INSTANCE":
-                dict_result[dmrole] = self._instance_to_dict(child)
+            elif child.tag == "INSTANCE":  # INSTANCE is recursively well managed by the function _to_dict
+                dict_result[dmrole] = self._to_dict(child)
             elif child.tag == "COLLECTION":
                 dict_result[dmrole] = self._collection_to_dict(child)
         return dict_result
@@ -77,13 +76,6 @@ class ModelViewerLayer3(object):
             attribute['ref'] = None
         return attribute
 
-    def _instance_to_dict(self, child):
-        """
-        INSTANCE is recursively well managed by the function _to_dict,
-        if the INSTANCE is in a COLLECTION, it will start a list
-        """
-        return self._to_dict(child)
-
     def _collection_to_dict(self, child):
         """
         COLLECTION is always represented as a list, we add each element of the COLLECTION in the list.
@@ -92,9 +84,6 @@ class ModelViewerLayer3(object):
         for child_coll in child:
             retour.append(self._to_dict(child_coll))
         return retour
-
-    def _template_to_dict(self):
-        return
 
     def _cast_type_value(self, value, dmtype):
         """
