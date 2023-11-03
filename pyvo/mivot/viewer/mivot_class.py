@@ -12,6 +12,7 @@ class MivotClass:
     "key" : []           means key is the dmtype of a COLLECTION
     """
     def __init__(self, **kwargs):
+
         for key, value in kwargs.items():
             if isinstance(value, list):
                 self.__dict__[self.remove_model_name(key)] = []
@@ -44,7 +45,8 @@ class MivotClass:
                 if next_index_underscore != -1 and role_instance is False:
                     value_after_underscore = value[next_index_underscore + 1:]
                 else:
-                    value_after_underscore = value[index_underscore + 1:].replace(':', '_').replace('.', '_')
+                    value_after_underscore = (value[index_underscore + 1:]
+                                              .replace(':', '_').replace('.', '_'))
                 return value_after_underscore
 
             return value  # Returns unmodified string if "_" wasn't found

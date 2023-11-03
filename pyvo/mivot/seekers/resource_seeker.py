@@ -10,11 +10,8 @@ from pyvo.utils.prototype import prototype_feature
 @prototype_feature('MIVOT')
 class ResourceSeeker(object):
     """
-    TODO At the time of writing the class is static in order to be callable from any part of the code.
-    This feature should be made thread-safe in a public release
+    This class provides multiple getters on resource tables.
     """
-    votable_path = None
-    votable = None
 
     def __init__(self, resource):
         self._resource = resource
@@ -37,8 +34,8 @@ class ResourceSeeker(object):
 
     def get_table(self, table_name):
         """
-        Returns the table matching table_name first by ID and then by name
-        :param table_name: Name of the table.
+        Returns the table matching table_name first by ID and then by name.
+        :param table_name: Name of the table to get.
         """
         if table_name == Constant.FIRST_TABLE:
             return self._resource.tables[0]

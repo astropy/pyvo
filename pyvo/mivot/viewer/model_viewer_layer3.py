@@ -38,6 +38,7 @@ class ModelViewerLayer3(object):
          - INSTANCE will lead to a new dictionary.
          - COLLECTION will lead to a list.
          - ATTRIBUTE will lead to a leaf in the tree structure, with dmtype, dmrole, value, unit, ref.
+        :param element: `~lxml.etree._Element` object
         """
         dict_result = {}
 
@@ -57,7 +58,8 @@ class ModelViewerLayer3(object):
     def _attribute_to_dict(self, child):
         """
         ATTRIBUTE is always a leaf, so it is not recursive.
-        Returns: dmtype, dmrole, value, unit, ref of the actual child
+        :param child: child `~lxml.etree._Element`
+        :rtype: {dmtype: @dmtype, dmrole: @dmrole, value: @value, unit: @unit, ref: @ref}
         """
         attribute = {}
         if child.get('dmtype') is not None:
@@ -79,6 +81,8 @@ class ModelViewerLayer3(object):
     def _collection_to_dict(self, child):
         """
         COLLECTION is always represented as a list, we add each element of the COLLECTION in the list.
+        :param child: child `~lxml.etree._Element`
+        :rtype: [{},{}, ..]
         """
         retour = []
         for child_coll in child:
@@ -87,7 +91,9 @@ class ModelViewerLayer3(object):
 
     def _cast_type_value(self, value, dmtype):
         """
-        As the type of values returned in the dictionary is string by default, we need to cast them.
+        As the type of ATTRIBUTE values returned in the dictionary is string by default, we need to cast them.
+        :param value: value of ATTRIBUTE
+        :param dmtype: dmtype of ATTRIBUTE
         """
         lower_dmtype = dmtype.lower()
         lower_value = value.lower()

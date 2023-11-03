@@ -1,12 +1,12 @@
 {
   "_PKTable": {
-    "COLLECTIONS": [],
+    "COLLECTION": [],
     "INSTANCE": [
       "cube:SparseCube"
     ]
   },
   "Results": {
-    "COLLECTIONS": [],
+    "COLLECTION": [],
     "INSTANCE": [
       "cube:NDPoint",
       "cube:Observable",

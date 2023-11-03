@@ -6,6 +6,7 @@ Created on 29 mai 2019
 """
 import json
 from pyvo.mivot import logger
+from pyvo.mivot.utils.exceptions import DataFormatException
 from pyvo.mivot.utils.json_encoder import MyEncoder
 
 
@@ -24,6 +25,7 @@ class DictUtils:
         :type fatal: boolean
         :return: dict extracted from the file
         :rtype: python Dict
+        :raise DataFormatException: if the file has a wrong format
         """
         try:
             logger.debug("Reading json from %s", filename)
@@ -32,9 +34,9 @@ class DictUtils:
                 retour = json.load(file, object_pairs_hook=OrderedDict)
                 return retour
 
-        except Exception as exception:
+        except DataFormatException as exception:
             if fatal is True:
-                raise Exception("reading {}".format(filename))
+                raise DataFormatException("reading {}".format(filename))
             else:
                 logger.error("{} reading {}".format(exception, filename))
 

@@ -5,7 +5,7 @@ Created on 16 Dec 2021
 """
 from lxml import etree
 from pyvo.mivot.utils.constant import Constant
-
+from pyvo.mivot.utils.vocabulary import Ele, Att
 from doctest import Example
 from lxml.doctestcompare import LXMLOutputChecker
 
@@ -59,8 +59,8 @@ class XmlUtils(object):
         Using ranks allow to identify columns even numpy raw have been serialised as [].
         """
         for ele in mapping_block.xpath("//ATTRIBUTE"):
-            ref = ele.get("ref")
-            if ref is not None and ref != 'NotSet':
+            ref = ele.get(Att.ref)
+            if ref is not None and ref != Constant.NOT_SET:
                 ele.attrib[Constant.COL_INDEX] = str(index_map[ref])
 
     @staticmethod
@@ -70,8 +70,8 @@ class XmlUtils(object):
         Used for performing unit conversions.
         """
         for ele in mapping_block.xpath("//ATTRIBUTE"):
-            ref = ele.get("ref")
-            if ref is not None and ref != 'NotSet':
+            ref = ele.get(Att.ref)
+            if ref is not None and ref != Constant.NOT_SET:
                 unit = unit_map[ref]
                 if unit is None:
                     unit = ""

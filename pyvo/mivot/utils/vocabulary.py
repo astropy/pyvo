@@ -7,9 +7,9 @@ from pyvo.utils import prototype_feature
 
 
 @prototype_feature('MIVOT')
-class Ele(object):
+class Ele:
     """
-    classdocs
+    Constant used to identify MIVOT Element
     """
     namespace = ""
     VODML = namespace + "VODML"    
@@ -26,9 +26,9 @@ class Ele(object):
 
 
 @prototype_feature('MIVOT')
-class Att(object):
+class Att:
     """
-    classdocs
+    Constant used to identify attributes in MIVOT Element
     """
     dmrole = "dmrole"
     dmtype = "dmtype"
@@ -39,7 +39,7 @@ class Att(object):
     tableref = "tableref"
     sourceref = "sourceref"
     ref = "ref"
-    primarykey = "primarykey"
+    primarykey = "PRIMARY_KEY"
     foreignkey = "foreignkey"
 
 

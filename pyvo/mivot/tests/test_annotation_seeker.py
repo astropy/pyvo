@@ -72,18 +72,18 @@ def test_all_reverts(a_seeker, data_path):
         for ele in table_sel:
             assert ele.get("dmtype").startswith("coords")
 
-    with pytest.raises(Exception, match="Instance with primary key = wrong_key_value in collection dmid wrong_key_value not found"):
+    with pytest.raises(Exception, match="INSTANCE with PRIMARY_KEY = wrong_key_value in COLLECTION dmid wrong_key_value not found"):
         a_seeker.get_collection_item_by_primarykey("_Datasets", "wrong_key_value")
 
     pksel = a_seeker.get_collection_item_by_primarykey("_Datasets", "5813181197970338560")
     XmlUtils.assertXmltreeEqualsFile(pksel,
                                      os.path.join(data_path, "data/output/test.0.4.xml"))
 
-    with pytest.raises(Exception, match="More than one instance with primary key = G found in collection dmid G"):
+    with pytest.raises(Exception, match="More than one INSTANCE with PRIMARY_KEY = G found in COLLECTION dmid G"):
         double_key = etree.fromstring("""<PRIMARY_KEY dmtype="ivoa:string" value="G"/>""")
         a_seeker.get_collection_item_by_primarykey("_CoordinateSystems", "G").append(double_key)
         a_seeker.get_collection_item_by_primarykey("_CoordinateSystems", "G")
-    with pytest.raises(Exception, match="Instance with primary key = wrong_key in collection dmid wrong_key not found"):
+    with pytest.raises(Exception, match="INSTANCE with PRIMARY_KEY = wrong_key in COLLECTION dmid wrong_key not found"):
         a_seeker.get_collection_item_by_primarykey("_CoordinateSystems", "wrong_key")
 
 

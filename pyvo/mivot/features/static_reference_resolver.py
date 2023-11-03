@@ -4,7 +4,7 @@ Created on 22 Dec 2021
 @author: laurentmichel
 """
 from copy import deepcopy
-from pyvo.mivot.utils.exceptions import MappingException
+from pyvo.mivot.utils.exceptions import ResolveException
 from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.utils.prototype import prototype_feature
 
@@ -19,15 +19,15 @@ class StaticReferenceResolver(object):
     def resolve(annotation_seeker, templates_ref, instance):
         """
         Resolve all static REFERENCEs found in instance.
-        The referenced objects are first searched in GLOBALS and then
-        in the templates_ref table.
-        REFERENCE elements are replaced with the referenced objects set with the roles of the REFERENCEs
-        - An exception is risen if the reference cannot be resolved
-        - Works even if REFERENCE tags are numbered by the former processing
+        The referenced objects are first searched in GLOBALS and then in the templates_ref table.
+        REFERENCE elements are replaced with the referenced objects set with the roles of the REFERENCEs.
+        Works even if REFERENCE tags are numbered by the former processing.
         :param annotation_seeker: utility to extract desired elements from the mapping block
         :param templates_ref: Identifier of the table where instance comes from
-        :param instance: etree Element
-        :return : the number of references resolved
+        :param instance: `~lxml.etree._Element` object
+        :return: the number of references resolved
+        :rtype: int
+        :raises MappingException: if the reference cannot be resolved
         """
         retour = 0
         for ele in instance.xpath(".//*[starts-with(name(), 'REFERENCE_')]"):
@@ -43,7 +43,7 @@ class StaticReferenceResolver(object):
                 target = annotation_seeker.get_templates_instance_by_dmid(templates_ref, dmref)
                 found_in_global = False
             if target is None:
-                raise MappingException(f"Cannot resolve reference={dmref}")
+                raise ResolveException(f"Cannot resolve reference={dmref}")
             # Resolve static references recursively
             if found_in_global is False:
                 StaticReferenceResolver.resolve(annotation_seeker, templates_ref, ele)
@@ -70,11 +70,13 @@ class StaticReferenceResolver(object):
     @staticmethod 
     def resolve_from_forein_key(ref_element, annotation_seeker):
         """
-        Resolve a static reference based on a key mechanism
+        Resolve a static reference based on a key mechanism.
         e.g.
-        <REFERENCE_4 dmrole="coords:Coordinate.coordSys" sourceref="_CoordinateSystems">
-            <FOREIGN_KEY ref="_band" value="G"/>
-        </REFERENCE_4>
+        .. code-block:: xml
+        
+            <REFERENCE_4 dmrole="coords:Coordinate.coordSys" sourceref="_CoordinateSystems">
+                <FOREIGN_KEY ref="_band" value="G"/>
+            </REFERENCE_4>
         
         - The target table is meant to be in GLOBALS
         - FOREIGN_KEY@value is not pas of the mapping, it is meant
