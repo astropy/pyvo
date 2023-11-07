@@ -99,13 +99,13 @@
 				<TABLEDATA>
 					<TR>
 						<TD>SourceName</TD>
-						<TD>1</TD>
-						<TD>-1</TD>
+						<TD>10</TD>
+						<TD>10</TD>
 						<TD>110</TD>
 						<TD>120</TD>
 						<TD>112</TD>
-						<TD>2</TD>
-						<TD>-2</TD>
+						<TD>10</TD>
+						<TD>-20</TD>
 						<TD>210</TD>
 						<TD>220</TD>
 						<TD>212</TD>
@@ -113,11 +113,11 @@
 						<TD>2112</TD>
 						<TD>2211</TD>
 						<TD>2212</TD>
-						<TD>3</TD>
+						<TD>1234</TD>
 						<TD>300</TD>
 						<TD>311</TD>
 						<TD>312</TD>
-						<TD>4</TD>
+						<TD>5</TD>
 						<TD>400</TD>
 						<TD>411</TD>
 						<TD>412</TD>
