@@ -24,6 +24,7 @@ class AnnotationSeeker(object):
         - Split the mapping as elements of interest
         - remove the name_spaces
         - Append numbers to JOIN/REFERENCE
+
         :param xml_block: XML mapping block (etree.Element)
         """
         # Full mapping blocks

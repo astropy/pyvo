@@ -4,7 +4,7 @@ Created on 22 Dec 2021
 @author: laurentmichel
 """
 from copy import deepcopy
-from pyvo.mivot.utils.exceptions import ResolveException
+from pyvo.mivot.utils.exceptions import ResolveException, NotImplementedException
 from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.utils.prototype import prototype_feature
 
@@ -34,9 +34,8 @@ class StaticReferenceResolver(object):
             dmref = ele.get("dmref")
             # If we have no @dmref in REFERENCE, we consider this is a ref based on a keys 
             if dmref == None:
-                StaticReferenceResolver.resolve_from_forein_key(ele, annotation_seeker)
-                continue
-            
+                raise NotImplementedException("Dynamic reference not implemented")
+             
             target = annotation_seeker.get_globals_instance_by_dmid(dmref)
             found_in_global = True
             if target is None and templates_ref is not None:
@@ -66,38 +65,3 @@ class StaticReferenceResolver(object):
                 XmlUtils.pretty_print(parent)
             retour += 1
         return retour
-            
-    @staticmethod 
-    def resolve_from_forein_key(ref_element, annotation_seeker):
-        """
-        Resolve a static reference based on a key mechanism.
-        e.g.
-        .. code-block:: xml
-        
-            <REFERENCE_4 dmrole="coords:Coordinate.coordSys" sourceref="_CoordinateSystems">
-                <FOREIGN_KEY ref="_band" value="G"/>
-            </REFERENCE_4>
-        
-        - The target table is meant to be in GLOBALS
-        - FOREIGN_KEY@value is not pas of the mapping, it is meant
-          to be added by the caller while reading the data rows.
-
-        :param annotation_seeker: Utility to extract desired elements from the mapping block.
-        :param ref_element: <REFERENCE> element
-        """
-        pk_value = None
-        for ele in ref_element.xpath(".//FOREIGN_KEY"):
-            pk_value = ele.get("value")
-            break
-        # No pkvalue: likely a dynamic reference (TEMPLATES -> GLOBALS)
-        if pk_value is None:
-            return
-        target = annotation_seeker.get_globals_instance_from_collection(ref_element.get("sourceref"), pk_value)
-        StaticReferenceResolver.resolve(annotation_seeker, None, ref_element)
-        # Set the reference role to the copied instance
-        target_copy = deepcopy(target)
-        target_copy.attrib["dmrole"] = ref_element.get('dmrole')
-        # Insert the referenced object
-        ref_element.getparent().append(target_copy)
-        # Drop the reference
-        ref_element.getparent().remove(ref_element)

@@ -54,3 +54,9 @@ class DataFormatException(Exception):
     Exception raised if the format is wrong.
     """
     pass
+
+class  NotImplementedException(Exception):
+    """
+    Exception raised if an un-implemted feature is invoked..
+    """
+    pass
