@@ -1,7 +1,5 @@
 """
-Created on 22 Dec 2021
-
-@author: laurentmichel
+Class used to resolve each static REFERENCE found in instance.
 """
 from copy import deepcopy
 from pyvo.mivot.utils.exceptions import ResolveException, NotImplementedException

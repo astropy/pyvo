@@ -1,9 +1,3 @@
-"""
-Created on 1 avr. 2020
-
-@author: laurentmichel
-"""
-
 import json
 import numpy
 

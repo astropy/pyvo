@@ -1,7 +1,6 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Created on 11 Dec 2021
-
-@author: laurentmichel
+Class with extraction tools for sub-block mapping
 """
 from pyvo.mivot.utils.exceptions import MivotElementNotFound, MappingException
 from pyvo.mivot.utils.vocabulary import Att, Ele
@@ -16,7 +15,6 @@ class AnnotationSeeker(object):
     This class provides tools extracting mapping sub-blocks that are often used by other stakeholders.
     All functions using the mapping are using this class to get XML elements.
     To make the job simpler for other tools, the XML namespace is removed from the mapping block whatever it is.
-    This is usually done by Astropy as well.
     """
 
     def __init__(self, xml_block):

@@ -1,7 +1,5 @@
 """
-Created on 16 Dec 2021
-
-@author: laurentmichel
+Utility class to process XML.
 """
 from lxml import etree
 from pyvo.mivot.utils.constant import Constant

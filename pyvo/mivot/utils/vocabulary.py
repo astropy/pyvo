@@ -1,7 +1,5 @@
 """
-Created on 30 août 2021
-
-author: michel
+MIVOT vocabulary.
 """
 from pyvo.utils import prototype_feature
 

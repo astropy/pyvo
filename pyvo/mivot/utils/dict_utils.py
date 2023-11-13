@@ -1,8 +1,5 @@
 """
-Code imported from SVOM
-Created on 29 mai 2019
-
-@author: michel
+Utility class to process dictionary.
 """
 import json
 from pyvo.mivot import logger

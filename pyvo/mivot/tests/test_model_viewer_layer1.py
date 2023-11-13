@@ -6,7 +6,7 @@ activate_features('MIVOT')
 
 
 def test_model_viewer_layer1(m_viewer):
-    m_viewer.connect_table("Results")
+    m_viewer._connect_table("Results")
     m_viewer.get_next_row()
     mv_layer1 = m_viewer.get_model_view_layer1()
     with pytest.raises(Exception, match="Cannot find dmrole wrong_role in any instances of the VOTable"):

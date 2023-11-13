@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This file contains a contains the high-level functions
-to deal with model views on data
+This file contains the high-level functions to deal with model views on data.
 """
 
 from copy import deepcopy
@@ -65,11 +64,20 @@ class ModelViewer(object):
         self._set_mapping_block()
         self._resource_seeker = ResourceSeeker(self._resource)
         self._set_mapped_tables()
-        self.connect_table(tableref)
+        self._connect_table(tableref)
 
     """
     Properties
     """
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        print("ModelViewer closing..")
+
+    @property
+    def votable(self):
+        return self._parsed_votable
 
     @property
     def annotation_seeker(self):
@@ -145,7 +153,7 @@ class ModelViewer(object):
     Data browsing
     """
 
-    def connect_table(self, tableref=None):
+    def _connect_table(self, tableref=None):
         """
         Iterate over the table identified by tableref
         Required to browse table data.
@@ -278,7 +286,7 @@ class ModelViewer(object):
             instance = mv_niv1.get_instance_by_type(self.get_first_instance())
             m_viewer3 = ModelViewerLayer3(instance)
 
-            m_viewer3.show_class_dict()
+            # m_viewer3.show_class_dict()
             return m_viewer3.mivot_class
 
     def _assert_table_is_connected(self):

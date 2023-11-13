@@ -1,7 +1,5 @@
 """
-Created on Feb 26, 2021
-
-@author: laurentmichel
+Utility class to process files.
 """
 import os
 

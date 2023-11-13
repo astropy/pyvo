@@ -1,3 +1,7 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+ModelViewerLayer3 transform an XML instance into a nested dictionary representing all of its objects.
+"""
 from pyvo.mivot.utils.dict_utils import DictUtils
 from pyvo.mivot.viewer.mivot_class import MivotClass
 from pyvo.utils.prototype import prototype_feature

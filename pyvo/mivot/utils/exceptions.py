@@ -1,7 +1,5 @@
 """
-Created on 11 Dec 2021
-
-@author: laurentmichel
+MIVOT Exceptions.
 """
 from pyvo.utils import prototype_feature
 
@@ -57,6 +55,6 @@ class DataFormatException(Exception):
 
 class  NotImplementedException(Exception):
     """
-    Exception raised if an un-implemted feature is invoked..
+    Exception raised if an un-implemented feature is invoked.
     """
     pass

@@ -36,7 +36,7 @@ def test_model_viewer_table_ref(data_path, m_viewer):
     assert m_viewer._mapped_tables == ['_PKTable', 'Results']
     with pytest.raises(Exception, match=re.escape(r"The table first_table doesn't match with any "
                                                   r"mapped_table (['_PKTable', 'Results']) encountered in TEMPLATES")):
-        m_viewer.connect_table("wrong_tableref")
+        m_viewer._connect_table("wrong_tableref")
 
     assert m_viewer.connected_table_ref == Constant.FIRST_TABLE
     assert m_viewer.get_models() == {'mango': 'file:/Users/sao/Documents/IVOA/GitHub/ivoa-dm-examples/tmp/Mango-v1.0.vo-dml.xml', 'cube': 'https://volute.g-vo.org/svn/trunk/projects/dm/Cube/vo-dml/Cube-1.0.vo-dml.xml', 'ds': 'https://volute.g-vo.org/svn/trunk/projects/dm/DatasetMetadata/vo-dml/DatasetMetadata-1.0.vo-dml.xml', 'meas': 'https://www.ivoa.net/xml/Meas/20200908/Meas-v1.0.vo-dml.xml', 'coords': 'https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml', 'ivoa': 'https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml'}
@@ -52,7 +52,7 @@ def test_model_viewer_global_getters(m_viewer, data_path):
     assert m_viewer.get_templates_models() == DictUtils.read_dict_from_file(
         os.path.join(data_path, "data/output/test.1.12.json"))
 
-    m_viewer.connect_table('_PKTable')
+    m_viewer._connect_table('_PKTable')
     row = m_viewer.get_next_row()
     assert row[0] == '5813181197970338560'
     assert row[1] == 'G'

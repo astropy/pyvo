@@ -1,7 +1,6 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Created on 7 Nov 2021
-
-@author: laurentmichel
+Class that provides multiple getters on resource tables.
 """
 from pyvo.mivot.utils.constant import Constant
 from pyvo.utils.prototype import prototype_feature

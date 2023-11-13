@@ -16,7 +16,7 @@ def test_dict_model_viewer3(votable_test, simple_votable):
     This test run on 2 votables : votable_test and simple_votable.
     """
     m_viewer_votable_test = ModelViewer(votable_path=votable_test)
-    m_viewer_votable_test.connect_table()
+    m_viewer_votable_test._connect_table()
     m_viewer_votable_test.get_next_row()
     mv_niv1_votable_test = m_viewer_votable_test.get_model_view_layer1()
     instance = mv_niv1_votable_test.get_instance_by_type(m_viewer_votable_test.get_first_instance())
@@ -25,7 +25,7 @@ def test_dict_model_viewer3(votable_test, simple_votable):
     recursive_check(MivotClass, **mv_niv3_votable_test._dict)
 
     m_viewer_simple_votable = ModelViewer(votable_path=simple_votable)
-    m_viewer_simple_votable .connect_table()
+    m_viewer_simple_votable ._connect_table()
     m_viewer_simple_votable .get_next_row()
     mv_niv1 = m_viewer_simple_votable .get_model_view_layer1()
     instance = mv_niv1.get_instance_by_type(m_viewer_simple_votable.get_first_instance())

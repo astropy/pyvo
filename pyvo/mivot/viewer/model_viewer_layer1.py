@@ -1,3 +1,7 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+ModelViewerLayer1 provides several getters on an XML instance.
+"""
 from pyvo.mivot.utils.exceptions import *
 from pyvo.utils.prototype import prototype_feature
 

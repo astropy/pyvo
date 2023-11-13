@@ -1,7 +1,6 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Created on 1 dec. 2021
-
-@author: laurentmichel
+Iterator for table rows.
 """
 from pyvo.utils.prototype import prototype_feature
 
