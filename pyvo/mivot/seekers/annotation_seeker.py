@@ -12,31 +12,38 @@ from pyvo.utils.prototype import prototype_feature
 @prototype_feature('MIVOT')
 class AnnotationSeeker(object):
     """
-    This class provides tools extracting mapping sub-blocks that are often used by other stakeholders.
-    All functions using the mapping are using this class to get XML elements.
-    To make the job simpler for other tools, the XML namespace is removed from the mapping block whatever it is.
+    This class provides tools for extracting mapping sub-blocks commonly used by other stakeholders.
+    All functions using the mapping employ this class to obtain XML elements.
+    To simplify the job for other tools, the XML namespace is removed from the mapping block.
+
+    Attributes
+    ----------
+    _xml_block : ~lxml.etree._Element
+        Full mapping block.
+    _globals_block : ~lxml.etree._Element or None
+        GLOBALS block.
+    _templates_blocks : dict
+        Templates dictionary where keys are tableref and values are XML-TEMPLATES.
     """
 
     def __init__(self, xml_block):
         """
-        - Split the mapping as elements of interest
-        - remove the name_spaces
-        - Append numbers to JOIN/REFERENCE
+        Initializes the AnnotationSeeker.
+        - Split the mapping as elements of interest.
+        - Remove the name_spaces.
+        - Append numbers to JOIN/REFERENCE.
 
-        :param xml_block: XML mapping block (etree.Element)
+        Parameters
+        ----------
+        xml_block : ~lxml.etree._Element
+            XML mapping block.
         """
-        # Full mapping blocks
         self._xml_block = xml_block
-        # GLOBALS bock
         self._globals_block = None
-        # Templates dictionary {tableref: XML-TEMPLATES}
         self._templates_blocks = {}
 
-        # Find the GLOBALS block
         self._find_globals_block()
-        # Find the TEMPLATES blocks
         self._find_templates_blocks()
-        # Remove the namespaces from specific elements and make them unique
         self._rename_ref_and_join()
 
     def _find_globals_block(self):
@@ -51,6 +58,19 @@ class AnnotationSeeker(object):
     def _find_templates_blocks(self):
         """
         Finds and sets the TEMPLATES blocks within the XML mapping block.
+        This method iterates through the children of the XML mapping block, identifies TEMPLATES blocks,
+        and associates them with their respective tableref values in the _templates_blocks dictionary.
+
+        Returns
+        -------
+        dict
+            Dictionary of TEMPLATES tablerefs and their mapping blocks
+            Format: {'tableref': mapping_block, ...}
+
+        Raises
+        ------
+        MivotElementNotFound
+        If a TEMPLATES block is found without a tableref attribute, and there are already other TEMPLATES blocks.
         """
         for child in self._xml_block:
             if self._name_match(child.tag, Ele.TEMPLATES):
@@ -67,6 +87,9 @@ class AnnotationSeeker(object):
     def _rename_ref_and_join(self):
         """
         Removes namespaces from specified elements and makes them unique.
+        The elements that are renamed are:
+        - JOIN
+        - REFERENCE
         """
         cpt = 1
         for tag in ['REFERENCE', 'JOIN']:
@@ -78,8 +101,17 @@ class AnnotationSeeker(object):
     def _name_match(self, name, expected):
         """
         Returns true if name matches expected whatever the namespace
-        :param name: Name to compare
-        :param expected: Expected name for the comparison
+
+        Parameters
+        ----------
+        name: str
+            Name to compare
+        expected: str
+            Expected name for the comparison
+
+        Returns
+        -------
+        bool
         """
         if type(name).__name__ == 'cython_function_or_method':
             return False
@@ -99,19 +131,29 @@ class AnnotationSeeker(object):
     @property
     def globals_collections(self):
         """
-        Returns the list of all GLOBALS/COLLECTION elements.
+        Returns a list of all GLOBALS/COLLECTION elements.
         These collections have no dmroles but often dmids.
         They have particular roles
         - Used by references (e.g., filter definition)
         - Used as head of the mapped model (e.g., [Cube instance])
+
+        Returns
+        -------
+        list
+            List of GLOBALS/COLLECTION elements
         """
         return self._globals_block.xpath("//GLOBALS/COLLECTION")
 
     @property
     def models(self):
         """
-        Gets the MODELs and their URLs, return it as a dictionary
-        :rtype: {'model': [url], ...}
+        Gets the MODELs and their URLs.
+
+        Returns
+        -------
+        dict
+            Dictionary of MODELs and their URLs
+            Format: {'model': [url], ...}
         """
         retour = {}
         eset = self._xml_block.xpath("//"+Ele.MODEL)
@@ -122,7 +164,12 @@ class AnnotationSeeker(object):
     @property
     def templates_tableref(self):
         """
-        Return the list of all the @tableref found in the mapping
+        Get all @tableref of the mapping.
+
+        Returns
+        -------
+        list
+            List of @tableref found in the mapping
         """
         return self._templates_blocks.keys()
 
@@ -130,7 +177,11 @@ class AnnotationSeeker(object):
     def templates(self):
         """
         Return a list of TEMPLATES tablerefs
-        :rtype: ['tableref', ...]
+
+        Returns
+        -------
+        list
+            List of TEMPLATES tablerefs
         """
         retour = []
         eset = self._xml_block.xpath(".//"+Ele.TEMPLATES)
@@ -143,10 +194,19 @@ class AnnotationSeeker(object):
 
     def get_templates_block(self, tableref):
         """
-        Return the TEMPLATES mapping block of the table matching @tableref
-        if no tableref is None returns all values of templates_blocks.
-        :param tableref:
-        :rtype:
+        Return the TEMPLATES mapping block of the table matching @tableref.
+        If tableref is None returns all values of templates_blocks.
+
+        Parameters
+        ----------
+        tableref: str
+            @tableref of the searched TEMPLATES
+
+        Returns
+        -------
+        dict
+            Dictionary of TEMPLATES tablerefs and their mapping blocks
+            Format: {'tableref': mapping_block, ...}
         """
         # one table: name forced to DEFAULT or take the first
         if tableref is None:
@@ -160,7 +220,12 @@ class AnnotationSeeker(object):
     def get_instance_dmtypes(self):
         """
         Gets @dmtypes of all mapped instances
-        :rtype: {GLOBALS: [], TEMPLATES: {}}
+
+        Returns
+        -------
+        dict
+            Dict of @dmtypes of all mapped instances
+            Format: {GLOBALS: [], TEMPLATES: {}}
         """
         retour = {Ele.GLOBALS: [], Ele.TEMPLATES: {}}
 
@@ -178,8 +243,16 @@ class AnnotationSeeker(object):
     def get_instance_by_dmtype(self, dmtype_pattern):
         """
         Gets all the mapped instances that have a @dmtype containing dmtype_pattern
-        :param dmtype_pattern: @dmtype looked for
-        :rtype: {GLOBALS: [], TEMPLATES: {}}
+        Parameters
+        ----------
+        dmtype_pattern: str
+            @dmtype looked for
+
+        Returns
+        -------
+        dict
+            Dict of @dmtypes of all mapped instances
+            Format: {'dmtype': [instance], ...}
         """
         retour = {Ele.GLOBALS: [], Ele.TEMPLATES: {}}
 
@@ -201,12 +274,22 @@ class AnnotationSeeker(object):
         They have particular roles
         - Used by references (e.g., filter definition)
         - Used as head of the mapped model (e.g., Cube instance)
+
+        Returns
+        -------
+        list
+            List of GLOBALS/INSTANCE elements
         """
         return self._globals_block.xpath("//"+Ele.GLOBALS+"/"+Ele.INSTANCE)
 
     def get_globals_instance_dmids(self):
         """
         Gets a list of @dmid for GLOBALS/INSTANCE
+
+        Returns
+        -------
+        list
+            List of @dmid of GLOBALS/INSTANCE
         """
         retour = []
         eset = self._globals_block.xpath("//"+Ele.INSTANCE+"[@"+Att.dmid+"]")
@@ -217,7 +300,15 @@ class AnnotationSeeker(object):
     def get_globals_instance_by_dmid(self, dmid):
         """
         Gets the GLOBALS/INSTANCE with @dmid=dmid
-        :param dmid: searched @dmid
+
+        Parameters
+        ----------
+        dmid: str
+            @dmid of the searched GLOBALS/INSTANCE
+
+        Returns
+        -------
+        dict: `~lxml.etree._Element`
         """
         eset = self._globals_block.xpath("//"+Ele.INSTANCE+"[@"+Att.dmid+"='" + dmid + "']")
         for ele in eset:
@@ -227,6 +318,11 @@ class AnnotationSeeker(object):
     def get_globals_instance_dmtypes(self):
         """
         Gets the list the @dmtype GLOBALS/INSTANCE
+
+        Returns
+        -------
+        list
+            List of @dmtype of GLOBALS/INSTANCE
         """
         retour = []
         for inst in self.get_globals_instances():
@@ -236,8 +332,17 @@ class AnnotationSeeker(object):
     def get_templates_instance_by_dmid(self, tableref, dmid):
         """
         Gets the TEMPLATES/INSTANCE with @dmid=dmid and TEMPLATES@tableref=tableref
-        :param tableref: @tableref of the searched TEMPLATES
-        :param dmid: searched @dmid
+
+        Parameters
+        ----------
+        tableref: str
+            @tableref of the searched TEMPLATES
+        dmid: str
+            @dmid of the searched TEMPLATES/INSTANCE
+
+        Returns
+        -------
+        dict: `~lxml.etree._Element`
         """
         templates_block = self.get_templates_block(tableref)
         if templates_block is None:
@@ -250,9 +355,17 @@ class AnnotationSeeker(object):
     def get_globals_instance_from_collection(self, sourceref, pk_value):
         """
         Gets the GLOBALS/COLLECTION[@dmid=sourceref]/INSTANCE/PRIMARY_KEY[@value='pk_value']
-        :param sourceref: searched @dmid of COLLECTION
-        :param pk_value: searched @value of PRIMARY_KEY
-        :rtype: `~lxml.etree._Element`
+
+        Parameters
+        ----------
+        sourceref: str
+            @dmid of the searched GLOBALS/COLLECTION
+        pk_value: str
+            @value of the searched GLOBALS/COLLECTION/INSTANCE/PRIMARY_KEY
+
+        Returns
+        -------
+        dict: `~lxml.etree._Element`
         """
         einst = self._globals_block.xpath("//"+Ele.COLLECTION+"[@"+Att.dmid+"='" + sourceref
                                           + "']/"+Ele.INSTANCE+"/"+Att.primarykey+"[@"+Att.value+"='" + pk_value + "']")
@@ -267,7 +380,15 @@ class AnnotationSeeker(object):
     def get_globals_collection(self, dmid):
         """
         Gets the GLOBALS/COLLECTION with @dmid=dmid
-        :param dmid: searched @dmid
+
+        Parameters
+        ----------
+        dmid: str
+            @dmid of the searched GLOBALS/COLLECTION
+
+        Returns
+        -------
+        dict: `~lxml.etree._Element`
         """
         eset = self._globals_block.xpath("//"+Ele.GLOBALS+"/"+Ele.COLLECTION+"[@"+Att.dmid+"='" + dmid + "']")
         for ele in eset:
@@ -277,6 +398,11 @@ class AnnotationSeeker(object):
     def get_globals_collection_dmids(self):
         """
         Gets the list of all the @dmid of GLOBALS/COLLECTION
+
+        Returns
+        -------
+        list
+            List of @dmid of GLOBALS/COLLECTION
         """
         retour = []
         eset = self._globals_block.xpath("//"+Ele.COLLECTION+"[@"+Att.dmid+"]")
@@ -288,6 +414,11 @@ class AnnotationSeeker(object):
         """
         Gets the list of the @dmtype of GLOBALS/COLLECTION/INSTANCE
         Used for collections of static objects
+
+        Returns
+        -------
+        list
+            List of @dmtype of GLOBALS/COLLECTION/INSTANCE
         """
         eles = self._globals_block.xpath("//"+Ele.GLOBALS+"/"+Ele.COLLECTION+"/"+Ele.INSTANCE+"")
         retour = []
@@ -300,12 +431,27 @@ class AnnotationSeeker(object):
     def get_collection_item_by_primarykey(self, coll_dmid, key_value):
         """
         Get the GLOBALS/COLLECTION/INSTANCE with COLLECTION@dmid=dmid and
-        INSTANCE with a PRIMARY_key which @value matches key_value
+        INSTANCE with a PRIMARY_key which @value matches key_value.
         An exception is risen if there is less or more than one element matching the criteria.
-        The 2 parameters match the dynamic REFERENCE definition
-        :param coll_dmid: searched @dmid of COLLECTION
-        :param key_value: searched @value of PRIMARY_KEY
-        :rtype: []
+        The 2 parameters match the dynamic REFERENCE definition.
+
+        Parameters
+        ----------
+        coll_dmid: str
+            @dmid of the searched GLOBALS/COLLECTION
+        key_value: str
+            @value of the searched GLOBALS/COLLECTION/INSTANCE/PRIMARY_KEY
+
+        Returns
+        -------
+        dict: `~lxml.etree._Element`
+
+        Raises
+        ------
+        MivotElementNotFound
+            If no element matches the criteria.
+        MappingException
+            If more than one element matches the criteria.
         """
         eset = self._globals_block.xpath(".//"+Ele.COLLECTION+"[@"+Att.dmid+"='" + coll_dmid+ "']/"
                                          +Ele.INSTANCE+"/"+Att.primarykey+"[@"+Att.value+"='" + key_value + "']")

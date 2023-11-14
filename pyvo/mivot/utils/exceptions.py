@@ -53,7 +53,7 @@ class DataFormatException(Exception):
     """
     pass
 
-class  NotImplementedException(Exception):
+class NotImplementedException(Exception):
     """
     Exception raised if an un-implemented feature is invoked.
     """

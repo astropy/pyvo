@@ -22,8 +22,11 @@ class LoggerSetup:
     def get_logger():
         """
         Format and return the system logger.
-        :return : system logger
-        :rtype: logger
+
+        Returns
+        -------
+        logger
+            System logger.
         """
         LoggerSetup.set_default_format()
         return logging.getLogger()

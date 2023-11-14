@@ -21,6 +21,14 @@ class MivotClass:
     """
     REFERENCE = {}
     def __init__(self, **kwargs):
+        """
+        Constructor of the MIVOT class.
+
+        Parameters
+        ----------
+        kwargs : dict
+            Dictionary of the XML object.
+        """
         for key, value in kwargs.items():
             if isinstance(value, list):
                 self.__dict__[self.remove_model_name(key)] = []
@@ -57,6 +65,9 @@ class MivotClass:
                     self.__dict__[self.remove_model_name(key)] = self.remove_model_name(value)
 
     def SkyCoordinate(self):
+        """
+        Returns a SkyCoord object from the REFERENCE of the XML object.
+        """
         if MivotClass.REFERENCE["frame"] == ('icrs' or 'fk5' or 'fk4'):
             return SkyCoord(distance=(MivotClass.REFERENCE["parallax"] / 4) * u.pc,
                             radial_velocity=MivotClass.REFERENCE["radial_velocity"] * u.km / u.s,
@@ -75,14 +86,30 @@ class MivotClass:
                             obstime=MivotClass.REFERENCE["epoch"])
 
     def apply_space_motion(self, dt):
+        """
+        Returns ra and dec of a SkyCoord object by computing the position to a new time dt.
+
+        Parameters
+        ----------
+        dt : float
+            Time in years.
+        """
         retour = self.SkyCoordinate().apply_space_motion(dt=dt)
         return retour.ra, retour.dec
 
     def remove_model_name(self, value, role_instance=False):
         """
-        Remove the model name before each colon ":" as well as the type of the object before each point "."
-        If it is an INSTANCE of INSTANCEs, the dmrole represented as the key needs to keep his type object,
-        in this case ("role_instance=True"), we just replace the point "." With an underscore "_".
+        Remove the model name before each colon ":" as well as the type of the object before each point ".".
+        If it is an INSTANCE of INSTANCEs, the dmrole represented as the key needs to keep his type object.
+        In this case (`role_instance=True`), we just replace the point "." With an underscore "_".
+
+        Parameters
+        ----------
+        value : str
+            The string to process.
+        role_instance : bool, optional
+            If True, keeps the type object for dmroles representing an INSTANCE of INSTANCEs.
+            Default is False.
         """
         if isinstance(value, str):
             # We first find the model_name before the colon
@@ -104,7 +131,17 @@ class MivotClass:
 
     def is_leaf(self, **kwargs):
         """
-        Used to check if the dictionary is an ATTRIBUTE
+        Check if the dictionary is an ATTRIBUTE.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            The dictionary to check.
+
+        Returns
+        -------
+        bool
+            True if the dictionary is an ATTRIBUTE, False otherwise.
         """
         if isinstance(kwargs, dict):
             for key, value in kwargs.items():
@@ -114,7 +151,19 @@ class MivotClass:
 
     def display_class_dict(self, obj, classkey=None):
         """
-        Used to show a serializable dictionary
+        Recursively displays a serializable dictionary.
+
+        Parameters
+        ----------
+        obj : dict or object
+            The dictionary or object to display.
+        classkey : str, optional
+            The key to use for the object's class name in the dictionary, default is None.
+
+        Returns
+        -------
+        dict or object
+            The serializable dictionary representation of the input.
         """
         if isinstance(obj, dict):
             data = {}

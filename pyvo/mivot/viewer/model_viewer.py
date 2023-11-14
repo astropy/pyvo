@@ -31,19 +31,26 @@ class ModelViewer(object):
     ModelViewer is a PyVO table wrapper aiming at providing a model view on VOTable data read with usual tools.
 
     Standard usage applied to data rows:
-    .. code-block:: python
+        .. code-block:: python
         data_path = os.path.dirname(os.path.realpath(__file__))
-        votable = os.path.join(data_path,"any_votable.xml")
+        votable = os.path.join(data_path, "any_votable.xml")
         m_viewer = ModelViewer(votable)
         row_view = m_viewer.get_next_row_view()
+
     """
 
     def __init__(self, votable_path, tableref=None, resource_number=None):
         """
-        Constructor
-        :param votable_path: VOTable that we will parse with the parser of Astropy, which extract the annotation block.
-        :param tableref: Used to identify the table to process, if not specified, the first table is taken by default.
-        :param resource_number: The number corresponding to the resource containing the MIVOT block (first by default).
+        Constructor of the ModelViewer class.
+
+        Parameters
+        ----------
+        votable_path : str
+            VOTable that will be parsed with the parser of Astropy, which extracts the annotation block.
+        tableref : str, optional
+            Used to identify the table to process. If not specified, the first table is taken by default.
+        resource_number : int, optional
+            The number corresponding to the resource containing the MIVOT block (first by default).
         """
         self._parsed_votable = parse(votable_path)
         self._table_iterator = None
@@ -64,7 +71,7 @@ class ModelViewer(object):
         self._set_mapping_block()
         self._resource_seeker = ResourceSeeker(self._resource)
         self._set_mapped_tables()
-        self._connect_table(tableref)
+        self.connect_table(tableref)
 
     """
     Properties
@@ -74,6 +81,9 @@ class ModelViewer(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         print("ModelViewer closing..")
+
+    def close(self):
+        print("ModelViewer is closed")
 
     @property
     def votable(self):
@@ -118,9 +128,14 @@ class ModelViewer(object):
 
     def get_globals_models(self):
         """
+        Get collection types in GLOBALS.
         Collection types are GLOBALS/COLLECTION/INSTANCE@dmtype: used for collections of static objects.
-        :return : The dmtypes of all the top level INSTANCE/COLLECTION of GLOBALS.
-        :rtype:  {'COLLECTION': [dmtypes], 'INSTANCE': [dmtypes]}
+
+        Returns
+        -------
+        dict
+            A dictionary containing the dmtypes of all the top-level INSTANCE/COLLECTION of GLOBALS.
+            The structure of the dictionary is {'COLLECTION': [dmtypes], 'INSTANCE': [dmtypes]}.
         """
         retour = {}
         retour[Ele.COLLECTION] = self._annotation_seeker.get_globals_collection_dmtypes()
@@ -130,17 +145,27 @@ class ModelViewer(object):
 
     def get_models(self):
         """
-        :return: dictionary of the models and theirs urls
-        :rtype: {'model': [url], ...}
+        Get a dictionary of models and their URLs.
+
+        Returns
+        -------
+        dict
+            A dictionary of model names and a lists of their URLs.
+            The format is {'model': [url], ...}.
         """
         retour = self._annotation_seeker.models
         return retour
 
     def get_templates_models(self):
         """
-        COLLECTION not implemented yet
-        :return : The dmtypes (except ivoa:..) of all INSTANCE/COLLECTION of all TEMPLATES
-        :rtype:  {'tableref: {'COLLECTIONS': [dmtypes], 'INSTANCE': [dmtypes]}, ...}
+        Get dmtypes of all INSTANCE/COLLECTION of all TEMPLATES.
+        Note: COLLECTION not implemented yet.
+
+        Returns
+        -------
+        dict
+            A dictionary containing dmtypes (except ivoa:..) of all INSTANCE/COLLECTION of all TEMPLATES.
+            The format is {'tableref': {'COLLECTIONS': [dmtypes], 'INSTANCE': [dmtypes]}, ...}.
         """
         retour = {}
         gni = self._annotation_seeker.get_instance_dmtypes()[Ele.TEMPLATES]
@@ -153,12 +178,16 @@ class ModelViewer(object):
     Data browsing
     """
 
-    def _connect_table(self, tableref=None):
+    def connect_table(self, tableref=None):
         """
-        Iterate over the table identified by tableref
+        Iterate over the table identified by tableref.
         Required to browse table data.
         Connect to the first table if tableref is None.
-        :param tableref: Identifier of the table.
+
+        Parameters
+        ----------
+        tableref : str or None, optional
+            Identifier of the table. If None, connects to the first table.
         """
         if tableref is None:
             self._connected_tableref = Constant.FIRST_TABLE
@@ -189,8 +218,11 @@ class ModelViewer(object):
     def get_next_row(self):
         """
         Returns the next data row of the connected table.
-        :return: Next data row
-        :rtype: ~`astropy.table.row.Row`
+
+        Returns
+        -------
+        astropy.table.row.Row
+            The next data row.
         """
         self._assert_table_is_connected()
         self._current_data_row = self._table_iterator._get_next_row()
@@ -210,7 +242,11 @@ class ModelViewer(object):
         """
         Returns an XML model view of the last read row.
         This function resolves references by default. It is called in the ModelViewerLayer1.
-        :param resolve_ref: Boolean, if True, resolves the references.
+
+        Parameters
+        ----------
+        resolve_ref : bool, optional
+            If True, resolves the references. Default is True.
         """
         templates_copy = deepcopy(self._templates)
         if resolve_ref is True:
@@ -235,9 +271,16 @@ class ModelViewer(object):
         """
         Returns the head of INSTANCE, the first child of TEMPLATES.
         If no INSTANCE is found, take the first COLLECTION.
-        :param tableref: Identifier of the table.
-        :return: The first child of TEMPLATES
-        :rtype: `~lxml.etree._Element`
+
+        Parameters
+        ----------
+        tableref : str or None, optional
+            Identifier of the table.
+
+        Returns
+        -------
+        ~lxml.etree._Element
+            The first child of TEMPLATES.
         """
         child = self._annotation_seeker.get_templates_block(tableref).getchildren()
         collection = self._annotation_seeker.get_templates_block(tableref).xpath(Ele.COLLECTION)
@@ -273,11 +316,15 @@ class ModelViewer(object):
 
     def get_next_row_view(self):
         """
-        Private methods that builds and returns a new layer on our model viewer which consists in creating
-        an object that contains all INSTANCEs and ATTRIBUTEs as a dictionary.
-        :return: `~pyvo.mivot.viewer.mivot_class.MivotClass` object of the next data row
-        :rtype: `~pyvo.mivot.viewer.mivot_class.MivotClass`
+        Private method that builds and returns a new layer on our model viewer, creating an object that
+        contains all INSTANCEs and ATTRIBUTEs as a dictionary.
+
+        Returns
+        -------
+        pyvo.mivot.viewer.mivot_class.MivotClass
+            Object of the next data row.
         """
+
         self.get_next_row()
         if self._current_data_row is None:
             return None
@@ -300,8 +347,14 @@ class ModelViewer(object):
 
     def _set_resource(self, resource_number):
         """
-        Take the resource_number in entry and then set the resource concerned,
-        if the resource_number if None, the resource set by default is the first one.
+        Take the resource_number in entry and then set the resource concerned.
+        If the resource_number is None, the default resource set is the first one.
+
+        Parameters
+        ----------
+        resource_number : int or None
+            The number corresponding to the resource containing the MIVOT block.
+            If None, the first resource is set by default.
         """
         nb_resources = len(self._parsed_votable.resources)
         if resource_number is None:

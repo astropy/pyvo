@@ -13,13 +13,26 @@ class ResourceSeeker(object):
     """
 
     def __init__(self, resource):
+        """
+        Constructor
+
+        Parameters
+        ----------
+        resource : ~pyvo.dal.query.Resource
+            The resource object to be queried.
+        """
         self._resource = resource
 
     def get_table_ids(self):
         """
         Returns the list of table ids.
         Only child resources are considered.
-        The id is first look up in ID then in name and finally 'AnonymousTable' is taken.
+        The id is first looked up in ID then in name, and finally 'AnonymousTable' is taken.
+
+        Returns
+        -------
+        list of str
+            List of table ids.
         """
         retour = []
         for table in self._resource.tables:
@@ -34,7 +47,16 @@ class ResourceSeeker(object):
     def get_table(self, table_name):
         """
         Returns the table matching table_name first by ID and then by name.
-        :param table_name: Name of the table to get.
+
+        Parameters
+        ----------
+        table_name : str
+            Name of the table to get.
+
+        Returns
+        -------
+        ~pyvo.dal.query.DALResults
+            The table matching the given name.
         """
         if table_name == Constant.FIRST_TABLE:
             return self._resource.tables[0]
@@ -47,13 +69,27 @@ class ResourceSeeker(object):
     def get_params(self):
         """
         Returns the VOTable PARAMS.
+
+        Returns
+        -------
+        ~pyvo.dal.query.DALResults
+            The VOTable PARAMS.
         """
         return self._resource.params
 
     def get_id_index_mapping(self, table_name):
         """
         Build an index binding column number with field id.
-        :param table_name: Name of the table.
+
+        Parameters
+        ----------
+        table_name : str
+            Name of the table.
+
+        Returns
+        -------
+        dict
+            A dictionary mapping field id to column number.
         """
         retour = {}
         table = self.get_table(table_name)
@@ -71,7 +107,16 @@ class ResourceSeeker(object):
     def get_id_unit_mapping(self, table_name):
         """
         Build an index binding field unit with field id.
-        :param table_name: Name of the table.
+
+        Parameters
+        ----------
+        table_name : str
+            Name of the table.
+
+        Returns
+        -------
+        dict
+            A dictionary mapping field id to field unit.
         """
         retour = {}
         table = self.get_table(table_name)

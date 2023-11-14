@@ -1,7 +1,6 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Created on Feb 26, 2021
-
-@author: laurentmichel
+Test for mivot.features.static_reference_resolver.py
 """
 import os
 import pytest

@@ -9,20 +9,23 @@ from pyvo.mivot.utils.json_encoder import MyEncoder
 
 class DictUtils:
     """
-    static class processing implementing convenient operation on dictionaries
+    Static class implementing convenient operations on dictionaries.
     """
 
     @staticmethod
     def read_dict_from_file(filename, fatal=False):
         """
-        Read a Dict in filename, rises an exception if something goes wrong.
-        :param filename: filename
-        :type filename: string
-        :param fatal: triggers a systeml exit if true
-        :type fatal: boolean
-        :return: dict extracted from the file
-        :rtype: python Dict
-        :raise DataFormatException: if the file has a wrong format
+        Read a dictionary from a file and raise an exception if something goes wrong.
+
+        Parameters:
+        - filename (str): The filename.
+        - fatal (bool): Triggers a system exit if True.
+
+        Returns:
+        - dict: The dictionary extracted from the file.
+
+        Raises:
+        - DataFormatException: If the file has an incorrect format.
         """
         try:
             logger.debug("Reading json from %s", filename)
@@ -40,10 +43,14 @@ class DictUtils:
     @staticmethod
     def get_pretty_json(dictionnary):
         """
-        :return: A pretty string representation of the dictionary.
-        :rtype: Python Dict
+        Return a pretty string representation of the dictionary.
+
+        Parameters:
+        - dictionary (dict): The dictionary.
+
+        Returns:
+        - str: A pretty string representation of the dictionary.
         """
-        from collections import OrderedDict
         return json.dumps(dictionnary,
                           indent=2,
                           # sort_keys=True,
@@ -52,6 +59,9 @@ class DictUtils:
     @staticmethod
     def print_pretty_json(dictionnary):
         """
-        :return: Print out pretty string representation of the dictionary.
+        Print out a pretty string representation of the dictionary.
+
+        Parameters:
+        - dictionary (dict): The dictionary.
         """
         print(DictUtils.get_pretty_json(dictionnary))

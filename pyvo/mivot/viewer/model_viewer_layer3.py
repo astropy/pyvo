@@ -36,13 +36,23 @@ class ModelViewerLayer3(object):
 
     def _to_dict(self, element):
         """
-        Create recursively a nested dictionary from the XML tree structure keeping the hierarchy.
-        Each object is represented in the dictionary by a new dictionary as dmrole: {}.
-        Depending on the tag, elements will be processed differently:
-         - INSTANCE will lead to a new dictionary.
-         - COLLECTION will lead to a list.
-         - ATTRIBUTE will lead to a leaf in the tree structure, with dmtype, dmrole, value, unit, ref.
-        :param element: `~lxml.etree._Element` object
+        Recursively creates a nested dictionary from the XML tree structure, preserving the hierarchy.
+
+        Each object in the dictionary is represented by a new dictionary with dmrole: {}.
+        The processing of elements depends on the tag:
+         - For INSTANCE, a new dictionary is created.
+         - For COLLECTION, a list is created.
+         - For ATTRIBUTE, a leaf is created in the tree structure with dmtype, dmrole, value, unit, and ref.
+
+        Parameters
+        ----------
+        element : `~lxml.etree._Element`
+            The XML element to convert to a dictionary.
+
+        Returns
+        -------
+        dict
+            The nested dictionary representing the XML tree structure.
         """
         dict_result = {}
 
@@ -61,9 +71,18 @@ class ModelViewerLayer3(object):
 
     def _attribute_to_dict(self, child):
         """
+        Converts an ATTRIBUTE element to a dictionary.
         ATTRIBUTE is always a leaf, so it is not recursive.
-        :param child: child `~lxml.etree._Element`
-        :rtype: {dmtype: @dmtype, dmrole: @dmrole, value: @value, unit: @unit, ref: @ref}
+
+        Parameters
+        ----------
+        child : `~lxml.etree._Element`
+            The ATTRIBUTE XML element to convert.
+
+        Returns
+        -------
+        dict
+            A dictionary representing the ATTRIBUTE element with keys: 'dmtype', 'dmrole', 'value', 'unit', and 'ref'.
         """
         attribute = {}
         if child.get('dmtype') is not None:
@@ -84,9 +103,18 @@ class ModelViewerLayer3(object):
 
     def _collection_to_dict(self, child):
         """
-        COLLECTION is always represented as a list, we add each element of the COLLECTION in the list.
-        :param child: child `~lxml.etree._Element`
-        :rtype: [{},{}, ..]
+        Converts a COLLECTION element to a list of dictionaries.
+        COLLECTION is always represented as a list, and each element of the COLLECTION is added to the list.
+
+        Parameters
+        ----------
+        child : `~lxml.etree._Element`
+            The COLLECTION XML element to convert.
+
+        Returns
+        -------
+        list
+            A list of dictionaries representing the elements of the COLLECTION.
         """
         retour = []
         for child_coll in child:
@@ -95,9 +123,21 @@ class ModelViewerLayer3(object):
 
     def _cast_type_value(self, value, dmtype):
         """
-        As the type of ATTRIBUTE values returned in the dictionary is string by default, we need to cast them.
-        :param value: value of ATTRIBUTE
-        :param dmtype: dmtype of ATTRIBUTE
+        Casts the value of an ATTRIBUTE based on its dmtype.
+        As the type of ATTRIBUTE values returned in the dictionary is string by default, this function is used to
+        cast them based on their dmtype.
+
+        Parameters
+        ----------
+        value : str
+            The value of the ATTRIBUTE.
+        dmtype : str
+            The dmtype of the ATTRIBUTE.
+
+        Returns
+        -------
+        Union[bool, float, str, None]
+            The casted value based on the dmtype.
         """
         lower_dmtype = dmtype.lower()
         lower_value = value.lower()

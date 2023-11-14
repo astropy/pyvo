@@ -43,6 +43,21 @@ class Att:
 
 @prototype_feature('MIVOT')
 def key_match(searched_key, key_set):
+    """
+    Check if any key in the key_set starts with the searched_key.
+
+    Parameters
+    ----------
+    searched_key : str
+        The key to search for.
+    key_set : str, list, or odict_keys
+        The set of keys to check.
+
+    Returns
+    -------
+    str or None
+        The matched key if found, otherwise None.
+    """
     if isinstance(key_set, str):
         return key_set.startswith(searched_key)
     else:

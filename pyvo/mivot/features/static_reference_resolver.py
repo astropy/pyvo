@@ -8,7 +8,7 @@ from pyvo.utils.prototype import prototype_feature
 
 
 @prototype_feature('MIVOT')
-class StaticReferenceResolver(object):
+class StaticReferenceResolver:
     """
     Namespace for the function processing the static REFERENCEs
     """
@@ -16,16 +16,30 @@ class StaticReferenceResolver(object):
     @staticmethod 
     def resolve(annotation_seeker, templates_ref, instance):
         """
-        Resolve all static REFERENCEs found in instance.
+        Resolve all static REFERENCEs found in the instance.
+
         The referenced objects are first searched in GLOBALS and then in the templates_ref table.
         REFERENCE elements are replaced with the referenced objects set with the roles of the REFERENCEs.
         Works even if REFERENCE tags are numbered by the former processing.
-        :param annotation_seeker: utility to extract desired elements from the mapping block
-        :param templates_ref: Identifier of the table where instance comes from
-        :param instance: `~lxml.etree._Element` object
-        :return: the number of references resolved
-        :rtype: int
-        :raises MappingException: if the reference cannot be resolved
+
+        Parameters
+        ----------
+        annotation_seeker : AnnotationSeeker
+            Utility to extract desired elements from the mapping block.
+        templates_ref : str
+            Identifier of the table where the instance comes from.
+        instance : lxml.etree._Element
+            The XML element object.
+
+        Returns
+        -------
+        int
+            The number of references resolved.
+
+        Raises
+        ------
+        MappingException
+            If the reference cannot be resolved.
         """
         retour = 0
         for ele in instance.xpath(".//*[starts-with(name(), 'REFERENCE_')]"):

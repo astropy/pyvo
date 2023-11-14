@@ -86,21 +86,18 @@ Layer 3: ModelViewerLayer3
 --------------------------
 ModelViewerLayer3 generates, from the layer 1 output, a nested dictionary
 representing the entire XML INSTANCE with its hierarchy.
-From this dictionary, we build a `~pyvo.mivot.viewer.mivot_class.MivotClass object`,
+From this dictionary, we build a :py:class:`pyvo.mivot.viewer.mivot_class.MivotClass`,
 which is a dictionary containing only the essential information used to process data.
-MivotClass basically stores all XML objects in its attribute dictionary `~__dict__`.
+MivotClass basically stores all XML objects in its attribute dictionary :py:attr:`__dict__`.
 
 
 
 Reference/API
 =============
 
-.. automodapi:: pyvo.mivot.viewer.model_viewer
-.. automodapi:: pyvo.mivot.viewer.model_viewer_layer1
-.. automodapi:: pyvo.mivot.viewer.model_viewer_layer3
-.. automodapi:: pyvo.mivot.viewer.mivot_class
+.. automodapi:: pyvo.mivot.viewer
 .. automodapi:: pyvo.mivot.seekers
-.. automodapi:: pyvo.mivot.features.static_reference_resolver
-.. automodapi:: pyvo.mivot.utils.exceptions
+.. automodapi:: pyvo.mivot.features
+.. automodapi:: pyvo.mivot.utils
 
 
