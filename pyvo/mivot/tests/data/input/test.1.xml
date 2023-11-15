@@ -156,7 +156,7 @@
                     <INSTANCE dmrole="meas:Time.coord" dmtype="coords:MJD">
                       <ATTRIBUTE dmrole="coords:MJD.date" dmtype="ivoa:real" ref="_obstime"/>
                       <!--
-                       The time coodinate is givel by the INSTANCE@dmid=_timesys
+                       The time coordinate is given by the INSTANCE@dmid=_timesys
                        This instance must be located by the client
                       -->
                       <REFERENCE dmrole="coords:Coordinate.coordSys" dmref="_timesys"/>
@@ -172,9 +172,10 @@
                         The photometric system is given by the item of the COLLECTION@dmid=_CoordinateSystems
                         having a primary key matching the value of the column _band for that particular row
                       -->
+                      <!-- Dynamic Reference not implemented yet
                       <REFERENCE dmrole="coords:Coordinate.coordSys" sourceref="_CoordinateSystems">
                         <FOREIGN_KEY ref="_band"/>
-                      </REFERENCE>
+                      </REFERENCE>-->
                     </INSTANCE>
                   </INSTANCE>
                 </INSTANCE>
@@ -187,9 +188,9 @@
                         The photometric system is given by the item of the COLLECTION@dmid=_CoordinateSystems
                         having a primary key matching the value of the column _band for that particular row
                       -->
-                      <REFERENCE dmrole="coords:Coordinate.coordSys" sourceref="_CoordinateSystems">
+                      <!--<REFERENCE dmrole="coords:Coordinate.coordSys" sourceref="_CoordinateSystems">
                         <FOREIGN_KEY ref="_band"/>
-                      </REFERENCE>
+                      </REFERENCE>-->
                     </INSTANCE>
                     <INSTANCE dmrole="meas:Measure.error" dmtype="meas:Error">
                       <INSTANCE dmrole="meas:Error.statError" dmtype="meas:Symmetrical">

@@ -40,6 +40,8 @@ class StaticReferenceResolver:
         ------
         MappingException
             If the reference cannot be resolved.
+        NotImplementedException
+            If the reference is dynamic.
         """
         retour = 0
         for ele in instance.xpath(".//*[starts-with(name(), 'REFERENCE_')]"):
