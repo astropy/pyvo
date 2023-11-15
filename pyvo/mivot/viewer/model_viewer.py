@@ -10,12 +10,10 @@ from astropy.io.votable import parse
 from pyvo.mivot import logger
 from pyvo.mivot.utils.vocabulary import Ele, Att
 from pyvo.mivot.utils.constant import Constant
-from pyvo.mivot.utils.exceptions import (
-    MappingException,
-    ResourceNotFound,
-    MivotElementNotFound,
-    MivotNotFound
-    )
+from pyvo.mivot.utils.exceptions import (MappingException,
+                                         ResourceNotFound,
+                                         MivotElementNotFound,
+                                         MivotNotFound)
 from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.seekers.annotation_seeker import AnnotationSeeker
 from pyvo.mivot.seekers.resource_seeker import ResourceSeeker
@@ -25,10 +23,12 @@ from pyvo.mivot.viewer.model_viewer_layer1 import ModelViewerLayer1
 from pyvo.mivot.viewer.model_viewer_layer3 import ModelViewerLayer3
 from pyvo.utils.prototype import prototype_feature
 
+
 @prototype_feature('MIVOT')
-class ModelViewer(object):
+class ModelViewer:
     """
-    ModelViewer is a PyVO table wrapper aiming at providing a model view on VOTable data read with usual tools.
+    ModelViewer is a PyVO table wrapper aiming at providing
+    a model view on VOTable data read with usual tools.
 
     Standard usage applied to data rows:
         .. code-block:: python
@@ -46,9 +46,11 @@ class ModelViewer(object):
         Parameters
         ----------
         votable_path : str
-            VOTable that will be parsed with the parser of Astropy, which extracts the annotation block.
+            VOTable that will be parsed with the parser of Astropy,
+            which extracts the annotation block.
         tableref : str, optional
-            Used to identify the table to process. If not specified, the first table is taken by default.
+            Used to identify the table to process. If not specified,
+            the first table is taken by default.
         resource_number : int, optional
             The number corresponding to the resource containing the MIVOT block (first by default).
         """
@@ -129,7 +131,8 @@ class ModelViewer(object):
     def get_globals_models(self):
         """
         Get collection types in GLOBALS.
-        Collection types are GLOBALS/COLLECTION/INSTANCE@dmtype: used for collections of static objects.
+        Collection types are GLOBALS/COLLECTION/INSTANCE@dmtype:
+        used for collections of static objects.
 
         Returns
         -------
@@ -158,13 +161,13 @@ class ModelViewer(object):
 
     def get_templates_models(self):
         """
-        Get dmtypes of all INSTANCE/COLLECTION of all TEMPLATES.
+        Get dmtypes (except ivoa:..) of all INSTANCE/COLLECTION of all TEMPLATES.
         Note: COLLECTION not implemented yet.
 
         Returns
         -------
         dict
-            A dictionary containing dmtypes (except ivoa:..) of all INSTANCE/COLLECTION of all TEMPLATES.
+            A dictionary containing dmtypes of all INSTANCE/COLLECTION of all TEMPLATES.
             The format is {'tableref': {'COLLECTIONS': [dmtypes], 'INSTANCE': [dmtypes]}, ...}.
         """
         retour = {}
@@ -191,26 +194,28 @@ class ModelViewer(object):
         """
         if tableref is None:
             self._connected_tableref = Constant.FIRST_TABLE
-            logger.debug("Since "+Ele.TEMPLATES+" table_ref '%s' is None, it will be set as 'first_table' by default",
-                         tableref)
+            logger.debug("Since " + Ele.TEMPLATES + " table_ref '%s' is None, "
+                         "it will be set as 'first_table' by default", tableref)
 
         elif tableref not in self._mapped_tables:
             raise MappingException(f"The table {self._connected_tableref} doesn't match with any "
-                                   f"mapped_table ({self._mapped_tables}) encountered in "+Ele.TEMPLATES)
+                                   f"mapped_table ({self._mapped_tables}) encountered in "
+                                   + Ele.TEMPLATES)
         else:
             self._connected_tableref = tableref
 
         self._connected_table = self._resource_seeker.get_table(tableref)
         if self.connected_table is None:
-            raise ResourceNotFound("Cannot find table {} in VOTable".format(tableref))
+            raise ResourceNotFound(f"Cannot find table {tableref} in VOTable")
         logger.debug("table %s found in VOTable", tableref)
 
         self._templates = deepcopy(self.annotation_seeker.get_templates_block(tableref))
         if self._templates is None:
-            raise MivotElementNotFound("Cannot find "+Ele.TEMPLATES+f" {tableref} ")
-        logger.debug(Ele.TEMPLATES+" %s found ", tableref)
+            raise MivotElementNotFound("Cannot find " + Ele.TEMPLATES + f" {tableref} ")
+        logger.debug(Ele.TEMPLATES + " %s found ", tableref)
 
-        self._table_iterator = TableIterator(self._connected_tableref, self.connected_table.to_table())
+        self._table_iterator = TableIterator(self._connected_tableref,
+                                             self.connected_table.to_table())
         self._squash_join_and_references()
         self._set_column_indices()
         self._set_column_units()
@@ -253,11 +258,14 @@ class ModelViewer(object):
             while StaticReferenceResolver.resolve(self._annotation_seeker, self._connected_tableref,
                                                   templates_copy) > 0:
                 pass
-            # Make sure the instances of the resolved references have both indexes and unit attribute
+            # Make sure the instances of the resolved references
+            # have both indexes and unit attribute
             XmlUtils.set_column_indices(templates_copy,
-                                        self._resource_seeker.get_id_index_mapping(self._connected_tableref))
+                                        self._resource_seeker
+                                        .get_id_index_mapping(self._connected_tableref))
             XmlUtils.set_column_units(templates_copy,
-                                      self._resource_seeker.get_id_unit_mapping(self._connected_tableref))
+                                      self._resource_seeker
+                                      .get_id_unit_mapping(self._connected_tableref))
 
         for ele in templates_copy.xpath("//ATTRIBUTE"):
             ref = ele.get(Att.ref)
@@ -306,18 +314,20 @@ class ModelViewer(object):
             elif child[0] in collection:
                 return collection[0].get(Att.dmtype)
         else:
-            raise MivotElementNotFound("Can't find the first "+Ele.INSTANCE+"/"+Ele.COLLECTION+" in "+Ele.TEMPLATES)
+            raise MivotElementNotFound("Can't find the first " + Ele.INSTANCE
+                                       + "/" + Ele.COLLECTION + " in " + Ele.TEMPLATES)
 
     def get_model_view_layer1(self):
         """
-        Private methods that builds and returns a new layer on our model viewer which contains various XML getters.
+        Private methods that builds and returns a new layer
+        on our model viewer which contains various XML getters.
         """
         return ModelViewerLayer1(self)
 
     def get_next_row_view(self):
         """
-        Private method that builds and returns a new layer on our model viewer, creating an object that
-        contains all INSTANCEs and ATTRIBUTEs as a dictionary.
+        Private method that builds and returns a new layer on our model viewer,
+        creating an object that contains all INSTANCEs and ATTRIBUTEs as a dictionary.
 
         Returns
         -------
@@ -372,21 +382,24 @@ class ModelViewer(object):
         """
         Set the mapping block found in the resource and set the annotation_seeker
         """
-        if self._resource.mivot_block.content == ('<VODML xmlns="http://www.ivoa.net/xml/mivot">\n  '
-                                                  '<REPORT status="KO">No Mivot block</REPORT>\n</VODML>\n'):
+        if (self._resource.mivot_block.content
+                == ('<VODML xmlns="http://www.ivoa.net/xml/mivot">\n  '
+                    '<REPORT status="KO">No Mivot block</REPORT>\n</VODML>\n')):
             raise MivotNotFound("Mivot block is not found")
 
         # The namespace should be removed
-        self._mapping_block = etree.fromstring(self._resource.mivot_block.content
-                                               .replace('xmlns="http://www.ivoa.net/xml/mivot"', '')
-                                               .replace("xmlns='http://www.ivoa.net/xml/mivot'", ''))
+        self._mapping_block = (
+            etree.fromstring(self._resource.mivot_block.content
+                            .replace('xmlns="http://www.ivoa.net/xml/mivot"', '')
+                            .replace("xmlns='http://www.ivoa.net/xml/mivot'", '')))
 
         self._annotation_seeker = AnnotationSeeker(self._mapping_block)
         logger.info("Mapping block found")
 
     def _squash_join_and_references(self):
         """
-        Remove both JOINs and REFERENCEs from the templates and store them in to be resolved later on
+        Remove both JOINs and REFERENCEs from the templates
+        and store them in to be resolved later on.
         This prevents the model view of being polluted with elements that are not in the model
         """
         for ele in self._templates.xpath("//*[starts-with(name(), 'REFERENCE_')]"):

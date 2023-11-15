@@ -10,7 +10,7 @@ from pyvo.utils.prototype import prototype_feature
 
 
 @prototype_feature('MIVOT')
-class AnnotationSeeker(object):
+class AnnotationSeeker:
     """
     This class provides tools for extracting mapping sub-blocks commonly used by other stakeholders.
     All functions using the mapping employ this class to obtain XML elements.
@@ -52,7 +52,7 @@ class AnnotationSeeker(object):
         """
         for child in self._xml_block:
             if self._name_match(child.tag, Ele.GLOBALS):
-                logger.info("Found "+Ele.GLOBALS)
+                logger.info("Found " + Ele.GLOBALS)
                 self._globals_block = child
 
     def _find_templates_blocks(self):
@@ -70,19 +70,20 @@ class AnnotationSeeker(object):
         Raises
         ------
         MivotElementNotFound
-        If a TEMPLATES block is found without a tableref attribute, and there are already other TEMPLATES blocks.
+        If a TEMPLATES block is found without a tableref attribute,
+        and there are already other TEMPLATES blocks.
         """
         for child in self._xml_block:
             if self._name_match(child.tag, Ele.TEMPLATES):
                 tableref = child.get(Att.tableref)
                 if tableref is not None:
-                    logger.info("Found "+Ele.TEMPLATES+" %s", tableref)
+                    logger.info("Found " + Ele.TEMPLATES + " %s", tableref)
                     self._templates_blocks[tableref] = child
                 elif not self._templates_blocks:
-                    logger.info("Found "+Ele.TEMPLATES+" without "+Att.tableref)
+                    logger.info("Found " + Ele.TEMPLATES + " without " + Att.tableref)
                     self._templates_blocks["DEFAULT"] = child
                 else:
-                    raise MivotElementNotFound(Ele.TEMPLATES+" without "+Att.tableref+" must be unique")
+                    raise MivotElementNotFound(Ele.TEMPLATES + " without " + Att.tableref + " must be unique")
 
     def _rename_ref_and_join(self):
         """
@@ -156,7 +157,7 @@ class AnnotationSeeker(object):
             Format: {'model': [url], ...}
         """
         retour = {}
-        eset = self._xml_block.xpath("//"+Ele.MODEL)
+        eset = self._xml_block.xpath("//" + Ele.MODEL)
         for ele in eset:
             retour[ele.get("name")] = ele.get("url")
         return retour
@@ -184,7 +185,7 @@ class AnnotationSeeker(object):
             List of TEMPLATES tablerefs
         """
         retour = []
-        eset = self._xml_block.xpath(".//"+Ele.TEMPLATES)
+        eset = self._xml_block.xpath(".//" + Ele.TEMPLATES)
         for ele in eset:
             tableref = ele.get("tableref")
             if tableref is None:
@@ -229,13 +230,13 @@ class AnnotationSeeker(object):
         """
         retour = {Ele.GLOBALS: [], Ele.TEMPLATES: {}}
 
-        eset = self._globals_block.xpath(".//"+Ele.INSTANCE)
+        eset = self._globals_block.xpath(".//" + Ele.INSTANCE)
         for ele in eset:
             retour[Ele.GLOBALS].append(ele.get(Att.dmtype))
 
         for tableref, block in self._templates_blocks.items():
             retour[Ele.TEMPLATES][tableref] = []
-            eset = block.xpath(".//"+Ele.INSTANCE)
+            eset = block.xpath(".//" + Ele.INSTANCE)
             for ele in eset:
                 retour[Ele.TEMPLATES][tableref].append(ele.get(Att.dmtype))
         return retour
@@ -256,12 +257,14 @@ class AnnotationSeeker(object):
         """
         retour = {Ele.GLOBALS: [], Ele.TEMPLATES: {}}
 
-        eset = self._globals_block.xpath(".//"+Ele.INSTANCE+"[contains(@"+Att.dmtype+",'"+dmtype_pattern+"')]")
+        eset = self._globals_block.xpath(".//" + Ele.INSTANCE + "[contains(@"
+                                         + Att.dmtype + ",'" + dmtype_pattern + "')]")
         retour[Ele.GLOBALS] = eset
 
         for tableref, block in self._templates_blocks.items():
-            retour[Ele.TEMPLATES][tableref] = block.xpath(".//"+Ele.INSTANCE+"[contains(@"+Att.dmtype+",'"+
-                                                          dmtype_pattern+"')]")
+            retour[Ele.TEMPLATES][tableref] = (
+                block.xpath(".//" + Ele.INSTANCE + "[contains(@"
+                            + Att.dmtype + ",'" + dmtype_pattern + "')]"))
         return retour
 
     """
@@ -280,7 +283,7 @@ class AnnotationSeeker(object):
         list
             List of GLOBALS/INSTANCE elements
         """
-        return self._globals_block.xpath("//"+Ele.GLOBALS+"/"+Ele.INSTANCE)
+        return self._globals_block.xpath("//" + Ele.GLOBALS + "/" + Ele.INSTANCE)
 
     def get_globals_instance_dmids(self):
         """
@@ -292,7 +295,7 @@ class AnnotationSeeker(object):
             List of @dmid of GLOBALS/INSTANCE
         """
         retour = []
-        eset = self._globals_block.xpath("//"+Ele.INSTANCE+"[@"+Att.dmid+"]")
+        eset = self._globals_block.xpath("//" + Ele.INSTANCE + "[@" + Att.dmid + "]")
         for ele in eset:
             retour.append(ele.get(Att.dmid))
         return retour
@@ -310,7 +313,7 @@ class AnnotationSeeker(object):
         -------
         dict: `~lxml.etree._Element`
         """
-        eset = self._globals_block.xpath("//"+Ele.INSTANCE+"[@"+Att.dmid+"='" + dmid + "']")
+        eset = self._globals_block.xpath("//" + Ele.INSTANCE + "[@" + Att.dmid + "='" + dmid + "']")
         for ele in eset:
             return ele
         return None
@@ -347,7 +350,7 @@ class AnnotationSeeker(object):
         templates_block = self.get_templates_block(tableref)
         if templates_block is None:
             return None
-        eset = templates_block.xpath(".//"+Ele.INSTANCE+"[@"+Att.dmid+"='" + dmid + "']")
+        eset = templates_block.xpath(".//" + Ele.INSTANCE + "[@" + Att.dmid + "='" + dmid + "']")
         for ele in eset:
             return ele
         return None
@@ -367,8 +370,9 @@ class AnnotationSeeker(object):
         -------
         dict: `~lxml.etree._Element`
         """
-        einst = self._globals_block.xpath("//"+Ele.COLLECTION+"[@"+Att.dmid+"='" + sourceref
-                                          + "']/"+Ele.INSTANCE+"/"+Att.primarykey+"[@"+Att.value+"='" + pk_value + "']")
+        einst = self._globals_block.xpath("//" + Ele.COLLECTION + "[@" + Att.dmid + "='" + sourceref
+                                          + "']/" + Ele.INSTANCE + "/" + Att.primarykey
+                                          + "[@" + Att.value + "='" + pk_value + "']")
         for inst in einst:
             return inst.getparent()
         return None
@@ -390,7 +394,8 @@ class AnnotationSeeker(object):
         -------
         dict: `~lxml.etree._Element`
         """
-        eset = self._globals_block.xpath("//"+Ele.GLOBALS+"/"+Ele.COLLECTION+"[@"+Att.dmid+"='" + dmid + "']")
+        eset = self._globals_block.xpath("//" + Ele.GLOBALS + "/" + Ele.COLLECTION + "[@"
+                                         + Att.dmid + "='" + dmid + "']")
         for ele in eset:
             return ele
         return None
@@ -405,7 +410,7 @@ class AnnotationSeeker(object):
             List of @dmid of GLOBALS/COLLECTION
         """
         retour = []
-        eset = self._globals_block.xpath("//"+Ele.COLLECTION+"[@"+Att.dmid+"]")
+        eset = self._globals_block.xpath("//" + Ele.COLLECTION + "[@" + Att.dmid + "]")
         for ele in eset:
             retour.append(ele.get(Att.dmid))
         return retour
@@ -420,7 +425,7 @@ class AnnotationSeeker(object):
         list
             List of @dmtype of GLOBALS/COLLECTION/INSTANCE
         """
-        eles = self._globals_block.xpath("//"+Ele.GLOBALS+"/"+Ele.COLLECTION+"/"+Ele.INSTANCE+"")
+        eles = self._globals_block.xpath("//" + Ele.GLOBALS + "/" + Ele.COLLECTION + "/" + Ele.INSTANCE + "")
         retour = []
         for inst in eles:
             dmtype = inst.get(Att.dmtype)
@@ -453,14 +458,16 @@ class AnnotationSeeker(object):
         MappingException
             If more than one element matches the criteria.
         """
-        eset = self._globals_block.xpath(".//"+Ele.COLLECTION+"[@"+Att.dmid+"='" + coll_dmid+ "']/"
-                                         +Ele.INSTANCE+"/"+Att.primarykey+"[@"+Att.value+"='" + key_value + "']")
+        eset = self._globals_block.xpath(".//" + Ele.COLLECTION + "[@" + Att.dmid + "='" + coll_dmid
+                                         + "']/" + Ele.INSTANCE + "/" + Att.primarykey + "[@"
+                                         + Att.value + "='" + key_value + "']")
         if len(eset) == 0:
-            raise MivotElementNotFound(Ele.INSTANCE+" with "+Att.primarykey+f" = {key_value} in "
-                                   +Ele.COLLECTION+" "+Att.dmid+f" {key_value} not found")
+            raise MivotElementNotFound(Ele.INSTANCE + " with " + Att.primarykey + f" = {key_value} in "
+                                       + Ele.COLLECTION + " " + Att.dmid + f" {key_value} not found")
         if len(eset) > 1:
-            raise MappingException("More than one "+Ele.INSTANCE+" with "+Att.primarykey+
-                                   f" = {key_value} found in "+Ele.COLLECTION+" "+Att.dmid+f" {key_value}")
-        logger.debug(Ele.INSTANCE+" with "+Att.primarykey+"=%s found in "+Ele.COLLECTION+" "+Att.dmid+"=%s",
-                     key_value, coll_dmid)
+            raise MappingException("More than one " + Ele.INSTANCE + " with " + Att.primarykey
+                                   + f" = {key_value} found in " + Ele.COLLECTION + " "
+                                   + Att.dmid + f" {key_value}")
+        logger.debug(Ele.INSTANCE + " with " + Att.primarykey + "=%s found in " + Ele.COLLECTION + " "
+                     + Att.dmid + "=%s", key_value, coll_dmid)
         return eset[0].getparent()

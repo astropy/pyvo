@@ -42,8 +42,7 @@ class TableIterator(object):
             while True:
                 row = next(self.iter)
                 if row is not None:
-                    if (self.row_filter is None or
-                            self.row_filter.row_match(row) is True):
+                    if self.row_filter is None or self.row_filter.row_match(row) is True:
                         self.last_row = row
                         return row
                 else:

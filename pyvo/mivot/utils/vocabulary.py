@@ -10,9 +10,9 @@ class Ele:
     Constant used to identify MIVOT Element
     """
     namespace = ""
-    VODML = namespace + "VODML"    
-    MODEL = namespace + "MODEL"    
-    GLOBALS = namespace + "GLOBALS"    
+    VODML = namespace + "VODML"
+    MODEL = namespace + "MODEL"
+    GLOBALS = namespace + "GLOBALS"
     TEMPLATES = namespace + "TEMPLATES"
     INSTANCE = namespace + "INSTANCE"
     ATTRIBUTE = namespace + "ATTRIBUTE"

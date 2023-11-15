@@ -7,11 +7,11 @@ from pyvo.utils.prototype import prototype_feature
 
 
 @prototype_feature('MIVOT')
-class ModelViewerLayer1(object):
+class ModelViewerLayer1:
     """
-    The ModelViewerLayer1 takes an instance of the `~pyvo.mivot.viewer.model_viewer.ModelViewer` object as a parameter
-    and provides multiple getters on the XML that already has references resolved by default
-    with the `~pyvo.mivot.viewer.model_viewer.ModelViewer._get_model_view()` function.
+    The ModelViewerLayer1 takes an instance of the `~pyvo.mivot.viewer.model_viewer.ModelViewer`
+    object as a parameter and provides multiple getters on the XML that already has references
+    resolved by default with the `~pyvo.mivot.viewer.model_viewer.ModelViewer._get_model_view()` function.
     """
     def __init__(self, model_viewer):
         self.model_viewer = model_viewer

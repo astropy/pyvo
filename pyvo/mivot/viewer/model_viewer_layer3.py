@@ -82,7 +82,8 @@ class ModelViewerLayer3(object):
         Returns
         -------
         dict
-            A dictionary representing the ATTRIBUTE element with keys: 'dmtype', 'dmrole', 'value', 'unit', and 'ref'.
+            A dictionary representing the ATTRIBUTE element with keys:
+            'dmtype', 'dmrole', 'value', 'unit', and 'ref'.
         """
         attribute = {}
         if child.get('dmtype') is not None:
@@ -124,8 +125,8 @@ class ModelViewerLayer3(object):
     def _cast_type_value(self, value, dmtype):
         """
         Casts the value of an ATTRIBUTE based on its dmtype.
-        As the type of ATTRIBUTE values returned in the dictionary is string by default, this function is used to
-        cast them based on their dmtype.
+        As the type of ATTRIBUTE values returned in the dictionary is string by default,
+        this function is used to cast them based on their dmtype.
 
         Parameters
         ----------

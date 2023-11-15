@@ -31,10 +31,10 @@ def test_id_table(rseeker, data_path):
     assert rseeker.get_table_ids() == ['_PKTable', 'Results']
 
     assert rseeker.get_id_index_mapping('_PKTable') == {'_pksrcid': 0, '_pkband': 1}
-    assert rseeker.get_id_index_mapping('Results') == {'_srcid': 0, 'transit_id': 1, '_band': 2, '_obstime': 3,
-                                                       '_mag': 4, '_flux': 5, '_fluxerr': 6, 'flux_over_error': 7,
-                                                       'rejected_by_photometry': 8, 'rejected_by_variability': 9,
-                                                       'other_flags': 10, 'solution_id': 11}
+    assert (rseeker.get_id_index_mapping('Results')
+            == {'_srcid': 0, 'transit_id': 1, '_band': 2, '_obstime': 3, '_mag': 4,
+                '_flux': 5, '_fluxerr': 6, 'flux_over_error': 7, 'rejected_by_photometry': 8,
+                'rejected_by_variability': 9, 'other_flags': 10, 'solution_id': 11})
     table = rseeker.get_table('_PKTable')
 
     for field in table.fields:

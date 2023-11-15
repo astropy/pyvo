@@ -62,7 +62,8 @@ def recursive_check(MivotClass, **kwargs):
                 elif "bool" in lower_dmtype:
                     assert isinstance(value['value'], bool)
                 elif value['dmtype'] is None:
-                    assert value['value'] in ('notset', 'noset', 'null', 'none', 'NotSet', 'NoSet', 'Null', 'None')
+                    assert (value['value'] in
+                            ('notset', 'noset', 'null', 'none', 'NotSet', 'NoSet', 'Null', 'None'))
                 else:
                     if value['value'] is not None:
                         assert isinstance(value['value'], str)

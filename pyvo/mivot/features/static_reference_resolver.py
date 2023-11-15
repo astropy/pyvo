@@ -13,7 +13,7 @@ class StaticReferenceResolver:
     Namespace for the function processing the static REFERENCEs
     """
 
-    @staticmethod 
+    @staticmethod
     def resolve(annotation_seeker, templates_ref, instance):
         """
         Resolve all static REFERENCEs found in the instance.
@@ -46,10 +46,10 @@ class StaticReferenceResolver:
         retour = 0
         for ele in instance.xpath(".//*[starts-with(name(), 'REFERENCE_')]"):
             dmref = ele.get("dmref")
-            # If we have no @dmref in REFERENCE, we consider this is a ref based on a keys 
-            if dmref == None:
+            # If we have no @dmref in REFERENCE, we consider this is a ref based on a keys
+            if dmref is None:
                 raise NotImplementedException("Dynamic reference not implemented")
-             
+
             target = annotation_seeker.get_globals_instance_by_dmid(dmref)
             found_in_global = True
             if target is None and templates_ref is not None:
@@ -64,7 +64,7 @@ class StaticReferenceResolver:
                 StaticReferenceResolver.resolve(annotation_seeker, None, ele)
             # Set the reference role to the copied instance
             target_copy = deepcopy(target)
-            #if the reference is within a collection: no role
+            # If the reference is within a collection: no role
             if ele.get('dmrole'):
                 target_copy.attrib["dmrole"] = ele.get('dmrole')
             parent = ele.getparent()

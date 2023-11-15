@@ -1,6 +1,8 @@
 """
 Class used to set constants.
 """
+
+
 class Constant:
     """
     Class used to set constant to identify XML attributes added to the MIVOT ATTRIBUTES

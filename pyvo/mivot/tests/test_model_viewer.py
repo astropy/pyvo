@@ -7,7 +7,6 @@ import pytest
 import re
 from pyvo.mivot.utils.constant import Constant
 from pyvo.mivot.utils.dict_utils import DictUtils
-from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.viewer.model_viewer import ModelViewer
 from pyvo.utils.prototype import activate_features
 activate_features('MIVOT')
@@ -36,18 +35,25 @@ def test_first_instance_row_view(data_path):
     assert m_viewer.get_next_row_view() is None
 
 
-def test_model_viewer_table_ref(data_path, m_viewer):
+def test_model_viewer_table_ref(m_viewer):
     assert m_viewer._mapped_tables == ['_PKTable', 'Results']
-    with pytest.raises(Exception, match=re.escape(r"The table first_table doesn't match with any "
-                                                  r"mapped_table (['_PKTable', 'Results']) encountered in TEMPLATES")):
+    with pytest.raises(Exception,
+                       match=re.escape(r"The table first_table doesn't match with any mapped_table "
+                                       r"(['_PKTable', 'Results']) encountered in TEMPLATES")):
         m_viewer.connect_table("wrong_tableref")
 
     assert m_viewer.connected_table_ref == Constant.FIRST_TABLE
-    assert m_viewer.get_models() == {'mango': 'file:/Users/sao/Documents/IVOA/GitHub/ivoa-dm-examples/tmp/Mango-v1.0.vo-dml.xml', 'cube': 'https://volute.g-vo.org/svn/trunk/projects/dm/Cube/vo-dml/Cube-1.0.vo-dml.xml', 'ds': 'https://volute.g-vo.org/svn/trunk/projects/dm/DatasetMetadata/vo-dml/DatasetMetadata-1.0.vo-dml.xml', 'meas': 'https://www.ivoa.net/xml/Meas/20200908/Meas-v1.0.vo-dml.xml', 'coords': 'https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml', 'ivoa': 'https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml'}
+    assert (m_viewer.get_models()
+            == {'mango': 'file:/Users/sao/Documents/IVOA/GitHub/ivoa-dm-examples/tmp/Mango-v1.0.vo-dml.xml',
+                'cube': 'https://volute.g-vo.org/svn/trunk/projects/dm/Cube/vo-dml/Cube-1.0.vo-dml.xml',
+                'ds': 'https://volute.g-vo.org/svn/trunk/projects/dm/'
+                      'DatasetMetadata/vo-dml/DatasetMetadata-1.0.vo-dml.xml',
+                'meas': 'https://www.ivoa.net/xml/Meas/20200908/Meas-v1.0.vo-dml.xml',
+                'coords': 'https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml',
+                'ivoa': 'https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml'})
 
 
 def test_model_viewer_global_getters(m_viewer, data_path):
-    max_diff = None
     assert m_viewer.get_table_ids() == ['_PKTable', 'Results']
 
     assert m_viewer.get_globals_models() == DictUtils.read_dict_from_file(

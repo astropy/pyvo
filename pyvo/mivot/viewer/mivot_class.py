@@ -20,6 +20,7 @@ class MivotClass:
     "key" : []           means key is the dmtype of a COLLECTION
     """
     REFERENCE = {}
+
     def __init__(self, **kwargs):
         """
         Constructor of the MIVOT class.
@@ -71,14 +72,16 @@ class MivotClass:
         if MivotClass.REFERENCE["frame"] == ('icrs' or 'fk5' or 'fk4'):
             return SkyCoord(distance=(MivotClass.REFERENCE["parallax"] / 4) * u.pc,
                             radial_velocity=MivotClass.REFERENCE["radial_velocity"] * u.km / u.s,
-                            ra=MivotClass.REFERENCE["longitude"] * u.degree, dec=MivotClass.REFERENCE["latitude"] * u.degree,
+                            ra=MivotClass.REFERENCE["longitude"] * u.degree,
+                            dec=MivotClass.REFERENCE["latitude"] * u.degree,
                             pm_ra_cosdec=MivotClass.REFERENCE["pm_longitude"] * u.mas / u.yr,
                             pm_dec=MivotClass.REFERENCE["pm_latitude"] * u.mas / u.yr,
                             frame=MivotClass.REFERENCE["frame"],
                             obstime=MivotClass.REFERENCE["epoch"])
 
         elif MivotClass.REFERENCE["frame"] == 'galatic':
-            return SkyCoord(l=MivotClass.REFERENCE["longitude"] * u.degree, b=MivotClass.REFERENCE["latitude"] * u.degree,
+            return SkyCoord(l=MivotClass.REFERENCE["longitude"] * u.degree,
+                            b=MivotClass.REFERENCE["latitude"] * u.degree,
                             distance=MivotClass.REFERENCE["parallax"] * u.pc,
                             pm_l_cosb=MivotClass.REFERENCE["pm_longitude"] * u.mas / u.yr,
                             pm_b=MivotClass.REFERENCE["pm_latitude"] * u.mas / u.yr,

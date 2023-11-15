@@ -10,6 +10,7 @@ from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.seekers.annotation_seeker import AnnotationSeeker
 from pyvo.mivot.utils.dict_utils import DictUtils
 from pyvo.utils import activate_features
+
 activate_features('MIVOT')
 
 
@@ -32,13 +33,15 @@ def test_multiple_tableref(data_path):
     with pytest.raises(Exception, match="TEMPLATES without tableref must be unique"):
         AnnotationSeeker(mapping_block.getroot())
 
-def test_all_reverts(a_seeker, data_path):
 
-    # Checks the GLOBALS block given by the AnnotationSeeker by comparing it to the content of the file test.0.1.xml
+def test_all_reverts(a_seeker, data_path):
+    # Checks the GLOBALS block given by the AnnotationSeeker
+    # by comparing it to the content of the file test.0.1.xml
     XmlUtils.assertXmltreeEqualsFile(a_seeker.globals_block,
                                      os.path.join(data_path, "data/output/test.0.1.xml"))
 
-    # Checks the TEMPLATES block given by the AnnotationSeeker by comparing it to the content of the file test.0.2.xml
+    # Checks the TEMPLATES block given by the AnnotationSeeker
+    # by comparing it to the content of the file test.0.2.xml
     XmlUtils.assertXmltreeEqualsFile(a_seeker.get_templates_block("Results"),
                                      os.path.join(data_path, "data/output/test.0.2.xml"))
 
@@ -52,8 +55,9 @@ def test_all_reverts(a_seeker, data_path):
 
     assert a_seeker.get_globals_instance_dmtypes() == ['ds:experiment.Target']
 
-    assert a_seeker.get_globals_instance_dmids() == ['_timesys', '_spacesys1', '_photsys_G', '_photsys_RP', '_photsys_BP',
-                                                    '_ds1', '_tg1', '_TimeSeries', '_ts_data']
+    assert (a_seeker.get_globals_instance_dmids()
+            == ['_timesys', '_spacesys1', '_photsys_G', '_photsys_RP',
+                '_photsys_BP', '_ds1', '_tg1', '_TimeSeries', '_ts_data'])
 
     assert a_seeker.get_globals_collection_dmids() == ['_CoordinateSystems', '_Datasets']
 
@@ -71,21 +75,22 @@ def test_all_reverts(a_seeker, data_path):
         for ele in table_sel:
             assert ele.get("dmtype").startswith("coords")
 
-    with pytest.raises(Exception, match="INSTANCE with PRIMARY_KEY = wrong_key_value in COLLECTION dmid wrong_key_value not found"):
+    with pytest.raises(Exception, match="INSTANCE with PRIMARY_KEY = wrong_key_value "
+                                        "in COLLECTION dmid wrong_key_value not found"):
         a_seeker.get_collection_item_by_primarykey("_Datasets", "wrong_key_value")
 
     pksel = a_seeker.get_collection_item_by_primarykey("_Datasets", "5813181197970338560")
-    XmlUtils.assertXmltreeEqualsFile(pksel,
-                                     os.path.join(data_path, "data/output/test.0.4.xml"))
+    XmlUtils.assertXmltreeEqualsFile(pksel, os.path.join(data_path, "data/output/test.0.4.xml"))
 
-    with pytest.raises(Exception, match="More than one INSTANCE with PRIMARY_KEY = G found in COLLECTION dmid G"):
+    with (pytest.raises(Exception, match="More than one INSTANCE with "
+                                         "PRIMARY_KEY = G found in COLLECTION dmid G")):
         double_key = etree.fromstring("""<PRIMARY_KEY dmtype="ivoa:string" value="G"/>""")
-        a_seeker.get_collection_item_by_primarykey("_CoordinateSystems", "G").append(double_key)
+        a_seeker.get_collection_item_by_primarykey("_CoordinateSystems", "G"
+                                                   ).append(double_key)
         a_seeker.get_collection_item_by_primarykey("_CoordinateSystems", "G")
-    with pytest.raises(Exception, match="INSTANCE with PRIMARY_KEY = wrong_key in COLLECTION dmid wrong_key not found"):
+    with pytest.raises(Exception, match="INSTANCE with PRIMARY_KEY = wrong_key "
+                                        "in COLLECTION dmid wrong_key not found"):
         a_seeker.get_collection_item_by_primarykey("_CoordinateSystems", "wrong_key")
-
-
 
     assert a_seeker.get_instance_dmtypes() == DictUtils.read_dict_from_file(
         os.path.join(data_path, "data/output/test.0.5.json"))
@@ -93,8 +98,8 @@ def test_all_reverts(a_seeker, data_path):
     assert a_seeker.get_templates_instance_by_dmid("Results", "wrong_dmid") is None
     assert a_seeker.get_templates_instance_by_dmid("Results", "_ts_data").get("dmtype") == "cube:NDPoint"
 
-    assert (a_seeker.get_globals_instance_from_collection("_CoordinateSystems", "ICRS").get("dmtype")
-            == "coords:SpaceSys")
+    assert a_seeker.get_globals_instance_from_collection(
+        "_CoordinateSystems", "ICRS").get("dmtype") == "coords:SpaceSys"
     assert a_seeker.get_globals_instance_from_collection("wrong_dmid", "ICRS") is None
 
 
