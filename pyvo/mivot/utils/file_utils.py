@@ -4,7 +4,7 @@ Utility class to process files.
 import os
 
 
-class FileUtils(object):
+class FileUtils:
     """
     Utility class for file and directory operations.
 

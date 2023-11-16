@@ -4,11 +4,10 @@ Utility class to process XML.
 from lxml import etree
 from pyvo.mivot.utils.constant import Constant
 from pyvo.mivot.utils.vocabulary import Att
-from doctest import Example
 from lxml.doctestcompare import LXMLOutputChecker
 
 
-class XmlUtils(object):
+class XmlUtils:
     """
     Static class implementing convenient operations on XML.
     """
@@ -76,7 +75,7 @@ class XmlUtils(object):
             output.write(XmlUtils.pretty_string(xmltree))
 
     @staticmethod
-    def assertXmltreeEquals(xmltree1, xmltree2, message):
+    def assertXmltreeEquals(xmltree1, xmltree2):
         """
         Assert that two XML trees are equal.
 
@@ -92,12 +91,10 @@ class XmlUtils(object):
         xml_str1 = etree.tostring(xmltree1, pretty_print=True).decode("utf-8")
         xml_str2 = etree.tostring(xmltree2, pretty_print=True).decode("utf-8")
         checker = LXMLOutputChecker()
-        if not checker.check_output(xml_str1, xml_str2, 0):
-            message = checker.output_difference(Example("", xml_str1), xml_str1, 0)
-            raise AssertionError(message)
+        assert checker.check_output(xml_str1, xml_str2, 0), f"XML trees differ:\n{xml_str1}\n---\n{xml_str2}"
 
     @staticmethod
-    def assertXmltreeEqualsFile(xmltree1, xmltree2_file, message=""):
+    def assertXmltreeEqualsFile(xmltree1, xmltree2_file):
         """
         Assert that an XML tree is equal to the content of a file.
 
@@ -114,9 +111,7 @@ class XmlUtils(object):
         xml_str1 = etree.tostring(xmltree1, pretty_print=True).decode("utf-8")
         xml_str2 = etree.tostring(xmltree2, pretty_print=True).decode("utf-8")
         checker = LXMLOutputChecker()
-        if not checker.check_output(xml_str1, xml_str2, 0):
-            message = checker.output_difference(Example("", xml_str2), xml_str1, 0)
-            raise AssertionError(message)
+        assert checker.check_output(xml_str1, xml_str2, 0), f"XML trees differ:\n{xml_str1}\n---\n{xml_str2}"
 
     @staticmethod
     def set_column_indices(mapping_block, index_map):

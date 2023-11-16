@@ -7,12 +7,16 @@ import pytest
 import re
 from pyvo.mivot.utils.constant import Constant
 from pyvo.mivot.utils.dict_utils import DictUtils
+from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.model_viewer import ModelViewer
 from pyvo.utils.prototype import activate_features
+from astropy import version as astropy_version
 activate_features('MIVOT')
 
 
 def test_model_viewer_constructor(data_path):
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
     votable = os.path.join(data_path, "data/input/test.1.xml")
 
     with (pytest.raises(TypeError, match="'<' not supported between instances of 'str' and 'int'")
@@ -21,6 +25,8 @@ def test_model_viewer_constructor(data_path):
 
 
 def test_first_instance_row_view(data_path):
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
     votable = os.path.join(data_path, "data/test_first_instance.xml")
     m_viewer = ModelViewer(votable_path=votable)
     m_viewer.get_next_row()
@@ -36,11 +42,13 @@ def test_first_instance_row_view(data_path):
 
 
 def test_model_viewer_table_ref(m_viewer):
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
     assert m_viewer._mapped_tables == ['_PKTable', 'Results']
     with pytest.raises(Exception,
                        match=re.escape(r"The table first_table doesn't match with any mapped_table "
                                        r"(['_PKTable', 'Results']) encountered in TEMPLATES")):
-        m_viewer.connect_table("wrong_tableref")
+        m_viewer._connect_table("wrong_tableref")
 
     assert m_viewer.connected_table_ref == Constant.FIRST_TABLE
     assert (m_viewer.get_models()
@@ -54,6 +62,8 @@ def test_model_viewer_table_ref(m_viewer):
 
 
 def test_model_viewer_global_getters(m_viewer, data_path):
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
     assert m_viewer.get_table_ids() == ['_PKTable', 'Results']
 
     assert m_viewer.get_globals_models() == DictUtils.read_dict_from_file(
@@ -62,7 +72,7 @@ def test_model_viewer_global_getters(m_viewer, data_path):
     assert m_viewer.get_templates_models() == DictUtils.read_dict_from_file(
         os.path.join(data_path, "data/output/test.1.12.json"))
 
-    m_viewer.connect_table('_PKTable')
+    m_viewer._connect_table('_PKTable')
     row = m_viewer.get_next_row()
     assert row[0] == '5813181197970338560'
     assert row[1] == 'G'
@@ -83,6 +93,15 @@ def test_model_viewer_global_getters(m_viewer, data_path):
     #                                  os.path.join(data_path, "data/output/test.1.4.xml"))
     # XmlUtils.assertXmltreeEqualsFile(m_viewer._joins["JOIN_6"],
     #                                  os.path.join(data_path, "data/output/test.1.5.xml"))
+
+
+def test_check_version(data_path):
+    votable = os.path.join(data_path, "data/input/test.1.xml")
+    if not check_astropy_version():
+        with pytest.raises(Exception,
+                           match=f"Astropy version {astropy_version.version} "
+                                 f"is below the required version 6.0 for the use of MIVOT."):
+            ModelViewer(votable_path=votable)
 
 
 @pytest.fixture

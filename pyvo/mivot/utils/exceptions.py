@@ -59,3 +59,10 @@ class NotImplementedException(Exception):
     Exception raised if an un-implemented feature is invoked.
     """
     pass
+
+
+class AstropyVersionException(Exception):
+    """
+    Exception raised if the version of astropy is not compatible with MIVOT.
+    """
+    pass

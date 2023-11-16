@@ -12,7 +12,4 @@ schema_url = "https://raw.githubusercontent.com/ivoa-std/ModelInstanceInVot/mast
 logger = LoggerSetup.get_logger()
 LoggerSetup.set_debug_level()
 
-# make sure to know where we are to avoid issue with relative paths
-os.chdir(os.path.dirname(os.path.realpath(__file__)))
-
 logger.info("client package intialized")

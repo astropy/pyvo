@@ -8,7 +8,7 @@ from pyvo.utils.prototype import prototype_feature
 
 
 @prototype_feature('MIVOT')
-class ModelViewerLayer3(object):
+class ModelViewerLayer3:
     """
     The ModelViewerLayer3 take as an argument a xml INSTANCE and give from this xml a nested
     dictionary that represents all objects of the xml INSTANCE with their hierarchy.

@@ -4,6 +4,8 @@ Test for mivot.viewer.model_viewer_layer3.py
 """
 import os
 import pytest
+
+from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.model_viewer import ModelViewer
 from pyvo.mivot.viewer.model_viewer_layer3 import ModelViewerLayer3
 from pyvo.utils.prototype import activate_features
@@ -19,8 +21,10 @@ def test_dict_model_viewer3(votable_test, simple_votable):
     MIVOT class is itself a dictionary with only essential information of the ModelViewerLayer3._dict.
     This test run on 2 votables : votable_test and simple_votable.
     """
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
     m_viewer_votable_test = ModelViewer(votable_path=votable_test)
-    m_viewer_votable_test.connect_table()
+    m_viewer_votable_test._connect_table()
     m_viewer_votable_test.get_next_row()
     mv_niv1_votable_test = m_viewer_votable_test.get_model_view_layer1()
     instance = mv_niv1_votable_test.get_instance_by_type(m_viewer_votable_test.get_first_instance())
@@ -29,7 +33,7 @@ def test_dict_model_viewer3(votable_test, simple_votable):
     recursive_check(MivotClass, **mv_niv3_votable_test._dict)
 
     m_viewer_simple_votable = ModelViewer(votable_path=simple_votable)
-    m_viewer_simple_votable .connect_table()
+    m_viewer_simple_votable ._connect_table()
     m_viewer_simple_votable .get_next_row()
     mv_niv1 = m_viewer_simple_votable .get_model_view_layer1()
     instance = mv_niv1.get_instance_by_type(m_viewer_simple_votable.get_first_instance())
@@ -45,16 +49,16 @@ def recursive_check(MivotClass, **kwargs):
             for item in value:
                 if isinstance(item, dict):
                     assert 'dmtype' in item.keys()
-                    recursive_check(MivotClass.__dict__[MivotClass.remove_model_name(key)][nbr_item], **item)
+                    recursive_check(MivotClass.__dict__[MivotClass._remove_model_name(key)][nbr_item], **item)
                     nbr_item += 1
 
         elif isinstance(value, dict) and 'value' not in value:
             # for INSTANCE of INSTANCEs dmrole needs model_name
-            assert MivotClass.remove_model_name(key, True) in MivotClass.__dict__.keys()
-            recursive_check(MivotClass.__dict__[MivotClass.remove_model_name(key, True)], **value)
+            assert MivotClass._remove_model_name(key, True) in MivotClass.__dict__.keys()
+            recursive_check(MivotClass.__dict__[MivotClass._remove_model_name(key, True)], **value)
 
         else:
-            if isinstance(value, dict) and MivotClass.is_leaf(**value):
+            if isinstance(value, dict) and MivotClass._is_leaf(**value):
                 assert value.keys().__contains__('dmtype' and 'value' and 'unit' and 'ref')
                 lower_dmtype = value['dmtype'].lower()
                 if "real" in lower_dmtype or "double" in lower_dmtype or "float" in lower_dmtype:
@@ -68,7 +72,7 @@ def recursive_check(MivotClass, **kwargs):
                     if value['value'] is not None:
                         assert isinstance(value['value'], str)
 
-                recursive_check(MivotClass.__dict__[MivotClass.remove_model_name(key)], **value)
+                recursive_check(MivotClass.__dict__[MivotClass._remove_model_name(key)], **value)
             else:
                 assert key == 'dmtype' or 'value'
 

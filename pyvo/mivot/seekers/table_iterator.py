@@ -6,7 +6,7 @@ from pyvo.utils.prototype import prototype_feature
 
 
 @prototype_feature('MIVOT')
-class TableIterator(object):
+class TableIterator:
     """
     Simple wrapper iterating over table rows.
     """

@@ -41,7 +41,7 @@ class DictUtils:
                 logger.error("{} reading {}".format(exception, filename))
 
     @staticmethod
-    def get_pretty_json(dictionnary):
+    def _get_pretty_json(dictionnary):
         """
         Return a pretty string representation of the dictionary.
 
@@ -64,4 +64,4 @@ class DictUtils:
         Parameters:
         - dictionary (dict): The dictionary.
         """
-        print(DictUtils.get_pretty_json(dictionnary))
+        print(DictUtils._get_pretty_json(dictionnary))

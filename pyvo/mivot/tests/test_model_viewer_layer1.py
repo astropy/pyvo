@@ -4,13 +4,17 @@ Test for mivot.viewer.model_viewer_layer1.py
 """
 import os
 import pytest
+
+from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.model_viewer import ModelViewer
 from pyvo.utils.prototype import activate_features
 activate_features('MIVOT')
 
 
 def test_model_viewer_layer1(m_viewer):
-    m_viewer.connect_table("Results")
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
+    m_viewer._connect_table("Results")
     m_viewer.get_next_row()
     mv_layer1 = m_viewer.get_model_view_layer1()
     with pytest.raises(Exception, match="Cannot find dmrole wrong_role in any instances of the VOTable"):
@@ -33,6 +37,8 @@ def test_model_viewer_layer1(m_viewer):
 
 @pytest.fixture
 def m_viewer(data_path):
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
     votable = os.path.join(data_path, "data/input/test.1.xml")
     return ModelViewer(votable_path=votable)
 

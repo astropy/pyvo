@@ -2,8 +2,8 @@
 """
 This file contains the high-level functions to deal with model views on data.
 """
-
 from copy import deepcopy
+from astropy import version
 from lxml import etree
 from astropy.io.votable import parse
 
@@ -13,12 +13,14 @@ from pyvo.mivot.utils.constant import Constant
 from pyvo.mivot.utils.exceptions import (MappingException,
                                          ResourceNotFound,
                                          MivotElementNotFound,
-                                         MivotNotFound)
+                                         MivotNotFound,
+                                         AstropyVersionException)
 from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.seekers.annotation_seeker import AnnotationSeeker
 from pyvo.mivot.seekers.resource_seeker import ResourceSeeker
 from pyvo.mivot.seekers.table_iterator import TableIterator
 from pyvo.mivot.features.static_reference_resolver import StaticReferenceResolver
+from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.model_viewer_layer1 import ModelViewerLayer1
 from pyvo.mivot.viewer.model_viewer_layer3 import ModelViewerLayer3
 from pyvo.utils.prototype import prototype_feature
@@ -54,26 +56,30 @@ class ModelViewer:
         resource_number : int, optional
             The number corresponding to the resource containing the MIVOT block (first by default).
         """
-        self._parsed_votable = parse(votable_path)
-        self._table_iterator = None
-        self._connected_table = None
-        self._connected_tableref = None
-        self._current_data_row = None
-        # when the search object is in GLOBALS
-        self._globals_instance = None
-        self._last_row = None
-        self._templates = None
-        self._resource = None
+        if check_astropy_version() is False:
+            raise AstropyVersionException(f"Astropy version {version.version} "
+                                          f"is below the required version 6.0 for the use of MIVOT.")
+        else:
+            self._parsed_votable = parse(votable_path)
+            self._table_iterator = None
+            self._connected_table = None
+            self._connected_tableref = None
+            self._current_data_row = None
+            # when the search object is in GLOBALS
+            self._globals_instance = None
+            self._last_row = None
+            self._templates = None
+            self._resource = None
 
-        self._annotation_seeker = None
-        self._mapping_block = None
-        self._mapped_tables = None
+            self._annotation_seeker = None
+            self._mapping_block = None
+            self._mapped_tables = None
 
-        self._set_resource(resource_number)
-        self._set_mapping_block()
-        self._resource_seeker = ResourceSeeker(self._resource)
-        self._set_mapped_tables()
-        self.connect_table(tableref)
+            self._set_resource(resource_number)
+            self._set_mapping_block()
+            self._resource_seeker = ResourceSeeker(self._resource)
+            self._set_mapped_tables()
+            self._connect_table(tableref)
 
     """
     Properties
@@ -181,7 +187,30 @@ class ModelViewer:
     Data browsing
     """
 
-    def connect_table(self, tableref=None):
+    def get_next_row(self):
+        """
+        Returns the next data row of the connected table.
+
+        Returns
+        -------
+        astropy.table.row.Row
+            The next data row.
+        """
+        self._assert_table_is_connected()
+        self._current_data_row = self._table_iterator._get_next_row()
+        return self._current_data_row
+
+    def rewind(self):
+        """
+        Rewinds the table iterator of the connected table
+        """
+        self._assert_table_is_connected()
+        self._table_iterator._rewind()
+
+    """
+    Private methods
+    """
+    def _connect_table(self, tableref=None):
         """
         Iterate over the table identified by tableref.
         Required to browse table data.
@@ -220,29 +249,6 @@ class ModelViewer:
         self._set_column_indices()
         self._set_column_units()
 
-    def get_next_row(self):
-        """
-        Returns the next data row of the connected table.
-
-        Returns
-        -------
-        astropy.table.row.Row
-            The next data row.
-        """
-        self._assert_table_is_connected()
-        self._current_data_row = self._table_iterator._get_next_row()
-        return self._current_data_row
-
-    def rewind(self):
-        """
-        Rewinds the table iterator of the connected table
-        """
-        self._assert_table_is_connected()
-        self._table_iterator._rewind()
-
-    """
-    Private methods
-    """
     def _get_model_view(self, resolve_ref=True):
         """
         Returns an XML model view of the last read row.

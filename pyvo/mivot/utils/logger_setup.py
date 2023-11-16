@@ -28,11 +28,11 @@ class LoggerSetup:
         logger
             System logger.
         """
-        LoggerSetup.set_default_format()
+        LoggerSetup._set_default_format()
         return logging.getLogger()
 
     @staticmethod
-    def set_default_format():
+    def _set_default_format():
         """
         Set the default message format.
         """
@@ -42,10 +42,10 @@ class LoggerSetup:
                                    ' - %(funcName)10s()] - %(message)s',
                             # datefmt="%Y-%m-%d %H:%M:%S"
                             )
-        LoggerSetup.restore_default_level()
+        LoggerSetup._restore_default_level()
 
     @staticmethod
-    def restore_default_level():
+    def _restore_default_level():
         """
         Restore the message level with the last value set by a setter.
         INFO by default

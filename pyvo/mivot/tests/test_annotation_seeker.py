@@ -9,6 +9,7 @@ from lxml import etree
 from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.seekers.annotation_seeker import AnnotationSeeker
 from pyvo.mivot.utils.dict_utils import DictUtils
+from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.utils import activate_features
 
 activate_features('MIVOT')
@@ -16,6 +17,8 @@ activate_features('MIVOT')
 
 @pytest.fixture
 def a_seeker(data_path):
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
     # Creation of an instance of mapping_block, it returns an AnnotationSeeker based on this mapping_block
     mapping_block = XmlUtils.xmltree_from_file(
         os.path.join(data_path, "data/input/test.0.xml"))
@@ -28,6 +31,8 @@ def data_path():
 
 
 def test_multiple_tableref(data_path):
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
     mapping_block = XmlUtils.xmltree_from_file(
         os.path.join(data_path, "data/output/test.0.6.xml"))
     with pytest.raises(Exception, match="TEMPLATES without tableref must be unique"):
@@ -35,6 +40,8 @@ def test_multiple_tableref(data_path):
 
 
 def test_all_reverts(a_seeker, data_path):
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
     # Checks the GLOBALS block given by the AnnotationSeeker
     # by comparing it to the content of the file test.0.1.xml
     XmlUtils.assertXmltreeEqualsFile(a_seeker.globals_block,

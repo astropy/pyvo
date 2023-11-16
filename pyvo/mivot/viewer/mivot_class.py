@@ -32,16 +32,16 @@ class MivotClass:
         """
         for key, value in kwargs.items():
             if isinstance(value, list):
-                self.__dict__[self.remove_model_name(key)] = []
+                self.__dict__[self._remove_model_name(key)] = []
                 for item in value:
-                    self.__dict__[self.remove_model_name(key)].append(MivotClass(**item))
+                    self.__dict__[self._remove_model_name(key)].append(MivotClass(**item))
 
             elif isinstance(value, dict) and 'value' not in value:
-                self.__dict__[self.remove_model_name(key, True)] = MivotClass(**value)
+                self.__dict__[self._remove_model_name(key, True)] = MivotClass(**value)
 
             else:
-                if isinstance(value, dict) and self.is_leaf(**value):
-                    self.__dict__[self.remove_model_name(key)] = MivotClass(**value)
+                if isinstance(value, dict) and self._is_leaf(**value):
+                    self.__dict__[self._remove_model_name(key)] = MivotClass(**value)
                     key_low = key.lower()
                     if self.dmtype == "EpochPosition":
                         if ("longitude" or "ra") in key_low:
@@ -63,7 +63,7 @@ class MivotClass:
                     if "frame" in key_low and value["unit"] == "string":
                         MivotClass.REFERENCE["frame"] = value["value"].lower()
                 else:
-                    self.__dict__[self.remove_model_name(key)] = self.remove_model_name(value)
+                    self.__dict__[self._remove_model_name(key)] = self._remove_model_name(value)
 
     def SkyCoordinate(self):
         """
@@ -100,7 +100,7 @@ class MivotClass:
         retour = self.SkyCoordinate().apply_space_motion(dt=dt)
         return retour.ra, retour.dec
 
-    def remove_model_name(self, value, role_instance=False):
+    def _remove_model_name(self, value, role_instance=False):
         """
         Remove the model name before each colon ":" as well as the type of the object before each point ".".
         If it is an INSTANCE of INSTANCEs, the dmrole represented as the key needs to keep his type object.
@@ -132,7 +132,7 @@ class MivotClass:
         else:
             return value
 
-    def is_leaf(self, **kwargs):
+    def _is_leaf(self, **kwargs):
         """
         Check if the dictionary is an ATTRIBUTE.
 
