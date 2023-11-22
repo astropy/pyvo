@@ -73,7 +73,7 @@ This implementation is built in 3 layers, denoting the abstraction level in rela
 Layer 0: ModelViewer
 --------------------
 Provide the MIVOT block as it is in the VOTable: No references are resolved.
-The Mivot block is provided as an lxml tree.
+The Mivot block is provided as an xml tree.
 
 Layer 1: ModelViewerLayer1
 --------------------------
@@ -86,7 +86,7 @@ Layer 2: ModelViewerLayer2
 --------------------------
 Just a few methods to make the browsing of the layer 1 output easier.
 The layer 2 API allows users to retrieve MIVOT elements by their @dmrole or @dmtype.
-At this level, the MIVOT block must still be handled as an lxml element.
+At this level, the MIVOT block must still be handled as an xml element.
 This module is not completely implemented.
 
 Layer 3: ModelViewerLayer3

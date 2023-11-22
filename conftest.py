@@ -54,6 +54,7 @@ def pytest_configure(config):
         # packages for which version numbers are displayed when running the tests.
         PYTEST_HEADER_MODULES['Astropy'] = 'astropy'  # noqa
         PYTEST_HEADER_MODULES['requests'] = 'requests'  # noqa
+        PYTEST_HEADER_MODULES['defusedxml'] = 'defusedxml'
 
         PYTEST_HEADER_MODULES.pop('Pandas', None)
         PYTEST_HEADER_MODULES.pop('h5py', None)

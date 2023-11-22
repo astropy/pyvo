@@ -46,7 +46,7 @@ class ModelViewerLayer3:
 
         Parameters
         ----------
-        element : `~lxml.etree._Element`
+        element : ~`xml.etree.ElementTree.Element`
             The XML element to convert to a dictionary.
 
         Returns
@@ -76,7 +76,7 @@ class ModelViewerLayer3:
 
         Parameters
         ----------
-        child : `~lxml.etree._Element`
+        child : ~`xml.etree.ElementTree.Element`
             The ATTRIBUTE XML element to convert.
 
         Returns
@@ -109,7 +109,7 @@ class ModelViewerLayer3:
 
         Parameters
         ----------
-        child : `~lxml.etree._Element`
+        child : `~`xml.etree.ElementTree.Element``
             The COLLECTION XML element to convert.
 
         Returns

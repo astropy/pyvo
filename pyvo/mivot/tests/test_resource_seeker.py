@@ -16,7 +16,7 @@ def rseeker(data_path):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     # Parse the VOTable and returns a ResourceSeeker based on the resources
-    vpath = os.path.join(data_path, "data/input/test.7.xml")
+    vpath = os.path.join(data_path, "data/input/test_ressource_seeker.xml")
     votable = parse(vpath)
     rseeker = None
     for resource in votable.resources:

@@ -1,3 +1,0 @@
-<REFERENCE_2 dmrole="cube:DataProduct.dataset" sourceref="_Datasets">
-	<FOREIGN_KEY ref="_pksrcid" />
-</REFERENCE_2>

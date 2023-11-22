@@ -1,20 +1,4 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!--
-   File:  GAIA Multi-band Time Series
-   
-   Original file submitted as a use-case example for validating/testing the 
-   models and annotation syntax at the DM Workshop 2021.
-      * https://github.com/ivoa/dm-usecases/blob/main/usecases/time-series/raw_data/gaia_multiband.xml
-
-   This file annotates that file according to the merged syntax proposal
-   which resulted from the workshop effort.
-      - migrated by hand from the VODML-Mapping syntax example.
-
-   Notable Features:
-    + uses ORM mechanism to select the appropriate coordinate system for each Observable.
-    + uses JOIN to pull filtered set of records from the table to form the time series data.
-
--->
 <VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
   <DESCRIPTION>Epoch photometry. This table contains light curve data points. Each entry is a photometric flux-time pair for a given object, band and time. It follows the (evolving) VO convention for time series as much as possible. At the time of writing, a VO recommendation has not yet been released.</DESCRIPTION>
   <RESOURCE type="results">
@@ -264,36 +248,6 @@
 <DESCRIPTION>Rejected by DPAC variability processing (or variability analysis).</DESCRIPTION>
 </FIELD>
 <FIELD datatype="long" name="other_flags" ucd="meta.code.status">
-<DESCRIPTION>Additional processing flags. This field contains extra information on the data used to compute the fluxes and their quality. It provides debugging information that may be safely ignored for many general purpose applications. The field is a collection of binary flags, whose values can be recovered applying bit shifting and masking operations. Each band has different binary flags in different positions, as shown below. Bit numbering is as follows: least significant bit = 1 and most significant bit = 64 
-G band:
-	 Bit 1: SM transit rejected by photometry processing.
-	 Bit 2: AF1 transit rejected by photometry processing.
-	 Bit 3: AF2 transit rejected by photometry processing.
-	 Bit 4: AF3 transit rejected by photometry processing.
-	 Bit 5: AF4 transit rejected by photometry processing.
-	 Bit 6: AF5 transit rejected by photometry processing.
-	 Bit 7: AF6 transit rejected by photometry processing.
-	 Bit 8: AF7 transit rejected by photometry processing.
-	 Bit 9: AF8 transit rejected by photometry processing.
-	 Bit 10: AF9 transit rejected by photometry processing.
-	 Bit 13: G band flux scatter larger than expected by photometry processing (all CCDs considered).
-	 Bit 14: SM transit unavailable by photometry processing.
-	 Bit 15: AF1 transit unavailable by photometry processing.
-	 Bit 16: AF2 transit unavailable by photometry processing.
-	 Bit 17: AF3 transit unavailable by photometry processing.
-	 Bit 18: AF4 transit unavailable by photometry processing.
-	 Bit 19: AF5 transit unavailable by photometry processing.
-	 Bit 20: AF6 transit unavailable by photometry processing.
-	 Bit 21: AF7 transit unavailable by photometry processing.
-	 Bit 22: AF8 transit unavailable by photometry processing.
-	 Bit 23: AF9 transit unavailable by photometry processing.
-
-BP band:
-	 Bit 11: BP transit rejected by photometry processing.
-	 Bit 24: BP transit photometry rejected by variability processing.
-RP band:
-	 Bit 12: RP transit rejected by photometry processing.
-	 Bit 25: RP transit photometry rejected by variability processing.</DESCRIPTION>
 </FIELD>
 <FIELD datatype="long" name="solution_id" ucd="meta.version">
 <DESCRIPTION>All Gaia data processed by the Data Processing and Analysis Consortium comes tagged with a solution identifier. This is a numeric field attached to each table row that can be used to unequivocally identify the version of all the subsystems that where used in the generation of the data as well as the input data used. It is mainly for internal DPAC use but is included in the published data releases to enable end users to examine the provenance of processed data products. To decode a given solution ID  visit https://gaia.esac.esa.int/decoder/solnDecoder.jsp</DESCRIPTION>

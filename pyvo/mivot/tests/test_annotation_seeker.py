@@ -4,7 +4,10 @@ Test for mivot.seekers.annotation_seeker.py
 """
 import os
 import pytest
-from lxml import etree
+try:
+    from defusedxml import ElementTree as etree
+except ImportError:
+    from xml.etree import ElementTree as etree
 
 from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.seekers.annotation_seeker import AnnotationSeeker
@@ -30,11 +33,11 @@ def data_path():
     return os.path.dirname(os.path.realpath(__file__))
 
 
-def test_multiple_tableref(data_path):
+def test_multiple_templates(data_path):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     mapping_block = XmlUtils.xmltree_from_file(
-        os.path.join(data_path, "data/output/test.0.6.xml"))
+        os.path.join(data_path, "data/output/test_multiple_templates.xml"))
     with pytest.raises(Exception, match="TEMPLATES without tableref must be unique"):
         AnnotationSeeker(mapping_block.getroot())
 
@@ -64,12 +67,9 @@ def test_all_reverts(a_seeker, data_path):
 
     assert (a_seeker.get_globals_instance_dmids()
             == ['_timesys', '_spacesys1', '_photsys_G', '_photsys_RP',
-                '_photsys_BP', '_ds1', '_tg1', '_TimeSeries', '_ts_data'])
+                '_photsys_BP', '_ds1', '_tg1'])
 
     assert a_seeker.get_globals_collection_dmids() == ['_CoordinateSystems', '_Datasets']
-
-    XmlUtils.assertXmltreeEqualsFile(a_seeker.get_globals_instance_by_dmid('_ts_data'),
-                                     os.path.join(data_path, "data/output/test.0.3.xml"))
 
     selection = a_seeker.get_instance_by_dmtype("coords")
     assert len(selection["GLOBALS"]) == 5
@@ -100,7 +100,7 @@ def test_all_reverts(a_seeker, data_path):
         a_seeker.get_collection_item_by_primarykey("_CoordinateSystems", "wrong_key")
 
     assert a_seeker.get_instance_dmtypes() == DictUtils.read_dict_from_file(
-        os.path.join(data_path, "data/output/test.0.5.json"))
+        os.path.join(data_path, "data/output/test_instance_dmtypes.json"))
 
     assert a_seeker.get_templates_instance_by_dmid("Results", "wrong_dmid") is None
     assert a_seeker.get_templates_instance_by_dmid("Results", "_ts_data").get("dmtype") == "cube:NDPoint"
@@ -108,6 +108,11 @@ def test_all_reverts(a_seeker, data_path):
     assert a_seeker.get_globals_instance_from_collection(
         "_CoordinateSystems", "ICRS").get("dmtype") == "coords:SpaceSys"
     assert a_seeker.get_globals_instance_from_collection("wrong_dmid", "ICRS") is None
+
+
+def test_indent(a_seeker, data_path):
+    indented_instance = XmlUtils.indent(a_seeker.get_globals_instance_by_dmid("_ds1"))
+    XmlUtils.assertXmltreeEqualsFile(indented_instance, os.path.join(data_path, "data/output/test.0.4.xml"))
 
 
 if __name__ == '__main__':

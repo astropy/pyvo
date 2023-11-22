@@ -1,4 +1,0 @@
-<JOIN_6 dmref="_ts_data">
-                  <WHERE foreignkey="_srcid" primarykey="_pksrcid"/>
-                  <WHERE foreignkey="_band" primarykey="_pkband"/>
-                </JOIN_6>

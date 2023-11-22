@@ -1,10 +1,15 @@
 """
 Utility class to process XML.
 """
-from lxml import etree
+from pyvo.mivot.utils.xpath_utils import XPath
+
+try:
+    from defusedxml import ElementTree as etree
+except ImportError:
+    from xml.etree import ElementTree as etree
+import xml.etree.ElementTree as ET
 from pyvo.mivot.utils.constant import Constant
 from pyvo.mivot.utils.vocabulary import Att
-from lxml.doctestcompare import LXMLOutputChecker
 
 
 class XmlUtils:
@@ -19,7 +24,7 @@ class XmlUtils:
 
         Parameters
         ----------
-        xmltree : lxml.etree._ElementTree
+        xmltree : ~`xml.etree.ElementTree.Element`
             The XML tree to pretty print.
         """
         print(XmlUtils.pretty_string(xmltree))
@@ -31,7 +36,7 @@ class XmlUtils:
 
         Parameters
         ----------
-        xmltree : lxml.etree._ElementTree
+        xmltree : ~`xml.etree.ElementTree.Element`
             The XML tree to convert to a pretty string.
 
         Returns
@@ -39,8 +44,42 @@ class XmlUtils:
         str
             The pretty string representation of the XML tree.
         """
-        etree.indent(xmltree, space="   ")
-        return etree.tostring(xmltree, pretty_print=True).decode("utf-8")
+        XmlUtils.indent(xmltree.getroot())
+        new_xml = ET.tostring(xmltree.getroot(), encoding='unicode')
+        return new_xml.replace("ns0:", "")
+
+    @staticmethod
+    def indent(elem, level=0):
+        """
+        Indent an XML tree.
+
+        Parameters
+        ----------
+        elem : ~`xml.etree.ElementTree.Element`
+            The XML tree to indent.
+        level : int
+            The level of indentation.
+
+        Returns
+        -------
+        ~`xml.etree.ElementTree.Element`
+            The indented XML tree.
+        """
+        i = "\n" + level * "  "
+        j = "\n" + (level - 1) * "  "
+        if len(elem):
+            if not elem.text or not elem.text.strip():
+                elem.text = i + "  "
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+            for subelem in elem:
+                XmlUtils.indent(subelem, level + 1)
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = j
+        else:
+            if level and (not elem.tail or not elem.tail.strip()):
+                elem.tail = j
+        return elem
 
     @staticmethod
     def xmltree_from_file(file_path):
@@ -54,7 +93,7 @@ class XmlUtils:
 
         Returns
         -------
-        lxml.etree._ElementTree
+        ~`xml.etree.ElementTree.Element`
             The parsed XML tree.
         """
         return etree.parse(file_path)
@@ -66,7 +105,7 @@ class XmlUtils:
 
         Parameters
         ----------
-        xmltree : lxml.etree._ElementTree
+        xmltree : ~`xml.etree.ElementTree.Element`
             The XML tree to write to the file.
         file_path : str
             The path to the output file.
@@ -81,16 +120,14 @@ class XmlUtils:
 
         Parameters
         ----------
-        xmltree1 : lxml.etree._ElementTree
+        xmltree1 : ~`xml.etree.ElementTree.Element`
             The first XML tree for comparison.
-        xmltree2 : lxml.etree._ElementTree
+        xmltree2 : ~`xml.etree.ElementTree.Element`
             The second XML tree for comparison.
-        message : str
-            The message to display if the trees are not equal.
         """
-        xml_str1 = etree.tostring(xmltree1, pretty_print=True).decode("utf-8")
-        xml_str2 = etree.tostring(xmltree2, pretty_print=True).decode("utf-8")
-        checker = LXMLOutputChecker()
+        xml_str1 = etree.tostring(xmltree1).decode("utf-8")
+        xml_str2 = etree.tostring(xmltree2).decode("utf-8")
+        checker = XMLOutputChecker()
         assert checker.check_output(xml_str1, xml_str2, 0), f"XML trees differ:\n{xml_str1}\n---\n{xml_str2}"
 
     @staticmethod
@@ -100,18 +137,16 @@ class XmlUtils:
 
         Parameters
         ----------
-        xmltree1 : lxml.etree._ElementTree
+        xmltree1 : ~`xml.etree.ElementTree.Element`
             The XML tree for comparison.
         xmltree2_file : str
             The path to the file containing the second XML tree.
-        message : str
-            The message to display if the trees are not equal.
         """
-        xmltree2 = XmlUtils.xmltree_from_file(xmltree2_file)
-        xml_str1 = etree.tostring(xmltree1, pretty_print=True).decode("utf-8")
-        xml_str2 = etree.tostring(xmltree2, pretty_print=True).decode("utf-8")
-        checker = LXMLOutputChecker()
-        assert checker.check_output(xml_str1, xml_str2, 0), f"XML trees differ:\n{xml_str1}\n---\n{xml_str2}"
+        xmltree2 = XmlUtils.xmltree_from_file(xmltree2_file).getroot()
+        xml_str1 = etree.tostring(xmltree1).decode("utf-8")
+        xml_str2 = etree.tostring(xmltree2).decode("utf-8")
+        checker = XMLOutputChecker()
+        assert checker.check_output(xml_str1, xml_str2), f"XML trees differ:\n{xml_str1}\n---\n{xml_str2}"
 
     @staticmethod
     def set_column_indices(mapping_block, index_map):
@@ -121,12 +156,12 @@ class XmlUtils:
 
         Parameters
         ----------
-        mapping_block : lxml.etree._ElementTree
+        mapping_block : ~`xml.etree.ElementTree.Element`
             The XML mapping block.
         index_map : dict
             A dictionary mapping ref values to column indices.
         """
-        for ele in mapping_block.xpath("//ATTRIBUTE"):
+        for ele in XPath.x_path(mapping_block, ".//ATTRIBUTE"):
             ref = ele.get(Att.ref)
             if ref is not None and ref != Constant.NOT_SET:
                 ele.attrib[Constant.COL_INDEX] = str(index_map[ref])
@@ -139,12 +174,12 @@ class XmlUtils:
 
         Parameters
         ----------
-        mapping_block : lxml.etree._ElementTree
+        mapping_block : ~`xml.etree.ElementTree.Element`
             The XML mapping block.
         unit_map : dict
             A dictionary mapping ref values to units.
         """
-        for ele in mapping_block.xpath("//ATTRIBUTE"):
+        for ele in XPath.x_path(mapping_block, ".//ATTRIBUTE"):
             ref = ele.get(Att.ref)
             if ref is not None and ref != Constant.NOT_SET:
                 unit = unit_map[ref]
@@ -153,3 +188,60 @@ class XmlUtils:
                 else:
                     unit = unit.__str__()
                 ele.attrib[Constant.FIELD_UNIT] = unit
+
+
+class XMLOutputChecker:
+    """
+    This class is used to compare XML outputs, ignoring whitespace differences.
+    """
+    def check_output(self, want, got):
+        """
+        Compare two XML outputs, ignoring whitespace differences.
+
+        Parameters
+        ----------
+        want : str
+            The expected XML output.
+        got : str
+            The actual XML output.
+
+        Returns
+        -------
+        bool
+            True if the two XML outputs are equal, False otherwise.
+        """
+        return self._format_xml(want.strip()) == self._format_xml(got.strip())
+
+    def output_difference(self, want, got):
+        """
+        Return a string describing the differences between two XML outputs.
+
+        Parameters
+        ----------
+        want : str
+            The expected XML output.
+        got : str
+            The actual XML output.
+
+        Returns
+        -------
+        str
+            A string describing the differences between the two XML outputs.
+        """
+        return f"Diff:\n{self._format_xml(want)}\nvs.\n{self._format_xml(got)}"
+
+    def _format_xml(self, xml_str):
+        """
+        Format an XML string.
+
+        Parameters
+        ----------
+        xml_str : str
+            The XML string to format.
+
+        Returns
+        -------
+        str
+            The formatted XML string.
+        """
+        return "\n".join(line.strip() for line in xml_str.splitlines())

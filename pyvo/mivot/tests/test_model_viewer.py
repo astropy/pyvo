@@ -67,10 +67,10 @@ def test_model_viewer_global_getters(m_viewer, data_path):
     assert m_viewer.get_table_ids() == ['_PKTable', 'Results']
 
     assert m_viewer.get_globals_models() == DictUtils.read_dict_from_file(
-        os.path.join(data_path, "data/output/test.1.11.json"))
+        os.path.join(data_path, "data/output/test_globals_models.json"))
 
     assert m_viewer.get_templates_models() == DictUtils.read_dict_from_file(
-        os.path.join(data_path, "data/output/test.1.12.json"))
+        os.path.join(data_path, "data/output/test_templates_models.json"))
 
     m_viewer._connect_table('_PKTable')
     row = m_viewer.get_next_row()
@@ -86,14 +86,6 @@ def test_model_viewer_global_getters(m_viewer, data_path):
     assert row[0] == '5813181197970338560'
     assert row[1] == 'G'
 
-    # Dynamic Reference not implemented yet
-    # XmlUtils.assertXmltreeEqualsFile(m_viewer._templates,
-    #                                  os.path.join(data_path, "data/output/test.1.3.xml"))
-    # XmlUtils.assertXmltreeEqualsFile(m_viewer._dyn_references["REFERENCE_2"],
-    #                                  os.path.join(data_path, "data/output/test.1.4.xml"))
-    # XmlUtils.assertXmltreeEqualsFile(m_viewer._joins["JOIN_6"],
-    #                                  os.path.join(data_path, "data/output/test.1.5.xml"))
-
 
 def test_check_version(data_path):
     votable = os.path.join(data_path, "data/input/test.1.xml")
@@ -102,6 +94,12 @@ def test_check_version(data_path):
                            match=f"Astropy version {astropy_version.version} "
                                  f"is below the required version 6.0 for the use of MIVOT."):
             ModelViewer(votable_path=votable)
+    if astropy_version.version is None:
+        assert check_astropy_version() is False
+    elif astropy_version.version < '6.0':
+        assert check_astropy_version() is False
+    else:
+        assert check_astropy_version() is True
 
 
 @pytest.fixture

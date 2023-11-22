@@ -4,6 +4,7 @@ Class used to resolve each static REFERENCE found in instance.
 from copy import deepcopy
 from pyvo.mivot.utils.exceptions import ResolveException, NotImplementedException
 from pyvo.mivot.utils.xml_utils import XmlUtils
+from pyvo.mivot.utils.xpath_utils import XPath
 from pyvo.utils.prototype import prototype_feature
 
 
@@ -28,7 +29,7 @@ class StaticReferenceResolver:
             Utility to extract desired elements from the mapping block.
         templates_ref : str
             Identifier of the table where the instance comes from.
-        instance : lxml.etree._Element
+        instance : xml.etree.ElementTree
             The XML element object.
 
         Returns
@@ -44,7 +45,7 @@ class StaticReferenceResolver:
             If the reference is dynamic.
         """
         retour = 0
-        for ele in instance.xpath(".//*[starts-with(name(), 'REFERENCE_')]"):
+        for ele in XPath.x_path_startwith(instance, './/REFERENCE_'):
             dmref = ele.get("dmref")
             # If we have no @dmref in REFERENCE, we consider this is a ref based on a keys
             if dmref is None:
@@ -67,7 +68,8 @@ class StaticReferenceResolver:
             # If the reference is within a collection: no role
             if ele.get('dmrole'):
                 target_copy.attrib["dmrole"] = ele.get('dmrole')
-            parent = ele.getparent()
+            parent_map = {c: p for p in instance.iter() for c in p}
+            parent = parent_map[ele]
             # Insert the referenced object
             parent.append(target_copy)
             # Drop the reference

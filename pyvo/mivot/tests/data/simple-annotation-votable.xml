@@ -1,22 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-	This VOTable is derived from a  TAP query on Gaia@GAVO
-	PURPOSE
-	- Show how MANGO/MIVOT can map a complex epoch propagation pattern.
-	- Exercise MANGO-enable client code (Rust, Python ...)
-	CONTENT
-	- The selected fields are those related to the epoch propagation including all errors
-	- The VOTabe has been cleaned up all test info in order to make the mapping easier to follow
-	- There are only data rows which is enough
-	- The table data are made with encoded matrix positions in a way tha makes the cross-checking easier
-	MAPPING
-	- The mapping is based on the MANGO proposal (10/2023)
-	- The 6 parameters are flatten in a single class
-    - The errors haven't been mapped in this example
-	- The TEMPLATES block only contains the 6 parameter object.
-	  - The MANGO structure with the docks has been discarded for the clarity sake
-	  - This way to proceed is legal since the MIVOT standard does not require the whole model to be mapped
-  -->
 <VOTABLE version="1.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
 
@@ -150,11 +132,9 @@
 						<TD>856</TD>
 						<TD>865</TD>
 						<TD>866</TD>
-
 					</TR>
 				</TABLEDATA>
 			</DATA>
 		</TABLE>
-
 	</RESOURCE>
 </VOTABLE>

@@ -23,15 +23,15 @@ def a_seeker(data_path):
 
 @pytest.fixture
 def instance(data_path):
-    return XmlUtils.xmltree_from_file(os.path.join(data_path, "data/input/test.4.xml"))
+    return XmlUtils.xmltree_from_file(os.path.join(data_path, "data/input/test_static_reference.xml"))
 
 
 def test_static_reference_resolve(a_seeker, instance, data_path):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     StaticReferenceResolver.resolve(a_seeker, None, instance)
-    XmlUtils.assertXmltreeEqualsFile(instance,
-                                     os.path.join(data_path, "data/output/test.4.1.xml"))
+    XmlUtils.assertXmltreeEqualsFile(instance.getroot(),
+                                     os.path.join(data_path, "data/output/test_static_reference_resolve.xml"))
 
 
 @pytest.fixture

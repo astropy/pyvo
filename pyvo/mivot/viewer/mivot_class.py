@@ -60,7 +60,7 @@ class MivotClass:
                             MivotClass.REFERENCE["parallax"] = value["value"]
                         if "epoch" in key_low and value["unit"] == "year":
                             MivotClass.REFERENCE["epoch"] = Time(value["value"], format="decimalyear")
-                    if "frame" in key_low and value["unit"] == "string":
+                    if "frame" in key_low and "string" in value["dmtype"]:
                         MivotClass.REFERENCE["frame"] = value["value"].lower()
                 else:
                     self.__dict__[self._remove_model_name(key)] = self._remove_model_name(value)

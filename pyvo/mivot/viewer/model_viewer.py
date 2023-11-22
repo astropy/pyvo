@@ -4,7 +4,6 @@ This file contains the high-level functions to deal with model views on data.
 """
 from copy import deepcopy
 from astropy import version
-from lxml import etree
 from astropy.io.votable import parse
 
 from pyvo.mivot import logger
@@ -16,6 +15,7 @@ from pyvo.mivot.utils.exceptions import (MappingException,
                                          MivotNotFound,
                                          AstropyVersionException)
 from pyvo.mivot.utils.xml_utils import XmlUtils
+from pyvo.mivot.utils.xpath_utils import XPath
 from pyvo.mivot.seekers.annotation_seeker import AnnotationSeeker
 from pyvo.mivot.seekers.resource_seeker import ResourceSeeker
 from pyvo.mivot.seekers.table_iterator import TableIterator
@@ -24,6 +24,10 @@ from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.model_viewer_layer1 import ModelViewerLayer1
 from pyvo.mivot.viewer.model_viewer_layer3 import ModelViewerLayer3
 from pyvo.utils.prototype import prototype_feature
+try:
+    from defusedxml import ElementTree as etree
+except ImportError:
+    from xml.etree import ElementTree as etree
 
 
 @prototype_feature('MIVOT')
@@ -273,7 +277,8 @@ class ModelViewer:
                                       self._resource_seeker
                                       .get_id_unit_mapping(self._connected_tableref))
 
-        for ele in templates_copy.xpath("//ATTRIBUTE"):
+        # for ele in templates_copy.xpath("//ATTRIBUTE"):
+        for ele in XPath.x_path(templates_copy, ".//ATTRIBUTE"):
             ref = ele.get(Att.ref)
             if ref is not None and ref != Constant.NOT_SET:
                 index = ele.attrib[Constant.COL_INDEX]
@@ -293,16 +298,21 @@ class ModelViewer:
 
         Returns
         -------
-        ~lxml.etree._Element
+        ~`xml.etree.ElementTree.Element`
             The first child of TEMPLATES.
         """
-        child = self._annotation_seeker.get_templates_block(tableref).getchildren()
-        collection = self._annotation_seeker.get_templates_block(tableref).xpath(Ele.COLLECTION)
-        instance = self._annotation_seeker.get_templates_block(tableref).xpath(Ele.INSTANCE)
+        # child = self._annotation_seeker.get_templates_block(tableref).getchildren()
+        child_template = self._annotation_seeker.get_templates_block(tableref)
+        child = child_template.findall("*")
+        # collection = self._annotation_seeker.get_templates_block(tableref).xpath(Ele.COLLECTION)
+        # instance = self._annotation_seeker.get_templates_block(tableref).xpath(Ele.INSTANCE)
+        collection = XPath.x_path(self._annotation_seeker.get_templates_block(tableref),
+                                  ".//" + Ele.COLLECTION)
+        instance = XPath.x_path(self._annotation_seeker.get_templates_block(tableref), ".//" + Ele.INSTANCE)
 
         if len(collection) >= 1:
             collection[0].set(Att.dmtype, Constant.ROOT_COLLECTION)
-            (self._annotation_seeker.get_templates_block(tableref).find(Ele.COLLECTION)
+            (self._annotation_seeker.get_templates_block(tableref).find(".//" + Ele.COLLECTION)
              .set(Att.dmtype, Constant.ROOT_COLLECTION))
 
         if len(child) > 1:
@@ -408,13 +418,15 @@ class ModelViewer:
         and store them in to be resolved later on.
         This prevents the model view of being polluted with elements that are not in the model
         """
-        for ele in self._templates.xpath("//*[starts-with(name(), 'REFERENCE_')]"):
+        # for ele in self._templates.xpath("//*[starts-with(name(), 'REFERENCE_')]"):
+        for ele in XPath.x_path_startwith(self._templates, ".//REFERENCE_"):
             if ele.get("sourceref") is not None:
                 self._dyn_references = {ele.tag: deepcopy(ele)}
                 for child in list(ele):
                     ele.remove(child)
 
-        for ele in self._templates.xpath("//*[starts-with(name(), 'JOIN')]"):
+        # for ele in self._templates.xpath("//*[starts-with(name(), 'JOIN')]"):
+        for ele in XPath.x_path_startwith(self._templates, ".//JOIN_"):
             self._joins = {ele.tag: deepcopy(ele)}
             for child in list(ele):
                 ele.remove(child)
