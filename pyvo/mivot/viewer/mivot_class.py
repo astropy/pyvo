@@ -2,10 +2,9 @@
 """
 MivotClass keep as an attribute dictionary __dict__ all XML objects.
 """
-from astropy.coordinates import SkyCoord
-import astropy.units as u
 from astropy.time import Time
 
+from pyvo.mivot.features.epoch_propagation import EpochPropagation
 from pyvo.utils.prototype import prototype_feature
 
 
@@ -19,6 +18,7 @@ class MivotClass:
     "key" : "value"      means key is an element of ATTRIBUTE
     "key" : []           means key is the dmtype of a COLLECTION
     """
+    EpochPropagation = EpochPropagation("EpochPropagation")
     REFERENCE = {}
 
     def __init__(self, **kwargs):
@@ -42,63 +42,40 @@ class MivotClass:
             else:
                 if isinstance(value, dict) and self._is_leaf(**value):
                     self.__dict__[self._remove_model_name(key)] = MivotClass(**value)
-                    key_low = key.lower()
                     if self.dmtype == "EpochPosition":
-                        if ("longitude" or "ra") in key_low:
-                            if "pm" not in key_low and value["unit"] == "deg":
-                                MivotClass.REFERENCE["longitude"] = value['value']
-                            elif "pm" in key_low and value["unit"] == "mas/year":
-                                MivotClass.REFERENCE["pm_longitude"] = value['value']
-                        if ("latitude" or "dec") in key_low:
-                            if "pm" not in key_low and value["unit"] == "deg":
-                                MivotClass.REFERENCE["latitude"] = value['value']
-                            elif "pm" in key_low and value["unit"] == "mas/year":
-                                MivotClass.REFERENCE["pm_latitude"] = value['value']
-                        if ("radial" or "velocity") in key_low and value["unit"] == "km/s":
-                            MivotClass.REFERENCE["radial_velocity"] = value["value"]
-                        if "parallax" in key_low and value["unit"] == ("mas" or "pc"):
-                            MivotClass.REFERENCE["parallax"] = value["value"]
-                        if "epoch" in key_low and value["unit"] == "year":
-                            MivotClass.REFERENCE["epoch"] = Time(value["value"], format="decimalyear")
-                    if "frame" in key_low and "string" in value["dmtype"]:
-                        MivotClass.REFERENCE["frame"] = value["value"].lower()
+                        self._fill_epoch_propagation(key.lower(), value)
+                    if "frame" in key.lower() and "string" in value["dmtype"]:
+                        self.EpochPropagation.REFERENCE["frame"] = value["value"].lower()
                 else:
                     self.__dict__[self._remove_model_name(key)] = self._remove_model_name(value)
 
-    def SkyCoordinate(self):
+    def _fill_epoch_propagation(self, key_low, value):
         """
-        Returns a SkyCoord object from the REFERENCE of the XML object.
-        """
-        if MivotClass.REFERENCE["frame"] == ('icrs' or 'fk5' or 'fk4'):
-            return SkyCoord(distance=(MivotClass.REFERENCE["parallax"] / 4) * u.pc,
-                            radial_velocity=MivotClass.REFERENCE["radial_velocity"] * u.km / u.s,
-                            ra=MivotClass.REFERENCE["longitude"] * u.degree,
-                            dec=MivotClass.REFERENCE["latitude"] * u.degree,
-                            pm_ra_cosdec=MivotClass.REFERENCE["pm_longitude"] * u.mas / u.yr,
-                            pm_dec=MivotClass.REFERENCE["pm_latitude"] * u.mas / u.yr,
-                            frame=MivotClass.REFERENCE["frame"],
-                            obstime=MivotClass.REFERENCE["epoch"])
-
-        elif MivotClass.REFERENCE["frame"] == 'galatic':
-            return SkyCoord(l=MivotClass.REFERENCE["longitude"] * u.degree,
-                            b=MivotClass.REFERENCE["latitude"] * u.degree,
-                            distance=MivotClass.REFERENCE["parallax"] * u.pc,
-                            pm_l_cosb=MivotClass.REFERENCE["pm_longitude"] * u.mas / u.yr,
-                            pm_b=MivotClass.REFERENCE["pm_latitude"] * u.mas / u.yr,
-                            frame=MivotClass.REFERENCE["frame"],
-                            obstime=MivotClass.REFERENCE["epoch"])
-
-    def apply_space_motion(self, dt):
-        """
-        Returns ra and dec of a SkyCoord object by computing the position to a new time dt.
+        Fill the REFERENCE dictionary of the EpochPropagation object.
 
         Parameters
         ----------
-        dt : float
-            Time in years.
+        key_low : str
+            The key of the dictionary in lowercase.
+        value : dict
+            The value of the dictionary.
         """
-        retour = self.SkyCoordinate().apply_space_motion(dt=dt)
-        return retour.ra, retour.dec
+        if ("longitude" or "ra") in key_low:
+            if "pm" not in key_low and value["unit"] == "deg":
+                self.EpochPropagation.REFERENCE["longitude"] = value['value']
+            elif "pm" in key_low and value["unit"] == "mas/year":
+                self.EpochPropagation.REFERENCE["pm_longitude"] = value['value']
+        if ("latitude" or "dec") in key_low:
+            if "pm" not in key_low and value["unit"] == "deg":
+                self.EpochPropagation.REFERENCE["latitude"] = value['value']
+            elif "pm" in key_low and value["unit"] == "mas/year":
+                self.EpochPropagation.REFERENCE["pm_latitude"] = value['value']
+        if ("radial" or "velocity") in key_low and value["unit"] == "km/s":
+            self.EpochPropagation.REFERENCE["radial_velocity"] = value["value"]
+        if "parallax" in key_low and value["unit"] == ("mas" or "pc"):
+            self.EpochPropagation.REFERENCE["parallax"] = value["value"]
+        if "epoch" in key_low and value["unit"] == "year":
+            self.EpochPropagation.REFERENCE["epoch"] = Time(value["value"], format="decimalyear")
 
     def _remove_model_name(self, value, role_instance=False):
         """

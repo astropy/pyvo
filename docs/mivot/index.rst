@@ -30,18 +30,16 @@ The API allows you to obtain a model view on the last read data row, this usage 
 
 .. doctest-remote-data::
     >>> import pyvo
-    >>> import os
     >>> from astropy.utils.data import get_pkg_data_filename
+    >>> import astropy.units as u
     >>> from pyvo.mivot.viewer.model_viewer import ModelViewer
-    >>> from pyvo.mivot.version_checker import check_astropy_version
     >>> from pyvo.utils.prototype import activate_features
     >>> activate_features('MIVOT')
     >>> votable = get_pkg_data_filename("data/simple-annotation-votable.xml", package="pyvo.mivot.tests")
-    >>> if check_astropy_version(): # doctest: +SKIP
-    ...     m_viewer = ModelViewer(votable)
-    ...     row_view = m_viewer.get_next_row_view()
-    ...     print(row_view.longitude.value)
-    ...     print(row_view.Coordinate_coosys.PhysicalCoordSys_frame.spaceRefFrame.value)
+    >>> m_viewer = ModelViewer(votable) # doctest: +SKIP
+    >>> row_view = m_viewer.get_next_row_view() # doctest: +SKIP
+    >>> print(row_view.longitude.value) # doctest: +SKIP
+    >>> print(row_view.Coordinate_coosys.PhysicalCoordSys_frame.spaceRefFrame.value) # doctest: +SKIP
         10.0
         ICRS
 
@@ -52,13 +50,12 @@ the dmroles of the MIVOT elements. There is no checking against the model struct
 Example for epoch propagation
 -----------------------------
 .. doctest-remote-data::
-    >>> if check_astropy_version():
-    ...     with ModelViewer(votable) as m_viewer: # doctest: +SKIP
-    ...         row_view = m_viewer.get_next_row_view()
-    ...         past_ra, past_dec = row_view.apply_space_motion(dt=-42 * u.year)
-    ...         future_ra, future_dec = row_view.apply_space_motion(dt=2 * u.year)
-    ...         print("past_ra, past_dec :", row_view.apply_space_motion(dt=-42 * u.year))
-    ...         print("future_ra, future_dec :", row_view.apply_space_motion(dt=2 * u.year))
+    >>> with ModelViewer(votable) as m_viewer: # doctest: +SKIP
+    ...     row_view = m_viewer.get_next_row_view()
+    ...     past_ra, past_dec = row_view.epoch_propagation.apply_space_motion(dt=-42 * u.year)
+    ...     future_ra, future_dec = row_view.epoch_propagation.apply_space_motion(dt=2 * u.year)
+    ...     print("past_ra, past_dec :", row_view.epoch_propagation.apply_space_motion(dt=-42 * u.year))
+    ...     print("future_ra, future_dec :", row_view.epoch_propagation.apply_space_motion(dt=2 * u.year))
     past_ra, past_dec : (<Longitude 9.9998763 deg>, <Latitude 10.00024364 deg>)
     future_ra, future_dec : (<Longitude 10.00000563 deg>, <Latitude 9.99998891 deg>)
 

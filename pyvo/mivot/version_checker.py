@@ -4,7 +4,6 @@ from astropy import version as astropy_version
 def check_astropy_version():
     """
     Check if the installed version of astropy is compatible with MIVOT.
-    Check if defusedxml is installed.
     """
     if not astropy_version.version:
         return False
