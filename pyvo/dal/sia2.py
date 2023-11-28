@@ -156,7 +156,7 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
     generally not notice that, though.
     """
 
-    def __init__(self, baseurl, session=None):
+    def __init__(self, baseurl, session=None, check_baseurl=True):
         """
         instantiate an SIA2 service
 
@@ -166,6 +166,9 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
            url - URL of the SIA2service (base or query endpoint)
         session : object
            optional session to use for network requests
+        check_baseurl : bool
+           True - use the capabilities end point of the service to get the
+           query end point, False - baseurl is the query end point
         """
 
         super().__init__(baseurl, session=session)
@@ -177,22 +180,23 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
         if hasattr(self._session, 'update_from_capabilities'):
             self._session.update_from_capabilities(self.capabilities)
 
-        self.query_ep = None  # service query end point
-        for cap in self.capabilities:
-            # assumes that the access URL is the same regardless of the
-            # authentication method except BasicAA which is not supported
-            # in pyvo. So pick any access url as long as it's not
-            if cap.standardid.lower() == SIA2_STANDARD_ID.lower():
-                for interface in cap.interfaces:
-                    if interface.accessurls and \
-                            not (len(interface.securitymethods) == 1
-                                 and interface.securitymethods[0].standardid
-                                 == 'ivo://ivoa.net/sso#BasicAA'):
-                        self.query_ep = interface.accessurls[0].content
-                        break
-
-        if not self.query_ep:
-            raise AttributeError('No valid end point found')
+        self.query_ep = baseurl.strip('&')  # default service end point
+        if check_baseurl:
+            for cap in self.capabilities:
+                # assumes that the access URL is the same regardless of the
+                # authentication method except BasicAA which is not supported
+                # in pyvo. So pick any access url as long as it's not
+                if cap.standardid.lower() == SIA2_STANDARD_ID.lower():
+                    for interface in cap.interfaces:
+                        if interface.accessurls and \
+                                not (len(interface.securitymethods) == 1
+                                     and interface.securitymethods[0].standardid
+                                     == 'ivo://ivoa.net/sso#BasicAA'):
+                            self.query_ep = interface.accessurls[0].content
+                            break
+                    else:
+                        continue
+                    break
 
     def search(self, pos=None, band=None, time=None, pol=None,
                field_of_view=None, spatial_resolution=None,

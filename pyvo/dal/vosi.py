@@ -4,6 +4,7 @@ VOSI classes and mixins
 """
 from itertools import chain
 import requests
+from urllib.parse import urlparse
 
 from astropy.utils.decorators import lazyproperty, deprecated
 
@@ -20,12 +21,18 @@ class EndpointMixin():
     def _get_endpoint(self, endpoint):
         # finds the endpoint relative to the base url or its parent
         # and returns its content in raw format
+
+        # do not trust baseurl as it might contain query or fragments
+        urlcomp = urlparse(self.baseurl)
+        curated_baseurl = '{}://{}{}'.format(urlcomp.scheme,
+                                             urlcomp.hostname,
+                                             urlcomp.path)
         if not endpoint:
             raise AttributeError('endpoint required')
         ep_urls = [
-            '{baseurl}/{endpoint}'.format(baseurl=self.baseurl,
+            '{baseurl}/{endpoint}'.format(baseurl=curated_baseurl,
                                           endpoint=endpoint),
-            url_sibling(self.baseurl, endpoint)
+            url_sibling(curated_baseurl, endpoint)
         ]
 
         for ep_url in ep_urls:
