@@ -2,9 +2,6 @@
 """
 MivotClass keep as an attribute dictionary __dict__ all XML objects.
 """
-from astropy.time import Time
-
-from pyvo.mivot.features.epoch_propagation import EpochPropagation
 from pyvo.utils.prototype import prototype_feature
 
 
@@ -18,8 +15,6 @@ class MivotClass:
     "key" : "value"      means key is an element of ATTRIBUTE
     "key" : []           means key is the dmtype of a COLLECTION
     """
-    EpochPropagation = EpochPropagation("EpochPropagation")
-    REFERENCE = {}
 
     def __init__(self, **kwargs):
         """
@@ -30,52 +25,84 @@ class MivotClass:
         kwargs : dict
             Dictionary of the XML object.
         """
-        for key, value in kwargs.items():
-            if isinstance(value, list):
-                self.__dict__[self._remove_model_name(key)] = []
-                for item in value:
-                    self.__dict__[self._remove_model_name(key)].append(MivotClass(**item))
+        self.create_mivot_class(**kwargs)
 
-            elif isinstance(value, dict) and 'value' not in value:
-                self.__dict__[self._remove_model_name(key, True)] = MivotClass(**value)
-
-            else:
-                if isinstance(value, dict) and self._is_leaf(**value):
-                    self.__dict__[self._remove_model_name(key)] = MivotClass(**value)
-                    if self.dmtype == "EpochPosition":
-                        self._fill_epoch_propagation(key.lower(), value)
-                    if "frame" in key.lower() and "string" in value["dmtype"]:
-                        self.EpochPropagation.REFERENCE["frame"] = value["value"].lower()
-                else:
-                    self.__dict__[self._remove_model_name(key)] = self._remove_model_name(value)
-
-    def _fill_epoch_propagation(self, key_low, value):
+    @property
+    def epoch_propagation(self):
         """
-        Fill the REFERENCE dictionary of the EpochPropagation object.
+        Property to get the EpochPropagation object.
+
+        Returns
+        -------
+        ~`pyvo.mivot.features.epoch_propagation.EpochPropagation`
+            The EpochPropagation object.
+        """
+        # We import EpochPropagation here to avoid circular imports
+        from pyvo.mivot.features.epoch_propagation import EpochPropagation
+        return EpochPropagation(self)
+
+    @property
+    def sky_coordinate(self):
+        """
+        Property to get the SkyCoord object from the EpochPropagation object.
+
+        Returns
+        -------
+        ~`astropy.coordinates.sky_coordinate.SkyCoord`
+            The SkyCoord object.
+        """
+        return self.epoch_propagation.SkyCoordinate()
+
+    def create_mivot_class(self, **kwargs):
+        """
+        Recursively initialize the MIVOT class with the dictionary of the XML object got in ModelViewerLayer3.
 
         Parameters
         ----------
-        key_low : str
-            The key of the dictionary in lowercase.
-        value : dict
-            The value of the dictionary.
+        kwargs : dict
+            Dictionary of the XML object.
         """
-        if ("longitude" or "ra") in key_low:
-            if "pm" not in key_low and value["unit"] == "deg":
-                self.EpochPropagation.REFERENCE["longitude"] = value['value']
-            elif "pm" in key_low and value["unit"] == "mas/year":
-                self.EpochPropagation.REFERENCE["pm_longitude"] = value['value']
-        if ("latitude" or "dec") in key_low:
-            if "pm" not in key_low and value["unit"] == "deg":
-                self.EpochPropagation.REFERENCE["latitude"] = value['value']
-            elif "pm" in key_low and value["unit"] == "mas/year":
-                self.EpochPropagation.REFERENCE["pm_latitude"] = value['value']
-        if ("radial" or "velocity") in key_low and value["unit"] == "km/s":
-            self.EpochPropagation.REFERENCE["radial_velocity"] = value["value"]
-        if "parallax" in key_low and value["unit"] == ("mas" or "pc"):
-            self.EpochPropagation.REFERENCE["parallax"] = value["value"]
-        if "epoch" in key_low and value["unit"] == "year":
-            self.EpochPropagation.REFERENCE["epoch"] = Time(value["value"], format="decimalyear")
+        for key, value in kwargs.items():
+            if isinstance(value, list):
+                setattr(self, self._remove_model_name(key), [])
+                for item in value:
+                    getattr(self, self._remove_model_name(key)).append(MivotClass(**item))
+
+            elif isinstance(value, dict):
+                if not self._is_leaf(**value):
+                    setattr(self, self._remove_model_name(key, True), MivotClass(**value))
+                if self._is_leaf(**value):
+                    setattr(self, self._remove_model_name(key), MivotClass(**value))
+            else:
+                setattr(self, self._remove_model_name(key), self._remove_model_name(value))
+
+    def update_mivot_class(self, row, ref=None):
+        """
+        Update the MIVOT class with the new data row.
+        For each leaf of the MIVOT class, we update the value with the new data row, comparing the reference.
+
+        Parameters
+        ----------
+        row : dict
+            The new data row.
+        ref : str, optional
+            The reference of the data row, default is None.
+        """
+        for key, value in vars(self).items():
+            if isinstance(value, list):
+                for item in value:
+                    item.update_mivot_class(row=row)
+            elif isinstance(value, MivotClass):
+                if isinstance(vars(value), dict):
+                    if 'value' not in vars(value):
+                        value.update_mivot_class(row=row)
+                    if 'value' in vars(value):
+                        value.update_mivot_class(row=row, ref=getattr(value, 'ref'))
+            else:
+                if key == 'value':
+                    if ref is not None and ref != 'null':
+                        print("Updated ", ref, ": ", value, " became ", row[ref])
+                        setattr(self, self._remove_model_name(key), row[ref])
 
     def _remove_model_name(self, value, role_instance=False):
         """
@@ -132,6 +159,7 @@ class MivotClass:
     def display_class_dict(self, obj, classkey=None):
         """
         Recursively displays a serializable dictionary.
+        This function is only used for debugging purposes.
 
         Parameters
         ----------

@@ -52,10 +52,11 @@ Example for epoch propagation
 .. doctest-remote-data::
     >>> with ModelViewer(votable) as m_viewer: # doctest: +SKIP
     ...     row_view = m_viewer.get_next_row_view()
-    ...     past_ra, past_dec = row_view.epoch_propagation.apply_space_motion(dt=-42 * u.year)
-    ...     future_ra, future_dec = row_view.epoch_propagation.apply_space_motion(dt=2 * u.year)
-    ...     print("past_ra, past_dec :", row_view.epoch_propagation.apply_space_motion(dt=-42 * u.year))
-    ...     print("future_ra, future_dec :", row_view.epoch_propagation.apply_space_motion(dt=2 * u.year))
+    ...     epoch_propagation = row_view.epoch_propagation
+    ...     past_ra, past_dec = epoch_propagation.apply_space_motion(dt=-42 * u.year)
+    ...     future_ra, future_dec = epoch_propagation.apply_space_motion(dt=2 * u.year)
+    ...     print("past_ra, past_dec :", epoch_propagation.apply_space_motion(dt=-42 * u.year))
+    ...     print("future_ra, future_dec :", epoch_propagation.apply_space_motion(dt=2 * u.year))
     past_ra, past_dec : (<Longitude 9.9998763 deg>, <Latitude 10.00024364 deg>)
     future_ra, future_dec : (<Longitude 10.00000563 deg>, <Latitude 9.99998891 deg>)
 

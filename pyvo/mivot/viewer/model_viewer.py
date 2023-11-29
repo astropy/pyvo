@@ -78,6 +78,8 @@ class ModelViewer:
             self._annotation_seeker = None
             self._mapping_block = None
             self._mapped_tables = None
+            self._model_viewer_layer1 = None
+            self._model_viewer_layer3 = None
 
             self._set_resource(resource_number)
             self._set_mapping_block()
@@ -333,13 +335,6 @@ class ModelViewer:
             raise MivotElementNotFound("Can't find the first " + Ele.INSTANCE
                                        + "/" + Ele.COLLECTION + " in " + Ele.TEMPLATES)
 
-    def get_model_view_layer1(self):
-        """
-        Private methods that builds and returns a new layer
-        on our model viewer which contains various XML getters.
-        """
-        return ModelViewerLayer1(self)
-
     def get_next_row_view(self):
         """
         Private method that builds and returns a new layer on our model viewer,
@@ -350,17 +345,18 @@ class ModelViewer:
         pyvo.mivot.viewer.mivot_class.MivotClass
             Object of the next data row.
         """
-
         self.get_next_row()
         if self._current_data_row is None:
             return None
-        else:
-            mv_niv1 = self.get_model_view_layer1()
-            instance = mv_niv1.get_instance_by_type(self.get_first_instance())
-            m_viewer3 = ModelViewerLayer3(instance)
 
-            # m_viewer3.show_class_dict()
-            return m_viewer3.mivot_class
+        if self._model_viewer_layer3 is None:
+            self._model_viewer_layer1 = ModelViewerLayer1(self)
+            instance = self._model_viewer_layer1.get_instance_by_type(self.get_first_instance())
+            self._model_viewer_layer3 = ModelViewerLayer3(instance)
+
+        self._model_viewer_layer3.mivot_class.update_mivot_class(self._current_data_row)
+
+        return self._model_viewer_layer3.mivot_class
 
     def _assert_table_is_connected(self):
         assert self._connected_table is not None, "Operation failed: no connected data table"

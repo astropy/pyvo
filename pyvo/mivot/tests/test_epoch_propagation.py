@@ -21,7 +21,8 @@ def test_epoch_propagation(m_viewer):
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
     row_view = m_viewer.get_next_row_view()
-    epoch_propagation = row_view.EpochPropagation
+    epoch_propagation = row_view.epoch_propagation
+    assert epoch_propagation._sky_coord == row_view.sky_coordinate
     sky_coord_to_compare = (SkyCoord(distance=(row_view.parallax.value / 4) * u.pc,
                                      radial_velocity=row_view.radialVelocity.value * u.km / u.s,
                                      ra=row_view.longitude.value * u.degree,

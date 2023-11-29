@@ -44,8 +44,12 @@ class XmlUtils:
         str
             The pretty string representation of the XML tree.
         """
-        XmlUtils.indent(xmltree.getroot())
-        new_xml = ET.tostring(xmltree.getroot(), encoding='unicode')
+        if hasattr(xmltree, 'getroot'):
+            XmlUtils.indent(xmltree.getroot())
+            new_xml = ET.tostring(xmltree.getroot(), encoding='unicode')
+        else:
+            XmlUtils.indent(xmltree)
+            new_xml = ET.tostring(xmltree, encoding='unicode')
         return new_xml.replace("ns0:", "")
 
     @staticmethod
