@@ -24,20 +24,20 @@ class ModelViewerLayer3:
 
     def get_row_instance(self):
         """
-        Returns the dictionary of the `~pyvo.mivot.viewer.mivot_class.MivotClass`,
+        Return the dictionary of the `~pyvo.mivot.viewer.mivot_class.MivotClass`,
         i.e., the dictionary of all objects of the xml instance. It can be easily navigated.
         """
         return self.mivot_class.__dict__
 
     def show_class_dict(self):
         """
-        Returns the dictionary of the INSTANCE objects in a JSON format.
+        Return the dictionary of the INSTANCE objects in a JSON format.
         """
         return DictUtils.print_pretty_json(self.mivot_class.display_class_dict(self.get_row_instance()))
 
     def _to_dict(self, element):
         """
-        Recursively creates a nested dictionary from the XML tree structure, preserving the hierarchy.
+        Recursively create a nested dictionary from the XML tree structure, preserving the hierarchy.
 
         Each object in the dictionary is represented by a new dictionary with dmrole: {}.
         The processing of elements depends on the tag:
@@ -72,7 +72,7 @@ class ModelViewerLayer3:
 
     def _attribute_to_dict(self, child):
         """
-        Converts an ATTRIBUTE element to a dictionary.
+        Convert an ATTRIBUTE element to a dictionary.
         ATTRIBUTE is always a leaf, so it is not recursive.
 
         Parameters
@@ -105,7 +105,7 @@ class ModelViewerLayer3:
 
     def _collection_to_dict(self, child):
         """
-        Converts a COLLECTION element to a list of dictionaries.
+        Convert a COLLECTION element to a list of dictionaries.
         COLLECTION is always represented as a list, and each element of the COLLECTION is added to the list.
 
         Parameters
@@ -125,7 +125,7 @@ class ModelViewerLayer3:
 
     def _cast_type_value(self, value, dmtype):
         """
-        Casts the value of an ATTRIBUTE based on its dmtype.
+        Cast the value of an ATTRIBUTE based on its dmtype.
         As the type of ATTRIBUTE values returned in the dictionary is string by default,
         this function is used to cast them based on their dmtype.
 

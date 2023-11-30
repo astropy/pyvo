@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Class that provides multiple getters on resource tables.
+Class that provides multiple getters on VOTable RESOURCE elements.
 """
 from pyvo.mivot.utils.constant import Constant
 from pyvo.utils.prototype import prototype_feature
@@ -10,6 +10,8 @@ from pyvo.utils.prototype import prototype_feature
 class ResourceSeeker(object):
     """
     This class provides multiple getters on resource tables.
+    Some methods are simple wrappers for external tools in order to have all 
+    the search functions on RESOURCE gathered in within a single namespace.
     """
 
     def __init__(self, resource):
@@ -25,9 +27,9 @@ class ResourceSeeker(object):
 
     def get_table_ids(self):
         """
-        Returns the list of table ids.
-        Only child resources are considered.
-        The id is first looked up in ID then in name, and finally 'AnonymousTable' is taken.
+        Return the list of table ids.
+        Only resource children are considered.
+        The ID is first searched and then the name, and finally 'AnonymousTable' is taken.
 
         Returns
         -------
@@ -41,12 +43,12 @@ class ResourceSeeker(object):
             elif table.name is not None:
                 retour.append(table.name)
             else:
-                retour.append('AnonymousTable')
+                retour.append(Constant.ANONYMOUS_TABLE)
         return retour
 
     def get_table(self, table_name):
         """
-        Returns the table matching table_name first by ID and then by name.
+        Return the table matching table_name first by ID and then by name.
 
         Parameters
         ----------
@@ -68,7 +70,7 @@ class ResourceSeeker(object):
 
     def get_params(self):
         """
-        Returns the VOTable PARAMS.
+        Return the VOTable PARAMS.
 
         Returns
         -------

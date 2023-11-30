@@ -11,6 +11,16 @@ from astropy.time import Time
 from pyvo.mivot.viewer.mivot_class import MivotClass
 from pyvo.utils.prototype import prototype_feature
 
+class MangoRoles:
+    """
+    Place holder for the MANGO draft roles
+    """
+    LONGITUDE = "longitude"
+    LATITUDE = "latitude"
+    PM_LONGITUDE = "pm_longitude"
+    PM_LATITUDE = "pm_latitude"
+    PARALLAX = "parallax"
+    RADIAL_VELOCITY = "radial_velocity"
 
 @prototype_feature('MIVOT')
 class EpochPropagation:
@@ -89,7 +99,7 @@ class EpochPropagation:
         """
         if "frame" in key_low and "string" in value["dmtype"]:
             self.frame = value["value"].lower()
-        if ("longitude" or "ra") in key_low:
+        if (MangoRoles.LONGITUDE or "ra") in key_low:
             if "pm" not in key_low and value["unit"] == "deg":
                 self.longitude = value['value']
             elif "pm" in key_low and value["unit"] == "mas/year":

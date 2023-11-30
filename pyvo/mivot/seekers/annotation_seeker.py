@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Class with extraction tools for sub-block mapping
+Utilities for extracting sub-blocks from a MIVOT mapping block.
 """
 from pyvo.mivot.utils.exceptions import MivotElementNotFound, MappingException
 from pyvo.mivot.utils.vocabulary import Att, Ele
@@ -49,7 +49,8 @@ class AnnotationSeeker:
 
     def _find_globals_block(self):
         """
-        Finds and sets the GLOBALS block within the XML mapping block.
+        Search the GLOBALS element from the XML mapping block
+        and store its reference.
         """
         for child in self._xml_block:
             if self._name_match(child.tag, Ele.GLOBALS):
@@ -58,7 +59,7 @@ class AnnotationSeeker:
 
     def _find_templates_blocks(self):
         """
-        Finds and sets the TEMPLATES blocks within the XML mapping block.
+        Search the TEMPLATES elements from the XML mapping block and store its reference.
         This method iterates through the children of the XML mapping block, identifies TEMPLATES blocks,
         and associates them with their respective tableref values in the _templates_blocks dictionary.
 
@@ -88,7 +89,8 @@ class AnnotationSeeker:
 
     def _rename_ref_and_join(self):
         """
-        Removes namespaces from specified elements and makes them unique.
+        Remove namespaces from specified elements and makes them unique
+        by add a numerical suffix.
         The elements that are renamed are:
         - JOIN
         - REFERENCE
@@ -102,7 +104,7 @@ class AnnotationSeeker:
 
     def _name_match(self, name, expected):
         """
-        Returns true if name matches expected whatever the namespace
+        Return true if name matches expected whatever the namespace
 
         Parameters
         ----------
@@ -133,7 +135,7 @@ class AnnotationSeeker:
     @property
     def globals_collections(self):
         """
-        Returns a list of all GLOBALS/COLLECTION elements.
+        Return a list of all GLOBALS/COLLECTION elements.
         These collections have no dmroles but often dmids.
         They have particular roles
         - Used by references (e.g., filter definition)
@@ -149,7 +151,7 @@ class AnnotationSeeker:
     @property
     def models(self):
         """
-        Gets the MODELs and their URLs.
+        Get the MODELs and their URLs.
 
         Returns
         -------
@@ -221,7 +223,7 @@ class AnnotationSeeker:
     """
     def get_instance_dmtypes(self):
         """
-        Gets @dmtypes of all mapped instances
+        Get @dmtypes of all mapped instances
 
         Returns
         -------
@@ -244,7 +246,7 @@ class AnnotationSeeker:
 
     def get_instance_by_dmtype(self, dmtype_pattern):
         """
-        Gets all the mapped instances that have a @dmtype containing dmtype_pattern
+        Get all the mapped instances that have a @dmtype containing dmtype_pattern
         Parameters
         ----------
         dmtype_pattern: str
@@ -271,9 +273,9 @@ class AnnotationSeeker:
     """
     def get_globals_instances(self):
         """
-        Returns the list of all GLOBALS/INSTANCE elements.
+        Return the list of all GLOBALS/INSTANCE elements.
         These collections have no dmroles but often dmids.
-        They have particular roles
+        They have particular roles when:
         - Used by references (e.g., filter definition)
         - Used as head of the mapped model (e.g., Cube instance)
 
@@ -286,7 +288,7 @@ class AnnotationSeeker:
 
     def get_globals_instance_dmids(self):
         """
-        Gets a list of @dmid for GLOBALS/INSTANCE
+        Get a list of @dmid for GLOBALS/INSTANCE.
 
         Returns
         -------
@@ -301,7 +303,7 @@ class AnnotationSeeker:
 
     def get_globals_instance_by_dmid(self, dmid):
         """
-        Gets the GLOBALS/INSTANCE with @dmid=dmid
+        Get the GLOBALS/INSTANCE with @dmid=dmid.
 
         Parameters
         ----------
@@ -319,7 +321,7 @@ class AnnotationSeeker:
 
     def get_globals_instance_dmtypes(self):
         """
-        Gets the list the @dmtype GLOBALS/INSTANCE
+        Get the list the @dmtype GLOBALS/INSTANCE.
 
         Returns
         -------
@@ -333,7 +335,7 @@ class AnnotationSeeker:
 
     def get_templates_instance_by_dmid(self, tableref, dmid):
         """
-        Gets the TEMPLATES/INSTANCE with @dmid=dmid and TEMPLATES@tableref=tableref
+        Get the TEMPLATES/INSTANCE with @dmid=dmid and TEMPLATES@tableref=tableref.
 
         Parameters
         ----------
@@ -356,7 +358,7 @@ class AnnotationSeeker:
 
     def get_globals_instance_from_collection(self, sourceref, pk_value):
         """
-        Gets the GLOBALS/COLLECTION[@dmid=sourceref]/INSTANCE/PRIMARY_KEY[@value='pk_value']
+        Get the GLOBALS/COLLECTION[@dmid=sourceref]/INSTANCE/PRIMARY_KEY[@value='pk_value'].
 
         Parameters
         ----------
@@ -384,7 +386,7 @@ class AnnotationSeeker:
 
     def get_globals_collection(self, dmid):
         """
-        Gets the GLOBALS/COLLECTION with @dmid=dmid
+        Get the GLOBALS/COLLECTION with @dmid=dmid.
 
         Parameters
         ----------
@@ -403,7 +405,7 @@ class AnnotationSeeker:
 
     def get_globals_collection_dmids(self):
         """
-        Gets the list of all the @dmid of GLOBALS/COLLECTION
+        Get the list of all the @dmid of GLOBALS/COLLECTION.
 
         Returns
         -------
@@ -418,8 +420,8 @@ class AnnotationSeeker:
 
     def get_globals_collection_dmtypes(self):
         """
-        Gets the list of the @dmtype of GLOBALS/COLLECTION/INSTANCE
-        Used for collections of static objects
+        Get the list of the @dmtype of GLOBALS/COLLECTION/INSTANCE.
+        Used for collections of static objects.
 
         Returns
         -------

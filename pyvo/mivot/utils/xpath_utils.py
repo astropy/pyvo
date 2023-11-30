@@ -11,7 +11,7 @@ class XPath:
     @staticmethod
     def x_path(etree, path):
         """
-        Returns all the elements of the XML tree that match the given XPath query.
+        Return all the elements of the XML tree that match the given XPath query.
 
         Parameters
         ----------
@@ -30,7 +30,7 @@ class XPath:
     @staticmethod
     def x_path_contains(etree, path, key, value):
         """
-        Returns all the elements of the XML tree that match the given
+        Return all the elements of the XML tree that match the given
         XPath query with a given attribute containing a given value.
         Example of a path: ".//INSTANCE[contains(@dmtype,'dmtype_pattern')]"
 
@@ -61,7 +61,7 @@ class XPath:
     @staticmethod
     def x_path_startwith(etree, path):
         """
-        Returns all the elements of the XML tree that match the given
+        Return all the elements of the XML tree that match the given
         XPath query with a given Tag starting with a given value.
         Example of a path: ".//*[starts-with(name(), 'REFERENCE_')]"
         This function is only used in the static reference resolver to find all the REFERENCEs and JOINs.

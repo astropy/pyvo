@@ -12,7 +12,7 @@ class ModelViewerLayer1:
     """
     The ModelViewerLayer1 takes an instance of the `~pyvo.mivot.viewer.model_viewer.ModelViewer`
     object as a parameter and provides multiple getters on the XML that already has references
-    resolved by default with the `~pyvo.mivot.viewer.model_viewer.ModelViewer._get_model_view()` function.
+    resolved by default with `~pyvo.mivot.viewer.model_viewer.ModelViewer._get_model_view()`.
     """
     def __init__(self, model_viewer):
         self.model_viewer = model_viewer
@@ -20,7 +20,7 @@ class ModelViewerLayer1:
 
     def get_instance_by_role(self, dmrole, all=False):
         """
-        Returns the instance matching with @dmrole.
+        Return the instance matching with @dmrole.
         If all is False, returns the first INSTANCE matching with @dmrole.
         If all is True, returns a list of all instances matching with @dmrole.
 
@@ -67,7 +67,7 @@ class ModelViewerLayer1:
 
     def get_instance_by_type(self, dmtype, all=False):
         """
-        Returns the instance matching with @dmtype.
+        Return the instance matching with @dmtype.
 
         If all is False, returns the first INSTANCE matching with @dmtype.
         If all is True, returns a list of all instances matching with @dmtype.
@@ -117,8 +117,7 @@ class ModelViewerLayer1:
 
     def get_collection_by_role(self, dmrole, all=False):
         """
-        Returns the collection matching with @dmrole.
-
+        Return the collection matching with @dmrole.
         If all is False, returns the first COLLECTION matching with @dmrole.
         If all is True, returns a list of all COLLECTION matching with @dmrole.
 

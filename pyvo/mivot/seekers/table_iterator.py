@@ -9,6 +9,8 @@ from pyvo.utils.prototype import prototype_feature
 class TableIterator:
     """
     Simple wrapper iterating over table rows.
+    Some methods are simple wrappers for external tools in order to have all 
+    the search functions on TABLE gathered in within a single namespace.
     """
 
     def __init__(self, name, data_table):
@@ -31,7 +33,7 @@ class TableIterator:
 
     def _get_next_row(self):
         """
-        Returns the next Numpy row or None.
+        Return the next Numpy row or None.
         The end of table exception usually returned by Numpy is trapped.
         """
         # The iterator is set at the first iteration

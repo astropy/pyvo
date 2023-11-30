@@ -1,5 +1,5 @@
 """
-Class used to set constants.
+Place holder for various constants.
 """
 
 
@@ -12,3 +12,4 @@ class Constant:
     COL_INDEX = "col_index"
     ROOT_COLLECTION = "root_collection"
     NOT_SET = "NotSet"
+    ANONYMOUS_TABLE = "AnonymousTable"

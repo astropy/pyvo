@@ -24,6 +24,7 @@ from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.model_viewer_layer1 import ModelViewerLayer1
 from pyvo.mivot.viewer.model_viewer_layer3 import ModelViewerLayer3
 from pyvo.utils.prototype import prototype_feature
+# Use defusedxml only if already present in order to avoid a new depency.
 try:
     from defusedxml import ElementTree as etree
 except ImportError:
@@ -42,7 +43,6 @@ class ModelViewer:
         votable = os.path.join(data_path, "any_votable.xml")
         m_viewer = ModelViewer(votable)
         row_view = m_viewer.get_next_row_view()
-
     """
 
     def __init__(self, votable_path, tableref=None, resource_number=None):
@@ -106,14 +106,14 @@ class ModelViewer:
     @property
     def annotation_seeker(self):
         """
-        Returns an API to search various components in the XML mapping block.
+        Return an API to search various components in the XML mapping block.
         """
         return self._annotation_seeker
 
     @property
     def resource_seeker(self):
         """
-        Returns an API to search various components in the VOTabel resource.
+        Return an API to search various components in the VOTabel resource.
         """
         return self._resource_seeker
 
@@ -136,7 +136,7 @@ class ModelViewer:
 
     def get_table_ids(self):
         """
-        Returns a list of the table located just below self._resource.
+        Return a list of the table located just below self._resource.
         """
         return self.resource_seeker.get_table_ids()
 
@@ -195,7 +195,7 @@ class ModelViewer:
 
     def get_next_row(self):
         """
-        Returns the next data row of the connected table.
+        Return the next data row of the connected table.
 
         Returns
         -------
@@ -208,7 +208,7 @@ class ModelViewer:
 
     def rewind(self):
         """
-        Rewinds the table iterator of the connected table
+        Rewind the table iterator on the table the veizer is connected with.
         """
         self._assert_table_is_connected()
         self._table_iterator._rewind()
@@ -257,7 +257,7 @@ class ModelViewer:
 
     def _get_model_view(self, resolve_ref=True):
         """
-        Returns an XML model view of the last read row.
+        Return an XML model view of the last read row.
         This function resolves references by default. It is called in the ModelViewerLayer1.
 
         Parameters
@@ -290,7 +290,7 @@ class ModelViewer:
 
     def get_first_instance(self, tableref=None):
         """
-        Returns the head of INSTANCE, the first child of TEMPLATES.
+        Return the head INSTANCE (first TEMPLATES child).
         If no INSTANCE is found, take the first COLLECTION.
 
         Parameters
@@ -303,11 +303,8 @@ class ModelViewer:
         ~`xml.etree.ElementTree.Element`
             The first child of TEMPLATES.
         """
-        # child = self._annotation_seeker.get_templates_block(tableref).getchildren()
         child_template = self._annotation_seeker.get_templates_block(tableref)
         child = child_template.findall("*")
-        # collection = self._annotation_seeker.get_templates_block(tableref).xpath(Ele.COLLECTION)
-        # instance = self._annotation_seeker.get_templates_block(tableref).xpath(Ele.INSTANCE)
         collection = XPath.x_path(self._annotation_seeker.get_templates_block(tableref),
                                   ".//" + Ele.COLLECTION)
         instance = XPath.x_path(self._annotation_seeker.get_templates_block(tableref), ".//" + Ele.INSTANCE)
@@ -337,8 +334,8 @@ class ModelViewer:
 
     def get_next_row_view(self):
         """
-        Private method that builds and returns a new layer on our model viewer,
-        creating an object that contains all INSTANCEs and ATTRIBUTEs as a dictionary.
+        Private method that builds and returns a new access layer on the model view,
+        creating an object that contains all INSTANCE and ATTRIBUTE as a dictionary.
 
         Returns
         -------
@@ -363,7 +360,7 @@ class ModelViewer:
 
     def _set_mapped_tables(self):
         """
-        Set the mapped tables with a list of the TEMPLATES tablerefs
+        Set the mapped tables with a list of the TEMPLATES tablerefs.
         """
         self._mapped_tables = self._annotation_seeker.templates
 
@@ -414,14 +411,12 @@ class ModelViewer:
         and store them in to be resolved later on.
         This prevents the model view of being polluted with elements that are not in the model
         """
-        # for ele in self._templates.xpath("//*[starts-with(name(), 'REFERENCE_')]"):
         for ele in XPath.x_path_startwith(self._templates, ".//REFERENCE_"):
             if ele.get("sourceref") is not None:
                 self._dyn_references = {ele.tag: deepcopy(ele)}
                 for child in list(ele):
                     ele.remove(child)
 
-        # for ele in self._templates.xpath("//*[starts-with(name(), 'JOIN')]"):
         for ele in XPath.x_path_startwith(self._templates, ".//JOIN_"):
             self._joins = {ele.tag: deepcopy(ele)}
             for child in list(ele):
