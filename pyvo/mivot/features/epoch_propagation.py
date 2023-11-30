@@ -5,22 +5,14 @@ astropy.coordinates.sky_coordinate.SkyCoord and
 astropy.coordinates.sky_coordinate.SkyCoord.apply_space_motion.
 """
 from astropy.coordinates import SkyCoord
+from astropy.coordinates import frame_transform_graph
 import astropy.units as u
 from astropy.time import Time
 
 from pyvo.mivot.viewer.mivot_class import MivotClass
+from pyvo.mivot.utils.vocabulary import MangoRoles
 from pyvo.utils.prototype import prototype_feature
 
-class MangoRoles:
-    """
-    Place holder for the MANGO draft roles
-    """
-    LONGITUDE = "longitude"
-    LATITUDE = "latitude"
-    PM_LONGITUDE = "pm_longitude"
-    PM_LATITUDE = "pm_latitude"
-    PARALLAX = "parallax"
-    RADIAL_VELOCITY = "radial_velocity"
 
 @prototype_feature('MIVOT')
 class EpochPropagation:
@@ -28,7 +20,19 @@ class EpochPropagation:
     This class allows computing the position of a SkyCoord object at a new time dt.
     It builds a SkyCoord object from the data row of the MivotClass, and then applies the space motion.
     """
-    fields = ["longitude", "latitude", "pm_longitude", "pm_latitude"]
+    fields = ["longitude", "latitude", "pm_longitude", "pm_latitude", "radial_velocity", "parallax"]
+    unit_mapping = {
+        "deg": u.degree,
+        "hourangle": u.hourangle,
+        "arcsec": u.arcsec,
+        "mas": u.mas,
+        "pc": u.pc,
+        "km": u.km,
+        "m": u.m,
+        "mas/year": u.mas / u.yr,
+        "km/s": u.km / u.s,
+        "year": u.year,
+    }
 
     def __init__(self, row_view):
         """
@@ -40,15 +44,21 @@ class EpochPropagation:
             The data row as a MivotClass.
         """
         self.longitude = None
+        self.longitude_unit = None
         self.latitude = None
+        self.latitude_unit = None
         self.pm_longitude = None
+        self.pm_longitude_unit = None
         self.pm_latitude = None
+        self.pm_latitude_unit = None
         self.radial_velocity = None
+        self.radial_velocity_unit = None
         self.parallax = None
+        self.parallax_unit = None
         self.epoch = None
         self.frame = None
         self.updateEpoch(row_view)
-        self._sky_coord = self.SkyCoordinate()
+        self._sky_coord = self.sky_coordinates()
 
     def updateEpoch(self, mivot_class, type_epoch=False):
         """
@@ -97,24 +107,84 @@ class EpochPropagation:
         value : dict
             The value of the dictionary.
         """
-        if "frame" in key_low and "string" in value["dmtype"]:
+        if ("frame" in key_low and "string" in value["dmtype"]
+                or value["value"] in frame_transform_graph.get_names()):
             self.frame = value["value"].lower()
-        if (MangoRoles.LONGITUDE or "ra") in key_low:
-            if "pm" not in key_low and value["unit"] == "deg":
+
+        elif key_low.endswith(MangoRoles.LONGITUDE) or key_low.endswith("ra"):
+            if "pm" not in key_low:
                 self.longitude = value['value']
+                self.longitude_unit = self.unit_mapping.get(value['unit'], None)
             elif "pm" in key_low and value["unit"] == "mas/year":
                 self.pm_longitude = value['value']
-        if ("latitude" or "dec") in key_low:
-            if "pm" not in key_low and value["unit"] == "deg":
+                self.pm_longitude_unit = self.unit_mapping.get(value['unit'], None)
+
+        elif key_low.endswith(MangoRoles.LATITUDE) or key_low.endswith("dec"):
+            if "pm" not in key_low:
                 self.latitude = value['value']
-            elif "pm" in key_low and value["unit"] == "mas/year":
+                self.latitude_unit = self.unit_mapping.get(value['unit'], None)
+            elif "pm" in key_low:
                 self.pm_latitude = value['value']
-        if ("radial" or "velocity") in key_low and value["unit"] == "km/s":
+                self.pm_latitude_unit = self.unit_mapping.get(value['unit'], None)
+
+        elif ("radial" and "velocity") in key_low:
             self.radial_velocity = value["value"]
-        if "parallax" in key_low and value["unit"] == ("mas" or "pc"):
+            self.radial_velocity_unit = self.unit_mapping.get(value['unit'], None)
+
+        elif key_low.endswith(MangoRoles.PARALLAX):
             self.parallax = value["value"]
-        if "epoch" in key_low and value["unit"] == "year":
+            self.parallax_unit = self.unit_mapping.get(value['unit'], None)
+
+        elif "epoch" in key_low and value["unit"] == "year":
             self.epoch = Time(value["value"], format="decimalyear")
+
+    def sky_coordinates(self):
+        """
+        Return a SkyCoord object from the REFERENCE of the XML object.
+        Create first a dictionary of arguments to pass to the SkyCoord constructor.
+        """
+        if self.frame == ('icrs' or 'fk5' or 'fk4'):
+            coord_names = {'longitude': 'ra', 'latitude': 'dec', 'parallax': 'distance',
+                           'pm_longitude': 'pm_ra_cosdec', 'pm_latitude': 'pm_dec'}
+
+            kwargs = {'frame': self.frame, 'obstime': self.epoch}
+            for elm in self.fields:
+                if getattr(self, elm) is not None:
+                    if elm in coord_names:
+                        kwargs[coord_names[elm]] = getattr(self, elm) * getattr(self, elm + "_unit")
+                    else:
+                        kwargs[elm] = getattr(self, elm) * getattr(self, elm + "_unit")
+
+            if self.parallax_unit == u.mas:
+                kwargs["distance"] = (1 / (self.parallax / 1000)) * u.pc
+
+            return SkyCoord(**kwargs)
+
+        elif self.frame == 'galactic':
+            coord_names = {'longitude': 'l', 'latitude': 'b', 'parallax': 'distance',
+                           'pm_longitude': 'pm_l_cosb', 'pm_latitude': 'pm_b'}
+
+            kwargs = {'frame': self.frame, 'obstime': self.epoch}
+            for elm in self.fields:
+                if getattr(self, elm) is not None:
+                    if elm == coord_names:
+                        kwargs[coord_names[elm]] = getattr(self, elm) * getattr(self, elm + "_unit")
+                    else:
+                        kwargs[elm] = getattr(self, elm) * getattr(self, elm + "_unit")
+
+            return SkyCoord(**kwargs)
+
+    def apply_space_motion(self, dt):
+        """
+        Return ra and dec of a SkyCoord object by computing the position to a new time dt.
+
+        Parameters
+        ----------
+        dt : float
+            Time in years.
+        """
+        retour = self.sky_coordinates().apply_space_motion(dt=dt)
+        return retour.ra, retour.dec
 
     @property
     def ref_long(self):
@@ -147,39 +217,3 @@ class EpochPropagation:
     @ref_pm_lat.setter
     def ref_pm_lat(self, value):
         self.pm_latitude = value
-
-    def SkyCoordinate(self):
-        """
-        Returns a SkyCoord object from the REFERENCE of the XML object.
-        """
-        if self.frame == ('icrs' or 'fk5' or 'fk4'):
-            return SkyCoord(distance=(self.parallax / 4) * u.pc,
-                            radial_velocity=self.radial_velocity * u.km / u.s,
-                            ra=self.longitude * u.degree,
-                            dec=self.latitude * u.degree,
-                            pm_ra_cosdec=self.pm_longitude * u.mas / u.yr,
-                            pm_dec=self.pm_latitude * u.mas / u.yr,
-                            frame=self.frame,
-                            obstime=self.epoch)
-
-        elif self.frame == 'galatic':
-            return SkyCoord(distance=self.parallax * u.pc,
-                            radial_velocity=self.radial_velocity * u.km / u.s,
-                            l=self.longitude * u.degree,
-                            b=self.latitude * u.degree,
-                            pm_l_cosb=self.pm_longitude * u.mas / u.yr,
-                            pm_b=self.pm_latitude * u.mas / u.yr,
-                            frame=self.frame,
-                            obstime=self.epoch)
-
-    def apply_space_motion(self, dt):
-        """
-        Returns ra and dec of a SkyCoord object by computing the position to a new time dt.
-
-        Parameters
-        ----------
-        dt : float
-            Time in years.
-        """
-        retour = self.SkyCoordinate().apply_space_motion(dt=dt)
-        return retour.ra, retour.dec

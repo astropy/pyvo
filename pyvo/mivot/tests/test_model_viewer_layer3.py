@@ -5,10 +5,136 @@ Test for mivot.viewer.model_viewer_layer3.py
 import os
 import pytest
 
+from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.model_viewer import ModelViewer
 from pyvo.utils.prototype import activate_features
 activate_features('MIVOT')
+
+
+def test_model_viewer3(votable_test, simple_votable):
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
+
+    m_viewer_votable_test = ModelViewer(votable_path=votable_test)
+    m_viewer_votable_test.get_next_row_view()
+    mv_niv1_votable_test = m_viewer_votable_test._model_viewer_layer1
+    mv_niv3_votable_test = m_viewer_votable_test._model_viewer_layer3
+    MivotClass = mv_niv3_votable_test.mivot_class
+
+    xml_simple_votable = mv_niv1_votable_test._xml_view
+    assert xml_simple_votable.tag == 'TEMPLATES'
+    XmlUtils.pretty_print(xml_simple_votable)
+
+    recusive_xml_check(xml_simple_votable, MivotClass)
+
+def recusive_xml_check(xml_simple_votable, MivotClass):
+    print("=======================================")
+    if xml_simple_votable.tag == 'TEMPLATES':
+        recusive_xml_check(xml_simple_votable[0], MivotClass)
+    else:
+        for child in xml_simple_votable:
+            if child.tag == 'INSTANCE':
+                print("INSTANCE : ", child.tag, " : ", child.attrib, " | MivotClass : ", MivotClass.__dict__)
+                for key, value in child.attrib.items():
+                    if key == 'dmrole':
+
+                        if value == '':
+                            if child.tag == 'ATTRIBUTE':
+                                print(value, child.get('dmrole'))
+                                recusive_xml_check(child,
+                                               getattr(MivotClass, MivotClass._remove_model_name(child.get('dmrole'))))
+                            elif child.tag == 'INSTANCE':
+                                print(value, child.get('dmrole'))
+                                print("        INSTANCE : ", child.tag, " : ", child.attrib, " | MivotClass : ",
+                                      MivotClass.__dict__)
+                                recusive_xml_check(child, getattr(MivotClass,
+                                                                  MivotClass._remove_model_name(child.get('dmrole'), True)))
+                                print(key, value)
+                            # for child2 in child:
+                            #     if child2.tag == 'ATTRIBUTE':
+                            #         recusive_xml_check(child, getattr(MivotClass, MivotClass._remove_model_name(child2.get('dmrole'))))
+                            #     elif child2.tag == 'INSTANCE':
+                            #         print(value, child2.get('dmrole'))
+                            #         print("        INSTANCE : ", child2.tag, " : ", child2.attrib, " | MivotClass : ", MivotClass.__dict__)
+                            #         recusive_xml_check(child, getattr(MivotClass, MivotClass._remove_model_name(child2.get('dmrole'), True)))
+                        else:
+                            if child.tag == 'ATTRIBUTE':
+                                recusive_xml_check(child, getattr(MivotClass, MivotClass._remove_model_name(child.get('dmrole'))))
+                            elif child.tag == 'INSTANCE':
+                                recusive_xml_check(child, getattr(MivotClass, MivotClass._remove_model_name(child.get('dmrole'), True)))
+
+
+
+                        # for child2 in child:
+                        #     print("-------------------")
+                        #     print("child ",child2.tag, " : ", child2.attrib, " | MivotClass : ", MivotClass.__dict__)
+                        #     for key2, value2 in child2.attrib.items():
+                        #         if key2 == 'dmrole':
+                        #             if child2.tag == 'ATTRIBUTE':
+                        #                 print(child2.tag, child2.attrib)
+                        #                 print(key2, value2)
+                        #                 print(MivotClass.__dict__)
+                        #                 if value != '':
+                        #                     print("@@@@@@@@@@",getattr(MivotClass, MivotClass._remove_model_name(value)).__dict__)
+                        #                     next_mivot_class = getattr(MivotClass, MivotClass._remove_model_name(value))
+                        #                     recusive_xml_check(child2, getattr(next_mivot_class, MivotClass._remove_model_name(value2)))
+                        #                 else:
+                        #                     recusive_xml_check(child2, getattr(MivotClass, MivotClass._remove_model_name(value2)))
+                        #             if child2.tag == 'INSTANCE':
+                        #
+                        #                 print("======", getattr(MivotClass, MivotClass._remove_model_name(value2,True)).__dict__)
+                        #                 print("la value de dmrole : ", value)
+                        #                 if value != '':
+                        #                     print("@@@@@@@@@@", getattr(MivotClass, MivotClass._remove_model_name(value, True)).__dict__)
+                        #                     next_mivot_class = getattr(MivotClass, MivotClass._remove_model_name(value, True))
+                        #                     recusive_xml_check(child2, getattr(next_mivot_class, MivotClass._remove_model_name(value2, True)))
+                        #                 else:
+                        #                     recusive_xml_check(child2, getattr(MivotClass, MivotClass._remove_model_name(value2, True)))
+                                    # else:
+                                    #     print(key2, value2)
+                    # elif key == 'dmtype':
+                    #     print(value)
+                    #     print(MivotClass._remove_model_name(value, False))
+                    #     assert MivotClass._remove_model_name(value, False) == MivotClass.dmtype
+
+            elif child.tag == 'COLLECTION':
+
+                for key, value in child.attrib.items():
+                    print("COLLECTION : ", key, value)
+                    if key == 'dmtype':
+                        assert value == MivotClass.dmtype
+                        for child2 in child:
+                            print(child2.tag, child2.attrib)
+                            recusive_xml_check(child2, MivotClass)
+                    elif key == 'ref':
+                        assert value == MivotClass.ref
+                    elif key == 'unit':
+                        assert value == MivotClass.unit
+                    elif key == 'value':
+                        assert value == MivotClass.value
+
+                for child2 in child:
+                    recusive_xml_check(child2, MivotClass)
+            elif child.tag == 'ATTRIBUTE':
+                print("ATTRIBUTE : ", child.tag, child.attrib, " |  MivotClass : ", MivotClass.__dict__)
+                for key, value in child.attrib.items():
+                    if key == 'dmtype':
+                        assert MivotClass.dmtype in value
+                    # elif key == 'ref':
+                    #     assert value == MivotClass.ref
+                    # elif key == 'unit':
+                    #     assert value == MivotClass.unit
+                    # elif key == 'value':
+                    #     assert value == MivotClass.value
+                    # else:
+                    #     key in ('col_index', 'field_unit')
+            else:
+                assert False
+
+    # for key, value in xml_simple_votable.attrib.items():
+    #     print(xml_simple_votable.tag, key, value)
+
 
 
 def test_dict_model_viewer3(votable_test, simple_votable):

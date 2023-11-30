@@ -9,7 +9,7 @@ from pyvo.utils.prototype import prototype_feature
 class TableIterator:
     """
     Simple wrapper iterating over table rows.
-    Some methods are simple wrappers for external tools in order to have all 
+    Some methods are simple wrappers for external tools in order to have all
     the search functions on TABLE gathered in within a single namespace.
     """
 

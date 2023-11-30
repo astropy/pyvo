@@ -2,7 +2,7 @@ import json
 import numpy
 
 
-class MyEncoder(json.JSONEncoder):
+class JsonEncoder(json.JSONEncoder):
     """
     Custom JSON encoder for NumPy data types.
     This class extends the default JSONEncoder to handle NumPy integers,
@@ -30,4 +30,4 @@ class MyEncoder(json.JSONEncoder):
         elif isinstance(obj, numpy.ndarray):
             return obj.tolist()
         else:
-            return super(MyEncoder, self).default(obj)
+            return super(JsonEncoder, self).default(obj)

@@ -23,7 +23,7 @@ def test_epoch_propagation(m_viewer):
     row_view = m_viewer.get_next_row_view()
     epoch_propagation = row_view.epoch_propagation
     assert epoch_propagation._sky_coord == row_view.sky_coordinate
-    sky_coord_to_compare = (SkyCoord(distance=(row_view.parallax.value / 4) * u.pc,
+    sky_coord_to_compare = (SkyCoord(distance=1 / (row_view.parallax.value / 1000) * u.pc,
                                      radial_velocity=row_view.radialVelocity.value * u.km / u.s,
                                      ra=row_view.longitude.value * u.degree,
                                      dec=row_view.latitude.value * u.degree,
@@ -33,7 +33,7 @@ def test_epoch_propagation(m_viewer):
                                      .PhysicalCoordSys_frame.spaceRefFrame.value.lower(),
                                      obstime=Time(row_view.epoch.value, format="decimalyear")))
 
-    assert sky_coord_to_compare == epoch_propagation.SkyCoordinate()
+    assert sky_coord_to_compare == epoch_propagation.sky_coordinates()
     assert ((sky_coord_to_compare.apply_space_motion(dt=-42 * u.year).ra,
              sky_coord_to_compare.apply_space_motion(dt=-42 * u.year).dec)
             == epoch_propagation.apply_space_motion(dt=-42 * u.year))

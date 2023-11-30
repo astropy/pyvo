@@ -51,7 +51,7 @@ class MivotClass:
         ~`astropy.coordinates.sky_coordinate.SkyCoord`
             The SkyCoord object.
         """
-        return self.epoch_propagation.SkyCoordinate()
+        return self.epoch_propagation.sky_coordinates()
 
     def create_mivot_class(self, **kwargs):
         """
@@ -101,7 +101,7 @@ class MivotClass:
             else:
                 if key == 'value':
                     if ref is not None and ref != 'null':
-                        print("Updated ", ref, ": ", value, " became ", row[ref])
+                        # print("Updated ", ref, ": ", value, " became ", row[ref])
                         setattr(self, self._remove_model_name(key), row[ref])
 
     def _remove_model_name(self, value, role_instance=False):

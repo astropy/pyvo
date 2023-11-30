@@ -10,7 +10,7 @@ from pyvo.utils.prototype import prototype_feature
 class ResourceSeeker(object):
     """
     This class provides multiple getters on resource tables.
-    Some methods are simple wrappers for external tools in order to have all 
+    Some methods are simple wrappers for external tools in order to have all
     the search functions on RESOURCE gathered in within a single namespace.
     """
 

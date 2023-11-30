@@ -42,6 +42,19 @@ class Att:
 
 
 @prototype_feature('MIVOT')
+class MangoRoles:
+    """
+    Place holder for the MANGO draft roles
+    """
+    LONGITUDE = "longitude"
+    LATITUDE = "latitude"
+    PM_LONGITUDE = "pm_longitude"
+    PM_LATITUDE = "pm_latitude"
+    PARALLAX = "parallax"
+    RADIAL_VELOCITY = "radial_velocity"
+
+
+@prototype_feature('MIVOT')
 def key_match(searched_key, key_set):
     """
     Check if any key in the key_set starts with the searched_key.

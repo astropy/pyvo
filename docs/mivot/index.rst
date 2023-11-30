@@ -40,8 +40,13 @@ The API allows you to obtain a model view on the last read data row, this usage 
     >>> row_view = m_viewer.get_next_row_view() # doctest: +SKIP
     >>> print(row_view.longitude.value) # doctest: +SKIP
     >>> print(row_view.Coordinate_coosys.PhysicalCoordSys_frame.spaceRefFrame.value) # doctest: +SKIP
+    >>> print(row_view.sky_coordinate) # doctest: +SKIP
         10.0
         ICRS
+        <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, pc)
+           (10., 10., 200.)
+        (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
+           (10., -20., 1234.)>
 
 
 The model view is a dynamically generated Python object whose field names are derived from

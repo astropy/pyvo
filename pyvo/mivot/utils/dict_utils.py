@@ -4,7 +4,7 @@ Utility class to process dictionary.
 import json
 from pyvo.mivot import logger
 from pyvo.mivot.utils.exceptions import DataFormatException
-from pyvo.mivot.utils.json_encoder import MyEncoder
+from pyvo.mivot.utils.json_encoder import JsonEncoder
 
 
 class DictUtils:
@@ -54,7 +54,7 @@ class DictUtils:
         return json.dumps(dictionnary,
                           indent=2,
                           # sort_keys=True,
-                          cls=MyEncoder)
+                          cls=JsonEncoder)
 
     @staticmethod
     def print_pretty_json(dictionnary):
