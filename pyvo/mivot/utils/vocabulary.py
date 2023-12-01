@@ -1,8 +1,30 @@
 """
 MIVOT vocabulary.
 """
+from astropy import units as u
 from pyvo.utils import prototype_feature
 
+
+EpochPropagation_fields = ["longitude", "latitude", "pm_longitude", "pm_latitude",
+                           "radial_velocity", "parallax", "epoch", "frame"]
+
+unit_mapping = {
+    "deg": u.degree,
+    "hourangle": u.hourangle,
+    "arcsec": u.arcsec,
+    "mas": u.mas,
+    "pc": u.pc,
+    "km": u.km,
+    "m": u.m,
+    "mas/year": u.mas / u.yr,
+    "km/s": u.km / u.s,
+    "year": u.year,
+}
+
+regex_patterns = {'mjd': r'^(\d{5,}\.\d+)$',
+                  'byear_str': r'^B(\d+(\.\d+)?)$',
+                  'jyear_str': r'^J(\d+(\.\d+)?)$',
+                  'decimalyear': r'^([0-2]?[0-9]{1,3}(?:\.\d+)?)$'}
 
 @prototype_feature('MIVOT')
 class Ele:
@@ -48,10 +70,12 @@ class MangoRoles:
     """
     LONGITUDE = "longitude"
     LATITUDE = "latitude"
-    PM_LONGITUDE = "pm_longitude"
-    PM_LATITUDE = "pm_latitude"
+    PM_LONGITUDE = "pmLongitude"
+    PM_LATITUDE = "pmLatitude"
     PARALLAX = "parallax"
-    RADIAL_VELOCITY = "radial_velocity"
+    RADIAL_VELOCITY = "radialVelocity"
+    EPOCH = "epoch"
+    PMCOSDELTAPPLIED = "pmCosDeltApplied"
 
 
 @prototype_feature('MIVOT')

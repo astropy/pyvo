@@ -2,6 +2,9 @@
 """
 MivotClass keep as an attribute dictionary __dict__ all XML objects.
 """
+from astropy import time
+
+from pyvo.mivot.utils.vocabulary import unit_mapping
 from pyvo.utils.prototype import prototype_feature
 
 
@@ -75,6 +78,11 @@ class MivotClass:
                     setattr(self, self._remove_model_name(key), MivotClass(**value))
             else:
                 setattr(self, self._remove_model_name(key), self._remove_model_name(value))
+                if key == 'unit':
+                    if value in unit_mapping.keys():
+                        setattr(self, "astropy_unit", unit_mapping[value])
+                    elif value in time.TIME_FORMATS.keys():
+                        setattr(self, "astropy_unit_time", value)
 
     def update_mivot_class(self, row, ref=None):
         """
@@ -101,7 +109,6 @@ class MivotClass:
             else:
                 if key == 'value':
                     if ref is not None and ref != 'null':
-                        # print("Updated ", ref, ": ", value, " became ", row[ref])
                         setattr(self, self._remove_model_name(key), row[ref])
 
     def _remove_model_name(self, value, role_instance=False):

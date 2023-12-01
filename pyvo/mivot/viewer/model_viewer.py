@@ -254,6 +254,7 @@ class ModelViewer:
         self._squash_join_and_references()
         self._set_column_indices()
         self._set_column_units()
+        # Reset the model viewer layers on table connection
         self._model_viewer_layer1 = None
         self._model_viewer_layer3 = None
 

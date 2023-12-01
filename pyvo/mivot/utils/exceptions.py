@@ -66,3 +66,17 @@ class AstropyVersionException(Exception):
     Exception raised if the version of astropy is not compatible with MIVOT.
     """
     pass
+
+
+class UnitException(Exception):
+    """
+    Exception raised if the unit is not recognized.
+    """
+    pass
+
+
+class TimeFormatException(Exception):
+    """
+    Exception raised if the time format is not recognized.
+    """
+    pass
