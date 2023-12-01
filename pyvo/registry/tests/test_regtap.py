@@ -19,7 +19,7 @@ from pyvo.registry.regtap import REGISTRY_BASEURL
 from pyvo.registry import search as regsearch
 from pyvo.dal import DALOverflowWarning
 from pyvo.dal import query as dalq
-from pyvo.dal import tap
+from pyvo.dal import tap, sia2
 
 from astropy.utils.data import get_pkg_data_contents
 
@@ -237,6 +237,12 @@ class TestInterfaceClass:
         intf = regtap.Interface("http://example.org",
                                 "ivo://ivoa.net/std/tap#aux", "vs:paramhttp", "std")
         assert isinstance(intf.to_service(), tap.TAPService)
+        assert not intf.is_vosi
+
+    def test_sia2_standard(self):
+        intf = regtap.Interface("http://example.org",
+                                "ivo://ivoa.net/std/sia2", "vs:paramhttp", "std")
+        assert isinstance(intf.to_service(), sia2.SIA2Service)
         assert not intf.is_vosi
 
     def test_secondary_interface(self):

@@ -63,9 +63,6 @@ class TestSIA2Service:
     def test_capabilities(self):
         # this tests the SIA2 capabilities with various combinations:
 
-        # - sia-basicauth - one interfaces with BasicAA security method - this
-        #         should fail because pyvo does not support BasicAA
-
         with requests_mock.Mocker() as cm:
             cm.get('https://example.com/sia/capabilities',
                    content=get_pkg_data_contents('data/sia2/capabilities.xml'))
@@ -77,17 +74,14 @@ class TestSIA2Service:
                        'data/sia2/capabilities-newformat.xml'))
             cm.get('https://example.com/sia-priv/capabilities',
                    content=get_pkg_data_contents(
-                       'data/sia2/capabilities-priv.xml'))
+                       'data/sia2/capabilities-priv.xml')),
+            cm.get('https://example.com/sia/myquery/capabilities',
+                   content=get_pkg_data_contents('data/sia2/capabilities.xml'))
 
             # multiple interfaces with single security method each and
             # anonymous access.
             service = SIA2Service('https://example.com/sia')
             assert service.query_ep == 'https://example.com/sia/v2query'
-
-            # one interfaces with BasicAA security method - this should fail
-            # because pyvo does not support BasicAA
-            with pytest.raises(AttributeError):
-                service = SIA2Service('https://example.com/sia-basicauth')
 
             # one interface with multiple security methods
             service = SIA2Service('https://example.com/sia-newformat')
@@ -96,6 +90,16 @@ class TestSIA2Service:
             # multiple interfaces with single security method each (no anon)
             service = SIA2Service('https://example.com/sia-priv')
             assert service.query_ep == 'https://example.com/sia/v2query'
+
+            # any access point will be valid even when it contains query params
+            service = SIA2Service('https://example.com/sia/myquery?param=1')
+            assert service.query_ep == 'https://example.com/sia/v2query'
+
+            # capabilities checking is bypassed all together with the
+            # check_baseurl=False flag
+            service = SIA2Service('https://example.com/sia/myquery?param=1&',
+                                  check_baseurl=False)
+            assert service.query_ep == 'https://example.com/sia/myquery?param=1'
 
     POSITIONS = [(2, 4, 0.0166 * u.deg),
                  (12, 12.5, 34, 36),

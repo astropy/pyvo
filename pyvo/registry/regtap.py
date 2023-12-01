@@ -371,7 +371,10 @@ class Interface:
             raise ValueError("PyVO has no support for interfaces with"
                              f" standard id {self.standard_id}.")
 
-        return service_class(self.access_url)
+        if service_class == sia2.SIA2Service:
+            return service_class(self.access_url, check_baseurl=False)
+        else:
+            return service_class(self.access_url)
 
     def supports(self, standard_id):
         """returns true if we believe the interface should be able to talk

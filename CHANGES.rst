@@ -1,6 +1,8 @@
 1.5 (unreleased)
 ================
 
+- Made SIA2Service accept access urls without finding them in the service capabilities [#500]
+
 - Add intersect modes for the spatial constraint in the registry module ``pyvo.registry.Spatial`` [#495]
 
 - Added ``alt_identifier``, ``created``, ``updated`` and ``rights`` to the

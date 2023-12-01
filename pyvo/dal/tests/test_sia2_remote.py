@@ -11,6 +11,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from pyvo.dal.sia2 import search, SIA2Service
 from pyvo.dal.adhoc import DatalinkResults
+from pyvo import regsearch
 
 
 CADC_SIA_URL = 'https://ws.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/sia'
@@ -254,3 +255,12 @@ class TestSIACadc():
         for rr in results:
             assert rr.access_format == \
                 'application/x-votable+xml;content=datalink'
+
+    @pytest.mark.filterwarnings("ignore::pyvo.dal.exceptions.DALOverflowWarning")
+    def test_reg_sia2(self):
+        image_services = regsearch(servicetype='sia2')
+        irsa_seip = \
+            [s for s in image_services if
+             'irsa' in s.ivoid and 'seip' in s.ivoid][0]
+        result = irsa_seip.search(pos=(31.8425, 77.4846, 0.1), maxrec=1)
+        assert len(result) == 1
