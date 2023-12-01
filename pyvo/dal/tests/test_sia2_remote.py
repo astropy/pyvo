@@ -262,5 +262,5 @@ class TestSIACadc():
         irsa_seip = \
             [s for s in image_services if
              'irsa' in s.ivoid and 'seip' in s.ivoid][0]
-        result = irsa_seip.search(pos=(2.8425, 74.4846, 10), maxrec=1)
+        result = irsa_seip.search(pos=(31.8425, 77.4846, 0.1), maxrec=1)
         assert len(result) == 1
