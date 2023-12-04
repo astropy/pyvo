@@ -80,3 +80,17 @@ class TimeFormatException(Exception):
     Exception raised if the time format is not recognized.
     """
     pass
+
+
+class DeltaException(Exception):
+    """
+    Exception raised if the delta is 90 deg.
+    """
+    pass
+
+
+class SkyCoordParameterException(Exception):
+    """
+    Exception raised if the SkyCoord parameters are not recognized.
+    """
+    pass

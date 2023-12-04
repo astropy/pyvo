@@ -28,7 +28,7 @@ class MivotClass:
         kwargs : dict
             Dictionary of the XML object.
         """
-        self.create_mivot_class(**kwargs)
+        self._create_mivot_class(**kwargs)
 
     @property
     def epoch_propagation(self):
@@ -56,9 +56,12 @@ class MivotClass:
         """
         return self.epoch_propagation.sky_coordinates()
 
-    def create_mivot_class(self, **kwargs):
+    def _create_mivot_class(self, **kwargs):
         """
         Recursively initialize the MIVOT class with the dictionary of the XML object got in ModelViewerLayer3.
+        For the unit of the ATTRIBUTE, we add the astropy unit or the astropy time equivalence by comparing
+        the value of the unit with values in time.TIME_FORMATS.keys() which is the list of time formats.
+        We do the same with the unit_mapping dictionary, which is the list of astropy units.
 
         Parameters
         ----------
@@ -66,19 +69,20 @@ class MivotClass:
             Dictionary of the XML object.
         """
         for key, value in kwargs.items():
-            if isinstance(value, list):
+            if isinstance(value, list):  # COLLECTION
                 setattr(self, self._remove_model_name(key), [])
                 for item in value:
                     getattr(self, self._remove_model_name(key)).append(MivotClass(**item))
 
-            elif isinstance(value, dict):
+            elif isinstance(value, dict):  # INSTANCE
                 if not self._is_leaf(**value):
                     setattr(self, self._remove_model_name(key, True), MivotClass(**value))
                 if self._is_leaf(**value):
                     setattr(self, self._remove_model_name(key), MivotClass(**value))
-            else:
+
+            else:  # ATTRIBUTE
                 setattr(self, self._remove_model_name(key), self._remove_model_name(value))
-                if key == 'unit':
+                if key == 'unit':  # We convert the unit to astropy unit or to astropy time format if possible
                     if value in unit_mapping.keys():
                         setattr(self, "astropy_unit", unit_mapping[value])
                     elif value in time.TIME_FORMATS.keys():

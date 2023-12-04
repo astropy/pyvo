@@ -89,7 +89,7 @@ def test_model_viewer_global_getters(m_viewer, data_path):
 
 def test_check_version(data_path):
     votable = os.path.join(data_path, "data/input/test.1.xml")
-    if not check_astropy_version():
+    if check_astropy_version() is False:
         with pytest.raises(Exception,
                            match=f"Astropy version {astropy_version.version} "
                                  f"is below the required version 6.0 for the use of MIVOT."):
