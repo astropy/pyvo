@@ -87,6 +87,9 @@ def test_epoch_propagation_sky_coord(m_viewer):
 
 
 def test_epoch_propagation_time(m_viewer):
+    """
+    Test the conversion of the time from MIVOT data to Astropy time format, with each regex.
+    """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
@@ -126,6 +129,9 @@ def test_epoch_propagation_time(m_viewer):
 
 
 def test_epoch_propagation_unit(m_viewer):
+    """
+    Test the conversion of the unit from MIVOT data to Astropy unit format.
+    """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
 

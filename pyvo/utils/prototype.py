@@ -148,5 +148,4 @@ def _make_wrapper(feature_name, function):
     def wrapper(*args, **kwargs):
         _warn_or_raise(function, feature_name)
         return function(*args, **kwargs)
-
     return wrapper

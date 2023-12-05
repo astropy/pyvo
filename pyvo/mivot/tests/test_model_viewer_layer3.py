@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Test for mivot.viewer.model_viewer_layer3.py
+Test for mivot.viewer.model_viewer_layer3.py and mivot.viewer.mivot_class.py
 """
 import os
 import pytest
@@ -13,7 +13,8 @@ activate_features('MIVOT')
 
 def test_model_viewer3(votable_test, simple_votable):
     """
-    Recursively compare an XML element with an element of MIVOT class.
+    Recursively compare an XML element with an element of MIVOT class with the function recursive_xml_check.
+    This test run on 2 votables : votable_test and simple_votable.
     """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")

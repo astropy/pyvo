@@ -34,6 +34,9 @@ def data_path():
 
 
 def test_multiple_templates(data_path):
+    """
+    Try to create an AnnotationSeeker with a mapping_block containing multiple TEMPLATES.
+    """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     mapping_block = XmlUtils.xmltree_from_file(

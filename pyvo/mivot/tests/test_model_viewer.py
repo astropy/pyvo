@@ -25,6 +25,9 @@ def test_model_viewer_constructor(data_path):
 
 
 def test_first_instance_row_view(data_path):
+    """
+    Test the function get_first_instance() which is used to find the first INSTANCE/COLLECTION in TEMPLATES.
+    """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     votable = os.path.join(data_path, "data/test_first_instance.xml")
@@ -42,6 +45,10 @@ def test_first_instance_row_view(data_path):
 
 
 def test_model_viewer_table_ref(m_viewer):
+    """
+    Test if the model_viewer can find each table_ref and connect to the right table_ref.
+    Test if the model_viewer can find each models.
+    """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     assert m_viewer._mapped_tables == ['_PKTable', 'Results']
@@ -62,6 +69,9 @@ def test_model_viewer_table_ref(m_viewer):
 
 
 def test_model_viewer_global_getters(m_viewer, data_path):
+    """
+    Test each getter of the model_viewer specific for the GLOBALS.
+    """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     assert m_viewer.get_table_ids() == ['_PKTable', 'Results']
