@@ -255,11 +255,11 @@ class TestSpatialConstraint:
 
     def test_enclosed(self):
         cons = registry.Spatial("0/1-3", intersect="enclosed")
-        assert cons.get_search_condition() == "1 = CONTAINS(coverage, MOC('0/1-3'))"
+        assert cons.get_search_condition(FAKE_GAVO) == "1 = CONTAINS(coverage, MOC('0/1-3'))"
 
     def test_overlaps(self):
         cons = registry.Spatial("0/1-3", intersect="overlaps")
-        assert cons.get_search_condition() == "1 = INTERSECTS(coverage, MOC('0/1-3'))"
+        assert cons.get_search_condition(FAKE_GAVO) == "1 = INTERSECTS(coverage, MOC('0/1-3'))"
 
     def test_not_an_intersect_mode(self):
         with pytest.raises(ValueError, match="'intersect' should be one of 'covers', 'enclosed',"
@@ -471,5 +471,5 @@ class TestSelectClause:
                     "source_format, "
                     "source_value, "
                     "region_of_regard, "
-                    "alt_identifier, "
-                    "waveband"))
+                    "waveband, "
+                    "alt_identifier"))
