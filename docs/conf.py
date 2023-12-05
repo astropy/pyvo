@@ -163,4 +163,13 @@ if eval(setup_cfg.get('edit_on_github')):
     edit_on_github_doc_root = "docs"
 
 
+# -- Enable nitpicky mode - which ensures that all references in the docs resolve ----
+
 nitpicky = True
+# See docs/nitpick-exceptions file for the actual listing.
+nitpick_ignore = []
+for line in open("nitpick-exceptions"):
+    if line.strip() == "" or line.startswith("#"):
+        continue
+    dtype, target = line.split(None, 1)
+    nitpick_ignore.append((dtype, target.strip()))
