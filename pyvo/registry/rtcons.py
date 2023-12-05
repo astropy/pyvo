@@ -58,8 +58,8 @@ class RegTAPFeatureMissing(dalq.DALQueryError):
     to write that constraint, or because it is missing a table or column.
 
     To recover, choose another RegTAP service. Search constraining
-    ``datamodel="regtap"``, and then use `pyvo.registry.switch_RegTAP_service`
-    with a TAP access URL discoveredin this way.
+    ``datamodel="regtap"``, and then use `pyvo.registry.choose_RegTAP_service`
+    with a TAP access URL discovered in this way.
     """
 
 
@@ -232,7 +232,7 @@ class Freetext(Constraint):
         # of subqueries if we can (i.e., the service has UNION);
         # It may look as if this has to be really slow, but in fact it's almost
         # always a lot faster than direct ORs.
-        if service.get_tap_cap().get_adql().get_feature(
+        if service.get_tap_capability().get_adql().get_feature(
                 "ivo://ivoa.net/std/TAPRegExt#features-adql-sets", "UNION"):
             return self._get_union_condition(service)
         else:
@@ -680,7 +680,7 @@ class Spatial(Constraint):
         # have to depend on pymoc, and that's too high a price for
         # something as esoteric as a server that understands
         # MOC-based geometries but does not have a MOC function.
-        if not service.get_tap_cap().get_adql().get_feature(
+        if not service.get_tap_capability().get_adql().get_feature(
                 "ivo://org.gavo.dc/std/exts#extra-adql-keywords", "MOC"):
             raise RegTAPFeatureMissing("Current RegTAP service does not support MOC.")
 
@@ -878,12 +878,12 @@ def build_regtap_query(constraints, service):
 
     Parameters
     ----------
-    constraints : sequence of `Constraint`-s
+    constraints : sequence of ``Constraint``-s
         A sequence of constraints for a RegTAP query.  All of them
         will become part of a conjunction (i.e., all of them have
         to be satisfied for a record to match).
 
-    service : `dal.tap.TAPService`
+    service : `~pyvo.dal.tap.TAPService`
         The RegTAP service the query is supposed to be run on
         (that is relevant because we adapt to the features available
         on given services).

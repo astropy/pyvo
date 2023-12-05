@@ -155,9 +155,9 @@ And to look for tap resources *in* a specific cone, you would do
   ...                 registry.Spatial((SkyCoord("23d +3d"), 3), intersect="enclosed"),
   ...                 includeaux=True) # doctest: +IGNORE_OUTPUT
   <DALResultsTable length=1>
-              ivoid                   res_type       short_name                   res_title                  ...  intf_types  intf_roles          alt_identifier         
-                                                                                                             ...                                                         
-              object                   object          object                       object                   ...    object      object                object             
+              ivoid                   res_type       short_name                   res_title                  ...  intf_types  intf_roles          alt_identifier
+                                                                                                             ...
+              object                   object          object                       object                   ...    object      object                object
   ------------------------------ ----------------- ------------- ------------------------------------------- ... ------------ ---------- --------------------------------
   ivo://cds.vizier/j/apj/835/123 vs:catalogservice J/ApJ/835/123 Globular clusters in NGC 474 from CFHT obs. ... vs:paramhttp        std doi:10.26093/cds/vizier.18350123
 
@@ -546,7 +546,7 @@ RegTAP services using:
   ...   for r in res)))
   http://dc.zah.uni-heidelberg.de/tap
   http://gavo.aip.de/tap
-  http://voparis-rr.obspm.fr:80/tap
+  http://voparis-rr.obspm.fr/tap
   https://vao.stsci.edu/RegTAP/TapService.aspx
 
 

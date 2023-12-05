@@ -261,7 +261,7 @@ class Language(Element):
 
         Returns
         -------
-        A (possibly empty) list of `LanguageFeature` elements
+        A (possibly empty) list of `~pyvo.io.vosi.tapregext.LanguageFeature` elements
         """
         ivoid = ivoid.lower()
         for features in self.languagefeaturelists:
@@ -271,7 +271,7 @@ class Language(Element):
 
     def get_feature(self, ivoid, form):
         """
-        returns the `LanguageFeature` with ivoid and form if present.
+        returns the `~pyvo.io.vosi.tapregext.LanguageFeature` with ivoid and form if present.
 
         We return None rather than raising an error because we expect
         the normal pattern of usage here will be "if feature is present",
@@ -292,7 +292,7 @@ class Language(Element):
 
         Returns
         -------
-        A `LanguageFeature` or None.
+        A `~pyvo.io.vosi.tapregext.LanguageFeature` or None.
         """
         for feature in self.get_feature_list(ivoid):
             if feature.form == form:
@@ -302,7 +302,7 @@ class Language(Element):
 
     def get_udf(self, function_name):
         """
-        returns a `LanguageFeature` corresponding to an ADQL user defined
+        returns a `~pyvo.io.vosi.tapregext.LanguageFeature` corresponding to an ADQL user defined
         function on the server, on None if the UDF is not available.
 
         This is a bit heuristic in that it tries to parse the form, which
@@ -315,7 +315,7 @@ class Language(Element):
             names case-insensitively, as guided by ADQL's case insensitivity.
 
         Returns:
-            A `LanguageFeature` instance or None.
+            A `~pyvo.io.vosi.tapregext.LanguageFeature` instance or None.
         """
         function_name = function_name.lower()
         for udf in self.get_feature_list(

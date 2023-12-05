@@ -105,7 +105,7 @@ def get_RegTAP_service():
     tables, etc.
 
     To switch to a different RegTAP service, use
-    :py:func:`change_RegTAP_service`.
+    :py:func:`choose_RegTAP_service`.
     """
     return tap.TAPService(REGISTRY_BASEURL)
 
@@ -749,7 +749,7 @@ class RegistryResource(dalq.Record):
         Returns
         -------
 
-        ~`pyvo.registry.regtap.Interface`
+        `~pyvo.registry.regtap.Interface`
         """
         if service_type == "web":
             # this works very much differently in the Registry

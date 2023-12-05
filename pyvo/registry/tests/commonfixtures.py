@@ -60,7 +60,7 @@ class _FakeTAPService:
                 return adql_lang
         self.tap_cap = _()
 
-    def get_tap_cap(self):
+    def get_tap_capability(self):
         return self.tap_cap
 
 

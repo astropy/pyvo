@@ -127,13 +127,13 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         if hasattr(self._session, 'update_from_capabilities'):
             self._session.update_from_capabilities(self.capabilities)
 
-    def get_tap_cap(self):
+    def get_tap_capability(self):
         """
         returns the (first) TAP capability of this service.
 
         Returns
         -------
-        A `pyvo.io.vosi.TableAccess` instance.
+        A `~pyvo.io.vosi.tapregext.TableAccess` instance.
         """
         for capa in self.capabilities:
             if isinstance(capa, tr.TableAccess):
@@ -217,7 +217,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             if the property is not exposed by the service
         """
         try:
-            return self.get_tap_cap().outputlimit.default.content
+            return self.get_tap_capability().outputlimit.default.content
         except AttributeError:
             pass
         raise DALServiceError("Default limit not exposed by the service")
@@ -233,7 +233,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             if the property is not exposed by the service
         """
         try:
-            return self.get_tap_cap().outputlimit.hard.content
+            return self.get_tap_capability().outputlimit.hard.content
         except AttributeError:
             pass
         raise DALServiceError("Hard limit not exposed by the service")
@@ -244,7 +244,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         a list of upload methods in form of
         :py:class:`~pyvo.io.vosi.tapregext.UploadMethod` objects
         """
-        return self.get_tap_cap().uploadmethods
+        return self.get_tap_capability().uploadmethods
 
     def run_sync(
             self, query, language="ADQL", maxrec=None, uploads=None,

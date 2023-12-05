@@ -737,28 +737,28 @@ class TestTAPCapabilities:
         svc = TAPService('http://example.com/tap')
         svc.capabilities = []
         with pytest.raises(DALServiceError) as excinfo:
-            svc.get_tap_cap()
+            svc.get_tap_capability()
         assert str(excinfo.value) == ("Invalid TAP service:"
             " Does not expose a tr:TableAccess capability")
 
     def test_no_adql(self):
         svc = TAPService('http://example.com/tap')
-        svc.get_tap_cap()._languages = []
+        svc.get_tap_capability()._languages = []
         with pytest.raises(VOSIError) as excinfo:
-            svc.get_tap_cap().get_adql()
+            svc.get_tap_capability().get_adql()
         assert str(excinfo.value) == ("Invalid TAP service:"
             " Does not declare an ADQL language")
 
     def test_get_adql(self, tapservice):
-        assert tapservice.get_tap_cap().get_adql().name == "ADQL"
+        assert tapservice.get_tap_capability().get_adql().name == "ADQL"
 
     def test_missing_featurelist(self, tapservice):
         assert (
-            tapservice.get_tap_cap().get_adql().get_feature_list("fump")
+            tapservice.get_tap_capability().get_adql().get_feature_list("fump")
             == [])
 
     def test_get_featurelist(self, tapservice):
-        features = tapservice.get_tap_cap().get_adql().get_feature_list(
+        features = tapservice.get_tap_capability().get_adql().get_feature_list(
             "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo")
         assert set(f.form for f in features) == {
             'CENTROID', 'CONTAINS', 'COORD1', 'POLYGON',
@@ -766,20 +766,20 @@ class TestTAPCapabilities:
             'REGION', 'CIRCLE', 'POINT'}
 
     def test_get_missing_feature(self, tapservice):
-        assert tapservice.get_tap_cap().get_adql().get_feature(
+        assert tapservice.get_tap_capability().get_adql().get_feature(
             "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo",
             "Garage") is None
 
     def test_get_feature(self, tapservice):
-        feature = tapservice.get_tap_cap().get_adql().get_feature(
+        feature = tapservice.get_tap_capability().get_adql().get_feature(
             "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo",
             "AREA")
         assert feature.form == "AREA"
         assert feature.description is None
 
     def test_missing_udf(self, tapservice):
-        assert tapservice.get_tap_cap().get_adql().get_udf("duff function") is None
+        assert tapservice.get_tap_capability().get_adql().get_udf("duff function") is None
 
     def test_get_udf(self, tapservice):
-        func = tapservice.get_tap_cap().get_adql().get_udf("IVO_hasword")  # case insensitive!
+        func = tapservice.get_tap_capability().get_adql().get_udf("IVO_hasword")  # case insensitive!
         assert func.form == "ivo_hasword(haystack TEXT, needle TEXT) -> INTEGER"
