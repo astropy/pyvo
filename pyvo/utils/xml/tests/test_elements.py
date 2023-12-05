@@ -5,6 +5,7 @@ Tests for pyvo.utils.xml.elements
 """
 
 import io
+import pytest
 
 from astropy.utils.xml import iterparser
 
@@ -86,7 +87,6 @@ class TestXSIType:
         ).tbase.__class__
         assert found_type.__name__ == "TOther2"
 
-    def test_bad_type(self, recwarn):
-        self._parse_string(b'<tbase xsi:type="ns1:NoSuchType"/>')
-        assert recwarn.pop().message.args == (
-            'Unknown xsi:type ns1:NoSuchType ignored',)
+    def test_bad_type(self):
+        with pytest.warns(match='Unknown xsi:type ns1:NoSuchType ignored'):
+            self._parse_string(b'<tbase xsi:type="ns1:NoSuchType"/>')
