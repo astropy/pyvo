@@ -306,6 +306,7 @@ class VODataServiceTable(Element):
         self._utype = None
         self._type = kwargs.get("type")
         self._version = version
+        self._nrows = None
 
         self._columns = HomogeneousList(TableParam)
         self._foreignkeys = HomogeneousList(ForeignKey)
@@ -382,6 +383,20 @@ class VODataServiceTable(Element):
     @utype.setter
     def utype(self, utype):
         self._utype = utype
+
+    @xmlelement(plain=True, multiple_exc=W09)
+    def nrows(self):
+        """
+        the approximate number of rows in the table.
+
+        This is None if the data provider failed to provide this
+        information.
+        """
+        return self._nrows
+
+    @nrows.setter
+    def nrows(self, nrows):
+        self._nrows = int(nrows)
 
     @xmlattribute
     def type(self):
