@@ -9,6 +9,7 @@
       <title>Test table</title>
       <description>All test data in one table</description>
       <utype>utype</utype>
+      <nrows>30</nrows>
       <column>
         <name>id</name>
         <description>Primary key</description>

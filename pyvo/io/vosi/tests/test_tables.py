@@ -26,6 +26,7 @@ class TestTables:
         assert table.title == "Test table"
         assert table.description == "All test data in one table"
         assert table.utype == "utype"
+        assert table.nrows == 30
 
         col = table.columns[0]
         fkc = table.foreignkeys[0]

@@ -42,6 +42,9 @@
 
 - TAP examples now support the continuation property [#483]
 
+- Adding support for the VODataService 1.2 nrows attribute on table
+  elements [#503]
+
 
 1.4.3 (unreleased)
 ==================
