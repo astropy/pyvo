@@ -179,7 +179,7 @@ class MivotClass:
             lower_value = value
 
         if "bool" in lower_dmtype:
-            if value == "1" or "true" in lower_value:
+            if value == "1" or lower_value == "true" or lower_value is True:
                 return True
             else:
                 return False

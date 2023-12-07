@@ -21,8 +21,8 @@ class ModelViewerLayer1:
     def get_instance_by_role(self, dmrole, all=False):
         """
         Return the instance matching with @dmrole.
-        If all is False, returns the first INSTANCE matching with @dmrole.
-        If all is True, returns a list of all instances matching with @dmrole.
+        If all is False, return the first INSTANCE matching with @dmrole.
+        If all is True, return a list of all instances matching with @dmrole.
 
         Parameters
         ----------
