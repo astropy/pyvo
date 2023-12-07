@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Test for mivot.viewer.model_viewer_layer3.py and mivot.viewer.mivot_class.py
+Test for mivot.viewer.model_viewer_layer3.py and mivot.viewer.mivot_time.py
 """
 import os
 import pytest

@@ -54,7 +54,7 @@ def test_epoch_propagation_sky_coord(m_viewer):
                  pm_ra_cosdec=10 * u.mas / u.yr, pm_dec=-20 * u.mas / u.yr,
                  frame='icrs', obstime=Time(2015.0, format="decimalyear")))
 
-    assert sky_coord_to_compare == sky_coord_to_compare_from_value == epoch_propagation.sky_coordinates()
+    assert sky_coord_to_compare == sky_coord_to_compare_from_value == epoch_propagation.sky_coordinate()
     assert ((sky_coord_to_compare.apply_space_motion(dt=-42 * u.year).ra,
              sky_coord_to_compare.apply_space_motion(dt=-42 * u.year).dec)
             == epoch_propagation.apply_space_motion(dt=-42 * u.year))
@@ -66,7 +66,7 @@ def test_epoch_propagation_sky_coord(m_viewer):
                  l=10 * u.degree, b=10 * u.degree,
                  pm_l_cosb=10 * u.mas / u.yr, pm_b=-20 * u.mas / u.yr,
                  frame='galactic', obstime=Time(2015.0, format="decimalyear")))
-    assert epoch_propagation.sky_coordinates() == sky_coord_to_compare_galactic
+    assert epoch_propagation.sky_coordinate() == sky_coord_to_compare_galactic
 
     # Test with the frame fk4
     epoch_propagation.frame = "fk4"
@@ -77,13 +77,13 @@ def test_epoch_propagation_sky_coord(m_viewer):
                  ra=10 * u.degree, dec=10 * u.degree,
                  pm_ra_cosdec=10 * u.mas / u.yr, pm_dec=-20 * u.mas / u.yr,
                  frame='fk4', obstime=Time(2015.0, format="decimalyear"), equinox='J2000.0'))
-    assert epoch_propagation.sky_coordinates() == sky_coord_to_compare_fk4
+    assert epoch_propagation.sky_coordinate() == sky_coord_to_compare_fk4
 
     with pytest.raises(
             SkyCoordParameterException,
             match="The equinox attribute is not in the SkyCoord constructor for the frame galactic"):
         epoch_propagation.frame = "galactic"
-        epoch_propagation.sky_coordinates()
+        epoch_propagation.sky_coordinate()
 
 
 def test_epoch_propagation_time(m_viewer):

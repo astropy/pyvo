@@ -5,7 +5,6 @@ astropy.coordinates.sky_coordinate.SkyCoord and
 astropy.coordinates.sky_coordinate.SkyCoord.apply_space_motion.
 """
 import numpy as np
-import re
 from astropy import time
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, frame_transform_graph
@@ -13,8 +12,8 @@ import astropy.units as u
 
 from pyvo.mivot.utils.exceptions import UnitException, TimeFormatException, SkyCoordParameterException
 from pyvo.mivot.viewer.mivot_class import MivotClass
-from pyvo.mivot.utils.vocabulary import MangoRoles, EpochPropagation_fields, regex_patterns, \
-    skycoord_param_fk4, skycoord_param_galactic, skycoord_param_default
+from pyvo.mivot.utils.vocabulary import MangoRoles, EpochPropagation_fields, \
+    skycoord_param_fk4_fk5, skycoord_param_galactic, skycoord_param_default, regex_format
 from pyvo.utils.prototype import prototype_feature
 
 
@@ -24,6 +23,7 @@ class EpochPropagation:
     This class allows computing the position of a SkyCoord object at a new time dt.
     It offers to build a SkyCoord object from the data row of the MivotClass, and to apply the space motion.
     """
+
     def __init__(self, row_view):
         """
         Constructor of the EpochPropagation class.
@@ -31,7 +31,7 @@ class EpochPropagation:
 
         Parameters
         ----------
-        row_view : ~`pyvo.mivot.viewer.mivot_class.MivotClass`
+        row_view : ~`pyvo.mivot.viewer.mivot_time.MivotClass`
             The data row as a MivotClass.
         """
         self.longitude = None
@@ -47,12 +47,14 @@ class EpochPropagation:
         self.parallax = None
         self.parallax_unit = None
         self.epoch = None
+        self.epoch_unit = None
         self.equinox = None
+        self.equinox_unit = None
         self.frame = None
         self.pmCosDeltApplied = None
         self.reference_system = None
         self._updateEpoch(row_view)
-        self._sky_coord = self.sky_coordinates()
+        self._sky_coord = None
 
     def _updateEpoch(self, mivot_class, type_epoch=False):
         """
@@ -61,7 +63,7 @@ class EpochPropagation:
 
         Parameters
         ----------
-        mivot_class : ~`pyvo.mivot.viewer.mivot_class.MivotClass`
+        mivot_class : ~`pyvo.mivot.viewer.mivot_time.MivotClass`
             The data row as a MivotClass.
         type_epoch : bool, optional
             If True, it means that the current MivotClass comes from an EpochPosition instance.
@@ -84,7 +86,8 @@ class EpochPropagation:
                             self._updateEpoch(value)
 
                     elif 'value' in value.__dict__:
-                        if mivot_class.dmtype == 'EpochPosition' or type_epoch is True:
+                        if ((mivot_class.dmtype == 'EpochPosition' or type_epoch is True)
+                                and value.value is not None):
                             self._fill_epoch_propagation(mivot_class, key.lower(), value.__dict__)
                         else:
                             self._updateEpoch(value)
@@ -131,10 +134,14 @@ class EpochPropagation:
             self.parallax_unit = self._mivot_unit_to_astropy_unit(**value)
 
         elif key_low.endswith(MangoRoles.EPOCH):
-            self.epoch = self._mivot_time_to_astropy_time(**value)
+            self.epoch = value["value"]
+            if 'astropy_unit_time' in value.keys():  # If the format was found in the MivotBlock class
+                self.epoch_unit = value["astropy_unit_time"]
 
         elif key_low.endswith(MangoRoles.EQUINOX):
-            self.equinox = self._mivot_time_to_astropy_time(**value)
+            self.equinox = value["value"]
+            if 'astropy_unit_time' in value.keys():  # If the format was found in the MivotBlock class
+                self.equinox_unit = value["astropy_unit_time"]
 
         elif key_low.endswith(MangoRoles.PMCOSDELTAPPLIED):
             self.pmCosDeltApplied = value["value"]
@@ -161,13 +168,16 @@ class EpochPropagation:
         else:
             raise UnitException("Can't find the Astropy Unit equivalence for {}".format(mivot_class["value"]))
 
-    def _mivot_time_to_astropy_time(self, **mivot_class):
+    def _mivot_time_to_astropy_time(self, mivot_time):
         """
         Convert a string time from MivotClass to an astropy time.
+        As regular expressions demand a lot of time, we try to eliminate the most easy cases first
+        (decimalyear, mjd, jyear_str, byear_str).
+        Then we look with regular expressions for other formats (see regex_patterns in vocabulary.py).
 
         Parameters
         ----------
-        mivot_class : dict
+        mivot_time : int or float or str
             The dictionary of the MivotClass.
 
         Returns
@@ -175,18 +185,26 @@ class EpochPropagation:
         ~`astropy.time.Time`
             The astropy time.
         """
-        if 'astropy_unit_time' in mivot_class.keys():
-            return Time(mivot_class["value"], format=mivot_class["astropy_unit_time"])
-        else:
-            for format_name, regex_pattern in regex_patterns.items():
-                regex = re.compile(regex_pattern)
-                match = regex.fullmatch(str(mivot_class["value"]))
-                if match:
-                    return time.Time(mivot_class["value"], format=format_name)
-        raise TimeFormatException("Can't find the Astropy Time equivalence for {}"
-                                  .format(mivot_class["value"]))
+        if type(mivot_time) is float:
+            if 1500.0 < mivot_time < 3000.0:
+                return Time(mivot_time, format="decimalyear")
+            elif mivot_time > 45000:
+                return Time(mivot_time, format="mjd")
+        elif type(mivot_time) is str:
+            if mivot_time.startswith("J"):
+                return Time(mivot_time, format="jyear_str")
+            elif mivot_time.startswith("B"):
+                return Time(mivot_time, format="byear_str")
 
-    def sky_coordinates(self):
+        else:
+            for format_name, regex in regex_format.items():
+                match = regex.fullmatch(str(mivot_time))
+                if match:
+                    return time.Time(mivot_time, format=format_name)
+        raise TimeFormatException("Can't find the Astropy Time equivalence for {}"
+                                  .format(mivot_time))
+
+    def sky_coordinate(self):
         """
         Return a SkyCoord object from the REFERENCE of the XML object.
         Create first a dictionary of arguments to pass to the SkyCoord constructor.
@@ -194,8 +212,8 @@ class EpochPropagation:
         """
         kwargs = {}
         map_coord_names = None
-        if self.frame == 'fk4':
-            map_coord_names = skycoord_param_fk4
+        if self.frame == 'fk4' or self.frame == 'fk5':
+            map_coord_names = skycoord_param_fk4_fk5
         elif self.frame == 'galactic':
             map_coord_names = skycoord_param_galactic
         else:
@@ -206,21 +224,30 @@ class EpochPropagation:
                 if elm not in map_coord_names.keys():
                     raise SkyCoordParameterException("The {} attribute is not in the SkyCoord constructor "
                                                      "for the frame {}".format(elm, self.frame))
-                elif elm in ('frame', 'epoch', 'equinox'):
-                    kwargs[map_coord_names[elm]] = getattr(self, elm)
+                elif elm == 'frame':
+                    kwargs[elm] = getattr(self, elm)
+                elif elm in ('epoch', 'equinox'):
+                    if getattr(self, elm + "_unit") is not None:
+                        kwargs[map_coord_names[elm]] =(
+                            Time(getattr(self, elm), format=getattr(self, elm + "_unit")))
+                    else:
+                        kwargs[map_coord_names[elm]] = self._mivot_time_to_astropy_time(getattr(self, elm))
                 elif elm == 'pmLongitude':
                     kwargs[map_coord_names[elm]] = self._apply_cos_delta() * getattr(self, elm + "_unit")
                 else:
                     kwargs[map_coord_names[elm]] = getattr(self, elm) * getattr(self, elm + "_unit")
 
-        if self.parallax_unit != u.pc:  # If the parallax is not in parsec, we convert it
+        # If the parallax is not in parsec, we convert it
+        if self.parallax is not None and self.parallax > 0 and self.parallax_unit != u.pc:
             kwargs["distance"] = (self.parallax * self.parallax_unit).to(u.parsec, equivalencies=u.parallax())
 
         if self.reference_system is not None:
-            return SkyCoord(**kwargs).radial_velocity_correction(self.reference_system, self.epoch)
+            self._sky_coord = SkyCoord(**kwargs).radial_velocity_correction(self.reference_system, self.epoch)
+            return self._sky_coord
 
         else:
-            return SkyCoord(**kwargs)
+            self._sky_coord = SkyCoord(**kwargs)
+            return self._sky_coord
 
     def _apply_cos_delta(self):
         """
@@ -249,7 +276,7 @@ class EpochPropagation:
         dt : float
             Time in years.
         """
-        retour = self.sky_coordinates().apply_space_motion(dt=dt)
+        retour = self.sky_coordinate().apply_space_motion(dt=dt)
         return retour.ra, retour.dec
 
     @property

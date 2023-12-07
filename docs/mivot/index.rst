@@ -65,6 +65,8 @@ Example for epoch propagation
     past_ra, past_dec : (<Longitude 9.9998763 deg>, <Latitude 10.00024364 deg>)
     future_ra, future_dec : (<Longitude 10.00000563 deg>, <Latitude 9.99998891 deg>)
 
+We implement the epoch propagation by using astropy functions and the data provided by the MIVOT block.
+
 Implementation
 ==============
 The implementation relies on the Astropy's write and read annotation modules (PR#15390),

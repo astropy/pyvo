@@ -2,6 +2,7 @@
 """
 MivotClass keep as an attribute dictionary __dict__ all XML objects.
 """
+import numpy
 from astropy import time
 
 from pyvo.mivot.utils.vocabulary import unit_mapping
@@ -54,7 +55,7 @@ class MivotClass:
         ~`astropy.coordinates.sky_coordinate.SkyCoord`
             The SkyCoord object.
         """
-        return self.epoch_propagation.sky_coordinates()
+        return self.epoch_propagation.sky_coordinate()
 
     def _create_mivot_class(self, **kwargs):
         """
@@ -81,7 +82,11 @@ class MivotClass:
                     setattr(self, self._remove_model_name(key), MivotClass(**value))
 
             else:  # ATTRIBUTE
-                setattr(self, self._remove_model_name(key), self._remove_model_name(value))
+                if key == 'value':  # We cast the value read in the row
+                    setattr(self, self._remove_model_name(key),
+                            MivotClass.cast_type_value(value, getattr(self, 'dmtype')))
+                else:
+                    setattr(self, self._remove_model_name(key), self._remove_model_name(value))
                 if key == 'unit':  # We convert the unit to astropy unit or to astropy time format if possible
                     if value in unit_mapping.keys():
                         setattr(self, "astropy_unit", unit_mapping[value])
@@ -113,7 +118,8 @@ class MivotClass:
             else:
                 if key == 'value':
                     if ref is not None and ref != 'null':
-                        setattr(self, self._remove_model_name(key), row[ref])
+                        setattr(self, self._remove_model_name(key),
+                                MivotClass.cast_type_value(row[ref], getattr(self, 'dmtype')))
 
     def _remove_model_name(self, value, role_instance=False):
         """
@@ -144,6 +150,46 @@ class MivotClass:
                 return value_after_underscore
 
             return value  # Returns unmodified string if "_" wasn't found
+        else:
+            return value
+
+    @staticmethod
+    def cast_type_value(value, dmtype):
+        """
+        Cast the value of an ATTRIBUTE based on its dmtype.
+        As the type of ATTRIBUTE values returned in the dictionary is string by default,
+        this function is used to cast them based on their dmtype.
+
+        Parameters
+        ----------
+        value : str
+            The value of the ATTRIBUTE.
+        dmtype : str
+            The dmtype of the ATTRIBUTE.
+
+        Returns
+        -------
+        Union[bool, float, str, None]
+            The cast value based on the dmtype.
+        """
+        lower_dmtype = dmtype.lower()
+        if type(value) is str:
+            lower_value = value.lower()
+        else:
+            lower_value = value
+
+        if "bool" in lower_dmtype:
+            if value == "1" or "true" in lower_value:
+                return True
+            else:
+                return False
+        elif lower_value in ('notset', 'noset', 'null', 'none', 'nan') or value is None:
+            return None
+        elif (isinstance(value, numpy.ndarray) or isinstance(value, numpy.ma.core.MaskedConstant)
+              or value == '--'):
+            return None
+        elif "real" in lower_dmtype or "double" in lower_dmtype or "float" in lower_dmtype:
+            return float(value)
         else:
             return value
 

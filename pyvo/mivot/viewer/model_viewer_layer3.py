@@ -12,7 +12,7 @@ class ModelViewerLayer3:
     """
     The ModelViewerLayer3 take as an argument a xml INSTANCE and give from this xml a nested
     dictionary that represents all objects of the xml INSTANCE with their hierarchy.
-    From this dictionary, we build a `~pyvo.mivot.viewer.mivot_class.MivotClass` object
+    From this dictionary, we build a `~pyvo.mivot.viewer.mivot_time.MivotClass` object
     which is a dictionary with only essential information used to process data.
     """
 
@@ -24,7 +24,7 @@ class ModelViewerLayer3:
 
     def get_row_instance(self):
         """
-        Return the dictionary of the `~pyvo.mivot.viewer.mivot_class.MivotClass`,
+        Return the dictionary of the `~pyvo.mivot.viewer.mivot_time.MivotClass`,
         i.e., the dictionary of all objects of the xml instance. It can be easily navigated.
         """
         return self.mivot_class.__dict__
@@ -90,7 +90,7 @@ class ModelViewerLayer3:
         if child.get('dmtype') is not None:
             attribute['dmtype'] = child.get("dmtype")
         if child.get("value") is not None:
-            attribute['value'] = self._cast_type_value(child.get("value"), child.get("dmtype"))
+            attribute['value'] = MivotClass.cast_type_value(child.get("value"), child.get("dmtype"))
         else:
             attribute['value'] = None
         if child.get("unit") is not None:
@@ -122,35 +122,3 @@ class ModelViewerLayer3:
         for child_coll in child:
             retour.append(self._to_dict(child_coll))
         return retour
-
-    def _cast_type_value(self, value, dmtype):
-        """
-        Cast the value of an ATTRIBUTE based on its dmtype.
-        As the type of ATTRIBUTE values returned in the dictionary is string by default,
-        this function is used to cast them based on their dmtype.
-
-        Parameters
-        ----------
-        value : str
-            The value of the ATTRIBUTE.
-        dmtype : str
-            The dmtype of the ATTRIBUTE.
-
-        Returns
-        -------
-        Union[bool, float, str, None]
-            The casted value based on the dmtype.
-        """
-        lower_dmtype = dmtype.lower()
-        lower_value = value.lower()
-        if "bool" in lower_dmtype:
-            if value == "1" or "true" in lower_value:
-                return True
-            else:
-                return False
-        elif lower_value in ('notset', 'noset', 'null', 'none'):
-            return None
-        elif "real" in lower_dmtype or "double" in lower_dmtype or "float" in lower_dmtype:
-            return float(value)
-        else:
-            return value
