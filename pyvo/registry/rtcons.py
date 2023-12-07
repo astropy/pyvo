@@ -236,6 +236,7 @@ class Freetext(Constraint):
                 "ivo://ivoa.net/std/TAPRegExt#features-adql-sets", "UNION"):
             return self._get_union_condition(service)
         else:
+            self._extra_tables = ["rr.res_subject"]
             return self._get_or_condition(service)
 
     def _get_union_condition(self, service):
