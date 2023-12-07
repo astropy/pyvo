@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Test for mivot.seekers.annotation_seeker.py
+Test for mivot.features.epoch_propagation.py
 """
 import os
 
@@ -11,7 +11,7 @@ from astropy.time import Time
 
 from pyvo.mivot.utils.exceptions import TimeFormatException, UnitException, SkyCoordParameterException
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot.viewer.model_viewer import ModelViewer
+from pyvo.mivot.viewer.model_viewer_level1 import ModelViewerLevel1
 from pyvo.utils import activate_features
 
 activate_features('MIVOT')
@@ -23,7 +23,8 @@ def test_epoch_propagation(m_viewer):
 
     row_view = m_viewer.get_next_row_view()
     epoch_propagation = row_view.epoch_propagation
-    assert epoch_propagation._sky_coord == row_view.sky_coordinate
+
+    assert epoch_propagation.sky_coordinate() == row_view.sky_coordinate
 
     assert epoch_propagation.ref_long == 10.0
     assert epoch_propagation.ref_lat == 10.0
@@ -71,7 +72,6 @@ def test_epoch_propagation_sky_coord(m_viewer):
     # Test with the frame fk4
     epoch_propagation.frame = "fk4"
     epoch_propagation.equinox = 'J2000.0'
-    epoch_propagation.equinox_unit = "decimalyear"
     sky_coord_to_compare_fk4 = (
         SkyCoord(distance=199.99999999999997 * u.pc, radial_velocity=1234 * u.km / u.s,
                  ra=10 * u.degree, dec=10 * u.degree,
@@ -100,32 +100,27 @@ def test_epoch_propagation_time(m_viewer):
                         "value": 2015.0,
                         "unit": "year",
                         "ref": None}
-    assert epoch_propagation._mivot_time_to_astropy_time(**mivot_time_epoch).format == 'decimalyear'
+    assert epoch_propagation._mivot_time_to_astropy_time(mivot_time_epoch["value"]).format == 'decimalyear'
 
     mivot_time_epoch["value"] = 51544.0
-    assert epoch_propagation._mivot_time_to_astropy_time(**mivot_time_epoch).format == 'mjd'
+    assert epoch_propagation._mivot_time_to_astropy_time(mivot_time_epoch["value"]).format == 'mjd'
     mivot_time_epoch["value"] = 'B1950.0'
-    assert epoch_propagation._mivot_time_to_astropy_time(**mivot_time_epoch).format == 'byear_str'
+    assert epoch_propagation._mivot_time_to_astropy_time(mivot_time_epoch["value"]).format == 'byear_str'
     mivot_time_epoch["value"] = 'J2000.0'
-    assert epoch_propagation._mivot_time_to_astropy_time(**mivot_time_epoch).format == 'jyear_str'
+    assert epoch_propagation._mivot_time_to_astropy_time(mivot_time_epoch["value"]).format == 'jyear_str'
     mivot_time_epoch["value"] = '2000:001:00:00:00.000'
-    assert epoch_propagation._mivot_time_to_astropy_time(**mivot_time_epoch).format == 'yday'
+    assert epoch_propagation._mivot_time_to_astropy_time(mivot_time_epoch["value"]).format == 'yday'
     mivot_time_epoch["value"] = '2000-01-01 00:00:00.000'
-    assert epoch_propagation._mivot_time_to_astropy_time(**mivot_time_epoch).format == 'iso'
+    assert epoch_propagation._mivot_time_to_astropy_time(mivot_time_epoch["value"]).format == 'iso'
     mivot_time_epoch["value"] = '2000-01-01T00:00:00.000'
-    assert epoch_propagation._mivot_time_to_astropy_time(**mivot_time_epoch).format == 'isot'
+    assert epoch_propagation._mivot_time_to_astropy_time(mivot_time_epoch["value"]).format == 'isot'
     mivot_time_epoch["value"] = {'year': 2010, 'month': 3, 'day': 1}
-    assert epoch_propagation._mivot_time_to_astropy_time(**mivot_time_epoch).format == 'ymdhms'
-
-    mivot_time_epoch["value"] = 2451544.5
-    mivot_time_epoch["astropy_unit_time"] = 'jd'
-    assert epoch_propagation._mivot_time_to_astropy_time(**mivot_time_epoch).format == 'jd'
+    assert epoch_propagation._mivot_time_to_astropy_time(mivot_time_epoch["value"]).format == 'ymdhms'
 
     with pytest.raises(TimeFormatException,
                        match="Can't find the Astropy Time equivalence for 2000-01-0100:00:00.000"):
         mivot_time_epoch["value"] = '2000-01-0100:00:00.000'
-        del mivot_time_epoch["astropy_unit_time"]
-        epoch_propagation._mivot_time_to_astropy_time(**mivot_time_epoch)
+        epoch_propagation._mivot_time_to_astropy_time(mivot_time_epoch["value"])
 
 
 def test_epoch_propagation_unit(m_viewer):
@@ -151,7 +146,7 @@ def m_viewer(data_path):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     votable = os.path.join(data_path, "data/simple-annotation-votable.xml")
-    return ModelViewer(votable_path=votable)
+    return ModelViewerLevel1(votable_path=votable)
 
 
 @pytest.fixture

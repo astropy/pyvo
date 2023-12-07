@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-ModelViewerLayer1 provides several getters on an XML instance.
+ModelViewerLevel2 provides several getters on an XML instance.
 """
 from pyvo.mivot.utils.exceptions import MivotElementNotFound
 from pyvo.mivot.utils.xpath_utils import XPath
@@ -8,15 +8,15 @@ from pyvo.utils.prototype import prototype_feature
 
 
 @prototype_feature('MIVOT')
-class ModelViewerLayer1:
+class ModelViewerLevel2:
     """
-    The ModelViewerLayer1 takes an instance of the `~pyvo.mivot.viewer.model_viewer.ModelViewer`
+    The ModelViewerLevel2 takes an instance of the `~pyvo.mivot.viewer.model_viewer_level1.ModelViewerLevel1`
     object as a parameter and provides multiple getters on the XML that already has references
-    resolved by default with `~pyvo.mivot.viewer.model_viewer.ModelViewer._get_model_view()`.
+    resolved by default with `~pyvo.mivot.viewer.model_viewer_level1.ModelViewerLevel1._get_model_view()`.
     """
-    def __init__(self, model_viewer):
-        self.model_viewer = model_viewer
-        self._xml_view = model_viewer._get_model_view()
+    def __init__(self, model_viewer_level1):
+        self.model_viewer_level1 = model_viewer_level1
+        self._xml_view = model_viewer_level1._get_model_view()
 
     def get_instance_by_role(self, dmrole, all=False):
         """
@@ -45,18 +45,18 @@ class ModelViewerLayer1:
             If dmrole is not found.
         """
         if all is False:
-            if len(XPath.x_path(self.model_viewer._get_model_view(),
+            if len(XPath.x_path(self.model_viewer_level1._get_model_view(),
                                 f'.//INSTANCE[@dmrole="{dmrole}"]')) != 0:
-                for ele in XPath.x_path(self.model_viewer._get_model_view(),
+                for ele in XPath.x_path(self.model_viewer_level1._get_model_view(),
                                         f'.//INSTANCE[@dmrole="{dmrole}"]'):
                     return ele
             else:
                 raise MivotElementNotFound(f"Cannot find dmrole {dmrole} in any instances of the VOTable")
         elif all is True:
-            if len(XPath.x_path(self.model_viewer._get_model_view(),
+            if len(XPath.x_path(self.model_viewer_level1._get_model_view(),
                                 f'.//INSTANCE[@dmrole="{dmrole}"]')) != 0:
                 ele = []
-                for elem in XPath.x_path(self.model_viewer._get_model_view(),
+                for elem in XPath.x_path(self.model_viewer_level1._get_model_view(),
                                          f'.//INSTANCE[@dmrole="{dmrole}"]'):
                     ele.append(elem)
                 if ele:
@@ -93,19 +93,19 @@ class ModelViewerLayer1:
             If dmtype is not found.
         """
         if all is False:
-            if len(XPath.x_path(self.model_viewer._get_model_view(),
+            if len(XPath.x_path(self.model_viewer_level1._get_model_view(),
                                 f'.//INSTANCE[@dmtype="{dmtype}"]')) != 0:
-                for ele in XPath.x_path(self.model_viewer._get_model_view(),
+                for ele in XPath.x_path(self.model_viewer_level1._get_model_view(),
                                         f'.//INSTANCE[@dmtype="{dmtype}"]'):
                     if ele is not None:
                         return ele
             else:
                 raise MivotElementNotFound(f"Cannot find dmtype {dmtype} in any instances of the VOTable")
         elif all is True:
-            if len(XPath.x_path(self.model_viewer._get_model_view(),
+            if len(XPath.x_path(self.model_viewer_level1._get_model_view(),
                                 f'.//INSTANCE[@dmtype="{dmtype}"]')) != 0:
                 ele = []
-                for elem in XPath.x_path(self.model_viewer._get_model_view(),
+                for elem in XPath.x_path(self.model_viewer_level1._get_model_view(),
                                          f'.//INSTANCE[@dmtype="{dmtype}"]'):
                     ele.append(elem)
                 if ele:
@@ -142,18 +142,18 @@ class ModelViewerLayer1:
             If dmrole is not found.
         """
         if all is False:
-            if len(XPath.x_path(self.model_viewer._get_model_view(),
+            if len(XPath.x_path(self.model_viewer_level1._get_model_view(),
                                 f'.//COLLECTION[@dmrole="{dmrole}"]')) != 0:
-                for ele in XPath.x_path(self.model_viewer._get_model_view(),
+                for ele in XPath.x_path(self.model_viewer_level1._get_model_view(),
                                         f'.//COLLECTION[@dmrole="{dmrole}"]'):
                     return ele
             else:
                 raise MivotElementNotFound(f"Cannot find dmrole {dmrole} in any collections of the VOTable")
         elif all is True:
-            if len(XPath.x_path(self.model_viewer._get_model_view(),
+            if len(XPath.x_path(self.model_viewer_level1._get_model_view(),
                                 f'.//COLLECTION[@dmrole="{dmrole}"]')) != 0:
                 ele = []
-                for elem in XPath.x_path(self.model_viewer._get_model_view(),
+                for elem in XPath.x_path(self.model_viewer_level1._get_model_view(),
                                          f'.//COLLECTION[@dmrole="{dmrole}"]'):
                     ele.append(elem)
                 if ele:

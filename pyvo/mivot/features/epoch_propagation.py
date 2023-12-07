@@ -195,14 +195,12 @@ class EpochPropagation:
                 return Time(mivot_time, format="jyear_str")
             elif mivot_time.startswith("B"):
                 return Time(mivot_time, format="byear_str")
-
-        else:
-            for format_name, regex in regex_format.items():
-                match = regex.fullmatch(str(mivot_time))
-                if match:
-                    return time.Time(mivot_time, format=format_name)
+        for format_name, regex in regex_format.items():
+            match = regex.fullmatch(str(mivot_time))
+            if match:
+                return time.Time(mivot_time, format=format_name)
         raise TimeFormatException("Can't find the Astropy Time equivalence for {}"
-                                  .format(mivot_time))
+                              .format(mivot_time))
 
     def sky_coordinate(self):
         """
@@ -228,7 +226,7 @@ class EpochPropagation:
                     kwargs[elm] = getattr(self, elm)
                 elif elm in ('epoch', 'equinox'):
                     if getattr(self, elm + "_unit") is not None:
-                        kwargs[map_coord_names[elm]] =(
+                        kwargs[map_coord_names[elm]] = (
                             Time(getattr(self, elm), format=getattr(self, elm + "_unit")))
                     else:
                         kwargs[map_coord_names[elm]] = self._mivot_time_to_astropy_time(getattr(self, elm))

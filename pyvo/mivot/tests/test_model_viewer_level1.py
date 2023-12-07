@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Test for mivot.viewer.model_viewer.py
+Test for mivot.viewer.model_viewer_level1.py
 """
 import os
 import pytest
@@ -8,20 +8,20 @@ import re
 from pyvo.mivot.utils.constant import Constant
 from pyvo.mivot.utils.dict_utils import DictUtils
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot.viewer.model_viewer import ModelViewer
+from pyvo.mivot.viewer.model_viewer_level1 import ModelViewerLevel1
 from pyvo.utils.prototype import activate_features
 from astropy import version as astropy_version
 activate_features('MIVOT')
 
 
-def test_model_viewer_constructor(data_path):
+def test_model_viewer_level1_constructor(data_path):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     votable = os.path.join(data_path, "data/input/test.1.xml")
 
     with (pytest.raises(TypeError, match="'<' not supported between instances of 'str' and 'int'")
           and pytest.raises(Exception, match="Resource #1 is not found")):
-        ModelViewer(votable, resource_number=1)
+        ModelViewerLevel1(votable, resource_number=1)
 
 
 def test_first_instance_row_view(data_path):
@@ -31,7 +31,7 @@ def test_first_instance_row_view(data_path):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     votable = os.path.join(data_path, "data/test_first_instance.xml")
-    m_viewer = ModelViewer(votable_path=votable)
+    m_viewer = ModelViewerLevel1(votable_path=votable)
     m_viewer.get_next_row()
     assert m_viewer.get_first_instance("one_instance") == "one_instance"
     assert m_viewer.get_first_instance("coll_and_instances") == "first"
@@ -44,10 +44,10 @@ def test_first_instance_row_view(data_path):
     assert m_viewer.get_next_row_view() is None
 
 
-def test_model_viewer_table_ref(m_viewer):
+def test_model_viewer_level1_table_ref(m_viewer):
     """
-    Test if the model_viewer can find each table_ref and connect to the right table_ref.
-    Test if the model_viewer can find each models.
+    Test if the model_viewer_level1 can find each table_ref and connect to the right table_ref.
+    Test if the model_viewer_level1 can find each models.
     """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
@@ -68,9 +68,9 @@ def test_model_viewer_table_ref(m_viewer):
                 'ivoa': 'https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml'})
 
 
-def test_model_viewer_global_getters(m_viewer, data_path):
+def test_model_viewer_level1_global_getters(m_viewer, data_path):
     """
-    Test each getter of the model_viewer specific for the GLOBALS.
+    Test each getter of the model_viewer_level1 specific for the GLOBALS.
     """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
@@ -103,7 +103,7 @@ def test_check_version(data_path):
         with pytest.raises(Exception,
                            match=f"Astropy version {astropy_version.version} "
                                  f"is below the required version 6.0 for the use of MIVOT."):
-            ModelViewer(votable_path=votable)
+            ModelViewerLevel1(votable_path=votable)
     if astropy_version.version is None:
         assert check_astropy_version() is False
     elif astropy_version.version < '6.0':

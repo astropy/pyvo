@@ -12,7 +12,7 @@ from pyvo.utils.prototype import prototype_feature
 @prototype_feature('MIVOT')
 class MivotClass:
     """
-    MIVOT class is a dictionary (__dict__) with only essential information of the ModelViewerLayer3._dict.
+    MIVOT class is a dictionary (__dict__) with only essential information of the ModelViewerLevel3._dict.
     The dictionary keeps the hierarchy of the XML :
     "key" : {not a leaf} means key is the dmtype of an INSTANCE
     "key" : {leaf}       means key is the dmrole of an ATTRIBUTE
@@ -59,7 +59,7 @@ class MivotClass:
 
     def _create_mivot_class(self, **kwargs):
         """
-        Recursively initialize the MIVOT class with the dictionary of the XML object got in ModelViewerLayer3.
+        Recursively initialize the MIVOT class with the dictionary of the XML object got in ModelViewerLevel3.
         For the unit of the ATTRIBUTE, we add the astropy unit or the astropy time equivalence by comparing
         the value of the unit with values in time.TIME_FORMATS.keys() which is the list of time formats.
         We do the same with the unit_mapping dictionary, which is the list of astropy units.
@@ -118,6 +118,7 @@ class MivotClass:
             else:
                 if key == 'value':
                     if ref is not None and ref != 'null':
+                        print(type(row[ref]), row[ref])
                         setattr(self, self._remove_model_name(key),
                                 MivotClass.cast_type_value(row[ref], getattr(self, 'dmtype')))
 
@@ -172,6 +173,8 @@ class MivotClass:
         Union[bool, float, str, None]
             The cast value based on the dmtype.
         """
+        if type(value) is numpy.float32 or type(value) is numpy.float64:
+            return value
         lower_dmtype = dmtype.lower()
         if type(value) is str:
             lower_value = value.lower()

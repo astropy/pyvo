@@ -21,8 +21,8 @@ from pyvo.mivot.seekers.resource_seeker import ResourceSeeker
 from pyvo.mivot.seekers.table_iterator import TableIterator
 from pyvo.mivot.features.static_reference_resolver import StaticReferenceResolver
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot.viewer.model_viewer_layer1 import ModelViewerLayer1
-from pyvo.mivot.viewer.model_viewer_layer3 import ModelViewerLayer3
+from pyvo.mivot.viewer.model_viewer_level2 import ModelViewerLevel2
+from pyvo.mivot.viewer.model_viewer_level3 import ModelViewerLevel3
 from pyvo.utils.prototype import prototype_feature
 # Use defusedxml only if already present in order to avoid a new depency.
 try:
@@ -32,22 +32,22 @@ except ImportError:
 
 
 @prototype_feature('MIVOT')
-class ModelViewer:
+class ModelViewerLevel1:
     """
-    ModelViewer is a PyVO table wrapper aiming at providing
+    ModelViewerLevel1 is a PyVO table wrapper aiming at providing
     a model view on VOTable data read with usual tools.
 
     Standard usage applied to data rows:
         .. code-block:: python
         data_path = os.path.dirname(os.path.realpath(__file__))
         votable = os.path.join(data_path, "any_votable.xml")
-        m_viewer = ModelViewer(votable)
+        m_viewer = ModelViewerLevel1(votable)
         row_view = m_viewer.get_next_row_view()
     """
 
     def __init__(self, votable_path, tableref=None, resource_number=None):
         """
-        Constructor of the ModelViewer class.
+        Constructor of the ModelViewerLevel1 class.
 
         Parameters
         ----------
@@ -78,8 +78,8 @@ class ModelViewer:
             self._annotation_seeker = None
             self._mapping_block = None
             self._mapped_tables = None
-            self._model_viewer_layer1 = None
-            self._model_viewer_layer3 = None
+            self._model_viewer_level2 = None
+            self._model_viewer_level3 = None
 
             self._set_resource(resource_number)
             self._set_mapping_block()
@@ -94,10 +94,10 @@ class ModelViewer:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        print("ModelViewer closing..")
+        print("ModelViewerLevel1 closing..")
 
     def close(self):
-        print("ModelViewer is closed")
+        print("ModelViewerLevel1 is closed")
 
     @property
     def votable(self):
@@ -254,14 +254,14 @@ class ModelViewer:
         self._squash_join_and_references()
         self._set_column_indices()
         self._set_column_units()
-        # Reset the model viewer layers on table connection
-        self._model_viewer_layer1 = None
-        self._model_viewer_layer3 = None
+        # Reset the model viewer levels on table connection
+        self._model_viewer_level2 = None
+        self._model_viewer_level3 = None
 
     def _get_model_view(self, resolve_ref=True):
         """
         Return an XML model view of the last read row.
-        This function resolves references by default. It is called in the ModelViewerLayer1.
+        This function resolves references by default. It is called in the ModelViewerLevel2.
 
         Parameters
         ----------
@@ -337,7 +337,7 @@ class ModelViewer:
 
     def get_next_row_view(self):
         """
-        Private method that builds and returns a new access layer on the model view,
+        Private method that builds and returns a new access level on the model view,
         creating an object that contains all INSTANCE and ATTRIBUTE as a dictionary.
 
         Returns
@@ -349,14 +349,14 @@ class ModelViewer:
         if self._current_data_row is None:
             return None
 
-        if self._model_viewer_layer3 is None:
-            self._model_viewer_layer1 = ModelViewerLayer1(self)
-            instance = self._model_viewer_layer1.get_instance_by_type(self.get_first_instance())
-            self._model_viewer_layer3 = ModelViewerLayer3(instance)
+        if self._model_viewer_level3 is None:
+            self._model_viewer_level2 = ModelViewerLevel2(self)
+            instance = self._model_viewer_level2.get_instance_by_type(self.get_first_instance())
+            self._model_viewer_level3 = ModelViewerLevel3(instance)
 
-        self._model_viewer_layer3.mivot_class.update_mivot_class(self._current_data_row)
+        self._model_viewer_level3.mivot_class.update_mivot_class(self._current_data_row)
 
-        return self._model_viewer_layer3.mivot_class
+        return self._model_viewer_level3.mivot_class
 
     def _assert_table_is_connected(self):
         assert self._connected_table is not None, "Operation failed: no connected data table"
