@@ -460,6 +460,9 @@ class TestTAPService:
 
         assert list(vositables.keys()) == ['test.table1', 'test.table2']
 
+        assert "test.table1" in vositables
+        assert "any.random.stuff" not in vositables
+
         table1, table2 = list(vositables)
         self._test_tables(table1, table2)
 
