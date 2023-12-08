@@ -118,7 +118,6 @@ class MivotClass:
             else:
                 if key == 'value':
                     if ref is not None and ref != 'null':
-                        print(type(row[ref]), row[ref])
                         setattr(self, self._remove_model_name(key),
                                 MivotClass.cast_type_value(row[ref], getattr(self, 'dmtype')))
 
@@ -174,7 +173,8 @@ class MivotClass:
             The cast value based on the dmtype.
         """
         if type(value) is numpy.float32 or type(value) is numpy.float64:
-            return value
+            return float(value)
+
         lower_dmtype = dmtype.lower()
         if type(value) is str:
             lower_value = value.lower()

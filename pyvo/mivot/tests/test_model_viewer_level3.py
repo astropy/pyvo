@@ -79,7 +79,10 @@ def recusive_xml_check(xml_simple_votable, MivotClass):
                     elif key == 'value':
                         if (MivotClass_attribute.value is not None
                                 and not isinstance(MivotClass_attribute.value, bool)):
-                            assert value == str(MivotClass_attribute.value)
+                            if isinstance(MivotClass_attribute.value, float):
+                                pytest.approx(float(value), MivotClass_attribute.value, 0.0001)
+                            else:
+                                assert value == MivotClass_attribute.value
             else:
                 assert False
 
