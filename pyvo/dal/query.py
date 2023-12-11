@@ -53,7 +53,7 @@ class DALService:
     endpoint.
     """
 
-    def __init__(self, baseurl, *, session=None):
+    def __init__(self, baseurl, *, session=None, capability_description=None,):
         """
         instantiate the service connecting it to a base URL
 
@@ -63,8 +63,11 @@ class DALService:
            the base URL that should be used for forming queries to the service.
         session : object
            optional session to use for network requests
+        description : str, optional
+           the description of the service.
         """
         self._baseurl = baseurl
+        self._capability_description = capability_description
         self._session = use_session(session)
 
     @property
@@ -74,6 +77,17 @@ class DALService:
         queries are submitted (read-only)
         """
         return self._baseurl
+
+    @property
+    def capability_description(self):
+        """
+        The service description.
+        """
+        return self._capability_description
+
+    def __repr__(self) -> str:
+        return (f"{type(self).__name__}(baseurl : '{self.baseurl}',"
+                f" description : '{self.capability_description}')")
 
     def search(self, **keywords):
         """

@@ -36,6 +36,15 @@ def test_search():
 
 
 class TestSLAService:
+
+    def test_service_init(self):
+        url = "http://test"
+        description = "A SLA service."
+        service = SLAService(url, capability_description=description)
+        assert service.baseurl == url
+        assert service.capability_description == description
+        assert str(service) == f"SLAService(baseurl : '{url}', description : '{description}')"
+
     @pytest.mark.usefixtures('sla')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")

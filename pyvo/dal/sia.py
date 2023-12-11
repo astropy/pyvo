@@ -122,7 +122,7 @@ class SIAService(DALService):
     a representation of an SIA service
     """
 
-    def __init__(self, baseurl, *, session=None):
+    def __init__(self, baseurl, *, capability_description=None, session=None):
         """
         instantiate an SIA service
 
@@ -133,7 +133,8 @@ class SIAService(DALService):
         session : object
            optional session to use for network requests
         """
-        super().__init__(baseurl, session=session)
+        super().__init__(baseurl, capability_description=capability_description, session=session)
+        self._description = capability_description
 
     def _get_metadata(self):
         """
@@ -155,7 +156,6 @@ class SIAService(DALService):
         the service description.
         """
         self._get_metadata()
-
         try:
             return getattr(self, "_metadata", None).description
         except AttributeError:

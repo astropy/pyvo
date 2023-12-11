@@ -107,7 +107,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
     _tables = None
     _examples = None
 
-    def __init__(self, baseurl, *, session=None):
+    def __init__(self, baseurl, *, capability_description=None, session=None):
         """
         instantiate a Table Access Protocol service
 
@@ -118,7 +118,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         session : object
            optional session to use for network requests
         """
-        super().__init__(baseurl, session=session)
+        super().__init__(baseurl, session=session, capability_description=capability_description)
 
         # Check if the session has an update_from_capabilities attribute.
         # This means that the session is aware of IVOA capabilities,

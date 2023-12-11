@@ -87,7 +87,7 @@ class SCSService(DALService):
     a representation of a Cone Search service
     """
 
-    def __init__(self, baseurl, *, session=None):
+    def __init__(self, baseurl, *, capability_description=None, session=None):
         """
         instantiate a Cone Search service
 
@@ -98,7 +98,7 @@ class SCSService(DALService):
         session : object
            optional session to use for network requests
         """
-        super().__init__(baseurl, session=session)
+        super().__init__(baseurl, capability_description=capability_description, session=session)
 
     def _get_metadata(self):
         """
@@ -116,7 +116,6 @@ class SCSService(DALService):
         the service description.
         """
         self._get_metadata()
-
         try:
             return getattr(self, '_metadata').description
         except AttributeError:

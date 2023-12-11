@@ -4,6 +4,9 @@
 Enhancements and Fixes
 ----------------------
 
+- Add optional ``capability_description`` parameter and a ``__repr__`` to ``pyvo.dal.query.DALService``
+  abstract base class [#505]
+
 - Make ``lax`` parameter default to False in registry get_service method [#505]
 
 - Making optional parameters keyword only throughout the public API. [#507]

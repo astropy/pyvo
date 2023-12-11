@@ -42,6 +42,8 @@ class TestSSAService:
     def test_search(self):
         service = SSAService('http://example.com/ssa')
 
+        assert str(service) == "SSAService(baseurl : 'http://example.com/ssa', description : 'None')"
+
         results = service.search(pos=(0.0, 0.0), diameter=1.0)
 
         assert len(results) == 35

@@ -156,7 +156,7 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
     generally not notice that, though.
     """
 
-    def __init__(self, baseurl, *, session=None, check_baseurl=True):
+    def __init__(self, baseurl, *, capability_description=None, session=None, check_baseurl=True):
         """
         instantiate an SIA2 service
 
@@ -171,7 +171,7 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
            query end point, False - baseurl is the query end point
         """
 
-        super().__init__(baseurl, session=session)
+        super().__init__(baseurl, capability_description=capability_description, session=session)
 
         # Check if the session has an update_from_capabilities attribute.
         # This means that the session is aware of IVOA capabilities,
