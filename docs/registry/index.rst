@@ -190,13 +190,37 @@ thus say:
 
 .. doctest-remote-data::
 
-  >>> resources["II/283"].get_service("conesearch").search(pos=(120, 73), sr=1)
+  >>> voresource = resources["II/283"]
+  >>> voresource.get_service("conesearch").search(pos=(120, 73), sr=1)
   <DALResultsTable length=1>
     _RAJ2000     _DEJ2000      _r    recno ... NED    RAJ2000      DEJ2000
       deg          deg                     ...
     float64      float64    float64  int32 ... str3    str12        str12
   ------------ ------------ -------- ----- ... ---- ------------ ------------
   117.98645833  73.00961111 0.588592   986 ...  NED 07 51 56.750 +73 00 34.60
+
+This method will raise an error if there is more than one service of the desired
+type. If you know for sure that all declared conesearch will be the same, you can
+safely use ``get_service('conesearch', lax=True)`` that will return the first
+conesearch it finds. However some service providers provide multiple services 
+of the same type -- for example in VizieR you'll find one conesearch per table.
+In this case, you can inspect the available services with
+`~pyvo.registry.RegistryResource.list_services` so that your instructions to
+`~pyvo.registry.RegistryResource.get_service` can be refined.
+
+.. doctest-remote-data::
+
+  >>> for service in voresource.list_services():
+  ...     print(service)
+  SCSService(baseurl : 'http://vizier.cds.unistra.fr/viz-bin/conesearch/II/283/sncat?', description : 'Cone search capability for table II/283/sncat (List of SNe arranged in chronological order)')
+  TAPService(baseurl : 'http://tapvizier.cds.unistra.fr/TAPVizieR/tap', description : 'None')
+
+Or to get the list of services corresponding to a specific service type:
+
+.. doctest-remote-data::
+
+  >>> voresource.list_services("tap")
+  [TAPService(baseurl : 'http://tapvizier.cds.unistra.fr/TAPVizieR/tap', description : 'None')]
 
 To operate TAP services, you need to know what tables make up a
 resource; you could construct a TAP service and access its ``tables``

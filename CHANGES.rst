@@ -4,6 +4,9 @@
 Enhancements and Fixes
 ----------------------
 
+- Add method ``list_services`` to ``pyvo.registry.regtap.RegistryResource`` that returns the
+  list of available services [#505]
+
 - Add optional ``capability_description`` parameter and a ``__repr__`` to ``pyvo.dal.query.DALService``
   abstract base class [#505]
 

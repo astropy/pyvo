@@ -211,16 +211,21 @@ class TestInterfaceClass:
         assert intf.role is None
         assert intf.is_standard is False
         assert not intf.is_vosi
+        assert intf.capability_description is None
 
     def test_repr(self):
+        description = "An example description."
         intf = regtap.Interface("http://example.org", standard_id="ivo://gavo/std/a",
-                                intf_type="vs:paramhttp", intf_role="std")
+                                intf_type="vs:paramhttp", intf_role="std",
+                                capability_description=description)
         assert (repr(intf) == "Interface('http://example.org',"
-                " standard_id='ivo://gavo/std/a', intf_type='vs:paramhttp', intf_role='std')")
+                " standard_id='ivo://gavo/std/a', intf_type='vs:paramhttp', intf_role='std',"
+                " capability_description='An example description.')")
         intf = regtap.Interface("http://example.org", standard_id="ivo://gavo/std/a",
-                                intf_type=None, intf_role=None)
+                                intf_type=None, intf_role=None, capability_description=None)
         assert repr(intf) == ("Interface('http://example.org',"
-                              " standard_id='ivo://gavo/std/a', intf_type=None, intf_role=None)")
+                              " standard_id='ivo://gavo/std/a', intf_type=None, intf_role=None, "
+                              "capability_description=None)")
 
     def test_unknown_standard(self):
         intf = regtap.Interface("http://example.org", standard_id="ivo://gavo/std/a",
@@ -460,7 +465,7 @@ class TestInterfaceSelection:
         svc = flash_service.get_service("web")
         assert isinstance(svc,
                           regtap._BrowserService)
-        assert (svc.access_url
+        assert (svc.baseurl
                 == "http://dc.zah.uni-heidelberg.de/flashheros/q/web/form")
 
         import webbrowser
@@ -507,13 +512,8 @@ class TestInterfaceSelection:
             "No matching interface.")
 
     def test_unconstrained(self, flash_service):
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match="Multiple matching interfaces found.*"):
             flash_service.get_service(lax=False)
-
-        assert str(excinfo.value) == (
-            "Multiple matching interfaces found.  Perhaps pass in"
-            " service_type or use a Servicetype constrain in the"
-            " registry.search?  Or use lax=True?")
 
     def test_interface_without_role(self):
         # There's an ugly corner case in our array simulation for
@@ -544,7 +544,8 @@ class TestInterfaceSelection:
                 "ivo://ivoa.net/std/sia#query-2.0",
                 "ivo://ivoa.net/std/sia"],
             intf_roles=["std"] * 2,
-            intf_types=["vs:paramhttp"] * 2)
+            intf_types=["vs:paramhttp"] * 2,
+            cap_descriptions=["A mock SIA2 Service."] * 2)
         assert rec.access_modes() == {"sia", "sia2"}
         assert rec.get_interface("sia2").access_url == 'http://sia2.example.com'
         assert rec.get_interface("sia").access_url == 'http://sia.example.com'
@@ -556,7 +557,8 @@ class TestInterfaceSelection:
                 "ivo://ivoa.net/std/sia#query-aux-2.0",
                 "ivo://ivoa.net/std/sia#aux"],
             intf_roles=["std"] * 2,
-            intf_types=["vs:paramhttp"] * 2)
+            intf_types=["vs:paramhttp"] * 2,
+            cap_descriptions=["A mock service."] * 2)
         assert rec.access_modes() == {"sia#aux", "sia2#aux"}
         assert rec.get_interface("sia2").access_url == 'http://sia2.example.com'
         assert rec.get_interface("sia").access_url == 'http://sia.example.com'
@@ -576,6 +578,22 @@ class TestInterfaceSelection:
 
         assert str(excinfo.value) == (
             "Resource ivo://pyvo/test_regtap.py is not a searchable service")
+
+    def test_list_services(self):
+        rec = _makeRegistryRecord(
+            access_urls=["http://sia.example.com", "http://sia.example.com",
+                         "http://tap.example.com", "http://website.com"],
+            standard_ids=["ivo://ivoa.net/std/sia#aux",
+                          "ivo://ivoa.net/std/sia#aux",
+                          "ivo://ivoa.net/std/tap",
+                          ""],
+            intf_roles=["std"] * 3 + ["non standard"],
+            intf_types=["vs:paramhttp"] * 4,
+            cap_descriptions=["A mock service."] * 4)
+        # all available standard services
+        assert len(rec.list_services()) == 3
+        # only sia ones
+        assert len(rec.list_services("sia")) == 2
 
 
 class _FakeResult:
@@ -608,7 +626,8 @@ def _makeRegistryRecord(**overrides):
         "standard_ids": "",
         "intf_types": "",
         "intf_roles": "",
-        "ivoid": "ivo://pyvo/test_regtap.py"
+        "cap_descriptions": "",
+        "ivoid": "ivo://pyvo/test_regtap.py",
     }
     defaults.update(overrides)
     return regtap.RegistryResource(_FakeResult(defaults), 0)
@@ -629,16 +648,18 @@ class TestInterfaceRejection:
             rsc.get_service("tap", lax=False)
 
         assert str(excinfo.value) == (
-            "Multiple matching interfaces found.  Perhaps pass in"
-            " service_type or use a Servicetype constrain in the"
-            " registry.search?  Or use lax=True?")
+            "Multiple matching interfaces found.\n"
+            "Perhaps pass in service_type or use a Servicetype constrain in the"
+            " registry.search?  Or use lax=True? You might also want to see all the available"
+            " services with `pyvo.registry.regtap.RegistryResource.list_services()`.")
 
     def test_nonunique_lax(self):
         rsc = _makeRegistryRecord(
             access_urls=["http://a", "http://b"],
             standard_ids=["ivo://ivoa.net/std/tap"] * 2,
             intf_types=["vs:paramhttp"] * 2,
-            intf_roles=["std"] * 2)
+            intf_roles=["std"] * 2,
+            cap_descriptions=["Test TAP service."] * 2)
 
         assert (rsc.get_service("tap", lax=True)._baseurl
                 == "http://a")
