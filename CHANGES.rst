@@ -4,12 +4,13 @@
 Enhancements and Fixes
 ----------------------
 
+- Make ``lax`` parameter default to False in registry get_service method [#505]
+
 - Making optional parameters keyword only throughout the public API. [#507]
 
 
 Deprecations and Removals
 -------------------------
-
 
 1.5 (2023-12-19)
 ================

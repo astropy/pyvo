@@ -640,7 +640,7 @@ class TestInterfaceRejection:
             intf_types=["vs:paramhttp"] * 2,
             intf_roles=["std"] * 2)
 
-        assert (rsc.get_service("tap")._baseurl
+        assert (rsc.get_service("tap", lax=True)._baseurl
                 == "http://a")
 
     def test_nonstd_ignored(self):

@@ -715,7 +715,7 @@ class RegistryResource(dalq.Record):
 
     def get_interface(self,
                       service_type: str,
-                      lax: bool = True,
+                      lax: bool = False,
                       std_only: bool = False):
         """returns a regtap.Interface class for service_type.
 
@@ -783,12 +783,12 @@ class RegistryResource(dalq.Record):
 
     def get_service(self,
                     service_type: str = None,
-                    lax: bool = True):
+                    lax: bool = False):
         """
         return an appropriate DALService subclass for this resource that
         can be used to search the resource using service_type.
 
-        Raise a ValueError if the service_type is not offerend on
+        Raise a ValueError if the service_type is not offered on
         the resource (or no standard service is offered).  With
         lax=False, also raise a ValueError if multiple interfaces
         exist for the given service_type.
