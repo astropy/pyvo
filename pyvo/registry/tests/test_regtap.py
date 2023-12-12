@@ -467,6 +467,9 @@ class TestInterfaceSelection:
                           regtap._BrowserService)
         assert (svc.baseurl
                 == "http://dc.zah.uni-heidelberg.de/flashheros/q/web/form")
+        assert str(svc) == ("BrowserService(baseurl : "
+                            "'http://dc.zah.uni-heidelberg.de/flashheros/q/web/form',"
+                            " description : 'None')")
 
         import webbrowser
         orig_open = webbrowser.open
