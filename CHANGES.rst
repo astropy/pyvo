@@ -45,6 +45,10 @@
 - Adding support for the VODataService 1.2 nrows attribute on table
   elements [#503]
 
+- registry.search now introspects the TAP service's capabilities and
+  only offers extended functionality or optimisations if the required
+  features are present [#386]
+
 
 1.4.3 (unreleased)
 ==================
