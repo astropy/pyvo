@@ -348,10 +348,14 @@ class Interface:
     def __init__(self, access_url, standard_id, intf_type, intf_role):
         self.access_url = access_url
         self.standard_id = standard_id or None
-        self.is_vosi = standard_id.startswith("ivo://ivoa.net/std/vosi")
         self.type = intf_type or None
         self.role = intf_role or None
         self.is_standard = self.role == "std"
+
+        if self.standard_id is not None:
+            self.is_vosi = self.standard_id.startswith("ivo://ivoa.net/std/vosi")
+        else:
+            self.is_vosi = False
 
     def __repr__(self):
         return (f"Interface({self.access_url!r}, {self.standard_id!r},"
