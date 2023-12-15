@@ -213,18 +213,18 @@ class TestInterfaceClass:
         assert not intf.is_vosi
 
     def test_repr(self):
-        intf = regtap.Interface("http://example.org", "ivo://gavo/std/a",
-                                "vs:paramhttp", "std")
+        intf = regtap.Interface("http://example.org", standard_id="ivo://gavo/std/a",
+                                intf_type="vs:paramhttp", intf_role="std")
         assert (repr(intf) == "Interface('http://example.org',"
-                " 'ivo://gavo/std/a', 'vs:paramhttp', 'std')")
-        intf = regtap.Interface("http://example.org", "ivo://gavo/std/a",
-                                None, None)
+                " standard_id='ivo://gavo/std/a', intf_type='vs:paramhttp', intf_role='std')")
+        intf = regtap.Interface("http://example.org", standard_id="ivo://gavo/std/a",
+                                intf_type=None, intf_role=None)
         assert repr(intf) == ("Interface('http://example.org',"
-                              " 'ivo://gavo/std/a', None, None)")
+                              " standard_id='ivo://gavo/std/a', intf_type=None, intf_role=None)")
 
     def test_unknown_standard(self):
-        intf = regtap.Interface("http://example.org", "ivo://gavo/std/a",
-                                "vs:paramhttp", "std")
+        intf = regtap.Interface("http://example.org", standard_id="ivo://gavo/std/a",
+                                intf_type="vs:paramhttp", intf_role="std")
         assert intf.is_standard
         with pytest.raises(ValueError) as excinfo:
             intf.to_service()
@@ -234,21 +234,20 @@ class TestInterfaceClass:
             " id ivo://gavo/std/a.")
 
     def test_known_standard(self):
-        intf = regtap.Interface("http://example.org",
-                                "ivo://ivoa.net/std/tap#aux", "vs:paramhttp", "std")
+        intf = regtap.Interface("http://example.org", standard_id="ivo://ivoa.net/std/tap#aux",
+                                intf_type="vs:paramhttp", intf_role="std")
         assert isinstance(intf.to_service(), tap.TAPService)
         assert not intf.is_vosi
 
     def test_sia2_standard(self):
-        intf = regtap.Interface("http://example.org",
-                                "ivo://ivoa.net/std/sia2", "vs:paramhttp", "std")
+        intf = regtap.Interface("http://example.org", standard_id="ivo://ivoa.net/std/sia2",
+                                intf_type="vs:paramhttp", intf_role="std")
         assert isinstance(intf.to_service(), sia2.SIA2Service)
         assert not intf.is_vosi
 
     def test_secondary_interface(self):
-        intf = regtap.Interface("http://example.org",
-                                "ivo://ivoa.net/std/tap#aux",
-                                "vs:webbrowser", "web")
+        intf = regtap.Interface("http://example.org", standard_id="ivo://ivoa.net/std/tap#aux",
+                                intf_type="vs:webbrowser", intf_role="web")
 
         with pytest.raises(ValueError) as excinfo:
             intf.to_service()
@@ -257,9 +256,8 @@ class TestInterfaceClass:
             "This is not a standard interface.  PyVO cannot speak to it.")
 
     def test_VOSI(self):
-        intf = regtap.Interface("http://example.org",
-                                "ivo://ivoa.net/std/vosi#capabilities",
-                                "vs:ParamHTTP", "std")
+        intf = regtap.Interface("http://example.org", standard_id="ivo://ivoa.net/std/vosi#capabilities",
+                                intf_type="vs:ParamHTTP", intf_role="std")
         assert intf.is_vosi
 
 
@@ -564,11 +562,11 @@ class TestInterfaceSelection:
         assert rec.get_interface("sia").access_url == 'http://sia.example.com'
 
     def test_non_standard_interface(self):
-        intf = regtap.Interface("http://url", "", "", "")
+        intf = regtap.Interface("http://url", standard_id="", intf_type="", intf_role="")
         assert intf.supports("ivo://ivoa.net/std/sia") is False
 
     def test_supports_none(self):
-        intf = regtap.Interface("http://url", "", "", "")
+        intf = regtap.Interface("http://url", standard_id="", intf_type="", intf_role="")
         assert intf.supports(None) is False
 
     def test_non_searchable_service(self):

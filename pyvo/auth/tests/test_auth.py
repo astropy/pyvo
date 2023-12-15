@@ -104,7 +104,7 @@ def basic_auth_service(mocker):
 def test_cookies_auth():
     session = AuthSession()
     session.credentials.set_cookie('TEST_COOKIE', 'BADCOOKIE')
-    service = pyvo.dal.TAPService('http://example.com/tap', session)
+    service = pyvo.dal.TAPService('http://example.com/tap', session=session)
     service.run_async("SELECT * FROM ivoa.obscore")
 
 
@@ -118,7 +118,7 @@ def test_cookie_jar_auth():
     jar = RequestsCookieJar()
     jar.set('TEST_COOKIE', 'BADCOOKIE')
     session.credentials.set_cookie_jar(jar)
-    service = pyvo.dal.TAPService('http://example.com/tap', session)
+    service = pyvo.dal.TAPService('http://example.com/tap', session=session)
     service.run_async("SELECT * FROM ivoa.obscore")
 
 
@@ -130,7 +130,7 @@ def test_cookie_jar_auth():
 def test_certificate_auth():
     session = AuthSession()
     session.credentials.set_client_certificate('client-certificate.pem')
-    service = pyvo.dal.TAPService('http://example.com/tap', session)
+    service = pyvo.dal.TAPService('http://example.com/tap', session=session)
     service.run_async("SELECT * FROM ivoa.obscore")
 
 
@@ -142,7 +142,7 @@ def test_certificate_auth():
 def test_basic_auth():
     session = AuthSession()
     session.credentials.set_password('testuser', 'hunter2')
-    service = pyvo.dal.TAPService('http://example.com/tap', session)
+    service = pyvo.dal.TAPService('http://example.com/tap', session=session)
     service.run_async("SELECT * FROM ivoa.obscore")
 
 
@@ -156,7 +156,7 @@ def test_negotiation():
     session.credentials.set_password('testuser', 'hunter2')
     session.credentials.set_client_certificate('client-certificate.pem')
     session.credentials.set_cookie('TEST_COOKIE', 'BADCOOKIE')
-    service = pyvo.dal.TAPService('http://example.com/tap', session)
+    service = pyvo.dal.TAPService('http://example.com/tap', session=session)
     service.run_async("SELECT * FROM ivoa.obscore")
 
 
@@ -170,5 +170,5 @@ def test_no_common_auth_negotiation():
     session.credentials.set_password('testuser', 'hunter2')
     session.credentials.set_client_certificate('client-certificate.pem')
     session.credentials.set_cookie('TEST_COOKIE', 'BADCOOKIE')
-    service = pyvo.dal.TAPService('http://example.com/tap', session)
+    service = pyvo.dal.TAPService('http://example.com/tap', session=session)
     service.run_async("SELECT * FROM ivoa.obscore")
