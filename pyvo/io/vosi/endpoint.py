@@ -45,7 +45,7 @@ def _pedantic_settings(pedantic):
         return {'verify': 'warn'}
 
 
-def parse_tables(source, pedantic=None, filename=None,
+def parse_tables(source, *, pedantic=None, filename=None,
                  _debug_python_based_parser=False):
     """
     Parses a tableset xml file (or file-like object), and returns a
@@ -91,7 +91,7 @@ def parse_tables(source, pedantic=None, filename=None,
             config=config, pos=(1, 1)).parse(iterator, config)
 
 
-def parse_capabilities(source, pedantic=None, filename=None,
+def parse_capabilities(source, *, pedantic=None, filename=None,
                        _debug_python_based_parser=False):
     """
     Parses a capabilities xml file (or file-like object), and returns a
@@ -137,7 +137,7 @@ def parse_capabilities(source, pedantic=None, filename=None,
             config=config, pos=(1, 1)).parse(iterator, config)
 
 
-def parse_availability(source, pedantic=None, filename=None,
+def parse_availability(source, *, pedantic=None, filename=None,
                        _debug_python_based_parser=False):
     """
     Parses a availability xml file (or file-like object), and returns a
@@ -190,7 +190,7 @@ class TablesFile(Element):
     name, documented below.
     """
 
-    def __init__(self, config=None, pos=None, version="1.1"):
+    def __init__(self, *, config=None, pos=None, version="1.1"):
         Element.__init__(self, config, pos)
 
         self._tableset = None
@@ -320,7 +320,7 @@ class CapabilitiesFile(Element, HomogeneousList):
     The keyword arguments correspond to setting members of the same
     name, documented below.
     """
-    def __init__(self, config=None, pos=None, _name='capabilities', **kwargs):
+    def __init__(self, *, config=None, pos=None, _name='capabilities', **kwargs):
         Element.__init__(self, config=config, pos=pos, **kwargs)
         HomogeneousList.__init__(self, vr.Capability)
 

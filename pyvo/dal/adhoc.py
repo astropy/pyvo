@@ -107,7 +107,7 @@ class AdhocServiceResultsMixin:
     Mixing for adhoc:service functionallity for results classes.
     """
 
-    def __init__(self, votable, url=None, session=None):
+    def __init__(self, votable, *, url=None, session=None):
         super().__init__(votable, url=url, session=session)
 
         self._adhocservices = list(
@@ -281,7 +281,7 @@ class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
         if hasattr(self._session, 'update_from_capabilities'):
             self._session.update_from_capabilities(self.capabilities)
 
-    def run_sync(self, id, responseformat=None, **keywords):
+    def run_sync(self, id, *, responseformat=None, **keywords):
         """
         runs sync query and returns its result
 
@@ -306,7 +306,7 @@ class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
     # alias for service discovery
     search = run_sync
 
-    def create_query(self, id, responseformat=None, **keywords):
+    def create_query(self, id, *, responseformat=None, **keywords):
         """
         create a query object that constraints can be added to and then
         executed.  The input arguments will initialize the query with the
@@ -347,7 +347,7 @@ class DatalinkQuery(DALQuery):
     allowing the caller to take greater control of the result processing.
     """
     @classmethod
-    def from_resource(cls, rows, resource, session=None, **kwargs):
+    def from_resource(cls, rows, resource, *, session=None, **kwargs):
         """
         Creates a instance from a number of records and a Datalink Resource.
 
@@ -406,7 +406,7 @@ class DatalinkQuery(DALQuery):
         return cls(accessurl, session=session, **query_params)
 
     def __init__(
-            self, baseurl, id=None, responseformat=None, session=None, **keywords):
+            self, baseurl, *, id=None, responseformat=None, session=None, **keywords):
         """
         initialize the query object with the given parameters
 
@@ -519,7 +519,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         """
         return DatalinkRecord(self, index, session=self._session)
 
-    def bysemantics(self, semantics, include_narrower=True):
+    def bysemantics(self, semantics, *, include_narrower=True):
         """
         return the rows with the dataset identified by the given semantics
 
@@ -600,7 +600,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
                 copy_tb.resources.remove(x)
         return DatalinkResults(copy_tb)
 
-    def getdataset(self, timeout=None):
+    def getdataset(self, *, timeout=None):
         """
         return the first row with the dataset identified by semantics #this
 
@@ -675,7 +675,7 @@ class SodaRecordMixin:
         return None
 
     def processed(
-            self, circle=None, range=None, polygon=None, band=None, **kwargs):
+            self, *, circle=None, range=None, polygon=None, band=None, **kwargs):
         """
         Returns processed dataset.
 
@@ -860,7 +860,7 @@ class SodaQuery(DatalinkQuery, AxisParamMixin):
     """
 
     def __init__(
-            self, baseurl, circle=None, range=None, polygon=None, band=None,
+            self, baseurl, *, circle=None, range=None, polygon=None, band=None,
             **kwargs):
         super().__init__(baseurl, **kwargs)
 

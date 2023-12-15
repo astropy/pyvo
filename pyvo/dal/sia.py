@@ -46,7 +46,7 @@ __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "SIARecord"]
 
 
 def search(
-        url, pos, size=1.0, format=None, intersect=None, verbosity=2,
+        url, pos, *, size=1.0, format=None, intersect=None, verbosity=2,
         **keywords):
     """
     submit a simple SIA query that requests images overlapping a given region
@@ -122,7 +122,7 @@ class SIAService(DALService):
     a representation of an SIA service
     """
 
-    def __init__(self, baseurl, session=None):
+    def __init__(self, baseurl, *, session=None):
         """
         instantiate an SIA service
 
@@ -188,7 +188,7 @@ class SIAService(DALService):
             return []
 
     def search(
-            self, pos, size=1.0, format=None, intersect=None,
+            self, pos, *, size=1.0, format=None, intersect=None,
             verbosity=2, **keywords):
         """
         submit a SIA query to this service with the given parameters.
@@ -259,7 +259,7 @@ class SIAService(DALService):
             pos=pos, size=size, format=format, intersect=intersect, verbosity=verbosity, **keywords).execute()
 
     def create_query(
-            self, pos=None, size=None, format=None, intersect=None,
+            self, pos=None, *, size=None, format=None, intersect=None,
             verbosity=None, **keywords):
         """
         create a query object that constraints can be added to and then
@@ -347,7 +347,7 @@ class SIAQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, pos=None, size=None, format=None, intersect=None,
+            self, baseurl, pos=None, *, size=None, format=None, intersect=None,
             verbosity=None, session=None, **keywords):
         """
         initialize the query object with a baseurl and the given parameters
@@ -903,7 +903,7 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
             out = re.sub(r'\s+', '_', out.strip())
         return out
 
-    def suggest_extension(self, default=None):
+    def suggest_extension(self, *, default=None):
         """
         returns a recommended filename extension for the dataset described
         by this record.  Typically, this would look at the column describing
@@ -911,7 +911,7 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         """
         return mime2extension(self.format, default)
 
-    def broadcast_samp(self, client_name=None):
+    def broadcast_samp(self, *, client_name=None):
         """
         Broadcast the image to ``client_name`` via SAMP
         """

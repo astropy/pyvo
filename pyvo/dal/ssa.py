@@ -50,7 +50,7 @@ __all__ = ["search", "SSAService", "SSAQuery", "SSAResults", "SSARecord"]
 
 
 def search(
-        baseurl, pos=None, diameter=None, band=None, time=None, format=None,
+        baseurl, pos=None, *, diameter=None, band=None, time=None, format=None,
         **keywords):
     """
     submit a simple SSA query that requests spectra overlapping a given region
@@ -110,7 +110,7 @@ class SSAService(DALService):
     a representation of an SSA service
     """
 
-    def __init__(self, baseurl, session=None):
+    def __init__(self, baseurl, *, session=None):
         """
         instantiate an SSA service
 
@@ -161,7 +161,7 @@ class SSAService(DALService):
             return []
 
     def search(
-            self, pos=None, diameter=None, band=None, time=None, format=None,
+            self, pos=None, *, diameter=None, band=None, time=None, format=None,
             **keywords):
         """
         submit a SSA query to this service with the given constraints.
@@ -214,7 +214,7 @@ class SSAService(DALService):
             pos=pos, diameter=diameter, band=band, time=time, format=format, **keywords).execute()
 
     def create_query(
-            self, pos=None, diameter=None, band=None, time=None, format=None,
+            self, pos=None, *, diameter=None, band=None, time=None, format=None,
             request="queryData", **keywords):
         """
         create a query object that constraints can be added to and then
@@ -309,7 +309,7 @@ class SSAQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, pos=None, diameter=None, band=None, time=None,
+            self, baseurl, pos=None, *, diameter=None, band=None, time=None,
             format=None, request="queryData", session=None, **keywords):
         """
         initialize the query object with a baseurl and the given parameters
@@ -755,7 +755,7 @@ class SSARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
             out = re.sub(r'\s+', '_', out.strip())
         return out
 
-    def suggest_extension(self, default=None):
+    def suggest_extension(self, *, default=None):
         """
         returns a recommended filename extension for the dataset described
         by this record.  Typically, this would look at the column describing
@@ -763,7 +763,7 @@ class SSARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         """
         return mime2extension(self.format, default)
 
-    def broadcast_samp(self, client_name=None):
+    def broadcast_samp(self, *, client_name=None):
         """
         Broadcast the spectrum to ``client_name`` via SAMP
         """
