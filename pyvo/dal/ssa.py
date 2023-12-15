@@ -102,7 +102,7 @@ def search(
     pyvo.dal.query.DALQueryError
     """
     return SSAService(baseurl).search(
-        pos, diameter, band, time, format, **keywords)
+        pos=pos, diameter=diameter, band=band, time=time, format=format, **keywords)
 
 
 class SSAService(DALService):
@@ -211,7 +211,7 @@ class SSAService(DALService):
         pyvo.dal.query.DALQueryError
         """
         return self.create_query(
-            pos, diameter, band, time, format, **keywords).execute()
+            pos=pos, diameter=diameter, band=band, time=time, format=format, **keywords).execute()
 
     def create_query(
             self, pos=None, diameter=None, band=None, time=None, format=None,
@@ -257,7 +257,7 @@ class SSAService(DALService):
         SSAQuery
         """
         return SSAQuery(
-            self.baseurl, pos, diameter, band, time, format, request,
+            self.baseurl, pos=pos, diameter=diameter, band=band, time=time, format=format, request=request,
             session=self._session, **keywords)
 
     def describe(self):

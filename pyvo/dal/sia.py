@@ -113,7 +113,8 @@ def search(
     pyvo.dal.query.DALQueryError
     """
     service = SIAService(url)
-    return service.search(pos, size, format, intersect, verbosity, **keywords)
+    return service.search(pos=pos, size=size, format=format, intersect=intersect,
+                          verbosity=verbosity, **keywords)
 
 
 class SIAService(DALService):
@@ -255,7 +256,7 @@ class SIAService(DALService):
         pyvo.dal.query.DALQueryError
         """
         return self.create_query(
-            pos, size, format, intersect, verbosity, **keywords).execute()
+            pos=pos, size=size, format=format, intersect=intersect, verbosity=verbosity, **keywords).execute()
 
     def create_query(
             self, pos=None, size=None, format=None, intersect=None,
@@ -317,7 +318,8 @@ class SIAService(DALService):
         SIAQuery
         """
         return SIAQuery(
-            self.baseurl, pos, size, format, intersect, verbosity, self._session, **keywords)
+            self.baseurl, pos=pos, size=size, format=format, intersect=intersect,
+            verbosity=verbosity, session=self._session, **keywords)
 
     def describe(self):
         print(self.description)

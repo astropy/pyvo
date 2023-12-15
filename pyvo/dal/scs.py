@@ -79,7 +79,7 @@ def search(url, pos, radius=1.0, verbosity=2, **keywords):
     pyvo.dal.query.DALServiceError
     pyvo.dal.query.DALQueryError
     """
-    return SCSService(url).search(pos, radius, verbosity, **keywords)
+    return SCSService(url).search(pos=pos, radius=radius, verbosity=verbosity, **keywords)
 
 
 class SCSService(DALService):
@@ -184,7 +184,7 @@ class SCSService(DALService):
         pyvo.dal.query.DALServiceError
         pyvo.dal.query.DALQueryError
         """
-        return self.create_query(pos, radius, verbosity, **keywords).execute()
+        return self.create_query(pos=pos, radius=radius, verbosity=verbosity, **keywords).execute()
 
     def create_query(self, pos=None, radius=None, verbosity=None, **keywords):
         """
@@ -222,7 +222,8 @@ class SCSService(DALService):
         --------
         SCSQuery
         """
-        return SCSQuery(self.baseurl, pos, radius, verbosity, session=self._session, **keywords)
+        return SCSQuery(self.baseurl, pos=pos, radius=radius, verbosity=verbosity,
+                        session=self._session, **keywords)
 
     def describe(self):
         print(self.description)
