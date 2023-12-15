@@ -223,8 +223,8 @@ class DALQuery(dict):
 
         Returns
         -------
-        astropy.io.votable.tree.TableElement
-           an Astropy votable Table instance
+        astropy.io.votable.tree.VOTableFile
+           an Astropy votable object
 
         Raises
         ------
