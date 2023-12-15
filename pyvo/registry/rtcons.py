@@ -24,7 +24,7 @@ from .import regtap
 
 __all__ = ["Freetext", "Author", "Servicetype", "Waveband",
            "Datamodel", "Ivoid", "UCD", "Spatial", "Spectral", "Temporal",
-           "Constraint", "build_regtap_query"]
+           "Constraint", "build_regtap_query", "RegTAPFeatureMissing"]
 
 
 # a mapping of service type shorthands to the ivoids of the
@@ -47,6 +47,20 @@ SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/" + v)
     ("table", "tap"),
     ("tap", "tap"),
 ])
+
+
+class RegTAPFeatureMissing(dalq.DALQueryError):
+    """
+    Raised when the current RegTAP server does not support a feature
+    needed for a constraint.
+
+    This could be that it is missing some ADQL feature indispensible
+    to write that constraint, or because it is missing a table or column.
+
+    To recover, choose another RegTAP service. Search constraining
+    ``datamodel="regtap"``, and then use `pyvo.registry.choose_RegTAP_service`
+    with a TAP access URL discovered in this way.
+    """
 
 
 class _AsIs(str):
@@ -156,9 +170,20 @@ class Constraint:
 
     takes_sequence = False
 
-    def get_search_condition(self):
+    def get_search_condition(self, service):
         """
         Formats this constraint to an ADQL fragment.
+
+        This takes the service the constraint is being executed on
+        as an argument because constraints may be written differently
+        depending on the service's features or refuse to run altogether.
+
+        Parameters
+        ----------
+        service : `dal.tap.TAPService`
+            The RegTAP service the query is supposed to be run on
+            (that is relevant because we adapt to the features available
+            on given services).
 
         Returns
         -------
@@ -193,36 +218,71 @@ class Freetext(Constraint):
 
         Parameters
         ----------
-        *words: tuple of str
+        *words : tuple of str
             It is recommended to pass multiple words in multiple strings
             arguments.  You can pass in phrases (i.e., multiple words
             separated by space), but behaviour might then vary quite
             significantly between different registries.
         """
+        self.words = words
+
+    def get_search_condition(self, service):
         # cross-table ORs kill the query planner.  We therefore
         # write the constraint as an IN condition on a UNION
-        # of subqueries; it may look as if this has to be
-        # really slow, but in fact it's almost always a lot
-        # faster than direct ORs.
+        # of subqueries if we can (i.e., the service has UNION);
+        # It may look as if this has to be really slow, but in fact it's almost
+        # always a lot faster than direct ORs.
+        if service.get_tap_capability().get_adql().get_feature(
+                "ivo://ivoa.net/std/TAPRegExt#features-adql-sets", "UNION"):
+            return self._get_union_condition(service)
+        else:
+            self._extra_tables = ["rr.res_subject"]
+            return self._get_or_condition(service)
+
+    def _get_union_condition(self, service):
         base_queries = [
             "SELECT ivoid FROM rr.resource WHERE"
             " 1=ivo_hasword(res_description, {{{parname}}})",
             "SELECT ivoid FROM rr.resource WHERE"
             " 1=ivo_hasword(res_title, {{{parname}}})",
             "SELECT ivoid FROM rr.res_subject WHERE"
-            " res_subject ILIKE {{{parpatname}}}"]
+            " rr.res_subject.res_subject ILIKE {{{parpatname}}}"]
         self._fillers, subqueries = {}, []
 
-        for index, word in enumerate(words):
+        for index, word in enumerate(self.words):
             parname = "fulltext{}".format(index)
             parpatname = "fulltextpar{}".format(index)
             self._fillers[parname] = word
             self._fillers[parpatname] = '%' + word + '%'
-            for q in base_queries:
-                subqueries.append(q.format(**locals()))
+            args = locals()
+            subqueries.append(" UNION ".join(
+                q.format(**args) for q in base_queries))
 
-        self._condition = "ivoid IN ({})".format(
-            " UNION ".join(subqueries))
+        self._condition = " AND ".join(
+            f"ivoid IN ({part})" for part in subqueries)
+
+        return super().get_search_condition(service)
+
+    def _get_or_condition(self, service):
+        base_queries = [
+            " 1=ivo_hasword(res_description, {{{parname}}})",
+            " 1=ivo_hasword(res_title, {{{parname}}})",
+            " rr.res_subject.res_subject ILIKE {{{parpatname}}}"]
+        self._fillers, conditions = {}, []
+
+        for index, word in enumerate(self.words):
+            parname = "fulltext{}".format(index)
+            parpatname = "fulltextpar{}".format(index)
+            self._fillers[parname] = word
+            self._fillers[parpatname] = '%' + word + '%'
+            args = locals()
+            conditions.append(" OR ".join(
+                q.format(**args) for q in base_queries))
+
+        self._condition = " AND ".join(f"({part})"
+            for part in conditions)
+
+        return super().get_search_condition(service)
 
 
 class Author(Constraint):
@@ -239,7 +299,7 @@ class Author(Constraint):
 
         Parameters
         ----------
-        name: str
+        name : str
             Note that regrettably there are no guarantees as to how authors
             are written in the VO.  This means that you will generally have
             to write things like ``%Hubble%`` (% being “zero or more
@@ -293,7 +353,7 @@ class Servicetype(Constraint):
 
         Parameters
         ----------
-        *stds: tuple of str
+        *stds : tuple of str
             one or more standards identifiers.  The constraint will
             match records that have any of them.
         """
@@ -321,7 +381,7 @@ class Servicetype(Constraint):
         new_constraint.extra_fragments = self.extra_fragments[:]
         return new_constraint
 
-    def get_search_condition(self):
+    def get_search_condition(self, service):
         # we sort the stdids to make it easy for tests (and it's
         # virtually free for the small sets we have here).
         fragments = []
@@ -368,7 +428,7 @@ class Waveband(Constraint):
 
         Parameters
         ----------
-        *bands: tuple of strings
+        *bands : tuple of strings
             One or more of the terms given in http://www.ivoa.net/rdf/messenger.
             The constraint matches when a resource declares at least
             one of the messengers listed.
@@ -615,6 +675,24 @@ class Spatial(Constraint):
             raise ValueError("'intersect' should be one of 'covers', 'enclosed', or 'overlaps' "
                              f"but its current value is '{intersect}'.")
 
+    def get_search_condition(self, service):
+        # we *could* make this a bit less demanding on the server
+        # if we MOC-ified the geometries locally -- but then we'd
+        # have to depend on pymoc, and that's too high a price for
+        # something as esoteric as a server that understands
+        # MOC-based geometries but does not have a MOC function.
+        if not service.get_tap_capability().get_adql().get_feature(
+                "ivo://org.gavo.dc/std/exts#extra-adql-keywords", "MOC"):
+            raise RegTAPFeatureMissing("Current RegTAP service does not support MOC.")
+
+        # We should compare case-insensitively here, but then we don't
+        # with delimited identifiers -- in the end, that would have to
+        # be handled in dal.vosi.VOSITables.
+        if "rr.stc_spatial" not in service.tables:
+            raise RegTAPFeatureMissing("stc_spatial missing on current RegTAP service")
+
+        return super().get_search_condition(service)
+
 
 class Spectral(Constraint):
     """
@@ -705,6 +783,12 @@ class Spectral(Constraint):
 
         raise ValueError(f"Cannot make a spectral quantity out of {quant}")
 
+    def get_search_condition(self, service):
+        if "rr.stc_spectral" not in service.tables:
+            raise RegTAPFeatureMissing("stc_spectral missing on current RegTAP service")
+
+        return super().get_search_condition(service)
+
 
 class Temporal(Constraint):
     """
@@ -777,22 +861,33 @@ class Temporal(Constraint):
                              " single time instants.")
         return val
 
+    def get_search_condition(self, service):
+        if "rr.stc_temporal" not in service.tables:
+            raise RegTAPFeatureMissing("stc_temporal missing on current RegTAP service")
+
+        return super().get_search_condition(service)
+
 
 # NOTE: If you add new Contraint-s, don't forget to add them in
 # registry.__init__, in docs/registry/index.rst and in the docstring
 # of regtap.query.
 
 
-def build_regtap_query(constraints):
+def build_regtap_query(constraints, service):
     """returns a RegTAP query ready for submission from a list of
     Constraint instances.
 
     Parameters
     ----------
-    constraints: sequence of `Constraint`-s
+    constraints : sequence of ``Constraint``-s
         A sequence of constraints for a RegTAP query.  All of them
         will become part of a conjunction (i.e., all of them have
         to be satisfied for a record to match).
+
+    service : `~pyvo.dal.tap.TAPService`
+        The RegTAP service the query is supposed to be run on
+        (that is relevant because we adapt to the features available
+        on given services).
 
     Returns
     -------
@@ -808,7 +903,8 @@ def build_regtap_query(constraints):
         if isinstance(constraint, str):
             constraint = Freetext(constraint)
 
-        serialized.append("(" + constraint.get_search_condition() + ")")
+        serialized.append(
+            "(" + constraint.get_search_condition(service) + ")")
         extra_tables |= set(constraint._extra_tables)
 
     joined_tables = ["rr.resource", "rr.capability", "rr.interface",

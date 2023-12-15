@@ -161,6 +161,9 @@ class VOSITables:
         for tablename in self.keys():
             yield self._get_table(tablename)
 
+    def __contains__(self, tablename):
+        return tablename in self.keys()
+
     def _get_table(self, name):
         if name in self._cache:
             return self._cache[name]

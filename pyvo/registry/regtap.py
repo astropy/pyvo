@@ -100,21 +100,54 @@ def get_RegTAP_service():
     """
     a lazily created TAP service offering the RegTAP services.
 
-    This uses regtap.REGISTRY_BASEURL.  Always get the TAP service
-    there using this function to avoid re-creating the server
-    and profit from caching of capabilties, tables, etc.
+    Always get the TAP service there using this function to avoid
+    re-creating the server and profit from caching of capabilties,
+    tables, etc.
+
+    To switch to a different RegTAP service, use
+    :py:func:`choose_RegTAP_service`.
     """
     return tap.TAPService(REGISTRY_BASEURL)
 
 
+def choose_RegTAP_service(access_url):
+    """
+    changes the RegTAP service used by :py:func:`search`
+    to the one at access_url.
+
+    By default, pyVO uses whatever is given in the environment variable
+    ``IVOA_REGISTRY``, defaulting to GAVO's TAP service.  In order to
+    change the service used on the fly, always use this function in order
+    to clear caches that need clearing.
+
+    Parameters
+    ----------
+    access_url : str
+        The TAP access URL of the new RegTAP endpoints.
+        To find alternate endpoints, try ``regsearch(datamodel='regtap')``
+        and look at ``.get_interface("tap").access_url`` of the results.
+    """
+    global REGISTRY_BASEURL
+    get_RegTAP_service.cache_clear()
+    REGISTRY_BASEURL = access_url
+
+
 def get_RegTAP_query(*constraints: rtcons.Constraint,
-                     includeaux=False, **kwargs):
+                     includeaux=False,
+                     service=None,
+                     **kwargs):
     """returns SQL for a RegTAP query for constraints and keywords.
 
     This function's parameters are as for search; this is basically
     a wrapper for rtcons.build_regtap_query maintaining the legacy
     keyword-based interface.
     """
+    # we don't document the service parameter -- it's probably not useful
+    # to users and is just the conscequence of having retrofitted service
+    # sensing into the API.
+    if service is None:
+        service = get_RegTAP_service()
+
     constraints = list(constraints) + rtcons.keywords_to_constraints(kwargs)
 
     # maintain legacy includeaux by locating any Servicetype constraints
@@ -124,10 +157,13 @@ def get_RegTAP_query(*constraints: rtcons.Constraint,
             if isinstance(constraint, rtcons.Servicetype):
                 constraints[index] = constraint.include_auxiliary_services()
 
-    return rtcons.build_regtap_query(constraints)
+    return rtcons.build_regtap_query(constraints, service)
 
 
-def search(*constraints: rtcons.Constraint, includeaux: bool = False, maxrec: int = None, **kwargs):
+def search(*constraints: rtcons.Constraint,
+        includeaux: bool = False,
+        maxrec: int = None,
+        **kwargs):
 
     """
     execute a simple query to the RegTAP registry.
@@ -208,7 +244,10 @@ def search(*constraints: rtcons.Constraint, includeaux: bool = False, maxrec: in
     service = get_RegTAP_service()
     query = RegistryQuery(
         service.baseurl,
-        get_RegTAP_query(*constraints, includeaux=includeaux, **kwargs),
+        get_RegTAP_query(*constraints,
+            includeaux=includeaux,
+            service=service,
+            **kwargs),
         maxrec=maxrec)
     return query.execute()
 
@@ -680,18 +719,41 @@ class RegistryResource(dalq.Record):
                       std_only: bool = False):
         """returns a regtap.Interface class for service_type.
 
-        Parameters
-        ----------
-
         The meaning of the parameters is as for get_service.  This
         method does not return services, though, so you can use it to
         obtain access URLs and such for interfaces that pyVO does
-        not (directly) support. In addition,
+        not (directly) support.
+
+        Parameters
+        ----------
+
+        service_type : str
+            If you leave out ``service_type``, this will return a service
+            for "the" standard interface of the resource.  If a resource
+            has multiple standard capabilities (e.g., both TAP and SSAP
+            endpoints), this will raise a DALQueryError.
+
+            Otherwise, a service of the given service type will be returned.
+            Pass in an ivoid of a standard or one of the shorthands from
+            rtcons.SERVICE_TYPE_MAP, or "web" for a web page (the "service"
+            for this will be an object opening a web browser when you call
+            its query method).
+
+        lax : bool
+            If there are multiple capabilities for service_type, the
+            function choose the first matching capability by default
+            Pass lax=False to instead raise a DALQueryError.
 
         std_only : bool
             Only return interfaces declared as "std".  This is what you
             want when you want to construct pyVO service objects later.
             This parameter is ignored for the "web" service type.
+
+
+        Returns
+        -------
+
+        `~pyvo.registry.regtap.Interface`
         """
         if service_type == "web":
             # this works very much differently in the Registry

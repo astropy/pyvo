@@ -463,3 +463,10 @@ class E10(VOSIWarning, XMLWarning, ValueError):
     Raised when then file doesn't appear to be valid capabilities xml
     """
     message_template = "File does not appear to be a VOSICapabilities file"
+
+
+class VOSIError(Exception):
+    """
+    Raised for non-XML VOSI errors
+    """
+    pass

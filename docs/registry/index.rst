@@ -130,7 +130,7 @@ you would say:
   ...                             registry.Freetext("supernova"))
 
 After that, ``resources`` is an instance of
-:py:class:`pyvo.registry.RegistryResults`, which you can iterate over.  In
+:py:class:`pyvo.registry.regtap.RegistryResults`, which you can iterate over.  In
 interactive data discovery, however, it is usually preferable to use the
 ``to_table`` method for an overview of the resources available:
 
@@ -155,9 +155,9 @@ And to look for tap resources *in* a specific cone, you would do
   ...                 registry.Spatial((SkyCoord("23d +3d"), 3), intersect="enclosed"),
   ...                 includeaux=True) # doctest: +IGNORE_OUTPUT
   <DALResultsTable length=1>
-              ivoid                   res_type       short_name                   res_title                  ...  intf_types  intf_roles          alt_identifier         
-                                                                                                             ...                                                         
-              object                   object          object                       object                   ...    object      object                object             
+              ivoid                   res_type       short_name                   res_title                  ...  intf_types  intf_roles          alt_identifier
+                                                                                                             ...
+              object                   object          object                       object                   ...    object      object                object
   ------------------------------ ----------------- ------------- ------------------------------------------- ... ------------ ---------- --------------------------------
   ivo://cds.vizier/j/apj/835/123 vs:catalogservice J/ApJ/835/123 Globular clusters in NGC 474 from CFHT obs. ... vs:paramhttp        std doi:10.26093/cds/vizier.18350123
 
@@ -183,7 +183,7 @@ are not), but it is rather clunky, and in the real VO short name
 collisions should be very rare.
 
 Use the ``get_service`` method of
-:py:class:`pyvo.registry.RegistryResource` to obtain a DAL service
+:py:class:`pyvo.registry.regtap.RegistryResource` to obtain a DAL service
 object for a particular sort of interface.
 To query the fourth match using simple cone search, you would
 thus say:
@@ -511,6 +511,44 @@ and then you can run:
 
   >>> res.get_tables()  # doctest: +IGNORE_OUTPUT
   {'flashheros.data': <VODataServiceTable name="flashheros.data">... 29 columns ...</VODataServiceTable>, 'ivoa.obscore': <VODataServiceTable name="ivoa.obscore">... 0 columns ...</VODataServiceTable>}
+
+
+Alternative Registries
+======================
+
+There are several RegTAP services in the VO.  PyVO by default uses the
+one at the TAP access URL http://reg.g-vo.org/tap.  You can use
+alternative ones, for instance, because they are nearer to you or
+because the default endpoint is down.
+
+You can pre-select the URL by setting the ``IVOA_REGISTRY`` environment
+variable to the TAP access URL of the service you would like to use.  In
+a bash-like shell, you would say::
+
+  export IVOA_REGISTRY="http://vao.stsci.edu/RegTAP/TapService.aspx"
+
+before starting python (or the notebook processor).
+
+Within a Python session, you can use the
+`pyvo.registry.choose_RegTAP_service` function, which also takes the
+TAP access URL.
+
+As long as you have on working registry endpoint, you can find the other
+RegTAP services using:
+
+.. We probably shouldn't test the result of the next code block; this
+   will change every time someone registers a new RegTAP service...
+
+.. doctest-remote-data::
+
+  >>> res = registry.search(datamodel="regtap")
+  >>> print("\n".join(sorted(r.get_interface("tap").access_url
+  ...   for r in res)))
+  http://dc.zah.uni-heidelberg.de/tap
+  http://gavo.aip.de/tap
+  http://voparis-rr.obspm.fr/tap
+  https://vao.stsci.edu/RegTAP/TapService.aspx
+
 
 
 Reference/API

@@ -4,7 +4,9 @@ a package for interacting with registries.
 
 The regtap module supports access to the IVOA Registries
 """
-from .regtap import search, ivoid2service, get_RegTAP_query
+
+from .regtap import (search, ivoid2service, get_RegTAP_query,
+    choose_RegTAP_service)
 
 from .rtcons import (Constraint,
     Freetext, Author, Servicetype, Waveband, Datamodel, Ivoid,
@@ -12,4 +14,5 @@ from .rtcons import (Constraint,
 
 __all__ = ["search", "get_RegTAP_query", "Freetext", "Author",
     "Servicetype", "Waveband", "Datamodel", "Ivoid", "UCD",
-    "Spatial", "Spectral", "Temporal"]
+    "Spatial", "Spectral", "Temporal",
+    "choose_RegTAP_service"]
