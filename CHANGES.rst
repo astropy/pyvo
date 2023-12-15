@@ -4,6 +4,8 @@
 Enhancements and Fixes
 ----------------------
 
+- Making optional parameters keyword only throughout the public API. [#507]
+
 
 Deprecations and Removals
 -------------------------
