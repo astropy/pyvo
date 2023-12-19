@@ -442,7 +442,7 @@ class DatalinkQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return DatalinkResults(self.execute_votable(post),
+        return DatalinkResults(self.execute_votable(post=post),
                                url=self.queryurl, session=self._session)
 
 

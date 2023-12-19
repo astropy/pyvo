@@ -267,7 +267,7 @@ class RegistryQuery(tap.TAPQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return RegistryResults(self.execute_votable(), self.queryurl)
+        return RegistryResults(self.execute_votable(), url=self.queryurl)
 
 
 class RegistryResults(dalq.DALResults):
@@ -397,8 +397,8 @@ class Interface:
             self.is_vosi = False
 
     def __repr__(self):
-        return (f"Interface({self.access_url!r}, {self.standard_id!r},"
-                f" {self.type!r}, {self.role!r})")
+        return (f"Interface({self.access_url!r}, standard_id={self.standard_id!r},"
+                f" intf_type={self.type!r}, intf_role={self.role!r})")
 
     def to_service(self):
         if self.type == "vr:webbrowser":
@@ -491,7 +491,7 @@ class RegistryResource(dalq.Record):
         "alt_identifier"]
 
     def __init__(self, results, index, session=None):
-        dalq.Record.__init__(self, results, index, session)
+        dalq.Record.__init__(self, results, index, session=session)
 
         self._mapping["access_urls"
                       ] = self._parse_pseudo_array(self._mapping["access_urls"])
@@ -503,7 +503,7 @@ class RegistryResource(dalq.Record):
         self._mapping["intf_roles"
                       ] = self._parse_pseudo_array(self._mapping["intf_roles"])
 
-        self.interfaces = [Interface(*props)
+        self.interfaces = [Interface(props[0], standard_id=props[1], intf_type=props[2], intf_role=props[3])
                            for props in itertools.zip_longest(
             self["access_urls"],
             self["standard_ids"],

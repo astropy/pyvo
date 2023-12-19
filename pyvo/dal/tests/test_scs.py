@@ -32,7 +32,7 @@ def scs(mocker):
 @pytest.mark.usefixtures('scs')
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
 def test_search():
-    results = search('http://example.com/scs', (78, 2), 0.5)
+    results = search('http://example.com/scs', pos=(78, 2), radius=0.5)
 
     assert len(results) == 1273
 
@@ -48,6 +48,6 @@ class TestSCSService:
     def test_search(self):
         service = SCSService('http://example.com/scs')
 
-        results = service.search((78, 2), 0.5)
+        results = service.search(pos=(78, 2), radius=0.5)
 
         assert len(results) == 1273

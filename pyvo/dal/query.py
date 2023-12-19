@@ -165,7 +165,7 @@ class DALQuery(dict):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return DALResults(self.execute_votable(), self.queryurl, session=self._session)
+        return DALResults(self.execute_votable(), url=self.queryurl, session=self._session)
 
     def execute_raw(self):
         """
@@ -833,7 +833,7 @@ class Record(Mapping):
             bufsize = 524288
 
         if not filename:
-            filename = self.make_dataset_filename(dir)
+            filename = self.make_dataset_filename(dir=dir)
 
         inp = self.getdataset(timeout)
         try:
@@ -878,7 +878,7 @@ class Record(Mapping):
         if not base:
             base = self.suggest_dataset_basename()
         if not ext:
-            ext = self.suggest_extension("dat")
+            ext = self.suggest_extension(default="dat")
 
         # be efficient when writing a bunch of files into the same directory
         # in succession

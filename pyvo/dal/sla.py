@@ -189,7 +189,8 @@ class SLAService(DALService):
         --------
         SLAQuery
         """
-        return SLAQuery(self.baseurl, wavelength, request, session=self._session, **keywords)
+        return SLAQuery(baseurl=self.baseurl, wavelength=wavelength, request=request,
+                        session=self._session, **keywords)
 
     def describe(self):
         print(self.description)
@@ -342,7 +343,7 @@ class SLAQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SLAResults(self.execute_votable(), self.queryurl, session=self._session)
+        return SLAResults(self.execute_votable(), url=self.queryurl, session=self._session)
 
 
 class SLAResults(DALResults):

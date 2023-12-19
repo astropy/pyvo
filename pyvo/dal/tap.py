@@ -96,7 +96,7 @@ def search(url, query, language="ADQL", maxrec=None, uploads=None, **keywords):
         an error, including a query syntax error.
     """
     service = TAPService(url)
-    return service.search(query, language, maxrec, uploads, **keywords)
+    return service.search(query, language=language, maxrec=maxrec, uploads=uploads, **keywords)
 
 
 class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
@@ -318,7 +318,8 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         AsyncTAPJob
         """
         job = AsyncTAPJob.create(
-            self.baseurl, query, language, maxrec, uploads, self._session, **keywords)
+            self.baseurl, query, language=language, maxrec=maxrec, uploads=uploads,
+            session=self._session, **keywords)
         job = job.run().wait()
         job.raise_if_error()
         result = job.fetch_result()
@@ -355,7 +356,8 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         AsyncTAPJob
         """
         return AsyncTAPJob.create(
-            self.baseurl, query, language, maxrec, uploads, self._session, **keywords)
+            self.baseurl, query, language=language, maxrec=maxrec, uploads=uploads,
+            session=self._session, **keywords)
 
     def create_query(
             self, query=None, mode="sync", language="ADQL", maxrec=None,
@@ -383,7 +385,8 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             a mapping from table names to objects containing a votable.
         """
         return TAPQuery(
-            self.baseurl, query, mode, language, maxrec, uploads, self._session, **keywords)
+            self.baseurl, query, mode=mode, language=language, maxrec=maxrec,
+            uploads=uploads, session=self._session, **keywords)
 
     def get_job(self, job_id):
         """
