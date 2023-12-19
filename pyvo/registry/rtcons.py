@@ -611,7 +611,7 @@ class Spatial(Constraint):
 
     takes_sequence = True
 
-    def __init__(self, geom_spec, intersect="covers", order=6):
+    def __init__(self, geom_spec, order=6, intersect="covers"):
         """
 
         Parameters
@@ -624,18 +624,19 @@ class Spatial(Constraint):
             SkyCoord and a float as a circle.  Other types (proper
             geometries or MOCPy objects) might be supported in the
             future.
-        intersect : str, optional
-            Allows to specify the connection between the resource coverage
-            and the *geom_spec*. The possible values are 'covers' for services
-            that completely cover the *geom_spec* region, 'enclosed' for services
-            completely enclosed in the region and 'overlaps' for services which
-            coverage intersect the region.
         order : int, optional
             Non-MOC geometries are converted to MOCs before comparing
             them to the resource coverage.  By default, this constraint
             uses order 6, which corresponds to about a degree of resolution
             and is what RegTAP recommends as a sane default for the
             order actually used for the coverages in the database.
+        intersect : str, optional
+            Allows to specify the connection between the resource coverage
+            and the *geom_spec*. The possible values are 'covers' for services
+            that completely cover the *geom_spec* region, 'enclosed' for services
+            completely enclosed in the region and 'overlaps' for services which
+            coverage intersect the region.
+
         """
         def tomoc(s):
             return _AsIs("MOC({}, {})".format(order, s))
