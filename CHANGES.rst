@@ -1,9 +1,25 @@
-1.5 (unreleased)
+1.5 (2023-12-19)
 ================
 
-- Made SIA2Service accept access urls without finding them in the service capabilities [#500]
+Enhancements and Fixes
+----------------------
 
-- Add intersect modes for the spatial constraint in the registry module ``pyvo.registry.Spatial`` [#495]
+- ``registry.search`` now allows programmatic selection of the registry TAP
+  service endpoint with the ``choose_RegTAP_service`` function. [#386]
+
+- ``registry.search`` now introspects the TAP service's capabilities and
+  only offers extended functionality or optimisations if the required
+  features are present [#386]
+
+- Registry search now finds SIA v2 services. [#422, #428]
+
+- Made SIA2Service accept access urls without finding them in the service
+  capabilities. [#500]
+
+- Fix session inheritance in SIA2. [#490]
+
+- Add intersect modes for the spatial constraint in the registry module
+  ``pyvo.registry.Spatial``. [#495]
 
 - Added ``alt_identifier``, ``created``, ``updated`` and ``rights`` to the
   attributes of ``pyvo.registry.regtap.RegistryResource`` [#492]
@@ -13,6 +29,23 @@
 
 - Added convenience method DALResults.to_qtable() that returns an
   astropy.table.QTable object. [#384]
+
+- TAP examples now support the continuation property. [#483]
+
+- Fix poor polling behavior when running an async query against a
+  TAP v1.1 service with unsupported WAIT parameter. [#440]
+
+- Adding python version to User-Agent. [#452]
+
+- Output of ``repr`` for DALResults instance now clearly shows it is a
+  DALResultsTable and not a generic astropy Table. [#478]
+
+- Adding support for the VODataService 1.2 nrows attribute on table
+  elements. [#503]
+
+
+Deprecations and Removals
+-------------------------
 
 - Classes ``SIAService``, ``SIAQuery``, ``SIAResults`` for SIA v2 have been
   renamed to ``SIA2Service``, ``SIA2Query``, ``SIA2Results`` respectively
@@ -24,36 +57,11 @@
   ``VODataServiceTable`` to avoid sharing the name with a more generic
   ``astropy.table.Table`` while having different API. [#484]
 
-- Registry search now finds SIA v2 services. [#422, #428]
-
 - Deprecate VOSI ``AvailabilityMixin``, this mean the deprecation of the
   inherited ``availability``, ``available``, and ``up_since`` properties
   of DAL service classes, too. [#413]
 
 - Deprecating ``ivoid2service`` because it is ill-defined. [#439]
-
-- Fix poor polling behavior when running an async query against a
-  TAP v1.1 service with unsupported WAIT parameter. [#440]
-
-- Adding python version to User-Agent. [#452]
-
-- Output of ``repr`` for DALResults instance now clearly shows it is a
-  DALResultsTable and not a generic astropy Table. [#478]
-
-- TAP examples now support the continuation property [#483]
-
-- Adding support for the VODataService 1.2 nrows attribute on table
-  elements [#503]
-
-- registry.search now introspects the TAP service's capabilities and
-  only offers extended functionality or optimisations if the required
-  features are present [#386]
-
-
-1.4.3 (unreleased)
-==================
-
-- Fix session inheritance in SIA2. [#490]
 
 
 1.4.2 (2023-08-16)
