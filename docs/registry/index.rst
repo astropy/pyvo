@@ -202,11 +202,14 @@ thus say:
 This method will raise an error if there is more than one service of the desired
 type. If you know for sure that all declared conesearch will be the same, you can
 safely use ``get_service('conesearch', lax=True)`` that will return the first
-conesearch it finds. However some service providers provide multiple services 
-of the same type -- for example in VizieR you'll find one conesearch per table.
+conesearch it finds. 
+
+However some providers provide multiple services of the same type
+-- for example in VizieR you'll find one conesearch per table.
 In this case, you can inspect the available services with
-`~pyvo.registry.RegistryResource.list_services` so that your instructions to
-`~pyvo.registry.RegistryResource.get_service` can be refined.
+`~pyvo.registry.RegistryResource.list_services`. Then, you can refine your
+instructions to `~pyvo.registry.RegistryResource.get_service` with a keyword
+constraint on the description ``get_service('conesearch', keyword='sncat')``.
 
 .. doctest-remote-data::
 

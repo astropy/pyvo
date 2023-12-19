@@ -730,7 +730,8 @@ class RegistryResource(dalq.Record):
     def get_interface(self,
                       service_type: str,
                       lax: bool = False,
-                      std_only: bool = False):
+                      std_only: bool = False, *,
+                      keyword: str = None):
         """returns a regtap.Interface class for service_type.
 
         The meaning of the parameters is as for get_service.  This
@@ -788,10 +789,15 @@ class RegistryResource(dalq.Record):
         if not candidates:
             raise ValueError("No matching interface.")
 
+        if keyword is not None:
+            candidates = [candidate for candidate in candidates
+                          if keyword in candidate.capability_description]
+
         if len(candidates) > 1 and not lax:
-            raise ValueError("Multiple matching interfaces found.\n"
-                             "Perhaps pass in service_type or use a Servicetype"
-                             " constrain in the registry.search?  Or use lax=True?"
+            raise ValueError("Multiple matching interfaces found. If you know that they are all equivalent, "
+                             "use 'lax=True'.\n"
+                             "Otherwise, the search can be constrained by specifying a 'service_type' "
+                             "or a 'keyword' to be found in the service description."
                              " You might also want to see all the available services"
                              " with `pyvo.registry.regtap.RegistryResource.list_services()`.")
 
@@ -799,7 +805,8 @@ class RegistryResource(dalq.Record):
 
     def get_service(self,
                     service_type: str = None,
-                    lax: bool = False):
+                    lax: bool = False, *,
+                    keyword: str = None):
         """
         return an appropriate DALService subclass for this resource that
         can be used to search the resource using service_type.
@@ -834,6 +841,16 @@ class RegistryResource(dalq.Record):
             function choose the first matching capability by default
             Pass lax=False to instead raise a DALQueryError.
 
+        keyword : str
+            A keyword that should be in the service description.
+            Some resources have multiple capabilities ("services") of the same
+            type (see list_services for a discussion).  get_service will
+            usually raise a ValueError in that case. Passing a
+            ``keyword`` that uniquely identifies the capability to
+            query will make get_service predictably return the desired
+            service.  Use list_services to find such a unique description
+            fragment.
+
         Returns
         -------
         `pyvo.dal.DALService`
@@ -847,8 +864,8 @@ class RegistryResource(dalq.Record):
         --------
         list_services : return a list with all the available services.
         """
-        return self.get_interface(service_type, lax, std_only=True
-                                  ).to_service()
+        return self.get_interface(service_type, lax, std_only=True,
+                                  keyword=keyword).to_service()
 
     @property
     def service(self):

@@ -540,6 +540,16 @@ class TestInterfaceSelection:
             resource.get_service('tap')
         assert (str(excinfo.value) == "No matching interface.")
 
+    def test_get_service_by_keyword(self):
+        rec = _makeRegistryRecord(
+            access_urls=["http://example1.org/tap", "http://example2.org/tap"],
+            standard_ids=["ivo://ivoa.net/std/tap"] * 2,
+            intf_types=["vs:paramhttp"] * 2,
+            intf_roles=["std"] * 2,
+            cap_descriptions=["Example 1 TAP", "Example 2 TAP"])
+        service = rec.get_service("tap", keyword="Example 2")
+        assert service.capability_description == "Example 2 TAP"
+
     def test_sia2_query(self):
         rec = _makeRegistryRecord(
             access_urls=["http://sia2.example.com", "http://sia.example.com"],
@@ -647,14 +657,8 @@ class TestInterfaceRejection:
             standard_ids=["ivo://ivoa.net/std/tap"] * 2,
             intf_types=["vs:paramhttp"] * 2,
             intf_roles=["std"] * 2)
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match="Multiple matching interfaces found.*"):
             rsc.get_service("tap", lax=False)
-
-        assert str(excinfo.value) == (
-            "Multiple matching interfaces found.\n"
-            "Perhaps pass in service_type or use a Servicetype constrain in the"
-            " registry.search?  Or use lax=True? You might also want to see all the available"
-            " services with `pyvo.registry.regtap.RegistryResource.list_services()`.")
 
     def test_nonunique_lax(self):
         rsc = _makeRegistryRecord(
