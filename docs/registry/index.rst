@@ -570,7 +570,8 @@ RegTAP services using:
 .. doctest-remote-data::
 
   >>> res = registry.search(datamodel="regtap")
-  >>> print("\n".join(sorted(r.get_interface(service_type="tap").access_url
+  >>> print("\n".join(sorted(r.get_interface(service_type="tap", lax=True).access_url
+  >>> print("\n".join(sorted(r.get_interface("tap", lax=True).access_url
   ...   for r in res)))
   http://dc.zah.uni-heidelberg.de/tap
   http://gavo.aip.de/tap
