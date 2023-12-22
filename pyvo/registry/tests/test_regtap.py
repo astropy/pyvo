@@ -462,14 +462,14 @@ class TestInterfaceSelection:
                                       " using Servicetype.")
 
     def test_get_web_interface(self, flash_service):
-        svc = flash_service.get_service("web")
+        svc = flash_service.get_service(service_type="web")
         assert isinstance(svc,
                           regtap._BrowserService)
         assert (svc.baseurl
                 == "http://dc.zah.uni-heidelberg.de/flashheros/q/web/form")
         assert str(svc) == ("BrowserService(baseurl : "
                             "'http://dc.zah.uni-heidelberg.de/flashheros/q/web/form',"
-                            " description : 'None')")
+                            " description : '')")
 
         import webbrowser
         orig_open = webbrowser.open
@@ -483,25 +483,25 @@ class TestInterfaceSelection:
             webbrowser.open = orig_open
 
     def test_get_aux_interface(self, flash_service):
-        svc = flash_service.get_service("tap#aux")
+        svc = flash_service.get_service(service_type="tap#aux")
         assert (svc._baseurl
                 == "http://dc.zah.uni-heidelberg.de/tap")
 
     def test_get_aux_as_main(self, flash_service):
-        assert (flash_service.get_service("tap")._baseurl
+        assert (flash_service.get_service(service_type="tap")._baseurl
                 == "http://dc.zah.uni-heidelberg.de/tap")
 
     def test_get__main_from_aux(self, flash_service):
-        assert (flash_service.get_service("tap")._baseurl
+        assert (flash_service.get_service(service_type="tap")._baseurl
                 == "http://dc.zah.uni-heidelberg.de/tap")
 
     def test_get_by_alias(self, flash_service):
-        assert (flash_service.get_service("spectrum")._baseurl
+        assert (flash_service.get_service(service_type="spectrum")._baseurl
                 == "http://dc.zah.uni-heidelberg.de/fhssa?")
 
     def test_get_unsupported_standard(self, flash_service):
         with pytest.raises(ValueError) as excinfo:
-            flash_service.get_service("soda#sync-1.0")
+            flash_service.get_service(service_type="soda#sync-1.0")
 
         assert str(excinfo.value) == (
             "PyVO has no support for interfaces with standard id"
@@ -509,7 +509,7 @@ class TestInterfaceSelection:
 
     def test_get_nonexisting_standard(self, flash_service):
         with pytest.raises(ValueError) as excinfo:
-            flash_service.get_service("http://nonsense#fancy")
+            flash_service.get_service(service_type="http://nonsense#fancy")
 
         assert str(excinfo.value) == (
             "No matching interface.")
@@ -560,8 +560,8 @@ class TestInterfaceSelection:
             intf_types=["vs:paramhttp"] * 2,
             cap_descriptions=["A mock SIA2 Service."] * 2)
         assert rec.access_modes() == {"sia", "sia2"}
-        assert rec.get_interface("sia2").access_url == 'http://sia2.example.com'
-        assert rec.get_interface("sia").access_url == 'http://sia.example.com'
+        assert rec.get_interface(service_type="sia2").access_url == 'http://sia2.example.com'
+        assert rec.get_interface(service_type="sia").access_url == 'http://sia.example.com'
 
     def test_sia2_aux(self):
         rec = _makeRegistryRecord(
@@ -573,8 +573,8 @@ class TestInterfaceSelection:
             intf_types=["vs:paramhttp"] * 2,
             cap_descriptions=["A mock service."] * 2)
         assert rec.access_modes() == {"sia#aux", "sia2#aux"}
-        assert rec.get_interface("sia2").access_url == 'http://sia2.example.com'
-        assert rec.get_interface("sia").access_url == 'http://sia.example.com'
+        assert rec.get_interface(service_type="sia2").access_url == 'http://sia2.example.com'
+        assert rec.get_interface(service_type="sia").access_url == 'http://sia.example.com'
 
     def test_non_standard_interface(self):
         intf = regtap.Interface("http://url", standard_id="", intf_type="", intf_role="")
@@ -658,7 +658,7 @@ class TestInterfaceRejection:
             intf_types=["vs:paramhttp"] * 2,
             intf_roles=["std"] * 2)
         with pytest.raises(ValueError, match="Multiple matching interfaces found.*"):
-            rsc.get_service("tap", lax=False)
+            rsc.get_service(service_type="tap", lax=False)
 
     def test_nonunique_lax(self):
         rsc = _makeRegistryRecord(
@@ -668,7 +668,7 @@ class TestInterfaceRejection:
             intf_roles=["std"] * 2,
             cap_descriptions=["Test TAP service."] * 2)
 
-        assert (rsc.get_service("tap", lax=True)._baseurl
+        assert (rsc.get_service(service_type="tap", lax=True)._baseurl
                 == "http://a")
 
     def test_nonstd_ignored(self):
@@ -677,7 +677,7 @@ class TestInterfaceRejection:
             standard_ids=["ivo://ivoa.net/std/tap"] * 2,
             intf_types=["vs:paramhttp"] * 2,
             intf_roles=["std", ""])
-        assert (rsc.get_service("tap", lax=False)._baseurl
+        assert (rsc.get_service(service_type="tap", lax=False)._baseurl
                 == "http://a")
 
     def test_select_single_matching_service(self):

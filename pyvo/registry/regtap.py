@@ -516,7 +516,8 @@ class RegistryResource(dalq.Record):
         self._mapping["cap_descriptions"
                       ] = self._parse_pseudo_array(self._mapping["cap_descriptions"])
 
-        self.interfaces = [Interface(props[0], standard_id=props[1], intf_type=props[2], intf_role=props[3])
+        self.interfaces = [Interface(props[0], standard_id=props[1], intf_type=props[2],
+                                     intf_role=props[3], capability_description=props[4])
                            for props in itertools.zip_longest(
             self["access_urls"],
             self["standard_ids"],
@@ -727,10 +728,10 @@ class RegistryResource(dalq.Record):
                    if (intf.standard_id or intf.type == "vr:webbrowser")
                    and not intf.is_vosi)
 
-    def get_interface(self,
+    def get_interface(self, *,
                       service_type: str,
                       lax: bool = False,
-                      std_only: bool = False, *,
+                      std_only: bool = False,
                       keyword: str = None):
         """returns a regtap.Interface class for service_type.
 
@@ -803,9 +804,9 @@ class RegistryResource(dalq.Record):
 
         return candidates[0]
 
-    def get_service(self,
+    def get_service(self, *,
                     service_type: str = None,
-                    lax: bool = False, *,
+                    lax: bool = False,
                     keyword: str = None):
         """
         return an appropriate DALService subclass for this resource that
@@ -864,7 +865,7 @@ class RegistryResource(dalq.Record):
         --------
         list_services : return a list with all the available services.
         """
-        return self.get_interface(service_type, lax, std_only=True,
+        return self.get_interface(service_type=service_type, lax=lax, std_only=True,
                                   keyword=keyword).to_service()
 
     @property
@@ -884,10 +885,10 @@ class RegistryResource(dalq.Record):
         """
         if self._service is not None:
             return self._service
-        self._service = self.get_service(None, True)
+        self._service = self.get_service(service_type=None, lax=True)
         return self._service
 
-    def list_services(self, service_type=None):
+    def list_services(self, service_type: str = None):
         """List the services available for this registry record.
 
         Parameters
