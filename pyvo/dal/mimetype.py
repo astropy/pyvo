@@ -53,7 +53,7 @@ def mime2extension(mimetype, default=None):
     return ext
 
 
-def mime_object_maker(url, mimetype, session=None):
+def mime_object_maker(url, mimetype, *, session=None):
     """
     return a data object suitable for the mimetype given.
     this will either return a astropy fits object or a pyvo DALResults object,

@@ -145,7 +145,7 @@ class VOSITables:
     Access to table names is like accessing dictionary keys. using iterator
     syntax or `keys()`
     """
-    def __init__(self, vosi_tables, endpoint_url, session=None):
+    def __init__(self, vosi_tables, endpoint_url, *, session=None):
         self._vosi_tables = vosi_tables
         self._endpoint_url = endpoint_url
         self._cache = {}

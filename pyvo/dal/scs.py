@@ -33,7 +33,7 @@ from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin
 __all__ = ["search", "SCSService", "SCSQuery", "SCSResults", "SCSRecord"]
 
 
-def search(url, pos, radius=1.0, verbosity=2, **keywords):
+def search(url, pos, *, radius=1.0, verbosity=2, **keywords):
     """
     submit a simple Cone Search query that requests objects or observations
     whose positions fall within some distance from a search position.
@@ -87,7 +87,7 @@ class SCSService(DALService):
     a representation of a Cone Search service
     """
 
-    def __init__(self, baseurl, session=None):
+    def __init__(self, baseurl, *, session=None):
         """
         instantiate a Cone Search service
 
@@ -139,7 +139,7 @@ class SCSService(DALService):
         except AttributeError:
             return []
 
-    def search(self, pos, radius=1.0, verbosity=2, **keywords):
+    def search(self, pos, *, radius=1.0, verbosity=2, **keywords):
         """
         submit a simple Cone Search query that requests objects or observations
         whose positions fall within some distance from a search position.
@@ -186,7 +186,7 @@ class SCSService(DALService):
         """
         return self.create_query(pos=pos, radius=radius, verbosity=verbosity, **keywords).execute()
 
-    def create_query(self, pos=None, radius=None, verbosity=None, **keywords):
+    def create_query(self, pos=None, *, radius=None, verbosity=None, **keywords):
         """
         create a query object that constraints can be added to and then
         executed.  The input arguments will initialize the query with the
@@ -275,7 +275,7 @@ class SCSQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, pos=None, radius=None, verbosity=None, session=None, **keywords):
+            self, baseurl, pos=None, *, radius=None, verbosity=None, session=None, **keywords):
         """
         initialize the query object with a baseurl and the given parameters
 

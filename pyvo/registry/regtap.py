@@ -384,11 +384,11 @@ class Interface:
         "ivo://ivoa.net/std/sla": sla.SLAService,
         "ivo://ivoa.net/std/tap": tap.TAPService}
 
-    def __init__(self, access_url, standard_id, intf_type, intf_role):
+    def __init__(self, access_url, *, standard_id=None, intf_type=None, intf_role=None):
         self.access_url = access_url
-        self.standard_id = standard_id or None
-        self.type = intf_type or None
-        self.role = intf_role or None
+        self.standard_id = standard_id
+        self.type = intf_type
+        self.role = intf_role
         self.is_standard = self.role == "std"
 
         if self.standard_id is not None:
@@ -490,7 +490,7 @@ class RegistryResource(dalq.Record):
             "intf_roles"),
         "alt_identifier"]
 
-    def __init__(self, results, index, session=None):
+    def __init__(self, results, index, *, session=None):
         dalq.Record.__init__(self, results, index, session=session)
 
         self._mapping["access_urls"
@@ -881,7 +881,7 @@ class RegistryResource(dalq.Record):
             raise dalq.DALServiceError(
                 f"Resource {self.ivoid} is not a searchable service")
 
-    def describe(self, verbose=False, width=78, file=None):
+    def describe(self, *, verbose=False, width=78, file=None):
         """
         Print a summary description of this resource.
 
@@ -1001,7 +1001,7 @@ class RegistryResource(dalq.Record):
 
         return res
 
-    def get_tables(self, table_limit=20):
+    def get_tables(self, *, table_limit=20):
         """
         return the structure of the tables underlying the service.
 

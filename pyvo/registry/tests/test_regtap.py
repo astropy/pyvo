@@ -204,7 +204,7 @@ def _flash_service(multi_interface_fixture):
 
 class TestInterfaceClass:
     def test_basic(self):
-        intf = regtap.Interface("http://example.org", "", "", "")
+        intf = regtap.Interface("http://example.org")
         assert intf.access_url == "http://example.org"
         assert intf.standard_id is None
         assert intf.type is None

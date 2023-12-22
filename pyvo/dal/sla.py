@@ -71,7 +71,7 @@ class SLAService(DALService):
     """
     a representation of an spectral line catalog (SLA) service
     """
-    def __init__(self, baseurl, session=None):
+    def __init__(self, baseurl, *, session=None):
         """
         instantiate an SLA service
 
@@ -163,7 +163,7 @@ class SLAService(DALService):
         """
         return self.create_query(wavelength, **keywords).execute()
 
-    def create_query(self, wavelength=None, request="queryData", **keywords):
+    def create_query(self, wavelength=None, *, request="queryData", **keywords):
         """
         create a query object that constraints can be added to and then
         executed.  The input arguments will initialize the query with the
@@ -242,8 +242,7 @@ class SLAQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, wavelength=None, request="queryData", session=None,
-            **keywords):
+            self, baseurl, wavelength=None, *, request="queryData", session=None):
         """
         initialize the query object with a baseurl and the given parameters
 
@@ -256,11 +255,6 @@ class SLAQuery(DALQuery):
             assuming meters if unit is not specified.
         session : object
            optional session to use for network requests
-        **keywords :
-            additional parameters can be given via arbitrary
-            case insensitive keyword arguments. Where there is overlap
-            with the parameters set by the other arguments to
-            this function, these keywords will override.
         """
         super().__init__(baseurl, session=session)
 
