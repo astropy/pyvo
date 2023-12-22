@@ -160,13 +160,33 @@ def _test_records(records):
     assert records[2]['2'] == truth
 
 
+@pytest.fixture
+def url():
+    return "http://example.com/query/basic"
+
+
+@pytest.fixture
+def description():
+    return "An example service."
+
+
+@pytest.fixture
+def basic_service(url, description):
+    return DALService(url, capability_description=description)
+
+
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
 @pytest.mark.usefixtures('register_mocks')
 class TestDALService:
-    def test_init(self):
-        """Test if baseurl if passed correctly"""
-        service = DALService('http://example.com/query/basic')
-        assert service.baseurl == 'http://example.com/query/basic'
+
+    def test_init(self, url, description, basic_service):
+        """Test if baseurl and description are passed correctly"""
+        assert basic_service.baseurl == url
+        assert basic_service.capability_description == "An example service."
+
+    def test__repr__(self, basic_service):
+        assert str(basic_service) == (f"DALService(baseurl : '{basic_service.baseurl}',"
+                                      f" description : '{basic_service.capability_description}')")
 
     def test_search(self):
         """

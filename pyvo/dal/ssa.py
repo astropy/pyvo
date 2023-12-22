@@ -109,8 +109,7 @@ class SSAService(DALService):
     """
     a representation of an SSA service
     """
-
-    def __init__(self, baseurl, *, session=None):
+    def __init__(self, baseurl, *, capability_description=None, session=None):
         """
         instantiate an SSA service
 
@@ -119,7 +118,7 @@ class SSAService(DALService):
         baseurl : str
            the base URL for submitting search queries to the service.
         """
-        super().__init__(baseurl, session=session)
+        super().__init__(baseurl, session=session, capability_description=capability_description)
 
     def _get_metadata(self):
         """
@@ -137,7 +136,6 @@ class SSAService(DALService):
         the service description.
         """
         self._get_metadata()
-
         try:
             return getattr(self, "_metadata", None).description
         except AttributeError:

@@ -4,12 +4,20 @@
 Enhancements and Fixes
 ----------------------
 
+- Add method ``list_services`` to ``pyvo.registry.regtap.RegistryResource`` that returns the
+  list of available services. Add ``keyword`` parameter in ``get_service`` which should match
+  ``capability_description``. [#505]
+
+- Add optional ``capability_description`` parameter and a ``__repr__`` to ``pyvo.dal.query.DALService``
+  abstract base class [#505]
+
+- Make ``lax`` parameter default to False in registry get_service method [#505]
+
 - Making optional parameters keyword only throughout the public API. [#507]
 
 
 Deprecations and Removals
 -------------------------
-
 
 1.5 (2023-12-19)
 ================

@@ -442,9 +442,13 @@ def test_search():
 
 class TestTAPService:
     def test_init(self):
-        service = TAPService('http://example.com/tap')
+        url = 'http://example.com/tap'
+        description = "An example TAP service."
+        service = TAPService(url, capability_description=description)
 
-        assert service.baseurl == 'http://example.com/tap'
+        assert service.baseurl == url
+        assert service.capability_description == description
+        assert str(service) == f"""TAPService(baseurl : '{url}', description : '{description}')"""
 
     def _test_tables(self, table1, table2):
         assert table1.description == 'Lazy Test Table 1'

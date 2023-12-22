@@ -5,7 +5,7 @@ a module for basic VO Registry interactions.
 A VO registry is a database of VO resources--data collections and
 services--that are available for VO applications.  Typically, it is
 aware of the resources from all over the world.  A registry can find
-relevent data collections and services through search
+relevant data collections and services through search
 queries--typically, subject-based.  The registry responds with a list
 of records describing matching resources.  With a record in hand, the
 application can use the information in the record to access the
@@ -352,12 +352,16 @@ class _BrowserService:
     services.
     """
 
-    def __init__(self, access_url):
-        self.access_url = access_url
+    def __init__(self, access_url, capability_description=None):
+        self.baseurl = access_url
+        self.capability_description = capability_description
+
+    def __repr__(self):
+        return f"BrowserService(baseurl : '{self.baseurl}', description : '{self.capability_description}')"
 
     def search(self):
         import webbrowser
-        webbrowser.open(self.access_url, 2)
+        webbrowser.open(self.baseurl, 2)
 
 
 class Interface:
@@ -384,11 +388,13 @@ class Interface:
         "ivo://ivoa.net/std/sla": sla.SLAService,
         "ivo://ivoa.net/std/tap": tap.TAPService}
 
-    def __init__(self, access_url, *, standard_id=None, intf_type=None, intf_role=None):
+    def __init__(self, access_url, *, standard_id=None,
+                 intf_type=None, intf_role=None, capability_description=None):
         self.access_url = access_url
         self.standard_id = standard_id
         self.type = intf_type
         self.role = intf_role
+        self.capability_description = capability_description
         self.is_standard = self.role == "std"
 
         if self.standard_id is not None:
@@ -398,11 +404,12 @@ class Interface:
 
     def __repr__(self):
         return (f"Interface({self.access_url!r}, standard_id={self.standard_id!r},"
-                f" intf_type={self.type!r}, intf_role={self.role!r})")
+                f" intf_type={self.type!r}, intf_role={self.role!r}, "
+                f"capability_description={self.capability_description!r})")
 
     def to_service(self):
         if self.type == "vr:webbrowser":
-            return _BrowserService(self.access_url)
+            return _BrowserService(self.access_url, self.capability_description)
 
         if self.standard_id is None or not self.is_standard:
             raise ValueError("This is not a standard interface.  PyVO"
@@ -415,9 +422,11 @@ class Interface:
                              f" standard id {self.standard_id}.")
 
         if service_class == sia2.SIA2Service:
-            return service_class(self.access_url, check_baseurl=False)
+            return service_class(self.access_url,
+                                 capability_description=self.capability_description,
+                                 check_baseurl=False)
         else:
-            return service_class(self.access_url)
+            return service_class(self.access_url, capability_description=self.capability_description)
 
     def supports(self, standard_id):
         """returns true if we believe the interface should be able to talk
@@ -488,6 +497,8 @@ class RegistryResource(dalq.Record):
             "intf_types"),
         (f"\n  ivo_string_agg(COALESCE(intf_role, ''), '{TOKEN_SEP}')",
             "intf_roles"),
+        (f"\n  ivo_string_agg(COALESCE(cap_description, ''), '{TOKEN_SEP}')",
+            "cap_descriptions"),
         "alt_identifier"]
 
     def __init__(self, results, index, *, session=None):
@@ -502,13 +513,17 @@ class RegistryResource(dalq.Record):
                       ] = self._parse_pseudo_array(self._mapping["intf_types"])
         self._mapping["intf_roles"
                       ] = self._parse_pseudo_array(self._mapping["intf_roles"])
+        self._mapping["cap_descriptions"
+                      ] = self._parse_pseudo_array(self._mapping["cap_descriptions"])
 
-        self.interfaces = [Interface(props[0], standard_id=props[1], intf_type=props[2], intf_role=props[3])
+        self.interfaces = [Interface(props[0], standard_id=props[1], intf_type=props[2],
+                                     intf_role=props[3], capability_description=props[4])
                            for props in itertools.zip_longest(
             self["access_urls"],
             self["standard_ids"],
             self["intf_types"],
-            self["intf_roles"])]
+            self["intf_roles"],
+            self["cap_descriptions"])]
 
     @staticmethod
     def _parse_pseudo_array(literal):
@@ -596,7 +611,7 @@ class RegistryResource(dalq.Record):
     def creators(self):
         """
         The creator(s) of the resource
-        in the ordergiven by the resource record author
+        in the order given by the resource record author
         """
         return self.get("creator_seq", default="", decode=True).split(";")
 
@@ -713,10 +728,11 @@ class RegistryResource(dalq.Record):
                    if (intf.standard_id or intf.type == "vr:webbrowser")
                    and not intf.is_vosi)
 
-    def get_interface(self,
+    def get_interface(self, *,
                       service_type: str,
-                      lax: bool = True,
-                      std_only: bool = False):
+                      lax: bool = False,
+                      std_only: bool = False,
+                      keyword: str = None):
         """returns a regtap.Interface class for service_type.
 
         The meaning of the parameters is as for get_service.  This
@@ -772,23 +788,32 @@ class RegistryResource(dalq.Record):
                           and ((not service_type) or intf.supports(service_type))]
 
         if not candidates:
-            raise ValueError(
-                "No matching interface.")
+            raise ValueError("No matching interface.")
+
+        if keyword is not None:
+            candidates = [candidate for candidate in candidates
+                          if candidate.capability_description is not None
+                          and keyword in candidate.capability_description]
+
         if len(candidates) > 1 and not lax:
-            raise ValueError("Multiple matching interfaces found."
-                             "  Perhaps pass in service_type or use a Servicetype"
-                             " constrain in the registry.search?  Or use lax=True?")
+            raise ValueError("Multiple matching interfaces found. If you know that they are all equivalent, "
+                             "use 'lax=True'.\n"
+                             "Otherwise, the search can be constrained by specifying a 'service_type' "
+                             "or a 'keyword' to be found in the service description."
+                             " You might also want to see all the available services"
+                             " with `pyvo.registry.regtap.RegistryResource.list_services()`.")
 
         return candidates[0]
 
-    def get_service(self,
+    def get_service(self, *,
                     service_type: str = None,
-                    lax: bool = True):
+                    lax: bool = False,
+                    keyword: str = None):
         """
         return an appropriate DALService subclass for this resource that
         can be used to search the resource using service_type.
 
-        Raise a ValueError if the service_type is not offerend on
+        Raise a ValueError if the service_type is not offered on
         the resource (or no standard service is offered).  With
         lax=False, also raise a ValueError if multiple interfaces
         exist for the given service_type.
@@ -818,6 +843,16 @@ class RegistryResource(dalq.Record):
             function choose the first matching capability by default
             Pass lax=False to instead raise a DALQueryError.
 
+        keyword : str
+            A keyword that should be in the service description.
+            Some resources have multiple capabilities ("services") of the same
+            type (see list_services for a discussion).  get_service will
+            usually raise a ValueError in that case. Passing a
+            ``keyword`` that uniquely identifies the capability to
+            query will make get_service predictably return the desired
+            service.  Use list_services to find such a unique description
+            fragment.
+
         Returns
         -------
         `pyvo.dal.DALService`
@@ -826,9 +861,13 @@ class RegistryResource(dalq.Record):
             services) is returned.  For ``web`` services, what is returned is
             an opaque service object that has a ``search()`` method simply
             opening a web browser on the access URL.
+
+        See Also
+        --------
+        list_services : return a list with all the available services.
         """
-        return self.get_interface(service_type, lax, std_only=True
-                                  ).to_service()
+        return self.get_interface(service_type=service_type, lax=lax, std_only=True,
+                                  keyword=keyword).to_service()
 
     @property
     def service(self):
@@ -839,11 +878,51 @@ class RegistryResource(dalq.Record):
         constrained the service type; otherwise, many resources will
         have multiple capabilities.  Use get_service instead in
         such cases.
+
+        See Also
+        --------
+        get_service : select a service of a specific service type.
+        list_services : return a list with all the available services.
         """
         if self._service is not None:
             return self._service
-        self._service = self.get_service(None, True)
+        self._service = self.get_service(service_type=None, lax=True)
         return self._service
+
+    def list_services(self, service_type: str = None):
+        """List the services available for this registry record.
+
+        Parameters
+        ----------
+        service_type : str, optional
+            Restricts the list to services corresponding to this service type.
+            The list of possible values can be printed with
+            ``pyvo.registry.rtcons.SERVICE_TYPE_MAP.keys()``.
+
+        Returns
+        -------
+        list
+            A list of service objects. They can be
+            `~pyvo.dal.scs.SCSService`, `~pyvo.dal.sia.SIAService`,
+            `~pyvo.dal.sia2.SIA2Service`, `~pyvo.dal.ssa.SSAService`,
+            `~pyvo.dal.sla.SLAService`, or `~pyvo.dal.tap.TAPService`.
+
+        See Also
+        --------
+        get_service : when there is only one service of a specific service type.
+        """
+        if service_type is not None:
+            service_type = expand_stdid(rtcons.SERVICE_TYPE_MAP.get(service_type, service_type))
+
+        list_services = [interface.to_service() for interface in self.interfaces
+                         if (interface.is_standard
+                             and (service_type is None or interface.supports(service_type)))]
+
+        if service_type in {"web", None}:
+            list_services += [_BrowserService(interface.access_url)
+                              for interface in self.interfaces if interface.type == "vr:webbrowser"]
+
+        return sorted(list_services, key=lambda service: service.baseurl)
 
     def search(self, *args, **keys):
         """

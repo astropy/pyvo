@@ -39,9 +39,10 @@ def test_search():
 
 class TestSCSService:
     def test_init(self):
-        service = SCSService('http://example.com/scs')
+        service = SCSService('http://example.com/scs', capability_description="SCS")
 
         assert service.baseurl == 'http://example.com/scs'
+        assert service.capability_description == "SCS"
 
     @pytest.mark.usefixtures('scs')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")

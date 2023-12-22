@@ -71,7 +71,7 @@ class SLAService(DALService):
     """
     a representation of an spectral line catalog (SLA) service
     """
-    def __init__(self, baseurl, *, session=None):
+    def __init__(self, baseurl, *, capability_description=None, session=None):
         """
         instantiate an SLA service
 
@@ -82,7 +82,7 @@ class SLAService(DALService):
         session : object
            optional session to use for network requests
         """
-        super().__init__(baseurl, session=session)
+        super().__init__(baseurl, capability_description=capability_description, session=session)
 
     def _get_metadata(self):
         """
@@ -98,9 +98,15 @@ class SLAService(DALService):
     def description(self):
         """
         the service description.
-        """
-        self._get_metadata()
 
+        If this is not provided during instantiation, this method will download
+        a sample from the service and read the description in the sample's
+        metadata instead.
+        """
+        if self._description is not None:
+            return self._description
+
+        self._get_metadata()
         try:
             return getattr(self, "_metadata", None).description
         except AttributeError:

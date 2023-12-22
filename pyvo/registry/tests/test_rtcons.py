@@ -450,6 +450,7 @@ class TestSelectClause:
             "\n  ivo_string_agg(COALESCE(standard_id, ''), ':::py VO sep:::') AS standard_ids, "
             "\n  ivo_string_agg(COALESCE(intf_type, ''), ':::py VO sep:::') AS intf_types, "
             "\n  ivo_string_agg(COALESCE(intf_role, ''), ':::py VO sep:::') AS intf_roles, "
+            "\n  ivo_string_agg(COALESCE(cap_description, ''), ':::py VO sep:::') AS cap_descriptions, "
             "alt_identifier")
 
     def test_group_by_columns(self):
