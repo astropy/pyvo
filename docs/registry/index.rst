@@ -215,7 +215,7 @@ constraint on the description ``get_service(service_type='conesearch', keyword='
 
   >>> for service in voresource.list_services():
   ...     print(service)
-  TAPService(baseurl : 'http://tapvizier.cds.unistra.fr/TAPVizieR/tap', description : 'None')
+  TAPService(baseurl : 'http://tapvizier.cds.unistra.fr/TAPVizieR/tap', description : '')
   BrowserService(baseurl : 'http://vizier.cds.unistra.fr/viz-bin/VizieR-2?-source=II/283', description : 'None')
   SCSService(baseurl : 'http://vizier.cds.unistra.fr/viz-bin/conesearch/II/283/sncat?', description : 'Cone search capability for table II/283/sncat (List of SNe arranged in chronological order)')
 
@@ -224,7 +224,7 @@ Or to get the list of services corresponding to a specific service type:
 .. doctest-remote-data::
 
   >>> voresource.list_services("tap")
-  [TAPService(baseurl : 'http://tapvizier.cds.unistra.fr/TAPVizieR/tap', description : 'None')]
+  [TAPService(baseurl : 'http://tapvizier.cds.unistra.fr/TAPVizieR/tap', description : '')]
 
 To operate TAP services, you need to know what tables make up a
 resource; you could construct a TAP service and access its ``tables``
@@ -516,8 +516,8 @@ two special capabilities that pyVO cannot produce services for (mainly
 because standalone service objects do not make much sense for them).
 
 To obtain a service for one of the access modes pyVO does support, use
-``get_service(mode)``.  For ``web``, this returns an object that opens a
-web browser window when its ``query`` method is called.
+``get_service(service_type=mode)``.  For ``web``, this returns an object
+that opens a web browser window when its ``query`` method is called.
 
 RegistryResources also have a ``get_contact`` method.  Use this if the
 service is down or seems to have bugs; you should in general get at
@@ -571,7 +571,6 @@ RegTAP services using:
 
   >>> res = registry.search(datamodel="regtap")
   >>> print("\n".join(sorted(r.get_interface(service_type="tap", lax=True).access_url
-  >>> print("\n".join(sorted(r.get_interface("tap", lax=True).access_url
   ...   for r in res)))
   http://dc.zah.uni-heidelberg.de/tap
   http://gavo.aip.de/tap
