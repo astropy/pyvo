@@ -537,17 +537,18 @@ class TestInterfaceSelection:
         # get_service still won't work because it needs a paramhttp
         # interface (and a role="std").
         with pytest.raises(ValueError) as excinfo:
-            resource.get_service('tap')
+            resource.get_service(service_type='tap')
         assert (str(excinfo.value) == "No matching interface.")
 
     def test_get_service_by_keyword(self):
         rec = _makeRegistryRecord(
-            access_urls=["http://example1.org/tap", "http://example2.org/tap"],
-            standard_ids=["ivo://ivoa.net/std/tap"] * 2,
-            intf_types=["vs:paramhttp"] * 2,
-            intf_roles=["std"] * 2,
-            cap_descriptions=["Example 1 TAP", "Example 2 TAP"])
-        service = rec.get_service("tap", keyword="Example 2")
+            access_urls=["http://example1.org/tap", "http://example2.org/tap",
+                         "http://example3.org/tap"],
+            standard_ids=["ivo://ivoa.net/std/tap"] * 3,
+            intf_types=["vs:paramhttp"] * 3,
+            intf_roles=["std"] * 3,
+            cap_descriptions=["Example 1 TAP", "Example 2 TAP"])  # no description for the third one
+        service = rec.get_service(service_type="tap", keyword="Example 2")
         assert service.capability_description == "Example 2 TAP"
 
     def test_sia2_query(self):

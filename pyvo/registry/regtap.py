@@ -792,7 +792,8 @@ class RegistryResource(dalq.Record):
 
         if keyword is not None:
             candidates = [candidate for candidate in candidates
-                          if keyword in candidate.capability_description]
+                          if candidate.capability_description is not None
+                          and keyword in candidate.capability_description]
 
         if len(candidates) > 1 and not lax:
             raise ValueError("Multiple matching interfaces found. If you know that they are all equivalent, "
