@@ -4,7 +4,7 @@
 Enhancements and Fixes
 ----------------------
 
-- Fix ``pyvo.registry.Author`` that missed a table join [#515]
+- Fix ``pyvo.registry.Author`` to allow registry searches with author constraints. [#515]
 
 - Add method ``list_services`` to ``pyvo.registry.regtap.RegistryResource`` that returns the
   list of available services. Add ``keyword`` parameter in ``get_service`` which should match
