@@ -1,3 +1,13 @@
+1.5.1 (unreleased)
+==================
+
+Enhancements and Fixes
+----------------------
+
+- Fix ``pyvo.registry.Author`` to allow registry searches with author constraints. [#515]
+
+
+
 1.5 (2023-12-19)
 ================
 

@@ -307,6 +307,7 @@ class Author(Constraint):
         """
         self._condition = "role_name LIKE {auth} AND base_role='creator'"
         self._fillers = {"auth": name}
+        self._extra_tables = ["rr.res_role"]
 
 
 class Servicetype(Constraint):
