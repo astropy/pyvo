@@ -474,3 +474,41 @@ class TestSelectClause:
                     "region_of_regard, "
                     "waveband, "
                     "alt_identifier"))
+
+    def test_joined_tables(self):
+        expected_tables = [
+            # from author constraint
+            "rr.res_role",
+            # default tables
+            "rr.resource",
+            "rr.capability",
+            "rr.interface",
+            "rr.alt_identifier"
+        ]
+        assert all(table in _build_regtap_query_with_fake([rtcons.Author("%Hubble%")])
+                   for table in expected_tables)
+
+
+@pytest.mark.remote_data
+def test_all_constraints():
+    text = rtcons.Freetext("star")
+    author = rtcons.Author(r"%ESA%")
+    servicetype = rtcons.Servicetype("tap")
+    waveband = rtcons.Waveband("optical")
+    datamodel = rtcons.Datamodel("obscore")
+    ivoid = rtcons.Ivoid(r"ivoid")
+    ucd = rtcons.UCD(r"pos.eq.ra")
+    moc = rtcons.Spatial("0/0-11", intersect="overlaps")
+    spectral = rtcons.Spectral((5000 * u.Angstrom, 6000 * u.Angstrom))
+    time = rtcons.Temporal((50000, 60000))
+    result = registry.search(
+        text, author, servicetype, waveband, datamodel,
+        ivoid, ucd, moc, spectral, time
+    )
+    assert result.fieldnames == (
+        'ivoid', 'res_type', 'short_name',
+        'res_title', 'content_level', 'res_description',
+        'reference_url', 'creator_seq', 'created', 'updated',
+        'rights', 'content_type', 'source_format', 'source_value',
+        'region_of_regard', 'waveband', 'access_urls', 'standard_ids',
+        'intf_types', 'intf_roles', 'cap_descriptions', 'alt_identifier')

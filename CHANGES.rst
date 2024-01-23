@@ -4,6 +4,8 @@
 Enhancements and Fixes
 ----------------------
 
+- Fix ``pyvo.registry.Author`` that missed a table join [#515]
+
 - Add method ``list_services`` to ``pyvo.registry.regtap.RegistryResource`` that returns the
   list of available services. Add ``keyword`` parameter in ``get_service`` which should match
   ``capability_description``. [#505]
