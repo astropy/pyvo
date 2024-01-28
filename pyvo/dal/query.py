@@ -324,7 +324,7 @@ class DALResults:
 
         See Also
         --------
-        DALFormatError
+        pyvo.dal.DALFormatError
         """
         self._votable = votable
 

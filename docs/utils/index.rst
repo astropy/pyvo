@@ -1,8 +1,8 @@
 .. _pyvo-utils:
 
-*************************
-PyVO utils (`pyvo.utils`)
-*************************
+***************************
+PyVO utils (``pyvo.utils``)
+***************************
 
 
 This module contains utilities and base classes intended for internal use

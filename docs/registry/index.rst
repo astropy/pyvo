@@ -207,8 +207,8 @@ the first conesearch it finds.
 However some providers provide multiple services of the same type
 -- for example in VizieR you'll find one conesearch per table.
 In this case, you can inspect the available services with
-`~pyvo.registry.RegistryResource.list_services`. Then, you can refine your
-instructions to `~pyvo.registry.RegistryResource.get_service` with a keyword
+`~pyvo.registry.regtap.RegistryResource.list_services`. Then, you can refine your
+instructions to `~pyvo.registry.regtap.RegistryResource.get_service` with a keyword
 constraint on the description ``get_service(service_type='conesearch', keyword='sncat')``.
 
 .. doctest-remote-data::

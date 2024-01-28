@@ -400,7 +400,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
 
         Returns
         -------
-        `~pyvo.io.vosi.endpoint.JobSummary` corresponding to the job ID
+        `~pyvo.io.uws.tree.JobSummary` corresponding to the job ID
         """
         response = self._session.get(
             self.baseurl + '/async/' + job_id,
@@ -433,7 +433,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
 
         Returns
         -------
-        list of `~pyvo.io.vosi.endpoint.JobSummary`
+        list of `~pyvo.io.uws.tree.JobSummary`
         """
 
         params = {'PHASE': phases, 'LAST': last}

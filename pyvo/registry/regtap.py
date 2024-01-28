@@ -170,7 +170,7 @@ def search(*constraints: rtcons.Constraint,
 
     The function accepts query constraints either as Constraint objects
     passed in as positional arguments or as their associated keywords.
-    For what constraints are available, see ref:`registry-basic-interface`.
+    For what constraints are available, see :ref:`registry-basic-interface`.
 
 
     The values of keyword arguments may be tuples or lists when the associated
@@ -181,7 +181,7 @@ def search(*constraints: rtcons.Constraint,
 
     Parameters
     ----------
-    *constraints : `rtcons.Constraint` instances
+    *constraints : `~pyvo.registry.Constraint` instances
         The constraints (keywords to match, positions to cover, ...)
         that the returned records need to satisfy.
         The accepted constraints are:
@@ -234,12 +234,9 @@ def search(*constraints: rtcons.Constraint,
 
     Returns
     -------
-    RegistryResults
+    ~pyvo.registry.regtap.RegistryResults`
        a container holding a table of matching resource (e.g. services)
 
-    See Also
-    --------
-    RegistryResults
     """
     service = get_RegTAP_service()
     query = RegistryQuery(
@@ -586,9 +583,6 @@ class RegistryResource(dalq.Record):
         """
         the textual description of the resource.
 
-        See Also
-        --------
-        SimpleResource.describe
         """
         return self.get("res_description", decode=True)
 
@@ -890,7 +884,8 @@ class RegistryResource(dalq.Record):
         return self._service
 
     def list_services(self, service_type: str = None):
-        """List the services available for this registry record.
+        """
+        List the services available for this registry record.
 
         Parameters
         ----------
@@ -910,6 +905,7 @@ class RegistryResource(dalq.Record):
         See Also
         --------
         get_service : when there is only one service of a specific service type.
+
         """
         if service_type is not None:
             service_type = expand_stdid(rtcons.SERVICE_TYPE_MAP.get(service_type, service_type))

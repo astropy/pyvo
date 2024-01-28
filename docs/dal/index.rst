@@ -105,11 +105,11 @@ return more than 10000 rows”).
 
 This information is contained in the data structure
 :py:class:`~pyvo.io.vosi.endpoint.CapabilitiesFile` available through
-:py:attr:`~pyvo.dal.CapabilityMixin.capabilities`.
+the ``pyvo.dal.vosi.CapabilityMixin.capabilities`` attribute.
 
 Exceptions
 ----------
-See :py:mod:`pyvo.dal.exceptions`.
+See the ``pyvo.dal.exceptions`` module.
 
 .. _pyvo-services:
 
@@ -622,7 +622,7 @@ Get the current job phase:
     EXECUTING
 
 Maximum run time in seconds is available and can be changed with
-:py:attr:`~pyvo.dal.tap.AsyncTAPJob.execution_duration`
+:py:attr:`~pyvo.dal.AsyncTAPJob.execution_duration`
 
 .. doctest-remote-data::
 
@@ -639,18 +639,18 @@ Obtaining the job url, which is needed to reconstruct the job at a later point:
 
 Besides ``run`` there are also several other job control methods:
 
-* :py:meth:`~pyvo.dal.tap.AsyncTAPJob.abort`
-* :py:meth:`~pyvo.dal.tap.AsyncTAPJob.delete`
-* :py:meth:`~pyvo.dal.tap.AsyncTAPJob.wait`
+* :py:meth:`~pyvo.dal.AsyncTAPJob.abort`
+* :py:meth:`~pyvo.dal.AsyncTAPJob.delete`
+* :py:meth:`~pyvo.dal.AsyncTAPJob.wait`
 
 .. note::
     Usually the service deletes the job after a certain time, but it is a good
     practice to delete it manually when done.
 
     The destruction time can be obtained and changed with
-    :py:attr:`~pyvo.dal.tap.AsyncTAPJob.destruction`
+    :py:attr:`~pyvo.dal.AsyncTAPJob.destruction`
 
-Also, :py:class:`pyvo.dal.tap.AsyncTAPJob` works as a context manager which
+Also, :py:class:`pyvo.dal.AsyncTAPJob` works as a context manager which
 takes care of this automatically:
 
 .. doctest-remote-data::
@@ -667,9 +667,9 @@ Check for errors in the job execution:
     >>> job.raise_if_error()
 
 If the execution was successful, the resultset can be obtained using
-:py:meth:`~pyvo.dal.tap.AsyncTAPJob.fetch_result`
+:py:meth:`~pyvo.dal.AsyncTAPJob.fetch_result`
 
-The result url is available under :py:attr:`~pyvo.dal.tap.AsyncTAPJob.result_uri`
+The result url is available under :py:attr:`~pyvo.dal.AsyncTAPJob.result_uri`
 
 .. _pyvo-resultsets:
 

@@ -75,7 +75,7 @@ def parse_job(
 
     Returns
     -------
-    `~pyvo.io.vosi.endpoint.JobFile` object
+    `~pyvo.io.uws.endpoint.JobFile` object
 
     See also
     --------

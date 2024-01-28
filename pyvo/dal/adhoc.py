@@ -494,7 +494,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         return a representation of a datalink result record that follows
         dictionary semantics. The keys of the dictionary are those returned by
         this instance's fieldnames attribute. The returned record has the
-        additional function :py:meth:`~pyvo.dal.DALResults.getdataset`
+        additional function ``getdataset``
 
         Parameters
         ----------
@@ -515,7 +515,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
 
         See Also
         --------
-        Record
+        pyvo.dal.Record
         """
         return DatalinkRecord(self, index, session=self._session)
 
@@ -635,7 +635,7 @@ class SodaRecordMixin:
     """
     Mixin for soda functionality for record classes.
     If used, it's result class must have
-    `pyvo.dal.datalink.AdhocServiceResultsMixin` mixed in.
+    `pyvo.dal.adhoc.AdhocServiceResultsMixin` mixed in.
     """
 
     def _get_soda_resource(self):

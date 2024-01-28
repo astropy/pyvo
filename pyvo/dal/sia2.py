@@ -4,7 +4,7 @@ A module for searching for images in a remote archive.
 
 A Simple Image Access v2 (SIA2) service allows a client to search for
 images based on a number of criteria/parameters. The results are
-represented in `pyvo.dam.obscore.ObsCoreMetadata` format.
+represented in ``pyvo.dam.ObsCoreMetadata`` format.
 
 The ``SIA2Service`` class can represent a specific service available at a URL
 endpoint.
@@ -45,7 +45,7 @@ band : scalar, tuple(interval) or list of tuples
     the energy interval(s) to be searched for data.
 time : single or list of `~astropy.time.Time` or compatible strings
     the time interval(s) to be searched for data.
-pol : single or list of str from `pyvo.dam.obscore.POLARIZATION_STATES`
+pol : single or list of str from ``pyvo.dam.obscore.POLARIZATION_STATES``
     the polarization state(s) to be searched for data.
 field_of_view : single or list of tuples
     angle units (default arcsec)
@@ -76,7 +76,7 @@ instrument : single or list of str
 data_type : 'image'|'cube'
     specifies the type of the data
 calib_level : single or list from enum
-    `pyvo.dam.obscore.CALIBRATION_LEVELS`
+    ``pyvo.dam.obscore.CALIBRATION_LEVELS``
     specifies the calibration level of the data. Can be a single value
     or a list of values
 target_name : single or list of str
@@ -1078,7 +1078,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         """
         Number of different polarization states present in the data. The
         default value is 0, indicating that polarization was not explicitly
-        observed. Corresponding values are stored in the `pol` property
+        observed. Corresponding values are stored in the ``pol`` property
         """
         return self.get('pol_xel')
 

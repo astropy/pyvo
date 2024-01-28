@@ -179,7 +179,7 @@ class Constraint:
 
         Parameters
         ----------
-        service : `dal.tap.TAPService`
+        service : `~pyvo.dal.TAPService`
             The RegTAP service the query is supposed to be run on
             (that is relevant because we adapt to the features available
             on given services).
@@ -885,7 +885,7 @@ def build_regtap_query(constraints, service):
         will become part of a conjunction (i.e., all of them have
         to be satisfied for a record to match).
 
-    service : `~pyvo.dal.tap.TAPService`
+    service : `~pyvo.dal.TAPService`
         The RegTAP service the query is supposed to be run on
         (that is relevant because we adapt to the features available
         on given services).
