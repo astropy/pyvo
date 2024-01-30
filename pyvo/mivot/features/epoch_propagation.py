@@ -166,7 +166,7 @@ class EpochPropagation:
         if 'astropy_unit' in mivot_class.keys():
             return mivot_class["astropy_unit"]
         else:
-            raise UnitException("Can't find the Astropy Unit equivalence for {}".format(mivot_class["value"]))
+            raise UnitException("Can't find the Astropy Unit equivalence for {}".format(mivot_class["unit"]))
 
     def _mivot_time_to_astropy_time(self, mivot_time):
         """

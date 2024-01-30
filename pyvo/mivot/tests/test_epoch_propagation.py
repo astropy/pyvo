@@ -134,7 +134,7 @@ def test_epoch_propagation_unit(m_viewer):
     epoch_propagation = row_view.epoch_propagation
 
     del row_view.pmLatitude.astropy_unit
-    with pytest.raises(UnitException, match="Can't find the Astropy Unit equivalence for -20.0"):
+    with pytest.raises(UnitException, match="Can't find the Astropy Unit equivalence for mas/year"):
         epoch_propagation._mivot_unit_to_astropy_unit(**vars(row_view.pmLatitude))
 
     row_view.pmLatitude.astropy_unit = "year"
