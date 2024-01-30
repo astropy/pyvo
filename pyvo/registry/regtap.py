@@ -805,8 +805,7 @@ class RegistryResource(dalq.Record):
 
         return candidates[0]
 
-    def get_service(self, *,
-                    service_type: str = None,
+    def get_service(self, service_type: str = None, *,
                     lax: bool = False,
                     keyword: str = None):
         """
