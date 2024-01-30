@@ -16,7 +16,8 @@ unit_mapping = {
     "pc": u.pc,
     "km": u.km,
     "m": u.m,
-    "mas/year": u.mas / u.yr,
+    "mas/yr": u.mas / u.yr,
+    "mas/y": u.mas / u.yr,
     "km/s": u.km / u.s,
 }
 
