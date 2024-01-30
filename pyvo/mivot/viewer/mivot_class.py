@@ -88,6 +88,8 @@ class MivotClass:
                 else:
                     setattr(self, self._remove_model_name(key), self._remove_model_name(value))
                 if key == 'unit':  # We convert the unit to astropy unit or to astropy time format if possible
+                    # The first Vizier implementation used mas/year for the mapped pm unit: let's correct it
+                    value = value.replace("year", "yr") if value else None
                     if value in unit_mapping.keys():
                         setattr(self, "astropy_unit", unit_mapping[value])
                     elif value in time.TIME_FORMATS.keys():
