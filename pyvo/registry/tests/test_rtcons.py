@@ -214,7 +214,15 @@ class TestIvoidConstraint:
     def test_basic(self):
         cons = rtcons.Ivoid("ivo://example/some_path")
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "ivoid = 'ivo://example/some_path'")
+                == "ivoid='ivo://example/some_path'")
+
+    def test_multiple(self):
+        cons = rtcons.Ivoid(
+            "ivo://org.gavo.dc/tap",
+            "ivo://org.gavo.dc/__system__/siap2/sitewide")
+        assert (cons.get_search_condition(FAKE_GAVO)
+                == ("ivoid='ivo://org.gavo.dc/tap'"
+                    " OR ivoid='ivo://org.gavo.dc/__system__/siap2/sitewide'"))
 
 
 class TestUCDConstraint:

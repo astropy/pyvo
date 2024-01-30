@@ -17,6 +17,8 @@ Enhancements and Fixes
 
 - Making optional parameters keyword only throughout the public API. [#507]
 
+- registry.Ivoid now accepts multiple ivoids and will then match any of
+  them. [#517]
 
 Deprecations and Removals
 -------------------------

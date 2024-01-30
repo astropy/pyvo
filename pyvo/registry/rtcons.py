@@ -519,7 +519,7 @@ class Ivoid(Constraint):
     """
     _keyword = "ivoid"
 
-    def __init__(self, ivoid):
+    def __init__(self, ivoid, *more_ivoids):
         """
 
         Parameters
@@ -529,9 +529,16 @@ class Ivoid(Constraint):
             The IVOA identifier of the resource to match.  As RegTAP
             requires lowercasing ivoids on ingestion, the constraint
             lowercases the ivoid passed in, too.
+
+        more_ivoids : strings
+            You can pass in multiple ivoids to match.  As usual,
+            they are combined by an or.
         """
-        self._condition = "ivoid = {ivoid}"
-        self._fillers = {"ivoid": ivoid.lower()}
+        self.ivoids = [id.lower() for id in (ivoid,) + more_ivoids]
+
+    def get_search_condition(self, service):
+        return " OR ".join(
+            f"ivoid={make_sql_literal(id)}" for id in self.ivoids)
 
 
 class UCD(Constraint):
