@@ -165,11 +165,21 @@ class XmlUtils:
         index_map : dict
             A dictionary mapping ref values to column indices.
         """
-        for ele in XPath.x_path(mapping_block, ".//ATTRIBUTE"):
-            ref = ele.get(Att.ref)
-            if ref is not None and ref != Constant.NOT_SET:
-                ele.attrib[Constant.COL_INDEX] = str(index_map[ref])
 
+        for ele in XPath.x_path(mapping_block, ".//ATTRIBUTE"):
+            attr_ref = ele.get(Att.ref)
+            if attr_ref is not None and attr_ref != Constant.NOT_SET:
+                if attr_ref in index_map:
+                    field_desc = index_map[attr_ref]
+                else:
+                    for _, value in index_map.items():
+                        if value["ID"] == attr_ref:
+                            field_desc = value
+
+                ele.attrib[Constant.COL_INDEX] = str(field_desc["indx"])
+                if field_desc["ID"] != attr_ref:
+                    ele.set(Att.ref, field_desc["ID"])
+                
     @staticmethod
     def set_column_units(mapping_block, unit_map):
         """
