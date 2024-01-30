@@ -33,7 +33,7 @@ from .adhoc import DatalinkResultsMixin, DatalinkRecordMixin
 __all__ = ["search", "SCSService", "SCSQuery", "SCSResults", "SCSRecord"]
 
 
-def search(url, pos, *, radius=1.0, verbosity=2, **keywords):
+def search(url, pos, radius=1.0, *, verbosity=2, **keywords):
     """
     submit a simple Cone Search query that requests objects or observations
     whose positions fall within some distance from a search position.
@@ -138,7 +138,7 @@ class SCSService(DALService):
         except AttributeError:
             return []
 
-    def search(self, pos, *, radius=1.0, verbosity=2, **keywords):
+    def search(self, pos, radius=1.0, *, verbosity=2, **keywords):
         """
         submit a simple Cone Search query that requests objects or observations
         whose positions fall within some distance from a search position.
@@ -274,7 +274,7 @@ class SCSQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, pos=None, *, radius=None, verbosity=None, session=None, **keywords):
+            self, baseurl, pos=None, radius=None, *, verbosity=None, session=None, **keywords):
         """
         initialize the query object with a baseurl and the given parameters
 
