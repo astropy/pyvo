@@ -11,6 +11,7 @@ The test checks that:
 - The position fields can be retrieved through the mapping.  
 - Both cases give the same results
 
+A third test checks the case where 
 Created on 26 janv. 2024
 
 @author: michel
@@ -22,6 +23,7 @@ from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.utils.exceptions import ErfaWarning
 from pyvo.mivot.viewer.model_viewer_level1 import ModelViewerLevel1
+from pyvo.mivot.utils.exceptions import ResolveException
 
 @pytest.fixture
 def data_path():
@@ -76,6 +78,16 @@ def test_with_name(data_path, delt_coo):
 
     # make sure the epoch is the same in both cases
     assert str(name_skycoo.obstime) == str(id_skycoo.obstime)
+
+def test_bad_ref(data_path, delt_coo):  
+    """ Test that the epoch propagation works with all FIELDs referenced by name or by ID
+    """
+    
+    # Test with all FILELDs referenced by names
+    votable = os.path.join(data_path, "data/vizier_cs_badref.xml")
+    
+    with (pytest.raises(ResolveException, match="Attribute mango:EpochPosition.epoch can not be set.*")):
+        ModelViewerLevel1(votable_path=votable)
     
 if __name__ == '__main__':
     pytest.main()

@@ -10,6 +10,7 @@ except ImportError:
 import xml.etree.ElementTree as ET
 from pyvo.mivot.utils.constant import Constant
 from pyvo.mivot.utils.vocabulary import Att
+from pyvo.mivot.utils.exceptions import ResolveException
 
 
 class XmlUtils:
@@ -169,16 +170,25 @@ class XmlUtils:
         for ele in XPath.x_path(mapping_block, ".//ATTRIBUTE"):
             attr_ref = ele.get(Att.ref)
             if attr_ref is not None and attr_ref != Constant.NOT_SET:
+                field_desc = None
                 if attr_ref in index_map:
                     field_desc = index_map[attr_ref]
                 else:
                     for _, value in index_map.items():
                         if value["ID"] == attr_ref:
                             field_desc = value
-
-                ele.attrib[Constant.COL_INDEX] = str(field_desc["indx"])
-                if field_desc["ID"] != attr_ref:
-                    ele.set(Att.ref, field_desc["ID"])
+                            break
+                if not field_desc:
+                    if not ele.get(Att.value):
+                        raise ResolveException(f"Attribute {ele.get(Att.dmrole)} can not be set: references a non existing column: {attr_ref} and has no default value") 
+                    else:
+                        ele.attrib.pop(Att.ref, None) 
+                if field_desc: 
+                    ele.attrib[Constant.COL_INDEX] = str(field_desc["indx"])
+                    if field_desc["ID"] != attr_ref:
+                        ele.set(Att.ref, field_desc["ID"])
+                    #else:
+                    #    ele.attrib.pop(Att.ref, None) 
                 
     @staticmethod
     def set_column_units(mapping_block, unit_map):
@@ -196,11 +206,11 @@ class XmlUtils:
         for ele in XPath.x_path(mapping_block, ".//ATTRIBUTE"):
             ref = ele.get(Att.ref)
             if ref is not None and ref != Constant.NOT_SET:
-                unit = unit_map[ref]
-                if unit is None:
-                    unit = ""
+                unit = None
+                if ref in unit_map:
+                    unit = unit_map[ref].__str__()
                 else:
-                    unit = unit.__str__()
+                    unit = ""
                 ele.attrib[Constant.FIELD_UNIT] = unit
 
 

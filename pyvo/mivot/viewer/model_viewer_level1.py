@@ -285,7 +285,7 @@ class ModelViewerLevel1:
         # for ele in templates_copy.xpath("//ATTRIBUTE"):
         for ele in XPath.x_path(templates_copy, ".//ATTRIBUTE"):
             ref = ele.get(Att.ref)
-            if ref is not None and ref != Constant.NOT_SET:
+            if ref is not None and ref != Constant.NOT_SET and Constant.COL_INDEX in ele.attrib:
                 index = ele.attrib[Constant.COL_INDEX]
                 ele.attrib[Att.value] = str(self._current_data_row[int(index)])
 
