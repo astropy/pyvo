@@ -74,10 +74,5 @@ class StaticReferenceResolver:
             parent.append(target_copy)
             # Drop the reference
             parent.remove(ele)
-            if target_copy.get("dmid") == "GenericMeasure_@flag.variability":
-                print(target_copy.tag)
-                XmlUtils.pretty_print(ele)
-                XmlUtils.pretty_print(target_copy)
-                XmlUtils.pretty_print(parent)
             retour += 1
         return retour

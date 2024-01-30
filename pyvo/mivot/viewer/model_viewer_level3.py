@@ -20,7 +20,6 @@ class ModelViewerLevel3:
         self._xml_instance = xml_instance
         self._dict = self._to_dict(self._xml_instance)
         self.mivot_class = MivotClass(**self._dict)
-        self.show_class_dict()
 
     def get_row_instance(self):
         """
