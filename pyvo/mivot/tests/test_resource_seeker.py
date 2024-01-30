@@ -35,16 +35,34 @@ def test_id_table(rseeker, data_path):
 
     assert rseeker.get_table_ids() == ['_PKTable', 'Results']
 
-    assert rseeker.get_id_index_mapping('_PKTable') == {'_pksrcid': 0, '_pkband': 1}
+    assert rseeker.get_id_index_mapping('_PKTable') == {
+         'pksrcid': {'ID': '_pksrcid', 'indx': 0},
+         'pkband': {'ID': '_pkband', 'indx': 1}
+         }
     assert (rseeker.get_id_index_mapping('Results')
-            == {'_srcid': 0, 'transit_id': 1, '_band': 2, '_obstime': 3, '_mag': 4,
-                '_flux': 5, '_fluxerr': 6, 'flux_over_error': 7, 'rejected_by_photometry': 8,
-                'rejected_by_variability': 9, 'other_flags': 10, 'solution_id': 11})
+            == {'source_id': {'ID': '_srcid', 'indx': 0},
+                'transit_id': {'ID': 'transit_id', 'indx': 1},
+                'band': {'ID': '_band', 'indx': 2},
+                'time': {'ID': '_obstime', 'indx': 3},
+                'mag': {'ID': '_mag', 'indx': 4},
+                'flux': {'ID': '_flux', 'indx': 5},
+                'flux_error': {'ID': '_fluxerr', 'indx': 6},
+                'flux_over_error': {'ID': 'flux_over_error', 'indx': 7},
+                'rejected_by_photometry': {'ID': 'rejected_by_photometry', 'indx': 8},
+                'rejected_by_variability': {'ID': 'rejected_by_variability', 'indx': 9},
+                'other_flags': {'ID': 'other_flags', 'indx': 10},
+                'solution_id': {'ID': 'solution_id', 'indx': 11}
+                }
+            )
     table = rseeker.get_table('_PKTable')
 
     for field in table.fields:
         field.ID = None
-    assert rseeker.get_id_index_mapping('_PKTable') == {'pksrcid': 0, 'pkband': 1}
+    assert rseeker.get_id_index_mapping('_PKTable') == {
+        'pksrcid': {'indx': 0, 'ID': 'pksrcid'},
+        'pkband': {'indx': 1, 'ID': 'pkband'}
+        }
+
 
     for table in rseeker._resource.tables:
         table.ID = None
@@ -53,8 +71,10 @@ def test_id_table(rseeker, data_path):
     for table in rseeker._resource.tables:
         table.name = "any_name"
     assert rseeker.get_table_ids() == ['any_name', 'any_name']
-    assert rseeker.get_id_index_mapping('any_name') == {'pksrcid': 0, 'pkband': 1}
-
+    assert rseeker.get_id_index_mapping('any_name') == {
+        'pksrcid': {'indx': 0, 'ID': 'pksrcid'},
+        'pkband': {'indx': 1, 'ID': 'pkband'}
+        }
 
 @pytest.fixture
 def data_path():
