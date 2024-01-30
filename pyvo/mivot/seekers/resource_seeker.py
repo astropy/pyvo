@@ -97,13 +97,17 @@ class ResourceSeeker(object):
         table = self.get_table(table_name)
         indx = 0
         for field in table.fields:
+            field_desc = {}
             if field.ID is not None:
-                retour[field.ID] = indx
-            elif field.name is not None:
-                retour[field.name] = indx
-            elif field.ref is not None:
-                retour[field.ref] = indx
+                field_desc["ID"] = field.ID
+            if field.ref is not None:
+                field_desc["ref"] = field.ref
+            field_desc["indx"] = indx
+            if "ID" not in field_desc:
+                field_desc["ID"] = field.name
+            retour[field.name] = field_desc
             indx += 1
+            
         return retour
 
     def get_id_unit_mapping(self, table_name):
