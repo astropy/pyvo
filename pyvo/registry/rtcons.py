@@ -534,12 +534,11 @@ class Ivoid(Constraint):
             You can pass in multiple ivoids to match.  As usual,
             they are combined by an or.
         """
-        self.ivoids = [id.lower() for id in (ivoid,)+more_ivoids]
+        self.ivoids = [id.lower() for id in (ivoid,) + more_ivoids]
 
     def get_search_condition(self, service):
         return " OR ".join(
-            "ivoid={}".format(make_sql_literal(id))
-                for id in self.ivoids)
+            f"ivoid={make_sql_literal(id)}" for id in self.ivoids)
 
 
 class UCD(Constraint):

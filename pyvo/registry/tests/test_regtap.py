@@ -800,7 +800,7 @@ class TestExtraResourceMethods:
         rsc.describe(verbose=True, file=out)
         output = out.getvalue()
         # should cut the long author name at 70 characters
-        assert f"Authors: {'a'*70}..." in output
+        assert f"Authors: {'a' * 70}..." in output
 
     def test_no_access_url(self):
         rsc = _makeRegistryRecord(

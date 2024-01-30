@@ -221,8 +221,8 @@ class TestIvoidConstraint:
             "ivo://org.gavo.dc/tap",
             "ivo://org.gavo.dc/__system__/siap2/sitewide")
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "ivoid='ivo://org.gavo.dc/tap'"
-                    " OR ivoid='ivo://org.gavo.dc/__system__/siap2/sitewide'")
+                == ("ivoid='ivo://org.gavo.dc/tap'"
+                    " OR ivoid='ivo://org.gavo.dc/__system__/siap2/sitewide'"))
 
 
 class TestUCDConstraint:
