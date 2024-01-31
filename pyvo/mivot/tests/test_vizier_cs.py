@@ -19,9 +19,10 @@ Created on 26 janv. 2024
 import os
 import pytest
 import astropy.units as u
+from erfa import ErfaWarning
+from pyvo.mivot.version_checker import check_astropy_version
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
-from astropy.utils.exceptions import ErfaWarning
 from pyvo.mivot.viewer.model_viewer_level1 import ModelViewerLevel1
 from pyvo.mivot.utils.exceptions import ResolveException
 
@@ -39,6 +40,8 @@ def delt_coo():
 def test_with_name(data_path, delt_coo):  
     """ Test that the epoch propagation works with all FIELDs referenced by name or by ID
     """
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
     
     # Test with all FILELDs referenced by names
     votable = os.path.join(data_path, "data/vizier_cs_withname.xml")
@@ -82,6 +85,8 @@ def test_with_name(data_path, delt_coo):
 def test_bad_ref(data_path, delt_coo):  
     """ Test that the epoch propagation works with all FIELDs referenced by name or by ID
     """
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
     
     # Test with all FILELDs referenced by names
     votable = os.path.join(data_path, "data/vizier_cs_badref.xml")
