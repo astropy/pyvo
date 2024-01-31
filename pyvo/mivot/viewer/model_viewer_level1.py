@@ -216,7 +216,17 @@ class ModelViewerLevel1:
         """
         self._assert_table_is_connected()
         self._table_iterator._rewind()
-
+    
+    def get_level2(self):
+        """ return the build-in ModelViewerLevel2 instance
+        """
+        return self._model_viewer_level2
+    
+    def get_level3(self):
+        """ return the build-in ModelViewerLevel3 instance
+        """
+        return self._model_viewer_level3
+    
     """
     Private methods
     """
