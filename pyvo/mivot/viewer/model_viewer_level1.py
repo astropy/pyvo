@@ -6,6 +6,7 @@ from copy import deepcopy
 from astropy import version
 from astropy.io.votable import parse
 
+from pyvo.dal import DALResults
 from pyvo.mivot import logger
 from pyvo.mivot.utils.vocabulary import Ele, Att
 from pyvo.mivot.utils.constant import Constant
@@ -64,7 +65,10 @@ class ModelViewerLevel1:
             raise AstropyVersionException(f"Astropy version {version.version} "
                                           f"is below the required version 6.0 for the use of MIVOT.")
         else:
-            self._parsed_votable = parse(votable_path)
+            if isinstance(votable_path, DALResults):
+                self._parsed_votable = votable_path.votable
+            else:
+                self._parsed_votable = parse(votable_path)
             self._table_iterator = None
             self._connected_table = None
             self._connected_tableref = None
