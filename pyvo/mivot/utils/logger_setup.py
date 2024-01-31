@@ -29,7 +29,7 @@ class LoggerSetup:
             System logger.
         """
         LoggerSetup._set_default_format()
-        return logging.getLogger()
+        return logging.getLogger("mivot")
 
     @staticmethod
     def _set_default_format():
