@@ -19,13 +19,16 @@ Created on 26 janv. 2024
 import os
 import pytest
 import astropy.units as u
-from erfa import ErfaWarning
 from pyvo.mivot.version_checker import check_astropy_version
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from pyvo.mivot.viewer.model_viewer_level1 import ModelViewerLevel1
 from pyvo.mivot.utils.exceptions import ResolveException
 
+try:
+    from erfa import ErfaWarning
+except Exception:
+    from astropy.utils.exceptions import ErfaWarning
 @pytest.fixture
 def data_path():
     return os.path.dirname(os.path.realpath(__file__))
