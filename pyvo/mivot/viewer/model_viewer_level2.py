@@ -23,7 +23,6 @@ class ModelViewerLevel2:
         Return the instance matching with @dmrole.
         If all is False, return the first INSTANCE matching with @dmrole.
         If all is True, return a list of all instances matching with @dmrole.
-
         Parameters
         ----------
         dmrole : str
@@ -31,14 +30,12 @@ class ModelViewerLevel2:
         all : bool, optional
             If True, returns a list of all instances, otherwise returns the first instance.
             Default is False.
-
         Returns
         -------
         Union[~`xml.etree.ElementTree.Element`, List[~`xml.etree.ElementTree.Element`], None]
             If all is False, returns the instance matching with @dmrole.
             If all is True, returns a list of all instances matching with @dmrole.
             If no matching instance is found, returns None.
-
         Raises
         ------
         MivotElementNotFound
@@ -68,10 +65,8 @@ class ModelViewerLevel2:
     def get_instance_by_type(self, dmtype, all=False):
         """
         Return the instance matching with @dmtype.
-
         If all is False, returns the first INSTANCE matching with @dmtype.
         If all is True, returns a list of all instances matching with @dmtype.
-
         Parameters
         ----------
         dmtype : str
@@ -79,14 +74,12 @@ class ModelViewerLevel2:
         all : bool, optional
             If True, returns a list of all instances, otherwise returns the first instance.
             Default is False.
-
         Returns
         -------
         Union[~`xml.etree.ElementTree.Element`, List[~`xml.etree.ElementTree.Element`], None]
             If all is False, returns the instance matching with @dmtype.
             If all is True, returns a list of all instances matching with @dmtype.
             If no matching instance is found, returns None.
-
         Raises
         ------
         MivotElementNotFound
@@ -120,7 +113,6 @@ class ModelViewerLevel2:
         Return the collection matching with @dmrole.
         If all is False, returns the first COLLECTION matching with @dmrole.
         If all is True, returns a list of all COLLECTION matching with @dmrole.
-
         Parameters
         ----------
         dmrole : str
@@ -128,14 +120,12 @@ class ModelViewerLevel2:
         all : bool, optional
             If True, returns a list of all COLLECTION, otherwise returns the first COLLECTION.
             Default is False.
-
         Returns
         -------
         Union[~`xml.etree.ElementTree.Element`, List[~`xml.etree.ElementTree.Element`], None]
             If all is False, returns the collection matching with @dmrole.
             If all is True, returns a list of all collections matching with @dmrole.
             If no matching collection is found, returns None.
-
         Raises
         ------
         MivotElementNotFound

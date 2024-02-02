@@ -13,11 +13,9 @@ class ResourceSeeker(object):
     Some methods are simple wrappers for external tools in order to have all
     the search functions on RESOURCE gathered in within a single namespace.
     """
-
     def __init__(self, resource):
         """
         Constructor
-
         Parameters
         ----------
         resource : ~pyvo.dal.query.Resource
@@ -30,7 +28,6 @@ class ResourceSeeker(object):
         Return the list of table ids.
         Only resource children are considered.
         The ID is first searched and then the name, and finally 'AnonymousTable' is taken.
-
         Returns
         -------
         list of str
@@ -49,12 +46,10 @@ class ResourceSeeker(object):
     def get_table(self, table_name):
         """
         Return the table matching table_name first by ID and then by name.
-
         Parameters
         ----------
         table_name : str
             Name of the table to get.
-
         Returns
         -------
         ~pyvo.dal.query.DALResults
@@ -71,7 +66,6 @@ class ResourceSeeker(object):
     def get_params(self):
         """
         Return the VOTable PARAMS.
-
         Returns
         -------
         ~pyvo.dal.query.DALResults
@@ -82,12 +76,10 @@ class ResourceSeeker(object):
     def get_id_index_mapping(self, table_name):
         """
         Build an index binding column number with field id.
-
         Parameters
         ----------
         table_name : str
             Name of the table.
-
         Returns
         -------
         dict
@@ -107,18 +99,15 @@ class ResourceSeeker(object):
                 field_desc["ID"] = field.name
             retour[field.name] = field_desc
             indx += 1
-            
         return retour
 
     def get_id_unit_mapping(self, table_name):
         """
         Build an index binding field unit with field id.
-
         Parameters
         ----------
         table_name : str
             Name of the table.
-
         Returns
         -------
         dict

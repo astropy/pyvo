@@ -7,18 +7,14 @@ import os
 class FileUtils:
     """
     Utility class for file and directory operations.
-
     This class provides static methods to retrieve directory paths related to
     the project's file structure.
-
     Methods
     -------
     get_datadir()
         Get the path to the 'data' directory for tests.
-
     get_projectdir()
         Get the path to the project's root directory.
-
     get_schemadir()
         Get the path to the 'schema' directory.
     """
@@ -28,7 +24,6 @@ class FileUtils:
     def get_datadir():
         """
         Get the path to the 'data' directory for tests.
-
         Returns
         -------
         str
@@ -40,7 +35,6 @@ class FileUtils:
     def get_projectdir():
         """
         Get the path to the project's root directory.
-
         Returns
         -------
         str
@@ -52,7 +46,6 @@ class FileUtils:
     def get_schemadir():
         """
         Get the path to the 'schema' directory.
-
         Returns
         -------
         str

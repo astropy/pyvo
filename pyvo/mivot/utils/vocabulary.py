@@ -2,7 +2,6 @@
 MIVOT vocabulary.
 """
 import re
-
 from astropy import units as u
 from pyvo.utils import prototype_feature
 
@@ -21,6 +20,7 @@ unit_mapping = {
     "km/s": u.km / u.s,
 }
 
+
 regex_patterns = {'iso': r'^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12]'
                          r'[0-9]) (2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?'
                          r'(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$',
@@ -30,6 +30,7 @@ regex_patterns = {'iso': r'^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|
                   'yday': r'^(\d{4}):(\d{3}):(\d{2}):(\d{2}):(\d{2}\.\d+)$',
                   'ymdhms': r"^\{'year': (\d+), 'month': (\d+), 'day': (\d+)"
                             r"(?:, 'hour': (\d+))?(?:, 'minute': (\d+))?(?:, 'second': (\d+))?\}$"}
+
 
 regex_format = {'iso': re.compile(regex_patterns['iso']),
                 'isot': re.compile(regex_patterns['isot']),
@@ -90,9 +91,9 @@ class MangoRoles:
     EQUINOX = "equinox"
     PMCOSDELTAPPLIED = "pmCosDeltApplied"
 
-
 EpochPropagation_fields = ["longitude", "latitude", "pmLongitude", "pmLatitude",
                            "radialVelocity", "parallax", "epoch", "frame", "equinox"]
+
 
 skycoord_param_default = {
     MangoRoles.LONGITUDE: 'ra', MangoRoles.LATITUDE: 'dec', MangoRoles.PARALLAX: 'distance',
@@ -117,14 +118,12 @@ skycoord_param_galactic = {
 def key_match(searched_key, key_set):
     """
     Check if any key in the key_set starts with the searched_key.
-
     Parameters
     ----------
     searched_key : str
         The key to search for.
     key_set : str, list, or odict_keys
         The set of keys to check.
-
     Returns
     -------
     str or None

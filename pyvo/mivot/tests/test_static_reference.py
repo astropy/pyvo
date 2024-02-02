@@ -9,6 +9,7 @@ from pyvo.mivot.seekers.annotation_seeker import AnnotationSeeker
 from pyvo.mivot.features.static_reference_resolver import StaticReferenceResolver
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.utils import activate_features
+
 activate_features('MIVOT')
 
 
@@ -23,7 +24,9 @@ def a_seeker(data_path):
 
 @pytest.fixture
 def instance(data_path):
-    return XmlUtils.xmltree_from_file(os.path.join(data_path, "data/input/test_static_reference.xml"))
+    return XmlUtils.xmltree_from_file(os.path.join(
+        data_path,
+        "data/input/test_static_reference.xml"))
 
 
 def test_static_reference_resolve(a_seeker, instance, data_path):
@@ -31,7 +34,8 @@ def test_static_reference_resolve(a_seeker, instance, data_path):
         pytest.skip("MIVOT test skipped because of the astropy version.")
     StaticReferenceResolver.resolve(a_seeker, None, instance)
     XmlUtils.assertXmltreeEqualsFile(instance.getroot(),
-                                     os.path.join(data_path, "data/output/test_static_reference_resolve.xml"))
+                                     os.path.join(data_path,
+                                                 "data/output/test_static_reference_resolve.xml"))
 
 
 @pytest.fixture

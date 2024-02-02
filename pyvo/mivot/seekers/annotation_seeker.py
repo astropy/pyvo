@@ -16,7 +16,6 @@ class AnnotationSeeker:
     This class provides tools for extracting mapping sub-blocks commonly used by other stakeholders.
     All functions using the mapping employ this class to obtain XML elements.
     To simplify the job for other tools, the XML namespace is removed from the mapping block.
-
     Attributes
     ----------
     _xml_block : ~`xml.etree.ElementTree.Element`
@@ -26,14 +25,12 @@ class AnnotationSeeker:
     _templates_blocks : dict
         Templates dictionary where keys are tableref and values are XML-TEMPLATES.
     """
-
     def __init__(self, xml_block):
         """
         Initializes the AnnotationSeeker.
         - Split the mapping as elements of interest.
         - Remove the name_spaces.
         - Append numbers to JOIN/REFERENCE.
-
         Parameters
         ----------
         xml_block : ~`xml.etree.ElementTree.Element`
@@ -42,7 +39,6 @@ class AnnotationSeeker:
         self._xml_block = xml_block
         self._globals_block = None
         self._templates_blocks = {}
-
         self._find_globals_block()
         self._find_templates_blocks()
         self._rename_ref_and_join()
@@ -62,13 +58,11 @@ class AnnotationSeeker:
         Search the TEMPLATES elements from the XML mapping block and store its reference.
         This method iterates through the children of the XML mapping block, identifies TEMPLATES blocks,
         and associates them with their respective tableref values in the _templates_blocks dictionary.
-
         Returns
         -------
         dict
             Dictionary of TEMPLATES tablerefs and their mapping blocks
             Format: {'tableref': mapping_block, ...}
-
         Raises
         ------
         MivotElementNotFound
@@ -105,14 +99,12 @@ class AnnotationSeeker:
     def _name_match(self, name, expected):
         """
         Return true if name matches expected whatever the namespace
-
         Parameters
         ----------
         name: str
             Name to compare
         expected: str
             Expected name for the comparison
-
         Returns
         -------
         bool
@@ -124,7 +116,6 @@ class AnnotationSeeker:
     """
     Properties
     """
-
     @property
     def globals_block(self):
         """
@@ -140,7 +131,6 @@ class AnnotationSeeker:
         They have particular roles
         - Used by references (e.g., filter definition)
         - Used as head of the mapped model (e.g., [Cube instance])
-
         Returns
         -------
         list
@@ -152,7 +142,6 @@ class AnnotationSeeker:
     def models(self):
         """
         Get the MODELs and their URLs.
-
         Returns
         -------
         dict
@@ -169,7 +158,6 @@ class AnnotationSeeker:
     def templates_tableref(self):
         """
         Get all @tableref of the mapping.
-
         Returns
         -------
         list
@@ -181,7 +169,6 @@ class AnnotationSeeker:
     def templates(self):
         """
         Return a list of TEMPLATES tablerefs
-
         Returns
         -------
         list
@@ -200,12 +187,10 @@ class AnnotationSeeker:
         """
         Return the TEMPLATES mapping block of the table matching @tableref.
         If tableref is None returns all values of templates_blocks.
-
         Parameters
         ----------
         tableref: str
             @tableref of the searched TEMPLATES
-
         Returns
         -------
         dict
@@ -224,7 +209,6 @@ class AnnotationSeeker:
     def get_instance_dmtypes(self):
         """
         Get @dmtypes of all mapped instances
-
         Returns
         -------
         dict
@@ -232,11 +216,9 @@ class AnnotationSeeker:
             Format: {GLOBALS: [], TEMPLATES: {}}
         """
         retour = {Ele.GLOBALS: [], Ele.TEMPLATES: {}}
-
         eset = XPath.x_path(self._globals_block, ".//" + Ele.INSTANCE)
         for ele in eset:
             retour[Ele.GLOBALS].append(ele.get(Att.dmtype))
-
         for tableref, block in self._templates_blocks.items():
             retour[Ele.TEMPLATES][tableref] = []
             eset = XPath.x_path(block, ".//" + Ele.INSTANCE)
@@ -251,7 +233,6 @@ class AnnotationSeeker:
         ----------
         dmtype_pattern: str
             @dmtype looked for
-
         Returns
         -------
         dict
@@ -259,10 +240,8 @@ class AnnotationSeeker:
             Format: {'dmtype': [instance], ...}
         """
         retour = {Ele.GLOBALS: [], Ele.TEMPLATES: {}}
-
         eset = XPath.x_path_contains(self._globals_block, ".//" + Ele.INSTANCE, Att.dmtype, dmtype_pattern)
         retour[Ele.GLOBALS] = eset
-
         for tableref, block in self._templates_blocks.items():
             retour[Ele.TEMPLATES][tableref] = (
                 XPath.x_path_contains(block, ".//" + Ele.INSTANCE, Att.dmtype, dmtype_pattern))
@@ -278,7 +257,6 @@ class AnnotationSeeker:
         They have particular roles when:
         - Used by references (e.g., filter definition)
         - Used as head of the mapped model (e.g., Cube instance)
-
         Returns
         -------
         list
@@ -289,7 +267,6 @@ class AnnotationSeeker:
     def get_globals_instance_dmids(self):
         """
         Get a list of @dmid for GLOBALS/INSTANCE.
-
         Returns
         -------
         list
@@ -304,12 +281,10 @@ class AnnotationSeeker:
     def get_globals_instance_by_dmid(self, dmid):
         """
         Get the GLOBALS/INSTANCE with @dmid=dmid.
-
         Parameters
         ----------
         dmid: str
             @dmid of the searched GLOBALS/INSTANCE
-
         Returns
         -------
         dict: `~xml.etree.ElementTree.Element`
@@ -322,7 +297,6 @@ class AnnotationSeeker:
     def get_globals_instance_dmtypes(self):
         """
         Get the list the @dmtype GLOBALS/INSTANCE.
-
         Returns
         -------
         list
@@ -336,14 +310,12 @@ class AnnotationSeeker:
     def get_templates_instance_by_dmid(self, tableref, dmid):
         """
         Get the TEMPLATES/INSTANCE with @dmid=dmid and TEMPLATES@tableref=tableref.
-
         Parameters
         ----------
         tableref: str
             @tableref of the searched TEMPLATES
         dmid: str
             @dmid of the searched TEMPLATES/INSTANCE
-
         Returns
         -------
         dict: ~`xml.etree.ElementTree.Element`
@@ -359,14 +331,12 @@ class AnnotationSeeker:
     def get_globals_instance_from_collection(self, sourceref, pk_value):
         """
         Get the GLOBALS/COLLECTION[@dmid=sourceref]/INSTANCE/PRIMARY_KEY[@value='pk_value'].
-
         Parameters
         ----------
         sourceref: str
             @dmid of the searched GLOBALS/COLLECTION
         pk_value: str
             @value of the searched GLOBALS/COLLECTION/INSTANCE/PRIMARY_KEY
-
         Returns
         -------
         dict: ~`xml.etree.ElementTree.Element`
@@ -383,16 +353,13 @@ class AnnotationSeeker:
     """
     GLOBALS COLLECTION
     """
-
     def get_globals_collection(self, dmid):
         """
         Get the GLOBALS/COLLECTION with @dmid=dmid.
-
         Parameters
         ----------
         dmid: str
             @dmid of the searched GLOBALS/COLLECTION
-
         Returns
         -------
         dict: ~`xml.etree.ElementTree.Element`
@@ -406,7 +373,6 @@ class AnnotationSeeker:
     def get_globals_collection_dmids(self):
         """
         Get the list of all the @dmid of GLOBALS/COLLECTION.
-
         Returns
         -------
         list
@@ -422,7 +388,6 @@ class AnnotationSeeker:
         """
         Get the list of the @dmtype of GLOBALS/COLLECTION/INSTANCE.
         Used for collections of static objects.
-
         Returns
         -------
         list
@@ -442,18 +407,15 @@ class AnnotationSeeker:
         INSTANCE with a PRIMARY_key which @value matches key_value.
         An exception is risen if there is less or more than one element matching the criteria.
         The 2 parameters match the dynamic REFERENCE definition.
-
         Parameters
         ----------
         coll_dmid: str
             @dmid of the searched GLOBALS/COLLECTION
         key_value: str
             @value of the searched GLOBALS/COLLECTION/INSTANCE/PRIMARY_KEY
-
         Returns
         -------
         dict: ~`xml.etree.ElementTree.Element`
-
         Raises
         ------
         MivotElementNotFound

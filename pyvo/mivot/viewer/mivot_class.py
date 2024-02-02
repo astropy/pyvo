@@ -4,7 +4,6 @@ MivotClass keep as an attribute dictionary __dict__ all XML objects.
 """
 import numpy
 from astropy import time
-
 from pyvo.mivot.utils.vocabulary import unit_mapping
 from pyvo.utils.prototype import prototype_feature
 
@@ -19,11 +18,9 @@ class MivotClass:
     "key" : "value"      means key is an element of ATTRIBUTE
     "key" : []           means key is the dmtype of a COLLECTION
     """
-
     def __init__(self, **kwargs):
         """
         Constructor of the MIVOT class.
-
         Parameters
         ----------
         kwargs : dict
@@ -35,7 +32,6 @@ class MivotClass:
     def epoch_propagation(self):
         """
         Property to get the EpochPropagation object.
-
         Returns
         -------
         ~`pyvo.mivot.features.epoch_propagation.EpochPropagation`
@@ -49,7 +45,6 @@ class MivotClass:
     def sky_coordinate(self):
         """
         Property to get the SkyCoord object from the EpochPropagation object.
-
         Returns
         -------
         ~`astropy.coordinates.sky_coordinate.SkyCoord`
@@ -63,7 +58,6 @@ class MivotClass:
         For the unit of the ATTRIBUTE, we add the astropy unit or the astropy time equivalence by comparing
         the value of the unit with values in time.TIME_FORMATS.keys() which is the list of time formats.
         We do the same with the unit_mapping dictionary, which is the list of astropy units.
-
         Parameters
         ----------
         kwargs : dict
@@ -74,13 +68,11 @@ class MivotClass:
                 setattr(self, self._remove_model_name(key), [])
                 for item in value:
                     getattr(self, self._remove_model_name(key)).append(MivotClass(**item))
-
             elif isinstance(value, dict):  # INSTANCE
                 if not self._is_leaf(**value):
                     setattr(self, self._remove_model_name(key, True), MivotClass(**value))
                 if self._is_leaf(**value):
                     setattr(self, self._remove_model_name(key), MivotClass(**value))
-
             else:  # ATTRIBUTE
                 if key == 'value':  # We cast the value read in the row
                     setattr(self, self._remove_model_name(key),
@@ -99,7 +91,6 @@ class MivotClass:
         """
         Update the MIVOT class with the new data row.
         For each leaf of the MIVOT class, we update the value with the new data row, comparing the reference.
-
         Parameters
         ----------
         row : dict
@@ -128,7 +119,6 @@ class MivotClass:
         Remove the model name before each colon ":" as well as the type of the object before each point ".".
         If it is an INSTANCE of INSTANCEs, the dmrole represented as the key needs to keep his type object.
         In this case (`role_instance=True`), we just replace the point "." With an underscore "_".
-
         Parameters
         ----------
         value : str
@@ -143,14 +133,12 @@ class MivotClass:
             if index_underscore != -1:
                 # Then we find the object type before the point
                 next_index_underscore = value.find(".", index_underscore + 1)
-
                 if next_index_underscore != -1 and role_instance is False:
                     value_after_underscore = value[next_index_underscore + 1:]
                 else:
                     value_after_underscore = (value[index_underscore + 1:]
                                               .replace(':', '_').replace('.', '_'))
                 return value_after_underscore
-
             return value  # Returns unmodified string if "_" wasn't found
         else:
             return value
@@ -161,14 +149,12 @@ class MivotClass:
         Cast the value of an ATTRIBUTE based on its dmtype.
         As the type of ATTRIBUTE values returned in the dictionary is string by default,
         this function is used to cast them based on their dmtype.
-
         Parameters
         ----------
         value : str
             The value of the ATTRIBUTE.
         dmtype : str
             The dmtype of the ATTRIBUTE.
-
         Returns
         -------
         Union[bool, float, str, None]
@@ -176,13 +162,11 @@ class MivotClass:
         """
         if type(value) is numpy.float32 or type(value) is numpy.float64:
             return float(value)
-
         lower_dmtype = dmtype.lower()
         if type(value) is str:
             lower_value = value.lower()
         else:
             lower_value = value
-
         if "bool" in lower_dmtype:
             if value == "1" or lower_value == "true" or lower_value is True:
                 return True
@@ -201,19 +185,17 @@ class MivotClass:
     def _is_leaf(self, **kwargs):
         """
         Check if the dictionary is an ATTRIBUTE.
-
         Parameters
         ----------
         **kwargs : dict
             The dictionary to check.
-
         Returns
         -------
         bool
             True if the dictionary is an ATTRIBUTE, False otherwise.
         """
         if isinstance(kwargs, dict):
-            for key, value in kwargs.items():
+            for _, value in kwargs.items():
                 if isinstance(value, dict):
                     return False
         return True
@@ -222,14 +204,12 @@ class MivotClass:
         """
         Recursively displays a serializable dictionary.
         This function is only used for debugging purposes.
-
         Parameters
         ----------
         obj : dict or object
             The dictionary or object to display.
         classkey : str, optional
             The key to use for the object's class name in the dictionary, default is None.
-
         Returns
         -------
         dict or object

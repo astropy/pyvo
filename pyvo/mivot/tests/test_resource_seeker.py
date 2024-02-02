@@ -8,6 +8,7 @@ from astropy.io.votable import parse
 from pyvo.mivot.seekers.resource_seeker import ResourceSeeker
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.utils import activate_features
+
 activate_features('MIVOT')
 
 
@@ -32,13 +33,12 @@ def test_id_table(rseeker, data_path):
     """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
-
     assert rseeker.get_table_ids() == ['_PKTable', 'Results']
-
-    assert rseeker.get_id_index_mapping('_PKTable') == {
-         'pksrcid': {'ID': '_pksrcid', 'indx': 0},
-         'pkband': {'ID': '_pkband', 'indx': 1}
-         }
+    assert (rseeker.get_id_index_mapping('_PKTable')
+            == {'pksrcid': {'ID': '_pksrcid', 'indx': 0},
+                'pkband': {'ID': '_pkband', 'indx': 1}
+                }
+            )
     assert (rseeker.get_id_index_mapping('Results')
             == {'source_id': {'ID': '_srcid', 'indx': 0},
                 'transit_id': {'ID': 'transit_id', 'indx': 1},
@@ -55,26 +55,26 @@ def test_id_table(rseeker, data_path):
                 }
             )
     table = rseeker.get_table('_PKTable')
-
     for field in table.fields:
         field.ID = None
-    assert rseeker.get_id_index_mapping('_PKTable') == {
-        'pksrcid': {'indx': 0, 'ID': 'pksrcid'},
-        'pkband': {'indx': 1, 'ID': 'pkband'}
-        }
-
-
+    assert (rseeker.get_id_index_mapping('_PKTable')
+            == {'pksrcid': {'indx': 0, 'ID': 'pksrcid'},
+                'pkband': {'indx': 1, 'ID': 'pkband'}
+                }
+            )
     for table in rseeker._resource.tables:
         table.ID = None
-
     assert rseeker.get_table_ids() == ['AnonymousTable', 'AnonymousTable']
+
     for table in rseeker._resource.tables:
         table.name = "any_name"
+
     assert rseeker.get_table_ids() == ['any_name', 'any_name']
-    assert rseeker.get_id_index_mapping('any_name') == {
-        'pksrcid': {'indx': 0, 'ID': 'pksrcid'},
-        'pkband': {'indx': 1, 'ID': 'pkband'}
-        }
+    assert (rseeker.get_id_index_mapping('any_name')
+            == {'pksrcid': {'indx': 0, 'ID': 'pksrcid'},
+                'pkband': {'indx': 1, 'ID': 'pkband'}}
+            )
+
 
 @pytest.fixture
 def data_path():

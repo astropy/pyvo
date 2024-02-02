@@ -11,6 +11,8 @@ from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.model_viewer_level1 import ModelViewerLevel1
 from pyvo.utils.prototype import activate_features
 from astropy import version as astropy_version
+
+
 activate_features('MIVOT')
 
 
@@ -18,7 +20,6 @@ def test_model_viewer_level1_constructor(data_path):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     votable = os.path.join(data_path, "data/input/test.1.xml")
-
     with (pytest.raises(TypeError, match="'<' not supported between instances of 'str' and 'int'")
           and pytest.raises(Exception, match="Resource #1 is not found")):
         ModelViewerLevel1(votable, resource_number=1)
@@ -39,7 +40,6 @@ def test_first_instance_row_view(data_path):
     assert m_viewer.get_first_instance("only_collection") == Constant.ROOT_COLLECTION
     with pytest.raises(Exception, match="Can't find the first INSTANCE/COLLECTION in TEMPLATES"):
         m_viewer.get_first_instance("empty")
-
     assert m_viewer.get_next_row_view() is not None
     assert m_viewer.get_next_row_view() is None
 
@@ -56,7 +56,6 @@ def test_model_viewer_level1_table_ref(m_viewer):
                        match=re.escape(r"The table first_table doesn't match with any mapped_table "
                                        r"(['_PKTable', 'Results']) encountered in TEMPLATES")):
         m_viewer._connect_table("wrong_tableref")
-
     assert m_viewer.connected_table_ref == Constant.FIRST_TABLE
     assert (m_viewer.get_models()
             == {'mango': 'file:/Users/sao/Documents/IVOA/GitHub/ivoa-dm-examples/tmp/Mango-v1.0.vo-dml.xml',
@@ -75,22 +74,17 @@ def test_model_viewer_level1_global_getters(m_viewer, data_path):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     assert m_viewer.get_table_ids() == ['_PKTable', 'Results']
-
     assert m_viewer.get_globals_models() == DictUtils.read_dict_from_file(
         os.path.join(data_path, "data/output/test_globals_models.json"))
-
     assert m_viewer.get_templates_models() == DictUtils.read_dict_from_file(
         os.path.join(data_path, "data/output/test_templates_models.json"))
-
     m_viewer._connect_table('_PKTable')
     row = m_viewer.get_next_row()
     assert row[0] == '5813181197970338560'
     assert row[1] == 'G'
-
     row = m_viewer.get_next_row()
     assert row[0] == '5813181197970338560'
     assert row[1] == 'BP'
-
     m_viewer.rewind()
     row = m_viewer.get_next_row()
     assert row[0] == '5813181197970338560'

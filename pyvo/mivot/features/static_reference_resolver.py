@@ -3,7 +3,6 @@ Class used to resolve each static REFERENCE found in instance.
 """
 from copy import deepcopy
 from pyvo.mivot.utils.exceptions import ResolveException, NotImplementedException
-from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.utils.xpath_utils import XPath
 from pyvo.utils.prototype import prototype_feature
 
@@ -13,16 +12,13 @@ class StaticReferenceResolver:
     """
     Namespace for the function processing the static REFERENCEs
     """
-
     @staticmethod
     def resolve(annotation_seeker, templates_ref, instance):
         """
         Resolve all static REFERENCEs found in the instance.
-
         The referenced objects are first searched in GLOBALS and then in the templates_ref table.
         REFERENCE elements are replaced with the referenced objects set with the roles of the REFERENCEs.
         Works even if REFERENCE tags are numbered by the former processing.
-
         Parameters
         ----------
         annotation_seeker : AnnotationSeeker
@@ -31,12 +27,10 @@ class StaticReferenceResolver:
             Identifier of the table where the instance comes from.
         instance : xml.etree.ElementTree
             The XML element object.
-
         Returns
         -------
         int
             The number of references resolved.
-
         Raises
         ------
         MappingException
@@ -50,7 +44,6 @@ class StaticReferenceResolver:
             # If we have no @dmref in REFERENCE, we consider this is a ref based on a keys
             if dmref is None:
                 raise NotImplementedException("Dynamic reference not implemented")
-
             target = annotation_seeker.get_globals_instance_by_dmid(dmref)
             found_in_global = True
             if target is None and templates_ref is not None:

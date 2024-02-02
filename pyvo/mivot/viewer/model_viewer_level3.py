@@ -15,7 +15,6 @@ class ModelViewerLevel3:
     From this dictionary, we build a `~pyvo.mivot.viewer.mivot_time.MivotClass` object
     which is a dictionary with only essential information used to process data.
     """
-
     def __init__(self, xml_instance):
         self._xml_instance = xml_instance
         self._dict = self._to_dict(self._xml_instance)
@@ -37,28 +36,23 @@ class ModelViewerLevel3:
     def _to_dict(self, element):
         """
         Recursively create a nested dictionary from the XML tree structure, preserving the hierarchy.
-
         Each object in the dictionary is represented by a new dictionary with dmrole: {}.
         The processing of elements depends on the tag:
          - For INSTANCE, a new dictionary is created.
          - For COLLECTION, a list is created.
          - For ATTRIBUTE, a leaf is created in the tree structure with dmtype, dmrole, value, unit, and ref.
-
         Parameters
         ----------
         element : ~`xml.etree.ElementTree.Element`
             The XML element to convert to a dictionary.
-
         Returns
         -------
         dict
             The nested dictionary representing the XML tree structure.
         """
         dict_result = {}
-
         for key, value in element.attrib.items():
             dict_result[key] = value
-
         for child in element:
             dmrole = child.get("dmrole")
             if child.tag == "ATTRIBUTE":
@@ -73,12 +67,10 @@ class ModelViewerLevel3:
         """
         Convert an ATTRIBUTE element to a dictionary.
         ATTRIBUTE is always a leaf, so it is not recursive.
-
         Parameters
         ----------
         child : ~`xml.etree.ElementTree.Element`
             The ATTRIBUTE XML element to convert.
-
         Returns
         -------
         dict
@@ -106,12 +98,10 @@ class ModelViewerLevel3:
         """
         Convert a COLLECTION element to a list of dictionaries.
         COLLECTION is always represented as a list, and each element of the COLLECTION is added to the list.
-
         Parameters
         ----------
         child : `~`xml.etree.ElementTree.Element``
             The COLLECTION XML element to convert.
-
         Returns
         -------
         list

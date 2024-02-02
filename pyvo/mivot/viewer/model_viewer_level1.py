@@ -37,7 +37,6 @@ class ModelViewerLevel1:
     """
     ModelViewerLevel1 is a PyVO table wrapper aiming at providing
     a model view on VOTable data read with usual tools.
-
     Standard usage applied to data rows:
         .. code-block:: python
         data_path = os.path.dirname(os.path.realpath(__file__))
@@ -45,11 +44,9 @@ class ModelViewerLevel1:
         m_viewer = ModelViewerLevel1(votable)
         row_view = m_viewer.get_next_row_view()
     """
-
     def __init__(self, votable_path, tableref=None, resource_number=None):
         """
         Constructor of the ModelViewerLevel1 class.
-
         Parameters
         ----------
         votable_path : str or DALResults instance
@@ -78,13 +75,11 @@ class ModelViewerLevel1:
             self._last_row = None
             self._templates = None
             self._resource = None
-
             self._annotation_seeker = None
             self._mapping_block = None
             self._mapped_tables = None
             self._model_viewer_level2 = None
             self._model_viewer_level3 = None
-
             self._set_resource(resource_number)
             self._set_mapping_block()
             self._resource_seeker = ResourceSeeker(self._resource)
@@ -137,7 +132,6 @@ class ModelViewerLevel1:
     """
     Global accessors
     """
-
     def get_table_ids(self):
         """
         Return a list of the table located just below self._resource.
@@ -149,7 +143,6 @@ class ModelViewerLevel1:
         Get collection types in GLOBALS.
         Collection types are GLOBALS/COLLECTION/INSTANCE@dmtype:
         used for collections of static objects.
-
         Returns
         -------
         dict
@@ -159,13 +152,11 @@ class ModelViewerLevel1:
         retour = {}
         retour[Ele.COLLECTION] = self._annotation_seeker.get_globals_collection_dmtypes()
         retour[Ele.INSTANCE] = self._annotation_seeker.get_globals_instance_dmtypes()
-
         return retour
 
     def get_models(self):
         """
         Get a dictionary of models and their URLs.
-
         Returns
         -------
         dict
@@ -179,7 +170,6 @@ class ModelViewerLevel1:
         """
         Get dmtypes (except ivoa:..) of all INSTANCE/COLLECTION of all TEMPLATES.
         Note: COLLECTION not implemented yet.
-
         Returns
         -------
         dict
@@ -190,17 +180,14 @@ class ModelViewerLevel1:
         gni = self._annotation_seeker.get_instance_dmtypes()[Ele.TEMPLATES]
         for tid, tmplids in gni.items():
             retour[tid] = {Ele.COLLECTION: [], Ele.INSTANCE: tmplids}
-
         return retour
 
     """
     Data browsing
     """
-
     def get_next_row(self):
         """
         Return the next data row of the connected table.
-
         Returns
         -------
         astropy.table.row.Row
@@ -216,17 +203,17 @@ class ModelViewerLevel1:
         """
         self._assert_table_is_connected()
         self._table_iterator._rewind()
-    
+
     def get_level2(self):
         """ return the build-in ModelViewerLevel2 instance
         """
         return self._model_viewer_level2
-    
+
     def get_level3(self):
         """ return the build-in ModelViewerLevel3 instance
         """
         return self._model_viewer_level3
-    
+
     """
     Private methods
     """
@@ -235,7 +222,6 @@ class ModelViewerLevel1:
         Iterate over the table identified by tableref.
         Required to browse table data.
         Connect to the first table if tableref is None.
-
         Parameters
         ----------
         tableref : str or None, optional
@@ -245,24 +231,20 @@ class ModelViewerLevel1:
             self._connected_tableref = Constant.FIRST_TABLE
             logger.debug("Since " + Ele.TEMPLATES + " table_ref '%s' is None, "
                          "it will be set as 'first_table' by default", tableref)
-
         elif tableref not in self._mapped_tables:
             raise MappingException(f"The table {self._connected_tableref} doesn't match with any "
                                    f"mapped_table ({self._mapped_tables}) encountered in "
                                    + Ele.TEMPLATES)
         else:
             self._connected_tableref = tableref
-
         self._connected_table = self._resource_seeker.get_table(tableref)
         if self.connected_table is None:
             raise ResourceNotFound(f"Cannot find table {tableref} in VOTable")
         logger.debug("table %s found in VOTable", tableref)
-
         self._templates = deepcopy(self.annotation_seeker.get_templates_block(tableref))
         if self._templates is None:
             raise MivotElementNotFound("Cannot find " + Ele.TEMPLATES + f" {tableref} ")
         logger.debug(Ele.TEMPLATES + " %s found ", tableref)
-
         self._table_iterator = TableIterator(self._connected_tableref,
                                              self.connected_table.to_table())
         self._squash_join_and_references()
@@ -276,7 +258,6 @@ class ModelViewerLevel1:
         """
         Return an XML model view of the last read row.
         This function resolves references by default. It is called in the ModelViewerLevel2.
-
         Parameters
         ----------
         resolve_ref : bool, optional
@@ -295,26 +276,22 @@ class ModelViewerLevel1:
             XmlUtils.set_column_units(templates_copy,
                                       self._resource_seeker
                                       .get_id_unit_mapping(self._connected_tableref))
-
         # for ele in templates_copy.xpath("//ATTRIBUTE"):
         for ele in XPath.x_path(templates_copy, ".//ATTRIBUTE"):
             ref = ele.get(Att.ref)
             if ref is not None and ref != Constant.NOT_SET and Constant.COL_INDEX in ele.attrib:
                 index = ele.attrib[Constant.COL_INDEX]
                 ele.attrib[Att.value] = str(self._current_data_row[int(index)])
-
         return templates_copy
 
     def get_first_instance(self, tableref=None):
         """
         Return the dmtype of the head INSTANCE (first TEMPLATES child).
         If no INSTANCE is found, take the first COLLECTION.
-
         Parameters
         ----------
         tableref : str or None, optional
             Identifier of the table.
-
         Returns
         -------
         ~`xml.etree.ElementTree.Element`
@@ -325,12 +302,10 @@ class ModelViewerLevel1:
         collection = XPath.x_path(self._annotation_seeker.get_templates_block(tableref),
                                   ".//" + Ele.COLLECTION)
         instance = XPath.x_path(self._annotation_seeker.get_templates_block(tableref), ".//" + Ele.INSTANCE)
-
         if len(collection) >= 1:
             collection[0].set(Att.dmtype, Constant.ROOT_COLLECTION)
             (self._annotation_seeker.get_templates_block(tableref).find(".//" + Ele.COLLECTION)
              .set(Att.dmtype, Constant.ROOT_COLLECTION))
-
         if len(child) > 1:
             if len(instance) >= 1:
                 for inst in instance:
@@ -353,7 +328,6 @@ class ModelViewerLevel1:
         """
         Private method that builds and returns a new access level on the model view,
         creating an object that contains all INSTANCE and ATTRIBUTE as a dictionary.
-
         Returns
         -------
         pyvo.mivot.viewer.mivot_class.MivotClass
@@ -362,14 +336,11 @@ class ModelViewerLevel1:
         self.get_next_row()
         if self._current_data_row is None:
             return None
-
         if self._model_viewer_level3 is None:
             self._model_viewer_level2 = ModelViewerLevel2(self)
             instance = self._model_viewer_level2.get_instance_by_type(self.get_first_instance())
             self._model_viewer_level3 = ModelViewerLevel3(instance)
-
         self._model_viewer_level3.mivot_class.update_mivot_class(self._current_data_row)
-
         return self._model_viewer_level3.mivot_class
 
     def _assert_table_is_connected(self):
@@ -385,7 +356,6 @@ class ModelViewerLevel1:
         """
         Take the resource_number in entry and then set the resource concerned.
         If the resource_number is None, the default resource set is the first one.
-
         Parameters
         ----------
         resource_number : int or None
@@ -397,7 +367,6 @@ class ModelViewerLevel1:
             rnb = 0
         else:
             rnb = resource_number
-
         if rnb < 0 or rnb >= nb_resources:
             raise ResourceNotFound(f"Resource #{rnb} is not found")
         else:
@@ -412,13 +381,11 @@ class ModelViewerLevel1:
                 == ('<VODML xmlns="http://www.ivoa.net/xml/mivot">\n  '
                     '<REPORT status="KO">No Mivot block</REPORT>\n</VODML>\n')):
             raise MivotNotFound("Mivot block is not found")
-
         # The namespace should be removed
         self._mapping_block = (
             etree.fromstring(self._resource.mivot_block.content
                             .replace('xmlns="http://www.ivoa.net/xml/mivot"', '')
                             .replace("xmlns='http://www.ivoa.net/xml/mivot'", '')))
-
         self._annotation_seeker = AnnotationSeeker(self._mapping_block)
         logger.info("Mapping block found")
 
@@ -433,7 +400,6 @@ class ModelViewerLevel1:
                 self._dyn_references = {ele.tag: deepcopy(ele)}
                 for child in list(ele):
                     ele.remove(child)
-
         for ele in XPath.x_path_startwith(self._templates, ".//JOIN_"):
             self._joins = {ele.tag: deepcopy(ele)}
             for child in list(ele):

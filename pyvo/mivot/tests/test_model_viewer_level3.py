@@ -4,10 +4,10 @@ Test for mivot.viewer.model_viewer_level3.py and mivot.viewer.mivot_time.py
 """
 import os
 import pytest
-
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.model_viewer_level1 import ModelViewerLevel1
 from pyvo.utils.prototype import activate_features
+
 
 activate_features('MIVOT')
 
@@ -19,13 +19,11 @@ def test_model_viewer3(votable_test, simple_votable):
     """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
-
     m_viewer_simple_votable = ModelViewerLevel1(votable_path=simple_votable)
     MivotClass = m_viewer_simple_votable.get_next_row_view()
     xml_simple_votable = m_viewer_simple_votable._model_viewer_level2._xml_view
     assert xml_simple_votable.tag == 'TEMPLATES'
     recusive_xml_check(xml_simple_votable, MivotClass)
-
     m_viewer_votable_test = ModelViewerLevel1(votable_path=votable_test)
     MivotClass = m_viewer_votable_test.get_next_row_view()
     xml_votable_test = m_viewer_votable_test._model_viewer_level2._xml_view
@@ -60,7 +58,6 @@ def recusive_xml_check(xml_simple_votable, MivotClass):
                             elif child.tag == 'COLLECTION':
                                 recusive_xml_check(child, getattr(MivotClass, MivotClass._remove_model_name
                                 (child.get('dmrole'))))
-
             elif child.tag == 'COLLECTION':
                 for key, value in child.attrib.items():
                     assert len(getattr(MivotClass,
@@ -70,7 +67,6 @@ def recusive_xml_check(xml_simple_votable, MivotClass):
                         recusive_xml_check(child2, getattr(MivotClass, MivotClass._remove_model_name
                         (child.get('dmrole')))[i])
                         i += 1
-
             elif child.tag == 'ATTRIBUTE':
                 MivotClass_attribute = getattr(MivotClass, MivotClass._remove_model_name(child.get('dmrole')))
                 for key, value in child.attrib.items():
@@ -102,7 +98,6 @@ def test_dict_model_viewer3(votable_test, simple_votable):
     m_viewer_votable_test.get_next_row_view()
     m_viewer3 = m_viewer_votable_test._model_viewer_level3
     recursive_check(m_viewer3.mivot_class, **m_viewer3._dict)
-
     m_viewer_simple_votable = ModelViewerLevel1(votable_path=simple_votable)
     m_viewer_simple_votable.get_next_row_view()
     mv_niv3 = m_viewer_simple_votable._model_viewer_level3
@@ -118,12 +113,10 @@ def recursive_check(MivotClass, **kwargs):
                     assert 'dmtype' in item.keys()
                     recursive_check(getattr(MivotClass, MivotClass._remove_model_name(key))[nbr_item], **item)
                     nbr_item += 1
-
         elif isinstance(value, dict) and 'value' not in value:
             # for INSTANCE of INSTANCEs dmrole needs model_name
             assert MivotClass._remove_model_name(key, True) in vars(MivotClass).keys()
             recursive_check(getattr(MivotClass, MivotClass._remove_model_name(key, True)), **value)
-
         else:
             if isinstance(value, dict) and MivotClass._is_leaf(**value):
                 assert value.keys().__contains__('dmtype' and 'value' and 'unit' and 'ref')

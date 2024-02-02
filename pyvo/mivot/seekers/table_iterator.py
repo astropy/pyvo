@@ -12,11 +12,9 @@ class TableIterator:
     Some methods are simple wrappers for external tools in order to have all
     the search functions on TABLE gathered in within a single namespace.
     """
-
     def __init__(self, name, data_table):
         """
         Constructor of the TableIterator class.
-
         Parameters
         ----------
         name : str
@@ -39,7 +37,6 @@ class TableIterator:
         # The iterator is set at the first iteration
         if self.iter is None:
             self.iter = iter(self.data_table)
-
         try:
             while True:
                 row = next(self.iter)
