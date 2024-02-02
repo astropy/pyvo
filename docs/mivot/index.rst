@@ -31,36 +31,40 @@ The lowest levels are model agnostic.
 
 They provide tools to browse model instances dynamically generated. The understanding of the model elements is the responsibility of the final user.
 
-The highest level (4) is based on the MANGO draft model and especially to its. It has been designed to solve the EpochPropagation use case risen at 2023 South Spring Interop.
+The highest level (4) is based on the MANGO draft model and especially to its.
+It has been designed to solve the EpochPropagation use case risen at 2023 South Spring Interop.
+The 3 lowest levels are totally model agnostic whereas the 4th  one is based on the `MANGO <https://github.com/ivoa-std/MANGO>`_
+model proposal as it was at the time of writing.
 
-The model view is a dynamically generated Python object whose field names are derived from
-the dmroles of the MIVOT elements. There is no checking against the model structure at this level.
+The model view is a dynamically generated as Python data structures whose content is derived from
+the ``dmroles`` of the MIVOT elements. There is no checking against the model structure at this level.
 
 Implementation
 ==============
 The implementation relies on the Astropy's write and read annotation modules (6.0+),
-which allows to get and set Mivot blocks from/into VOTables.
-We use this new Astropy feature, MIVOT, to retrieve the MIVOT block.
+which allows to get and set Mivot blocks from/into VOTables as an XML element serialized in a string.
+We use this new Astropy feature (PR #15390) to retrieve the MIVOT block.
 
-This implementation is built in 4 levels, denoting the abstraction level in relation to the XML block.
+This implementation is split in 4 levels, each representing a specific level of abstraction,
+from the XML block to a ``SkyCOord`` instance.
 
-Level 0: ModelViewer
---------------------
+Level 0: Astropy Resource
+-------------------------
 Provide the MIVOT block as it is in the VOTable: No references are resolved.
-The Mivot block is provided as an xml tree. This feature is available in Astropy 6.0.
+The string delivered by Astropy is converted into an XML complex element.
+This feature is available in Astropy 6.0.
 
 .. doctest-remote-data::
     >>> from xml.etree import ElementTree as etree
     >>> from astropy.io.votable import parse
     >>> from pyvo.mivot.utils.xml_utils import XmlUtils
-    >>> resource = parse("votable.xml").resources[0]
-    >>> # extract a pretty string serialization of the mapping block
-    >>> # namespace is purged
-    >>> str_mapping_block = (resource.mivot_block.content
-    >>>                      .replace('xmlns="http://www.ivoa.net/xml/mivot"', '')
-    >>>                      .replace("xmlns='http://www.ivoa.net/xml/mivot'", '')
-    >>>                      )
-    >>> print(str_mapping_block)
+    >>> resource = parse("votable.xml").resources[0] # doctest: +SKIP
+    ... # extract a pretty string serialization of the mapping block
+    ... # namespace is purged
+    >>> str_mapping_block = (resource.mivot_block.content # doctest: +SKIP
+    ...                      .replace("xmlns='http://www.ivoa.net/xml/mivot'", '')
+    ...                      )
+    >>> print(str_mapping_block) # doctest: +SKIP
     <VODML>
       <REPORT status="OK"> hand-made mapping </REPORT>
       ...
@@ -112,7 +116,7 @@ The level 1 output can be browsed using XPATH queries.
 Level 2: ModelViewerLevel2
 --------------------------
 Just a few methods to make the browsing of the level 1 output easier.
-The level 2 API allows users to retrieve MIVOT elements by their @dmrole or @dmtype.
+The level 2 API allows users to retrieve MIVOT elements by their ``@dmrole`` or ``@dmtype``.
 At this level, the MIVOT block must still be handled as an XML element.
 
 .. doctest-remote-data::
@@ -134,6 +138,7 @@ representing the entire XML INSTANCE with its hierarchy.
 From this dictionary, we build a :py:class:`pyvo.mivot.viewer.mivot_class.MivotClass`,
 which is a dictionary containing only the essential information used to process data.
 MivotClass basically stores all XML objects in its attribute dictionary :py:attr:`__dict__`.
+All properties can be retrieved as instance attributes.
 
 .. doctest-remote-data::
     >>> row_view = m_viewer.get_next_row_view() # doctest: +SKIP
@@ -147,11 +152,13 @@ MivotClass basically stores all XML objects in its attribute dictionary :py:attr
          (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
             (6., -6., 7.)>
 
-Level 4: Integrated to ModelViewerLevel3
-----------------------------------------
+Level 4: EpochPropagation Feature
+---------------------------------
 At this level, science ready objects are directly extracted from the annotation block. The model(s) is totally hidden.
-The current implementation can build ``SkyCoord`` instance from a ``MANGO:EpochPosition`` instance.
-The ``apply_space_motion`` transformation has also been wrapped in. This first science level implementation has been issued on request of the IVOA application wroking group (Tucson 2023) for a conviniant solution based on MIVOT for processing epoch propagation.
+The current implementation can build ``SkyCoord`` instances from a ``MANGO:EpochPosition`` XML blocks.
+The ``apply_space_motion`` transformation has also been wrapped in.
+This first science level implementation has been issued on request of the IVOA application working group (Tucson 2023)
+for a convenient solution based on MIVOT for processing epoch propagation.
 
 .. doctest-remote-data::
     >>> with ModelViewerLevel1(votable) as m_viewer: # doctest: +SKIP
@@ -163,6 +170,16 @@ The ``apply_space_motion`` transformation has also been wrapped in. This first s
     ...     print("future_ra, future_dec :", epoch_propagation.apply_space_motion(dt=2 * u.year))
     past_ra, past_dec : (<Longitude 4.9998763 deg>, <Latitude -5.00024364 deg>)
     future_ra, future_dec : (<Longitude 5.00000563 deg>, <Latitude -4.99998891 deg>)
+
+Get More
+========
+The following pages show up some concrete examples of PyVO code consuming annotated VOTables provided by a
+MIVOT-enable cone-search service.
+
+.. toctree::
+   :maxdepth: 2
+
+   examples
 
 Reference/API
 =============
