@@ -1027,7 +1027,7 @@ def build_regtap_query(constraints, service):
         extra_tables |= set(constraint._extra_tables)
 
     joined_tables = ["rr.resource", "rr.capability", "rr.interface"
-                     ] + list(extra_tables)
+                     ] + list(sorted(extra_tables))
 
     # see comment in regtap.RegistryResource for the following
     # oddity

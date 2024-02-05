@@ -199,9 +199,10 @@ class ImageDiscoverer:
 
         ids_present = table.Table([
             table.Column(name="id",
-            data=list(ids(self.sia1_recs)
-                | ids(self.sia2_recs)
-                | ids(self.obscore_recs)),
+            data=list(
+                sorted(ids(self.sia1_recs)
+                    | ids(self.sia2_recs)
+                    | ids(self.obscore_recs))),
             description="ivoids of candiate services",
             meta={"ucd": "meta.ref.ivoid"}),])
         services_for = regtap.get_RegTAP_service().run_sync(
