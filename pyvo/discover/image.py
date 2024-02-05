@@ -287,9 +287,10 @@ class ImageDiscoverer:
         """
         def non_spatial_filter(sia1_rec):
             if self.spectrum and not self.inclusive and (
-                    sia1_rec.bandpass_hilmit and sia1_rec.bandpass_lolimit):
+                    sia1_rec.bandpass_hilimit is not None
+                    and sia1_rec.bandpass_lolimit is not None):
                 if not (sia1_rec.bandpass_lolimit
-                        <= self.spectrum
+                        <= self.spectrum*u.m
                         <= sia1_rec.bandpass_hilimit):
                     return False
 
