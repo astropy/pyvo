@@ -11,7 +11,6 @@ import hashlib
 import inspect
 import io
 import os
-import re
 import pickle
 from urllib import parse as urlparse
 
@@ -43,10 +42,14 @@ def get_digest(data):
         data = data.encode("utf-8")
 
     # requests has random mime/multipart separators.  Heuristically
-    # try to remove them so we get constant hashes.
-    mat = re.match(b"boundary=(.*?)[\r\n]", data)
-    if mat:
-        data = data.replace(mat.group(1), "")
+    # try to remove them so we get constant hashes; to do
+    # this properly, we'd have to look at the request headers
+    # and extract the boundary string from there.  Let's
+    # see if we can get away with detecting form data and then
+    # just use the first line.
+    if b"Content-Disposition: form-data" in data:
+        boundary = data.split(b"\r", 1)[0]
+        data = data.replace(boundary, b"")
 
     return base64.b64encode(
             hashlib.md5(data).digest(), b"+%"
@@ -93,23 +96,15 @@ class LearnableRequestMocker(requests_mock.Mocker):
         for the query string are in the file name to make it simpler
         to find responses.
         """
-        if payload:
-            payload_hash = hashify_request_payload(payload)
-            payload_snippet = payload[:16]
-            if isinstance(payload_snippet, bytes):
-                payload_snippet = payload_snippet.decode("utf-8", "ignore")
-        else:
-            payload_hash = payload_snippet = ""
-
-        payload_snippet = payload_snippet.replace("/", "_")
-
+        payload_hash = hashify_request_payload(payload
+            ) if payload else ""
         parsed = urlparse.urlparse(url)
         last_segment = parsed.path.split("/")[-1]
-        urlhash = get_digest(url+payload_hash)
+        urlhash = get_digest(url)
 
         return os.path.join(
             self.response_dir,
-            f"{method}-{parsed.netloc}-{last_segment}_{payload_snippet}"
+            f"{method}-{parsed.netloc}-{last_segment}"
             f"-{urlhash}{payload_hash}")
 
     def pickle_response(self, request, response, cache_name):
