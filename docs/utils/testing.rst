@@ -46,9 +46,10 @@ out which response belongs to which request; it consists of the method,
 the host, the start of the payload (if any), and hashes of the full URL
 and a payload.
 
-When the upstream response changes, all you have to do is remove the
+When the upstream response (or whatever request pyvo produces) changes,
+remove the
 cached files and re-run test with ``--remote-data=any``.
 
 We do not yet have a good plan for how to preserve edits made to the
-test files.  Let us see how far we get without opening that can of
-worms.
+test files.  For now, commit the original responses, do any changes, and
+do a commit encompassing only these changes.
