@@ -519,11 +519,17 @@ class Datamodel(SubqueriedConstraint):
     one of several well-known data models; the SQL produced depends
     on the data model identifier.
 
+    Records returned with these constraints will have a TAP (or
+    auxiliary TAP) capability.
+
     Known data models at this point include:
 
     * obscore -- generic observational data
     * epntap -- solar system data
     * regtap -- the VO registry.
+    * obscore-new -- the table-based new-style obscore discovery.  Don't
+      use in code built to last: this will become normal obscore
+      when we have migrated the VO.
 
     DM names are matched case-insensitively here mainly for
     historical reasons.
@@ -532,7 +538,7 @@ class Datamodel(SubqueriedConstraint):
 
     # if you add to this list, you have to define a method
     # _make_<dmname>_constraint.
-    _known_dms = {"obscore", "epntap", "regtap"}
+    _known_dms = {"obscore", "epntap", "regtap", "obscore_new"}
 
     def __init__(self, dmname):
         """
@@ -556,6 +562,14 @@ class Datamodel(SubqueriedConstraint):
         return "rr.res_detail", (
             "detail_xpath = '/capability/dataModel/@ivo-id'"
             f" AND 1 = ivo_nocasematch(detail_value, '{obscore_pat}')")
+
+    def _make_obscore_new_constraint(self):
+        self._extra_tables = ["rr.res_table"]
+        return ("table_utype like 'ivo://ivoa.net/std/obscore#table-1.%'"
+            # Only use catalogresource-typed records to keep out
+            # full TAP services that may have the table in their
+            # tablesets.
+            " AND res_type = 'vs:catalogresource'")
 
     def _make_epntap_constraint(self):
         # we include legacy, pre-IVOA utypes for matches; lowercase
