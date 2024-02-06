@@ -215,7 +215,14 @@ class TestDatamodelConstraint:
         with pytest.raises(dalq.DALQueryError) as excinfo:
             rtcons.Datamodel("junk")
         assert str(excinfo.value) == (
-            "Unknown data model id junk.  Known are: epntap, obscore, regtap.")
+            "Unknown data model id junk.  Known are: epntap, obscore, obscore_new, regtap.")
+
+    def test_obscore_new(self):
+        cons = rtcons.Datamodel("obscore_new")
+        assert (cons.get_search_condition(FAKE_GAVO)
+                == "table_utype like 'ivo://ivoa.net/std/obscore#table-1.%'"
+                    " AND res_type = 'vs:catalogresource'")
+        assert (cons._extra_tables == ["rr.res_table"])
 
     def test_obscore(self):
         cons = rtcons.Datamodel("ObsCore")
