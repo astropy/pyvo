@@ -80,3 +80,29 @@ def test_servedby_elision(_servedby_elision_responses):
     assert d.obscore_recs[0].ivoid == "ivo://org.gavo.dc/tap"
     assert ('Skipping ivo://org.gavo.dc/__system__/siap2/sitewide because it is served by ivo://org.gavo.dc/tap'
         in d.log_messages)
+
+
+@pytest.fixture
+def _access_url_elision_responses(requests_mock):
+    matcher = LearnableRequestMocker("access-url-elision")
+    requests_mock.add_matcher(matcher)
+
+
+def test_access_url_elision(_access_url_elision_responses):
+    with pytest.warns():
+        d = discover.ImageDiscoverer(
+            time=time.Time("1910-07-15", scale="utc"),
+            spectrum=400*u.nm)
+    d.set_services(registry.search(registry.Ivoid(
+       "ivo://org.gavo.dc/tap",
+       "ivo://org.gavo.dc/__system__/siap2/sitewide")),
+        # that's important here: we *want* to query the same stuff twice
+       purge_redundant=False)
+    d.query_services()
+
+    # make sure we found anything at all
+    assert d.results
+
+    # make sure there are no duplicate records
+    access_urls = [im.access_url for im in d.results]
+    assert len(access_urls) == len(set(access_urls))

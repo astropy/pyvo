@@ -24,7 +24,7 @@ from ..registry import regtap
 
 
 # imports for type hints
-from typing import Callable, List, Optional, Set, Tuple
+from typing import Callable, Generator, List, Optional, Set, Tuple
 from astropy.units.quantity import Quantity
 
 
@@ -166,6 +166,7 @@ class ImageDiscoverer:
         self.watcher = watcher
         self.log_messages: List[str] = []
         self.sia1_recs, self.sia2_recs, self.obscore_recs = [], [], []
+        self.known_access_urls: Set[str] = set()
 
     def _info(self, message: str) -> None:
         """sends message to our watcher (if there is any)
@@ -282,18 +283,24 @@ class ImageDiscoverer:
         self._purge_redundant_services()
 
     def set_services(self,
-            registry_results: registry.RegistryResults) -> None:
+            registry_results: registry.RegistryResults,
+            purge_redundant: bool = True) -> None:
         """as an alternative to discover_services, this sets the services
         to be queried to the result of a custom registry query.
 
         This will pick the "most capabable" interface from each record
         and ignore records without image discovery capabilities.
+
+        If you set purge_redundant to false, this will not attempt
+        to eliminate services that are alternative interfaces to services
+        that are already called.  There are very few situations in which
+        you would want to do that, mostly related to debugging.
         """
         for rsc in registry_results:
             if "tap" in rsc.access_modes():
                 # TODO: we ought to ensure there's an obscore
-                # table on this; but then: let's rather fix obscore
-                # discovery
+                # table on this; but by the time this sees users,
+                # I hope to have fixed obscore discovery.
                 self.obscore_recs.append(Queriable(rsc))
             elif "sia2" in rsc.access_modes():
                 self.sia2_recs.append(Queriable(rsc))
@@ -301,7 +308,26 @@ class ImageDiscoverer:
                 self.sia1_recs.append(Queriable(rsc))
             # else ignore this record
 
-        self._purge_redundant_services()
+        if purge_redundant:
+            self._purge_redundant_services()
+
+    def _add_records(self,
+            recgen: Generator[ImageFound, None, None]) -> int:
+        """adds records from regen to the global results.
+
+        This will skip datasets the access urls of which we have already seen
+        and will return the number of datasets actually added.
+        """
+        n_added = 0
+
+        for obscore_record in recgen:
+            if obscore_record.access_url in self.known_access_urls:
+                continue
+            self.known_access_urls.add(obscore_record.access_url)
+            self.results.append(obscore_record)
+            n_added += 1
+
+        return n_added
 
     def _query_one_sia1(self, rec: Queriable):
         """runs our query against a SIA1 capability of rec.
@@ -330,15 +356,12 @@ class ImageDiscoverer:
 
         self._info("Querying SIA1 {}...".format(rec.title))
         svc = rec.res_rec.get_service("sia")
-        found = list(ImageFound.from_sia1_recs(
+        n_found = self.add_records(
+            ImageFound.from_sia1_recs(
                 svc.search(
                     pos=self.center, size=self.radius, intersect='overlaps'),
                 non_spatial_filter))
-        self._log("SIA1 {} {} records".format(
-            rec.title,
-            len(found)))
-
-        self.results.extend(found)
+        self._log(f"SIA1 {rec.title} {n_found} records")
 
     def _query_sia1(self):
         """runs the SIA1 part of our discovery.
@@ -371,12 +394,9 @@ class ImageDiscoverer:
         if self.time is not None:
             constraints["time"] = time.Time(self.time, format="mjd")
 
-        matches = list(
+        n_found = self.add_records(
             ImageFound.from_obscore_recs(svc.search(**constraints)))
-        self._log("SIA2 {}: {} records".format(
-            rec.title,
-            len(matches)))
-        self.results.extend(matches)
+        self._log(f"SIA2 {rec.title}: {n_found} records")
 
     def _query_sia2(self):
         """runs the SIA2 part of our discovery.
@@ -392,13 +412,11 @@ class ImageDiscoverer:
         """
         self._info("Querying Obscore {}...".format(rec.title))
         svc = rec.res_rec.get_service("tap")
-        recs = svc.run_sync("select * from ivoa.obscore "+where_clause)
-        matches = list(ImageFound.from_obscore_recs(recs))
 
-        self._log("Obscore {}: {} records".format(
-            rec.title,
-            len(matches)))
-        self.results.extend(matches)
+        n_found = self._add_records(
+            ImageFound.from_obscore_recs(
+                svc.run_sync("select * from ivoa.obscore "+where_clause)))
+        self._log(f"Obscore {rec.title}: {n_found} records")
 
     def _query_obscore(self):
         """runs the Obscore part of our discovery.
@@ -440,9 +458,9 @@ class ImageDiscoverer:
             raise dal.DALQueryError("No services to query.  Unless"
                 " you overrode service selection, you will have to"
                 " loosen your constraints.")
-        self._query_sia1()
-        self._query_sia2()
         self._query_obscore()
+        self._query_sia2()
+        self._query_sia1()
 
 
 def images_globally(
