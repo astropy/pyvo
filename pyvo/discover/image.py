@@ -196,7 +196,6 @@ class ImageDiscoverer:
         # IsServedBy relationship to another service we will also
         # query.  That's particularly valuable if there are large
         # obscore services covering data from many SIA1 services.
-
         ids_present = table.Table([
             table.Column(name="id",
             data=list(
@@ -205,6 +204,7 @@ class ImageDiscoverer:
                     | ids(self.obscore_recs))),
             description="ivoids of candiate services",
             meta={"ucd": "meta.ref.ivoid"}),])
+
         services_for = regtap.get_RegTAP_service().run_sync(
             """SELECT ivoid, related_id
                 FROM rr.relationship
@@ -212,7 +212,6 @@ class ImageDiscoverer:
                   JOIN tap_upload.ids AS rightids ON (related_id=rightids.id)
                 WHERE relationship_type='isservedby'
             """, uploads={'ids': ids_present})
-
         for rec in services_for:
             self._log(f"Skipping {rec['ivoid']} because"
                 f" it is served by {rec['related_id']}")
@@ -222,6 +221,34 @@ class ImageDiscoverer:
         self.sia2_recs = _clean_for(self.sia2_recs, collections_to_remove)
         self.obscore_recs = _clean_for(self.obscore_recs, collections_to_remove)
 
+    def _discover_obscore_services(self, *constraints):
+        # For obscore, we currently have a defunct discovery pattern
+        # ("obscore" in the Datamodel constraint).  There is obscore-new,
+        # which fixes the problem, but until that's adopted by all the
+        # obscore services, we have to try both and the pick the
+        # more suitable version.
+        # Once we move obscore-new to obscore, remove this function
+        # and put
+        # self.obscore_recs = [Queriable(r) for r in registry.search(
+        #   registry.Datamodel("obscore"), *constraints)]
+        # back into discover_services.
+        obscore_services = registry.search(
+            registry.Datamodel("obscore_new"), *constraints)
+        tap_services_with_obscore = registry.search(
+            registry.Datamodel("obscore"), *constraints)
+
+        new_style_access_urls = set()
+        for rec in obscore_services:
+            new_style_access_urls |= set(
+                i.baseurl for i in rec.list_services("tap"))
+
+        for tap_rec in tap_services_with_obscore:
+            access_urls = set(
+                i.baseurl for i in rec.list_services("tap"))
+            if new_style_access_urls.isdisjoint(access_urls):
+                obscore_services.append(obscore_services)
+
+        return [Queriable(r) for r in obscore_services]
 
     def discover_services(self):
         """fills the X_recs attributes with resources declaring coverage
@@ -250,8 +277,7 @@ class ImageDiscoverer:
             registry.Servicetype("sia"), *constraints)]
         self.sia2_recs = [Queriable(r) for r in registry.search(
             registry.Servicetype("sia2"), *constraints)]
-        self.obscore_recs = [Queriable(r) for r in registry.search(
-            registry.Datamodel("obscore"), *constraints)]
+        self.obscore_recs = self._discover_obscore_services(*constraints)
 
         self._purge_redundant_services()
 
@@ -366,8 +392,8 @@ class ImageDiscoverer:
         """
         self._info("Querying Obscore {}...".format(rec.title))
         svc = rec.res_rec.get_service("tap")
-        recs = svc.query("select * from ivoa.obscore"+where_clause)
-        matches = ImageFound.from_obscore_recs(recs)
+        recs = svc.run_sync("select * from ivoa.obscore "+where_clause)
+        matches = list(ImageFound.from_obscore_recs(recs))
 
         self._log("Obscore {}: {} records".format(
             rec.title,
@@ -382,8 +408,11 @@ class ImageDiscoverer:
         where_parts = ["dataproduct_type='image'"]
         # TODO: we'd need extra logic for inclusive here, too
         if self.center is not None:
-            where_parts.append("distance(s_ra, s_dec, {}, {}) < {}".format(
-                self.center[0], self.center[1], self.radius))
+            where_parts.append(
+                "(distance(s_ra, s_dec, {}, {}) < {}".format(
+                    self.center[0], self.center[1], self.radius)
+                +" or 1=intersects(circle({}, {}, {}), s_region))".format(
+                    self.center[0], self.center[1], self.radius))
         if self.spectrum is not None:
             where_parts.append(
                 f"(em_min<={self.spectrum} AND em_max>={self.spectrum})")
