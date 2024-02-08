@@ -417,7 +417,7 @@ class Interface:
                 f"description={self.capability_description!r}, "
                 f"url={self.access_url!r})")
 
-    def to_service(self):
+    def to_service(self, *, session=None):
         if self.type == "vr:webbrowser":
             return _BrowserService(self.access_url, self.capability_description)
 
@@ -434,9 +434,13 @@ class Interface:
         if service_class == sia2.SIA2Service:
             return service_class(self.access_url,
                                  capability_description=self.capability_description,
-                                 check_baseurl=False)
+                                 check_baseurl=False,
+                                 session=session)
         else:
-            return service_class(self.access_url, capability_description=self.capability_description)
+            return service_class(
+                self.access_url,
+                capability_description=self.capability_description,
+                session=session)
 
     def supports(self, standard_id):
         """returns true if we believe the interface should be able to talk
@@ -802,9 +806,10 @@ class RegistryResource(dalq.Record):
 
         return candidates[0]
 
-    def get_service(self, service_type: str = None, *,
-                    lax: bool = False,
-                    keyword: str = None):
+    def get_service(self, service_type = None, *,
+                    lax = False,
+                    keyword = None,
+                    session = None):
         """
         return an appropriate DALService subclass for this resource that
         can be used to search the resource using service_type.
@@ -849,6 +854,10 @@ class RegistryResource(dalq.Record):
             service.  Use list_interfaces to find such a unique description
             fragment.
 
+        session : object
+            optional requests session to use to communicate with the service
+            constructed.
+
         Returns
         -------
         `pyvo.dal.DALService`
@@ -863,7 +872,7 @@ class RegistryResource(dalq.Record):
         list_interfaces : return a list with all the available services.
         """
         return self.get_interface(service_type=service_type, lax=lax, std_only=True,
-                                  keyword=keyword).to_service()
+                                  keyword=keyword).to_service(session=session)
 
     @property
     def service(self):
