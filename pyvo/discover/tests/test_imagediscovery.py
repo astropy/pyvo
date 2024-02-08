@@ -54,9 +54,8 @@ def test_cone_and_spectral_point(_all_constraint_responses):
         space=(134, 11, 0.1),
         spectrum=600*u.eV)
 
-    # TODO: this needs to be the obscore service when we have fixed
-    # obscore discovery
-    assert ("SIA2 GAVO Data Center SIAP Version 2 Service: 8 records"
+    assert ("Skipping ivo://org.gavo.dc/__system__/siap2/sitewide because"
+        " it is served by ivo://org.gavo.dc/__system__/obscore/obscore"
         in logs)
 
     assert len(images) == 8
