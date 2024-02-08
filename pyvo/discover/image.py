@@ -12,6 +12,8 @@ The code here looks for data in SIA1, SIA2, and Obscore services for now.
 
 import functools
 
+import requests
+
 from astropy import units as u
 from astropy import table
 from astropy import time
@@ -26,6 +28,21 @@ from ..registry import regtap
 # imports for type hints
 from typing import Callable, Generator, List, Optional, Set, Tuple
 from astropy.units.quantity import Quantity
+
+
+# We should probably have a general way to set query timeouts in pyVO.
+# For now, we don't, but for global discovery there's really no way
+# around them.  So, let me hack something here.
+
+class SessionWithTimeout(requests.Session):
+    def __init__(self, *args, default_timeout=None, **kwargs):
+        self.default_timeout = default_timeout
+        super().__init__(*args, **kwargs)
+
+    def request(self, *args, **kwargs):
+        if "timeout" not in kwargs:
+            kwargs["timeout"] = self.default_timeout
+        return super().request(*args, **kwargs)
 
 
 class Queriable:
@@ -147,17 +164,20 @@ class ImageDiscoverer:
     # a radius as a float in degrees
     radius = None
 
-    def __init__(self,
+    def __init__(self, *,
             space=None, spectrum=None, time=None,
             inclusive=False,
-            watcher=None):
+            watcher=None,
+            timeout=20):
+        self.session = SessionWithTimeout(default_timeout=timeout)
+
         if space:
             self.center = (space[0], space[1])
             self.radius = space[2]
-
+        # internally, a float in meters
         if spectrum is not None:
             self.spectrum = spectrum.to(u.m, equivalencies=u.spectral()).value
-        # a float in MJD
+        # internally, a float in MJD
         if time is not None:
             self.time = time.mjd
 
@@ -355,8 +375,8 @@ class ImageDiscoverer:
             return True
 
         self._info("Querying SIA1 {}...".format(rec.title))
-        svc = rec.res_rec.get_service("sia")
-        n_found = self.add_records(
+        svc = rec.res_rec.get_service("sia", session=self.session)
+        n_found = self._add_records(
             ImageFound.from_sia1_recs(
                 svc.search(
                     pos=self.center, size=self.radius, intersect='overlaps'),
@@ -385,7 +405,7 @@ class ImageDiscoverer:
         """
         self._info("Querying SIA2 {}...".format(rec.title))
 
-        svc = rec.res_rec.get_service("sia2")
+        svc = rec.res_rec.get_service("sia2", session=self.session)
         constraints = {}
         if self.center is not None:
             constraints["pos"] = self.center+(self.radius,)
@@ -394,7 +414,7 @@ class ImageDiscoverer:
         if self.time is not None:
             constraints["time"] = time.Time(self.time, format="mjd")
 
-        n_found = self.add_records(
+        n_found = self._add_records(
             ImageFound.from_obscore_recs(svc.search(**constraints)))
         self._log(f"SIA2 {rec.title}: {n_found} records")
 
@@ -411,7 +431,7 @@ class ImageDiscoverer:
         """runs our query against a Obscore capability of rec.
         """
         self._info("Querying Obscore {}...".format(rec.title))
-        svc = rec.res_rec.get_service("tap")
+        svc = rec.res_rec.get_service("tap", session=self.session)
 
         n_found = self._add_records(
             ImageFound.from_obscore_recs(
@@ -463,12 +483,13 @@ class ImageDiscoverer:
         self._query_sia1()
 
 
-def images_globally(
+def images_globally(*,
         space: Optional[Tuple[float, float, float]]=None,
         spectrum: Optional[Quantity]=None,
         time: Optional[float]=None,
         inclusive: bool=False,
-        watcher: Optional[Callable[[str], None]]=None
+        watcher: Optional[Callable[[str], None]]=None,
+        timeout: float=20
         ) -> Tuple[List[obscore.ObsCoreMetadata], List[str]]:
     """returns a collection of ObsCoreMetadata-s matching certain constraints
     and a list of log lines.
@@ -498,7 +519,11 @@ def images_globally(
     is excluded; this mimics the behaviour of SQL engines that consider
     comparisons with NULL-s false.
     """
-    discoverer = ImageDiscoverer(space, spectrum, time, inclusive, watcher)
+    discoverer = ImageDiscoverer(
+        space=space, spectrum=spectrum, time=time,
+        inclusive=inclusive,
+        watcher=watcher,
+        timeout=timeout)
     discoverer.discover_services()
     discoverer.query_services()
     # TODO: We should un-dupe by image access URL
