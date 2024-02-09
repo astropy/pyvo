@@ -46,6 +46,10 @@ Enhancements and Fixes
 - Tables returned by RegistryResource.get_tables() now have a utype
   attribute [#576]
 
+- New sub-package discover for global dataset discovery. [#470]
+
+
+
 Deprecations and Removals
 -------------------------
 
