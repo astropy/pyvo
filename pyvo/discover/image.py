@@ -17,7 +17,6 @@ import requests
 from astropy import units as u
 from astropy import table
 from astropy import time
-from astropy.coordinates import SkyCoord
 
 from ..dam import obscore
 from .. import dal
@@ -27,7 +26,8 @@ from ..registry import regtap
 
 # imports for type hints
 from typing import Callable, Generator, List, Optional, Set, Tuple
-from astropy.units.quantity import Quantity
+from astropy import time
+from astropy.units import quantity
 
 
 # We should probably have a general way to set query timeouts in pyVO.
@@ -485,8 +485,8 @@ class ImageDiscoverer:
 
 def images_globally(*,
         space: Optional[Tuple[float, float, float]]=None,
-        spectrum: Optional[Quantity]=None,
-        time: Optional[float]=None,
+        spectrum: Optional[quantity.Quantity]=None,
+        time: Optional[time.Time]=None,
         inclusive: bool=False,
         watcher: Optional[Callable[[str], None]]=None,
         timeout: float=20
