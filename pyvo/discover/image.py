@@ -489,7 +489,8 @@ def images_globally(*,
         time: Optional[time.Time]=None,
         inclusive: bool=False,
         watcher: Optional[Callable[[str], None]]=None,
-        timeout: float=20
+        timeout: float=20,
+        services: Optional[registry.RegistryResults]=None
         ) -> Tuple[List[obscore.ObsCoreMetadata], List[str]]:
     """returns a collection of ObsCoreMetadata-s matching certain constraints
     and a list of log lines.
@@ -514,6 +515,9 @@ def images_globally(*,
     watcher :
         A callable that will be called with strings perhaps suitable
         for displaying to a human.
+    services :
+        An optional `~pyvo.registry.RegistryResults` instance to
+        override automatic services detection.
 
     When an image has insufficient metadata to evaluate a constraint, it
     is excluded; this mimics the behaviour of SQL engines that consider
@@ -524,7 +528,12 @@ def images_globally(*,
         inclusive=inclusive,
         watcher=watcher,
         timeout=timeout)
-    discoverer.discover_services()
+
+    if services is None:
+        discoverer.discover_services()
+    else:
+        discoverer.set_services(services)
+
     discoverer.query_services()
     # TODO: We should un-dupe by image access URL
     # TODO: We could compute SODA cutout URLs here in addition.

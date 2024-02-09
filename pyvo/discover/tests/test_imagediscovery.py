@@ -28,13 +28,12 @@ def test_no_services_selected():
 
 
 def test_single_sia1(_sia1_responses):
-    sia_svc = registry.search(registry.Ivoid("ivo://org.gavo.dc/bgds/q/sia"))
-    discoverer = image.ImageDiscoverer(
+    results, log = discover.images_globally(
         space=(116, -29, 0.1),
-        time=time.Time(56383.105520834, format="mjd"))
-    discoverer.set_services(sia_svc)
-    discoverer.query_services()
-    im = discoverer.results[0]
+        time=time.Time(56383.105520834, format="mjd"),
+        services=registry.search(
+            registry.Ivoid("ivo://org.gavo.dc/bgds/q/sia")))
+    im = results[0]
     assert im.s_xel1 == 10800.
     assert isinstance(im.em_min, float)
     assert abs(im.s_dec+29)<2
