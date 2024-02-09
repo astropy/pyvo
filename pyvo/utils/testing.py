@@ -14,8 +14,6 @@ import os
 import pickle
 from urllib import parse as urlparse
 
-from astropy.utils.data import get_pkg_data_path
-
 import requests
 import requests_mock
 
