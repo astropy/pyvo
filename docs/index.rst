@@ -132,6 +132,7 @@ Using ``pyvo``
 
    dal/index
    registry/index
+   discover/index
    io/index
    auth/index
    samp
