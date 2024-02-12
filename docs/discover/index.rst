@@ -66,6 +66,11 @@ important clue just because a service was down at the moment you ran
 your discovery; also, you might want to re-query the failing services at
 some later stage.
 
+All constraints are optional, but without a space constraint, no SIA1
+services will be queried.  With spectrum and time constraints, it is
+probably wise to pass ``inclusive=True`` for the time being, as far too
+many resources do not define their coverage.
+
 The discovery function accepts a few other parameters you should know
 about.  These are discussed in the following sections.
 

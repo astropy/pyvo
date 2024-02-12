@@ -95,6 +95,9 @@ class ImageFound(obscore.ObsCoreMetadata):
 
     @classmethod
     def from_obscore_recs(cls, obscore_result):
+        if not obscore_result:
+            return
+
         ap_table = obscore_result.to_table()
         our_keys = [n for n in ap_table.colnames if n in cls.attr_names]
         for row in obscore_result:
@@ -157,8 +160,8 @@ class ImageDiscoverer:
     # Constraint defaults
     # a float in metres
     spectrum = None
-    # an MJD float
-    time = None
+    # MJD floats
+    time_min = time_max = None
     # a center as a 2-tuple in ICRS degrees
     center = None
     # a radius as a float in degrees
@@ -174,12 +177,15 @@ class ImageDiscoverer:
         if space:
             self.center = (space[0], space[1])
             self.radius = space[2]
-        # internally, a float in meters
+
         if spectrum is not None:
             self.spectrum = spectrum.to(u.m, equivalencies=u.spectral()).value
-        # internally, a float in MJD
+
         if time is not None:
-            self.time = time.mjd
+            if isinstance(time, tuple):
+                self.time_min, self.time_max = time[0].mjd, time[1].mjd
+            else:
+                self.time_min = self.time_max = time.mjd
 
         self.inclusive = inclusive
         self.results: List[obscore.ObsCoreMetadata] = []
@@ -290,9 +296,11 @@ class ImageDiscoverer:
             constraints.append(
                 registry.Spectral(self.spectrum*u.m,
                     inclusive=self.inclusive))
-        if self.time is not None:
+        if self.time_min is not None or self.time_max is not None:
             constraints.append(
-                registry.Temporal(self.time, inclusive=self.inclusive))
+                registry.Temporal(
+                    (self.time_min, self.time_max),
+                    inclusive=self.inclusive))
 
         self.sia1_recs = [Queriable(r) for r in registry.search(
             registry.Servicetype("sia"), *constraints)]
@@ -367,10 +375,14 @@ class ImageDiscoverer:
                     return False
 
             # Regrettably, the exposure time is not part of SIA1 standard
-            # metadata.  TODO: require time to be an interval and
-            # then replace check for dateobs to be within that interval.
-            if self.time and not self.inclusive and sia1_rec.dateobs:
-                if not self.time-1<sia1_rec.dateobs.mjd<self.time+1:
+            # metadata.  We fudge things a bit; this should not
+            # increase false positives very badly.
+            if (self.time_min is not None
+                        or self.time_max is not None
+                    ) and not self.inclusive and sia1_rec.dateobs:
+                if not (self.time_min-0.1
+                        <sia1_rec.dateobs.mjd
+                        <self.time_max+0.1):
                     return False
             return True
 
@@ -389,8 +401,8 @@ class ImageDiscoverer:
         This will be a no-op without a space constraint due to
         limitations of SIA1.
         """
-        if self.center is None:
-            self._log("SIA1 service skipped do to missing space"
+        if self.sia1_recs and self.center is None:
+            self._log("SIA1 service(s) skipped due to missing space"
                 " constraint")
             return
 
@@ -411,8 +423,10 @@ class ImageDiscoverer:
             constraints["pos"] = self.center+(self.radius,)
         if self.spectrum is not None:
             constraints["band"] = self.spectrum
-        if self.time is not None:
-            constraints["time"] = time.Time(self.time, format="mjd")
+        if self.time_min is not None or self.time_max is not None:
+            constraints["time"] = (
+                time.Time(self.time_min, format="mjd"),
+                time.Time(self.time_max, format="mjd"))
 
         n_found = self._add_records(
             ImageFound.from_obscore_recs(svc.search(**constraints)))
@@ -454,8 +468,13 @@ class ImageDiscoverer:
         if self.spectrum is not None:
             where_parts.append(
                 f"(em_min<={self.spectrum} AND em_max>={self.spectrum})")
-        if self.time is not None:
-            where_parts.append(f"(t_min<={self.time} AND t_max>={self.time})")
+
+        if self.time_min is not None or self.time_max is not None:
+            where_parts.append(
+                "({h1}>={l2} AND {h2}>={l1}"
+                " AND {l1}<={h1} AND {l2}<={h2})".format(
+                    l1="t_min", h1="t_max",
+                    l2=self.time_min, h2=self.time_max))
 
         where_clause = "WHERE "+(" AND ".join(where_parts))
 
