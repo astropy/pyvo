@@ -458,8 +458,7 @@ class TestSelectClause:
             "\n  ivo_string_agg(COALESCE(standard_id, ''), ':::py VO sep:::') AS standard_ids, "
             "\n  ivo_string_agg(COALESCE(intf_type, ''), ':::py VO sep:::') AS intf_types, "
             "\n  ivo_string_agg(COALESCE(intf_role, ''), ':::py VO sep:::') AS intf_roles, "
-            "\n  ivo_string_agg(COALESCE(cap_description, ''), ':::py VO sep:::') AS cap_descriptions, "
-            "alt_identifier")
+            "\n  ivo_string_agg(COALESCE(cap_description, ''), ':::py VO sep:::') AS cap_descriptions")
 
     def test_group_by_columns(self):
         # Again, this will break as regtap.RegistryResource.expected_columns
@@ -480,8 +479,7 @@ class TestSelectClause:
                     "source_format, "
                     "source_value, "
                     "region_of_regard, "
-                    "waveband, "
-                    "alt_identifier"))
+                    "waveband"))
 
     def test_joined_tables(self):
         expected_tables = [
@@ -491,7 +489,6 @@ class TestSelectClause:
             "rr.resource",
             "rr.capability",
             "rr.interface",
-            "rr.alt_identifier"
         ]
         assert all(table in _build_regtap_query_with_fake([rtcons.Author("%Hubble%")])
                    for table in expected_tables)
@@ -519,4 +516,4 @@ def test_all_constraints():
         'reference_url', 'creator_seq', 'created', 'updated',
         'rights', 'content_type', 'source_format', 'source_value',
         'region_of_regard', 'waveband', 'access_urls', 'standard_ids',
-        'intf_types', 'intf_roles', 'cap_descriptions', 'alt_identifier')
+        'intf_types', 'intf_roles', 'cap_descriptions')

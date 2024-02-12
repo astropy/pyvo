@@ -498,8 +498,7 @@ class RegistryResource(dalq.Record):
         (f"\n  ivo_string_agg(COALESCE(intf_role, ''), '{TOKEN_SEP}')",
             "intf_roles"),
         (f"\n  ivo_string_agg(COALESCE(cap_description, ''), '{TOKEN_SEP}')",
-            "cap_descriptions"),
-        "alt_identifier"]
+            "cap_descriptions")]
 
     def __init__(self, results, index, *, session=None):
         dalq.Record.__init__(self, results, index, session=session)
@@ -598,14 +597,6 @@ class RegistryResource(dalq.Record):
         URL pointing to a human-readable document describing this resource.
         """
         return self.get("reference_url", decode=True)
-
-    @property
-    def alt_identifier(self):
-        """Alternative identifier.
-
-        It is often used to provide the resource associated DOI.
-        """
-        return self.get("alt_identifier", decode=True)
 
     @property
     def creators(self):
@@ -1013,8 +1004,14 @@ class RegistryResource(dalq.Record):
                 else:
                     print(f"Authors: {', '.join(creators[:nmax_authors])} et al.\n"
                     "See creators attribute for the complete list of authors.", file=file)
-            if self.alt_identifier:
-                print(f"Alternative identifier: {self.alt_identifier}", file=file)
+
+            alt_identifiers = self.get_alt_identifiers()
+            if alt_identifiers:
+                print(
+                    "Alternative identifier(s): {}".format(
+                        ", ".join(alt_identifiers)),
+                    file=file)
+
             if self.reference_url:
                 print("More info: " + self.reference_url, file=file)
 
@@ -1042,6 +1039,18 @@ class RegistryResource(dalq.Record):
             contacts.append(contact)
 
         return "\n".join(contacts)
+
+    def get_alt_identifiers(self):
+        """return a sequence of non-ivoid identifiers for the resource.
+
+        This is typically used to provide a DOI for the resource.
+        """
+        res = get_RegTAP_service().run_sync("""
+            SELECT alt_identifier
+            FROM rr.alt_identifier
+            WHERE ivoid={}""".format(
+                rtcons.make_sql_literal(self.ivoid)))
+        return [r["alt_identifier"] for r in res]
 
     def _build_vosi_column(self, column_row):
         """
