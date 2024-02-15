@@ -447,10 +447,10 @@ class SIA2Query(DALQuery, AxisParamMixin):
 
     @maxrec.setter
     def maxrec(self, val):
-        if not val:
-            return
-        if not isinstance(val, int) and val > 0:
-            raise ValueError('maxrec {} must be positive int'.format(val))
+        if not isinstance(val, int):
+            if not val:
+                return
+            raise ValueError(f'maxrec {val} must be non-negative int')
         self._maxrec = val
         self['MAXREC'] = str(val)
 
