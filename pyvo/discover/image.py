@@ -188,6 +188,7 @@ class ImageDiscoverer:
                 self.time_min = self.time_max = time.mjd
 
         self.inclusive = inclusive
+        self.already_queried = 0
         self.results: List[obscore.ObsCoreMetadata] = []
         self.watcher = watcher
         self.log_messages: List[str] = []
@@ -411,6 +412,7 @@ class ImageDiscoverer:
                 self._query_one_sia1(rec)
             except Exception as msg:
                 self._log(f"SIA1 {rec.ivoid} skipped: {msg}")
+            self.already_queried += 1
 
     def _query_one_sia2(self, rec: Queriable):
         """runs our query against a SIA2 capability of rec.
@@ -440,6 +442,7 @@ class ImageDiscoverer:
                 self._query_one_sia2(rec)
             except Exception as msg:
                 self._log(f"SIA2 {rec.ivoid} skipped: {msg}")
+            self.already_queried += 1
 
     def _query_one_obscore(self, rec: Queriable, where_clause:str):
         """runs our query against a Obscore capability of rec.
@@ -484,6 +487,15 @@ class ImageDiscoverer:
             except Exception as msg:
                 self._log("Obscore {} skipped: {}".format(
                     rec.res_rec['ivoid'], msg))
+            self.already_queried += 1
+
+    def get_query_stats(self):
+        """returns a tuple of |total to query|, |already queried|
+        """
+        total_to_query = len(self.obscore_recs
+            ) + len(self.sia1_recs
+            ) + len(self.sia2_recs)
+        return total_to_query, self.already_queried
 
     def query_services(self):
         """queries the discovered image services according to our
