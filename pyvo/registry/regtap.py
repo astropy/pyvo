@@ -1048,8 +1048,7 @@ class RegistryResource(dalq.Record):
         res = get_RegTAP_service().run_sync("""
             SELECT alt_identifier
             FROM rr.alt_identifier
-            WHERE ivoid={}""".format(
-                rtcons.make_sql_literal(self.ivoid)))
+            WHERE ivoid={}""".format(rtcons.make_sql_literal(self.ivoid)))
         return [r["alt_identifier"] for r in res]
 
     def _build_vosi_column(self, column_row):
