@@ -20,6 +20,10 @@ Enhancements and Fixes
 - registry.Ivoid now accepts multiple ivoids and will then match any of
   them. [#517]
 
+- Backing out of having alt_identifier in RegistryResource throughout.
+  Use get_alt_identifier() instead [#523]
+
+
 Deprecations and Removals
 -------------------------
 
