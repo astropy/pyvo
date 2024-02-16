@@ -6,6 +6,8 @@ Enhancements and Fixes
 
 - Fix ``pyvo.registry.Author`` to allow registry searches with author constraints. [#515]
 
+- Backing out of having alt_identifier in RegistryResource throughout.
+  Use get_alt_identifier() instead [#523]
 
 
 1.5 (2023-12-19)

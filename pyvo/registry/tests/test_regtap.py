@@ -692,6 +692,15 @@ def test_get_contact():
 
 
 @pytest.mark.remote_data
+def test_get_alt_identifier():
+    rsc = _makeRegistryRecord(ivoid="ivo://cds.vizier/i/337")
+    assert set(rsc.get_alt_identifiers()) == {
+        'doi:10.26093/cds/vizier.1337',
+        'bibcode:doi:10.5270/esa-ogmeula',
+        'bibcode:2016yCat.1337....0G'}
+
+
+@pytest.mark.remote_data
 class TestDatamodelQueries:
     # right now, the data model queries are all rather sui generis, and
     # rather fickly on top.  Let's make sure they actually return something
@@ -725,6 +734,7 @@ class TestExtraResourceMethods:
             intf_roles=["std"])
         assert rsc.standard_id == "ivo://ivoa.net/std/tap"
 
+    @pytest.mark.remote_data
     def test_describe_multi(self, flash_service):
         out = io.StringIO()
         flash_service.describe(verbose=True, file=out)
@@ -736,9 +746,10 @@ class TestExtraResourceMethods:
         assert "Multi-capability service" in output
         assert "Source: 1996A&A...312..539S" in output
         assert "Authors: Wolf" in output
-        assert "Alternative identifier: doi:10.21938/" in output
+        assert "Alternative identifier(s): doi:10.21938/" in output
         assert "More info: http://dc.zah" in output
 
+    @pytest.mark.remote_data
     def test_describe_long_authors_list(self):
         """Check that long list of authors use et al.."""
         rsc = _makeRegistryRecord(
@@ -756,6 +767,7 @@ class TestExtraResourceMethods:
         # output should cut at 5 authors
         assert "Authors: a, a, a, a, a et al." in output
 
+    @pytest.mark.remote_data
     def test_describe_long_author_name(self):
         """Check that long author names are truncated."""
         rsc = _makeRegistryRecord(
