@@ -1,6 +1,7 @@
-**************
-IO (`pyvo.io`)
-**************
+****************
+IO (``pyvo.io``)
+****************
+
 This module contains submodules which handle datastructures related to the
 virtual observatory.
 

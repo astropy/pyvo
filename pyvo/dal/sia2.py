@@ -4,7 +4,7 @@ A module for searching for images in a remote archive.
 
 A Simple Image Access v2 (SIA2) service allows a client to search for
 images based on a number of criteria/parameters. The results are
-represented in `pyvo.dam.obscore.ObsCoreMetadata` format.
+represented in ``pyvo.dam.ObsCoreMetadata`` format.
 
 The ``SIA2Service`` class can represent a specific service available at a URL
 endpoint.
@@ -45,7 +45,7 @@ band : scalar, tuple(interval) or list of tuples
     the energy interval(s) to be searched for data.
 time : single or list of `~astropy.time.Time` or compatible strings
     the time interval(s) to be searched for data.
-pol : single or list of str from `pyvo.dam.obscore.POLARIZATION_STATES`
+pol : single or list of str from ``pyvo.dam.obscore.POLARIZATION_STATES``
     the polarization state(s) to be searched for data.
 field_of_view : single or list of tuples
     angle units (default arcsec)
@@ -76,7 +76,7 @@ instrument : single or list of str
 data_type : 'image'|'cube'
     specifies the type of the data
 calib_level : single or list from enum
-    `pyvo.dam.obscore.CALIBRATION_LEVELS`
+    ``pyvo.dam.obscore.CALIBRATION_LEVELS``
     specifies the calibration level of the data. Can be a single value
     or a list of values
 target_name : single or list of str
@@ -228,7 +228,7 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
 
 class SIA2Query(DALQuery, AxisParamMixin):
     """
-    a class very similar to :py:attr:`~pyvo.dal.query.SIAQuery` class but
+    a class very similar to :py:attr:`~pyvo.dal.SIAQuery` class but
     used to interact with SIA2 services.
     """
 
@@ -278,8 +278,8 @@ class SIA2Query(DALQuery, AxisParamMixin):
         See Also
         --------
         SIA2Results
-        pyvo.dal.query.DALServiceError
-        pyvo.dal.query.DALQueryError
+        pyvo.dal.DALServiceError
+        pyvo.dal.DALQueryError
 
         """
         super().__init__(url, session=session)
@@ -485,18 +485,18 @@ class SIA2Results(DatalinkResultsMixin, DALResults):
 
     Alternatively, records can be accessed randomly via
     :py:meth:`getrecord` or through a Python Database API (v2)
-    Cursor (via :py:meth:`~pyvo.dal.query.DALResults.cursor`).
+    Cursor (via :py:meth:`~pyvo.dal.DALResults.cursor`).
     Column-based data access is possible via the
-    :py:meth:`~pyvo.dal.query.DALResults.getcolumn` method.
+    :py:meth:`~pyvo.dal.DALResults.getcolumn` method.
 
     ``SIA2Results`` is essentially a wrapper around an Astropy
     :py:mod:`~astropy.io.votable`
     :py:class:`~astropy.io.votable.tree.TableElement` instance where the
     columns contain the various metadata describing the images.
     One can access that VOTable directly via the
-    :py:attr:`~pyvo.dal.query.DALResults.votable` attribute.  Thus,
+    :py:attr:`~pyvo.dal.DALResults.votable` attribute.  Thus,
     when one retrieves a whole column via
-    :py:meth:`~pyvo.dal.query.DALResults.getcolumn`, the result is
+    :py:meth:`~pyvo.dal.DALResults.getcolumn`, the result is
     a Numpy array.  Alternatively, one can manipulate the results
     as an Astropy :py:class:`~astropy.table.table.Table` via the
     following conversion:
@@ -1078,7 +1078,7 @@ class ObsCoreRecord(SodaRecordMixin, DatalinkRecordMixin, Record,
         """
         Number of different polarization states present in the data. The
         default value is 0, indicating that polarization was not explicitly
-        observed. Corresponding values are stored in the `pol` property
+        observed. Corresponding values are stored in the ``pol`` property
         """
         return self.get('pol_xel')
 

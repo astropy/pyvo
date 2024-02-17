@@ -104,7 +104,7 @@ def _get_accessurl_from_params(params):
 
 class AdhocServiceResultsMixin:
     """
-    Mixing for adhoc:service functionallity for results classes.
+    Mixin for adhoc:service functionallity for results classes.
     """
 
     def __init__(self, votable, url=None, session=None):
@@ -168,7 +168,7 @@ class AdhocServiceResultsMixin:
 
 class DatalinkResultsMixin(AdhocServiceResultsMixin):
     """
-    Mixing for datalink functionallity for results classes.
+    Mixin for datalink functionallity for results classes.
     """
 
     def iter_datalinks(self):
@@ -334,7 +334,7 @@ class DatalinkQuery(DALQuery):
     The base URL for the query, which controls where the query will be sent
     when one of the execute functions is called, is typically set at
     construction time; however, it can be updated later via the
-    :py:attr:`~pyvo.dal.query.DALQuery.baseurl` to send a configured
+    :py:attr:`~pyvo.dal.DALQuery.baseurl` to send a configured
     query to another service.
 
     A session can also optionally be passed in that will be used for
@@ -456,25 +456,25 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
 
     This class supports iterable semantics; thus,
     individual records (in the form of
-    :py:class:`~pyvo.dal.query.Record` instances) are typically
+    :py:class:`~pyvo.dal.Record` instances) are typically
     accessed by iterating over an ``DatalinkResults`` instance.
 
     Alternatively, records can be accessed randomly via
     :py:meth:`getrecord` or through a Python Database API (v2)
-    Cursor (via :py:meth:`~pyvo.dal.query.DALResults.cursor`).
+    Cursor (via :py:meth:`~pyvo.dal.DALResults.cursor`).
     Column-based data access is possible via the
-    :py:meth:`~pyvo.dal.query.DALResults.getcolumn` method.
+    :py:meth:`~pyvo.dal.DALResults.getcolumn` method.
 
     ``DatalinkResults`` is essentially a wrapper around an Astropy
     :py:mod:`~astropy.io.votable`
     :py:class:`~astropy.io.votable.tree.TableElement` instance where the
     columns contain the various metadata describing the images.
     One can access that VOTable directly via the
-    :py:attr:`~pyvo.dal.query.DALResults.votable` attribute.  Thus,
+    :py:attr:`~pyvo.dal.DALResults.votable` attribute.  Thus,
     when one retrieves a whole column via
-    :py:meth:`~pyvo.dal.query.DALResults.getcolumn`, the result is
+    :py:meth:`~pyvo.dal.DALResults.getcolumn`, the result is
     a Numpy array.  Alternatively, one can manipulate the results
-    as an Astropy :py:class:`~astropy.table.table.Table` via the
+    as an Astropy :py:class:`~astropy.table.Table` via the
     following conversion:
 
     ``table = results.to_table()``
@@ -482,7 +482,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
     ``DatalinkResults`` supports the array item operator ``[...]`` in a
     read-only context.  When the argument is numerical, the result
     is an
-    :py:class:`~pyvo.dal.query.Record` instance, representing the
+    :py:class:`~pyvo.dal.Record` instance, representing the
     record at the position given by the numerical index.  If the
     argument is a string, it is interpreted as the name of a column,
     and the data from the column matching that name is returned as
@@ -494,7 +494,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         return a representation of a datalink result record that follows
         dictionary semantics. The keys of the dictionary are those returned by
         this instance's fieldnames attribute. The returned record has the
-        additional function :py:meth:`~pyvo.dal.query.DALResults.getdataset`
+        additional function ``getdataset``
 
         Parameters
         ----------
@@ -515,7 +515,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
 
         See Also
         --------
-        Record
+        pyvo.dal.Record
         """
         return DatalinkRecord(self, index, session=self._session)
 
@@ -635,7 +635,7 @@ class SodaRecordMixin:
     """
     Mixin for soda functionality for record classes.
     If used, it's result class must have
-    `pyvo.dal.datalink.AdhocServiceResultsMixin` mixed in.
+    `pyvo.dal.adhoc.AdhocServiceResultsMixin` mixed in.
     """
 
     def _get_soda_resource(self):
@@ -785,7 +785,7 @@ class DatalinkRecord(DatalinkRecordMixin, SodaRecordMixin, Record):
         """
         return the URL contained in the access URL column which can be used
         to retrieve the dataset described by this record. Raises
-        :py:class:`~pyvo.dal.query.DALServiceError` if theres an error.
+        :py:class:`~pyvo.dal.DALServiceError` if theres an error.
         """
         if self.error_message:
             raise DALServiceError(self.error_message)

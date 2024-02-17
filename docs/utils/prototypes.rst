@@ -87,6 +87,7 @@ Reference/API
 =============
 
 .. automodapi:: pyvo.utils.prototype
+.. automodapi:: pyvo.utils.protofeature
 
 
 Existing Prototypes

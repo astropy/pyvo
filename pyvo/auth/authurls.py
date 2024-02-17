@@ -25,7 +25,7 @@ class AuthURLs():
         Parameters
         ----------
         capabilities : object
-            List of `~pyvo.io.vosi.voresource.Capabilities`
+            List of `~pyvo.io.vosi.voresource.Capability`
         """
         for c in capabilities:
             for i in c.interfaces:

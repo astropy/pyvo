@@ -348,6 +348,7 @@ class Parameter(ContentMixin, UWSElement):
 
 
 class Results(UWSElement, HomogeneousList):
+    """ """
     def __init__(self, config=None, pos=None, _name='results', **kwargs):
         HomogeneousList.__init__(self, Result)
         UWSElement.__init__(self, config, pos, _name, **kwargs)

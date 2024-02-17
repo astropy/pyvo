@@ -22,9 +22,8 @@ from ..utils import vocabularies
 from .import regtap
 
 
-__all__ = ["Freetext", "Author", "Servicetype", "Waveband",
-           "Datamodel", "Ivoid", "UCD", "Spatial", "Spectral", "Temporal",
-           "Constraint", "build_regtap_query", "RegTAPFeatureMissing"]
+# Classes from this module are exposed at the higher level namespace, not listing them here
+__all__ = ["build_regtap_query"]
 
 
 # a mapping of service type shorthands to the ivoids of the
@@ -180,7 +179,7 @@ class Constraint:
 
         Parameters
         ----------
-        service : `dal.tap.TAPService`
+        service : `~pyvo.dal.TAPService`
             The RegTAP service the query is supposed to be run on
             (that is relevant because we adapt to the features available
             on given services).
@@ -881,12 +880,12 @@ def build_regtap_query(constraints, service):
 
     Parameters
     ----------
-    constraints : sequence of ``Constraint``-s
+    constraints : sequence of `~pyvo.registry.Constraint`-s
         A sequence of constraints for a RegTAP query.  All of them
         will become part of a conjunction (i.e., all of them have
         to be satisfied for a record to match).
 
-    service : `~pyvo.dal.tap.TAPService`
+    service : `~pyvo.dal.TAPService`
         The RegTAP service the query is supposed to be run on
         (that is relevant because we adapt to the features available
         on given services).
