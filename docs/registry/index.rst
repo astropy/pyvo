@@ -42,35 +42,35 @@ This function accepts one or more search constraints, which can be
 either specified using constraint objects as positional arguments or as
 keyword arguments.  The following constraints are available:
 
-* :py:class:`pyvo.registry.Freetext` (``keywords``): one or more
+* :py:class:`~pyvo.registry.Freetext` (``keywords``): one or more
   freetext words, mached in the title, description or subject of the
   resource.
-* :py:class:`pyvo.registry.Servicetype` (``servicetype``): constrain to
+* :py:class:`~pyvo.registry.Servicetype` (``servicetype``): constrain to
   one of tap, ssa, sia, conesearch (or full ivoids for other service
   types).  This is the constraint you want
   to use for service discovery.
-* :py:class:`pyvo.registry.UCD` (``ucd``): constrain by one or more UCD
+* :py:class:`~pyvo.registry.UCD` (``ucd``): constrain by one or more UCD
   patterns; resources match when they serve columns having a matching
   UCD (e.g., ``phot.mag;em.ir.%`` for “any infrared magnitude”).
-* :py:class:`pyvo.registry.Waveband` (``waveband``): one or more terms
+* :py:class:`~pyvo.registry.Waveband` (``waveband``): one or more terms
   from the vocabulary at http://www.ivoa.net/rdf/messenger giving the rough
   spectral location of the resource.
-* :py:class:`pyvo.registry.Author` (``author``): an author (“creator”).
+* :py:class:`~pyvo.registry.Author` (``author``): an author (“creator”).
   This is a single SQL pattern, and given the sloppy practices in the
   VO for how to write author names, you should probably generously use
   wildcards.
-* :py:class:`pyvo.registry.Datamodel` (``datamodel``): one of obscore,
+* :py:class:`~pyvo.registry.Datamodel` (``datamodel``): one of obscore,
   epntap, or regtap: only return TAP services having tables of this
   kind.
-* :py:class:`pyvo.registry.Ivoid` (``ivoid``): exactly match a single
+* :py:class:`~pyvo.registry.Ivoid` (``ivoid``): exactly match a single
   IVOA identifier (that is, in effect, the primary key in the VO).
-* :py:class:`pyvo.registry.Spatial` (``spatial``): match resources
+* :py:class:`~pyvo.registry.Spatial` (``spatial``): match resources
   covering, enclosed or overlapping a certain geometry
   (point, circle, polygon, or MOC). *RegTAP 1.2 Extension*
-* :py:class:`pyvo.registry.Spectral` (``spectral``): match resources
+* :py:class:`~pyvo.registry.Spectral` (``spectral``): match resources
   covering a certain part of the spectrum (usually, but not limited to,
   the electromagnetic spectrum).  *RegTAP 1.2 Extension*
-* :py:class:`pyvo.registry.Temporal` (``temporal``): match resources
+* :py:class:`~pyvo.registry.Temporal` (``temporal``): match resources
   covering a some point or interval in time.  *RegTAP 1.2 Extension*
 
 Multiple constraints are combined conjunctively (”AND”).
@@ -109,7 +109,7 @@ is equivalent to:
 
   >>> resources = registry.search(waveband=["Radio", "Millimeter"])
 
-There is also :py:meth:`pyvo.registry.get_RegTAP_query`, accepting the
+There is also :py:meth:`~pyvo.registry.get_RegTAP_query`, accepting the
 same arguments as :py:meth:`pyvo.registry.search`.  This function simply
 returns the ADQL query that search would execute.  This is may be useful
 to construct custom RegTAP queries, which could then be executed on
@@ -130,7 +130,7 @@ you would say:
   ...                             registry.Freetext("supernova"))
 
 After that, ``resources`` is an instance of
-:py:class:`pyvo.registry.regtap.RegistryResults`, which you can iterate over.  In
+:py:class:`~pyvo.registry.regtap.RegistryResults`, which you can iterate over.  In
 interactive data discovery, however, it is usually preferable to use the
 ``to_table`` method for an overview of the resources available:
 
@@ -171,7 +171,7 @@ title, description, and perhaps the access mode (“interface”) offered.
 In the list of interfaces, you will sometimes spot an ``#aux`` after a
 standard id; this is a minor VO technicality that you can in practice
 ignore.  For instance, you can simply construct
-:py:class:`pyvo.dal.TAPService`-s from ``tap#aux`` interfaces.
+:py:class:`~pyvo.dal.TAPService`-s from ``tap#aux`` interfaces.
 
 Once you have found a resource you would like to query, you can pick it
 by index; however,
@@ -183,7 +183,7 @@ are not), but it is rather clunky, and in the real VO short name
 collisions should be very rare.
 
 Use the ``get_service`` method of
-:py:class:`pyvo.registry.regtap.RegistryResource` to obtain a DAL service
+:py:class:`~pyvo.registry.regtap.RegistryResource` to obtain a DAL service
 object for a particular sort of interface.
 To query the fourth match using simple cone search, you would
 thus say:
@@ -202,13 +202,13 @@ thus say:
 This method will raise an error if there is more than one service of the desired
 type. If you know for sure that all declared conesearch will be the same, you can
 safely use ``get_service(service_type='conesearch', lax=True)`` that will return
-the first conesearch it finds. 
+the first conesearch it finds.
 
 However some providers provide multiple services of the same type
 -- for example in VizieR you'll find one conesearch per table.
 In this case, you can inspect the available services with
-`~pyvo.registry.RegistryResource.list_services`. Then, you can refine your
-instructions to `~pyvo.registry.RegistryResource.get_service` with a keyword
+`~pyvo.registry.regtap.RegistryResource.list_services`. Then, you can refine your
+instructions to `~pyvo.registry.regtap.RegistryResource.get_service` with a keyword
 constraint on the description ``get_service(service_type='conesearch', keyword='sncat')``.
 
 .. doctest-remote-data::
@@ -410,7 +410,7 @@ similar to :ref:`pyvo-resultsets`; just remember that for interactive
 use there is the ``to_tables`` method discussed above.
 
 The individual items are instances of
-:py:class:`pyvo.registry.regtap.RegistryResource`, which expose many
+:py:class:`~pyvo.registry.regtap.RegistryResource`, which expose many
 pieces of metadata (e.g., title, description, creators, etc) in
 attributes named like their RegTAP counterparts (see the class
 documentation).  Some attributes deserve a second look.
@@ -597,29 +597,40 @@ should catch errors and, at least in interactive sessions, provide some
 way to interrupt overly long queries.  Here is an example for how to
 query all obscore services; remove the ``break`` at the end of the loop
 to actually do the global query (it's there so that you don't blindly
-run all-VO queries without reading at least this sentence)::
+run all-VO queries without reading at least this sentence):
 
-    from astropy import table
-    from pyvo import registry
+.. doctest-remote-data::
 
-    QUERY = "SELECT TOP 1 s_ra, s_dec from ivoa.obscore"
-
-    results = []
-    for svc_rec in registry.search(
-              datamodel="obscore", servicetype="tap"):
-          print("Querying {}".format(svc_rec.res_title))
-          try:
-              svc = svc_rec.get_service(service_type="tap", lax=True)
-              results.append(
-                  svc.run_sync(QUERY).to_table())
-          except KeyboardInterrupt:
-              # someone lost their patience with a service.  Query next.
-              pass
-          except Exception as msg:
-              # some service is broken; you *should* complain, but
-              print("  Broken: {} ({}).  Complain to {}.\n".format(
-                  svc_rec.ivoid, msg, svc_rec.get_contact()))
-          break
-
-    total_result = table.vstack(results)
-    print(total_result)
+   >>> from astropy.table import vstack
+   >>> from pyvo import registry
+   >>>
+   >>> QUERY = "SELECT TOP 1 s_ra, s_dec from ivoa.obscore"
+   >>>
+   >>> results = []
+   >>> for i, svc_rec in enumerate(registry.search(datamodel="obscore", servicetype="tap")):
+   ...       # print("Querying {}".format(svc_rec.res_title))
+   ...       try:
+   ...           svc = svc_rec.get_service(service_type="tap", lax=True)
+   ...           results.append(
+   ...               svc.run_sync(QUERY).to_table())
+   ...       except KeyboardInterrupt:
+   ...           # someone lost their patience with a service.  Query next.
+   ...           pass
+   ...       except Exception as msg:
+   ...           # some service is broken; you *should* complain, but
+   ...           #print("  Broken: {} ({}).  Complain to {}.\n".format(
+   ...           pass #    svc_rec.ivoid, msg, svc_rec.get_contact()))
+   ...       if i == 5:
+   ...           break
+   >>> total_result = vstack(results)  # doctest: +IGNORE_WARNINGS
+   >>> total_result  # doctest: +IGNORE_OUTPUT
+   <Table length=5>
+          s_ra               s_dec
+          deg                 deg
+        float64             float64
+   ------------------ -------------------
+             350.4619            -9.76139
+     208.360833592735    52.3611106494996
+     148.204840298431    29.1690999975089
+           243.044008          -51.778222
+   321.63278049999997 -54.579285999999996

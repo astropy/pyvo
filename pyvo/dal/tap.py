@@ -400,7 +400,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
 
         Returns
         -------
-        `~pyvo.io.vosi.endpoint.JobSummary` corresponding to the job ID
+        `~pyvo.io.uws.tree.JobSummary` corresponding to the job ID
         """
         response = self._session.get(
             self.baseurl + '/async/' + job_id,
@@ -415,7 +415,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         lists jobs that the caller can see in the current security context.
         The list can be filtered on the server side by the phases of the jobs,
         creation date time or
-        Note that by default jobs in 'ARCHIVED` phase are not returned.
+        Note that by default jobs in 'ARCHIVED' phase are not returned.
 
         Parameters
         ----------
@@ -433,7 +433,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
 
         Returns
         -------
-        list of `~pyvo.io.vosi.endpoint.JobSummary`
+        list of `~pyvo.io.uws.tree.JobSummary`
         """
 
         params = {'PHASE': phases, 'LAST': last}
@@ -618,7 +618,7 @@ class AsyncTAPJob:
             cls, baseurl, query, *, language="ADQL", maxrec=None, uploads=None,
             session=None, **keywords):
         """
-        creates a async tap job on the server under `baseurl`
+        creates a async tap job on the server under ``baseurl``
 
         Parameters
         ----------
@@ -727,7 +727,7 @@ class AsyncTAPJob:
     @property
     def execution_duration(self):
         """
-        maximum execution duration as ~`astropy.time.TimeDelta`
+        maximum execution duration as `~astropy.time.TimeDelta`.
         """
         self._update()
         return self._job.executionduration
@@ -1016,7 +1016,7 @@ class TAPQuery(DALQuery):
     The base URL for the query, which controls where the query will be sent
     when one of the execute functions is called, is typically set at
     construction time; however, it can be updated later via the
-    :py:attr:`~pyvo.dal.query.DALQuery.baseurl` to send a configured
+    :py:attr:`~pyvo.dal.DALQuery.baseurl` to send a configured
     query to another service.
 
     In addition to the search constraint attributes described below, search
@@ -1145,12 +1145,12 @@ class TAPResults(DatalinkResultsMixin, DALResults):
 
     This class supports iterable semantics; thus,
     individual records (in the form of
-    :py:class:`~pyvo.dal.query.Record` instances) are typically
+    :py:class:`~pyvo.dal.Record` instances) are typically
     accessed by iterating over an ``TAPResults`` instance.
 
     Alternatively, records can be accessed randomly via
     :py:meth:`getrecord` or through a Python Database API (v2)
-    Cursor (via :py:meth:`~pyvo.dal.query.DALResults.cursor`).
+    Cursor (via :py:meth:`~pyvo.dal.DALResults.cursor`).
     Column-based data access is possible via the
     :py:meth:`~pyvo.dal.query.DALResults.getcolumn` method.
 
@@ -1159,19 +1159,19 @@ class TAPResults(DatalinkResultsMixin, DALResults):
     :py:class:`~astropy.io.votable.tree.TableElement` instance where the
     columns contain the various metadata describing the images.
     One can access that VOTable directly via the
-    :py:attr:`~pyvo.dal.query.DALResults.votable` attribute.  Thus,
+    :py:attr:`pyvo.dal.DALResults.votable` attribute.  Thus,
     when one retrieves a whole column via
-    :py:meth:`~pyvo.dal.query.DALResults.getcolumn`, the result is
+    :py:meth:`~pyvo.dal.DALResults.getcolumn`, the result is
     a Numpy array.  Alternatively, one can manipulate the results
-    as an Astropy :py:class:`~astropy.table.table.Table` via the
+    as an Astropy :py:class:`astropy.table.Table` via the
     following conversion:
 
-    ``table = results.table``
+    ``table = results.to_table``
 
     ``SIAResults`` supports the array item operator ``[...]`` in a
     read-only context.  When the argument is numerical, the result
     is an
-    :py:class:`~pyvo.dal.query.Record` instance, representing the
+    :py:class:`~pyvo.dal.Record` instance, representing the
     record at the position given by the numerical index.  If the
     argument is a string, it is interpreted as the name of a column,
     and the data from the column matching that name is returned as

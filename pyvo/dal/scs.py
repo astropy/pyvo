@@ -76,8 +76,8 @@ def search(url, pos, radius=1.0, *, verbosity=2, **keywords):
     See Also
     --------
     SCSResults
-    pyvo.dal.query.DALServiceError
-    pyvo.dal.query.DALQueryError
+    pyvo.dal.DALServiceError
+    pyvo.dal.DALQueryError
     """
     return SCSService(url).search(pos=pos, radius=radius, verbosity=verbosity, **keywords)
 
@@ -180,8 +180,8 @@ class SCSService(DALService):
         See Also
         --------
         SCSResults
-        pyvo.dal.query.DALServiceError
-        pyvo.dal.query.DALQueryError
+        pyvo.dal.DALServiceError
+        pyvo.dal.DALQueryError
         """
         return self.create_query(pos=pos, radius=radius, verbosity=verbosity, **keywords).execute()
 
@@ -262,7 +262,7 @@ class SCSQuery(DALQuery):
     The base URL for the query, which controls where the query will be sent
     when one of the execute functions is called, is typically set at
     construction time; however, it can be updated later via the
-    :py:attr:`~pyvo.dal.query.DALQuery.baseurl` to send a configured
+    :py:attr:`~pyvo.dal.DALQuery.baseurl` to send a configured
     query to another service.
 
     In addition to the search constraint attributes described below, search
@@ -428,18 +428,18 @@ class SCSResults(DatalinkResultsMixin, DALResults):
 
     Alternatively, records can be accessed randomly via
     :py:meth:`getrecord` or through a Python Database API (v2)
-    Cursor (via :py:meth:`~pyvo.dal.query.DALResults.cursor`).
+    Cursor (via :py:meth:`~pyvo.dal.DALResults.cursor`).
     Column-based data access is possible via the
-    :py:meth:`~pyvo.dal.query.DALResults.getcolumn` method.
+    :py:meth:`~pyvo.dal.DALResults.getcolumn` method.
 
     ``SCSResults`` is essentially a wrapper around an Astropy
     :py:mod:`~astropy.io.votable`
     :py:class:`~astropy.io.votable.tree.TableElement` instance where the
     columns contain the various metadata describing the images.
     One can access that VOTable directly via the
-    :py:attr:`~pyvo.dal.query.DALResults.votable` attribute.  Thus,
+    :py:attr:`~pyvo.dal.DALResults.votable` attribute.  Thus,
     when one retrieves a whole column via
-    :py:meth:`~pyvo.dal.query.DALResults.getcolumn`, the result is
+    :py:meth:`~pyvo.dal.DALResults.getcolumn`, the result is
     a Numpy array.  Alternatively, one can manipulate the results
     as an Astropy :py:class:`~astropy.table.table.Table` via the
     following conversion:

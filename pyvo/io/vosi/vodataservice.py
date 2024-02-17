@@ -8,10 +8,10 @@ There are different ways of handling the various xml tags.
 * Elements with simple content and attributes
 * Elements with simple content without attributes
 
-Elements with complex content are parsed with objects inherited from `Element`.
+Elements with complex content are parsed with objects inherited from `~pyvo.utils.xml.elements.Element`.
 
-Elements with simple content are parsed with objects inherited from `Element`
-defining a `value` property.
+Elements with simple content are parsed with objects inherited from `~pyvo.utils.xml.elements.Element`
+defining a ``value`` property.
 """
 
 import re
