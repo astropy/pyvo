@@ -218,14 +218,11 @@ class TestInterfaceClass:
         intf = regtap.Interface("http://example.org", standard_id="ivo://gavo/std/a",
                                 intf_type="vs:paramhttp", intf_role="std",
                                 capability_description=description)
-        assert (repr(intf) == "Interface('http://example.org',"
-                " standard_id='ivo://gavo/std/a', intf_type='vs:paramhttp', intf_role='std',"
-                " capability_description='An example description.')")
-        intf = regtap.Interface("http://example.org", standard_id="ivo://gavo/std/a",
-                                intf_type=None, intf_role=None, capability_description=None)
-        assert repr(intf) == ("Interface('http://example.org',"
-                              " standard_id='ivo://gavo/std/a', intf_type=None, intf_role=None, "
-                              "capability_description=None)")
+        assert (repr(intf) == "Interface(type='a', description='An example description.',"
+                " url='http://example.org')")
+        intf = regtap.Interface("http://example.org", capability_description=description)
+        assert repr(intf) == ("Interface(description='An example description.',"
+                " url='http://example.org')")
 
     def test_unknown_standard(self):
         intf = regtap.Interface("http://example.org", standard_id="ivo://gavo/std/a",
@@ -593,7 +590,7 @@ class TestInterfaceSelection:
         assert str(excinfo.value) == (
             "Resource ivo://pyvo/test_regtap.py is not a searchable service")
 
-    def test_list_services(self):
+    def test_list_interfaces(self):
         rec = _makeRegistryRecord(
             access_urls=["http://sia.example.com", "http://sia.example.com",
                          "http://tap.example.com", "http://website.com"],
@@ -605,9 +602,9 @@ class TestInterfaceSelection:
             intf_types=["vs:paramhttp"] * 4,
             cap_descriptions=["A mock service."] * 4)
         # all available standard services
-        assert len(rec.list_services()) == 3
+        assert len(rec.list_interfaces()) == 3
         # only sia ones
-        assert len(rec.list_services("sia")) == 2
+        assert len(rec.list_interfaces("sia")) == 2
 
 
 class _FakeResult:
