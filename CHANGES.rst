@@ -7,7 +7,10 @@ Enhancements and Fixes
 - Add method ``list_interfaces`` to ``pyvo.registry.regtap.RegistryResource``
   that returns the list of available interfaces linked to services.
   Add ``keyword`` parameter in ``get_service`` which should match
-  ``capability_description``. [#505, #524]
+  ``capability_description``. [#505, #525]
+
+- Add list of access points to services in ``pyvo.registry.regtap.RegistryResource.describe``
+  when there is more than one service available [#525]
 
 - Add optional ``capability_description`` parameter and a ``__repr__`` to ``pyvo.dal.query.DALService``
   abstract base class [#505]

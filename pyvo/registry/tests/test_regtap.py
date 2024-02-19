@@ -221,7 +221,7 @@ class TestInterfaceClass:
         assert (repr(intf) == "Interface(type='a', description='An example description.',"
                 " url='http://example.org')")
         intf = regtap.Interface("http://example.org", capability_description=description)
-        assert repr(intf) == ("Interface(description='An example description.',"
+        assert repr(intf) == ("Interface(type=None, description='An example description.',"
                 " url='http://example.org')")
 
     def test_unknown_standard(self):
@@ -769,7 +769,10 @@ class TestExtraResourceMethods:
         assert "Flash/Heros SSAP" in output
         assert ("Access modes: datalink#links-1.1, soda#sync-1.0,"
                 " ssa, tap#aux, web" in output)
-        assert "Multi-capability service" in output
+        assert "- webpage: http://dc.zah.uni-heidelberg.de/flashheros/q/web/form" in output
+        assert "- tap#aux: http://dc.zah.uni-heidelberg.de/tap" in output
+        # datalink, soda and vosi are not printed here
+        assert "- datalink" not in output
         assert "Source: 1996A&A...312..539S" in output
         assert "Authors: Wolf" in output
         assert "Alternative identifier(s): doi:10.21938/" in output

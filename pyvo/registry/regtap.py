@@ -19,6 +19,7 @@ standardized TAP-based services.
 import functools
 import itertools
 import os
+import textwrap
 import warnings
 
 from astropy import table
@@ -400,8 +401,9 @@ class Interface:
             self.is_vosi = False
 
     def __repr__(self):
-        if self.standard_id is None:
-            return (f"Interface(description={self.capability_description!r}, "
+        if not self.standard_id or self.standard_id is None:
+            return (f"Interface(type={self.type!r}, "
+                    f"description={self.capability_description!r}, "
                     f"url={self.access_url!r})")
         return (f"Interface(type={self.standard_id.rsplit('/')[-1]!r}, "
                 f"description={self.capability_description!r}, "
@@ -903,8 +905,11 @@ class RegistryResource(dalq.Record):
             service_type = expand_stdid(rtcons.SERVICE_TYPE_MAP.get(service_type, service_type))
 
         list_interfaces = [interface for interface in self.interfaces
-                         if (interface.is_standard
-                             and (service_type is None or interface.supports(service_type)))]
+                         if interface.is_standard or interface.type == "vr:webbrowser"]
+
+        if service_type is not None:
+            list_interfaces = [interface for interface in list_interfaces
+                               if interface.is_standard and interface.supports(service_type)]
 
         return sorted(list_interfaces, key=lambda interface: interface.access_url)
 
@@ -967,11 +972,14 @@ class RegistryResource(dalq.Record):
         print("IVOA Identifier: " + self.ivoid, file=file)
         print("Access modes: " + ", ".join(sorted(self.access_modes())),
               file=file)
-
-        if len(self._mapping["access_urls"]) == 1:
-            print("Base URL: " + self.access_url, file=file)
-        else:
-            print("Multi-capability service -- use get_service()", file=file)
+        for interface in self.list_interfaces():
+            if interface.type == "vr:webbrowser":
+                print(f"- webpage: {interface.access_url}", file=file)
+            elif all(dont_print not in interface.standard_id for dont_print in ["vosi", "datalink", "soda"]):
+                service_item = f"- {interface.standard_id.rsplit('/')[-1]}: {interface.access_url}"
+                if interface.capability_description:
+                    service_item += f", description: {interface.capability_description}"
+                print(textwrap.fill(service_item, width), file=file)
 
         if self.res_description:
             print(file=file)

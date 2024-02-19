@@ -216,6 +216,7 @@ constraint on the description ``get_service(service_type='conesearch', keyword='
   >>> for interface in voresource.list_interfaces():
   ...     print(interface)
   Interface(type='tap#aux', description='', url='http://tapvizier.cds.unistra.fr/TAPVizieR/tap')
+  Interface(type='vr:webbrowser', description='', url='http://vizier.cds.unistra.fr/viz-bin/VizieR-2?-source=II/283')
   Interface(type='conesearch', description='Cone search capability for table II/283/sncat (List of SNe arranged in chronological order)', url='http://vizier.cds.unistra.fr/viz-bin/conesearch/II/283/sncat?')
 
 Or construct the service object directly from the list of interfaces with:
@@ -446,7 +447,7 @@ the ``describe`` function.
   Short Name: NVSS
   IVOA Identifier: ivo://nasa.heasarc/skyview/nvss
   Access modes: sia
-  Base URL: https://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
+  - sia: https://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
   ...
 
 The verbose option in ``describe`` will output more information about
