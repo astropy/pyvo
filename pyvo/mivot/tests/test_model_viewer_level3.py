@@ -4,6 +4,7 @@ Test for mivot.viewer.model_viewer_level3.py and mivot.viewer.mivot_time.py
 """
 import os
 import pytest
+from urllib.request import urlretrieve
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.model_viewer_level1 import ModelViewerLevel1
 from pyvo.utils.prototype import activate_features
@@ -12,6 +13,7 @@ from pyvo.utils.prototype import activate_features
 activate_features('MIVOT')
 
 
+@pytest.mark.remote_data
 def test_model_viewer3(votable_test, simple_votable):
     """
     Recursively compare an XML element with an element of MIVOT class with the function recursive_xml_check.
@@ -31,6 +33,7 @@ def test_model_viewer3(votable_test, simple_votable):
     recusive_xml_check(xml_votable_test, MivotClass)
 
 
+@pytest.mark.remote_data
 def recusive_xml_check(xml_simple_votable, MivotClass):
     if xml_simple_votable.tag == 'TEMPLATES':
         recusive_xml_check(xml_simple_votable[0], MivotClass)
@@ -83,6 +86,7 @@ def recusive_xml_check(xml_simple_votable, MivotClass):
                 assert False
 
 
+@pytest.mark.remote_data
 def test_dict_model_viewer3(votable_test, simple_votable):
     """
     To test the generation of the MIVOT class, the function builds a ModelViewerLevel3
@@ -104,6 +108,7 @@ def test_dict_model_viewer3(votable_test, simple_votable):
     recursive_check(mv_niv3.mivot_class, **mv_niv3._dict)
 
 
+@pytest.mark.remote_data
 def recursive_check(MivotClass, **kwargs):
     for key, value in kwargs.items():
         if isinstance(value, list):
@@ -136,27 +141,33 @@ def recursive_check(MivotClass, **kwargs):
                 assert key == 'dmtype' or 'value'
 
 
-@pytest.fixture
-def m_viewer(data_path):
-    votable = os.path.join(data_path, "data/input/test.1.xml")
-    return ModelViewer(votable_path=votable)
+def votable_test(data_path, data_sample_url):
+    votable_name = "vizier_csc2_gal.annot.xml"
+    votable_path = os.path.join(data_path, "data", votable_name)
+    urlretrieve(data_sample_url + votable_name,
+                votable_path)
+    yield votable_path
+    os.remove(votable_path)
 
 
 @pytest.fixture
-def votable_test(data_path):
-    votable = os.path.join(data_path, "data/vizier_csc2_gal.annot.xml")
-    return votable
-
-
-@pytest.fixture
-def simple_votable(data_path):
-    votable = os.path.join(data_path, "data/simple-annotation-votable.xml")
-    return votable
+def simple_votable(data_path, data_sample_url):
+    votable_name = "simple-annotation-votable.xml"
+    votable_path = os.path.join(data_path, "data", votable_name)
+    urlretrieve(data_sample_url + votable_name,
+                votable_path)
+    yield votable_path
+    os.remove(votable_path)
 
 
 @pytest.fixture
 def data_path():
     return os.path.dirname(os.path.realpath(__file__))
+
+
+@pytest.fixture
+def data_sample_url():
+    return "https://raw.githubusercontent.com/ivoa/dm-usecases/main/pyvo-ci-sample/"
 
 
 if __name__ == '__main__':

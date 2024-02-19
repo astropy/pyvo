@@ -5,7 +5,6 @@ import re
 from astropy import units as u
 from pyvo.utils import prototype_feature
 
-
 unit_mapping = {
     "deg": u.degree,
     "rad": u.radian,
@@ -90,6 +89,7 @@ class MangoRoles:
     FRAME = "frame"
     EQUINOX = "equinox"
     PMCOSDELTAPPLIED = "pmCosDeltApplied"
+
 
 EpochPropagation_fields = ["longitude", "latitude", "pmLongitude", "pmLatitude",
                            "radialVelocity", "parallax", "epoch", "frame", "equinox"]

@@ -4,6 +4,7 @@ Test for mivot.viewer.model_viewer_level2.py
 """
 import os
 import pytest
+from urllib.request import urlretrieve
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.model_viewer_level1 import ModelViewerLevel1
 from pyvo.mivot.viewer.model_viewer_level2 import ModelViewerLevel2
@@ -13,6 +14,7 @@ from pyvo.utils.prototype import activate_features
 activate_features('MIVOT')
 
 
+@pytest.mark.remote_data
 def test_model_viewer_level2(m_viewer):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
@@ -36,16 +38,27 @@ def test_model_viewer_level2(m_viewer):
 
 
 @pytest.fixture
-def m_viewer(data_path):
+def m_viewer(data_path, data_sample_url):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
-    votable = os.path.join(data_path, "data/input/test.1.xml")
-    return ModelViewerLevel1(votable_path=votable, tableref="Results")
+
+    votable_name = "test.1.xml"
+    votable_path = os.path.join(data_path, "data", "input", votable_name)
+    urlretrieve(data_sample_url + votable_name,
+                votable_path)
+
+    yield ModelViewerLevel1(votable_path=votable_path, tableref="Results")
+    os.remove(votable_path)
 
 
 @pytest.fixture
 def data_path():
     return os.path.dirname(os.path.realpath(__file__))
+
+
+@pytest.fixture
+def data_sample_url():
+    return "https://raw.githubusercontent.com/ivoa/dm-usecases/main/pyvo-ci-sample/"
 
 
 if __name__ == '__main__':

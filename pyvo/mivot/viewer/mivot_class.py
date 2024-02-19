@@ -28,30 +28,6 @@ class MivotClass:
         """
         self._create_mivot_class(**kwargs)
 
-    @property
-    def epoch_propagation(self):
-        """
-        Property to get the EpochPropagation object.
-        Returns
-        -------
-        ~`pyvo.mivot.features.epoch_propagation.EpochPropagation`
-            The EpochPropagation object.
-        """
-        # We import EpochPropagation here to avoid circular imports
-        from pyvo.mivot.features.epoch_propagation import EpochPropagation
-        return EpochPropagation(self)
-
-    @property
-    def sky_coordinate(self):
-        """
-        Property to get the SkyCoord object from the EpochPropagation object.
-        Returns
-        -------
-        ~`astropy.coordinates.sky_coordinate.SkyCoord`
-            The SkyCoord object.
-        """
-        return self.epoch_propagation.sky_coordinate()
-
     def _create_mivot_class(self, **kwargs):
         """
         Recursively initialize the MIVOT class with the dictionary of the XML object got in ModelViewerLevel3.

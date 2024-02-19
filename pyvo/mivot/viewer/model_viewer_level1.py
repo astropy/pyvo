@@ -328,6 +328,7 @@ class ModelViewerLevel1:
         """
         Private method that builds and returns a new access level on the model view,
         creating an object that contains all INSTANCE and ATTRIBUTE as a dictionary.
+        Both levels 2 and 3 views are updated by this method
         Returns
         -------
         pyvo.mivot.viewer.mivot_class.MivotClass
