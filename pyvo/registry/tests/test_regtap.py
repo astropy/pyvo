@@ -593,16 +593,18 @@ class TestInterfaceSelection:
     def test_list_interfaces(self):
         rec = _makeRegistryRecord(
             access_urls=["http://sia.example.com", "http://sia.example.com",
-                         "http://tap.example.com", "http://website.com"],
+                         "http://tap.example.com", "http://vosi.example.com",
+                         "http://website.com"
+                         ],
             standard_ids=["ivo://ivoa.net/std/sia#aux",
                           "ivo://ivoa.net/std/sia#aux",
                           "ivo://ivoa.net/std/tap",
-                          ""],
-            intf_roles=["std"] * 3 + ["non standard"],
-            intf_types=["vs:paramhttp"] * 4,
-            cap_descriptions=["A mock service."] * 4)
-        # all available standard services
-        assert len(rec.list_interfaces()) == 3
+                          "ivo://ivoa.net/std/vosi", ""],
+            intf_roles=["std"] * 4 + ["non standard"],
+            intf_types=["vs:paramhttp"] * 4 + ["vr:webbrowser"],
+            cap_descriptions=["A mock service."] * 5)
+        # webpages should be there, but not vosi
+        assert len(rec.list_interfaces()) == 4
         # only sia ones
         assert len(rec.list_interfaces("sia")) == 2
 

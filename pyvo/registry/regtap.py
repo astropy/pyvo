@@ -400,6 +400,14 @@ class Interface:
         else:
             self.is_vosi = False
 
+        # a service is user visible if it has a corresponding service class
+        if self.standard_id is not None and self.standard_id != "":
+            service_type = self.standard_id.split("#")[0]  # remove possible suffixes
+            self.is_user_visible = service_type in self.service_for_standardid
+        # or if it is a webpage
+        else:
+            self.is_user_visible = self.type == "vr:webbrowser"
+
     def __repr__(self):
         if not self.standard_id or self.standard_id is None:
             return (f"Interface(type={self.type!r}, "
@@ -901,13 +909,11 @@ class RegistryResource(dalq.Record):
         get_service : when you already know that there is only one service of a specific service type.
 
         """
+        list_interfaces = [interface for interface in self.interfaces
+                           if interface.is_user_visible]
+
         if service_type is not None:
             service_type = expand_stdid(rtcons.SERVICE_TYPE_MAP.get(service_type, service_type))
-
-        list_interfaces = [interface for interface in self.interfaces
-                         if interface.is_standard or interface.type == "vr:webbrowser"]
-
-        if service_type is not None:
             list_interfaces = [interface for interface in list_interfaces
                                if interface.is_standard and interface.supports(service_type)]
 
@@ -963,7 +969,7 @@ class RegistryResource(dalq.Record):
             (often a DOI) -- will be printed if available.
         width : int
             Format the description with given character-width.
-        out : writable file-like object
+        file : writable file-like object
             If provided, write information to this output stream.
             Otherwise, it is written to standard out.
         """
@@ -973,13 +979,15 @@ class RegistryResource(dalq.Record):
         print("Access modes: " + ", ".join(sorted(self.access_modes())),
               file=file)
         for interface in self.list_interfaces():
-            if interface.type == "vr:webbrowser":
-                print(f"- webpage: {interface.access_url}", file=file)
-            elif all(dont_print not in interface.standard_id for dont_print in ["vosi", "datalink", "soda"]):
-                service_item = f"- {interface.standard_id.rsplit('/')[-1]}: {interface.access_url}"
-                if interface.capability_description:
-                    service_item += f", description: {interface.capability_description}"
-                print(textwrap.fill(service_item, width), file=file)
+            if interface.is_user_visible:
+                if interface.type == "vr:webbrowser":
+                    print(f"- webpage: {interface.access_url}", file=file)
+                else:
+                    service_item = (f"- {interface.standard_id.rsplit('/')[-1]}: "
+                                   f"{interface.access_url}")
+                    if interface.capability_description:
+                        service_item += f", description: {interface.capability_description}"
+                    print(textwrap.fill(service_item, width, subsequent_indent=" "), file=file)
 
         if self.res_description:
             print(file=file)
