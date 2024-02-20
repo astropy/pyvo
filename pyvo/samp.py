@@ -6,7 +6,7 @@ import contextlib
 import os
 import tempfile
 
-from astropy.samp import SAMPIntegratedClient
+from .astropy_samp import SAMPIntegratedClient
 
 
 __all__ = [

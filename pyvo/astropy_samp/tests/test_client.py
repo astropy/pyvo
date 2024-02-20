@@ -1,0 +1,60 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+import pytest
+
+# By default, tests should not use the internet.
+from pyvo.astropy_samp import SAMPWarning, conf
+from pyvo.astropy_samp.client import SAMPClient
+from pyvo.astropy_samp.hub import SAMPHubServer
+from pyvo.astropy_samp.hub_proxy import SAMPHubProxy
+from pyvo.astropy_samp.integrated_client import SAMPIntegratedClient
+
+
+def setup_module(module):
+    conf.use_internet = False
+
+
+def test_SAMPHubProxy():
+    """Test that SAMPHubProxy can be instantiated"""
+    SAMPHubProxy()
+
+
+def test_SAMPClient():
+    """Test that SAMPClient can be instantiated"""
+    proxy = SAMPHubProxy()
+    SAMPClient(proxy)
+
+
+def test_SAMPIntegratedClient():
+    """Test that SAMPIntegratedClient can be instantiated"""
+    SAMPIntegratedClient()
+
+
+@pytest.fixture
+def samp_hub():
+    """A fixture that can be used by client tests that require a HUB."""
+    my_hub = SAMPHubServer()
+    my_hub.start()
+    yield
+    my_hub.stop()
+
+
+def test_SAMPIntegratedClient_notify_all(samp_hub):
+    """Test that SAMP returns a warning if no receiver got the message."""
+    client = SAMPIntegratedClient()
+    client.connect()
+    message = {"samp.mtype": "coverage.load.moc.fits"}
+    with pytest.warns(SAMPWarning):
+        client.notify_all(message)
+    client.disconnect()
+
+
+def test_reconnect(samp_hub):
+    """Test that SAMPIntegratedClient can reconnect.
+    This is a regression test for bug [#2673]
+    https://github.com/astropy/astropy/issues/2673
+    """
+    my_client = SAMPIntegratedClient()
+    my_client.connect()
+    my_client.disconnect()
+    my_client.connect()
