@@ -1,15 +1,99 @@
 [build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+  "setuptools>=61.2",
+  "setuptools_scm",
+]
 
-requires = ["setuptools",
-            "setuptools_scm",
-            "wheel"]
+[project]
+name = "pyvo"
+description = "Astropy affiliated package for accessing Virtual Observatory data and services"
+readme = "README.rst"
+license = {text = "BSD"}
+authors = [{name = "the PyVO Developers"}]
+requires-python = ">=3.8"
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: BSD License",
+  "License :: OSI Approved :: BSD License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Database",
+  "Topic :: Scientific/Engineering :: Astronomy",
+  "Topic :: Software Development :: Libraries",
+]
+dynamic = [
+  "version",
+]
+dependencies = [
+  "astropy>=4.1",
+  "requests",
+]
+[project.optional-dependencies]
+all = [
+  "pillow",
+]
+test = [
+  "pytest-astropy",
+  "pytest-doctestplus>=0.13",
+  "requests-mock",
+]
+[project.urls]
+Documentation = "https://pyvo.readthedocs.io"
+Source = "https://github.com/astropy/pyvo"
+edit-on-github = "False"
+github-project = "astropy/pyvo"
 
-build-backend = 'setuptools.build_meta'
+[tool.setuptools]
+zip-safe = false
+license-files = ["LICENSE.rst"]
+include-package-data = false
 
+[tool.setuptools.packages]
+find = {namespaces = false}
 
-[tool.black]
-force-exclude = '''
-(
-  .*
-)
-'''
+[tool.setuptools.package-data]
+"pyvo.auth.tests" = ["data/tap/*.xml"]
+"pyvo.io.uws.tests" = ["data/*.xml"]
+"pyvo.io.vosi.tests" = ["data/*.xml", "data/tables/*.xml", "data/capabilities/*.xml"]
+"pyvo.registry.tests" = ["data/*.xml", "data/*.desise"]
+"pyvo.dal.tests" = ["data/*.xml", "data/*/*"]
+
+[tool.setuptools_scm]
+version_file = "pyvo/version.py"
+
+[tool.ruff]
+exclude = [
+  "docs",
+  "conftest.py",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402", "F403", "F405"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+norecursedirs = ["build", "docs[\\/]_build"]
+testpaths = ["pyvo", "docs"]
+astropy_header = true
+doctest_plus = "enabled"
+text_file_format = "rst"
+addopts = "--doctest-rst --doctest-continue-on-failure"
+remote_data_strict = true
+filterwarnings = [
+    "error",
+    "ignore:numpy.ndarray size changed:RuntimeWarning",
+    "ignore:unclosed <socket:ResourceWarning",
+    "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
+    # This can be removed once the minimum astropy is 5.0.1?
+    "ignore:distutils Version classes are deprecated:DeprecationWarning",
+    # Numpy 2.0 deprecations triggered by upstream libraries.
+    # Exact warning messages differ, thus using a super generic filter.
+    "ignore:numpy.core:DeprecationWarning",
+]
