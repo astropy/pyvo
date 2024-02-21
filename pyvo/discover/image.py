@@ -11,6 +11,7 @@ The code here looks for data in SIA1, SIA2, and Obscore services for now.
 """
 
 import functools
+import threading
 
 import requests
 
@@ -126,7 +127,7 @@ class ImageFound(obscore.ObsCoreMetadata):
                 "s_ra": rec.pos.icrs.ra.to(u.deg).value,
                 "s_dec": rec.pos.icrs.dec.to(u.deg).value,
                 "obs_title": rec.title,
-                # TODO: do more (s_resgion!) on the basis of the WCS parts
+                # TODO: do more (s_region!) on the basis of the WCS parts
             }
             yield cls(mapped)
 
@@ -188,12 +189,16 @@ class ImageDiscoverer:
                 self.time_min = self.time_max = time.mjd
 
         self.inclusive = inclusive
-        self.already_queried = 0
+        self.already_queried, self.failed_services = 0, 0
         self.results: List[obscore.ObsCoreMetadata] = []
         self.watcher = watcher
         self.log_messages: List[str] = []
-        self.sia1_recs, self.sia2_recs, self.obscore_recs = [], [], []
         self.known_access_urls: Set[str] = set()
+
+        self._service_list_lock = threading.Lock()
+        with self._service_list_lock:
+            # only write to these while holding the lock
+            self.sia1_recs, self.sia2_recs, self.obscore_recs = [], [], []
 
     def _info(self, message: str) -> None:
         """sends message to our watcher (if there is any)
@@ -303,13 +308,20 @@ class ImageDiscoverer:
                     (self.time_min, self.time_max),
                     inclusive=self.inclusive))
 
-        self.sia1_recs = [Queriable(r) for r in registry.search(
-            registry.Servicetype("sia"), *constraints)]
-        self.sia2_recs = [Queriable(r) for r in registry.search(
-            registry.Servicetype("sia2"), *constraints)]
-        self.obscore_recs = self._discover_obscore_services(*constraints)
+        with self._service_list_lock:
+            self.sia1_recs = [Queriable(r) for r in registry.search(
+                registry.Servicetype("sia"), *constraints)]
+            self._info("Found {} SIA1 service(s)".format(len(self.sia1_recs)))
 
-        self._purge_redundant_services()
+            self.sia2_recs = [Queriable(r) for r in registry.search(
+                registry.Servicetype("sia2"), *constraints)]
+            self._info("Found {} SIA2 service(s)".format(len(self.sia2_recs)))
+
+            self.obscore_recs = self._discover_obscore_services(*constraints)
+            self._info("Found {} Obscore service(s)".format(
+                len(self.obscore_recs)))
+
+            self._purge_redundant_services()
 
     def set_services(self,
             registry_results: registry.RegistryResults,
@@ -325,20 +337,33 @@ class ImageDiscoverer:
         that are already called.  There are very few situations in which
         you would want to do that, mostly related to debugging.
         """
-        for rsc in registry_results:
-            if "tap" in rsc.access_modes():
-                # TODO: we ought to ensure there's an obscore
-                # table on this; but by the time this sees users,
-                # I hope to have fixed obscore discovery.
-                self.obscore_recs.append(Queriable(rsc))
-            elif "sia2" in rsc.access_modes():
-                self.sia2_recs.append(Queriable(rsc))
-            elif "sia" in rsc.access_modes():
-                self.sia1_recs.append(Queriable(rsc))
-            # else ignore this record
+        with self._service_list_lock:
+            for rsc in registry_results:
+                if "tap" in rsc.access_modes():
+                    # TODO: we ought to ensure there's an obscore
+                    # table on this; but by the time this sees users,
+                    # I hope to have fixed obscore discovery.
+                    self.obscore_recs.append(Queriable(rsc))
+                elif "sia2" in rsc.access_modes():
+                    self.sia2_recs.append(Queriable(rsc))
+                elif "sia" in rsc.access_modes():
+                    self.sia1_recs.append(Queriable(rsc))
+                # else ignore this record
 
-        if purge_redundant:
-            self._purge_redundant_services()
+            if purge_redundant:
+                self._purge_redundant_services()
+
+    def reset_services(self):
+        """clears the queues of services to query.
+
+        This is the only supported way to interrupt operations once
+        query_services has been called.
+
+        This will not interrupt the query currently running.  There is
+        currently no way to do that.
+        """
+        with self._service_list_lock:
+            self.sia1_recs, self.sia2_recs, self.obscore_recs = [], [], []
 
     def _add_records(self,
             recgen: Generator[ImageFound, None, None]) -> int:
@@ -412,6 +437,7 @@ class ImageDiscoverer:
                 self._query_one_sia1(rec)
             except Exception as msg:
                 self._log(f"SIA1 {rec.ivoid} skipped: {msg}")
+                self.failed_services += 1
             self.already_queried += 1
 
     def _query_one_sia2(self, rec: Queriable):
@@ -442,6 +468,7 @@ class ImageDiscoverer:
                 self._query_one_sia2(rec)
             except Exception as msg:
                 self._log(f"SIA2 {rec.ivoid} skipped: {msg}")
+                self.failed_services += 1
             self.already_queried += 1
 
     def _query_one_obscore(self, rec: Queriable, where_clause:str):
@@ -487,6 +514,7 @@ class ImageDiscoverer:
             except Exception as msg:
                 self._log("Obscore {} skipped: {}".format(
                     rec.res_rec['ivoid'], msg))
+                self.failed_services += 1
             self.already_queried += 1
 
     def get_query_stats(self):
@@ -495,7 +523,7 @@ class ImageDiscoverer:
         total_to_query = len(self.obscore_recs
             ) + len(self.sia1_recs
             ) + len(self.sia2_recs)
-        return total_to_query, self.already_queried
+        return total_to_query, self.already_queried, self.failed_services
 
     def query_services(self):
         """queries the discovered image services according to our
