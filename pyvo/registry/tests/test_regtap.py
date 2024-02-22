@@ -762,7 +762,6 @@ class TestExtraResourceMethods:
             intf_roles=["std"])
         assert rsc.standard_id == "ivo://ivoa.net/std/tap"
 
-    @pytest.mark.remote_data
     def test_describe_multi(self, flash_service):
         out = io.StringIO()
         flash_service.describe(verbose=True, file=out)
@@ -780,7 +779,6 @@ class TestExtraResourceMethods:
         assert "Alternative identifier(s): doi:10.21938/" in output
         assert "More info: http://dc.zah" in output
 
-    @pytest.mark.remote_data
     def test_describe_long_authors_list(self):
         """Check that long list of authors use et al.."""
         rsc = _makeRegistryRecord(
@@ -798,7 +796,6 @@ class TestExtraResourceMethods:
         # output should cut at 5 authors
         assert "Authors: a, a, a, a, a et al." in output
 
-    @pytest.mark.remote_data
     def test_describe_long_author_name(self):
         """Check that long author names are truncated."""
         rsc = _makeRegistryRecord(
