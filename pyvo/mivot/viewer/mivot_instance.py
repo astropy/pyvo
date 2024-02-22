@@ -2,14 +2,14 @@
 """
 MivotClass keep as an attribute dictionary __dict__ all XML objects.
 """
-import numpy
 from astropy import time
 from pyvo.mivot.utils.vocabulary import unit_mapping
 from pyvo.utils.prototype import prototype_feature
+from pyvo.mivot.utils.mivot_utils import MivotUtils
 
 
 @prototype_feature('MIVOT')
-class MivotClass:
+class MivotInstance:
     """
     MIVOT class is a dictionary (__dict__) with only essential information of the ModelViewerLevel3._dict.
     The dictionary keeps the hierarchy of the XML :
@@ -18,7 +18,7 @@ class MivotClass:
     "key" : "value"      means key is an element of ATTRIBUTE
     "key" : []           means key is the dmtype of a COLLECTION
     """
-    def __init__(self, **kwargs):
+    def __init__(self, **instance_dict):
         """
         Constructor of the MIVOT class.
         Parameters
@@ -26,9 +26,9 @@ class MivotClass:
         kwargs : dict
             Dictionary of the XML object.
         """
-        self._create_mivot_class(**kwargs)
+        self._create_class(**instance_dict)
 
-    def _create_mivot_class(self, **kwargs):
+    def _create_class(self, **kwargs):
         """
         Recursively initialize the MIVOT class with the dictionary of the XML object got in ModelViewerLevel3.
         For the unit of the ATTRIBUTE, we add the astropy unit or the astropy time equivalence by comparing
@@ -43,16 +43,16 @@ class MivotClass:
             if isinstance(value, list):  # COLLECTION
                 setattr(self, self._remove_model_name(key), [])
                 for item in value:
-                    getattr(self, self._remove_model_name(key)).append(MivotClass(**item))
+                    getattr(self, self._remove_model_name(key)).append(MivotInstance(**item))
             elif isinstance(value, dict):  # INSTANCE
                 if not self._is_leaf(**value):
-                    setattr(self, self._remove_model_name(key, True), MivotClass(**value))
+                    setattr(self, self._remove_model_name(key, True), MivotInstance(**value))
                 if self._is_leaf(**value):
-                    setattr(self, self._remove_model_name(key), MivotClass(**value))
+                    setattr(self, self._remove_model_name(key), MivotInstance(**value))
             else:  # ATTRIBUTE
                 if key == 'value':  # We cast the value read in the row
                     setattr(self, self._remove_model_name(key),
-                            MivotClass.cast_type_value(value, getattr(self, 'dmtype')))
+                            MivotUtils.cast_type_value(value, getattr(self, 'dmtype')))
                 else:
                     setattr(self, self._remove_model_name(key), self._remove_model_name(value))
                 if key == 'unit':  # We convert the unit to astropy unit or to astropy time format if possible
@@ -63,13 +63,13 @@ class MivotClass:
                     elif value in time.TIME_FORMATS.keys():
                         setattr(self, "astropy_unit_time", value)
 
-    def update_mivot_class(self, row, ref=None):
+    def update(self, row, ref=None):
         """
         Update the MIVOT class with the new data row.
         For each leaf of the MIVOT class, we update the value with the new data row, comparing the reference.
         Parameters
         ----------
-        row : dict
+        row : astropy.table.row.Row
             The new data row.
         ref : str, optional
             The reference of the data row, default is None.
@@ -77,20 +77,21 @@ class MivotClass:
         for key, value in vars(self).items():
             if isinstance(value, list):
                 for item in value:
-                    item.update_mivot_class(row=row)
-            elif isinstance(value, MivotClass):
+                    item.update(row=row)
+            elif isinstance(value, MivotInstance):
                 if isinstance(vars(value), dict):
                     if 'value' not in vars(value):
-                        value.update_mivot_class(row=row)
+                        value.update(row=row)
                     if 'value' in vars(value):
-                        value.update_mivot_class(row=row, ref=getattr(value, 'ref'))
+                        value.update(row=row, ref=getattr(value, 'ref'))
             else:
                 if key == 'value':
                     if ref is not None and ref != 'null':
                         setattr(self, self._remove_model_name(key),
-                                MivotClass.cast_type_value(row[ref], getattr(self, 'dmtype')))
+                                MivotUtils.cast_type_value(row[ref], getattr(self, 'dmtype')))
 
-    def _remove_model_name(self, value, role_instance=False):
+    @staticmethod
+    def _remove_model_name(value, role_instance=False):
         """
         Remove the model name before each colon ":" as well as the type of the object before each point ".".
         If it is an INSTANCE of INSTANCEs, the dmrole represented as the key needs to keep his type object.
@@ -116,45 +117,6 @@ class MivotClass:
                                               .replace(':', '_').replace('.', '_'))
                 return value_after_underscore
             return value  # Returns unmodified string if "_" wasn't found
-        else:
-            return value
-
-    @staticmethod
-    def cast_type_value(value, dmtype):
-        """
-        Cast the value of an ATTRIBUTE based on its dmtype.
-        As the type of ATTRIBUTE values returned in the dictionary is string by default,
-        this function is used to cast them based on their dmtype.
-        Parameters
-        ----------
-        value : str
-            The value of the ATTRIBUTE.
-        dmtype : str
-            The dmtype of the ATTRIBUTE.
-        Returns
-        -------
-        Union[bool, float, str, None]
-            The cast value based on the dmtype.
-        """
-        if type(value) is numpy.float32 or type(value) is numpy.float64:
-            return float(value)
-        lower_dmtype = dmtype.lower()
-        if type(value) is str:
-            lower_value = value.lower()
-        else:
-            lower_value = value
-        if "bool" in lower_dmtype:
-            if value == "1" or lower_value == "true" or lower_value is True:
-                return True
-            else:
-                return False
-        elif lower_value in ('notset', 'noset', 'null', 'none', 'nan') or value is None:
-            return None
-        elif (isinstance(value, numpy.ndarray) or isinstance(value, numpy.ma.core.MaskedConstant)
-              or value == '--'):
-            return None
-        elif "real" in lower_dmtype or "double" in lower_dmtype or "float" in lower_dmtype:
-            return float(value)
         else:
             return value
 
@@ -209,3 +171,5 @@ class MivotClass:
             return data
         else:
             return obj
+        
+

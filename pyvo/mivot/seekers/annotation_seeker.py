@@ -198,7 +198,7 @@ class AnnotationSeeker:
             Format: {'tableref': mapping_block, ...}
         """
         # one table: name forced to DEFAULT or take the first
-        if tableref is None:
+        if tableref is None or tableref == Constant.FIRST_TABLE:
             for _, tmpl in self._templates_blocks.items():
                 return tmpl
         return self._templates_blocks[tableref]

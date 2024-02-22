@@ -5,7 +5,7 @@ This file contains the high-level functions to deal with model views on data.
 from copy import deepcopy
 from astropy import version
 from astropy.io.votable import parse
-
+from astropy.io.votable.tree import VOTableFile
 from pyvo.dal import DALResults
 from pyvo.mivot import logger
 from pyvo.mivot.utils.vocabulary import Ele, Att
@@ -22,9 +22,10 @@ from pyvo.mivot.seekers.resource_seeker import ResourceSeeker
 from pyvo.mivot.seekers.table_iterator import TableIterator
 from pyvo.mivot.features.static_reference_resolver import StaticReferenceResolver
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot.viewer.model_viewer_level2 import ModelViewerLevel2
-from pyvo.mivot.viewer.model_viewer_level3 import ModelViewerLevel3
+from pyvo.mivot.viewer.mivot_instance import MivotInstance
 from pyvo.utils.prototype import prototype_feature
+from pyvo.mivot.utils.mivot_utils import MivotUtils
+from pyvo.mivot.viewer.xml_viewer import XMLViewer
 # Use defusedxml only if already present in order to avoid a new depency.
 try:
     from defusedxml import ElementTree as etree
@@ -33,7 +34,7 @@ except ImportError:
 
 
 @prototype_feature('MIVOT')
-class ModelViewerLevel1:
+class MivotViewer:
     """
     ModelViewerLevel1 is a PyVO table wrapper aiming at providing
     a model view on VOTable data read with usual tools.
@@ -64,6 +65,8 @@ class ModelViewerLevel1:
         else:
             if isinstance(votable_path, DALResults):
                 self._parsed_votable = votable_path.votable
+            elif isinstance(votable_path, VOTableFile):
+                self._parsed_votable = votable_path
             else:
                 self._parsed_votable = parse(votable_path)
             self._table_iterator = None
@@ -78,13 +81,14 @@ class ModelViewerLevel1:
             self._annotation_seeker = None
             self._mapping_block = None
             self._mapped_tables = None
-            self._model_viewer_level2 = None
-            self._model_viewer_level3 = None
             self._set_resource(resource_number)
             self._set_mapping_block()
             self._resource_seeker = ResourceSeeker(self._resource)
             self._set_mapped_tables()
             self._connect_table(tableref)
+            self._instance = None
+            self._xml_viewer = None
+            self.init_instance()
 
     """
     Properties
@@ -128,6 +132,25 @@ class ModelViewerLevel1:
     def current_data_row(self):
         self._assert_table_is_connected()
         return self._current_data_row
+
+    @property
+    def instance(self):
+        self._assert_table_is_connected()
+        return self._instance
+
+    @property
+    def xml_view(self):
+        return self.xml_viewer.view
+    
+    @property
+    def xml_viewer(self):
+        if not self._xml_viewer:
+            model_view = XMLViewer(self._get_model_view())
+            model_view.get_instance_by_type(
+                self.get_first_instance(tableref=self.connected_table_ref)
+                )
+            self._xml_viewer = XMLViewer(model_view._xml_view)
+        return self._xml_viewer
 
     """
     Global accessors
@@ -204,16 +227,6 @@ class ModelViewerLevel1:
         self._assert_table_is_connected()
         self._table_iterator._rewind()
 
-    def get_level2(self):
-        """ return the build-in ModelViewerLevel2 instance
-        """
-        return self._model_viewer_level2
-
-    def get_level3(self):
-        """ return the build-in ModelViewerLevel3 instance
-        """
-        return self._model_viewer_level3
-
     """
     Private methods
     """
@@ -227,32 +240,32 @@ class ModelViewerLevel1:
         tableref : str or None, optional
             Identifier of the table. If None, connects to the first table.
         """
+        stableref = tableref
         if tableref is None:
+            stableref = "" 
             self._connected_tableref = Constant.FIRST_TABLE
-            logger.debug("Since " + Ele.TEMPLATES + " table_ref '%s' is None, "
-                         "it will be set as 'first_table' by default", tableref)
+            logger.debug("Since " + Ele.TEMPLATES + "@table_ref is None, "
+                         "the mapping will be applied to the first table.")
         elif tableref not in self._mapped_tables:
             raise MappingException(f"The table {self._connected_tableref} doesn't match with any "
                                    f"mapped_table ({self._mapped_tables}) encountered in "
                                    + Ele.TEMPLATES)
         else:
             self._connected_tableref = tableref
+
         self._connected_table = self._resource_seeker.get_table(tableref)
         if self.connected_table is None:
-            raise ResourceNotFound(f"Cannot find table {tableref} in VOTable")
-        logger.debug("table %s found in VOTable", tableref)
+            raise ResourceNotFound(f"Cannot find table {stableref} in VOTable")
+        logger.debug("table %s found in VOTable", stableref)
         self._templates = deepcopy(self.annotation_seeker.get_templates_block(tableref))
         if self._templates is None:
-            raise MivotElementNotFound("Cannot find " + Ele.TEMPLATES + f" {tableref} ")
-        logger.debug(Ele.TEMPLATES + " %s found ", tableref)
+            raise MivotElementNotFound("Cannot find " + Ele.TEMPLATES + f" {stableref} ")
+        logger.debug(Ele.TEMPLATES + " %s found ", stableref)
         self._table_iterator = TableIterator(self._connected_tableref,
                                              self.connected_table.to_table())
         self._squash_join_and_references()
         self._set_column_indices()
         self._set_column_units()
-        # Reset the model viewer levels on table connection
-        self._model_viewer_level2 = None
-        self._model_viewer_level3 = None
 
     def _get_model_view(self, resolve_ref=True):
         """
@@ -324,26 +337,35 @@ class ModelViewerLevel1:
             raise MivotElementNotFound("Can't find the first " + Ele.INSTANCE
                                        + "/" + Ele.COLLECTION + " in " + Ele.TEMPLATES)
 
-    def get_next_row_view(self):
+
+    
+    def init_instance(self):
+        if self._instance is None:
+            self.get_next_row()
+            xml_instance = self.xml_viewer.get_instance_by_type(
+                self.get_first_instance(tableref=self.connected_table_ref)
+                )
+            self._instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
+            self.rewind()
+        
+    def next_row(self):
         """
-        Private method that builds and returns a new access level on the model view,
-        creating an object that contains all INSTANCE and ATTRIBUTE as a dictionary.
-        Both levels 2 and 3 views are updated by this method
-        Returns
+        TONBE USPDTDLMKMKLMKLMKLMKLmklmklmkml
         -------
-        pyvo.mivot.viewer.mivot_class.MivotClass
+        pyvo.mivot.viewer.mivot_instance.MivotClass
             Object of the next data row.
         """
         self.get_next_row()
         if self._current_data_row is None:
             return None
-        if self._model_viewer_level3 is None:
-            self._model_viewer_level2 = ModelViewerLevel2(self)
-            instance = self._model_viewer_level2.get_instance_by_type(self.get_first_instance())
-            self._model_viewer_level3 = ModelViewerLevel3(instance)
-        self._model_viewer_level3.mivot_class.update_mivot_class(self._current_data_row)
-        return self._model_viewer_level3.mivot_class
 
+        if self._instance is None:
+            xml_instance = self.xml_viewer.view
+            self._instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
+        self._instance.update(self._current_data_row)
+
+        return self._instance
+    
     def _assert_table_is_connected(self):
         assert self._connected_table is not None, "Operation failed: no connected data table"
 
