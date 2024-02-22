@@ -10,6 +10,16 @@ but that needs standard work.
 The code here looks for data in SIA1, SIA2, and Obscore services for now.
 """
 
+# TODOs:
+# * Evaluate and log Overflow conditions in the three protocols
+# * do more (s_region!) on the basis of the WCS parts in SIA1
+# * In obscore, we probably should make the dataproduct type constraint
+#   configurable (this should really also work for cubes)
+# * Obscore query generation *might* want some extra logic for inclusive,
+#   (as in OR whatever IS NULL) -- but is that a good idea?
+# * It would be nice if we preserved datalink availability and perhaps
+#   even let people do automatic cutouts to the RoI.
+
 import functools
 import threading
 
@@ -77,17 +87,19 @@ def obscore_column_names():
 class ImageFound(obscore.ObsCoreMetadata):
     """Obscore metadata for a found record.
 
-    We're pulling these out from the various VOTables that we
-    retrieve because we need to do some manipulation of them
-    that's simpler to do if they are proper Python objects.
+    The mandatory obscore fields are kept as attributes.
 
-    This is an implementation detail, though; eventually, we're
-    turning these into an astropy table and further into a VOTable
-    to make this as compatible with the DAL services as possible.
+    We are pulling these out from the various VOTables that we
+    retrieve because we need to do some manipulation of them
+    that is simpler to do if they are proper Python objects.
+
+    This also keeps track of the service the record came from,
+    which is available from the origin_service attribute.
     """
     attr_names = set(obscore_column_names())
 
-    def __init__(self, obscore_record):
+    def __init__(self, origin_service, obscore_record):
+        self.origin_service = origin_service
         for k, v in obscore_record.items():
             if k not in self.attr_names:
                 raise TypeError(
@@ -95,17 +107,19 @@ class ImageFound(obscore.ObsCoreMetadata):
             setattr(self, k, v)
 
     @classmethod
-    def from_obscore_recs(cls, obscore_result):
+    def from_obscore_recs(cls, origin_service, obscore_result):
         if not obscore_result:
             return
 
         ap_table = obscore_result.to_table()
         our_keys = [n for n in ap_table.colnames if n in cls.attr_names]
         for row in obscore_result:
-            yield cls(dict(zip(our_keys, (row[n] for n in our_keys))))
+            yield cls(
+                origin_service,
+                dict(zip(our_keys, (row[n] for n in our_keys))))
 
     @classmethod
-    def from_sia1_recs(cls, sia1_result, filter_func):
+    def from_sia1_recs(cls, origin_service, sia1_result, filter_func):
         for rec in sia1_result:
             if not filter_func(rec):
                 continue
@@ -127,9 +141,8 @@ class ImageFound(obscore.ObsCoreMetadata):
                 "s_ra": rec.pos.icrs.ra.to(u.deg).value,
                 "s_dec": rec.pos.icrs.dec.to(u.deg).value,
                 "obs_title": rec.title,
-                # TODO: do more (s_region!) on the basis of the WCS parts
             }
-            yield cls(mapped)
+            yield cls(origin_service, mapped)
 
 
 def _clean_for(records: List[Queriable], ivoids_to_remove: Set[str]):
@@ -416,6 +429,7 @@ class ImageDiscoverer:
         svc = rec.res_rec.get_service("sia", session=self.session)
         n_found = self._add_records(
             ImageFound.from_sia1_recs(
+                rec.ivoid,
                 svc.search(
                     pos=self.center, size=self.radius, intersect='overlaps'),
                 non_spatial_filter))
@@ -457,7 +471,9 @@ class ImageDiscoverer:
                 time.Time(self.time_max, format="mjd"))
 
         n_found = self._add_records(
-            ImageFound.from_obscore_recs(svc.search(**constraints)))
+            ImageFound.from_obscore_recs(
+                rec.ivoid,
+                svc.search(**constraints)))
         self._log(f"SIA2 {rec.title}: {n_found} records")
 
     def _query_sia2(self):
@@ -479,16 +495,14 @@ class ImageDiscoverer:
 
         n_found = self._add_records(
             ImageFound.from_obscore_recs(
+                rec.ivoid,
                 svc.run_sync("select * from ivoa.obscore "+where_clause)))
         self._log(f"Obscore {rec.title}: {n_found} records")
 
     def _query_obscore(self):
         """runs the Obscore part of our discovery.
         """
-        # TODO: we probably should make the dataproduct type constraint
-        # configurable.
         where_parts = ["dataproduct_type='image'"]
-        # TODO: we'd need extra logic for inclusive here, too
         if self.center is not None:
             where_parts.append(
                 "(distance(s_ra, s_dec, {}, {}) < {}".format(
@@ -529,7 +543,7 @@ class ImageDiscoverer:
         """queries the discovered image services according to our
         constraints.
 
-        This creates fills the results and the log attributes.
+        This creates and fills the results and the log attributes.
         """
         if (not self.sia1_recs
                 and not self.sia2_recs
@@ -581,6 +595,14 @@ def images_globally(*,
     When an image has insufficient metadata to evaluate a constraint, it
     is excluded; this mimics the behaviour of SQL engines that consider
     comparisons with NULL-s false.
+
+    Returns
+    -------
+    discovered_images, log_lines
+        The images found are returned in a list of `ImageFound` instances.
+        log_lines is a list of strings reporting which services were
+        queried with which result (and possibly more).  So far, this
+        is not considered machine-readable.
     """
     discoverer = ImageDiscoverer(
         space=space, spectrum=spectrum, time=time,
@@ -594,6 +616,4 @@ def images_globally(*,
         discoverer.set_services(services)
 
     discoverer.query_services()
-    # TODO: We should un-dupe by image access URL
-    # TODO: We could compute SODA cutout URLs here in addition.
     return discoverer.results, discoverer.log_messages
