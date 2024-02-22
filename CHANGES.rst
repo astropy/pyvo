@@ -1,13 +1,16 @@
-1.5.1 (unreleased)
+1.5.1 (2024-02-21)
 ==================
 
-Enhancements and Fixes
-----------------------
+Bug Fixes
+---------
 
-- Fix ``pyvo.registry.Author`` to allow registry searches with author constraints. [#515]
+- Fix ``pyvo.registry.Author`` to allow registry searches with author
+  constraints. [#515]
 
 - Backing out of having alt_identifier in RegistryResource throughout.
   Use get_alt_identifier() instead [#523]
+
+- Fix ``maxrec=0`` special case for SIA2 queries. [#520]
 
 
 1.5 (2023-12-19)

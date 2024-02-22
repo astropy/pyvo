@@ -507,4 +507,4 @@ def test_all_constraints():
         'reference_url', 'creator_seq', 'created', 'updated',
         'rights', 'content_type', 'source_format', 'source_value',
         'region_of_regard', 'waveband', 'access_urls', 'standard_ids',
-        'intf_types', 'intf_roles', 'cap_descriptions')
+        'intf_types', 'intf_roles')
