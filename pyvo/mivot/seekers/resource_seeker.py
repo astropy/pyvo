@@ -7,7 +7,7 @@ from pyvo.utils.prototype import prototype_feature
 
 
 @prototype_feature('MIVOT')
-class ResourceSeeker(object):
+class ResourceSeeker:
     """
     This class provides multiple getters on resource tables.
     Some methods are simple wrappers for external tools in order to have all

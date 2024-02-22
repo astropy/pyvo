@@ -5,6 +5,7 @@ Created on 21 févr. 2024
 '''
 import numpy
 
+
 class MivotUtils(object):
     @staticmethod
     def xml_to_dict(element):
@@ -86,8 +87,8 @@ class MivotUtils(object):
         retour = []
         for child_coll in child:
             retour.append(MivotUtils.xml_to_dict(child_coll))
-        return retour        
-    
+        return retour
+
     @staticmethod
     def cast_type_value(value, dmtype):
         """
@@ -108,7 +109,7 @@ class MivotUtils(object):
         if type(value) is numpy.float32 or type(value) is numpy.float64:
             return float(value)
         lower_dmtype = dmtype.lower()
-        if type(value) is str:
+        if isinstance(value, str):
             lower_value = value.lower()
         else:
             lower_value = value

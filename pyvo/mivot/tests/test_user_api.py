@@ -43,8 +43,6 @@ def path_to_votable(data_path, data_sample_url):
     os.remove(votable_path)
 
 
-
-
 @pytest.mark.remote_data
 def test_by_attribute(path_to_votable):
     """ check that the mivot object attribute are correct """
@@ -54,7 +52,7 @@ def test_by_attribute(path_to_votable):
         cpt += 1
     assert cpt == 6
     mivot_viewer.rewind()
-    
+
     ref = [-0.36042119, 0.22293899, -0.07592034, -0.21749947, -0.1281483, -0.28005255]
     read = []
     while mivot_viewer.next_row():
@@ -63,12 +61,13 @@ def test_by_attribute(path_to_votable):
 
     assert read == ref
 
+
 @pytest.mark.remote_data
 def test_external_iterator(path_to_votable, delt_coo):
-    """ Checks the the values returned by MIVOT are 
+    """ Checks the the values returned by MIVOT are
     the same as those read by Astropy
     """
-    # parse the VOTable outside of the viewer    
+    # parse the VOTable outside of the viewer
     votable = parse(path_to_votable)
     table = votable.resources[0].tables[0]
     # init the viewer
@@ -81,6 +80,7 @@ def test_external_iterator(path_to_votable, delt_coo):
         read.append(mivot_object.longitude.value)
         assert rec["RAICRS"] == mivot_object.longitude.value
         assert rec["DEICRS"] == mivot_object.latitude.value
+
 
 if __name__ == '__main__':
     pytest.main()

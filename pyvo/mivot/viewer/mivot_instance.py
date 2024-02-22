@@ -171,5 +171,3 @@ class MivotInstance:
             return data
         else:
             return obj
-        
-

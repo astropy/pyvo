@@ -17,7 +17,8 @@ activate_features('MIVOT')
 @pytest.mark.remote_data
 def test_model_viewer3(votable_test, simple_votable):
     """
-    Recursively compare an XML element with an element of MIVOT class with the function recursive_xml_check.
+    Recursively compare an XML element with an element of MIVOT
+    class with the function recursive_xml_check.
     This test run on 2 votables : votable_test and simple_votable.
     """
     if check_astropy_version() is False:
@@ -47,22 +48,26 @@ def recusive_xml_check(xml_simple_votable, MivotInstance):
                         if value == '':
                             if child.tag == 'ATTRIBUTE':
                                 recusive_xml_check(child,
-                                                   getattr(MivotInstance, MivotInstance._remove_model_name
-                                                   (child.get('dmrole'))))
+                                                   getattr(MivotInstance,
+                                                           MivotInstance._remove_model_name(
+                                                               child.get('dmrole'))))
                             elif child.tag == 'INSTANCE':
                                 recusive_xml_check(child, getattr(MivotInstance,
                                                                   MivotInstance._remove_model_name
                                                                   (child.get('dmrole'), True)))
                         else:
                             if child.tag == 'ATTRIBUTE':
-                                recusive_xml_check(child, getattr(MivotInstance, MivotInstance._remove_model_name
-                                (child.get('dmrole'))))
+                                recusive_xml_check(child, getattr(MivotInstance,
+                                                                  MivotInstance._remove_model_name(
+                                                                      child.get('dmrole'))))
                             elif child.tag == 'INSTANCE':
-                                recusive_xml_check(child, getattr(MivotInstance, MivotInstance._remove_model_name
-                                (child.get('dmrole'), True)))
+                                recusive_xml_check(child, getattr(MivotInstance,
+                                                                  MivotInstance._remove_model_name(
+                                                                      child.get('dmrole'), True)))
                             elif child.tag == 'COLLECTION':
-                                recusive_xml_check(child, getattr(MivotInstance, MivotInstance._remove_model_name
-                                (child.get('dmrole'))))
+                                recusive_xml_check(child, getattr(MivotInstance,
+                                                                  MivotInstance._remove_model_name(
+                                                                      child.get('dmrole'))))
             elif child.tag == 'COLLECTION':
                 for key, value in child.attrib.items():
                     assert len(getattr(MivotInstance,
@@ -125,8 +130,9 @@ def recursive_check(MivotInstance, **kwargs):
                 if isinstance(item, dict):
                     assert 'dmtype' in item.keys()
                     recursive_check(getattr(MivotInstance,
-                                            MivotInstance._remove_model_name(key))[nbr_item], 
-                                            **item)
+                                            MivotInstance._remove_model_name(key))[nbr_item],
+                                    **item
+                                    )
                     nbr_item += 1
         elif isinstance(value, dict) and 'value' not in value:
             # for INSTANCE of INSTANCEs dmrole needs model_name

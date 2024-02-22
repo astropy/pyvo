@@ -10,9 +10,12 @@ from pyvo.utils.prototype import prototype_feature
 @prototype_feature('MIVOT')
 class XMLViewer:
     """
-    The ModelViewerLevel2 takes an instance of the `~pyvo.mivot.viewer.model_viewer_level1.ModelViewerLevel1`
-    object as a parameter and provides multiple getters on the XML that already has references
-    resolved by default with `~pyvo.mivot.viewer.model_viewer_level1.ModelViewerLevel1._get_model_view()`.
+    The ModelViewerLevel2 takes an instance of the
+    `~pyvo.mivot.viewer.model_viewer_level1.ModelViewerLevel1`
+    object as a parameter and provides multiple getters
+    on the XML that already has references
+    resolved by default with
+    `~pyvo.mivot.viewer.model_viewer_level1.ModelViewerLevel1._get_model_view()`.
     """
     def __init__(self, xml_view):
         self._xml_view = xml_view
@@ -20,7 +23,7 @@ class XMLViewer:
     @property
     def view(self):
         return self._xml_view
-    
+
     def get_instance_by_role(self, dmrole, all_instances=False):
         """
         Return the instance matching with @dmrole.
@@ -51,7 +54,8 @@ class XMLViewer:
                                         f'.//INSTANCE[@dmrole="{dmrole}"]'):
                     return ele
             else:
-                raise MivotElementNotFound(f"Cannot find dmrole {dmrole} in any instances of the VOTable")
+                raise MivotElementNotFound(
+                    f"Cannot find dmrole {dmrole} in any instances of the VOTable")
         else:
             if len(XPath.x_path(self._xml_view,
                                 f'.//INSTANCE[@dmrole="{dmrole}"]')) != 0:
@@ -62,7 +66,8 @@ class XMLViewer:
                 if ele:
                     return ele
             else:
-                raise MivotElementNotFound(f"Cannot find dmrole {dmrole} in any instances of the VOTable")
+                raise MivotElementNotFound(
+                    f"Cannot find dmrole {dmrole} in any instances of the VOTable")
         return None
 
     def get_instance_by_type(self, dmtype, all_instances=False):
@@ -155,5 +160,3 @@ class XMLViewer:
                 raise MivotElementNotFound(f"Cannot find dmrole {dmrole} in any collections of the VOTable")
             return ele
         return None
-
-    

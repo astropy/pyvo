@@ -29,7 +29,7 @@ class TableIterator:
         # not used yet
         self.row_filter = None
 
-    def _get_next_row(self):
+    def get_next_row(self):
         """
         Return the next Numpy row or None.
         The end of table exception usually returned by Numpy is trapped.
@@ -49,7 +49,7 @@ class TableIterator:
         except StopIteration:
             return None
 
-    def _rewind(self):
+    def rewind(self):
         """
         Set the pointer on the table-top, destroys the iterator actually.
         """

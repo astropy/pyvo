@@ -141,14 +141,13 @@ class MivotViewer:
     @property
     def xml_view(self):
         return self.xml_viewer.view
-    
+
     @property
     def xml_viewer(self):
         if not self._xml_viewer:
             model_view = XMLViewer(self._get_model_view())
-            model_view.get_instance_by_type(
-                self.get_first_instance(tableref=self.connected_table_ref)
-                )
+            first_instance_dmype = self.get_first_instance(tableref=self.connected_table_ref)
+            model_view.get_instance_by_type(first_instance_dmype)
             self._xml_viewer = XMLViewer(model_view._xml_view)
         return self._xml_viewer
 
@@ -217,7 +216,7 @@ class MivotViewer:
             The next data row.
         """
         self._assert_table_is_connected()
-        self._current_data_row = self._table_iterator._get_next_row()
+        self._current_data_row = self._table_iterator.get_next_row()
         return self._current_data_row
 
     def rewind(self):
@@ -225,7 +224,7 @@ class MivotViewer:
         Rewind the table iterator on the table the veizer is connected with.
         """
         self._assert_table_is_connected()
-        self._table_iterator._rewind()
+        self._table_iterator.rewind()
 
     """
     Private methods
@@ -242,14 +241,16 @@ class MivotViewer:
         """
         stableref = tableref
         if tableref is None:
-            stableref = "" 
+            stableref = ""
             self._connected_tableref = Constant.FIRST_TABLE
             logger.debug("Since " + Ele.TEMPLATES + "@table_ref is None, "
-                         "the mapping will be applied to the first table.")
+                         "the mapping will be applied to the first table."
+                         )
         elif tableref not in self._mapped_tables:
             raise MappingException(f"The table {self._connected_tableref} doesn't match with any "
                                    f"mapped_table ({self._mapped_tables}) encountered in "
-                                   + Ele.TEMPLATES)
+                                   + Ele.TEMPLATES
+                                   )
         else:
             self._connected_tableref = tableref
 
@@ -337,17 +338,14 @@ class MivotViewer:
             raise MivotElementNotFound("Can't find the first " + Ele.INSTANCE
                                        + "/" + Ele.COLLECTION + " in " + Ele.TEMPLATES)
 
-
-    
     def init_instance(self):
         if self._instance is None:
             self.get_next_row()
-            xml_instance = self.xml_viewer.get_instance_by_type(
-                self.get_first_instance(tableref=self.connected_table_ref)
-                )
+            first_instance = self.get_first_instance(tableref=self.connected_table_ref)
+            xml_instance = self.xml_viewer.get_instance_by_type(first_instance)
             self._instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
             self.rewind()
-        
+
     def next_row(self):
         """
         TONBE USPDTDLMKMKLMKLMKLMKLmklmklmkml
@@ -365,7 +363,7 @@ class MivotViewer:
         self._instance.update(self._current_data_row)
 
         return self._instance
-    
+
     def _assert_table_is_connected(self):
         assert self._connected_table is not None, "Operation failed: no connected data table"
 

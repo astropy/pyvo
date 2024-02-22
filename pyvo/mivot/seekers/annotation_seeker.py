@@ -96,7 +96,8 @@ class AnnotationSeeker:
                 ele.tag = tag + '_' + str(cpt)
                 cpt += 1
 
-    def _name_match(self, name, expected):
+    @staticmethod
+    def _name_match(name, expected):
         """
         Return true if name matches expected whatever the namespace
         Parameters
@@ -240,11 +241,15 @@ class AnnotationSeeker:
             Format: {'dmtype': [instance], ...}
         """
         retour = {Ele.GLOBALS: [], Ele.TEMPLATES: {}}
-        eset = XPath.x_path_contains(self._globals_block, ".//" + Ele.INSTANCE, Att.dmtype, dmtype_pattern)
+        eset = XPath.x_path_contains(self._globals_block,
+                                     ".//" + Ele.INSTANCE,
+                                     Att.dmtype,
+                                     dmtype_pattern
+                                     )
         retour[Ele.GLOBALS] = eset
-        for tableref, block in self._templates_blocks.items():
-            retour[Ele.TEMPLATES][tableref] = (
-                XPath.x_path_contains(block, ".//" + Ele.INSTANCE, Att.dmtype, dmtype_pattern))
+        for (tableref, block) in self._templates_blocks.items():
+            retour[Ele.TEMPLATES][tableref] = XPath.x_path_contains(block, './/'
+                     + Ele.INSTANCE, Att.dmtype, dmtype_pattern)
         return retour
 
     """
@@ -273,7 +278,8 @@ class AnnotationSeeker:
             List of @dmid of GLOBALS/INSTANCE
         """
         retour = []
-        eset = XPath.x_path(self._globals_block, ".//" + Ele.INSTANCE + "[@" + Att.dmid + "]")
+        eset = XPath.x_path(self._globals_block,
+                            ".//" + Ele.INSTANCE + "[@" + Att.dmid + "]")
         for ele in eset:
             retour.append(ele.get(Att.dmid))
         return retour
@@ -289,7 +295,9 @@ class AnnotationSeeker:
         -------
         dict: `~xml.etree.ElementTree.Element`
         """
-        eset = XPath.x_path(self._globals_block, ".//" + Ele.INSTANCE + "[@" + Att.dmid + "='" + dmid + "']")
+        eset = XPath.x_path(self._globals_block,
+                            (".//" + Ele.INSTANCE + "[@" + Att.dmid + "='" + dmid + "']")
+                            )
         for ele in eset:
             return ele
         return None
@@ -323,7 +331,8 @@ class AnnotationSeeker:
         templates_block = self.get_templates_block(tableref)
         if templates_block is None:
             return None
-        eset = XPath.x_path(templates_block, ".//" + Ele.INSTANCE + "[@" + Att.dmid + "='" + dmid + "']")
+        eset = XPath.x_path(templates_block,
+                            ".//" + Ele.INSTANCE + "[@" + Att.dmid + "='" + dmid + "']")
         for ele in eset:
             return ele
         return None
@@ -427,13 +436,19 @@ class AnnotationSeeker:
                             + coll_dmid + "']/" + Ele.INSTANCE + "/" + Att.primarykey
                             + "[@" + Att.value + "='" + key_value + "']")
         if len(eset) == 0:
-            raise MivotElementNotFound(Ele.INSTANCE + " with " + Att.primarykey + f" = {key_value} in "
-                                       + Ele.COLLECTION + " " + Att.dmid + f" {key_value} not found")
+            message = (f"{Ele.INSTANCE} with {Att.primarykey} = {key_value} in "
+                       f"{Ele.COLLECTION} {Att.dmid} {key_value} not found"
+                       )
+            raise MivotElementNotFound(message)
         if len(eset) > 1:
-            raise MappingException("More than one " + Ele.INSTANCE + " with " + Att.primarykey
-                                   + f" = {key_value} found in " + Ele.COLLECTION + " "
-                                   + Att.dmid + f" {key_value}")
-        logger.debug(Ele.INSTANCE + " with " + Att.primarykey + "=%s found in " + Ele.COLLECTION + " "
+            message = (
+                f"More than one {Ele.INSTANCE} with {Att.primarykey}"
+                f" = {key_value} found in {Ele.COLLECTION} "
+                f"{Att.dmid} {key_value}"
+            )
+            raise MappingException(message)
+        logger.debug(Ele.INSTANCE + " with " + Att.primarykey + "=%s found in "
+                     + Ele.COLLECTION + " "
                      + Att.dmid + "=%s", key_value, coll_dmid)
         parent_map = {c: p for p in self._globals_block.iter() for c in p}
         return parent_map[eset[0]]

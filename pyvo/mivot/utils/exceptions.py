@@ -11,14 +11,12 @@ class MappingException(Exception):
     - It doesn't match with any Resource/MIVOT element expected.
     - It matches with too many Resource/MIVOT elements than expected.
     """
-    pass
 
 
 class ResourceNotFound(Exception):
     """
     Exception raised if any kind of Resource is not found.
     """
-    pass
 
 
 class MivotElementNotFound(Exception):
@@ -30,67 +28,57 @@ class MivotElementNotFound(Exception):
     - ATTRIBUTE
     - Element of ATTRIBUTE (dmtype, dmrole, value, ref)
     """
-    pass
 
 
 class MivotNotFound(Exception):
     """
     Exception raised if the MIVOT block can't be found.
     """
-    pass
 
 
 class ResolveException(Exception):
     """
     Exception raised if the reference can't be resolved.
     """
-    pass
 
 
 class DataFormatException(Exception):
     """
     Exception raised if the format is wrong.
     """
-    pass
 
 
 class NotImplementedException(Exception):
     """
     Exception raised if an un-implemented feature is invoked.
     """
-    pass
 
 
 class AstropyVersionException(Exception):
     """
     Exception raised if the version of astropy is not compatible with MIVOT.
     """
-    pass
 
 
 class UnitException(Exception):
     """
     Exception raised if the unit is not recognized.
     """
-    pass
 
 
 class TimeFormatException(Exception):
     """
     Exception raised if the time format is not recognized.
     """
-    pass
 
 
 class DeltaException(Exception):
     """
     Exception raised if the delta is 90 deg.
     """
-    pass
 
 
 class SkyCoordParameterException(Exception):
     """
     Exception raised if the SkyCoord parameters are not recognized.
     """
-    pass

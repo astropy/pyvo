@@ -58,4 +58,3 @@ class DictUtils:
         - dictionary (dict): The dictionary.
         """
         print(DictUtils._get_pretty_json(dictionnary))
-
