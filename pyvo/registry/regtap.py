@@ -402,7 +402,7 @@ class Interface:
 
         # a service is user visible if it has a corresponding service class
         if self.standard_id is not None and self.standard_id != "":
-            service_type = self.standard_id.split("#")[0]  # remove possible suffixes
+            service_type = self.standard_id.split("#")[0]  # remove possible suffixes/standard keys
             self.is_user_visible = service_type in self.service_for_standardid
         # or if it is a webpage
         else:
@@ -909,15 +909,15 @@ class RegistryResource(dalq.Record):
         get_service : when you already know that there is only one service of a specific service type.
 
         """
-        list_interfaces = [interface for interface in self.interfaces
-                           if interface.is_user_visible]
+        interfaces = [interface for interface in self.interfaces
+                      if interface.is_user_visible]
 
         if service_type is not None:
             service_type = expand_stdid(rtcons.SERVICE_TYPE_MAP.get(service_type, service_type))
-            list_interfaces = [interface for interface in list_interfaces
-                               if interface.is_standard and interface.supports(service_type)]
+            interfaces = [interface for interface in interfaces
+                          if interface.is_standard and interface.supports(service_type)]
 
-        return sorted(list_interfaces, key=lambda interface: interface.access_url)
+        return sorted(interfaces, key=lambda interface: interface.access_url)
 
     def search(self, *args, **keys):
         """
