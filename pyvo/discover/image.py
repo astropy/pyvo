@@ -126,14 +126,17 @@ class ImageFound(obscore.ObsCoreMetadata):
             mapped = {
                 "dataproduct_type": "image" if rec.naxes == 2 else "cube",
                 "access_url": rec.acref,
-                "em_max": rec.bandpass_hilimit is not None
-                    and rec.bandpass_hilimit.to(u.m).value,
-                "em_min": rec.bandpass_lolimit is not None
-                    and rec.bandpass_lolimit.to(u.m).value,
+                "em_max": None if rec.bandpass_hilimit is None
+                    else rec.bandpass_hilimit.to(u.m).value,
+                "em_min": None if rec.bandpass_lolimit is None
+                    else rec.bandpass_lolimit.to(u.m).value,
                 # Sigh.  Try to guess exposure time?
-                "t_min": rec.dateobs.mjd,
-                "t_max": rec.dateobs.mjd,
-                "access_estsize": rec.filesize/1024,
+                "t_min": None if rec.dateobs is None
+                    else rec.dateobs.mjd,
+                "t_max": None if rec.dateobs is None
+                    else rec.dateobs.mjd,
+                "access_estsize": None if rec.filesize is None
+                    else rec.filesize/1024,
                 "access_format": rec.format,
                 "instrument_name": rec.instr,
                 "s_xel1": rec.naxis[0].to(u.pix).value,
