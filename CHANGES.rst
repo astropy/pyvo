@@ -4,8 +4,6 @@
 Enhancements and Fixes
 ----------------------
 
-- Fix ``pyvo.registry.Author`` to allow registry searches with author constraints. [#515]
-
 - Add method ``list_services`` to ``pyvo.registry.regtap.RegistryResource`` that returns the
   list of available services. Add ``keyword`` parameter in ``get_service`` which should match
   ``capability_description``. [#505]
@@ -20,12 +18,24 @@ Enhancements and Fixes
 - registry.Ivoid now accepts multiple ivoids and will then match any of
   them. [#517]
 
+Deprecations and Removals
+-------------------------
+
+
+1.5.1 (2024-02-21)
+==================
+
+Bug Fixes
+---------
+
+- Fix ``pyvo.registry.Author`` to allow registry searches with author
+  constraints. [#515]
+
 - Backing out of having alt_identifier in RegistryResource throughout.
   Use get_alt_identifier() instead [#523]
 
+- Fix ``maxrec=0`` special case for SIA2 queries. [#520]
 
-Deprecations and Removals
--------------------------
 
 1.5 (2023-12-19)
 ================
