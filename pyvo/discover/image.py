@@ -250,6 +250,8 @@ class ImageDiscoverer:
                     | ids(self.obscore_recs))),
             description="ivoids of candiate services",
             meta={"ucd": "meta.ref.ivoid"}),])
+        if len(ids_present) == 0:
+            return
 
         services_for = regtap.get_RegTAP_service().run_sync(
             """SELECT ivoid, related_id
@@ -505,7 +507,8 @@ class ImageDiscoverer:
         where_parts = ["dataproduct_type='image'"]
         if self.center is not None:
             where_parts.append(
-                "(distance(s_ra, s_dec, {}, {}) < {}".format(
+                "(1=contains(point('ICRS', s_ra, s_dec),"
+                    " circle('ICRS', {}, {}, {}))".format(
                     self.center[0], self.center[1], self.radius)
                 +" or 1=intersects(circle({}, {}, {}), s_region))".format(
                     self.center[0], self.center[1], self.radius))
