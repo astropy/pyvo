@@ -706,7 +706,7 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
     @property
     def dateobs(self):
         """
-        the modified Julien date (MJD) of the mid-point of the
+        the modified Julian date (MJD) of the mid-point of the
         observational data that went into the image,
         as an astropy.time.Time instance
         """
@@ -821,24 +821,27 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         the characteristic (reference) wavelength, frequency or energy
         for the bandpass model, as an astropy Quantity of bandpass_unit
         """
-        return Quantity(
-            self.getbyucd("VOX:BandPass_RefValue"), self.bandpass_unit)
+        value = self.getbyucd("VOX:BandPass_RefValue")
+        if value is not None and self.bandpass_unit:
+            return Quantity(val, self.bandpass_unit)
 
     @property
     def bandpass_hilimit(self):
         """
         the upper limit of the bandpass as astropy Quantity in bandpass_unit
         """
-        return Quantity(
-            self.getbyucd("VOX:BandPass_HiLimit"), self.bandpass_unit)
+        value = self.getbyucd("VOX:BandPass_HiLimit")
+        if value is not None and self.bandpass_unit:
+            return Quantity(value, self.bandpass_unit)
 
     @property
     def bandpass_lolimit(self):
         """
         the lower limit of the bandpass as astropy Quantity in bandpass_unit
         """
-        return Quantity(
-            self.getbyucd("VOX:BandPass_LoLimit"), self.bandpass_unit)
+        value = self.getbyucd("VOX:BandPass_LoLimit")
+        if value is not None and self.bandpass_unit:
+            return Quantity(value, self.bandpass_unit)
 
     # Processig Metadata
     @property
