@@ -428,7 +428,7 @@ class ImageDiscoverer:
             return True
 
         self._info("Querying SIA1 {}...".format(rec.title))
-        svc = rec.res_rec.get_service("sia", session=self.session)
+        svc = rec.res_rec.get_service("sia", session=self.session, lax=True)
         n_found = self._add_records(
             ImageFound.from_sia1_recs(
                 rec.ivoid,
@@ -461,7 +461,7 @@ class ImageDiscoverer:
         """
         self._info("Querying SIA2 {}...".format(rec.title))
 
-        svc = rec.res_rec.get_service("sia2", session=self.session)
+        svc = rec.res_rec.get_service("sia2", session=self.session, lax=True)
         constraints = {}
         if self.center is not None:
             constraints["pos"] = self.center+(self.radius,)
@@ -493,7 +493,7 @@ class ImageDiscoverer:
         """runs our query against a Obscore capability of rec.
         """
         self._info("Querying Obscore {}...".format(rec.title))
-        svc = rec.res_rec.get_service("tap", session=self.session)
+        svc = rec.res_rec.get_service("tap", session=self.session, lax=True)
 
         n_found = self._add_records(
             ImageFound.from_obscore_recs(
