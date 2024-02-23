@@ -19,6 +19,7 @@ standardized TAP-based services.
 import functools
 import itertools
 import os
+import textwrap
 import warnings
 
 from astropy import table
@@ -33,7 +34,7 @@ from ..io.vosi import vodataservice
 from ..utils.formatting import para_format_desc
 
 
-__all__ = ["search", "get_RegTAP_query",
+__all__ = ["search", "get_RegTAP_query", "Interface",
            "RegistryResource", "RegistryResults", "ivoid2service"]
 
 REGISTRY_BASEURL = os.environ.get("IVOA_REGISTRY", "http://reg.g-vo.org/tap"
@@ -399,10 +400,22 @@ class Interface:
         else:
             self.is_vosi = False
 
+        # a service is user visible if it has a corresponding service class
+        if self.standard_id is not None and self.standard_id != "":
+            service_type = self.standard_id.split("#")[0]  # remove possible suffixes/standard keys
+            self.is_user_visible = service_type in self.service_for_standardid
+        # or if it is a webpage
+        else:
+            self.is_user_visible = self.type == "vr:webbrowser"
+
     def __repr__(self):
-        return (f"Interface({self.access_url!r}, standard_id={self.standard_id!r},"
-                f" intf_type={self.type!r}, intf_role={self.role!r}, "
-                f"capability_description={self.capability_description!r})")
+        if not self.standard_id or self.standard_id is None:
+            return (f"Interface(type={self.type!r}, "
+                    f"description={self.capability_description!r}, "
+                    f"url={self.access_url!r})")
+        return (f"Interface(type={self.standard_id.rsplit('/')[-1]!r}, "
+                f"description={self.capability_description!r}, "
+                f"url={self.access_url!r})")
 
     def to_service(self):
         if self.type == "vr:webbrowser":
@@ -786,7 +799,7 @@ class RegistryResource(dalq.Record):
                              "Otherwise, the search can be constrained by specifying a 'service_type' "
                              "or a 'keyword' to be found in the service description."
                              " You might also want to see all the available services"
-                             " with `pyvo.registry.regtap.RegistryResource.list_services()`.")
+                             " with `pyvo.registry.regtap.RegistryResource.list_interfaces()`.")
 
         return candidates[0]
 
@@ -830,11 +843,11 @@ class RegistryResource(dalq.Record):
         keyword : str
             A keyword that should be in the service description.
             Some resources have multiple capabilities ("services") of the same
-            type (see list_services for a discussion).  get_service will
+            type (see list_interfaces for a discussion).  get_service will
             usually raise a ValueError in that case. Passing a
             ``keyword`` that uniquely identifies the capability to
             query will make get_service predictably return the desired
-            service.  Use list_services to find such a unique description
+            service.  Use list_interfaces to find such a unique description
             fragment.
 
         Returns
@@ -848,7 +861,7 @@ class RegistryResource(dalq.Record):
 
         See Also
         --------
-        list_services : return a list with all the available services.
+        list_interfaces : return a list with all the available services.
         """
         return self.get_interface(service_type=service_type, lax=lax, std_only=True,
                                   keyword=keyword).to_service()
@@ -866,49 +879,45 @@ class RegistryResource(dalq.Record):
         See Also
         --------
         get_service : select a service of a specific service type.
-        list_services : return a list with all the available services.
+        list_interfaces : return a list with all the available interfaces to services.
         """
         if self._service is not None:
             return self._service
         self._service = self.get_service(service_type=None, lax=True)
         return self._service
 
-    def list_services(self, service_type: str = None):
-        """
-        List the services available for this registry record.
+    def list_interfaces(self, service_type: str = None):
+        """List the interfaces to services available for this registry record.
+
+        The interface objects in the list can then be used to instantiate the service with
+        the  `~pyvo.registry.regtap.Interface.to_service` method.
 
         Parameters
         ----------
         service_type : str, optional
-            Restricts the list to services corresponding to this service type.
+            Restricts the list to interfaces corresponding to services of this service type.
             The list of possible values can be printed with
             ``pyvo.registry.rtcons.SERVICE_TYPE_MAP.keys()``.
 
         Returns
         -------
         list
-            A list of service objects. They can be
-            `~pyvo.dal.scs.SCSService`, `~pyvo.dal.sia.SIAService`,
-            `~pyvo.dal.sia2.SIA2Service`, `~pyvo.dal.ssa.SSAService`,
-            `~pyvo.dal.sla.SLAService`, or `~pyvo.dal.tap.TAPService`.
+            A list of `~pyvo.registry.regtap.Interface` objects.
 
         See Also
         --------
-        get_service : when there is only one service of a specific service type.
+        get_service : when you already know that there is only one service of a specific service type.
 
         """
+        interfaces = [interface for interface in self.interfaces
+                      if interface.is_user_visible]
+
         if service_type is not None:
             service_type = expand_stdid(rtcons.SERVICE_TYPE_MAP.get(service_type, service_type))
+            interfaces = [interface for interface in interfaces
+                          if interface.is_standard and interface.supports(service_type)]
 
-        list_services = [interface.to_service() for interface in self.interfaces
-                         if (interface.is_standard
-                             and (service_type is None or interface.supports(service_type)))]
-
-        if service_type in {"web", None}:
-            list_services += [_BrowserService(interface.access_url)
-                              for interface in self.interfaces if interface.type == "vr:webbrowser"]
-
-        return sorted(list_services, key=lambda service: service.baseurl)
+        return sorted(interfaces, key=lambda interface: interface.access_url)
 
     def search(self, *args, **keys):
         """
@@ -960,7 +969,7 @@ class RegistryResource(dalq.Record):
             (often a DOI) -- will be printed if available.
         width : int
             Format the description with given character-width.
-        out : writable file-like object
+        file : writable file-like object
             If provided, write information to this output stream.
             Otherwise, it is written to standard out.
         """
@@ -969,11 +978,16 @@ class RegistryResource(dalq.Record):
         print("IVOA Identifier: " + self.ivoid, file=file)
         print("Access modes: " + ", ".join(sorted(self.access_modes())),
               file=file)
-
-        if len(self._mapping["access_urls"]) == 1:
-            print("Base URL: " + self.access_url, file=file)
-        else:
-            print("Multi-capability service -- use get_service()", file=file)
+        for interface in self.list_interfaces():
+            if interface.is_user_visible:
+                if interface.type == "vr:webbrowser":
+                    print(f"- webpage: {interface.access_url}", file=file)
+                else:
+                    service_item = (f"- {interface.standard_id.rsplit('/')[-1]}: "
+                                   f"{interface.access_url}")
+                    if interface.capability_description:
+                        service_item += f", description: {interface.capability_description}"
+                    print(textwrap.fill(service_item, width, subsequent_indent=" "), file=file)
 
         if self.res_description:
             print(file=file)

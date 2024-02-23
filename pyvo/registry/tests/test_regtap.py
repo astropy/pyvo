@@ -218,14 +218,11 @@ class TestInterfaceClass:
         intf = regtap.Interface("http://example.org", standard_id="ivo://gavo/std/a",
                                 intf_type="vs:paramhttp", intf_role="std",
                                 capability_description=description)
-        assert (repr(intf) == "Interface('http://example.org',"
-                " standard_id='ivo://gavo/std/a', intf_type='vs:paramhttp', intf_role='std',"
-                " capability_description='An example description.')")
-        intf = regtap.Interface("http://example.org", standard_id="ivo://gavo/std/a",
-                                intf_type=None, intf_role=None, capability_description=None)
-        assert repr(intf) == ("Interface('http://example.org',"
-                              " standard_id='ivo://gavo/std/a', intf_type=None, intf_role=None, "
-                              "capability_description=None)")
+        assert (repr(intf) == "Interface(type='a', description='An example description.',"
+                " url='http://example.org')")
+        intf = regtap.Interface("http://example.org", capability_description=description)
+        assert repr(intf) == ("Interface(type=None, description='An example description.',"
+                " url='http://example.org')")
 
     def test_unknown_standard(self):
         intf = regtap.Interface("http://example.org", standard_id="ivo://gavo/std/a",
@@ -593,21 +590,23 @@ class TestInterfaceSelection:
         assert str(excinfo.value) == (
             "Resource ivo://pyvo/test_regtap.py is not a searchable service")
 
-    def test_list_services(self):
+    def test_list_interfaces(self):
         rec = _makeRegistryRecord(
             access_urls=["http://sia.example.com", "http://sia.example.com",
-                         "http://tap.example.com", "http://website.com"],
+                         "http://tap.example.com", "http://vosi.example.com",
+                         "http://website.com"
+                         ],
             standard_ids=["ivo://ivoa.net/std/sia#aux",
                           "ivo://ivoa.net/std/sia#aux",
                           "ivo://ivoa.net/std/tap",
-                          ""],
-            intf_roles=["std"] * 3 + ["non standard"],
-            intf_types=["vs:paramhttp"] * 4,
-            cap_descriptions=["A mock service."] * 4)
-        # all available standard services
-        assert len(rec.list_services()) == 3
+                          "ivo://ivoa.net/std/vosi", ""],
+            intf_roles=["std"] * 4 + ["non standard"],
+            intf_types=["vs:paramhttp"] * 4 + ["vr:webbrowser"],
+            cap_descriptions=["A mock service."] * 5)
+        # webpages should be there, but not vosi
+        assert len(rec.list_interfaces()) == 4
         # only sia ones
-        assert len(rec.list_services("sia")) == 2
+        assert len(rec.list_interfaces("sia")) == 2
 
 
 class _FakeResult:
@@ -763,7 +762,6 @@ class TestExtraResourceMethods:
             intf_roles=["std"])
         assert rsc.standard_id == "ivo://ivoa.net/std/tap"
 
-    @pytest.mark.remote_data
     def test_describe_multi(self, flash_service):
         out = io.StringIO()
         flash_service.describe(verbose=True, file=out)
@@ -772,13 +770,15 @@ class TestExtraResourceMethods:
         assert "Flash/Heros SSAP" in output
         assert ("Access modes: datalink#links-1.1, soda#sync-1.0,"
                 " ssa, tap#aux, web" in output)
-        assert "Multi-capability service" in output
+        assert "- webpage: http://dc.zah.uni-heidelberg.de/flashheros/q/web/form" in output
+        assert "- tap#aux: http://dc.zah.uni-heidelberg.de/tap" in output
+        # datalink, soda and vosi are not printed here
+        assert "- datalink" not in output
         assert "Source: 1996A&A...312..539S" in output
         assert "Authors: Wolf" in output
         assert "Alternative identifier(s): doi:10.21938/" in output
         assert "More info: http://dc.zah" in output
 
-    @pytest.mark.remote_data
     def test_describe_long_authors_list(self):
         """Check that long list of authors use et al.."""
         rsc = _makeRegistryRecord(
@@ -796,7 +796,6 @@ class TestExtraResourceMethods:
         # output should cut at 5 authors
         assert "Authors: a, a, a, a, a et al." in output
 
-    @pytest.mark.remote_data
     def test_describe_long_author_name(self):
         """Check that long author names are truncated."""
         rsc = _makeRegistryRecord(

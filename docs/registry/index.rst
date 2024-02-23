@@ -206,25 +206,33 @@ the first conesearch it finds.
 
 However some providers provide multiple services of the same type
 -- for example in VizieR you'll find one conesearch per table.
-In this case, you can inspect the available services with
-`~pyvo.registry.regtap.RegistryResource.list_services`. Then, you can refine your
+In this case, you can inspect the available `~pyvo.registry.regtap.Interface` to services with
+`~pyvo.registry.regtap.RegistryResource.list_interfaces`. Then, you can refine your
 instructions to `~pyvo.registry.regtap.RegistryResource.get_service` with a keyword
 constraint on the description ``get_service(service_type='conesearch', keyword='sncat')``.
 
 .. doctest-remote-data::
 
-  >>> for service in voresource.list_services():
-  ...     print(service)
-  TAPService(baseurl : 'http://tapvizier.cds.unistra.fr/TAPVizieR/tap', description : '')
-  BrowserService(baseurl : 'http://vizier.cds.unistra.fr/viz-bin/VizieR-2?-source=II/283', description : 'None')
-  SCSService(baseurl : 'http://vizier.cds.unistra.fr/viz-bin/conesearch/II/283/sncat?', description : 'Cone search capability for table II/283/sncat (List of SNe arranged in chronological order)')
+  >>> for interface in voresource.list_interfaces():
+  ...     print(interface)
+  Interface(type='tap#aux', description='', url='http://tapvizier.cds.unistra.fr/TAPVizieR/tap')
+  Interface(type='vr:webbrowser', description='', url='http://vizier.cds.unistra.fr/viz-bin/VizieR-2?-source=II/283')
+  Interface(type='conesearch', description='Cone search capability for table II/283/sncat (List of SNe arranged in chronological order)', url='http://vizier.cds.unistra.fr/viz-bin/conesearch/II/283/sncat?')
 
-Or to get the list of services corresponding to a specific service type:
+Or construct the service object directly from the list of interfaces with:
+
+.. doctest-remote-data::
+  
+  >>> voresource.list_interfaces()[0].to_service()
+  TAPService(baseurl : 'http://tapvizier.cds.unistra.fr/TAPVizieR/tap', description : '')
+ 
+The list of interfaces can also be filtered to interfaces corresponding to services of a
+specific service type:
 
 .. doctest-remote-data::
 
-  >>> voresource.list_services("tap")
-  [TAPService(baseurl : 'http://tapvizier.cds.unistra.fr/TAPVizieR/tap', description : '')]
+  >>> voresource.list_interfaces("tap")
+  [Interface(type='tap#aux', description='', url='http://tapvizier.cds.unistra.fr/TAPVizieR/tap')]
 
 To operate TAP services, you need to know what tables make up a
 resource; you could construct a TAP service and access its ``tables``
@@ -439,7 +447,7 @@ the ``describe`` function.
   Short Name: NVSS
   IVOA Identifier: ivo://nasa.heasarc/skyview/nvss
   Access modes: sia
-  Base URL: https://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
+  - sia: https://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
   ...
 
 The verbose option in ``describe`` will output more information about
