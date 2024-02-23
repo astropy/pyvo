@@ -807,13 +807,24 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         """
         the astropy unit used to represent spectral values.
         """
-        sia = self.getbyucd("VOX:BandPass_Unit", decode=True)
+        sia_unit = self.getbyucd("VOX:BandPass_Unit", decode=True)
 
-        if sia:
-            return Unit(sia)
-        else:
-            # dimensionless
-            return Unit("")
+        # the standard says this should be `"meters", "hertz", and "keV"',
+        # which in practice everyone has ignored.  Still, let's
+        # translate the standard terms.  Somewhat more dangerously,
+        # we replace a missing unit with metres; in theory, we should
+        # reject anything but the three terms above, but then 99%
+        # of SIA services would break.  And without the assumption of
+        # a metre default, 20% of 2024 SIA1 services would have unusable
+        # bandpasses.
+
+        astropy_unit = {
+            None: "m",
+            "": "m",
+            "meters": "m",
+            "hertz": "Hz"}.get(sia_unit, sia_unit)
+
+        return Unit(astropy_unit)
 
     @property
     def bandpass_refvalue(self):
