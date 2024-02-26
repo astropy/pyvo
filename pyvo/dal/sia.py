@@ -834,7 +834,7 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         """
         value = self.getbyucd("VOX:BandPass_RefValue")
         if value is not None and self.bandpass_unit:
-            return Quantity(val, self.bandpass_unit)
+            return Quantity(value, self.bandpass_unit)
 
     @property
     def bandpass_hilimit(self):
