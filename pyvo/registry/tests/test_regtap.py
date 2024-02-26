@@ -52,7 +52,7 @@ def _capabilities(mocker):
 
 
 @pytest.fixture(name='regtap_pulsar_distance_response')
-def _regtap_pulsar_distance_response(mocker):
+def _regtap_pulsar_distance_response(mocker, capabilities):
     with mocker.register_uri(
         'POST', REGISTRY_BASEURL + '/sync',
             content=get_pkg_data_contents('data/regtap.xml')) as matcher:
@@ -60,7 +60,7 @@ def _regtap_pulsar_distance_response(mocker):
 
 
 @pytest.fixture()
-def keywords_fixture(mocker):
+def keywords_fixture(mocker, capabilities):
     def keywordstest_callback(request, context):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
@@ -83,12 +83,13 @@ def keywords_fixture(mocker):
 
 
 @pytest.fixture()
-def single_keyword_fixture(mocker):
+def single_keyword_fixture(mocker, capabilities):
     def keywordstest_callback(request, context):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
 
-        assert "OR  rr.res_subject.res_subject ILIKE '%single%'" in query
+        assert (" UNION SELECT ivoid FROM rr.res_subject WHERE"
+            " rr.res_subject.res_subject ILIKE '%single%'") in query
         assert "1=ivo_hasword(res_description, 'single') " in query
         assert "1=ivo_hasword(res_title, 'single')" in query
 
@@ -102,7 +103,7 @@ def single_keyword_fixture(mocker):
 
 
 @pytest.fixture()
-def servicetype_fixture(mocker):
+def servicetype_fixture(mocker, capabilities):
     def servicetypetest_callback(request, context):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
@@ -123,7 +124,7 @@ def servicetype_fixture(mocker):
 
 
 @pytest.fixture()
-def waveband_fixture(mocker):
+def waveband_fixture(mocker, capabilities):
     def wavebandtest_callback(request, content):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
@@ -140,7 +141,7 @@ def waveband_fixture(mocker):
 
 
 @pytest.fixture()
-def datamodel_fixture(mocker):
+def datamodel_fixture(mocker, capabilities):
     def datamodeltest_callback(request, content):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
@@ -162,7 +163,7 @@ def datamodel_fixture(mocker):
 
 
 @pytest.fixture()
-def aux_fixture(mocker):
+def aux_fixture(mocker, capabilities):
     def auxtest_callback(request, context):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
@@ -179,7 +180,7 @@ def aux_fixture(mocker):
 
 
 @pytest.fixture(name='multi_interface_fixture')
-def _multi_interface_fixture(mocker):
+def _multi_interface_fixture(mocker, capabilities):
     # to update this, run
     # import requests
     # from pyvo.registry import regtap

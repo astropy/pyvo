@@ -37,7 +37,6 @@ from ..registry import regtap
 
 # imports for type hints
 from typing import Callable, Generator, List, Optional, Set, Tuple
-from astropy import time
 from astropy.units import quantity
 
 
@@ -291,7 +290,7 @@ class ImageDiscoverer:
         new_style_access_urls = set()
         for rec in obscore_services:
             new_style_access_urls |= set(
-                i.baseurl for i in rec.list_services("tap"))
+                i.access_url for i in rec.list_interfaces("tap"))
 
         for tap_rec in tap_services_with_obscore:
             access_urls = set(
@@ -492,7 +491,7 @@ class ImageDiscoverer:
                 self.failed_services += 1
             self.already_queried += 1
 
-    def _query_one_obscore(self, rec: Queriable, where_clause:str):
+    def _query_one_obscore(self, rec: Queriable, where_clause: str):
         """runs our query against a Obscore capability of rec.
         """
         self._info("Querying Obscore {}...".format(rec.title))
