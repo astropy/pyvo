@@ -6,10 +6,8 @@ TODO: perhaps move the contents of pyvo.registry.tests.conftest here, too?
 """
 
 import base64
-import contextlib
 import hashlib
 import inspect
-import io
 import os
 import pickle
 from urllib import parse as urlparse
@@ -50,7 +48,7 @@ def get_digest(data):
         data = data.replace(boundary, b"")
 
     return base64.b64encode(
-            hashlib.md5(data).digest(), b"+%"
+        hashlib.md5(data).digest(), b"+%"
         ).decode("ascii")[:8]
 
 
