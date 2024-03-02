@@ -2,31 +2,27 @@
 Utility class to process XML.
 """
 from pyvo.mivot.utils.xpath_utils import XPath
-
 try:
     from defusedxml import ElementTree as etree
 except ImportError:
     from xml.etree import ElementTree as etree
 import xml.etree.ElementTree as ET
-from pyvo.mivot.utils.constant import Constant
+from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.mivot.utils.vocabulary import Att
 from pyvo.mivot.utils.exceptions import ResolveException
 
 
 class XmlUtils:
     """
-    Static class implementing convenient operations on XML.
+    Static class implementing convenient operations on XML
     """
-
     @staticmethod
     def pretty_print(xmltree):
         """
         Pretty print an XML tree.
-
         Parameters
         ----------
-        xmltree : ~`xml.etree.ElementTree.Element`
-            The XML tree to pretty print.
+        xmltree (~`xml.etree.ElementTree.Element`): XML tree to pretty print.
         """
         print(XmlUtils.pretty_string(xmltree))
 
@@ -34,16 +30,12 @@ class XmlUtils:
     def pretty_string(xmltree):
         """
         Return a pretty string representation of an XML tree.
-
         Parameters
         ----------
-        xmltree : ~`xml.etree.ElementTree.Element`
-            The XML tree to convert to a pretty string.
-
+        xmltree (~`xml.etree.ElementTree.Element`): XML tree to convert to a pretty string.
         Returns
         -------
-        str
-            The pretty string representation of the XML tree.
+        str: The pretty string representation of the XML tree.
         """
         if hasattr(xmltree, 'getroot'):
             XmlUtils.indent(xmltree.getroot())
@@ -57,14 +49,10 @@ class XmlUtils:
     def indent(elem, level=0):
         """
         Indent an XML tree.
-
         Parameters
         ----------
-        elem : ~`xml.etree.ElementTree.Element`
-            The XML tree to indent.
-        level : int
-            The level of indentation.
-
+        elem (~`xml.etree.ElementTree.Element`): XML tree to indent.
+        level (int): level of indentation.
         Returns
         -------
         ~`xml.etree.ElementTree.Element`
@@ -90,12 +78,10 @@ class XmlUtils:
     def xmltree_from_file(file_path):
         """
         Parse an XML tree from a file.
-
         Parameters
         ----------
         file_path : str
             The path to the XML file.
-
         Returns
         -------
         ~`xml.etree.ElementTree.Element`
@@ -107,7 +93,6 @@ class XmlUtils:
     def xmltree_to_file(xmltree, file_path):
         """
         Write an XML tree to a file.
-
         Parameters
         ----------
         xmltree : ~`xml.etree.ElementTree.Element`
@@ -122,7 +107,6 @@ class XmlUtils:
     def assertXmltreeEquals(xmltree1, xmltree2):
         """
         Assert that two XML trees are equal.
-
         Parameters
         ----------
         xmltree1 : ~`xml.etree.ElementTree.Element`
@@ -139,7 +123,6 @@ class XmlUtils:
     def assertXmltreeEqualsFile(xmltree1, xmltree2_file):
         """
         Assert that an XML tree is equal to the content of a file.
-
         Parameters
         ----------
         xmltree1 : ~`xml.etree.ElementTree.Element`
@@ -158,7 +141,6 @@ class XmlUtils:
         """
         Add column ranks to attributes having a ref.
         Using ranks allows identifying columns even when NumPy arrays have been serialized as [].
-
         Parameters
         ----------
         mapping_block : ~`xml.etree.ElementTree.Element`
@@ -166,7 +148,6 @@ class XmlUtils:
         index_map : dict
             A dictionary mapping ref values to column indices.
         """
-
         for ele in XPath.x_path(mapping_block, ".//ATTRIBUTE"):
             attr_ref = ele.get(Att.ref)
             if attr_ref is not None and attr_ref != Constant.NOT_SET:
@@ -180,9 +161,10 @@ class XmlUtils:
                             break
                 if not field_desc:
                     if not ele.get(Att.value):
-                        raise ResolveException(f"Attribute {ele.get(Att.dmrole)} can not be set: "
-                                               f"references a non existing column: {attr_ref} "
-                                               f"and has no default value")
+                        raise ResolveException(
+                            f"Attribute {ele.get(Att.dmrole)} can not be set:"
+                            f" references a non existing column: {attr_ref} "
+                            f"and has no default value")
                     else:
                         ele.attrib.pop(Att.ref, None)
                 if field_desc:
@@ -195,7 +177,6 @@ class XmlUtils:
         """
         Add field units to attributes having a ref.
         Used for performing unit conversions.
-
         Parameters
         ----------
         mapping_block : ~`xml.etree.ElementTree.Element`
@@ -221,14 +202,12 @@ class XMLOutputChecker:
     def check_output(self, want, got):
         """
         Compare two XML outputs, ignoring whitespace differences.
-
         Parameters
         ----------
         want : str
             The expected XML output.
         got : str
             The actual XML output.
-
         Returns
         -------
         bool
@@ -239,14 +218,12 @@ class XMLOutputChecker:
     def output_difference(self, want, got):
         """
         Return a string describing the differences between two XML outputs.
-
         Parameters
         ----------
         want : str
             The expected XML output.
         got : str
             The actual XML output.
-
         Returns
         -------
         str
@@ -257,12 +234,10 @@ class XMLOutputChecker:
     def _format_xml(self, xml_str):
         """
         Format an XML string.
-
         Parameters
         ----------
         xml_str : str
             The XML string to format.
-
         Returns
         -------
         str

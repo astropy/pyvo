@@ -12,17 +12,13 @@ class TableIterator:
     Some methods are simple wrappers for external tools in order to have all
     the search functions on TABLE gathered in within a single namespace.
     """
-
     def __init__(self, name, data_table):
         """
         Constructor of the TableIterator class.
-
         Parameters
         ----------
-        name : str
-            Table name (not really used).
-        data_table : ~numpy.ndarray
-            Numpy table returned by `~astropy.votable`.
+        name (str): Table name (not really used).
+        data_table (~numpy.ndarray): Numpy table returned by `~astropy.votable`.
         """
         self.name = name
         self.data_table = data_table
@@ -31,7 +27,7 @@ class TableIterator:
         # not used yet
         self.row_filter = None
 
-    def _get_next_row(self):
+    def get_next_row(self):
         """
         Return the next Numpy row or None.
         The end of table exception usually returned by Numpy is trapped.
@@ -39,7 +35,6 @@ class TableIterator:
         # The iterator is set at the first iteration
         if self.iter is None:
             self.iter = iter(self.data_table)
-
         try:
             while True:
                 row = next(self.iter)
@@ -52,7 +47,7 @@ class TableIterator:
         except StopIteration:
             return None
 
-    def _rewind(self):
+    def rewind(self):
         """
         Set the pointer on the table-top, destroys the iterator actually.
         """

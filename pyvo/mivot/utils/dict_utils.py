@@ -16,14 +16,11 @@ class DictUtils:
     def read_dict_from_file(filename, fatal=False):
         """
         Read a dictionary from a file and raise an exception if something goes wrong.
-
         Parameters:
         - filename (str): The filename.
         - fatal (bool): Triggers a system exit if True.
-
         Returns:
         - dict: The dictionary extracted from the file.
-
         Raises:
         - DataFormatException: If the file has an incorrect format.
         """
@@ -33,7 +30,6 @@ class DictUtils:
             with open(filename, 'r') as file:
                 retour = json.load(file, object_pairs_hook=OrderedDict)
                 return retour
-
         except DataFormatException as exception:
             if fatal is True:
                 raise DataFormatException("reading {}".format(filename))
@@ -44,10 +40,8 @@ class DictUtils:
     def _get_pretty_json(dictionnary):
         """
         Return a pretty string representation of the dictionary.
-
         Parameters:
         - dictionary (dict): The dictionary.
-
         Returns:
         - str: A pretty string representation of the dictionary.
         """
@@ -60,7 +54,6 @@ class DictUtils:
     def print_pretty_json(dictionnary):
         """
         Print out a pretty string representation of the dictionary.
-
         Parameters:
         - dictionary (dict): The dictionary.
         """

@@ -4,35 +4,43 @@ Test for mivot.seekers.resource_seeker.py
 """
 import os
 import pytest
+from urllib.request import urlretrieve
 from astropy.io.votable import parse
 from pyvo.mivot.seekers.resource_seeker import ResourceSeeker
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.utils import activate_features
+
 activate_features('MIVOT')
 
 
 @pytest.fixture
-def rseeker(data_path):
+def rseeker(data_path, data_sample_url):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
-    # Parse the VOTable and returns a ResourceSeeker based on the resources
-    vpath = os.path.join(data_path, "data/input/test_ressource_seeker.xml")
-    votable = parse(vpath)
-    rseeker = None
+
+    votable_name = "test_ressource_seeker.xml"
+    votable_path = os.path.join(data_path, "data", "input", votable_name)
+    urlretrieve(data_sample_url + votable_name,
+                votable_path)
+    votable = parse(votable_path)
     for resource in votable.resources:
-        rseeker = ResourceSeeker(resource)
-        break
-    return rseeker
+        yield ResourceSeeker(resource)
+    os.remove(votable_path)
 
 
-def test_id_table(rseeker, data_path):
+@pytest.fixture
+def data_sample_url():
+    return "https://raw.githubusercontent.com/ivoa/dm-usecases/main/pyvo-ci-sample/"
+
+
+@pytest.mark.remote_data
+def test_id_table(rseeker):
     """
     Checks the IDs of tables found by the RessourceSeeker,
     checks the IDs of the field of the table concerned.
     """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
-
     assert rseeker.get_table_ids() == ['_PKTable', 'Results']
 
     assert (rseeker.get_id_index_mapping('_PKTable')
@@ -56,7 +64,6 @@ def test_id_table(rseeker, data_path):
                 }
             )
     table = rseeker.get_table('_PKTable')
-
     for field in table.fields:
         field.ID = None
     assert (rseeker.get_id_index_mapping('_PKTable')
@@ -64,18 +71,17 @@ def test_id_table(rseeker, data_path):
                 'pkband': {'indx': 1, 'ID': 'pkband'}
                 }
             )
-
     for table in rseeker._resource.tables:
         table.ID = None
-
     assert rseeker.get_table_ids() == ['AnonymousTable', 'AnonymousTable']
+
     for table in rseeker._resource.tables:
         table.name = "any_name"
+
     assert rseeker.get_table_ids() == ['any_name', 'any_name']
     assert (rseeker.get_id_index_mapping('any_name')
             == {'pksrcid': {'indx': 0, 'ID': 'pksrcid'},
-                'pkband': {'indx': 1, 'ID': 'pkband'}
-                }
+                'pkband': {'indx': 1, 'ID': 'pkband'}}
             )
 
 
