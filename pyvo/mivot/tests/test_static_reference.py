@@ -21,14 +21,14 @@ def test_static_reference_resolve(a_seeker, instance, data_path):
     StaticReferenceResolver.resolve(a_seeker, None, instance)
     XmlUtils.assertXmltreeEqualsFile(instance.getroot(),
                                      os.path.join(data_path,
-                                                 "data/output/test_static_reference_resolve.xml"))
+                                                 "data/output/static_reference_resolved.xml"))
 
 
 @pytest.fixture
 def instance(data_path):
     return XmlUtils.xmltree_from_file(os.path.join(
         data_path,
-        "data/input/test_static_reference.xml"))
+        "data/input/static_reference.xml"))
 
 
 @pytest.fixture

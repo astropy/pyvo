@@ -60,3 +60,4 @@ pip-wheel-metadata
 
 # ipython
 .ipynb_checkpoints
+/.pytest_cache/

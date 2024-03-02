@@ -29,7 +29,7 @@ def test_model_viewer3(votable_test, simple_votable):
     assert xml_simple_votable.tag == 'TEMPLATES'
     recusive_xml_check(xml_simple_votable, MivotInstance)
     m_viewer_votable_test = MivotViewer(votable_path=votable_test)
-    m_viewer_votable_test.get_next_row()
+    m_viewer_votable_test.next()
     mivot_instance = m_viewer_votable_test.instance
     xml_votable_test = m_viewer_votable_test.xml_view
     assert xml_simple_votable.tag == 'TEMPLATES'
@@ -107,13 +107,10 @@ def test_dict_model_viewer3(votable_test, simple_votable):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     m_viewer_votable_test = MivotViewer(votable_path=votable_test)
-    m_viewer_votable_test.get_next_row()
+    m_viewer_votable_test.next()
     mivot_instance = m_viewer_votable_test.instance
     _dict = MivotUtils.xml_to_dict(m_viewer_votable_test.xml_viewer.view)
     recursive_check(mivot_instance, **_dict)
-
-    m_viewer_simple_votable = MivotViewer(votable_path=simple_votable)
-    m_viewer_simple_votable.get_next_row()
     mivot_instance = m_viewer_votable_test.instance
     _dict = MivotUtils.xml_to_dict(m_viewer_votable_test.xml_view)
     recursive_check(mivot_instance, **_dict)

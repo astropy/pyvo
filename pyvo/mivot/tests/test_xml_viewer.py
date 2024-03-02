@@ -17,7 +17,7 @@ activate_features('MIVOT')
 def test_xml_viewer(m_viewer):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
-    m_viewer.get_next_row()
+    m_viewer.next()
     xml_viewer = m_viewer.xml_viewer
     with pytest.raises(Exception, match="Cannot find dmrole wrong_role in any instances of the VOTable"):
         xml_viewer.get_instance_by_role("wrong_role")

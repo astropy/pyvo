@@ -2,7 +2,7 @@
 """
 Class that provides multiple getters on VOTable RESOURCE elements.
 """
-from pyvo.mivot.utils.constant import Constant
+from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.utils.prototype import prototype_feature
 
 
@@ -18,8 +18,7 @@ class ResourceSeeker:
         Constructor
         Parameters
         ----------
-        resource : ~pyvo.dal.query.Resource
-            The resource object to be queried.
+        resource (astropy.votable.Resource): The resource object to be queried.
         """
         self._resource = resource
 
@@ -27,11 +26,10 @@ class ResourceSeeker:
         """
         Return the list of table ids.
         Only resource children are considered.
-        The ID is first searched and then the name, and finally 'AnonymousTable' is taken.
+        The @ID is first searched and then the @name, and finally 'AnonymousTable' is taken.
         Returns
         -------
-        list of str
-            List of table ids.
+        list of str: table ids.
         """
         retour = []
         for table in self._resource.tables:
@@ -48,12 +46,10 @@ class ResourceSeeker:
         Return the table matching table_name first by ID and then by name.
         Parameters
         ----------
-        table_name : str
-            Name of the table to get.
+        table_name (str): Name of the table to get.
         Returns
         -------
-        ~pyvo.dal.query.DALResults
-            The table matching the given name.
+        ~astropy.votable.table: table matching the table_name.
         """
         if table_name == Constant.FIRST_TABLE:
             return self._resource.tables[0]
@@ -68,8 +64,7 @@ class ResourceSeeker:
         Return the VOTable PARAMS.
         Returns
         -------
-        ~pyvo.dal.query.DALResults
-            The VOTable PARAMS.
+        ~astropy.votable.Resource.params: VOTable PARAMS.
         """
         return self._resource.params
 
@@ -78,12 +73,10 @@ class ResourceSeeker:
         Build an index binding column number with field id.
         Parameters
         ----------
-        table_name : str
-            Name of the table.
+        table_name (str): Name of the table.
         Returns
         -------
-        dict
-            A dictionary mapping field id to column number.
+        dict: dictionary mapping field id to column number: {name: {ID, ref, indx}...}
         """
         retour = {}
         table = self.get_table(table_name)
@@ -106,12 +99,10 @@ class ResourceSeeker:
         Build an index binding field unit with field id.
         Parameters
         ----------
-        table_name : str
-            Name of the table.
+        table_name (str): Name of the table.
         Returns
         -------
-        dict
-            A dictionary mapping field id to field unit.
+        dict: A dictionary mapping field id to field unit {ID1: unit, name1: unit, ref1: unit ...}.
         """
         retour = {}
         table = self.get_table(table_name)

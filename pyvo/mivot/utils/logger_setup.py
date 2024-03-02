@@ -23,8 +23,7 @@ class LoggerSetup:
         Format and return the system logger.
         Returns
         -------
-        logger
-            System logger.
+        logger: System logger.
         """
         LoggerSetup._set_default_format()
         return logging.getLogger("mivot")

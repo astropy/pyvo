@@ -1,9 +1,25 @@
 """
-MIVOT vocabulary.
+MIVOT vocabulary and regular expressions.
 """
 import re
 from astropy import units as u
 from pyvo.utils import prototype_feature
+
+
+class Constant:
+    """
+    Class used to set constant to identify XML attributes added to the MIVOT ATTRIBUTES
+    """
+    FIRST_TABLE = "first_table"
+    FIELD_UNIT = "field_unit"
+    COL_INDEX = "col_index"
+    ROOT_COLLECTION = "root_collection"
+    NOT_SET = "NotSet"
+    ANONYMOUS_TABLE = "AnonymousTable"
+
+
+# Regexp pattern to check no valid mapping is present
+NoMapping = re.compile(r".REPORT\s+status=['\"]KO")
 
 unit_mapping = {
     "deg": u.degree,

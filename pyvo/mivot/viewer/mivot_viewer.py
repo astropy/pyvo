@@ -1,7 +1,26 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This file contains the high-level functions to deal with model views on data.
+MivotViewer implements the user API for accessing mapped data.
+- extracts the annotation block from the VOTable
+- builds an XML view of the mapped model
+- updates the leaves of the XML view with the values read in the data rows
+- builds Python instances providing access to the mapped values by object attributes.
+
+The code below shows a typical use of `MivotViewer
+
+    .. code-block:: python
+    with MivotViewer(path_to_votable) as mivot_viewer:
+        print(f"mapped class id {mivot_instance.dmtype}")
+        print(f"space frame is  {mivot_instance.Coordinate_coordSys.spaceRefFrame.value}")
+
+        mivot_object = mivot_viewer.instance
+        while mivot_viewer.next():
+            print(f"latitude={mivot_object.latitude.value}")
+            print(f"longitude={mivot_object.longitude.value}")
+
+    See `tests/test_user_api.py`to get different examples of the API usage.
 """
+
 from copy import deepcopy
 from astropy import version
 from astropy.io.votable import parse
@@ -9,11 +28,10 @@ from astropy.io.votable.tree import VOTableFile
 from pyvo.dal import DALResults
 from pyvo.mivot import logger
 from pyvo.mivot.utils.vocabulary import Ele, Att
-from pyvo.mivot.utils.constant import Constant
+from pyvo.mivot.utils.vocabulary import Constant, NoMapping
 from pyvo.mivot.utils.exceptions import (MappingException,
                                          ResourceNotFound,
                                          MivotElementNotFound,
-                                         MivotNotFound,
                                          AstropyVersionException)
 from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.utils.xpath_utils import XPath
@@ -36,21 +54,15 @@ except ImportError:
 @prototype_feature('MIVOT')
 class MivotViewer:
     """
-    ModelViewerLevel1 is a PyVO table wrapper aiming at providing
+    MivotViewer is a PyVO table wrapper aiming at providing
     a model view on VOTable data read with usual tools.
-    Standard usage applied to data rows:
-        .. code-block:: python
-        data_path = os.path.dirname(os.path.realpath(__file__))
-        votable = os.path.join(data_path, "any_votable.xml")
-        m_viewer = ModelViewerLevel1(votable)
-        row_view = m_viewer.get_next_row_view()
     """
     def __init__(self, votable_path, tableref=None, resource_number=None):
         """
-        Constructor of the ModelViewerLevel1 class.
+        Constructor of the MivotViewer class.
         Parameters
         ----------
-        votable_path : str or DALResults instance
+        votable_path : str, parsed VOTable or DALResults instance
             VOTable that will be parsed with the parser of Astropy,
             which extracts the annotation block.
         tableref : str, optional
@@ -80,30 +92,39 @@ class MivotViewer:
             self._resource = None
             self._annotation_seeker = None
             self._mapping_block = None
-            self._mapped_tables = None
-            self._set_resource(resource_number)
-            self._set_mapping_block()
-            self._resource_seeker = ResourceSeeker(self._resource)
-            self._set_mapped_tables()
-            self._connect_table(tableref)
+            self._mapped_tables = []
+            self._resource_seeker = None
             self._instance = None
-            self._xml_viewer = None
-            self.init_instance()
+            try:
+                self._set_resource(resource_number)
+                self._set_mapping_block()
+                self._resource_seeker = ResourceSeeker(self._resource)
+                self._set_mapped_tables()
+                self._connect_table(tableref)
+                self._init_instance()
+            except MappingException as mnf:
+                logger.error(str(mnf))
 
     """
     Properties
     """
     def __enter__(self):
+        """ `with` statement implementation """
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        print("ModelViewerLevel1 closing..")
+        """ `with` statement implementation """
+        logger.info("MivotViewer closing..")
 
     def close(self):
-        print("ModelViewerLevel1 is closed")
+        """ `with` statement implementation """
+        logger.info("MivotViewer is closed")
 
     @property
     def votable(self):
+        """
+        returns the Astropy parsed votable
+        """
         return self._parsed_votable
 
     @property
@@ -122,42 +143,80 @@ class MivotViewer:
 
     @property
     def connected_table(self):
+        """
+        getter for the identifier the astropy.table
+        instance the viewer is connected to
+        """
         return self._connected_table
 
     @property
     def connected_table_ref(self):
+        """ getter for the identifier the table the viewer is connected to """
         return self._connected_tableref
 
     @property
-    def current_data_row(self):
-        self._assert_table_is_connected()
-        return self._current_data_row
-
-    @property
     def instance(self):
-        self._assert_table_is_connected()
+        """
+        returns : MivotInstance
+        -------
+           A Python object built from the XML view of the mapped model with attribute
+           values set from the last values of the last read data rows
+        """
         return self._instance
 
     @property
     def xml_view(self):
+        """
+        returns : XML element
+            The XML view on the current data row
+        """
         return self.xml_viewer.view
 
     @property
     def xml_viewer(self):
-        if not self._xml_viewer:
-            model_view = XMLViewer(self._get_model_view())
-            first_instance_dmype = self.get_first_instance(tableref=self.connected_table_ref)
-            model_view.get_instance_by_type(first_instance_dmype)
-            self._xml_viewer = XMLViewer(model_view._xml_view)
-        return self._xml_viewer
+        """
+        returns: XMLViewer
+            XMLViewer tuned to browse the TEMPLATES content
+        """
+        # build a first XMLViewer for extract the content of the TEMPLATES element
+        model_view = XMLViewer(self._get_model_view())
+        first_instance_dmype = self.get_first_instance_dmtype(tableref=self.connected_table_ref)
+        model_view.get_instance_by_type(first_instance_dmype)
 
-    """
-    Global accessors
-    """
+        # return an XMLViewer tuned to process the TEMPLATES content
+        return XMLViewer(model_view._xml_view)
+
+    @property
+    def table_row(self):
+        """ getter for the current astropy.table.array row """
+        return self._current_data_row
+
+    def next(self):
+        """
+        jump to the next table row and update the MivotInstance instance
+
+        returns:
+        -------
+            MivotInstance: the updated instance or None
+                           it he able end has been reached
+        """
+        self.next_table_row()
+
+        if self._current_data_row is None:
+            return None
+
+        if self._instance is None:
+            xml_instance = self.xml_viewer.view
+            self._instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
+        self._instance.update(self._current_data_row)
+        return self._instance
+
     def get_table_ids(self):
         """
         Return a list of the table located just below self._resource.
         """
+        if self.resource_seeker is None:
+            return None
         return self.resource_seeker.get_table_ids()
 
     def get_globals_models(self):
@@ -171,6 +230,8 @@ class MivotViewer:
             A dictionary containing the dmtypes of all the top-level INSTANCE/COLLECTION of GLOBALS.
             The structure of the dictionary is {'COLLECTION': [dmtypes], 'INSTANCE': [dmtypes]}.
         """
+        if self._annotation_seeker is None:
+            return None
         retour = {}
         retour[Ele.COLLECTION] = self._annotation_seeker.get_globals_collection_dmtypes()
         retour[Ele.INSTANCE] = self._annotation_seeker.get_globals_instance_dmtypes()
@@ -181,10 +242,11 @@ class MivotViewer:
         Get a dictionary of models and their URLs.
         Returns
         -------
-        dict
-            A dictionary of model names and a lists of their URLs.
-            The format is {'model': [url], ...}.
+        dict: Model names and a lists of their URLs.
+              The format is {'model': [url], ...}.
         """
+        if self._annotation_seeker is None:
+            return None
         retour = self._annotation_seeker.models
         return retour
 
@@ -194,10 +256,11 @@ class MivotViewer:
         Note: COLLECTION not implemented yet.
         Returns
         -------
-        dict
-            A dictionary containing dmtypes of all INSTANCE/COLLECTION of all TEMPLATES.
-            The format is {'tableref': {'COLLECTIONS': [dmtypes], 'INSTANCE': [dmtypes]}, ...}.
+        dict: A dictionary containing dmtypes of all INSTANCE/COLLECTION of all TEMPLATES.
+              The format is {'tableref': {'COLLECTIONS': [dmtypes], 'INSTANCE': [dmtypes]}, ...}.
         """
+        if self._annotation_seeker is None:
+            return None
         retour = {}
         gni = self._annotation_seeker.get_instance_dmtypes()[Ele.TEMPLATES]
         for tid, tmplids in gni.items():
@@ -207,15 +270,15 @@ class MivotViewer:
     """
     Data browsing
     """
-    def get_next_row(self):
+    def next_table_row(self):
         """
-        Return the next data row of the connected table.
-        Returns
-        -------
-        astropy.table.row.Row
-            The next data row.
+        Iterate once on the table row
+
+        Returns:
+             numpy row: the current table row of None if the end of the table has been reached
         """
-        self._assert_table_is_connected()
+        if self._table_iterator is None:
+            return None
         self._current_data_row = self._table_iterator.get_next_row()
         return self._current_data_row
 
@@ -223,8 +286,50 @@ class MivotViewer:
         """
         Rewind the table iterator on the table the veizer is connected with.
         """
-        self._assert_table_is_connected()
-        self._table_iterator.rewind()
+        if self._table_iterator:
+            self._table_iterator.rewind()
+
+    def get_first_instance_dmtype(self, tableref=None):
+        """
+        Return the dmtype of the head INSTANCE (first TEMPLATES child).
+        If no INSTANCE is found, take the first COLLECTION.
+        Parameters
+        ----------
+        tableref : str or None, optional
+            Identifier of the table.
+        Returns
+        -------
+        ~`xml.etree.ElementTree.Element`
+            The first child of TEMPLATES.
+        """
+        if self._annotation_seeker is None:
+            return None
+        child_template = self._annotation_seeker.get_templates_block(tableref)
+        child = child_template.findall("*")
+        collection = XPath.x_path(self._annotation_seeker.get_templates_block(tableref),
+                                  ".//" + Ele.COLLECTION)
+        instance = XPath.x_path(self._annotation_seeker.get_templates_block(tableref), ".//" + Ele.INSTANCE)
+        if len(collection) >= 1:
+            collection[0].set(Att.dmtype, Constant.ROOT_COLLECTION)
+            (self._annotation_seeker.get_templates_block(tableref).find(".//" + Ele.COLLECTION)
+             .set(Att.dmtype, Constant.ROOT_COLLECTION))
+        if len(child) > 1:
+            if len(instance) >= 1:
+                for inst in instance:
+                    if inst in child:
+                        return inst.get(Att.dmtype)
+            elif len(collection) >= 1:
+                for coll in collection:
+                    if coll in child:
+                        return coll.get(Att.dmtype)
+        elif len(child) == 1:
+            if child[0] in instance:
+                return child[0].get(Att.dmtype)
+            elif child[0] in collection:
+                return collection[0].get(Att.dmtype)
+        else:
+            raise MivotElementNotFound("Can't find the first " + Ele.INSTANCE
+                                       + "/" + Ele.COLLECTION + " in " + Ele.TEMPLATES)
 
     """
     Private methods
@@ -239,6 +344,9 @@ class MivotViewer:
         tableref : str or None, optional
             Identifier of the table. If None, connects to the first table.
         """
+        if not self._resource_seeker:
+            raise MappingException("No mapping block found")
+
         stableref = tableref
         if tableref is None:
             stableref = ""
@@ -298,80 +406,27 @@ class MivotViewer:
                 ele.attrib[Att.value] = str(self._current_data_row[int(index)])
         return templates_copy
 
-    def get_first_instance(self, tableref=None):
+    def _init_instance(self):
         """
-        Return the dmtype of the head INSTANCE (first TEMPLATES child).
-        If no INSTANCE is found, take the first COLLECTION.
-        Parameters
-        ----------
-        tableref : str or None, optional
-            Identifier of the table.
-        Returns
-        -------
-        ~`xml.etree.ElementTree.Element`
-            The first child of TEMPLATES.
+        Read the first table row and build the MivotInstance (_instance attribute) from it.
+        The table row iterator in rewind at he end to make sure we won't lost the first data row.
         """
-        child_template = self._annotation_seeker.get_templates_block(tableref)
-        child = child_template.findall("*")
-        collection = XPath.x_path(self._annotation_seeker.get_templates_block(tableref),
-                                  ".//" + Ele.COLLECTION)
-        instance = XPath.x_path(self._annotation_seeker.get_templates_block(tableref), ".//" + Ele.INSTANCE)
-        if len(collection) >= 1:
-            collection[0].set(Att.dmtype, Constant.ROOT_COLLECTION)
-            (self._annotation_seeker.get_templates_block(tableref).find(".//" + Ele.COLLECTION)
-             .set(Att.dmtype, Constant.ROOT_COLLECTION))
-        if len(child) > 1:
-            if len(instance) >= 1:
-                for inst in instance:
-                    if inst in child:
-                        return inst.get(Att.dmtype)
-            elif len(collection) >= 1:
-                for coll in collection:
-                    if coll in child:
-                        return coll.get(Att.dmtype)
-        elif len(child) == 1:
-            if child[0] in instance:
-                return child[0].get(Att.dmtype)
-            elif child[0] in collection:
-                return collection[0].get(Att.dmtype)
-        else:
-            raise MivotElementNotFound("Can't find the first " + Ele.INSTANCE
-                                       + "/" + Ele.COLLECTION + " in " + Ele.TEMPLATES)
-
-    def init_instance(self):
         if self._instance is None:
-            self.get_next_row()
-            first_instance = self.get_first_instance(tableref=self.connected_table_ref)
+            self.next_table_row()
+            first_instance = self.get_first_instance_dmtype(tableref=self.connected_table_ref)
             xml_instance = self.xml_viewer.get_instance_by_type(first_instance)
             self._instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
             self.rewind()
-
-    def next_row(self):
-        """
-        TONBE USPDTDLMKMKLMKLMKLMKLmklmklmkml
-        -------
-        pyvo.mivot.viewer.mivot_instance.MivotClass
-            Object of the next data row.
-        """
-        self.get_next_row()
-        if self._current_data_row is None:
-            return None
-
-        if self._instance is None:
-            xml_instance = self.xml_viewer.view
-            self._instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
-        self._instance.update(self._current_data_row)
-
         return self._instance
-
-    def _assert_table_is_connected(self):
-        assert self._connected_table is not None, "Operation failed: no connected data table"
 
     def _set_mapped_tables(self):
         """
         Set the mapped tables with a list of the TEMPLATES tablerefs.
         """
-        self._mapped_tables = self._annotation_seeker.templates
+        if not self.resource_seeker:
+            self._mapped_table = []
+        else:
+            self._mapped_tables = self._annotation_seeker.templates
 
     def _set_resource(self, resource_number):
         """
@@ -398,10 +453,8 @@ class MivotViewer:
         """
         Set the mapping block found in the resource and set the annotation_seeker
         """
-        if (self._resource.mivot_block.content
-                == ('<VODML xmlns="http://www.ivoa.net/xml/mivot">\n  '
-                    '<REPORT status="KO">No Mivot block</REPORT>\n</VODML>\n')):
-            raise MivotNotFound("Mivot block is not found")
+        if NoMapping.search(self._resource.mivot_block.content):
+            raise MappingException("Mivot block is not found")
         # The namespace should be removed
         self._mapping_block = (
             etree.fromstring(self._resource.mivot_block.content

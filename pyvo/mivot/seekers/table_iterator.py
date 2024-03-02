@@ -17,10 +17,8 @@ class TableIterator:
         Constructor of the TableIterator class.
         Parameters
         ----------
-        name : str
-            Table name (not really used).
-        data_table : ~numpy.ndarray
-            Numpy table returned by `~astropy.votable`.
+        name (str): Table name (not really used).
+        data_table (~numpy.ndarray): Numpy table returned by `~astropy.votable`.
         """
         self.name = name
         self.data_table = data_table

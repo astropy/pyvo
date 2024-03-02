@@ -6,8 +6,9 @@ import os
 import pytest
 import re
 from urllib.request import urlretrieve
-from pyvo.mivot.utils.constant import Constant
+from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.mivot.utils.dict_utils import DictUtils
+from pyvo.mivot.utils.exceptions import MappingException
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.mivot_viewer import MivotViewer
 from pyvo.utils.prototype import activate_features
@@ -29,24 +30,23 @@ def test_model_viewer_level1_constructor(path_to_test_1):
 @pytest.mark.remote_data
 def test_first_instance_row_view(path_to_first_instance):
     """
-    Test the function get_first_instance() which is used to find the first INSTANCE/COLLECTION in TEMPLATES.
+    Test the function get_first_instance_dmtype() which is
+    used to find the first INSTANCE/COLLECTION in TEMPLATES.
     """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
+
     m_viewer = MivotViewer(votable_path=path_to_first_instance)
-    m_viewer.get_next_row()
-    assert m_viewer.get_first_instance("one_instance") == "one_instance"
-    assert m_viewer.get_first_instance("coll_and_instances") == "first"
-    assert m_viewer.get_first_instance("one_collection") == Constant.ROOT_COLLECTION
-    assert m_viewer.get_first_instance("only_collection") == Constant.ROOT_COLLECTION
+    assert m_viewer.get_first_instance_dmtype("one_instance") == "one_instance"
+    assert m_viewer.get_first_instance_dmtype("coll_and_instances") == "first"
+    assert m_viewer.get_first_instance_dmtype("one_collection") == Constant.ROOT_COLLECTION
+    assert m_viewer.get_first_instance_dmtype("only_collection") == Constant.ROOT_COLLECTION
     with pytest.raises(Exception, match="Can't find the first INSTANCE/COLLECTION in TEMPLATES"):
-        m_viewer.get_first_instance("empty")
-    assert m_viewer.get_next_row() is not None
-    assert m_viewer.get_next_row() is None
+        m_viewer.get_first_instance_dmtype("empty")
 
 
 @pytest.mark.remote_data
-def test_model_viewer_level1_table_ref(m_viewer):
+def test_table_ref(m_viewer):
     """
     Test if the model_viewer_level1 can find each table_ref and connect to the right table_ref.
     Test if the model_viewer_level1 can find each models.
@@ -70,7 +70,7 @@ def test_model_viewer_level1_table_ref(m_viewer):
 
 
 @pytest.mark.remote_data
-def test_model_viewer_level1_global_getters(m_viewer, data_path):
+def test_global_getters(m_viewer, data_path):
     """
     Test each getter of the model_viewer_level1 specific for the GLOBALS.
     """
@@ -78,20 +78,40 @@ def test_model_viewer_level1_global_getters(m_viewer, data_path):
         pytest.skip("MIVOT test skipped because of the astropy version.")
     assert m_viewer.get_table_ids() == ['_PKTable', 'Results']
     assert m_viewer.get_globals_models() == DictUtils.read_dict_from_file(
-        os.path.join(data_path, "data/output/test_globals_models.json"))
+        os.path.join(data_path, "data/output/globals_models.json"))
     assert m_viewer.get_templates_models() == DictUtils.read_dict_from_file(
-        os.path.join(data_path, "data/output/test_templates_models.json"))
+        os.path.join(data_path, "data/output/templates_models.json"))
     m_viewer._connect_table('_PKTable')
-    row = m_viewer.get_next_row()
+    row = m_viewer.next_table_row()
     assert row[0] == '5813181197970338560'
     assert row[1] == 'G'
-    row = m_viewer.get_next_row()
+    row = m_viewer.next_table_row()
     assert row[0] == '5813181197970338560'
     assert row[1] == 'BP'
     m_viewer.rewind()
-    row = m_viewer.get_next_row()
+    row = m_viewer.next_table_row()
     assert row[0] == '5813181197970338560'
     assert row[1] == 'G'
+
+
+@pytest.mark.remote_data
+def test_no_mivot(path_no_mivot):
+    """
+    Test each getter of the model_viewer_level1 specific for the GLOBALS.
+    """
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
+    m_viewer = MivotViewer(path_no_mivot)
+    assert m_viewer.get_table_ids() is None
+    assert m_viewer.get_globals_models() is None
+
+    assert m_viewer.get_templates_models() is None
+    with pytest.raises(MappingException):
+        m_viewer._connect_table('_PKTable')
+    with pytest.raises(MappingException):
+        m_viewer._connect_table()
+
+    assert m_viewer.next_table_row() is None
 
 
 @pytest.mark.remote_data
@@ -152,6 +172,17 @@ def path_to_first_instance(data_path, data_sample_url):
 
 
 @pytest.fixture
+def path_no_mivot(data_path, data_sample_url):
+    votable_name = "vizier_no_mivot.xml"
+    votable_path = os.path.join(data_path, "data", votable_name)
+    urlretrieve(data_sample_url + votable_name,
+                votable_path)
+
+    yield votable_path
+    os.remove(votable_path)
+
+
+@pytest.fixture
 def data_path():
     return os.path.dirname(os.path.realpath(__file__))
 
@@ -159,6 +190,11 @@ def data_path():
 @pytest.fixture
 def data_sample_url():
     return "https://raw.githubusercontent.com/ivoa/dm-usecases/main/pyvo-ci-sample/"
+
+
+@pytest.fixture
+def vizier_url():
+    return "https://cdsarc.cds.unistra.fr/beta/viz-bin/mivotconesearch/I/239/hip_main"
 
 
 if __name__ == '__main__':

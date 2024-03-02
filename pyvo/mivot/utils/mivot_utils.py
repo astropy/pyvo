@@ -1,7 +1,6 @@
 '''
-Created on 21 févr. 2024
-
-@author: michel
+Some utilities making easier the transformation of Mivot elements into dictionary components.
+These dictionaries are used to generate ``MivotInstance`` objects
 '''
 import numpy
 
@@ -18,12 +17,10 @@ class MivotUtils(object):
          - For ATTRIBUTE, a leaf is created in the tree structure with dmtype, dmrole, value, unit, and ref.
         Parameters
         ----------
-        element : ~`xml.etree.ElementTree.Element`
-            The XML element to convert to a dictionary.
+        element (~`xml.etree.ElementTree.Element`) : The XML element to convert to a dictionary.
         Returns
         -------
-        dict
-            The nested dictionary representing the XML tree structure.
+        dict: The nested dictionary representing the XML tree structure.
         """
         dict_result = {}
         for key, value in element.attrib.items():
@@ -45,13 +42,11 @@ class MivotUtils(object):
         ATTRIBUTE is always a leaf, so it is not recursive.
         Parameters
         ----------
-        child : ~`xml.etree.ElementTree.Element`
-            The ATTRIBUTE XML element to convert.
+        child (~`xml.etree.ElementTree.Element`): ATTRIBUTE XML element to convert.
         Returns
         -------
-        dict
-            A dictionary representing the ATTRIBUTE element with keys:
-            'dmtype', 'dmrole', 'value', 'unit', and 'ref'.
+        dict: A dictionary representing the ATTRIBUTE element with keys:
+              'dmtype', 'dmrole', 'value', 'unit', and 'ref'.
         """
         attribute = {}
         if child.get('dmtype') is not None:
@@ -77,12 +72,10 @@ class MivotUtils(object):
         COLLECTION is always represented as a list, and each element of the COLLECTION is added to the list.
         Parameters
         ----------
-        child : `~`xml.etree.ElementTree.Element``
-            The COLLECTION XML element to convert.
+        child (`~`xml.etree.ElementTree.Element``):  COLLECTION XML element to convert.
         Returns
         -------
-        list
-            A list of dictionaries representing the elements of the COLLECTION.
+        list: list of dictionaries representing the elements of the COLLECTION.
         """
         retour = []
         for child_coll in child:
@@ -97,10 +90,8 @@ class MivotUtils(object):
         this function is used to cast them based on their dmtype.
         Parameters
         ----------
-        value : str
-            The value of the ATTRIBUTE.
-        dmtype : str
-            The dmtype of the ATTRIBUTE.
+        value (str): value of the ATTRIBUTE.
+        dmtype (str): dmtype of the ATTRIBUTE.
         Returns
         -------
         Union[bool, float, str, None]

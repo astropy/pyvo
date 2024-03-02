@@ -7,14 +7,14 @@ try:
 except ImportError:
     from xml.etree import ElementTree as etree
 import xml.etree.ElementTree as ET
-from pyvo.mivot.utils.constant import Constant
+from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.mivot.utils.vocabulary import Att
 from pyvo.mivot.utils.exceptions import ResolveException
 
 
 class XmlUtils:
     """
-    Static class implementing convenient operations on XML.
+    Static class implementing convenient operations on XML
     """
     @staticmethod
     def pretty_print(xmltree):
@@ -22,8 +22,7 @@ class XmlUtils:
         Pretty print an XML tree.
         Parameters
         ----------
-        xmltree : ~`xml.etree.ElementTree.Element`
-            The XML tree to pretty print.
+        xmltree (~`xml.etree.ElementTree.Element`): XML tree to pretty print.
         """
         print(XmlUtils.pretty_string(xmltree))
 
@@ -33,12 +32,10 @@ class XmlUtils:
         Return a pretty string representation of an XML tree.
         Parameters
         ----------
-        xmltree : ~`xml.etree.ElementTree.Element`
-            The XML tree to convert to a pretty string.
+        xmltree (~`xml.etree.ElementTree.Element`): XML tree to convert to a pretty string.
         Returns
         -------
-        str
-            The pretty string representation of the XML tree.
+        str: The pretty string representation of the XML tree.
         """
         if hasattr(xmltree, 'getroot'):
             XmlUtils.indent(xmltree.getroot())
@@ -54,10 +51,8 @@ class XmlUtils:
         Indent an XML tree.
         Parameters
         ----------
-        elem : ~`xml.etree.ElementTree.Element`
-            The XML tree to indent.
-        level : int
-            The level of indentation.
+        elem (~`xml.etree.ElementTree.Element`): XML tree to indent.
+        level (int): level of indentation.
         Returns
         -------
         ~`xml.etree.ElementTree.Element`

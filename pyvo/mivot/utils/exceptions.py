@@ -58,27 +58,3 @@ class AstropyVersionException(Exception):
     """
     Exception raised if the version of astropy is not compatible with MIVOT.
     """
-
-
-class UnitException(Exception):
-    """
-    Exception raised if the unit is not recognized.
-    """
-
-
-class TimeFormatException(Exception):
-    """
-    Exception raised if the time format is not recognized.
-    """
-
-
-class DeltaException(Exception):
-    """
-    Exception raised if the delta is 90 deg.
-    """
-
-
-class SkyCoordParameterException(Exception):
-    """
-    Exception raised if the SkyCoord parameters are not recognized.
-    """

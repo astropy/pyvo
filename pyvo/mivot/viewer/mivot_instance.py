@@ -1,6 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-MivotClass keep as an attribute dictionary __dict__ all XML objects.
+MivotInstance is the root of the Python generated classes.
+Instances of MivotInstance are built from a dictionary issued
+from the XML view of the mapped model.
+This dictionary is used to extend the object with all components
+(classes, attributes, collections) necessary to reproduce the structure
+of the mapped model.
+Instances of this class are built by `~pyvo.mivot.viewer.mivot_viewer`.
+Although attribute values can be changed by users, this class is first
+meant to provide a convenient access the mapped VOTable data
 """
 from astropy import time
 from pyvo.mivot.utils.vocabulary import unit_mapping
@@ -11,7 +19,8 @@ from pyvo.mivot.utils.mivot_utils import MivotUtils
 @prototype_feature('MIVOT')
 class MivotInstance:
     """
-    MIVOT class is a dictionary (__dict__) with only essential information of the ModelViewerLevel3._dict.
+    MivotInstance holds the dictionary (__dict__) similar with the mapped model structure
+    where the references have been resolved.
     The dictionary keeps the hierarchy of the XML :
     "key" : {not a leaf} means key is the dmtype of an INSTANCE
     "key" : {leaf}       means key is the dmrole of an ATTRIBUTE
@@ -23,21 +32,19 @@ class MivotInstance:
         Constructor of the MIVOT class.
         Parameters
         ----------
-        kwargs : dict
-            Dictionary of the XML object.
+        kwargs (dict): Dictionary of the XML object.
         """
         self._create_class(**instance_dict)
 
     def _create_class(self, **kwargs):
         """
-        Recursively initialize the MIVOT class with the dictionary of the XML object got in ModelViewerLevel3.
-        For the unit of the ATTRIBUTE, we add the astropy unit or the astropy time equivalence by comparing
+        Recursively initialize the MIVOT class with the dictionary of the XML object got in MivotViewer.
+        For the unit of the ATTRIBUTE, we add the Astropy unit or the Astropy time equivalence by comparing
         the value of the unit with values in time.TIME_FORMATS.keys() which is the list of time formats.
-        We do the same with the unit_mapping dictionary, which is the list of astropy units.
+        We do the same with the unit_mapping dictionary, which is the list of Astropy units.
         Parameters
         ----------
-        kwargs : dict
-            Dictionary of the XML object.
+        kwargs (dict): Dictionary of the XML object.
         """
         for key, value in kwargs.items():
             if isinstance(value, list):  # COLLECTION
@@ -66,13 +73,11 @@ class MivotInstance:
     def update(self, row, ref=None):
         """
         Update the MIVOT class with the new data row.
-        For each leaf of the MIVOT class, we update the value with the new data row, comparing the reference.
+        For each leaf of the MIVOT class, we update the value with the new data row.
         Parameters
         ----------
-        row : astropy.table.row.Row
-            The new data row.
-        ref : str, optional
-            The reference of the data row, default is None.
+        row (astropy.table.row.Row): The new data row.
+        ref (str, optional):The reference of the data row, default is None.
         """
         for key, value in vars(self).items():
             if isinstance(value, list):
@@ -98,11 +103,9 @@ class MivotInstance:
         In this case (`role_instance=True`), we just replace the point "." With an underscore "_".
         Parameters
         ----------
-        value : str
-            The string to process.
-        role_instance : bool, optional
-            If True, keeps the type object for dmroles representing an INSTANCE of INSTANCEs.
-            Default is False.
+        value (str): The string to process.
+        role_instance (bool, optional): If True, keeps the type object for dmroles representing
+                                        an INSTANCE of INSTANCEs. Default is False.
         """
         if isinstance(value, str):
             # We first find the model_name before the colon
@@ -125,12 +128,10 @@ class MivotInstance:
         Check if the dictionary is an ATTRIBUTE.
         Parameters
         ----------
-        **kwargs : dict
-            The dictionary to check.
+        **kwargs (dict): The dictionary to check.
         Returns
         -------
-        bool
-            True if the dictionary is an ATTRIBUTE, False otherwise.
+        bool: True if the dictionary is an ATTRIBUTE, False otherwise.
         """
         if isinstance(kwargs, dict):
             for _, value in kwargs.items():
@@ -144,10 +145,9 @@ class MivotInstance:
         This function is only used for debugging purposes.
         Parameters
         ----------
-        obj : dict or object
-            The dictionary or object to display.
-        classkey : str, optional
-            The key to use for the object's class name in the dictionary, default is None.
+        obj (dict or object): The dictionary or object to display.
+        classkey (str, optional): The key to use for the object's class name
+                                  in the dictionary, default is None.
         Returns
         -------
         dict or object
