@@ -53,7 +53,7 @@ class AuthSession:
         Parameters
         ----------
         capabilities : object
-            List of `~pyvo.io.vosi.voresource.Capabilities`
+            List of `~pyvo.io.vosi.voresource.Capability`
         """
         self._auth_urls.update_from_capabilities(capabilities)
 

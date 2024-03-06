@@ -324,7 +324,7 @@ class DALResults:
 
         See Also
         --------
-        DALFormatError
+        pyvo.dal.DALFormatError
         """
         self._votable = votable
 
@@ -652,7 +652,7 @@ class DALResults:
     def cursor(self):
         """
         return a cursor that is compliant with the Python Database API's
-        :class:`.Cursor` interface.  See PEP 249 for details.
+        ``Cursor`` interface.  See PEP 249 for details.
         """
         from .dbapi2 import Cursor
         return Cursor(self)

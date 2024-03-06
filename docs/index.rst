@@ -124,8 +124,8 @@ observational datasets through TAP tables), you can write:
     ivo://xcatdb/4xmm/tap
 
 
-Using `pyvo`
-------------
+Using ``pyvo``
+--------------
 
 .. toctree::
    :maxdepth: 1
@@ -135,4 +135,5 @@ Using `pyvo`
    io/index
    auth/index
    mivot/index
+   utils/index
    utils/prototypes

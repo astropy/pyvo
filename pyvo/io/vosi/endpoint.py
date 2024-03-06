@@ -49,7 +49,7 @@ def parse_tables(source, *, pedantic=None, filename=None,
                  _debug_python_based_parser=False):
     """
     Parses a tableset xml file (or file-like object), and returns a
-    `~pyvo.io.vosi.endpoint.TablesetFile` object.
+    `~pyvo.io.vosi.endpoint.TablesFile` object.
 
     Parameters
     ----------
@@ -70,7 +70,7 @@ def parse_tables(source, *, pedantic=None, filename=None,
 
     Returns
     -------
-    tables_file : `~pyvo.io.vosi.endpoint.TableSetFile` object
+    tables_file : `~pyvo.io.vosi.endpoint.TablesFile` object
 
     See also
     --------

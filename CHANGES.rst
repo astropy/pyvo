@@ -4,11 +4,13 @@
 Enhancements and Fixes
 ----------------------
 
-- Fix ``pyvo.registry.Author`` to allow registry searches with author constraints. [#515]
+- Add method ``list_interfaces`` to ``pyvo.registry.regtap.RegistryResource``
+  that returns the list of available interfaces linked to services.
+  Add ``keyword`` parameter in ``get_service`` which should match
+  ``capability_description``. [#505, #525]
 
-- Add method ``list_services`` to ``pyvo.registry.regtap.RegistryResource`` that returns the
-  list of available services. Add ``keyword`` parameter in ``get_service`` which should match
-  ``capability_description``. [#505]
+- Add list of access points to services in ``pyvo.registry.regtap.RegistryResource.describe``
+  when there is more than one service available [#525]
 
 - Add optional ``capability_description`` parameter and a ``__repr__`` to ``pyvo.dal.query.DALService``
   abstract base class [#505]
@@ -26,6 +28,22 @@ Enhancements and Fixes
 
 Deprecations and Removals
 -------------------------
+
+
+1.5.1 (2024-02-21)
+==================
+
+Bug Fixes
+---------
+
+- Fix ``pyvo.registry.Author`` to allow registry searches with author
+  constraints. [#515]
+
+- Backing out of having alt_identifier in RegistryResource throughout.
+  Use get_alt_identifier() instead [#523]
+
+- Fix ``maxrec=0`` special case for SIA2 queries. [#520]
+
 
 1.5 (2023-12-19)
 ================

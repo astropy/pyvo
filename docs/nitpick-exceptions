@@ -1,0 +1,13 @@
+# Deprecated API
+py:class pyvo.dal.vosi.AvailabilityMixin
+
+# Non-public API classes. We should probably remove references to them altogether
+py:obj pyvo.io.uws.tree.Jobs
+py:class pyvo.dal.vosi.CapabilityMixin
+py:class pyvo.dal.vosi.EndpointMixin
+py:class pyvo.dal.adhoc.AxisParamMixin
+py:class pyvo.dam.obscore.ObsCoreMetadata
+py:obj pyvo.registry.regtap.Interface
+# There is no public API docs for this, yet it's useful to leave the reference in
+py:obj pyvo.io.vosi.exceptions
+py:class pyvo.dal.exceptions.PyvoUserWarning
