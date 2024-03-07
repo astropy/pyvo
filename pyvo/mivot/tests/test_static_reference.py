@@ -4,31 +4,31 @@ Test for mivot.features.static_reference_resolver.py
 """
 import os
 import pytest
-from urllib.request import urlretrieve
-from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.seekers.annotation_seeker import AnnotationSeeker
 from pyvo.mivot.features.static_reference_resolver import StaticReferenceResolver
 from pyvo.mivot.version_checker import check_astropy_version
+from pyvo.mivot.viewer.mivot_viewer import MivotViewer
 from pyvo.utils import activate_features
+from . import XMLOutputChecker
+
 
 activate_features('MIVOT')
 
 
-@pytest.mark.remote_data
 def test_static_reference_resolve(a_seeker, instance, data_path):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
     StaticReferenceResolver.resolve(a_seeker, None, instance)
-    XmlUtils.assertXmltreeEqualsFile(instance.getroot(),
+    XMLOutputChecker.assertXmltreeEqualsFile(instance.getroot(),
                                      os.path.join(data_path,
-                                                 "data/output/static_reference_resolved.xml"))
+                                                 "data/reference/static_reference_resolved.xml"))
 
 
 @pytest.fixture
 def instance(data_path):
-    return XmlUtils.xmltree_from_file(os.path.join(
+    return XMLOutputChecker.xmltree_from_file(os.path.join(
         data_path,
-        "data/input/static_reference.xml"))
+        "data/static_reference.xml"))
 
 
 @pytest.fixture
@@ -37,22 +37,12 @@ def data_path():
 
 
 @pytest.fixture
-def data_sample_url():
-    return "https://raw.githubusercontent.com/ivoa/dm-usecases/main/pyvo-ci-sample/"
-
-
-@pytest.fixture
-def a_seeker(data_path, data_sample_url):
+def a_seeker(data_path):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
-
-    votable_name = "test.0.xml"
-    votable_path = os.path.join(data_path, "data", "input", votable_name)
-    urlretrieve(data_sample_url + votable_name,
-                votable_path)
-    mapping_block = XmlUtils.xmltree_from_file(votable_path)
-    yield AnnotationSeeker(mapping_block.getroot())
-    os.remove(votable_path)
+    m_viewer = MivotViewer(os.path.join(data_path, "data", "test.xml_viewer.xml"),
+                       tableref="Results")
+    return AnnotationSeeker(m_viewer._mapping_block)
 
 
 if __name__ == '__main__':

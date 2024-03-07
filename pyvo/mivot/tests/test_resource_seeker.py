@@ -4,36 +4,15 @@ Test for mivot.seekers.resource_seeker.py
 """
 import os
 import pytest
-from urllib.request import urlretrieve
 from astropy.io.votable import parse
 from pyvo.mivot.seekers.resource_seeker import ResourceSeeker
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.utils import activate_features
 
+
 activate_features('MIVOT')
 
 
-@pytest.fixture
-def rseeker(data_path, data_sample_url):
-    if check_astropy_version() is False:
-        pytest.skip("MIVOT test skipped because of the astropy version.")
-
-    votable_name = "test_ressource_seeker.xml"
-    votable_path = os.path.join(data_path, "data", "input", votable_name)
-    urlretrieve(data_sample_url + votable_name,
-                votable_path)
-    votable = parse(votable_path)
-    for resource in votable.resources:
-        yield ResourceSeeker(resource)
-    os.remove(votable_path)
-
-
-@pytest.fixture
-def data_sample_url():
-    return "https://raw.githubusercontent.com/ivoa/dm-usecases/main/pyvo-ci-sample/"
-
-
-@pytest.mark.remote_data
 def test_id_table(rseeker):
     """
     Checks the IDs of tables found by the RessourceSeeker,
@@ -82,6 +61,18 @@ def test_id_table(rseeker):
             == {'pksrcid': {'indx': 0, 'ID': 'pksrcid'},
                 'pkband': {'indx': 1, 'ID': 'pkband'}}
             )
+
+
+@pytest.fixture
+def rseeker(data_path):
+    if check_astropy_version() is False:
+        pytest.skip("MIVOT test skipped because of the astropy version.")
+
+    votable_path = os.path.join(data_path, "data", "test.xml_viewer.xml")
+
+    votable = parse(votable_path)
+    for resource in votable.resources:
+        return ResourceSeeker(resource)
 
 
 @pytest.fixture

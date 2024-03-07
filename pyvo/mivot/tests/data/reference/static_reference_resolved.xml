@@ -5,6 +5,7 @@
 	<ATTRIBUTE dmrole="ds:dataset.Dataset.dataProductSubtype" dmtype="ivoa:string" value="GAIA Time Series" />
 	<ATTRIBUTE dmrole="ds:experiment.ObsDataset.calibLevel" dmtype="ivoa:integer" value="1" />
 	<INSTANCE dmid="_tg1" dmrole="ds:experiment.ObsDataset.target" dmtype="ds:experiment.Target">
-		<ATTRIBUTE dmrole="ds:experiment.BaseTarget.name" dmtype="ivoa:string" value="5813181197970338560" />
+		<ATTRIBUTE dmrole="ds:experiment.BaseTarget.name" dmtype="ivoa:string" value="5813181197970338560">
+    </ATTRIBUTE>
 	</INSTANCE>
 </INSTANCE>
