@@ -4,7 +4,6 @@ Test for mivot.seekers.annotation_seeker.py
 """
 import os
 import pytest
-from urllib.request import urlretrieve
 try:
     from defusedxml import ElementTree as etree
 except ImportError:
@@ -20,16 +19,13 @@ activate_features('MIVOT')
 
 
 @pytest.fixture
-def a_seeker(data_path, data_sample_url):
+def a_seeker(data_path,):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
-    votable_name = "test.0.xml"
+    votable_name = "test.annotation_seeker.xml"
     votable_path = os.path.join(data_path, "data", "input", votable_name)
-    urlretrieve(data_sample_url + votable_name,
-                votable_path)
     mapping_block = XmlUtils.xmltree_from_file(votable_path)
-    yield AnnotationSeeker(mapping_block.getroot())
-    os.remove(votable_path)
+    return AnnotationSeeker(mapping_block.getroot())
 
 
 @pytest.fixture
@@ -37,12 +33,6 @@ def data_path():
     return os.path.dirname(os.path.realpath(__file__))
 
 
-@pytest.fixture
-def data_sample_url():
-    return "https://raw.githubusercontent.com/ivoa/dm-usecases/main/pyvo-ci-sample/"
-
-
-@pytest.mark.remote_data
 def test_multiple_templates(data_path):
     """
     Try to create an AnnotationSeeker with a mapping_block containing multiple TEMPLATES.
@@ -55,7 +45,6 @@ def test_multiple_templates(data_path):
         AnnotationSeeker(mapping_block.getroot())
 
 
-@pytest.mark.remote_data
 def test_all_reverts(a_seeker, data_path):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
@@ -110,7 +99,6 @@ def test_all_reverts(a_seeker, data_path):
     assert a_seeker.get_globals_instance_from_collection("wrong_dmid", "ICRS") is None
 
 
-@pytest.mark.remote_data
 def test_indent(a_seeker, data_path):
     indented_instance = XmlUtils.indent(a_seeker.get_globals_instance_by_dmid("_ds1"))
     XmlUtils.assertXmltreeEqualsFile(indented_instance,
