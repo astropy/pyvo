@@ -8,12 +8,12 @@ try:
     from defusedxml import ElementTree as etree
 except ImportError:
     from xml.etree import ElementTree as etree
-from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.seekers.annotation_seeker import AnnotationSeeker
 from pyvo.mivot.utils.dict_utils import DictUtils
 from pyvo.mivot.version_checker import check_astropy_version
+from pyvo.mivot.viewer.mivot_viewer import MivotViewer
 from pyvo.utils import activate_features
-
+from . import XMLOutputChecker
 
 activate_features('MIVOT')
 
@@ -22,10 +22,9 @@ activate_features('MIVOT')
 def a_seeker(data_path,):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
-    votable_name = "test.annotation_seeker.xml"
-    votable_path = os.path.join(data_path, "data", "input", votable_name)
-    mapping_block = XmlUtils.xmltree_from_file(votable_path)
-    return AnnotationSeeker(mapping_block.getroot())
+    m_viewer = MivotViewer(os.path.join(data_path, "data", "test.xml_viewer.xml"),
+                       tableref="Results")
+    return AnnotationSeeker(m_viewer._mapping_block)
 
 
 @pytest.fixture
@@ -39,8 +38,8 @@ def test_multiple_templates(data_path):
     """
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
-    mapping_block = XmlUtils.xmltree_from_file(
-        os.path.join(data_path, "data/output/multiple_templates.xml"))
+    mapping_block = XMLOutputChecker.xmltree_from_file(
+        os.path.join(data_path, "data/reference/multiple_templates.xml"))
     with pytest.raises(Exception, match="TEMPLATES without tableref must be unique"):
         AnnotationSeeker(mapping_block.getroot())
 
@@ -50,12 +49,12 @@ def test_all_reverts(a_seeker, data_path):
         pytest.skip("MIVOT test skipped because of the astropy version.")
     # Checks the GLOBALS block given by the AnnotationSeeker
     # by comparing it to the content of the file test.0.1.xml
-    XmlUtils.assertXmltreeEqualsFile(a_seeker.globals_block,
-                                     os.path.join(data_path, "data/output/annotation_seeker.0.1.xml"))
+    XMLOutputChecker.assertXmltreeEqualsFile(a_seeker.globals_block,
+                                     os.path.join(data_path, "data/reference/annotation_seeker.0.1.xml"))
     # Checks the TEMPLATES block given by the AnnotationSeeker
     # by comparing it to the content of the file test.0.2.xml
-    XmlUtils.assertXmltreeEqualsFile(a_seeker.get_templates_block("Results"),
-                                     os.path.join(data_path, "data/output/annotation_seeker.0.2.xml"))
+    XMLOutputChecker.assertXmltreeEqualsFile(a_seeker.get_templates_block("Results"),
+                                     os.path.join(data_path, "data/reference/annotation_seeker.0.2.xml"))
     # Checks the list of all the tableref found by the AnnotationSeeker
     assert list(a_seeker.templates_tableref) == ['_PKTable', 'Results']
     # a_seeker should have only 2 COLLECTIONS in GLOBALS: _CoordinateSystems and _Datasets
@@ -80,7 +79,8 @@ def test_all_reverts(a_seeker, data_path):
                                         "in COLLECTION dmid wrong_key_value not found"):
         a_seeker.get_collection_item_by_primarykey("_Datasets", "wrong_key_value")
     pksel = a_seeker.get_collection_item_by_primarykey("_Datasets", "5813181197970338560")
-    XmlUtils.assertXmltreeEqualsFile(pksel, os.path.join(data_path, "data/output/annotation_seeker.0.4.xml"))
+    XMLOutputChecker.assertXmltreeEqualsFile(pksel,
+                                     os.path.join(data_path, "data/reference/annotation_seeker.0.4.xml"))
     with (pytest.raises(Exception, match="More than one INSTANCE with "
                                          "PRIMARY_KEY = G found in COLLECTION dmid G")):
         double_key = etree.fromstring("""<PRIMARY_KEY dmtype="ivoa:string" value="G"/>""")
@@ -91,19 +91,12 @@ def test_all_reverts(a_seeker, data_path):
                                         "in COLLECTION dmid wrong_key not found"):
         a_seeker.get_collection_item_by_primarykey("_CoordinateSystems", "wrong_key")
     assert a_seeker.get_instance_dmtypes() == DictUtils.read_dict_from_file(
-        os.path.join(data_path, "data/output/instance_dmtypes.json"))
+        os.path.join(data_path, "data/reference/instance_dmtypes.json"))
     assert a_seeker.get_templates_instance_by_dmid("Results", "wrong_dmid") is None
     assert a_seeker.get_templates_instance_by_dmid("Results", "_ts_data").get("dmtype") == "cube:NDPoint"
     assert a_seeker.get_globals_instance_from_collection(
         "_CoordinateSystems", "ICRS").get("dmtype") == "coords:SpaceSys"
     assert a_seeker.get_globals_instance_from_collection("wrong_dmid", "ICRS") is None
-
-
-def test_indent(a_seeker, data_path):
-    indented_instance = XmlUtils.indent(a_seeker.get_globals_instance_by_dmid("_ds1"))
-    XmlUtils.assertXmltreeEqualsFile(indented_instance,
-                                     os.path.join(data_path,
-                                                  "data/output/annotation_seeker.0.4.xml"))
 
 
 if __name__ == '__main__':

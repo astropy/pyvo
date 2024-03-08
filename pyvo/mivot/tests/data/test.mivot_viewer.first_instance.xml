@@ -3,6 +3,7 @@
 	xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
 	xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/v1.3">
 	<RESOURCE ID="yCat_1146" name="I/146">
+        <DESCRIPTION>Prototype for covariance errors</DESCRIPTION>
 		<RESOURCE type="meta">
 			<VODML xmlns:dm-mapping="http://www.ivoa.net/xml/mivot">
 				<REPORT status="OK">hand-made mapping</REPORT>
@@ -27,7 +28,6 @@
 				</TEMPLATES>
 			</VODML>
 		</RESOURCE>
-		<DESCRIPTION>Prototype for covariance errors</DESCRIPTION>
 		<TABLE ID="Results" name="Result">
 			<FIELD name="name" ucd="meta.id;meta.main" datatype="char" arraysize="*" />
 			<DATA>

@@ -392,10 +392,10 @@ class MivotViewer:
                 pass
             # Make sure the instances of the resolved references
             # have both indexes and unit attribute
-            XmlUtils.set_column_indices(templates_copy,
+            XmlUtils.add_column_indices(templates_copy,
                                         self._resource_seeker
                                         .get_id_index_mapping(self._connected_tableref))
-            XmlUtils.set_column_units(templates_copy,
+            XmlUtils.add_column_units(templates_copy,
                                       self._resource_seeker
                                       .get_id_unit_mapping(self._connected_tableref))
         # for ele in templates_copy.xpath("//ATTRIBUTE"):
@@ -485,7 +485,7 @@ class MivotViewer:
         Using ranks allow identifying columns even numpy raw have been serialised as []
         """
         index_map = self._resource_seeker.get_id_index_mapping(self._connected_tableref)
-        XmlUtils.set_column_indices(self._templates, index_map)
+        XmlUtils.add_column_indices(self._templates, index_map)
 
     def _set_column_units(self):
         """
@@ -493,4 +493,4 @@ class MivotViewer:
         Used for performing unit conversions
         """
         unit_map = self._resource_seeker.get_id_unit_mapping(self._connected_tableref)
-        XmlUtils.set_column_units(self._templates, unit_map)
+        XmlUtils.add_column_units(self._templates, unit_map)

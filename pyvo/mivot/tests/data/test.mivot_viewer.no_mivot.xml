@@ -2,22 +2,6 @@
 <VOTABLE version="1.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
   xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/v1.3">
- <DESCRIPTION>
-   VizieR Astronomical Server cds:8082
-    Date: 2024-01-26T14:37:03 [V7.33.1]
-   Explanations and Statistics of UCDs:			See LINK below
-   In case of problem, please report to:	cds-question@unistra.fr
-   
-   This output has been shortened for the PyVO test purpose
- </DESCRIPTION>
-<!-- VOTable description at http://www.ivoa.net/Documents/latest/VOT.html -->
-<INFO name="request" value="https://cds/viz-bin/mivotconesearch/I/329/urat1?RA=52.26708&amp;DEC=59.94027&amp;SR=0.05">  Full request URL</INFO>
-
-<!--
-Execution Reports
- -->
-<INFO ID="Target" name="-c" value="052.267080+59.940270,rd=0.05">
-Constraint -out.meta=dhuM</INFO>
 
 <RESOURCE ID="yCat_1329" name="I/329">
   <DESCRIPTION>URAT1 Catalog (Zacharias+ 2015)</DESCRIPTION>  <INFO name="ivoid" value="ivo://cds.vizier/i/329">    IVOID of underlying data collection  </INFO>

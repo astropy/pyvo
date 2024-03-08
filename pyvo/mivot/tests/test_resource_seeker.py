@@ -69,8 +69,7 @@ def rseeker(data_path):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
-    votable_name = "test.ressource_seeker.xml"
-    votable_path = os.path.join(data_path, "data", "input", votable_name)
+    votable_path = os.path.join(data_path, "data", "test.xml_viewer.xml")
 
     votable = parse(votable_path)
     for resource in votable.resources:

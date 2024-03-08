@@ -73,9 +73,9 @@ def test_global_getters(m_viewer, data_path):
         pytest.skip("MIVOT test skipped because of the astropy version.")
     assert m_viewer.get_table_ids() == ['_PKTable', 'Results']
     assert m_viewer.get_globals_models() == DictUtils.read_dict_from_file(
-        os.path.join(data_path, "data/output/globals_models.json"))
+        os.path.join(data_path, "data/reference/globals_models.json"))
     assert m_viewer.get_templates_models() == DictUtils.read_dict_from_file(
-        os.path.join(data_path, "data/output/templates_models.json"))
+        os.path.join(data_path, "data/reference/templates_models.json"))
     m_viewer._connect_table('_PKTable')
     row = m_viewer.next_table_row()
     assert row[0] == '5813181197970338560'
