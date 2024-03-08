@@ -25,7 +25,7 @@ def test_mivot_viewer_constructor(path_to_viewer):
         MivotViewer(path_to_viewer, resource_number=1)
 
 
-def test_first_instance_row_view(path_to_first_instance):
+def test_get_first_instance_dmtype(path_to_first_instance):
     """
     Test the function get_first_instance_dmtype() which is
     used to find the first INSTANCE/COLLECTION in TEMPLATES.
