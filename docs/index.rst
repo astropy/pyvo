@@ -134,5 +134,6 @@ Using ``pyvo``
    registry/index
    io/index
    auth/index
+   mivot/index
    utils/index
    utils/prototypes

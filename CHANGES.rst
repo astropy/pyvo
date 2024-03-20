@@ -18,9 +18,13 @@ Enhancements and Fixes
 - Make ``lax`` parameter default to False in registry get_service method [#505]
 
 - Making optional parameters keyword only throughout the public API. [#507]
-
+  
 - registry.Ivoid now accepts multiple ivoids and will then match any of
   them. [#517]
+
+ - Introducing the new MIVOT feature, enabling processed VOTable data mapped to any model serialized in VO-DML.
+   In particular, the ``MIVOT`` feature  allows to process the epoch propagation for VOTables annotated with ``MANGO`` classes.
+   This module automatically builds ``SkyCoo`` instances without having to do any column-by-column analysis. [#497]
 
 Deprecations and Removals
 -------------------------
@@ -106,6 +110,23 @@ Deprecations and Removals
 
 - Deprecating ``ivoid2service`` because it is ill-defined. [#439]
 
+- Fix poor polling behavior when running an async query against a
+  TAP v1.1 service with unsupported WAIT parameter. [#440]
+
+- Adding python version to User-Agent. [#452]
+
+- Output of ``repr`` for DALResults instance now clearly shows it is a
+  DALResultsTable and not a generic astropy Table. [#478]
+
+- TAP examples now support the continuation property [#483]
+
+- Adding support for the VODataService 1.2 nrows attribute on table
+  elements [#503]
+
+1.4.3 (unreleased)
+==================
+
+- Fix session inheritance in SIA2. [#490]
 
 1.4.2 (2023-08-16)
 ==================

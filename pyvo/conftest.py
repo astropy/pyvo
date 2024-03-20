@@ -42,6 +42,10 @@ def pytest_configure(config):
         PYTEST_HEADER_MODULES.pop('h5py', None)
         PYTEST_HEADER_MODULES.pop('Scipy', None)
         PYTEST_HEADER_MODULES.pop('Matplotlib', None)
+        try:
+            PYTEST_HEADER_MODULES['defusedxml'] = 'defusedxml'
+        except (NameError, KeyError):
+            pass
 
         from . import __version__
         TESTED_VERSIONS['pyvo'] = __version__
