@@ -48,8 +48,7 @@ def get_digest(data):
         data = data.replace(boundary, b"")
 
     return base64.b64encode(
-        hashlib.md5(data).digest(), b"+%"
-        ).decode("ascii")[:8]
+        hashlib.md5(data).digest(), b"+%").decode("ascii")[:8]
 
 
 def hashify_request_payload(data):
@@ -92,8 +91,7 @@ class LearnableRequestMocker(requests_mock.Mocker):
         for the query string are in the file name to make it simpler
         to find responses.
         """
-        payload_hash = hashify_request_payload(payload
-            ) if payload else ""
+        payload_hash = hashify_request_payload(payload) if payload else ""
         parsed = urlparse.urlparse(url)
         last_segment = parsed.path.split("/")[-1]
         urlhash = get_digest(url)
