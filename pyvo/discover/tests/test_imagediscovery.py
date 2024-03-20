@@ -101,8 +101,8 @@ class TestTimeCondition:
         d._query_one_sia2(queriable)
 
         assert set(queriable.search_kwargs) == set(["time"])
-        assert abs(queriable.search_kwargs["time"
-            ][0].utc.value-40872.54166667)<1e-8
+        assert abs(queriable.search_kwargs["time"][0].utc.value
+            -40872.54166667)<1e-8
 
     def test_sia2_nointerval(self):
         queriable = FakeQueriable()
@@ -111,23 +111,23 @@ class TestTimeCondition:
         d._query_one_sia2(queriable)
 
         assert set(queriable.search_kwargs) == set(["time"])
-        assert abs(queriable.search_kwargs["time"
-            ][0].utc.value-40872.54166667)<1e-8
-        assert abs(queriable.search_kwargs["time"
-            ][1].utc.value-40872.54166667)<1e-8
+        assert abs(queriable.search_kwargs["time"][0].utc.value
+            -40872.54166667)<1e-8
+        assert abs(queriable.search_kwargs["time"][1].utc.value
+            -40872.54166667)<1e-8
 
     def test_obscore(self):
         queriable = FakeQueriable()
         d = discover.ImageDiscoverer(
-            time=(
-                time.Time("1970-10-13T13:00:00"),
-                time.Time("1970-10-13T17:00:00")))
+            time=(time.Time("1970-10-13T13:00:00"), time.Time("1970-10-13T17:00:00")))
         d.obscore_recs = [queriable]
         d._query_obscore()
 
         assert set(queriable.search_kwargs) == set()
         assert queriable.search_args[0] == (
-            "select * from ivoa.obscore WHERE dataproduct_type='image' AND (t_max>=40872.541666666664 AND 40872.708333333336>=t_min AND t_min<=t_max AND 40872.541666666664<=40872.708333333336)")
+            "select * from ivoa.obscore WHERE dataproduct_type='image'"
+            " AND (t_max>=40872.541666666664 AND 40872.708333333336>=t_min"
+            " AND t_min<=t_max AND 40872.541666666664<=40872.708333333336)")
 
     def test_obscore_nointerval(self):
         queriable = FakeQueriable()
@@ -139,7 +139,9 @@ class TestTimeCondition:
 
         assert set(queriable.search_kwargs) == set()
         assert queriable.search_args[0] == (
-            "select * from ivoa.obscore WHERE dataproduct_type='image' AND (t_max>=40872.541666666664 AND 40872.541666666664>=t_min AND t_min<=t_max AND 40872.541666666664<=40872.541666666664)")
+            "select * from ivoa.obscore WHERE dataproduct_type='image'"
+            " AND (t_max>=40872.541666666664 AND 40872.541666666664>=t_min"
+            " AND t_min<=t_max AND 40872.541666666664<=40872.541666666664)")
 
 
 @pytest.fixture
@@ -197,15 +199,17 @@ def _servedby_elision_responses(requests_mock):
 def test_servedby_elision(_servedby_elision_responses):
     d = discover.ImageDiscoverer(space=(3, 1, 0.2))
     # siap2/sitewide has isservedby to tap
-    d.set_services(registry.search(registry.Ivoid(
-       "ivo://org.gavo.dc/tap",
-       "ivo://org.gavo.dc/__system__/siap2/sitewide")))
+    d.set_services(
+        registry.search(
+            registry.Ivoid(
+                "ivo://org.gavo.dc/tap",
+                "ivo://org.gavo.dc/__system__/siap2/sitewide")))
 
     assert d.sia2_recs == []
     assert len(d.obscore_recs) == 1
     assert d.obscore_recs[0].ivoid == "ivo://org.gavo.dc/tap"
-    assert ('Skipping ivo://org.gavo.dc/__system__/siap2/sitewide because it is served by ivo://org.gavo.dc/tap'
-        in d.log_messages)
+    assert ('Skipping ivo://org.gavo.dc/__system__/siap2/sitewide'
+        ' because it is served by ivo://org.gavo.dc/tap' in d.log_messages)
 
 
 @pytest.fixture
@@ -219,16 +223,18 @@ def test_access_url_elision(_access_url_elision_responses):
         d = discover.ImageDiscoverer(
             time=time.Time("1910-07-15", scale="utc"),
             spectrum=400*u.nm)
-    d.set_services(registry.search(registry.Ivoid(
-       "ivo://org.gavo.dc/tap",
-       "ivo://org.gavo.dc/__system__/siap2/sitewide")),
+    d.set_services(
+        registry.search(
+            registry.Ivoid(
+                "ivo://org.gavo.dc/tap",
+                "ivo://org.gavo.dc/__system__/siap2/sitewide")),
         # that's important here: we *want* to query the same stuff twice
        purge_redundant=False)
     d.query_services()
 
     # make sure we found anything at all
     assert d.results
-    assert len([1 for l in d.log_messages if "skipped" in l]) == 0
+    assert len([1 for lm in d.log_messages if "skipped" in lm]) == 0
 
     # make sure there are no duplicate records
     access_urls = [im.access_url for im in d.results]

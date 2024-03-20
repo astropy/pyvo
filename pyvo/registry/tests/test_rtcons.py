@@ -220,8 +220,8 @@ class TestDatamodelConstraint:
     def test_obscore_new(self):
         cons = rtcons.Datamodel("obscore_new")
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "table_utype like 'ivo://ivoa.net/std/obscore#table-1.%'"
-                    " AND res_type = 'vs:catalogresource'")
+            == "table_utype like 'ivo://ivoa.net/std/obscore#table-1.%'"
+                " AND res_type = 'vs:catalogresource'")
         assert (cons._extra_tables == ["rr.res_table"])
 
     def test_obscore(self):
@@ -302,8 +302,8 @@ class TestSpatialConstraint:
 
     def test_moc_and_inclusive(self):
         cons = registry.Spatial("0/1-3 3/", inclusive=True)
-        assert cons.get_search_condition(FAKE_GAVO
-            ) == "1 = CONTAINS(MOC('0/1-3 3/'), coverage) OR coverage IS NULL"
+        assert cons.get_search_condition(FAKE_GAVO) == \
+            "1 = CONTAINS(MOC('0/1-3 3/'), coverage) OR coverage IS NULL"
 
     def test_SkyCoord(self):
         cons = registry.Spatial(SkyCoord(3 * u.deg, -30 * u.deg))
@@ -406,8 +406,8 @@ class TestSpectralConstraint:
         cons = registry.Spectral(2 * u.GHz, inclusive=True)
         assert (cons.get_search_condition(FAKE_GAVO)
                 == "(1.32521403e-24 BETWEEN spectral_start AND spectral_end)"
-                    " OR NOT EXISTS(SELECT 1 FROM rr.stc_spectral AS inner_s"
-                        " WHERE inner_s.ivoid=rr.resource.ivoid)")
+                " OR NOT EXISTS(SELECT 1 FROM rr.stc_spectral AS inner_s"
+                " WHERE inner_s.ivoid=rr.resource.ivoid)")
 
     def test_frequency_interval(self):
         cons = registry.Spectral((88 * u.MHz, 102 * u.MHz))
