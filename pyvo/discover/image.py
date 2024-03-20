@@ -245,13 +245,14 @@ class ImageDiscoverer:
         # query.  That's particularly valuable if there are large
         # obscore services covering data from many SIA1 services.
         ids_present = table.Table([
-            table.Column(name="id",
-            data=list(
-                sorted(ids(self.sia1_recs)
-                    | ids(self.sia2_recs)
-                    | ids(self.obscore_recs))),
-            description="ivoids of candiate services",
-            meta={"ucd": "meta.ref.ivoid"}),])
+            table.Column(
+                name="id",
+                data=list(
+                    sorted(ids(self.sia1_recs)
+                        | ids(self.sia2_recs)
+                        | ids(self.obscore_recs))),
+                description="ivoids of candiate services",
+                meta={"ucd": "meta.ref.ivoid"}),])
         if len(ids_present) == 0:
             return
 
@@ -420,9 +421,8 @@ class ImageDiscoverer:
             # Regrettably, the exposure time is not part of SIA1 standard
             # metadata.  We fudge things a bit; this should not
             # increase false positives very badly.
-            if (self.time_min is not None
-                        or self.time_max is not None
-                    ) and not self.inclusive and sia1_rec.dateobs:
+            if (self.time_min is not None or self.time_max is not None) \
+                    and not self.inclusive and sia1_rec.dateobs:
                 if not (self.time_min-0.1
                         <sia1_rec.dateobs.mjd
                         <self.time_max+0.1):
@@ -510,7 +510,7 @@ class ImageDiscoverer:
         if self.center is not None:
             where_parts.append(
                 "(1=contains(point('ICRS', s_ra, s_dec),"
-                    " circle('ICRS', {}, {}, {}))".format(
+                " circle('ICRS', {}, {}, {}))".format(
                     self.center[0], self.center[1], self.radius)
                 +" or 1=intersects(circle({}, {}, {}), s_region))".format(
                     self.center[0], self.center[1], self.radius))
@@ -539,9 +539,9 @@ class ImageDiscoverer:
     def get_query_stats(self):
         """returns a tuple of |total to query|, |already queried|
         """
-        total_to_query = len(self.obscore_recs
-            ) + len(self.sia1_recs
-            ) + len(self.sia2_recs)
+        total_to_query = len(self.obscore_recs)\
+            + len(self.sia1_recs)\
+            + len(self.sia2_recs)
         return total_to_query, self.already_queried, self.failed_services
 
     def query_services(self):
@@ -561,15 +561,16 @@ class ImageDiscoverer:
         self._query_sia1()
 
 
-def images_globally(*,
+def images_globally(
+        *,
         space: Optional[Tuple[float, float, float]]=None,
         spectrum: Optional[quantity.Quantity]=None,
         time: Optional[time.Time]=None,
         inclusive: bool=False,
         watcher: Optional[Callable[[str], None]]=None,
         timeout: float=20,
-        services: Optional[registry.RegistryResults]=None
-        ) -> Tuple[List[obscore.ObsCoreMetadata], List[str]]:
+        services: Optional[registry.RegistryResults]=None)\
+        -> Tuple[List[obscore.ObsCoreMetadata], List[str]]:
     """returns a collection of ObsCoreMetadata-s matching certain constraints
     and a list of log lines.
 
