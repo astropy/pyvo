@@ -22,6 +22,9 @@ Enhancements and Fixes
 - registry.Ivoid now accepts multiple ivoids and will then match any of
   them. [#517]
 
+- New sub-package discover for global dataset discovery. [#470]
+
+
 Deprecations and Removals
 -------------------------
 
