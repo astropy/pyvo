@@ -73,7 +73,7 @@ class Queriable:
         return f"<{self.ivoid}>"
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def obscore_column_names():
     """returns the names of obscore columns.
 
