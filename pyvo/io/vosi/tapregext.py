@@ -17,6 +17,9 @@ __all__ = [
     "TimeLimits", "DataLimits", "DataLimit"]
 
 
+INDENT = 4 * " "
+
+
 ######################################################################
 # ELEMENT CLASSES
 class DataModelType(ContentMixin, Element):
@@ -37,7 +40,7 @@ class DataModelType(ContentMixin, Element):
         Prints out a human readable description
         """
         print("Datamodel {}".format(self.content))
-        print(indent(self.ivo_id, 4 * " "))
+        print(indent(self.ivo_id, INDENT))
         print()
 
     @xmlattribute(name='ivo-id')
@@ -72,7 +75,7 @@ class OutputFormat(Element):
 
         if self.aliases:
             print(indent('Also available as {}'.format(', '.join(self.aliases)),
-                         4 * " "))
+                         INDENT))
 
         print()
 
@@ -104,7 +107,7 @@ class UploadMethod(Element):
         Prints out a human readable description
         """
         print("Upload method supported")
-        print(indent(self.ivo_id, 4 * " "))
+        print(indent(self.ivo_id, INDENT))
         print()
 
     @xmlattribute(name='ivo-id')
@@ -238,13 +241,13 @@ class Language(Element):
         print("Language {}".format(self.name))
 
         for languagefeaturelist in self.languagefeaturelists:
-            print(indent(languagefeaturelist.type, 4 * " "))
+            print(indent(languagefeaturelist.type, INDENT))
 
             for feature in languagefeaturelist:
-                print(indent(feature.form, 8 * " "))
+                print(indent(feature.form, 2 * INDENT))
 
                 if feature.description:
-                    print(indent(feature.description, 12 * " "))
+                    print(indent(feature.description, 3 * INDENT))
 
                 print()
 
@@ -467,34 +470,34 @@ class TableAccess(TAPCapRestriction):
 
         if self.retentionperiod:
             print("Time a job is kept (in seconds)")
-            print(indent("Default {}".format(self.retentionperiod.default), 4 * " "))
+            print(indent("Default {}".format(self.retentionperiod.default), INDENT))
             if self.retentionperiod.hard:
-                print(indent("Maximum {}".format(self.retentionperiod.hard), 4 * " "))
+                print(indent("Maximum {}".format(self.retentionperiod.hard), INDENT))
             print()
 
         if self.executionduration:
             print("Maximal run time of a job")
-            print(indent("Default {}".format(self.executionduration.default), 4 * " "))
+            print(indent("Default {}".format(self.executionduration.default), INDENT))
             if self.executionduration.hard:
-                print(indent("Maximum {}".format(self.executionduration.hard), 4 * " "))
+                print(indent("Maximum {}".format(self.executionduration.hard), INDENT))
             print()
 
         if self.outputlimit:
             print("Maximum size of resultsets")
             print(indent("Default {} {}".format(
                 self.outputlimit.default.content,
-                self.outputlimit.default.unit), 4 * " ")
+                self.outputlimit.default.unit), INDENT)
             )
             if self.outputlimit.hard:
                 print(indent("Maximum {} {}".format(
-                    self.outputlimit.hard.content, self.outputlimit.hard.unit), 4 * " ")
+                    self.outputlimit.hard.content, self.outputlimit.hard.unit), INDENT)
                 )
             print()
 
         if self.uploadlimit:
             print("Maximal size of uploads")
             print(indent("Maximum {} {}".format(
-                self.uploadlimit.hard.content, self.uploadlimit.hard.unit), 4 * " "))
+                self.uploadlimit.hard.content, self.uploadlimit.hard.unit), INDENT))
             print()
 
     def get_adql(self):
