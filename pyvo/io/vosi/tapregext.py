@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from astropy.utils.collections import HomogeneousList
-from astropy.utils.misc import indent
+from textwrap import indent
 
 from astropy.io.votable.exceptions import vo_raise, warn_or_raise
 
@@ -37,7 +37,7 @@ class DataModelType(ContentMixin, Element):
         Prints out a human readable description
         """
         print("Datamodel {}".format(self.content))
-        print(indent(self.ivo_id))
+        print(indent(self.ivo_id, 4 * " "))
         print()
 
     @xmlattribute(name='ivo-id')
@@ -71,8 +71,8 @@ class OutputFormat(Element):
         print('Output format {}'.format(self.mime))
 
         if self.aliases:
-            print(indent('Also available as {}'.format(
-                ', '.join(self.aliases))))
+            print(indent('Also available as {}'.format(', '.join(self.aliases)),
+                         4 * " "))
 
         print()
 
@@ -104,7 +104,7 @@ class UploadMethod(Element):
         Prints out a human readable description
         """
         print("Upload method supported")
-        print(indent(self.ivo_id))
+        print(indent(self.ivo_id, 4 * " "))
         print()
 
     @xmlattribute(name='ivo-id')
@@ -238,13 +238,13 @@ class Language(Element):
         print("Language {}".format(self.name))
 
         for languagefeaturelist in self.languagefeaturelists:
-            print(indent(languagefeaturelist.type))
+            print(indent(languagefeaturelist.type, 4 * " "))
 
             for feature in languagefeaturelist:
-                print(indent(feature.form, shift=2))
+                print(indent(feature.form, 8 * " "))
 
                 if feature.description:
-                    print(indent(feature.description, shift=3))
+                    print(indent(feature.description, 12 * " "))
 
                 print()
 
@@ -467,34 +467,34 @@ class TableAccess(TAPCapRestriction):
 
         if self.retentionperiod:
             print("Time a job is kept (in seconds)")
-            print(indent("Default {}".format(self.retentionperiod.default)))
+            print(indent("Default {}".format(self.retentionperiod.default), 4 * " "))
             if self.retentionperiod.hard:
-                print(indent("Maximum {}".format(self.retentionperiod.hard)))
+                print(indent("Maximum {}".format(self.retentionperiod.hard), 4 * " "))
             print()
 
         if self.executionduration:
             print("Maximal run time of a job")
-            print(indent("Default {}".format(self.executionduration.default)))
+            print(indent("Default {}".format(self.executionduration.default), 4 * " "))
             if self.executionduration.hard:
-                print(indent("Maximum {}".format(self.executionduration.hard)))
+                print(indent("Maximum {}".format(self.executionduration.hard), 4 * " "))
             print()
 
         if self.outputlimit:
             print("Maximum size of resultsets")
             print(indent("Default {} {}".format(
                 self.outputlimit.default.content,
-                self.outputlimit.default.unit))
+                self.outputlimit.default.unit), 4 * " ")
             )
             if self.outputlimit.hard:
                 print(indent("Maximum {} {}".format(
-                    self.outputlimit.hard.content, self.outputlimit.hard.unit))
+                    self.outputlimit.hard.content, self.outputlimit.hard.unit), 4 * " ")
                 )
             print()
 
         if self.uploadlimit:
             print("Maximal size of uploads")
             print(indent("Maximum {} {}".format(
-                self.uploadlimit.hard.content, self.uploadlimit.hard.unit)))
+                self.uploadlimit.hard.content, self.uploadlimit.hard.unit), 4 * " "))
             print()
 
     def get_adql(self):

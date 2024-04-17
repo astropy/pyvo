@@ -14,7 +14,7 @@ Elements with simple content are parsed with objects inherited from `~pyvo.utils
 defining a ``value`` property.
 """
 from astropy.utils.collections import HomogeneousList
-from astropy.utils.misc import indent
+from textwrap import indent
 
 from ...utils.xml.elements import (
     Element, ElementWithXSIType, ContentMixin, xmlattribute, xmlelement)
@@ -244,7 +244,7 @@ class Interface(ElementWithXSIType):
         accessurls = '\n'.join(
             accessurl.content for accessurl in self.accessurls)
 
-        print(indent(accessurls))
+        print(indent(accessurls, 4 * " "))
 
         print()
 

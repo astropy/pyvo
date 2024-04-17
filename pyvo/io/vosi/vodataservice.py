@@ -18,7 +18,7 @@ import re
 
 from astropy.utils import deprecated
 from astropy.utils.collections import HomogeneousList
-from astropy.utils.misc import indent
+from textwrap import indent
 from astropy.utils.xml import check as xml_check
 from astropy.io.votable.exceptions import vo_raise, vo_warn, warn_or_raise
 
@@ -318,7 +318,7 @@ class VODataServiceTable(Element):
     def describe(self):
         print(self.name)
         if self.description is not None:
-            print(indent(self.description))
+            print(indent(self.description, 4 * " "))
         else:
             print('No description')
 
