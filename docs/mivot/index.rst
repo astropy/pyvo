@@ -45,12 +45,18 @@ Some of the examples have been provided by a special end-point of the Vizier con
   :width: 500
   :alt: EpochPropagation class used to validate this api.
 
-It is to be noted that the Vizier service does not annotate errors at the time of writing
+It is to be noted that the Vizier service does not annotate errors at the time of writing (Q1 2024)
 
 The implementation uses the Astropy read/write annotation module (6.0+),
 which allows to get (and set) Mivot blocks from/into VOTables as an XML element serialized as a string.
 
-``JOIN`` features are not supported by this implementation.
+.. pull-quote::
+
+    Not all MIVOT features are supported by this implementation, which mainly focuses on the 
+    epoch propagation use case:    
+    
+    - ``JOIN`` features are not supported.
+    - ``TEMPLATES`` with more than one ``INSANCE`` not supported.
 
 Integrated Readout
 ------------------
