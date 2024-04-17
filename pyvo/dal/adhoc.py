@@ -30,7 +30,7 @@ from ..dam.obscore import POLARIZATION_STATES
 # reasons. This is the size of a batch
 DATALINK_BATCH_CALL_SIZE = 50
 
-SODA_SYNC_IVOID = 'ivo://ivoa.net/std/SODA#sync-1.0'
+SODA_SYNC_IVOID = 'ivo://ivoa.net/std/SODA#sync-1'
 DATALINK_IVOID = 'ivo://ivoa.net/std/datalink'
 
 # MIME types
@@ -109,7 +109,6 @@ class AdhocServiceResultsMixin:
 
     def __init__(self, votable, url=None, session=None):
         super().__init__(votable, url=url, session=session)
-
         self._adhocservices = list(
             resource for resource in votable.resources
             if resource.type == "meta" and resource.utype == "adhoc:service"
