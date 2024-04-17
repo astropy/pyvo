@@ -198,7 +198,7 @@ Furthermore, one can find the names of the tables using:
 .. doctest-remote-data::
 
     >>> print([tab_name for tab_name in tap_service.tables.keys()])  # doctest: +IGNORE_WARNINGS
-    ['amanda.nucand', 'annisred.main', 'antares.data', ..., 'wise.main', 'xpparams.main', 'zcosmos.data']
+    ['ivoa.obs_radio', 'ivoa.obscore', 'tap_schema.columns', 'tap_schema.tables',..., 'taptest.main', 'veronqsos.data', 'vlastripe82.stripe82']
 
 
 And also the names of the columns from a known table, for instance
