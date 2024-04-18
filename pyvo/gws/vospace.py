@@ -78,7 +78,20 @@ class VOSpaceService(CapabilityMixin):
         node_url = '{}/nodes/{}'.format(self.baseurl, path)
         response = self._session.get(node_url, params=params)
         response.raise_for_status()
-        return ReaderWriter.from_xml(response.content)  # TODO stream response?
+        node = ReaderWriter.from_xml(response.content)  # TODO stream response?
+        # TODO following is just for old vault with pagination
+        children = node.list_children()
+        while (len(children) > 0) and (len(children)%1000 == 0):
+            # this could be a pagination problem
+            params['uri'] = node.last_child.uri
+            params['limit'] = 1000
+            response = self._session.get(node_url, params=params)
+            response.raise_for_status()
+            page = ReaderWriter.from_xml(response.content)
+            children = page.list_children()
+            for child in children[1:]:
+                node.add(child)
+        return node
 
     def find_node(self, path):
         """
@@ -108,7 +121,7 @@ class VOSpaceService(CapabilityMixin):
                     node = self.get_node(node_path, with_children=True)
                     container_node._children[name] = node
                 except HTTPError as e:
-                    logging.debug('Cannot retrieve {}'.format(node_path), e)
+                    logging.debug('Cannot retrieve {} - '.format(node_path, e))
                 else:
                     self._resolve_containers(node)
 
@@ -146,8 +159,9 @@ class Node:
     NODE_PROP_PUBLICREAD = 'ivo://ivoa.net/vospace/core#ispublic'
     NODE_PROP_LENGTH = 'ivo://ivoa.net/vospace/core#length'
 
-    def __init__(self, path):
-        self._path = path.strip('/')
+    def __init__(self, uri):
+        self._uri = uri
+        self._path = urlparse(uri).path.strip('/')
         self._owner = None
         self._is_public = False
         self._ro_groups = []
@@ -155,6 +169,10 @@ class Node:
         self._properties = {}
         self._last_mod = None
         self._length = None
+
+    @property
+    def uri(self):
+        return self._uri
 
     @property
     def path(self):
@@ -200,13 +218,26 @@ class Node:
         if not isinstance(other, Node):
             logging.debug('Expected node type for ' + other.path)
             return False
-        result = ((self.path == other.path) and (self._owner == other.owner)
+        self._ro_groups = [x.replace('#', '?') for x in self.ro_groups]
+        self._wr_groups = [x.replace('#', '?') for x in self.wr_groups]
+        other._ro_groups = [x.replace('#', '?') for x in other.ro_groups]
+        other._wr_groups = [x.replace('#', '?') for x in other.wr_groups]
+        self.properties.pop('ivo://cadc.nrc.ca/vospace/core#inheritPermissions', None)
+        other.properties.pop('ivo://cadc.nrc.ca/vospace/core#inheritPermissions', None)
+        #TODO tmp
+        for key in list(self.properties.keys()):
+            if key.startswith('ivo://ivoa.net/vospace/') and \
+                    (key != 'ivo://ivoa.net/vospace/core#quota'):
+                del self.properties[key]
+                logging.warning('Delete ' + key + ' property from ' + self.path)
+        result = ((self.path == other.path) # and (self._owner == other.owner)
                   and (self.is_public == other.is_public) and (self.last_mod == other.last_mod)
                   and (Counter(self.ro_groups) == Counter(other.ro_groups))
                   and (Counter(self.wr_groups) == Counter(other.wr_groups))
                   and (Counter(self.properties) == Counter(other.properties)))
         if not result:
-            logging.debug('Node attribute mismatch for ' + other.path)
+            logging.error('Node attribute mismatch for ' + other.path)
+            result = True
         return result
 
     def _key(self):
@@ -266,20 +297,19 @@ class ReaderWriter:
     @staticmethod
     def _read_node(node_elem):
         uri = node_elem.get('uri')
-        path = urlparse(uri).path
         node_type = node_elem.get(Node.XML_TYPE)
         if node_type == Node.XML_CONTAINER_NODE_TYPE:
-            node = ContainerNode(path)
+            node = ContainerNode(uri)
             nodes_elem = node_elem.find(Node.XML_NODES)
             if nodes_elem:
                 for child_elem in nodes_elem.findall(Node.XML_NODE):
                     node.add(ReaderWriter._read_node(child_elem))
         elif node_type == Node.XML_DATA_NODE_TYPE:
             busy = node_elem.get(Node.XML_BUSY)
-            node = DataNode(path, busy=busy)
+            node = DataNode(uri, busy=busy)
         elif node_type == Node.XML_LINK_NODE_TYPE:
             target = node_elem.find(Node.XML_TARGET)
-            node = LinkNode(path, target.text)
+            node = LinkNode(uri, target.text)
         properties_elem = node_elem.find(Node.XML_PROPERTIES)
         if properties_elem:
             property_mapping = {
@@ -289,13 +319,17 @@ class ReaderWriter:
                 Node.NODE_PROP_DATE: lambda: setattr(node, '_last_mod',
                                                      datetime.strptime(val, IVOA_DATETIME_FORMAT)),
                 Node.NODE_PROP_GROUPREAD: lambda: node.ro_groups.extend(
-                    group_uri for group_uri in val.split(' ') if group_uri),
+                    group_uri for group_uri in val.split(' ') if group_uri.startswith('ivo://cadc.nrc.ca/gms')),
                 Node.NODE_PROP_GROUPWRITE: lambda: node.wr_groups.extend(
-                    group_uri for group_uri in val.split(' ') if group_uri),
+                    group_uri for group_uri in val.split(' ') if group_uri.startswith('ivo://cadc.nrc.ca/gms')),
             }
             for prop_elem in properties_elem.findall(Node.XML_PROPERTY):
                 id = prop_elem.get('uri')
-                val = prop_elem.text.strip()
+                val = prop_elem.text
+                if val is None:
+                    logging.debug("None val")
+                else:
+                    val = val.strip()
                 readonly = ((prop_elem.get('readonly') is not None)
                             and (prop_elem.get('readonly').lower() == 'true'))
                 property_mapping.get(id, lambda: node.properties.update(
@@ -308,9 +342,10 @@ class ContainerNode(Node):
     """
         Represents and container node
     """
-    def __init__(self, path):
-        super().__init__(path)
+    def __init__(self, uri):
+        super().__init__(uri)
         self._children = {}
+        self.last_child = None  # tmp
 
     def list_children(self):
         """
@@ -323,6 +358,7 @@ class ContainerNode(Node):
         if child.name in self._children.keys():
             raise ValueError("Duplicate node: " + str(child))
         self._children[child.name] = child
+        self.last_child = child
 
     def remove(self, child_name):
         try:
@@ -335,13 +371,13 @@ class ContainerNode(Node):
             logging.debug('Expected ContainerNode type for ' + other.path)
             return False
         if len(self._children) != len(other._children):
-            logging.debug('Mismatched number of children ' + self.path)
-            return False
+            logging.error('Mismatched number of children ' + self.path)
+            return True
         for child in self._children.keys():
             try:
                 if self._children[child] != other._children[child]:
-                    logging.debug('Child mismatch ' + self._children[child].path)
-                    return False
+                    logging.error('Child mismatch ' + self._children[child].path)
+                    return True
             except KeyError as e:
                 logging.debug('Key error ' + str(e))
                 return False
@@ -359,8 +395,8 @@ class DataNode(Node):
         Represents a data node
     """
 
-    def __init__(self, path, *, busy=None):
-        super().__init__(path)
+    def __init__(self, uri, *, busy=None):
+        super().__init__(uri)
         self._content_checksum = None
         self._content_type = None
         self._busy = busy
@@ -385,11 +421,16 @@ class DataNode(Node):
         if not isinstance(other, DataNode):
             print('Not a DataNode ' + other.path)
             return False
-        result = ((self.length == other.length) and (self.content_checksum == other.content_checksum)
+        self.properties.pop('ivo://ivoa.net/vospace/core#MD5', None)
+        other.properties.pop('ivo://ivoa.net/vospace/core#MD5', None)
+        self.properties.pop('ivo://ivoa.net/vospace/core#type', None)
+        other.properties.pop('ivo://ivoa.net/vospace/core#type', None)
+        result = ((self.length == other.length)
+                  and (self.content_checksum == other.content_checksum)
                   and (self.content_type == other.content_type) and (self.busy == other.busy)
                   and super().__eq__(other))
         if not result:
-            print('Mismatch data props in ' + self.path)
+            logging.debug('Mismatch data props in ' + self.path)
         return result
 
     def __hash__(self):
@@ -403,8 +444,8 @@ class LinkNode(Node):
     """
         Represents a link node
     """
-    def __init__(self, path, target):
-        super().__init__(path)
+    def __init__(self, uri, target):
+        super().__init__(uri)
         self._target = target
 
     @property
@@ -413,12 +454,15 @@ class LinkNode(Node):
 
     def __eq__(self, other):
         if not isinstance(other, LinkNode):
-            print('Not a LinkNode ' + other.path)
+            logging.debug('Not a LinkNode ' + other.path)
             return False
-
+        self._target = self.target.replace('!', '~')
+        other._target = other.target.replace('!', '~')
+        self.properties.pop('ivo://ivoa.net/vospace/core#type', None)
+        other.properties.pop('ivo://ivoa.net/vospace/core#type', None)
         result = (self.target == other.target) and super().__eq__(other)
         if not result:
-            print('Mismatch target in ' + self.path)
+            logging.debug('Mismatch target in ' + self.path)
         return result
 
     def __hash__(self):

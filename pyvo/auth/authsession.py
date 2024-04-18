@@ -21,9 +21,10 @@ class AuthSession:
     credentials are added to the request before it is sent.
     """
 
-    def __init__(self):
+    def __init__(self, verify=False):
         super(AuthSession, self).__init__()
         self.credentials = CredentialStore()
+        self.verify = verify
         self._auth_urls = AuthURLs()
 
     def add_security_method_for_url(self, url, security_method, exact=False):
@@ -105,6 +106,7 @@ class AuthSession:
         logging.debug('Using auth method: %s', negotiated_method)
 
         session = self.credentials.get(negotiated_method)
+        session.verify = False
         return session.request(http_method, url, **kwargs)
 
     def __repr__(self):
