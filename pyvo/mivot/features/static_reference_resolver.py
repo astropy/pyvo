@@ -52,7 +52,7 @@ class StaticReferenceResolver:
             if target is None:
                 raise ResolveException(f"Cannot resolve reference={dmref}")
             # Resolve static references recursively
-            if found_in_global is False:
+            if not found_in_global:
                 StaticReferenceResolver.resolve(annotation_seeker, templates_ref, ele)
             else:
                 StaticReferenceResolver.resolve(annotation_seeker, None, ele)

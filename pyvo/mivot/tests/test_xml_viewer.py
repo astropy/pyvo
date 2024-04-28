@@ -17,7 +17,7 @@ activate_features('MIVOT')
 
 
 def test_xml_viewer(m_viewer):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
     m_viewer.next()
     xml_viewer = m_viewer.xml_viewer
@@ -60,7 +60,7 @@ def test_xml_viewer(m_viewer):
 
 @pytest.fixture
 def m_viewer(data_path):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
     return MivotViewer(os.path.join(data_path, "data", "test.mivot_viewer.xml"),

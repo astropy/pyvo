@@ -16,7 +16,7 @@ activate_features('MIVOT')
 
 
 def test_static_reference_resolve(a_seeker, instance, data_path):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
     StaticReferenceResolver.resolve(a_seeker, None, instance)
     XMLOutputChecker.assertXmltreeEqualsFile(instance.getroot(),
@@ -38,7 +38,7 @@ def data_path():
 
 @pytest.fixture
 def a_seeker(data_path):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
     m_viewer = MivotViewer(os.path.join(data_path, "data", "test.mivot_viewer.xml"),
                        tableref="Results")

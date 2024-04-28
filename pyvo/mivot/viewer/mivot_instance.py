@@ -113,7 +113,7 @@ class MivotInstance:
             if index_underscore != -1:
                 # Then we find the object type before the point
                 next_index_underscore = value.find(".", index_underscore + 1)
-                if next_index_underscore != -1 and role_instance is False:
+                if next_index_underscore != -1 and not role_instance:
                     value_after_underscore = value[next_index_underscore + 1:]
                 else:
                     value_after_underscore = (value[index_underscore + 1:]

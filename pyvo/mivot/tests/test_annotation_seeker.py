@@ -20,7 +20,7 @@ activate_features('MIVOT')
 
 @pytest.fixture
 def a_seeker(data_path,):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
     m_viewer = MivotViewer(os.path.join(data_path, "data", "test.mivot_viewer.xml"),
                        tableref="Results")
@@ -36,7 +36,7 @@ def test_multiple_templates(data_path):
     """
     Try to create an AnnotationSeeker with a mapping_block containing multiple TEMPLATES.
     """
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
     mapping_block = XMLOutputChecker.xmltree_from_file(
         os.path.join(data_path, "data/reference/multiple_templates.xml"))
@@ -45,7 +45,7 @@ def test_multiple_templates(data_path):
 
 
 def test_all_reverts(a_seeker, data_path):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
     # Checks the GLOBALS block given by the AnnotationSeeker
     # by comparing it to the content of the file test.0.1.xml

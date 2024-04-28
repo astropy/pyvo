@@ -18,7 +18,7 @@ def test_id_table(rseeker):
     Checks the IDs of tables found by the RessourceSeeker,
     checks the IDs of the field of the table concerned.
     """
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
     assert rseeker.get_table_ids() == ['_PKTable', 'Results']
     assert (rseeker.get_id_index_mapping('_PKTable')
@@ -65,7 +65,7 @@ def test_id_table(rseeker):
 
 @pytest.fixture
 def rseeker(data_path):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
     votable_path = os.path.join(data_path, "data", "test.mivot_viewer.xml")

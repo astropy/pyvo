@@ -42,7 +42,7 @@ def delt_coo():
 
 @pytest.fixture
 def path_to_withname(data_path, data_sample_url):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
     votable_name = "vizier_cs_withname.xml"
@@ -56,7 +56,7 @@ def path_to_withname(data_path, data_sample_url):
 
 @pytest.fixture
 def path_to_withid(data_path, data_sample_url):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
     votable_name = "vizier_cs_withid.xml"
@@ -70,7 +70,7 @@ def path_to_withid(data_path, data_sample_url):
 
 @pytest.fixture
 def path_to_badref(data_path, data_sample_url):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
     votable_name = "vizier_cs_badref.xml"
@@ -86,7 +86,7 @@ def path_to_badref(data_path, data_sample_url):
 def test_with_name(path_to_withname, delt_coo):
     """ Test that the epoch propagation works with all FIELDs referenced by name or by ID
     """
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
     m_viewer = MivotViewer(votable_path=path_to_withname)
@@ -113,7 +113,7 @@ def test_with_name(path_to_withname, delt_coo):
 def test_with_id(path_to_withid, delt_coo):
     """ Test that the epoch propagation works with all FIELDs referenced by name or by ID
     """
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
     # Test with all FILELDs referenced by names
     m_viewer = MivotViewer(votable_path=path_to_withid)
@@ -130,7 +130,7 @@ def test_with_id(path_to_withid, delt_coo):
 def test_bad_ref(path_to_badref, delt_coo):
     """ Test that the epoch propagation works with all FIELDs referenced by name or by ID
     """
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
     # Test with all FILELDs referenced by names
     with (pytest.raises(ResolveException, match="Attribute mango:EpochPosition.epoch can not be set.*")):

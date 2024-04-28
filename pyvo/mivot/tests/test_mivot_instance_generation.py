@@ -21,7 +21,7 @@ def test_model_viewer3(votable_test, simple_votable):
     class with the function recursive_xml_check.
     This test run on 2 votables : votable_test and simple_votable.
     """
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
     m_viewer_simple_votable = MivotViewer(votable_path=simple_votable)
     MivotInstance = m_viewer_simple_votable.instance
@@ -104,7 +104,7 @@ def test_dict_model_viewer3(votable_test, simple_votable):
     MIVOT class is itself a dictionary with only essential information of the ModelViewerLevel3._dict.
     This test run on 2 votables : votable_test and simple_votable.
     """
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
     m_viewer_votable_test = MivotViewer(votable_path=votable_test)
     m_viewer_votable_test.next()

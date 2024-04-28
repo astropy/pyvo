@@ -70,7 +70,7 @@ class MivotViewer:
         resource_number : int, optional
             The number corresponding to the resource containing the MIVOT block (first by default).
         """
-        if check_astropy_version() is False:
+        if not check_astropy_version():
             raise AstropyVersionException(f"Astropy version {version.version} "
                                           f"is below the required version 6.0 for the use of MIVOT.")
         else:

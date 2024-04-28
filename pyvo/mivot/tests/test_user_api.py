@@ -43,10 +43,10 @@ def delt_coo():
 
 @pytest.fixture
 def path_to_votable(data_path, data_sample_url):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
-    votable_name = "vizier_for_user_api.vot"
+    votable_name = "vizier_for_user_api.xml"
     votable_path = os.path.join(data_path, "data", votable_name)
     urlretrieve(data_sample_url + votable_name,
                 votable_path)
@@ -57,7 +57,7 @@ def path_to_votable(data_path, data_sample_url):
 
 @pytest.mark.remote_data
 def test_mivot_viewer_constructor(path_to_votable):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
     with (pytest.raises(TypeError, match="'<' not supported between instances of 'str' and 'int'")
           and pytest.raises(Exception, match="Resource #1 is not found")):
@@ -66,7 +66,7 @@ def test_mivot_viewer_constructor(path_to_votable):
 
 @pytest.mark.remote_data
 def test_mivot_viewer_next(path_to_votable):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
     mivot_viewer = MivotViewer(path_to_votable)
@@ -84,7 +84,7 @@ def test_mivot_viewer_next(path_to_votable):
 
 @pytest.mark.remote_data
 def test_mivot_tablerow_next(path_to_votable):
-    if check_astropy_version() is False:
+    if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
     votable = parse(path_to_votable)

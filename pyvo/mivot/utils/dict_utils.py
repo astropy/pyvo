@@ -30,7 +30,7 @@ class DictUtils:
             with open(filename, 'r') as file:
                 return json.load(file, object_pairs_hook=OrderedDict)
         except DataFormatException as exception:
-            if fatal is True:
+            if fatal:
                 raise DataFormatException("reading {}".format(filename))
             else:
                 logging.error("{} reading {}".format(exception, filename))
@@ -46,7 +46,6 @@ class DictUtils:
         """
         return json.dumps(dictionary,
                           indent=2,
-                          # sort_keys=True,
                           cls=JsonEncoder)
 
     @staticmethod
