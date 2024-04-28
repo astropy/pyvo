@@ -2,7 +2,7 @@
 Utility class to process dictionary.
 """
 import json
-from pyvo.mivot import logger
+import logging
 from pyvo.mivot.utils.exceptions import DataFormatException
 from pyvo.mivot.utils.json_encoder import JsonEncoder
 
@@ -25,19 +25,18 @@ class DictUtils:
         - DataFormatException: If the file has an incorrect format.
         """
         try:
-            logger.debug("Reading json from %s", filename)
+            logging.debug("Reading json from %s", filename)
             from collections import OrderedDict
             with open(filename, 'r') as file:
-                retour = json.load(file, object_pairs_hook=OrderedDict)
-                return retour
+                return json.load(file, object_pairs_hook=OrderedDict)
         except DataFormatException as exception:
             if fatal is True:
                 raise DataFormatException("reading {}".format(filename))
             else:
-                logger.error("{} reading {}".format(exception, filename))
+                logging.error("{} reading {}".format(exception, filename))
 
     @staticmethod
-    def _get_pretty_json(dictionnary):
+    def _get_pretty_json(dictionary):
         """
         Return a pretty string representation of the dictionary.
         Parameters:
@@ -45,16 +44,16 @@ class DictUtils:
         Returns:
         - str: A pretty string representation of the dictionary.
         """
-        return json.dumps(dictionnary,
+        return json.dumps(dictionary,
                           indent=2,
                           # sort_keys=True,
                           cls=JsonEncoder)
 
     @staticmethod
-    def print_pretty_json(dictionnary):
+    def print_pretty_json(dictionary):
         """
         Print out a pretty string representation of the dictionary.
         Parameters:
         - dictionary (dict): The dictionary.
         """
-        print(DictUtils._get_pretty_json(dictionnary))
+        print(DictUtils._get_pretty_json(dictionary))

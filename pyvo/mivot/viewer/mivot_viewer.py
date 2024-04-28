@@ -20,13 +20,12 @@ The code below shows a typical use of `MivotViewer
 
     See `tests/test_user_api.py`to get different examples of the API usage.
 """
-
+import logging
 from copy import deepcopy
 from astropy import version
 from astropy.io.votable import parse
 from astropy.io.votable.tree import VOTableFile
 from pyvo.dal import DALResults
-from pyvo.mivot import logger
 from pyvo.mivot.utils.vocabulary import Ele, Att
 from pyvo.mivot.utils.vocabulary import Constant, NoMapping
 from pyvo.mivot.utils.exceptions import (MappingException,
@@ -103,7 +102,7 @@ class MivotViewer:
                 self._connect_table(tableref)
                 self._init_instance()
             except MappingException as mnf:
-                logger.error(str(mnf))
+                logging.error(str(mnf))
 
     """
     Properties
@@ -114,11 +113,11 @@ class MivotViewer:
 
     def __exit__(self, exc_type, exc_value, traceback):
         """ `with` statement implementation """
-        logger.info("MivotViewer closing..")
+        logging.info("MivotViewer closing..")
 
     def close(self):
         """ `with` statement implementation """
-        logger.info("MivotViewer is closed")
+        logging.info("MivotViewer is closed")
 
     @property
     def votable(self):
@@ -232,10 +231,10 @@ class MivotViewer:
         """
         if self._annotation_seeker is None:
             return None
-        retour = {}
-        retour[Ele.COLLECTION] = self._annotation_seeker.get_globals_collection_dmtypes()
-        retour[Ele.INSTANCE] = self._annotation_seeker.get_globals_instance_dmtypes()
-        return retour
+        globals_models = {}
+        globals_models[Ele.COLLECTION] = self._annotation_seeker.get_globals_collection_dmtypes()
+        globals_models[Ele.INSTANCE] = self._annotation_seeker.get_globals_instance_dmtypes()
+        return globals_models
 
     def get_models(self):
         """
@@ -247,8 +246,7 @@ class MivotViewer:
         """
         if self._annotation_seeker is None:
             return None
-        retour = self._annotation_seeker.models
-        return retour
+        return self._annotation_seeker.models
 
     def get_templates_models(self):
         """
@@ -261,11 +259,11 @@ class MivotViewer:
         """
         if self._annotation_seeker is None:
             return None
-        retour = {}
+        templates_models = {}
         gni = self._annotation_seeker.get_instance_dmtypes()[Ele.TEMPLATES]
         for tid, tmplids in gni.items():
-            retour[tid] = {Ele.COLLECTION: [], Ele.INSTANCE: tmplids}
-        return retour
+            templates_models[tid] = {Ele.COLLECTION: [], Ele.INSTANCE: tmplids}
+        return templates_models
 
     """
     Data browsing
@@ -351,7 +349,7 @@ class MivotViewer:
         if tableref is None:
             stableref = ""
             self._connected_tableref = Constant.FIRST_TABLE
-            logger.debug("Since " + Ele.TEMPLATES + "@table_ref is None, "
+            logging.debug("Since " + Ele.TEMPLATES + "@table_ref is None, "
                          "the mapping will be applied to the first table."
                          )
         elif tableref not in self._mapped_tables:
@@ -365,11 +363,11 @@ class MivotViewer:
         self._connected_table = self._resource_seeker.get_table(tableref)
         if self.connected_table is None:
             raise ResourceNotFound(f"Cannot find table {stableref} in VOTable")
-        logger.debug("table %s found in VOTable", stableref)
+        logging.debug("table %s found in VOTable", stableref)
         self._templates = deepcopy(self.annotation_seeker.get_templates_block(tableref))
         if self._templates is None:
             raise MivotElementNotFound("Cannot find " + Ele.TEMPLATES + f" {stableref} ")
-        logger.debug(Ele.TEMPLATES + " %s found ", stableref)
+        logging.debug(Ele.TEMPLATES + " %s found ", stableref)
         self._table_iterator = TableIterator(self._connected_tableref,
                                              self.connected_table.to_table())
         self._squash_join_and_references()
@@ -446,7 +444,7 @@ class MivotViewer:
         if rnb < 0 or rnb >= nb_resources:
             raise ResourceNotFound(f"Resource #{rnb} is not found")
         else:
-            logger.info("Resource %s selected", rnb)
+            logging.info("Resource %s selected", rnb)
             self._resource = self._parsed_votable.resources[rnb]
 
     def _set_mapping_block(self):
@@ -461,7 +459,7 @@ class MivotViewer:
                             .replace('xmlns="http://www.ivoa.net/xml/mivot"', '')
                             .replace("xmlns='http://www.ivoa.net/xml/mivot'", '')))
         self._annotation_seeker = AnnotationSeeker(self._mapping_block)
-        logger.info("Mapping block found")
+        logging.info("Mapping block found")
 
     def _squash_join_and_references(self):
         """

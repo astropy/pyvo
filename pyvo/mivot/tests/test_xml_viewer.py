@@ -63,7 +63,7 @@ def m_viewer(data_path):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
-    return MivotViewer(os.path.join(data_path, "data", "test.xml_viewer.xml"),
+    return MivotViewer(os.path.join(data_path, "data", "test.mivot_viewer.xml"),
                        tableref="Results")
 
 

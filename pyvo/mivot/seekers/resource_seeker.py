@@ -31,15 +31,15 @@ class ResourceSeeker:
         -------
         list of str: table ids.
         """
-        retour = []
+        ids_found = []
         for table in self._resource.tables:
             if table.ID is not None:
-                retour.append(table.ID)
+                ids_found.append(table.ID)
             elif table.name is not None:
-                retour.append(table.name)
+                ids_found.append(table.name)
             else:
-                retour.append(Constant.ANONYMOUS_TABLE)
-        return retour
+                ids_found.append(Constant.ANONYMOUS_TABLE)
+        return ids_found
 
     def get_table(self, table_name):
         """
@@ -78,7 +78,7 @@ class ResourceSeeker:
         -------
         dict: dictionary mapping field id to column number: {name: {ID, ref, indx}...}
         """
-        retour = {}
+        column_index = {}
         table = self.get_table(table_name)
         indx = 0
         for field in table.fields:
@@ -90,9 +90,10 @@ class ResourceSeeker:
             field_desc["indx"] = indx
             if "ID" not in field_desc:
                 field_desc["ID"] = field.name
-            retour[field.name] = field_desc
+            column_index[field.name] = field_desc
             indx += 1
-        return retour
+
+        return column_index
 
     def get_id_unit_mapping(self, table_name):
         """
@@ -104,14 +105,14 @@ class ResourceSeeker:
         -------
         dict: A dictionary mapping field id to field unit {ID1: unit, name1: unit, ref1: unit ...}.
         """
-        retour = {}
+        unit_index = {}
         table = self.get_table(table_name)
         for field in table.fields:
             unit = field.unit
             if field.ID is not None:
-                retour[field.ID] = unit
+                unit_index[field.ID] = unit
             elif field.name is not None:
-                retour[field.name] = unit
+                unit_index[field.name] = unit
             elif field.ref is not None:
-                retour[field.ref] = unit
-        return retour
+                unit_index[field.ref] = unit
+        return unit_index

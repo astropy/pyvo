@@ -77,10 +77,10 @@ class MivotUtils(object):
         -------
         list: list of dictionaries representing the elements of the COLLECTION.
         """
-        retour = []
+        collection_items = []
         for child_coll in child:
-            retour.append(MivotUtils.xml_to_dict(child_coll))
-        return retour
+            collection_items.append(MivotUtils.xml_to_dict(child_coll))
+        return collection_items
 
     @staticmethod
     def cast_type_value(value, dmtype):

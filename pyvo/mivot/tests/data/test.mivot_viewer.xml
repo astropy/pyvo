@@ -232,13 +232,13 @@
 <FIELD ID="_mag" datatype="float" name="mag" ucd="phot.mag;em.opt" unit="mag">
 <DESCRIPTION>Vega magnitude, computed from the flux applying the zero-point defined in ExtPhotZeroPoint.</DESCRIPTION>
 </FIELD>
-<FIELD ID="_flux" datatype="float" name="flux" ucd="em.opt;phot.flux;stat.mean" unit="e-/s" utype="spec:Spectrum.Data.SpectralAxis.Value">
+<FIELD ID="_flux" datatype="float" name="flux" ucd="phot.flux;em.opt;stat.mean" unit="s-1" utype="spec:Spectrum.Data.SpectralAxis.Value">
 <DESCRIPTION>Band flux value for the transit. For G band, it is a combination of individual SM-AF CCD fluxes. For BP and RP bands, it is an integrated CCD flux.</DESCRIPTION>
 </FIELD>
-<FIELD ID="_fluxerr" datatype="float" name="flux_error" ucd="em.opt;phot.flux;stat.error" unit="e-/s">
+<FIELD ID="_fluxerr" datatype="float" name="flux_error" ucd="stat.error;phot.flux;em.opt" unit="s-1">
 <DESCRIPTION>Flux error. If the flux has been rejected or is unavailable, this error will be set to null.</DESCRIPTION>
 </FIELD>
-<FIELD datatype="float" name="flux_over_error" ucd="em.opt;phot.flux;stat.error">
+<FIELD datatype="float" name="flux_over_error" ucd="stat.error;phot.flux;em.opt">
 <DESCRIPTION>Band flux divided by its error. If the flux has been rejected or is unavailable, this field will be set to null.</DESCRIPTION>
 </FIELD>
 <FIELD datatype="boolean" name="rejected_by_photometry" ucd="meta.code.status">

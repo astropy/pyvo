@@ -16,15 +16,15 @@
       <DESCRIPTION>Distance from center (052.2670800+59.9402700)[ICRS], at Epoch of catalog (Epoch)</DESCRIPTION>
 <!-- ++++ What is 'M' in edition ?? -->
     </FIELD>
-    <FIELD name="URAT1" ucd="ID_MAIN" datatype="char" arraysize="10*"><!-- ucd="meta.id;meta.main" -->
+    <FIELD name="URAT1" ucd="meta.id;meta.main" datatype="char" arraysize="10*"><!-- ucd="meta.id;meta.main" -->
       <DESCRIPTION>URAT1 recommended identifier (ZZZ-NNNNNN) (13) [datatype=char]</DESCRIPTION>
 <!-- ++++ What is 'M' in edition ?? -->
     </FIELD>
-    <FIELD name="RAICRS" ucd="POS_EQ_RA_MAIN" ref="H" datatype="double" width="11" precision="7" unit="deg"><!-- ucd="pos.eq.ra;meta.main" -->
+    <FIELD name="RAICRS" ucd="pos.eq.ra;meta.main" ref="H" datatype="double" width="11" precision="7" unit="deg"><!-- ucd="pos.eq.ra;meta.main" -->
       <DESCRIPTION>Right ascension on ICRS, at "Epoch" (1)</DESCRIPTION>
 <!-- ++++ What is 'M' in edition ?? -->
     </FIELD>
-    <FIELD name="DEICRS" ucd="POS_EQ_DEC_MAIN" ref="H" datatype="double" width="11" precision="7" unit="deg"><!-- ucd="pos.eq.dec;meta.main" -->
+    <FIELD name="DEICRS" ucd="pos.eq.dec;meta.main" ref="H" datatype="double" width="11" precision="7" unit="deg"><!-- ucd="pos.eq.dec;meta.main" -->
       <DESCRIPTION>Declination on ICRS, at "Epoch" (1)</DESCRIPTION>
 <!-- ++++ What is 'M' in edition ?? -->
     </FIELD>
@@ -109,7 +109,7 @@
       <DESCRIPTION>[-] "-" if there is no match with GSC2.4 (14)</DESCRIPTION>
 <!-- ++++ What is 'M' in edition ?? -->
     </FIELD>
-    <FIELD name="2Mkey" ucd="meta.id" datatype="long" width="10"><!-- ucd="ID_NUMBER" -->
+    <FIELD name="2Mkey" ID="_2Mkey" ucd="meta.id" datatype="long" width="10"><!-- ucd="ID_NUMBER" -->
       <DESCRIPTION>?(id2) unique 2MASS star identification number</DESCRIPTION>
 <!-- ++++ What is 'M' in edition ?? -->
       <VALUES null="-9223372036854775808" />

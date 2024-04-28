@@ -2,9 +2,9 @@
 """
 Utilities for extracting sub-blocks from a MIVOT mapping block.
 """
+import logging
 from pyvo.mivot.utils.exceptions import MivotElementNotFound, MappingException
 from pyvo.mivot.utils.vocabulary import Att, Ele
-from pyvo.mivot import logger
 from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.mivot.utils.xpath_utils import XPath
 from pyvo.utils.prototype import prototype_feature
@@ -46,7 +46,7 @@ class AnnotationSeeker:
         """
         for child in self._xml_block:
             if self._name_match(child.tag, Ele.GLOBALS):
-                logger.info("Found " + Ele.GLOBALS)
+                logging.info("Found " + Ele.GLOBALS)
                 self._globals_block = child
 
     def _find_templates_blocks(self):
@@ -67,10 +67,10 @@ class AnnotationSeeker:
             if self._name_match(child.tag, Ele.TEMPLATES):
                 tableref = child.get(Att.tableref)
                 if tableref is not None:
-                    logger.info("Found " + Ele.TEMPLATES + " %s", tableref)
+                    logging.info("Found " + Ele.TEMPLATES + " %s", tableref)
                     self._templates_blocks[tableref] = child
                 elif not self._templates_blocks:
-                    logger.info("Found " + Ele.TEMPLATES + " without " + Att.tableref)
+                    logging.info("Found " + Ele.TEMPLATES + " without " + Att.tableref)
                     self._templates_blocks["DEFAULT"] = child
                 else:
                     raise MivotElementNotFound(Ele.TEMPLATES + " without " + Att.tableref + " must be unique")
@@ -138,11 +138,11 @@ class AnnotationSeeker:
         -------
         dict: MODELs and their URLs {'model': [url], ...}
         """
-        retour = {}
+        models_found = {}
         eset = XPath.x_path(self._xml_block, ".//" + Ele.MODEL)
         for ele in eset:
-            retour[ele.get("name")] = ele.get("url")
-        return retour
+            models_found[ele.get("name")] = ele.get("url")
+        return models_found
 
     @property
     def templates_tableref(self):
@@ -162,14 +162,14 @@ class AnnotationSeeker:
         -------
         list: TEMPLATES tablerefs
         """
-        retour = []
+        templates_found = []
         eset = XPath.x_path(self._xml_block, ".//" + Ele.TEMPLATES)
         for ele in eset:
             tableref = ele.get("tableref")
             if tableref is None:
                 tableref = Constant.FIRST_TABLE
-            retour.append(tableref)
-        return retour
+            templates_found.append(tableref)
+        return templates_found
 
     def get_templates_block(self, tableref):
         """
@@ -198,16 +198,16 @@ class AnnotationSeeker:
         -------
         dict:  @dmtypes of all mapped instances {GLOBALS: [], TEMPLATES: {}}
         """
-        retour = {Ele.GLOBALS: [], Ele.TEMPLATES: {}}
+        dmtypes_found = {Ele.GLOBALS: [], Ele.TEMPLATES: {}}
         eset = XPath.x_path(self._globals_block, ".//" + Ele.INSTANCE)
         for ele in eset:
-            retour[Ele.GLOBALS].append(ele.get(Att.dmtype))
+            dmtypes_found[Ele.GLOBALS].append(ele.get(Att.dmtype))
         for tableref, block in self._templates_blocks.items():
-            retour[Ele.TEMPLATES][tableref] = []
+            dmtypes_found[Ele.TEMPLATES][tableref] = []
             eset = XPath.x_path(block, ".//" + Ele.INSTANCE)
             for ele in eset:
-                retour[Ele.TEMPLATES][tableref].append(ele.get(Att.dmtype))
-        return retour
+                dmtypes_found[Ele.TEMPLATES][tableref].append(ele.get(Att.dmtype))
+        return dmtypes_found
 
     def get_instance_by_dmtype(self, dmtype_pattern):
         """
@@ -219,17 +219,17 @@ class AnnotationSeeker:
         -------
         dict: @dmtypes of all mapped instances {'dmtype': [instance], ...}
         """
-        retour = {Ele.GLOBALS: [], Ele.TEMPLATES: {}}
+        instance_found = {Ele.GLOBALS: [], Ele.TEMPLATES: {}}
         eset = XPath.x_path_contains(self._globals_block,
                                      ".//" + Ele.INSTANCE,
                                      Att.dmtype,
                                      dmtype_pattern
                                      )
-        retour[Ele.GLOBALS] = eset
+        instance_found[Ele.GLOBALS] = eset
         for (tableref, block) in self._templates_blocks.items():
-            retour[Ele.TEMPLATES][tableref] = XPath.x_path_contains(block, './/'
+            instance_found[Ele.TEMPLATES][tableref] = XPath.x_path_contains(block, './/'
                      + Ele.INSTANCE, Att.dmtype, dmtype_pattern)
-        return retour
+        return instance_found
 
     """
     GLOBALS INSTANCES
@@ -254,12 +254,12 @@ class AnnotationSeeker:
         -------
         list: @dmid of GLOBALS/INSTANCE
         """
-        retour = []
+        dmids_found = []
         eset = XPath.x_path(self._globals_block,
                             ".//" + Ele.INSTANCE + "[@" + Att.dmid + "]")
         for ele in eset:
-            retour.append(ele.get(Att.dmid))
-        return retour
+            dmids_found.append(ele.get(Att.dmid))
+        return dmids_found
 
     def get_globals_instance_by_dmid(self, dmid):
         """
@@ -285,10 +285,10 @@ class AnnotationSeeker:
         -------
         list:  @dmtype of GLOBALS/INSTANCE
         """
-        retour = []
+        dmtypes_found = []
         for inst in self.get_globals_instances():
-            retour.append(inst.get(Att.dmtype))
-        return retour
+            dmtypes_found.append(inst.get(Att.dmtype))
+        return dmtypes_found
 
     def get_templates_instance_by_dmid(self, tableref, dmid):
         """
@@ -356,11 +356,11 @@ class AnnotationSeeker:
         -------
         list: @dmid of GLOBALS/COLLECTION
         """
-        retour = []
+        dmids_found = []
         eset = XPath.x_path(self._globals_block, ".//" + Ele.COLLECTION + "[@" + Att.dmid + "]")
         for ele in eset:
-            retour.append(ele.get(Att.dmid))
-        return retour
+            dmids_found.append(ele.get(Att.dmid))
+        return dmids_found
 
     def get_globals_collection_dmtypes(self):
         """
@@ -371,12 +371,12 @@ class AnnotationSeeker:
         list: @dmtype of GLOBALS/COLLECTION/INSTANCE
         """
         eles = XPath.x_path(self._globals_block, ".//" + Ele.COLLECTION + "/" + Ele.INSTANCE)
-        retour = []
+        dmtypes_found = []
         for inst in eles:
             dmtype = inst.get(Att.dmtype)
-            if dmtype not in retour:
-                retour.append(dmtype)
-        return retour
+            if dmtype not in dmtypes_found:
+                dmtypes_found.append(dmtype)
+        return dmtypes_found
 
     def get_collection_item_by_primarykey(self, coll_dmid, key_value):
         """
@@ -411,7 +411,7 @@ class AnnotationSeeker:
                 f"{Att.dmid} {key_value}"
             )
             raise MappingException(message)
-        logger.debug(Ele.INSTANCE + " with " + Att.primarykey + "=%s found in "
+        logging.debug(Ele.INSTANCE + " with " + Att.primarykey + "=%s found in "
                      + Ele.COLLECTION + " "
                      + Att.dmid + "=%s", key_value, coll_dmid)
         parent_map = {c: p for p in self._globals_block.iter() for c in p}

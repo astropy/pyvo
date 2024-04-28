@@ -22,7 +22,7 @@ activate_features('MIVOT')
 def a_seeker(data_path,):
     if check_astropy_version() is False:
         pytest.skip("MIVOT test skipped because of the astropy version.")
-    m_viewer = MivotViewer(os.path.join(data_path, "data", "test.xml_viewer.xml"),
+    m_viewer = MivotViewer(os.path.join(data_path, "data", "test.mivot_viewer.xml"),
                        tableref="Results")
     return AnnotationSeeker(m_viewer._mapping_block)
 

@@ -38,7 +38,7 @@ class StaticReferenceResolver:
         NotImplementedException
             If the reference is dynamic.
         """
-        retour = 0
+        resolved_refs = 0
         for ele in XPath.x_path_startwith(instance, './/REFERENCE_'):
             dmref = ele.get("dmref")
             # If we have no @dmref in REFERENCE, we consider this is a ref based on a keys
@@ -67,5 +67,5 @@ class StaticReferenceResolver:
             parent.append(target_copy)
             # Drop the reference
             parent.remove(ele)
-            retour += 1
-        return retour
+            resolved_refs += 1
+        return resolved_refs
