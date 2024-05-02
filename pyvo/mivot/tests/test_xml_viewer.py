@@ -9,34 +9,37 @@ try:
 except ImportError:
     from xml.etree.ElementTree import Element as element
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot.viewer.mivot_viewer import MivotViewer
-from pyvo.utils.prototype import activate_features
+from pyvo.mivot import MivotViewer
+from pyvo.mivot.utils.exceptions import MivotException
 
 
-activate_features('MIVOT')
-
-
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_xml_viewer(m_viewer):
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
+
     m_viewer.next()
     xml_viewer = m_viewer.xml_viewer
-    with pytest.raises(Exception, match="Cannot find dmrole wrong_role in any instances of the VOTable"):
+    with pytest.raises(MivotException,
+                       match="Cannot find dmrole wrong_role in any instances of the VOTable"):
         xml_viewer.get_instance_by_role("wrong_role")
 
-    with pytest.raises(Exception, match="Cannot find dmrole wrong_role in any instances of the VOTable"):
+    with pytest.raises(MivotException,
+                       match="Cannot find dmrole wrong_role in any instances of the VOTable"):
         xml_viewer.get_instance_by_role("wrong_role", all_instances=True)
 
-    with pytest.raises(Exception, match="Cannot find dmtype wrong_dmtype in any instances of the VOTable"):
+    with pytest.raises(MivotException,
+                       match="Cannot find dmtype wrong_dmtype in any instances of the VOTable"):
         xml_viewer.get_instance_by_type("wrong_dmtype")
 
-    with pytest.raises(Exception, match="Cannot find dmtype wrong_dmtype in any instances of the VOTable"):
+    with pytest.raises(MivotException,
+                       match="Cannot find dmtype wrong_dmtype in any instances of the VOTable"):
         xml_viewer.get_instance_by_type("wrong_dmtype", all_instances=True)
 
-    with pytest.raises(Exception, match="Cannot find dmrole wrong_role in any collections of the VOTable"):
+    with pytest.raises(MivotException,
+                       match="Cannot find dmrole wrong_role in any collections of the VOTable"):
         xml_viewer.get_collection_by_role("wrong_role")
 
-    with pytest.raises(Exception, match="Cannot find dmrole wrong_role in any collections of the VOTable"):
+    with pytest.raises(MivotException,
+                       match="Cannot find dmrole wrong_role in any collections of the VOTable"):
         xml_viewer.get_collection_by_role("wrong_role", all_instances=True)
 
     instances_list_role = xml_viewer.get_instance_by_role("cube:MeasurementAxis.measure")
@@ -60,9 +63,6 @@ def test_xml_viewer(m_viewer):
 
 @pytest.fixture
 def m_viewer(data_path):
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
-
     return MivotViewer(os.path.join(data_path, "data", "test.mivot_viewer.xml"),
                        tableref="Results")
 

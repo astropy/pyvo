@@ -41,21 +41,21 @@ class ResourceSeeker:
                 ids_found.append(Constant.ANONYMOUS_TABLE)
         return ids_found
 
-    def get_table(self, table_name):
+    def get_table(self, table_name_or_id):
         """
         Return the table matching table_name first by ID and then by name.
         Parameters
         ----------
-        table_name (str): Name of the table to get.
+        table_name_or_id (str): Name or id of the table to get.
         Returns
         -------
         ~astropy.votable.table: table matching the table_name.
         """
-        if table_name == Constant.FIRST_TABLE:
+        if table_name_or_id == Constant.FIRST_TABLE:
             return self._resource.tables[0]
         for table in self._resource.tables:
-            if (table_name is None or table.name == table_name
-                    or table.ID == table_name):
+            if (table_name_or_id is None or table.name == table_name_or_id
+                    or table.ID == table_name_or_id):
                 return table
         return None
 

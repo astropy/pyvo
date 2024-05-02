@@ -3,7 +3,7 @@
 Utilities for extracting sub-blocks from a MIVOT mapping block.
 """
 import logging
-from pyvo.mivot.utils.exceptions import MivotElementNotFound, MappingException
+from pyvo.mivot.utils.exceptions import MivotException, MappingException
 from pyvo.mivot.utils.vocabulary import Att, Ele
 from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.mivot.utils.xpath_utils import XPath
@@ -46,7 +46,7 @@ class AnnotationSeeker:
         """
         for child in self._xml_block:
             if self._name_match(child.tag, Ele.GLOBALS):
-                logging.info("Found " + Ele.GLOBALS)
+                logging.debug("Found " + Ele.GLOBALS)
                 self._globals_block = child
 
     def _find_templates_blocks(self):
@@ -67,18 +67,19 @@ class AnnotationSeeker:
             if self._name_match(child.tag, Ele.TEMPLATES):
                 tableref = child.get(Att.tableref)
                 if tableref is not None:
-                    logging.info("Found " + Ele.TEMPLATES + " %s", tableref)
+                    logging.debug("Found " + Ele.TEMPLATES + " %s", tableref)
                     self._templates_blocks[tableref] = child
                 elif not self._templates_blocks:
-                    logging.info("Found " + Ele.TEMPLATES + " without " + Att.tableref)
+                    logging.debug("Found " + Ele.TEMPLATES + " without " + Att.tableref)
                     self._templates_blocks["DEFAULT"] = child
                 else:
-                    raise MivotElementNotFound(Ele.TEMPLATES + " without " + Att.tableref + " must be unique")
+                    raise MivotException(Ele.TEMPLATES + " without " + Att.tableref + " must be unique")
 
     def _rename_ref_and_join(self):
         """
-        Remove namespaces from specified elements and makes them unique
-        by adding a numerical suffix.
+        Tag specified elements with a numerical suffix to make them unique.
+        This is necessary to avid confusions when resolving cross references
+        between elements
         The elements that are renamed are:
         - JOIN
         - REFERENCE
@@ -116,8 +117,7 @@ class AnnotationSeeker:
         """
         return self._globals_block
 
-    @property
-    def globals_collections(self):
+    def get_globals_collections(self):
         """
         Return a list of all GLOBALS/COLLECTION elements.
         These collections have no @dmroles but often @dmids.
@@ -130,8 +130,7 @@ class AnnotationSeeker:
         """
         return XPath.x_path(self._globals_block, ".//COLLECTION")
 
-    @property
-    def models(self):
+    def get_models(self):
         """
         Get the declared MODELs and their URLs.
         Returns
@@ -144,8 +143,7 @@ class AnnotationSeeker:
             models_found[ele.get("name")] = ele.get("url")
         return models_found
 
-    @property
-    def templates_tableref(self):
+    def get_templates_tableref(self):
         """
         Get all @tableref of the mapping.
         Returns
@@ -154,8 +152,7 @@ class AnnotationSeeker:
         """
         return self._templates_blocks.keys()
 
-    @property
-    def templates(self):
+    def get_templates(self):
         """
         Return a list of TEMPLATES @tableref.
         Returns
@@ -341,7 +338,7 @@ class AnnotationSeeker:
         dmid (str):@dmid of the searched GLOBALS/COLLECTION
         Returns
         -------
-        dict: ~`xml.etree.ElementTree.Element`
+        dict: `xml.etree.ElementTree.Element`
         """
         eset = XPath.x_path(self._globals_block, ".//" + Ele.GLOBALS + "/" + Ele.COLLECTION
                             + "[@" + Att.dmid + "='" + dmid + "']")
@@ -382,7 +379,7 @@ class AnnotationSeeker:
         """
         Get the GLOBALS/COLLECTION/INSTANCE with COLLECTION@dmid=dmid and
         INSTANCE with a PRIMARY_key which @value matches key_value.
-        An exception is risen if there is less or more than one element matching the criteria.
+        An exception is raised if there is less or more than one element matching the criteria.
         The 2 parameters match the dynamic REFERENCE definition.
         Parameters
         ----------
@@ -403,7 +400,7 @@ class AnnotationSeeker:
             message = (f"{Ele.INSTANCE} with {Att.primarykey} = {key_value} in "
                        f"{Ele.COLLECTION} {Att.dmid} {key_value} not found"
                        )
-            raise MivotElementNotFound(message)
+            raise MivotException(message)
         if len(eset) > 1:
             message = (
                 f"More than one {Ele.INSTANCE} with {Att.primarykey}"

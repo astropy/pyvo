@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 XMLViewer provides several getters on XML instances built by
- `~pyvo.mivot.viewer.mivot_viewer`.
+ `pyvo.mivot.viewer.mivot_viewer`.
 """
-from pyvo.mivot.utils.exceptions import MivotElementNotFound
+from pyvo.mivot.utils.exceptions import MivotException
 from pyvo.mivot.utils.xpath_utils import XPath
 from pyvo.utils.prototype import prototype_feature
 
@@ -24,7 +24,7 @@ class XMLViewer:
         """
         getter returning the XML model view
 
-        returns : XML block
+        returns
         -------
             XML model view to be parsed
             by different methods
@@ -33,7 +33,6 @@ class XMLViewer:
 
     def get_instance_by_role(self, dmrole, all_instances=False):
         """
-        Return the instance matching with @dmrole.
         If all_instances is False, return the first INSTANCE matching with @dmrole.
         If all_instances is True, return a list of all instances matching with @dmrole.
         Parameters
@@ -45,7 +44,7 @@ class XMLViewer:
             Default is False.
         Returns
         -------
-        Union[~`xml.etree.ElementTree.Element`, List[~`xml.etree.ElementTree.Element`], None]
+        Union[`xml.etree.ElementTree.Element`, List[`xml.etree.ElementTree.Element`], None]
             If all_instances is False, returns the instance matching with @dmrole.
             If all_instances is True, returns a list of all instances matching with @dmrole.
             If no matching instance is found, returns None.
@@ -54,28 +53,20 @@ class XMLViewer:
         MivotElementNotFound
             If dmrole is not found.
         """
+        instances = XPath.select_elements_by_atttribute(
+            self._xml_view,
+            "INSTANCE",
+            "dmrole",
+            dmrole)
+
+        if len(instances) == 0:
+            raise MivotException(
+                f"Cannot find dmrole {dmrole} in any instances of the VOTable")
+
         if all_instances is False:
-            if len(XPath.x_path(self._xml_view,
-                                f'.//INSTANCE[@dmrole="{dmrole}"]')) != 0:
-                for ele in XPath.x_path(self._xml_view,
-                                        f'.//INSTANCE[@dmrole="{dmrole}"]'):
-                    return ele
-            else:
-                raise MivotElementNotFound(
-                    f"Cannot find dmrole {dmrole} in any instances of the VOTable")
+            return instances[0]
         else:
-            if len(XPath.x_path(self._xml_view,
-                                f'.//INSTANCE[@dmrole="{dmrole}"]')) != 0:
-                ele = []
-                for elem in XPath.x_path(self._xml_view,
-                                         f'.//INSTANCE[@dmrole="{dmrole}"]'):
-                    ele.append(elem)
-                if ele:
-                    return ele
-            else:
-                raise MivotElementNotFound(
-                    f"Cannot find dmrole {dmrole} in any instances of the VOTable")
-        return None
+            return instances
 
     def get_instance_by_type(self, dmtype, all_instances=False):
         """
@@ -100,28 +91,20 @@ class XMLViewer:
         MivotElementNotFound
             If dmtype is not found.
         """
+        instances = XPath.select_elements_by_atttribute(
+            self._xml_view,
+            "INSTANCE",
+            "dmtype",
+            dmtype)
+
+        if len(instances) == 0:
+            raise MivotException(
+                f"Cannot find dmtype {dmtype} in any instances of the VOTable")
+
         if all_instances is False:
-            if len(XPath.x_path(self._xml_view,
-                                f'.//INSTANCE[@dmtype="{dmtype}"]')) != 0:
-                for ele in XPath.x_path(self._xml_view,
-                                        f'.//INSTANCE[@dmtype="{dmtype}"]'):
-                    if ele is not None:
-                        return ele
-            else:
-                raise MivotElementNotFound(f"Cannot find dmtype {dmtype} in any instances of the VOTable")
+            return instances[0]
         else:
-            if len(XPath.x_path(self._xml_view,
-                                f'.//INSTANCE[@dmtype="{dmtype}"]')) != 0:
-                ele = []
-                for elem in XPath.x_path(self._xml_view,
-                                         f'.//INSTANCE[@dmtype="{dmtype}"]'):
-                    ele.append(elem)
-                if ele:
-                    return ele
-            else:
-                raise MivotElementNotFound(f"Cannot find dmtype {dmtype} in any instances of the VOTable")
-            return ele
-        return None
+            return instances
 
     def get_collection_by_role(self, dmrole, all_instances=False):
         """
@@ -146,24 +129,17 @@ class XMLViewer:
         MivotElementNotFound
             If dmrole is not found.
         """
+        collections = XPath.select_elements_by_atttribute(
+            self._xml_view,
+            "COLLECTION",
+            "dmrole",
+            dmrole)
+
+        if len(collections) == 0:
+            raise MivotException(
+                f"Cannot find dmrole {dmrole} in any collections of the VOTable")
+
         if all_instances is False:
-            if len(XPath.x_path(self._xml_view,
-                                f'.//COLLECTION[@dmrole="{dmrole}"]')) != 0:
-                for ele in XPath.x_path(self._xml_view,
-                                        f'.//COLLECTION[@dmrole="{dmrole}"]'):
-                    return ele
-            else:
-                raise MivotElementNotFound(f"Cannot find dmrole {dmrole} in any collections of the VOTable")
+            return collections[0]
         else:
-            if len(XPath.x_path(self._xml_view,
-                                f'.//COLLECTION[@dmrole="{dmrole}"]')) != 0:
-                ele = []
-                for elem in XPath.x_path(self._xml_view,
-                                         f'.//COLLECTION[@dmrole="{dmrole}"]'):
-                    ele.append(elem)
-                if ele:
-                    return ele
-            else:
-                raise MivotElementNotFound(f"Cannot find dmrole {dmrole} in any collections of the VOTable")
-            return ele
-        return None
+            return collections

@@ -63,7 +63,7 @@ class XPath:
         It adds a counter to the path to find all the REFERENCEs and JOINs.
         Parameters
         ----------
-        etree : ~`xml.etree.ElementTree.Element`
+        etree : `xml.etree.ElementTree.Element`
             The XML tree to query.
         path : str
             The XPath query to perform.
@@ -82,3 +82,26 @@ class XPath:
             else:
                 run = False
         return result
+
+    @staticmethod
+    def select_elements_by_atttribute(etree, element, attribute, attribute_value):
+        """
+        Select all xml elements named 'element' having @attribute=attribute_value
+        Parameters
+        ----------
+        etree : `xml.etree.ElementTree.Element`
+            The XML tree to query.
+        element: str
+            name of the searched elements
+        attribute: str
+            name of the element attribute used for the selection
+        attribute_value: str
+            attribute value of the selected elements
+        Returns
+        -------
+        list
+            The list of all the elements of the XML tree that match the given XPath query.
+        """
+        return XPath.x_path(etree,
+                            f'.//{element}[@{attribute}="{attribute_value}"]'
+                            )

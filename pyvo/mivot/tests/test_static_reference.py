@@ -7,17 +7,12 @@ import pytest
 from pyvo.mivot.seekers.annotation_seeker import AnnotationSeeker
 from pyvo.mivot.features.static_reference_resolver import StaticReferenceResolver
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot.viewer.mivot_viewer import MivotViewer
-from pyvo.utils import activate_features
+from pyvo.mivot import MivotViewer
 from . import XMLOutputChecker
 
 
-activate_features('MIVOT')
-
-
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_static_reference_resolve(a_seeker, instance, data_path):
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
     StaticReferenceResolver.resolve(a_seeker, None, instance)
     XMLOutputChecker.assertXmltreeEqualsFile(instance.getroot(),
                                      os.path.join(data_path,
@@ -38,8 +33,6 @@ def data_path():
 
 @pytest.fixture
 def a_seeker(data_path):
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
     m_viewer = MivotViewer(os.path.join(data_path, "data", "test.mivot_viewer.xml"),
                        tableref="Results")
     return AnnotationSeeker(m_viewer._mapping_block)

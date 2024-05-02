@@ -1,2 +1,2 @@
-import os
-from pyvo.utils import activate_features
+# package entry point
+from .viewer.mivot_viewer import MivotViewer

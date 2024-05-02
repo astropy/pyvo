@@ -11,17 +11,12 @@ except ImportError:
 from pyvo.mivot.seekers.annotation_seeker import AnnotationSeeker
 from pyvo.mivot.utils.dict_utils import DictUtils
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot.viewer.mivot_viewer import MivotViewer
-from pyvo.utils import activate_features
+from pyvo.mivot import MivotViewer
 from . import XMLOutputChecker
-
-activate_features('MIVOT')
 
 
 @pytest.fixture
 def a_seeker(data_path,):
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
     m_viewer = MivotViewer(os.path.join(data_path, "data", "test.mivot_viewer.xml"),
                        tableref="Results")
     return AnnotationSeeker(m_viewer._mapping_block)
@@ -32,21 +27,19 @@ def data_path():
     return os.path.dirname(os.path.realpath(__file__))
 
 
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_multiple_templates(data_path):
     """
     Try to create an AnnotationSeeker with a mapping_block containing multiple TEMPLATES.
     """
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
     mapping_block = XMLOutputChecker.xmltree_from_file(
         os.path.join(data_path, "data/reference/multiple_templates.xml"))
     with pytest.raises(Exception, match="TEMPLATES without tableref must be unique"):
         AnnotationSeeker(mapping_block.getroot())
 
 
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_all_reverts(a_seeker, data_path):
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
     # Checks the GLOBALS block given by the AnnotationSeeker
     # by comparing it to the content of the file test.0.1.xml
     XMLOutputChecker.assertXmltreeEqualsFile(a_seeker.globals_block,
@@ -56,9 +49,9 @@ def test_all_reverts(a_seeker, data_path):
     XMLOutputChecker.assertXmltreeEqualsFile(a_seeker.get_templates_block("Results"),
                                      os.path.join(data_path, "data/reference/annotation_seeker.0.2.xml"))
     # Checks the list of all the tableref found by the AnnotationSeeker
-    assert list(a_seeker.templates_tableref) == ['_PKTable', 'Results']
+    assert list(a_seeker.get_templates_tableref()) == ['_PKTable', 'Results']
     # a_seeker should have only 2 COLLECTIONS in GLOBALS: _CoordinateSystems and _Datasets
-    assert len(a_seeker.globals_collections) == 2
+    assert len(a_seeker.get_globals_collections()) == 2
     # a_seeker should have only 1 INSTANCES in GLOBALS: _tg1
     assert len(a_seeker.get_globals_instances()) == 1
     assert a_seeker.get_globals_instance_dmtypes() == ['ds:experiment.Target']

@@ -5,7 +5,7 @@ from pyvo.mivot.utils.xpath_utils import XPath
 import xml.etree.ElementTree as ET
 from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.mivot.utils.vocabulary import Att
-from pyvo.mivot.utils.exceptions import ResolveException
+from pyvo.mivot.utils.exceptions import MivotException
 
 
 class XmlUtils:
@@ -95,7 +95,7 @@ class XmlUtils:
                             break
                 if not field_desc:
                     if not ele.get(Att.value):
-                        raise ResolveException(
+                        raise MivotException(
                             f"Attribute {ele.get(Att.dmrole)} can not be set:"
                             f" references a non existing column: {attr_ref} "
                             f"and has no default value")

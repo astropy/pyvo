@@ -11,7 +11,8 @@ This test case is based on 2 VOTables:
 The test checks that:
 - The position fields can be retrieved through the mapping.
 - Both cases give the same results
-A third test checks the case where
+A third test checks the case where a referenced column does not exist.
+
 Created on 26 janv. 2024
 @author: michel
 '''
@@ -19,8 +20,8 @@ import os
 import pytest
 from urllib.request import urlretrieve
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot.viewer.mivot_viewer import MivotViewer
-from pyvo.mivot.utils.exceptions import ResolveException
+from pyvo.mivot import MivotViewer
+from pyvo.mivot.utils.exceptions import MivotException
 
 
 @pytest.fixture
@@ -42,8 +43,6 @@ def delt_coo():
 
 @pytest.fixture
 def path_to_withname(data_path, data_sample_url):
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
 
     votable_name = "vizier_cs_withname.xml"
     votable_path = os.path.join(data_path, "data", votable_name)
@@ -56,8 +55,6 @@ def path_to_withname(data_path, data_sample_url):
 
 @pytest.fixture
 def path_to_withid(data_path, data_sample_url):
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
 
     votable_name = "vizier_cs_withid.xml"
     votable_path = os.path.join(data_path, "data", votable_name)
@@ -70,8 +67,6 @@ def path_to_withid(data_path, data_sample_url):
 
 @pytest.fixture
 def path_to_badref(data_path, data_sample_url):
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
 
     votable_name = "vizier_cs_badref.xml"
     votable_path = os.path.join(data_path, "data", votable_name)
@@ -83,15 +78,13 @@ def path_to_badref(data_path, data_sample_url):
 
 
 @pytest.mark.remote_data
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_with_name(path_to_withname, delt_coo):
     """ Test that the epoch propagation works with all FIELDs referenced by name or by ID
     """
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
-
     m_viewer = MivotViewer(votable_path=path_to_withname)
     m_viewer.next()
-    mivot_object = m_viewer.instance
+    mivot_object = m_viewer.dm_instance
 
     assert abs(mivot_object.longitude.value - 52.2340018) < delt_coo
     assert abs(mivot_object.latitude.value - 59.8937333) < delt_coo
@@ -110,15 +103,14 @@ def test_with_name(path_to_withname, delt_coo):
     assert str(mivot_object.Coordinate_coordSys.spaceRefFrame.value) == 'ICRS'
 
 @pytest.mark.remote_data
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_with_id(path_to_withid, delt_coo):
     """ Test that the epoch propagation works with all FIELDs referenced by name or by ID
     """
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
     # Test with all FILELDs referenced by names
     m_viewer = MivotViewer(votable_path=path_to_withid)
     m_viewer.next()
-    mivot_instance = m_viewer.instance
+    mivot_instance = m_viewer.dm_instance
     assert abs(mivot_instance.longitude.value - 52.2340018) < delt_coo
     assert abs(mivot_instance.latitude.value - 59.8937333) < delt_coo
     assert abs(mivot_instance.pmLongitude.value - 1.5) < delt_coo
@@ -127,13 +119,12 @@ def test_with_id(path_to_withid, delt_coo):
 
 
 @pytest.mark.remote_data
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_bad_ref(path_to_badref, delt_coo):
     """ Test that the epoch propagation works with all FIELDs referenced by name or by ID
     """
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
     # Test with all FILELDs referenced by names
-    with (pytest.raises(ResolveException, match="Attribute mango:EpochPosition.epoch can not be set.*")):
+    with (pytest.raises(MivotException, match="Attribute mango:EpochPosition.epoch can not be set.*")):
         MivotViewer(votable_path=path_to_badref)
 
 

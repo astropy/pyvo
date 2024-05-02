@@ -2,6 +2,10 @@
 Utility class to check that generated XML match reference elements.
 Only used by the tests
 """
+from pyvo.utils import activate_features
+
+# Activate MIVOT for all tests
+activate_features('MIVOT')
 
 try:
     from defusedxml import ElementTree as etree

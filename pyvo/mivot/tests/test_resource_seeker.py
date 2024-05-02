@@ -7,19 +7,14 @@ import pytest
 from astropy.io.votable import parse
 from pyvo.mivot.seekers.resource_seeker import ResourceSeeker
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.utils import activate_features
 
 
-activate_features('MIVOT')
-
-
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_id_table(rseeker):
     """
     Checks the IDs of tables found by the RessourceSeeker,
     checks the IDs of the field of the table concerned.
     """
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
     assert rseeker.get_table_ids() == ['_PKTable', 'Results']
     assert (rseeker.get_id_index_mapping('_PKTable')
             == {'pksrcid': {'ID': '_pksrcid', 'indx': 0},
@@ -65,8 +60,6 @@ def test_id_table(rseeker):
 
 @pytest.fixture
 def rseeker(data_path):
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
 
     votable_path = os.path.join(data_path, "data", "test.mivot_viewer.xml")
 

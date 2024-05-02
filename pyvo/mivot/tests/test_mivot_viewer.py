@@ -9,30 +9,16 @@ from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.mivot.utils.dict_utils import DictUtils
 from pyvo.mivot.utils.exceptions import MappingException
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot.viewer.mivot_viewer import MivotViewer
-from pyvo.utils.prototype import activate_features
+from pyvo.mivot import MivotViewer
 from astropy import version as astropy_version
 
 
-activate_features('MIVOT')
-
-
-def test_mivot_viewer_constructor(path_to_viewer):
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
-    with (pytest.raises(TypeError, match="'<' not supported between instances of 'str' and 'int'")
-          and pytest.raises(Exception, match="Resource #1 is not found")):
-        MivotViewer(path_to_viewer, resource_number=1)
-
-
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_get_first_instance_dmtype(path_to_first_instance):
     """
     Test the function get_first_instance_dmtype() which is
     used to find the first INSTANCE/COLLECTION in TEMPLATES.
     """
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
-
     m_viewer = MivotViewer(votable_path=path_to_first_instance)
     assert m_viewer.get_first_instance_dmtype("one_instance") == "one_instance"
     assert m_viewer.get_first_instance_dmtype("coll_and_instances") == "first"
@@ -42,13 +28,12 @@ def test_get_first_instance_dmtype(path_to_first_instance):
         m_viewer.get_first_instance_dmtype("empty")
 
 
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_table_ref(m_viewer):
     """
     Test if the mivot_viewer can find each table_ref and connect to the right table_ref.
     Test if the mivot_viewer can find each models.
     """
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
     assert m_viewer._mapped_tables == ['_PKTable', 'Results']
     with pytest.raises(Exception,
                        match=re.escape(r"The table first_table doesn't match with any mapped_table "
@@ -65,12 +50,11 @@ def test_table_ref(m_viewer):
                 'ivoa': 'https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml'})
 
 
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_global_getters(m_viewer, data_path):
     """
     Test each getter of the model_viewer_level1 specific for the GLOBALS.
     """
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
     assert m_viewer.get_table_ids() == ['_PKTable', 'Results']
     assert m_viewer.get_globals_models() == DictUtils.read_dict_from_file(
         os.path.join(data_path, "data/reference/globals_models.json"))
@@ -89,12 +73,11 @@ def test_global_getters(m_viewer, data_path):
     assert row[1] == 'G'
 
 
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_no_mivot(path_no_mivot):
     """
     Test each getter of the model_viewer_level1 specific for the GLOBALS.
     """
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
     m_viewer = MivotViewer(path_no_mivot)
     assert m_viewer.get_table_ids() is None
     assert m_viewer.get_globals_models() is None
@@ -143,8 +126,6 @@ def path_to_viewer(data_path):
 
 @pytest.fixture
 def path_to_first_instance(data_path):
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
 
     votable_name = "test.mivot_viewer.first_instance.xml"
     return os.path.join(data_path, "data", votable_name)

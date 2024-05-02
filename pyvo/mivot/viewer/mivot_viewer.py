@@ -9,16 +9,17 @@ MivotViewer implements the user API for accessing mapped data.
 The code below shows a typical use of `MivotViewer
 
     .. code-block:: python
+    
     with MivotViewer(path_to_votable) as mivot_viewer:
         print(f"mapped class id {mivot_instance.dmtype}")
         print(f"space frame is  {mivot_instance.Coordinate_coordSys.spaceRefFrame.value}")
 
-        mivot_object = mivot_viewer.instance
+        mivot_object = mivot_viewer.dm_instance
         while mivot_viewer.next():
             print(f"latitude={mivot_object.latitude.value}")
             print(f"longitude={mivot_object.longitude.value}")
 
-    See `tests/test_user_api.py`to get different examples of the API usage.
+See `tests/test_user_api.py`to get different examples of the API usage.
 """
 import logging
 from copy import deepcopy
@@ -29,8 +30,7 @@ from pyvo.dal import DALResults
 from pyvo.mivot.utils.vocabulary import Ele, Att
 from pyvo.mivot.utils.vocabulary import Constant, NoMapping
 from pyvo.mivot.utils.exceptions import (MappingException,
-                                         ResourceNotFound,
-                                         MivotElementNotFound,
+                                         MivotException,
                                          AstropyVersionException)
 from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.utils.xpath_utils import XPath
@@ -49,6 +49,10 @@ try:
 except ImportError:
     from xml.etree import ElementTree as etree
 
+if not check_astropy_version():
+    raise AstropyVersionException(f"Astropy version {version.version} "
+                                  f"is below the required version 6.0 for the use of MIVOT.")
+
 
 @prototype_feature('MIVOT')
 class MivotViewer:
@@ -56,7 +60,7 @@ class MivotViewer:
     MivotViewer is a PyVO table wrapper aiming at providing
     a model view on VOTable data read with usual tools.
     """
-    def __init__(self, votable_path, tableref=None, resource_number=None):
+    def __init__(self, votable_path, tableref=None):
         """
         Constructor of the MivotViewer class.
         Parameters
@@ -67,42 +71,37 @@ class MivotViewer:
         tableref : str, optional
             Used to identify the table to process. If not specified,
             the first table is taken by default.
-        resource_number : int, optional
-            The number corresponding to the resource containing the MIVOT block (first by default).
         """
-        if not check_astropy_version():
-            raise AstropyVersionException(f"Astropy version {version.version} "
-                                          f"is below the required version 6.0 for the use of MIVOT.")
+
+        if isinstance(votable_path, DALResults):
+            self._parsed_votable = votable_path.votable
+        elif isinstance(votable_path, VOTableFile):
+            self._parsed_votable = votable_path
         else:
-            if isinstance(votable_path, DALResults):
-                self._parsed_votable = votable_path.votable
-            elif isinstance(votable_path, VOTableFile):
-                self._parsed_votable = votable_path
-            else:
-                self._parsed_votable = parse(votable_path)
-            self._table_iterator = None
-            self._connected_table = None
-            self._connected_tableref = None
-            self._current_data_row = None
-            # when the search object is in GLOBALS
-            self._globals_instance = None
-            self._last_row = None
-            self._templates = None
-            self._resource = None
-            self._annotation_seeker = None
-            self._mapping_block = None
-            self._mapped_tables = []
-            self._resource_seeker = None
-            self._instance = None
-            try:
-                self._set_resource(resource_number)
-                self._set_mapping_block()
-                self._resource_seeker = ResourceSeeker(self._resource)
-                self._set_mapped_tables()
-                self._connect_table(tableref)
-                self._init_instance()
-            except MappingException as mnf:
-                logging.error(str(mnf))
+            self._parsed_votable = parse(votable_path)
+        self._table_iterator = None
+        self._connected_table = None
+        self._connected_tableref = None
+        self._current_data_row = None
+        # when the search object is in GLOBALS
+        self._globals_instance = None
+        self._last_row = None
+        self._templates = None
+        self._resource = None
+        self._annotation_seeker = None
+        self._mapping_block = None
+        self._mapped_tables = []
+        self._resource_seeker = None
+        self._dm_instance = None
+        try:
+            self._set_resource()
+            self._set_mapping_block()
+            self._resource_seeker = ResourceSeeker(self._resource)
+            self._set_mapped_tables()
+            self._connect_table(tableref)
+            self._init_instance()
+        except MappingException as mnf:
+            logging.error(str(mnf))
 
     """
     Properties
@@ -154,19 +153,21 @@ class MivotViewer:
         return self._connected_tableref
 
     @property
-    def instance(self):
+    def dm_instance(self):
         """
-        returns : MivotInstance
+        returns
         -------
-           A Python object built from the XML view of the mapped model with attribute
-           values set from the last values of the last read data rows
+           A Python object (MivotInstance) built from the XML view of
+           the mapped model with attribute values set from the last values
+           of the last read data rows
         """
-        return self._instance
+        return self._dm_instance
 
     @property
     def xml_view(self):
         """
-        returns : XML element
+        returns
+        -------
             The XML view on the current data row
         """
         return self.xml_viewer.view
@@ -174,7 +175,7 @@ class MivotViewer:
     @property
     def xml_viewer(self):
         """
-        returns: XMLViewer
+        returns
             XMLViewer tuned to browse the TEMPLATES content
         """
         # build a first XMLViewer for extract the content of the TEMPLATES element
@@ -194,7 +195,7 @@ class MivotViewer:
         """
         jump to the next table row and update the MivotInstance instance
 
-        returns:
+        returns
         -------
             MivotInstance: the updated instance or None
                            it he able end has been reached
@@ -204,11 +205,11 @@ class MivotViewer:
         if self._current_data_row is None:
             return None
 
-        if self._instance is None:
+        if self._dm_instance is None:
             xml_instance = self.xml_viewer.view
-            self._instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
-        self._instance.update(self._current_data_row)
-        return self._instance
+            self._dm_instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
+        self._dm_instance.update(self._current_data_row)
+        return self._dm_instance
 
     def get_table_ids(self):
         """
@@ -246,7 +247,7 @@ class MivotViewer:
         """
         if self._annotation_seeker is None:
             return None
-        return self._annotation_seeker.models
+        return self._annotation_seeker.get_models()
 
     def get_templates_models(self):
         """
@@ -326,7 +327,7 @@ class MivotViewer:
             elif child[0] in collection:
                 return collection[0].get(Att.dmtype)
         else:
-            raise MivotElementNotFound("Can't find the first " + Ele.INSTANCE
+            raise MivotException("Can't find the first " + Ele.INSTANCE
                                        + "/" + Ele.COLLECTION + " in " + Ele.TEMPLATES)
 
     """
@@ -362,11 +363,11 @@ class MivotViewer:
 
         self._connected_table = self._resource_seeker.get_table(tableref)
         if self.connected_table is None:
-            raise ResourceNotFound(f"Cannot find table {stableref} in VOTable")
+            raise MivotException(f"Cannot find table {stableref} in VOTable")
         logging.debug("table %s found in VOTable", stableref)
         self._templates = deepcopy(self.annotation_seeker.get_templates_block(tableref))
         if self._templates is None:
-            raise MivotElementNotFound("Cannot find " + Ele.TEMPLATES + f" {stableref} ")
+            raise MivotException("Cannot find " + Ele.TEMPLATES + f" {stableref} ")
         logging.debug(Ele.TEMPLATES + " %s found ", stableref)
         self._table_iterator = TableIterator(self._connected_tableref,
                                              self.connected_table.to_table())
@@ -409,13 +410,13 @@ class MivotViewer:
         Read the first table row and build the MivotInstance (_instance attribute) from it.
         The table row iterator in rewind at he end to make sure we won't lost the first data row.
         """
-        if self._instance is None:
+        if self._dm_instance is None:
             self.next_table_row()
             first_instance = self.get_first_instance_dmtype(tableref=self.connected_table_ref)
             xml_instance = self.xml_viewer.get_instance_by_type(first_instance)
-            self._instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
+            self._dm_instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
             self.rewind()
-        return self._instance
+        return self._dm_instance
 
     def _set_mapped_tables(self):
         """
@@ -424,28 +425,25 @@ class MivotViewer:
         if not self.resource_seeker:
             self._mapped_table = []
         else:
-            self._mapped_tables = self._annotation_seeker.templates
+            self._mapped_tables = self._annotation_seeker.get_templates()
 
-    def _set_resource(self, resource_number):
+    def _set_resource(self):
         """
-        Take the resource_number in entry and then set the resource concerned.
-        If the resource_number is None, the default resource set is the first one.
-        Parameters
-        ----------
-        resource_number : int or None
-            The number corresponding to the resource containing the MIVOT block.
-            If None, the first resource is set by default.
+        select the first resource with @type=results
+        The annotations, if there are, are supposed to be there.
+        The case of multiple 'results' annotated is not taken into account yest
         """
-        nb_resources = len(self._parsed_votable.resources)
-        if resource_number is None:
-            rnb = 0
-        else:
-            rnb = resource_number
-        if rnb < 0 or rnb >= nb_resources:
-            raise ResourceNotFound(f"Resource #{rnb} is not found")
-        else:
-            logging.info("Resource %s selected", rnb)
-            self._resource = self._parsed_votable.resources[rnb]
+
+        if len(self._parsed_votable.resources) < 1:
+            raise MivotException("No resource detected in the VOTable")
+        rnb = 0
+        for res in self._parsed_votable.resources:
+            if res.type.lower() == "results":
+                logging.info("Resource %s selected", rnb)
+                self._resource = self._parsed_votable.resources[rnb]
+                return
+            rnb += 1
+        raise MivotException("No resource @type='results'detected in the VOTable")
 
     def _set_mapping_block(self):
         """

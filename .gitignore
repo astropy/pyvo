@@ -54,6 +54,7 @@ pip-wheel-metadata
 .project
 .pydevproject
 .settings
+coverage.xml
 
 # Mac OSX
 .DS_Store

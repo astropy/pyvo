@@ -6,37 +6,33 @@ import os
 import pytest
 from urllib.request import urlretrieve
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot.viewer.mivot_viewer import MivotViewer
-from pyvo.utils.prototype import activate_features
+from pyvo.mivot import MivotViewer
 from pyvo.mivot.utils.mivot_utils import MivotUtils
 
 
-activate_features('MIVOT')
-
-
 @pytest.mark.remote_data
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_model_viewer3(votable_test, simple_votable):
     """
     Recursively compare an XML element with an element of MIVOT
     class with the function recursive_xml_check.
     This test run on 2 votables : votable_test and simple_votable.
     """
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
     m_viewer_simple_votable = MivotViewer(votable_path=simple_votable)
-    MivotInstance = m_viewer_simple_votable.instance
+    MivotInstance = m_viewer_simple_votable.dm_instance
     xml_simple_votable = m_viewer_simple_votable.xml_view
     assert xml_simple_votable.tag == 'TEMPLATES'
     recusive_xml_check(xml_simple_votable, MivotInstance)
     m_viewer_votable_test = MivotViewer(votable_path=votable_test)
     m_viewer_votable_test.next()
-    mivot_instance = m_viewer_votable_test.instance
+    mivot_instance = m_viewer_votable_test.dm_instance
     xml_votable_test = m_viewer_votable_test.xml_view
     assert xml_simple_votable.tag == 'TEMPLATES'
     recusive_xml_check(xml_votable_test, mivot_instance)
 
 
 @pytest.mark.remote_data
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def recusive_xml_check(xml_simple_votable, MivotInstance):
     if xml_simple_votable.tag == 'TEMPLATES':
         recusive_xml_check(xml_simple_votable[0], MivotInstance)
@@ -95,6 +91,7 @@ def recusive_xml_check(xml_simple_votable, MivotInstance):
 
 
 @pytest.mark.remote_data
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_dict_model_viewer3(votable_test, simple_votable):
     """
     To test the generation of the MIVOT class, the function builds a ModelViewerLevel3
@@ -104,14 +101,12 @@ def test_dict_model_viewer3(votable_test, simple_votable):
     MIVOT class is itself a dictionary with only essential information of the ModelViewerLevel3._dict.
     This test run on 2 votables : votable_test and simple_votable.
     """
-    if not check_astropy_version():
-        pytest.skip("MIVOT test skipped because of the astropy version.")
     m_viewer_votable_test = MivotViewer(votable_path=votable_test)
     m_viewer_votable_test.next()
-    mivot_instance = m_viewer_votable_test.instance
+    mivot_instance = m_viewer_votable_test.dm_instance
     _dict = MivotUtils.xml_to_dict(m_viewer_votable_test.xml_viewer.view)
     recursive_check(mivot_instance, **_dict)
-    mivot_instance = m_viewer_votable_test.instance
+    mivot_instance = m_viewer_votable_test.dm_instance
     _dict = MivotUtils.xml_to_dict(m_viewer_votable_test.xml_view)
     recursive_check(mivot_instance, **_dict)
 

@@ -6,7 +6,7 @@ from the XML view of the mapped model.
 This dictionary is used to extend the object with all components
 (classes, attributes, collections) necessary to reproduce the structure
 of the mapped model.
-Instances of this class are built by `~pyvo.mivot.viewer.mivot_viewer`.
+Instances of this class are built by `pyvo.mivot.viewer.mivot_viewer`.
 Although attribute values can be changed by users, this class is first
 meant to provide a convenient access the mapped VOTable data
 """
@@ -14,6 +14,10 @@ from astropy import time
 from pyvo.mivot.utils.vocabulary import unit_mapping
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.mivot_utils import MivotUtils
+from pyvo.mivot.utils.dict_utils import DictUtils
+
+# list of model leaf parameters that must be hidden for the final user
+hk_parameters = ["astropy_unit", "ref"]
 
 
 @prototype_feature('MIVOT')
@@ -35,6 +39,28 @@ class MivotInstance:
         kwargs (dict): Dictionary of the XML object.
         """
         self._create_class(**instance_dict)
+
+    def __repr__(self):
+        """
+        return  a human readable (json) representation of object
+        """
+        return DictUtils._get_pretty_json(self.dict)
+
+    @property
+    def hk_dict(self):
+        """
+        return a human readable (dict) representation of object with a few
+        housekeeping data such as column references. This might be used
+        to apply the mapping out of the MivotViewer context
+        """
+        return self._get_class_dict(self)
+
+    @property
+    def dict(self):
+        """
+        return a human readable (dict) representation of object
+        """
+        return self._get_class_dict(self, slim=True)
 
     def _create_class(self, **kwargs):
         """
@@ -139,7 +165,7 @@ class MivotInstance:
                     return False
         return True
 
-    def display_class_dict(self, obj, classkey=None):
+    def _get_class_dict(self, obj, classkey=None, slim=False):
         """
         Recursively displays a serializable dictionary.
         This function is only used for debugging purposes.
@@ -148,6 +174,9 @@ class MivotInstance:
         obj (dict or object): The dictionary or object to display.
         classkey (str, optional): The key to use for the object's class name
                                   in the dictionary, default is None.
+        slim (bool, optional): if true, only @values and @units (if not empty) are
+                               attached to model leaves.
+                               @dmtype and @ref attributes are ignored
         Returns
         -------
         dict or object
@@ -156,16 +185,27 @@ class MivotInstance:
         if isinstance(obj, dict):
             data = {}
             for (k, v) in obj.items():
-                data[k] = self.display_class_dict(v, classkey)
+                data[k] = self._get_class_dict(v, classkey, slim=slim)
             return data
         elif hasattr(obj, "_ast"):
-            return self.display_class_dict(obj._ast())
+            return self._get_class_dict(obj._ast())
         elif hasattr(obj, "__iter__") and not isinstance(obj, str):
-            return [self.display_class_dict(v, classkey) for v in obj]
+            return [self._get_class_dict(v, classkey, slim=slim) for v in obj]
         elif hasattr(obj, "__dict__"):
-            data = dict([(key, self.display_class_dict(value, classkey))
+            data = dict([(key, self._get_class_dict(value, classkey, slim=slim))
                          for key, value in obj.__dict__.items()
                          if not callable(value) and not key.startswith('_')])
+            # remove the house keeping parameters
+            if slim is True:
+                # data is atomic value (e.g. float): the type be hidden
+                if "ref" in data or "value" in data:
+                    data.pop("dmtype", None)
+                # remove unit when not set
+                if "unit" in data and not data["unit"]:
+                    data.pop("unit", None)
+                for hk_parameter in hk_parameters:
+                    data.pop(hk_parameter, None)
+
             if classkey is not None and hasattr(obj, "__class__"):
                 data[classkey] = obj.__class__.__name__
             return data
