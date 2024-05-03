@@ -504,19 +504,20 @@ class SIAQuery(DALQuery):
 
     @format.setter
     def format(self, format_):
+        print("Set format")
         setattr(self, "_format", format_)
 
         if isinstance(format_, (str, bytes)):
             format_ = [format_]
         format__ = []
         for _ in format_:
-            if _.upper() in ['ALL', 'METADATA', 'GRAPHIC']:
+            if _.upper() in ['ALL', 'METADATA', 'GRAPHIC', 'GRAPHIC-ALL']:
                 format__ += [_.upper()]
             elif _.split('-')[0].upper() == 'GRAPHIC':
-                if _.split('-')[1].upper() == 'ALL':
-                    format__ += [_.upper()]
-                else:
-                    format__ += _.split('-'[0].upper()+"-"+_.split('-')[1].lower())
+                # GRAPHIC-xxx not supported, will throw an error and suggest supported arguments
+                # If it gets support, uncomment the following line:
+                # format__ += _.split('-'[0].upper()+"-"+_.split('-')[1].lower())
+                pass
             else:
                 format__ += [_.lower()]
 
