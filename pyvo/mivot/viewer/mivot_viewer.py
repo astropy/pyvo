@@ -9,7 +9,7 @@ MivotViewer implements the user API for accessing mapped data.
 The code below shows a typical use of `MivotViewer
 
     .. code-block:: python
-    
+
     with MivotViewer(path_to_votable) as mivot_viewer:
         print(f"mapped class id {mivot_instance.dmtype}")
         print(f"space frame is  {mivot_instance.Coordinate_coordSys.spaceRefFrame.value}")
@@ -49,10 +49,6 @@ try:
 except ImportError:
     from xml.etree import ElementTree as etree
 
-if not check_astropy_version():
-    raise AstropyVersionException(f"Astropy version {version.version} "
-                                  f"is below the required version 6.0 for the use of MIVOT.")
-
 
 @prototype_feature('MIVOT')
 class MivotViewer:
@@ -63,6 +59,7 @@ class MivotViewer:
     def __init__(self, votable_path, tableref=None):
         """
         Constructor of the MivotViewer class.
+    
         Parameters
         ----------
         votable_path : str, parsed VOTable or DALResults instance
@@ -72,6 +69,9 @@ class MivotViewer:
             Used to identify the table to process. If not specified,
             the first table is taken by default.
         """
+        if not check_astropy_version():
+            raise AstropyVersionException(f"Astropy version {version.version} "
+                                          f"is below the required version 6.0 for the use of MIVOT.")
 
         if isinstance(votable_path, DALResults):
             self._parsed_votable = votable_path.votable
@@ -103,19 +103,16 @@ class MivotViewer:
         except MappingException as mnf:
             logging.error(str(mnf))
 
-    """
-    Properties
-    """
     def __enter__(self):
-        """ `with` statement implementation """
+        """ with statement implementation """
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        """ `with` statement implementation """
+        """ with statement implementation """
         logging.info("MivotViewer closing..")
 
     def close(self):
-        """ `with` statement implementation """
+        """ with statement implementation """
         logging.info("MivotViewer is closed")
 
     @property
@@ -224,6 +221,7 @@ class MivotViewer:
         Get collection types in GLOBALS.
         Collection types are GLOBALS/COLLECTION/INSTANCE@dmtype:
         used for collections of static objects.
+        
         Returns
         -------
         dict
@@ -240,6 +238,7 @@ class MivotViewer:
     def get_models(self):
         """
         Get a dictionary of models and their URLs.
+        
         Returns
         -------
         dict: Model names and a lists of their URLs.
@@ -253,6 +252,7 @@ class MivotViewer:
         """
         Get dmtypes (except ivoa:..) of all INSTANCE/COLLECTION of all TEMPLATES.
         Note: COLLECTION not implemented yet.
+        
         Returns
         -------
         dict: A dictionary containing dmtypes of all INSTANCE/COLLECTION of all TEMPLATES.
@@ -266,9 +266,6 @@ class MivotViewer:
             templates_models[tid] = {Ele.COLLECTION: [], Ele.INSTANCE: tmplids}
         return templates_models
 
-    """
-    Data browsing
-    """
     def next_table_row(self):
         """
         Iterate once on the table row
@@ -292,6 +289,7 @@ class MivotViewer:
         """
         Return the dmtype of the head INSTANCE (first TEMPLATES child).
         If no INSTANCE is found, take the first COLLECTION.
+
         Parameters
         ----------
         tableref : str or None, optional
@@ -330,14 +328,12 @@ class MivotViewer:
             raise MivotException("Can't find the first " + Ele.INSTANCE
                                        + "/" + Ele.COLLECTION + " in " + Ele.TEMPLATES)
 
-    """
-    Private methods
-    """
     def _connect_table(self, tableref=None):
         """
         Iterate over the table identified by tableref.
         Required to browse table data.
         Connect to the first table if tableref is None.
+        
         Parameters
         ----------
         tableref : str or None, optional
@@ -378,7 +374,8 @@ class MivotViewer:
     def _get_model_view(self, resolve_ref=True):
         """
         Return an XML model view of the last read row.
-        This function resolves references by default. It is called in the ModelViewerLevel2.
+        This function resolves references by default.
+        
         Parameters
         ----------
         resolve_ref : bool, optional
