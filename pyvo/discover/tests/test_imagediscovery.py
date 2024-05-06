@@ -15,7 +15,6 @@ from pyvo import dal
 from pyvo import discover
 from pyvo import registry
 from pyvo.discover import image
-from pyvo.utils.testing import LearnableRequestMocker
 
 
 class FakeQueriable:
@@ -79,7 +78,7 @@ class TestTimeCondition:
                 time.Time("1970-10-13T17:00:00")))
         d._query_one_sia1(queriable)
         assert len(d.results) == 1
-        assert abs(d.results[0].t_min-40872.583333333336)<1e-10
+        assert abs(d.results[0].t_min-40872.583333333336) < 1e-10
         assert queriable.search_kwargs == {
             'pos': (0, 0), 'size': 1, 'intersect': 'overlaps'}
 
@@ -102,7 +101,7 @@ class TestTimeCondition:
 
         assert set(queriable.search_kwargs) == set(["time"])
         assert abs(queriable.search_kwargs["time"][0].utc.value
-            -40872.54166667)<1e-8
+            - 40872.54166667) < 1e-8
 
     def test_sia2_nointerval(self):
         queriable = FakeQueriable()
@@ -112,9 +111,9 @@ class TestTimeCondition:
 
         assert set(queriable.search_kwargs) == set(["time"])
         assert abs(queriable.search_kwargs["time"][0].utc.value
-            -40872.54166667)<1e-8
+            - 40872.54166667) < 1e-8
         assert abs(queriable.search_kwargs["time"][1].utc.value
-            -40872.54166667)<1e-8
+            - 40872.54166667) < 1e-8
 
     def test_obscore(self):
         queriable = FakeQueriable()
@@ -144,19 +143,14 @@ class TestTimeCondition:
             " AND t_min<=t_max AND 40872.541666666664<=40872.541666666664)")
 
 
-@pytest.fixture
-def _sia1_responses(requests_mock):
-    matcher = LearnableRequestMocker("sia1-responses")
-    requests_mock.add_matcher(matcher)
-
-
 def test_no_services_selected():
     with pytest.raises(dal.DALQueryError) as excinfo:
         image.ImageDiscoverer().query_services()
     assert "No services to query." in str(excinfo.value)
 
 
-def test_single_sia1(_sia1_responses):
+@pytest.mark.remote_data
+def test_single_sia1():
     results, log = discover.images_globally(
         space=(116, -29, 0.1),
         time=time.Time(56383.105520834, format="mjd"),
@@ -165,38 +159,34 @@ def test_single_sia1(_sia1_responses):
     im = results[0]
     assert im.s_xel1 == 10800.
     assert isinstance(im.em_min, float)
-    assert abs(im.s_dec+29)<2
+    assert abs(im.s_dec+29) < 2
     assert im.instrument_name == 'Robotic Bochum Twin Telescope (RoBoTT)'
     assert "BGDS GDS_" in im.obs_title
     assert "dc.zah.uni-heidelberg.de/getproduct/bgds/data" in im.access_url
 
 
-@pytest.fixture
-def _all_constraint_responses(requests_mock):
-    matcher = LearnableRequestMocker("image-with-all-constraints")
-    requests_mock.add_matcher(matcher)
-
-
-def test_cone_and_spectral_point(_all_constraint_responses):
+@pytest.mark.remote_data
+def test_cone_and_spectral_point():
+    # This should really return just a few services.  If this
+    # starts hitting more services, see how we can throw them out
+    # again, perhaps using a time constraint.
     images, logs = discover.images_globally(
         space=(134, 11, 0.1),
         spectrum=600*u.eV)
 
+    assert len(logs) < 10, ("Too many services in test_cone_and_spectral."
+        "  Try constraining the discovery phase more tightly to"
+        " keep this test economical")
     assert ("Skipping ivo://org.gavo.dc/__system__/siap2/sitewide because"
         " it is served by ivo://org.gavo.dc/__system__/obscore/obscore"
         in logs)
 
-    assert len(images) == 8
-    assert images[0].obs_collection == "RASS"
+    assert len(images) >= 8
+    assert "RASS" in {im.obs_collection for im in images}
 
 
-@pytest.fixture
-def _servedby_elision_responses(requests_mock):
-    matcher = LearnableRequestMocker("servedby-elision-responses")
-    requests_mock.add_matcher(matcher)
-
-
-def test_servedby_elision(_servedby_elision_responses):
+@pytest.mark.remote_data
+def test_servedby_elision():
     d = discover.ImageDiscoverer(space=(3, 1, 0.2))
     # siap2/sitewide has isservedby to tap
     d.set_services(
@@ -212,13 +202,8 @@ def test_servedby_elision(_servedby_elision_responses):
         ' because it is served by ivo://org.gavo.dc/tap' in d.log_messages)
 
 
-@pytest.fixture
-def _access_url_elision_responses(requests_mock):
-    matcher = LearnableRequestMocker("access-url-elision")
-    requests_mock.add_matcher(matcher)
-
-
-def test_access_url_elision(_access_url_elision_responses):
+@pytest.mark.remote_data
+def test_access_url_elision():
     with pytest.warns():
         d = discover.ImageDiscoverer(
             time=time.Time("1910-07-15", scale="utc"),

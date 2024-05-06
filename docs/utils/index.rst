@@ -21,4 +21,3 @@ Reference/API
   :maxdepth: 1
 
   prototypes
-  testing
