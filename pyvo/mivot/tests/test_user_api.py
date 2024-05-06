@@ -276,24 +276,24 @@ def test_with_full_dict(path_to_full_mapped_votable):
                     "EpochPositionErrors_parallax": {
                         "dmrole": "parallax",
                         "dmtype": "PropertyError1D",
-                        "PropertyError1D.sigma": {"value": 0.06909999996423721, "unit": "mas"},
+                        "sigma": {"value": 0.06909999996423721, "unit": "mas"},
                     },
                     "EpochPositionErrors_radialVelocity": {
                         "dmrole": "radialVelocity",
                         "dmtype": "PropertyError1D",
-                        "PropertyError1D.sigma": {"value": None, "unit": "km/s"},
+                        "sigma": {"value": None, "unit": "km/s"},
                     },
                     "EpochPositionErrors_position": {
                         "dmrole": "position",
                         "dmtype": "ErrorMatrix",
-                        "ErrorMatrix.sigma1": {"value": 0.0511, "unit": "mas"},
-                        "ErrorMatrix.sigma2": {"value": 0.0477, "unit": "mas"},
+                        "sigma1": {"value": 0.0511, "unit": "mas"},
+                        "sigma2": {"value": 0.0477, "unit": "mas"},
                     },
                     "EpochPositionErrors_properMotion": {
                         "dmrole": "properMotion",
                         "dmtype": "ErrorMatrix",
-                        "ErrorMatrix.sigma1": {"value": 0.06400000303983688, "unit": "mas/yr"},
-                        "ErrorMatrix.sigma2": {"value": 0.06700000166893005, "unit": "mas/yr"},
+                        "sigma1": {"value": 0.06400000303983688, "unit": "mas/yr"},
+                        "sigma2": {"value": 0.06700000166893005, "unit": "mas/yr"},
                     },
                 },
                 "EpochPosition_correlations": {

@@ -34,6 +34,7 @@ class MivotInstance:
     def __init__(self, **instance_dict):
         """
         Constructor of the MIVOT class.
+
         Parameters
         ----------
         kwargs (dict): Dictionary of the XML object.
@@ -68,6 +69,7 @@ class MivotInstance:
         For the unit of the ATTRIBUTE, we add the Astropy unit or the Astropy time equivalence by comparing
         the value of the unit with values in time.TIME_FORMATS.keys() which is the list of time formats.
         We do the same with the unit_mapping dictionary, which is the list of Astropy units.
+
         Parameters
         ----------
         kwargs (dict): Dictionary of the XML object.
@@ -79,7 +81,7 @@ class MivotInstance:
                     getattr(self, self._remove_model_name(key)).append(MivotInstance(**item))
             elif isinstance(value, dict):  # INSTANCE
                 if not self._is_leaf(**value):
-                    setattr(self, self._remove_model_name(key, True), MivotInstance(**value))
+                    setattr(self, self._remove_model_name(key, role_instance=True), MivotInstance(**value))
                 if self._is_leaf(**value):
                     setattr(self, self._remove_model_name(key), MivotInstance(**value))
             else:  # ATTRIBUTE
@@ -100,6 +102,7 @@ class MivotInstance:
         """
         Update the MIVOT class with the new data row.
         For each leaf of the MIVOT class, we update the value with the new data row.
+
         Parameters
         ----------
         row (astropy.table.row.Row): The new data row.
@@ -116,10 +119,9 @@ class MivotInstance:
                     if 'value' in vars(value):
                         value.update(row=row, ref=getattr(value, 'ref'))
             else:
-                if key == 'value':
-                    if ref is not None and ref != 'null':
-                        setattr(self, self._remove_model_name(key),
-                                MivotUtils.cast_type_value(row[ref], getattr(self, 'dmtype')))
+                if key == 'value' and ref is not None and ref != 'null':
+                    setattr(self, self._remove_model_name(key),
+                            MivotUtils.cast_type_value(row[ref], getattr(self, 'dmtype')))
 
     @staticmethod
     def _remove_model_name(value, role_instance=False):
@@ -127,6 +129,8 @@ class MivotInstance:
         Remove the model name before each colon ":" as well as the type of the object before each point ".".
         If it is an INSTANCE of INSTANCEs, the dmrole represented as the key needs to keep his type object.
         In this case (`role_instance=True`), we just replace the point "." With an underscore "_".
+        - if role_instance: a:b.c -> b_c else c
+
         Parameters
         ----------
         value (str): The string to process.
@@ -138,7 +142,7 @@ class MivotInstance:
             index_underscore = value.find(":")
             if index_underscore != -1:
                 # Then we find the object type before the point
-                next_index_underscore = value.find(".", index_underscore + 1)
+                next_index_underscore = value.rfind(".")
                 if next_index_underscore != -1 and not role_instance:
                     value_after_underscore = value[next_index_underscore + 1:]
                 else:
@@ -152,6 +156,7 @@ class MivotInstance:
     def _is_leaf(self, **kwargs):
         """
         Check if the dictionary is an ATTRIBUTE.
+
         Parameters
         ----------
         **kwargs (dict): The dictionary to check.
@@ -169,6 +174,7 @@ class MivotInstance:
         """
         Recursively displays a serializable dictionary.
         This function is only used for debugging purposes.
+
         Parameters
         ----------
         obj (dict or object): The dictionary or object to display.
