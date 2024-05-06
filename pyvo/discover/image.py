@@ -424,8 +424,8 @@ class ImageDiscoverer:
             if (self.time_min is not None or self.time_max is not None) \
                     and not self.inclusive and sia1_rec.dateobs:
                 if not (self.time_min-0.1
-                        <sia1_rec.dateobs.mjd
-                        <self.time_max+0.1):
+                        < sia1_rec.dateobs.mjd
+                        < self.time_max+0.1):
                     return False
             return True
 
@@ -512,7 +512,7 @@ class ImageDiscoverer:
                 "(1=contains(point('ICRS', s_ra, s_dec),"
                 " circle('ICRS', {}, {}, {}))".format(
                     self.center[0], self.center[1], self.radius)
-                +" or 1=intersects(circle({}, {}, {}), s_region))".format(
+                + " or 1=intersects(circle({}, {}, {}), s_region))".format(
                     self.center[0], self.center[1], self.radius))
         if self.spectrum is not None:
             where_parts.append(
@@ -537,7 +537,7 @@ class ImageDiscoverer:
             self.already_queried += 1
 
     def get_query_stats(self):
-        """returns a tuple of |total to query|, |already queried|
+        """returns a tuple of n(total to query), n(already queried)
         """
         total_to_query = len(self.obscore_recs)\
             + len(self.sia1_recs)\
@@ -563,13 +563,13 @@ class ImageDiscoverer:
 
 def images_globally(
         *,
-        space: Optional[Tuple[float, float, float]]=None,
-        spectrum: Optional[quantity.Quantity]=None,
-        time: Optional[time.Time]=None,
-        inclusive: bool=False,
-        watcher: Optional[Callable[[str], None]]=None,
-        timeout: float=20,
-        services: Optional[registry.RegistryResults]=None)\
+        space: Optional[Tuple[float, float, float]] = None,
+        spectrum: Optional[quantity.Quantity] = None,
+        time: Optional[time.Time] = None,
+        inclusive: bool = False,
+        watcher: Optional[Callable[[str], None]] = None,
+        timeout: float = 20,
+        services: Optional[registry.RegistryResults] = None)\
         -> Tuple[List[obscore.ObsCoreMetadata], List[str]]:
     """returns a collection of ObsCoreMetadata-s matching certain constraints
     and a list of log lines.
