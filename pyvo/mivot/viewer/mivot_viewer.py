@@ -59,7 +59,7 @@ class MivotViewer:
     def __init__(self, votable_path, tableref=None):
         """
         Constructor of the MivotViewer class.
-    
+
         Parameters
         ----------
         votable_path : str, parsed VOTable or DALResults instance
@@ -221,7 +221,7 @@ class MivotViewer:
         Get collection types in GLOBALS.
         Collection types are GLOBALS/COLLECTION/INSTANCE@dmtype:
         used for collections of static objects.
-        
+
         Returns
         -------
         dict
@@ -238,7 +238,7 @@ class MivotViewer:
     def get_models(self):
         """
         Get a dictionary of models and their URLs.
-        
+
         Returns
         -------
         dict: Model names and a lists of their URLs.
@@ -252,7 +252,7 @@ class MivotViewer:
         """
         Get dmtypes (except ivoa:..) of all INSTANCE/COLLECTION of all TEMPLATES.
         Note: COLLECTION not implemented yet.
-        
+
         Returns
         -------
         dict: A dictionary containing dmtypes of all INSTANCE/COLLECTION of all TEMPLATES.
@@ -333,7 +333,7 @@ class MivotViewer:
         Iterate over the table identified by tableref.
         Required to browse table data.
         Connect to the first table if tableref is None.
-        
+
         Parameters
         ----------
         tableref : str or None, optional
@@ -375,7 +375,7 @@ class MivotViewer:
         """
         Return an XML model view of the last read row.
         This function resolves references by default.
-        
+
         Parameters
         ----------
         resolve_ref : bool, optional
