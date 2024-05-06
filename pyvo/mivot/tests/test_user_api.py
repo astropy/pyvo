@@ -14,6 +14,7 @@ from pyvo.dal.scs import SCSService
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot import MivotViewer
 from astropy.io.votable import parse
+from pyvo.mivot.utils.dict_utils import DictUtils
 
 ref_ra = [
     0.04827189,
@@ -74,6 +75,17 @@ def delt_coo():
 def path_to_votable(data_path, data_sample_url):
 
     votable_name = "vizier_for_user_api.xml"
+    votable_path = os.path.join(data_path, "data", votable_name)
+    urlretrieve(data_sample_url + votable_name, votable_path)
+
+    yield votable_path
+    os.remove(votable_path)
+
+
+@pytest.fixture
+def path_to_full_mapped_votable(data_path, data_sample_url):
+
+    votable_name = "gaia_epoch_propagation_full.xml"
     votable_path = os.path.join(data_path, "data", votable_name)
     urlretrieve(data_sample_url + votable_name, votable_path)
 
@@ -233,6 +245,110 @@ def test_with_dict(path_to_votable):
             "spaceRefFrame": {"dmtype": "SpaceFrame", "ref": None, "unit": None, "value": "ICRS"},
         },
     }
+
+
+@pytest.mark.remote_data
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
+def test_with_full_dict(path_to_full_mapped_votable):
+    """check that the MIVOT object user dictionary match the read data
+    - The data sample used here maps the whole EpochPosition model except TimeSys
+    """
+
+    with MivotViewer(path_to_full_mapped_votable) as mivot_viewer:
+        mivot_object = mivot_viewer.dm_instance
+        # let's focus on the second data row
+        while mivot_viewer.next():
+            DictUtils.print_pretty_json(mivot_object.dict)
+            # check the slim (user friendly) dictionary
+            assert mivot_object.dict == {
+                "dmtype": "EpochPosition",
+                "longitude": {"value": 307.79115807079, "unit": "deg"},
+                "latitude": {"value": 20.43108005561, "unit": "deg"},
+                "parallax": {"value": 0.4319, "unit": "mas"},
+                "radialVelocity": {"value": None, "unit": "km/s"},
+                "pmLongitude": {"value": -2.557, "unit": "mas/yr"},
+                "pmLatitude": {"value": -5.482, "unit": "mas/yr"},
+                "epoch": {"value": "2016.5"},
+                "pmCosDeltApplied": {"value": True},
+                "EpochPosition_errors": {
+                    "dmrole": "errors",
+                    "dmtype": "EpochPositionErrors",
+                    "EpochPositionErrors_parallax": {
+                        "dmrole": "parallax",
+                        "dmtype": "PropertyError1D",
+                        "PropertyError1D.sigma": {"value": 0.06909999996423721, "unit": "mas"},
+                    },
+                    "EpochPositionErrors_radialVelocity": {
+                        "dmrole": "radialVelocity",
+                        "dmtype": "PropertyError1D",
+                        "PropertyError1D.sigma": {"value": None, "unit": "km/s"},
+                    },
+                    "EpochPositionErrors_position": {
+                        "dmrole": "position",
+                        "dmtype": "ErrorMatrix",
+                        "ErrorMatrix.sigma1": {"value": 0.0511, "unit": "mas"},
+                        "ErrorMatrix.sigma2": {"value": 0.0477, "unit": "mas"},
+                    },
+                    "EpochPositionErrors_properMotion": {
+                        "dmrole": "properMotion",
+                        "dmtype": "ErrorMatrix",
+                        "ErrorMatrix.sigma1": {"value": 0.06400000303983688, "unit": "mas/yr"},
+                        "ErrorMatrix.sigma2": {"value": 0.06700000166893005, "unit": "mas/yr"},
+                    },
+                },
+                "EpochPosition_correlations": {
+                    "dmrole": "correlations",
+                    "dmtype": "EpochPositionCorrelations",
+                    "EpochPositionCorrelations_positionPm": {
+                        "dmrole": "positionPm",
+                        "dmtype": "Correlation22",
+                        "isCovariance": {"value": True},
+                        "a2b1": {"value": -0.0085},
+                        "a2b2": {"value": -0.2983},
+                        "a1b1": {"value": -0.4109},
+                        "a1b2": {"value": -0.0072},
+                    },
+                    "EpochPositionCorrelations_parallaxPm": {
+                        "dmrole": "parallaxPm",
+                        "dmtype": "Correlation12",
+                        "isCovariance": {"value": True},
+                        "a1b1": {"value": -0.2603},
+                        "a1b2": {"value": -0.0251},
+                    },
+                    "EpochPositionCorrelations_positionParallax": {
+                        "dmrole": "positionParallax",
+                        "dmtype": "Correlation21",
+                        "isCovariance": {"value": True},
+                        "a2b1": {"value": 0.0069},
+                        "a1b1": {"value": 0.1337},
+                    },
+                    "EpochPositionCorrelations_positionPosition": {
+                        "dmrole": "positionPosition",
+                        "dmtype": "Correlation22",
+                        "isCovariance": {"value": True},
+                        "a2b1": {"value": 0.1212},
+                        "a1b2": {"value": 0.1212},
+                    },
+                    "EpochPositionCorrelations_properMotionPm": {
+                        "dmrole": "properMotionPm",
+                        "dmtype": "Correlation22",
+                        "isCovariance": {"value": True},
+                        "a2b1": {"value": 0.2688},
+                        "a1b2": {"value": 0.2688},
+                    },
+                },
+                "EpochPosition_coordSys": {
+                    "dmid": "_spacesys_icrs",
+                    "dmrole": "coordSys",
+                    "dmtype": "SpaceSys",
+                    "PhysicalCoordSys_frame": {
+                        "dmrole": "frame",
+                        "dmtype": "SpaceFrame",
+                        "spaceRefFrame": {"value": "ICRS"},
+                    },
+                },
+            }
+            break
 
 
 @pytest.mark.remote_data
