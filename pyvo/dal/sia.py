@@ -504,24 +504,23 @@ class SIAQuery(DALQuery):
 
     @format.setter
     def format(self, format_):
-        print("Set format")
         setattr(self, "_format", format_)
 
-        if isinstance(format_, (str, bytes)):
-            format_ = [format_]
-        format__ = []
+        if not isinstance(format_, list):
+            format_ = format_.split(',')
+        normalized_formats = []
         for _ in format_:
             if _.upper() in ['ALL', 'METADATA', 'GRAPHIC', 'GRAPHIC-ALL']:
-                format__ += [_.upper()]
+                normalized_formats += [_.upper()]
             elif _.split('-')[0].upper() == 'GRAPHIC':
-                # GRAPHIC-xxx not supported, will throw an error and suggest supported arguments
-                # If it gets support, uncomment the following line:
-                # format__ += _.split('-'[0].upper()+"-"+_.split('-')[1].lower())
-                pass
+                normalized_formats += [_.split('-')[0].upper()+"-"+_.split('-')[1]]
+            elif _.lower() in ['image', 'image/png', 'image/jpeg', 'image/gif',
+                               'image/fits', 'png', 'jpeg', 'fits', 'gif']:
+                normalized_formats += [_.lower()]
             else:
-                format__ += [_.lower()]
+                normalized_formats += [_]
 
-        self["FORMAT"] = ",".join(format__)
+        self["FORMAT"] = ",".join(normalized_formats)
 
     @format.deleter
     def format(self):

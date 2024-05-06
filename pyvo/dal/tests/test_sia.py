@@ -81,7 +81,11 @@ class TestSIAService:
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")
     def test_formatter(self):
         service = SIAQuery('http://example.com/sia')
-        service.format = "IMAGE"
+        service.format = "Image"
         assert service["FORMAT"] == "image"
         service.format = "all"
         assert service["FORMAT"] == "ALL"
+        service.format = "Graphic-png"
+        assert service["FORMAT"] == "GRAPHIC-png"
+        service.format = "Unsupported"
+        assert service["FORMAT"] == "Unsupported"
