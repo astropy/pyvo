@@ -90,7 +90,3 @@ def test_all_reverts(a_seeker, data_path):
     assert a_seeker.get_globals_instance_from_collection(
         "_CoordinateSystems", "ICRS").get("dmtype") == "coords:SpaceSys"
     assert a_seeker.get_globals_instance_from_collection("wrong_dmid", "ICRS") is None
-
-
-if __name__ == '__main__':
-    pytest.main()

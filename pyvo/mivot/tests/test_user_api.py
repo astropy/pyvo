@@ -380,7 +380,3 @@ def test_cone_search(vizier_url):
     assert dec == [59.94033461]
     assert pmra == [-0.82]
     assert pmdec == [-1.85]
-
-
-if __name__ == "__main__":
-    pytest.main()

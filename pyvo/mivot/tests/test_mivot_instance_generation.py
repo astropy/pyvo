@@ -177,7 +177,3 @@ def data_path():
 @pytest.fixture
 def data_sample_url():
     return "https://raw.githubusercontent.com/ivoa/dm-usecases/main/pyvo-ci-sample/"
-
-
-if __name__ == '__main__':
-    pytest.main()

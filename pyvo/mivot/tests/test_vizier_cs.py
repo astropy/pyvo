@@ -102,6 +102,7 @@ def test_with_name(path_to_withname, delt_coo):
     assert str(mivot_object.epoch.value) == '2013.418'
     assert str(mivot_object.Coordinate_coordSys.spaceRefFrame.value) == 'ICRS'
 
+
 @pytest.mark.remote_data
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_with_id(path_to_withid, delt_coo):
@@ -126,7 +127,3 @@ def test_bad_ref(path_to_badref, delt_coo):
     # Test with all FILELDs referenced by names
     with (pytest.raises(MivotException, match="Attribute mango:EpochPosition.epoch can not be set.*")):
         MivotViewer(votable_path=path_to_badref)
-
-
-if __name__ == '__main__':
-    pytest.main()

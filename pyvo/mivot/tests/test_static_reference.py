@@ -36,7 +36,3 @@ def a_seeker(data_path):
     m_viewer = MivotViewer(os.path.join(data_path, "data", "test.mivot_viewer.xml"),
                        tableref="Results")
     return AnnotationSeeker(m_viewer._mapping_block)
-
-
-if __name__ == '__main__':
-    pytest.main()
