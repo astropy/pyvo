@@ -22,6 +22,8 @@ Enhancements and Fixes
 - registry.Ivoid now accepts multiple ivoids and will then match any of
   them. [#517]
 
+- New facility for global image discovery [#330].
+
 Deprecations and Removals
 -------------------------
 

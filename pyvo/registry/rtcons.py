@@ -11,10 +11,12 @@ classes.
 """
 
 import datetime
+import warnings
 
 from astropy import units as u
 from astropy import constants
 from astropy.coordinates import SkyCoord
+from astropy.utils.exceptions import AstropyDeprecationWarning
 import numpy
 
 from ..dal import query as dalq
@@ -316,16 +318,15 @@ class Servicetype(Constraint):
 
     The constraint normally is a custom keyword, one of:
 
-    * ``image`` (image services; at this point equivalent to sia, but
-      scheduled to include sia2, too)
     * ``sia`` (SIAP version 1 services)
     * ``sia2`` (SIAP version 2 services)
-    * ``spectrum``, ``ssa``, ``ssap`` (all synonymous for spectral
-      services, prefer ``spectrum``)
+    * ``ssa``, ``ssap`` (synonymous for SSAP services)
     * ``scs``, ``conesearch`` (synonymous for cone search services, prefer
       ``scs``)
     * ``line`` (for SLAP services)
     * ``tap``, ``table`` (synonymous for TAP services, prefer ``tap``)
+    * ``image`` (a deprecated alias for sia)
+    * ``spectrum`` (a deprecated alias for ssap)
 
     You can also pass in the standards' ivoid (which
     generally looks like
@@ -361,6 +362,19 @@ class Servicetype(Constraint):
         self.extra_fragments = []
 
         for std in stds:
+            if std == 'image':
+                warnings.warn(AstropyDeprecationWarning(
+                    "The 'image' servicetype is deprecated.  To"
+                    " match SIAP 1 services, use 'sia'.  Specific"
+                    " functionality for global image seach will come in"
+                    " a later pyVO version."))
+            if std == 'spectrum':
+                warnings.warn(AstropyDeprecationWarning(
+                    "The 'spectral' servicetype is deprecated.  To"
+                    " match SSAP services, use 'ssap'.  Specific"
+                    " functionality for global spectral seach will come in"
+                    " a later pyVO version."))
+
             if std in SERVICE_TYPE_MAP:
                 self.stdids.add(SERVICE_TYPE_MAP[std])
             elif "://" in std:
