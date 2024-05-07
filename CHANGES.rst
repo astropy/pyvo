@@ -22,6 +22,12 @@ Enhancements and Fixes
 - registry.Ivoid now accepts multiple ivoids and will then match any of
   them. [#517]
 
+- Introducing the new MIVOT module, enabling processed VOTable data mapped to
+  any model serialized in VO-DML. In particular, the MIVOT feature allows to
+  process the epoch propagation for VOTables annotated with MANGO
+  classes. This module automatically builds ``astropy.coordinates.SkyCoord``
+  instances without having to do any column-by-column analysis. [#497]
+
 Deprecations and Removals
 -------------------------
 
