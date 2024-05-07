@@ -222,10 +222,10 @@ constraint on the description ``get_service(service_type='conesearch', keyword='
 Or construct the service object directly from the list of interfaces with:
 
 .. doctest-remote-data::
-  
+
   >>> voresource.list_interfaces()[0].to_service()
   TAPService(baseurl : 'http://tapvizier.cds.unistra.fr/TAPVizieR/tap', description : '')
- 
+
 The list of interfaces can also be filtered to interfaces corresponding to services of a
 specific service type:
 
@@ -371,7 +371,6 @@ and access URL:
   >>> for service in archives:
   ...     print(service.res_title, service.access_url)
   Chandra X-ray Observatory Data Archive https://cda.harvard.edu/cxcsiap/queryImages?
-  Chandra Source Catalog http://cda.cfa.harvard.edu/cscsiap/queryImages?
   Chandra Source Catalog Release 1 http://cda.cfa.harvard.edu/csc1siap/queryImages?
   ...
 
