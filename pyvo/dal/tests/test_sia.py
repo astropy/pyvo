@@ -54,6 +54,7 @@ def test_search(position, format):
 
     _test_result(result)
 
+
 class TestSIAService:
     @pytest.mark.usefixtures('sia')
     @pytest.mark.usefixtures('register_mocks')
@@ -81,7 +82,7 @@ class TestSIAService:
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")
     def test_formatter(self):
         service = SIAQuery('http://example.com/sia')
-        service.format = "Image"
+        service.format = "image"
         assert service["FORMAT"] == "image"
         service.format = "all"
         assert service["FORMAT"] == "ALL"

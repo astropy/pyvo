@@ -509,16 +509,13 @@ class SIAQuery(DALQuery):
         if not isinstance(format_, list):
             format_ = format_.split(',')
         normalized_formats = []
-        for _ in format_:
-            if _.upper() in ['ALL', 'METADATA', 'GRAPHIC', 'GRAPHIC-ALL']:
-                normalized_formats += [_.upper()]
-            elif _.split('-')[0].upper() == 'GRAPHIC':
-                normalized_formats += [_.split('-')[0].upper()+"-"+_.split('-')[1]]
-            elif _.lower() in ['image', 'image/png', 'image/jpeg', 'image/gif',
-                               'image/fits', 'png', 'jpeg', 'fits', 'gif']:
-                normalized_formats += [_.lower()]
+        for user_input in format_:
+            if user_input.upper() in ['ALL', 'METADATA', 'GRAPHIC', 'GRAPHIC-ALL']:
+                normalized_formats += [user_input.upper()]
+            elif user_input.split('-')[0].upper() == 'GRAPHIC':
+                normalized_formats += [user_input.split('-')[0].upper()+"-"+user_input.split('-')[1]]
             else:
-                normalized_formats += [_]
+                normalized_formats += [user_input]
 
         self["FORMAT"] = ",".join(normalized_formats)
 
