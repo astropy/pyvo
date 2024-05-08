@@ -511,11 +511,11 @@ class SIAQuery(DALQuery):
         normalized_formats = []
         for user_input in format_:
             if user_input.upper() in ['ALL', 'METADATA', 'GRAPHIC', 'GRAPHIC-ALL']:
-                normalized_formats += [user_input.upper()]
+                normalized_formats.append(user_input.upper())
             elif user_input.split('-')[0].upper() == 'GRAPHIC':
-                normalized_formats += [user_input.split('-')[0].upper()+"-"+user_input.split('-')[1]]
+                normalized_formats.append(user_input.split('-')[0].upper()+"-"+user_input.split('-')[1])
             else:
-                normalized_formats += [user_input]
+                normalized_formats.append(user_input)
 
         self["FORMAT"] = ",".join(normalized_formats)
 
