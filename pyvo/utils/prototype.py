@@ -8,11 +8,13 @@ from pyvo.dal.exceptions import PyvoUserWarning
 
 __all__ = ['features', 'prototype_feature', 'activate_features', 'PrototypeWarning', 'PrototypeError']
 
-
 features: Dict[str, "Feature"] = {
     'cadc-tb-upload': Feature('cadc-tb-upload',
                               'https://wiki.ivoa.net/twiki/bin/view/IVOA/TAP-1_1-Next',
-                              False)
+                              False),
+    'MIVOT': Feature('MIVOT',
+                     'https://ivoa.net/documents/MIVOT/20230620/REC-mivot-1.0.pdf',
+                     False)
 }
 
 
@@ -104,7 +106,6 @@ def _parse_args(*args):
 
 
 def _make_decorator(feature_name):
-
     def decorator(decorated):
         if inspect.isfunction(decorated):
             return _make_wrapper(feature_name, decorated)

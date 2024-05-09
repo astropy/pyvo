@@ -22,6 +22,10 @@ Enhancements and Fixes
 - registry.Ivoid now accepts multiple ivoids and will then match any of
   them. [#517]
 
+- Introducing the new MIVOT module, enabling processed VOTable data mapped to
+  any model serialized in VO-DML. This package dynamically generates python objects 
+  whose structure corresponds to the classes of the mapped models. [#497]
+
 Deprecations and Removals
 -------------------------
 

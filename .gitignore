@@ -54,9 +54,11 @@ pip-wheel-metadata
 .project
 .pydevproject
 .settings
+coverage.xml
 
 # Mac OSX
 .DS_Store
 
 # ipython
 .ipynb_checkpoints
+/.pytest_cache/
