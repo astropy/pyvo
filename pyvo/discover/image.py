@@ -72,6 +72,8 @@ class Queriable:
     def __str__(self):
         return f"<{self.ivoid}>"
 
+    def __repr__(self):
+        return str(self)
 
 @functools.lru_cache(maxsize=None)
 def obscore_column_names():
@@ -382,6 +384,8 @@ class ImageDiscoverer:
         """
         with self._service_list_lock:
             self.sia1_recs, self.sia2_recs, self.obscore_recs = [], [], []
+            self._log("Cancelling queries with {} service(s) queried"
+                .format(self.already_queried))
 
     def _add_records(self,
             recgen: Generator[ImageFound, None, None]) -> int:
@@ -450,7 +454,10 @@ class ImageDiscoverer:
                 " constraint")
             return
 
-        for rec in self.sia1_recs:
+        # we don't do a for loop here because we want to react to changes
+        # in self.sia1_recs
+        while self.sia1_recs:
+            rec = self.sia1_recs.pop()
             try:
                 self._query_one_sia1(rec)
             except Exception as msg:
@@ -483,7 +490,8 @@ class ImageDiscoverer:
     def _query_sia2(self):
         """runs the SIA2 part of our discovery.
         """
-        for rec in self.sia2_recs:
+        while self.sia2_recs:
+            rec = self.sia2_recs.pop()
             try:
                 self._query_one_sia2(rec)
             except Exception as msg:
@@ -527,7 +535,8 @@ class ImageDiscoverer:
 
         where_clause = "WHERE "+(" AND ".join(where_parts))
 
-        for rec in self.obscore_recs:
+        while self.obscore_recs:
+            rec = self.obscore_recs.pop()
             try:
                 self._query_one_obscore(rec, where_clause)
             except Exception as msg:

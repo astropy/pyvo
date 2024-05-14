@@ -17,6 +17,12 @@ from pyvo import registry
 from pyvo.discover import image
 
 
+class TestImageFound:
+    def testBadAttrName(self):
+        with pytest.raises(TypeError):
+            i = image.ImageFound("ivo://x-fake", {"invented": None})
+
+
 class FakeQueriable:
     """a scaffolding class to record queries built by the various
     discovery methods.
@@ -170,16 +176,24 @@ def test_cone_and_spectral_point():
     # This should really return just a few services.  If this
     # starts hitting more services, see how we can throw them out
     # again, perhaps using a time constraint.
+    watcher_msgs = []
+    def test_watcher(msg):
+        watcher_msgs.append(msg)
+
     images, logs = discover.images_globally(
         space=(134, 11, 0.1),
-        spectrum=600*u.eV)
+        spectrum=600*u.eV,
+        time=(time.Time('1990-01-01'), time.Time('1999-12-31')),
+        watcher=test_watcher)
 
     assert len(logs) < 10, ("Too many services in test_cone_and_spectral."
         "  Try constraining the discovery phase more tightly to"
         " keep this test economical")
-    assert ("Skipping ivo://org.gavo.dc/__system__/siap2/sitewide because"
-        " it is served by ivo://org.gavo.dc/__system__/obscore/obscore"
-        in logs)
+
+    skip_msg = ("Skipping ivo://org.gavo.dc/__system__/siap2/sitewide because"
+        " it is served by ivo://org.gavo.dc/__system__/obscore/obscore")
+    assert skip_msg in logs
+    assert skip_msg in watcher_msgs
 
     assert len(images) >= 8
     assert "RASS" in {im.obs_collection for im in images}
@@ -197,7 +211,7 @@ def test_servedby_elision():
 
     assert d.sia2_recs == []
     assert len(d.obscore_recs) == 1
-    assert d.obscore_recs[0].ivoid == "ivo://org.gavo.dc/tap"
+    assert repr(d.obscore_recs[0]) == "<ivo://org.gavo.dc/tap>"
     assert ('Skipping ivo://org.gavo.dc/__system__/siap2/sitewide'
         ' because it is served by ivo://org.gavo.dc/tap' in d.log_messages)
 
@@ -205,22 +219,41 @@ def test_servedby_elision():
 @pytest.mark.remote_data
 def test_access_url_elision():
     with pytest.warns():
-        d = discover.ImageDiscoverer(
+        di = discover.ImageDiscoverer(
             time=time.Time("1910-07-15", scale="utc"),
             spectrum=400*u.nm)
-    d.set_services(
+    di.set_services(
         registry.search(
             registry.Ivoid(
                 "ivo://org.gavo.dc/tap",
                 "ivo://org.gavo.dc/__system__/siap2/sitewide")),
         # that's important here: we *want* to query the same stuff twice
        purge_redundant=False)
-    d.query_services()
+    di.query_services()
 
     # make sure we found anything at all
-    assert d.results
+    assert di.results
     assert len([1 for lm in d.log_messages if "skipped" in lm]) == 0
 
     # make sure there are no duplicate records
-    access_urls = [im.access_url for im in d.results]
+    access_urls = [im.access_url for im in di.results]
     assert len(access_urls) == len(set(access_urls))
+
+
+@pytest.mark.remote_data
+def test_cancelling():
+    di = discover.ImageDiscoverer(
+        time=time.Time("1980-07-15", scale="utc"),
+        spectrum=400*u.nm,
+        timeout=1)
+
+    def query_killer(msg):
+        if msg.startswith("Querying") and di.already_queried>0:
+            di.reset_services()
+    di.watcher = query_killer
+
+    di.set_services(registry.search(servicetype="sia2"))
+    di.query_services()
+
+    assert ('Cancelling queries with 1 service(s) queried'
+        in di.log_messages)
