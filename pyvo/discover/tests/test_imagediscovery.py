@@ -20,7 +20,7 @@ from pyvo.discover import image
 class TestImageFound:
     def testBadAttrName(self):
         with pytest.raises(TypeError):
-            i = image.ImageFound("ivo://x-fake", {"invented": None})
+            image.ImageFound("ivo://x-fake", {"invented": None})
 
 
 class FakeQueriable:
@@ -149,10 +149,43 @@ class TestTimeCondition:
             " AND t_min<=t_max AND 40872.541666666664<=40872.541666666664)")
 
 
+class TestSpaceCondition:
+    def test_sia1_fails_without_space(self):
+        queriable = FakeQueriable()
+        di = discover.ImageDiscoverer(
+            time=(
+                time.Time("1970-10-13T13:00:00")))
+        di.sia1_recs = [queriable]
+        di.query_services()
+        assert di.log_messages == [
+            'SIA1 service(s) skipped due to missing space constraint']
+
+    def test_sia2(self):
+        queriable = FakeQueriable()
+        di = discover.ImageDiscoverer(space=(30, 21, 1))
+        di.sia2_recs = [queriable]
+        di.query_services()
+        assert queriable.search_kwargs == {'pos': (30, 21, 1)}
+
+    def test_obscore(self):
+        queriable = FakeQueriable()
+        di = discover.ImageDiscoverer(space=(30, 21, 1))
+        di.obscore_recs = [queriable]
+        di.query_services()
+        assert queriable.search_args == (
+            "select * from ivoa.obscore WHERE dataproduct_type='image'"
+            " AND (1=contains(point('ICRS', s_ra, s_dec),"
+            " circle('ICRS', 30, 21, 1))"
+            " or 1=intersects(circle(30, 21, 1), s_region))",)
+
+
 def test_no_services_selected():
     with pytest.raises(dal.DALQueryError) as excinfo:
         image.ImageDiscoverer().query_services()
     assert "No services to query." in str(excinfo.value)
+
+
+# Tests requiring remote data below this line
 
 
 @pytest.mark.remote_data
@@ -177,7 +210,8 @@ def test_cone_and_spectral_point():
     # starts hitting more services, see how we can throw them out
     # again, perhaps using a time constraint.
     watcher_msgs = []
-    def test_watcher(msg):
+
+    def test_watcher(disco, msg):
         watcher_msgs.append(msg)
 
     images, logs = discover.images_globally(
@@ -233,7 +267,7 @@ def test_access_url_elision():
 
     # make sure we found anything at all
     assert di.results
-    assert len([1 for lm in d.log_messages if "skipped" in lm]) == 0
+    assert len([1 for lm in di.log_messages if "skipped" in lm]) == 0
 
     # make sure there are no duplicate records
     access_urls = [im.access_url for im in di.results]
@@ -242,15 +276,16 @@ def test_access_url_elision():
 
 @pytest.mark.remote_data
 def test_cancelling():
+
     def query_killer(disco, msg):
-        if msg.startswith("Querying") and di.already_queried>0:
+        if msg.startswith("Querying") and di.already_queried > 0:
             disco.reset_services()
 
     di = discover.ImageDiscoverer(
         time=time.Time("1980-07-15", scale="utc"),
         spectrum=400*u.nm,
         timeout=1,
-        watcher = query_killer)
+        watcher=query_killer)
 
     di.set_services(registry.search(servicetype="sia2"))
     di.query_services()

@@ -75,6 +75,7 @@ class Queriable:
     def __repr__(self):
         return str(self)
 
+
 @functools.lru_cache(maxsize=None)
 def obscore_column_names():
     """returns the names of obscore columns.
