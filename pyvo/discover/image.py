@@ -221,7 +221,7 @@ class ImageDiscoverer:
         """sends message to our watcher (if there is any)
         """
         if self.watcher is not None:
-            self.watcher(message)
+            self.watcher(self, message)
 
     def _log(self, message: str) -> None:
         """logs message.
@@ -576,7 +576,7 @@ def images_globally(
         spectrum: Optional[quantity.Quantity] = None,
         time: Optional[time.Time] = None,
         inclusive: bool = False,
-        watcher: Optional[Callable[[str], None]] = None,
+        watcher: Optional[Callable[['ImageDiscoverer', str], None]] = None,
         timeout: float = 20,
         services: Optional[registry.RegistryResults] = None)\
         -> Tuple[List[obscore.ObsCoreMetadata], List[str]]:
@@ -601,8 +601,8 @@ def images_globally(
         STC coverage.  By 2023, it's a good idea to do that as many
         relevant archives do not do that.
     watcher :
-        A callable that will be called with strings perhaps suitable
-        for displaying to a human.
+        A callable that will be called with the ImageDiscoverer instance and
+        a string perhaps suitable for displaying to a human.
     services :
         An optional `~pyvo.registry.RegistryResults` instance to
         override automatic services detection.

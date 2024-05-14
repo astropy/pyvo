@@ -103,12 +103,19 @@ going on, you can pass in a function accepting a single string as
 
   import datetime
 
-  def watch(msg):
+  def watch(disco, msg):
     print(datetime.datetime.now(), msg)
 
   found, log = discover.images_globally(
     space=(3, 1, 0.2), watcher=watch)
 
+Here, ``disco`` is an ``ImageDiscoverer`` instance; this way, you can
+further inspect the state of things, e.g., by looking at the
+``already_queried`` and ``failed_services`` attributes containing the
+number of total services tried and of services that gave errors,
+respectively.  Also, although that clearly goes beyond watching, you can
+call the ``reset_services()`` method.  This empties the query queues and
+thus in effect stops the discovery process.
 
 Setting Timeouts
 ----------------

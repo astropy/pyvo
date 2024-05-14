@@ -242,15 +242,15 @@ def test_access_url_elision():
 
 @pytest.mark.remote_data
 def test_cancelling():
+    def query_killer(disco, msg):
+        if msg.startswith("Querying") and di.already_queried>0:
+            disco.reset_services()
+
     di = discover.ImageDiscoverer(
         time=time.Time("1980-07-15", scale="utc"),
         spectrum=400*u.nm,
-        timeout=1)
-
-    def query_killer(msg):
-        if msg.startswith("Querying") and di.already_queried>0:
-            di.reset_services()
-    di.watcher = query_killer
+        timeout=1,
+        watcher = query_killer)
 
     di.set_services(registry.search(servicetype="sia2"))
     di.query_services()
