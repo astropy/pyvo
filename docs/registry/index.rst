@@ -334,7 +334,7 @@ and access URL:
 .. doctest-remote-data::
 
   >>> for service in archives:
-  ...     print(service.res_title, service.access_url)
+  ...     print(service.res_title, service.access_url)  # doctest: +IGNORE_OUTPUT
   Chandra X-ray Observatory Data Archive https://cda.harvard.edu/cxcsiap/queryImages?
   Chandra Source Catalog http://cda.cfa.harvard.edu/cscsiap/queryImages?
   Chandra Source Catalog Release 1 http://cda.cfa.harvard.edu/csc1siap/queryImages?
