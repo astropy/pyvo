@@ -39,6 +39,7 @@ from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
 from astropy.io.votable.tree import Field
 from astropy.table import Table
+import numpy as np
 
 from .query import DALResults, DALQuery, DALService, Record
 from .mimetype import mime2extension
@@ -696,10 +697,13 @@ class SSARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         observational data that went into the spectrum
         """
         dateobs = self.getbyutype("ssa:DataID.Date", decode=True)
-        if dateobs:
-            return Time(dateobs, format="iso")
-        else:
-            return None
+        try:
+            if not dateobs or np.isnan(dateobs):
+                return None
+        except TypeError:
+            # np.isnan can only check floats. If can't check for nan, pass it along
+            pass
+        return Time(dateobs, format="iso")
 
     @property
     def instr(self):

@@ -35,6 +35,7 @@ from pyvo.io.vosi.vodataservice import TableParam
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity, Unit
+import numpy as np
 
 from .query import DALResults, DALQuery, DALService, Record
 from .mimetype import mime2extension
@@ -702,10 +703,13 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         as an astropy.time.Time instance
         """
         dateobs = self.getbyucd("VOX:Image_MJDateObs")
-        if dateobs:
-            return Time(dateobs, format="mjd")
-        else:
-            return None
+        try:
+            if not dateobs or np.isnan(dateobs):
+                return None
+        except TypeError:
+            # np.isnan can only check floats. If can't check for nan, pass it along
+            pass
+        return Time(dateobs, format="mjd")
 
     @property
     def naxes(self):
