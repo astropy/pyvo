@@ -61,9 +61,13 @@ class TestSIAService:
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")
     def test_search(self):
-        service = SIAService('http://example.com/sia')
+        url = 'http://example.com/sia'
+        service = SIAService(url)
+        assert service.baseurl == url
 
         results = service.search(pos=(288, 15))
         result = results[0]
 
         _test_result(result)
+
+        assert results[1].dateobs is None

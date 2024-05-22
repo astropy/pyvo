@@ -1,3 +1,13 @@
+1.5.2 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+- Avoid Astropy Time error for SIAResult.dateobs when
+  VOX:Image_MJDateObs or ssa:DataID.Date is nan. [#550]
+
+
 1.5.1 (2024-02-21)
 ==================
 

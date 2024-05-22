@@ -58,6 +58,20 @@
       <TD>5.2e-07</TD>
       <TD>0.000403806 0.000406123</TD>
      </TR>
+     <TR>
+      <TD>This should not be the dataurl</TD>
+      <TD>http://example.com/querydata/image.fits</TD>
+      <TD>image/fits</TD>
+      <TD>153280</TD>
+      <TD/> <!-- Empty VOX:Image_MJDateObs field -->
+      <TD>Test</TD>
+      <TD>288.95078924817</TD>
+      <TD>15.0322239971381</TD>
+      <TD>Test Observation</TD>
+      <TD>3.8e-07</TD>
+      <TD>5.2e-07</TD>
+      <TD>0.000403806 0.000406123</TD>
+     </TR>
     </TABLEDATA>
    </DATA>
   </TABLE>

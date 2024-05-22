@@ -33,7 +33,7 @@ def ssa(mocker):
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
 def test_search():
     results = search('http://example.com/ssa', pos=(0.0, 0.0), diameter=1.0)
-    assert len(results) == 35
+    assert len(results) == 36
 
 
 class TestSSAService:
@@ -44,4 +44,5 @@ class TestSSAService:
 
         results = service.search(pos=(0.0, 0.0), diameter=1.0)
 
-        assert len(results) == 35
+        assert len(results) == 36
+        assert results[35].dateobs is None
