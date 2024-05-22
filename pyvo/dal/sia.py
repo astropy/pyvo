@@ -506,10 +506,18 @@ class SIAQuery(DALQuery):
     def format(self, format_):
         setattr(self, "_format", format_)
 
-        if isinstance(format_, (str, bytes)):
-            format_ = [format_]
+        if not isinstance(format_, list):
+            format_ = format_.split(',')
+        normalized_formats = []
+        for user_input in format_:
+            if user_input.upper() in ['ALL', 'METADATA', 'GRAPHIC', 'GRAPHIC-ALL']:
+                normalized_formats.append(user_input.upper())
+            elif user_input.split('-')[0].upper() == 'GRAPHIC':
+                normalized_formats.append(user_input.split('-')[0].upper()+"-"+user_input.split('-')[1])
+            else:
+                normalized_formats.append(user_input)
 
-        self["FORMAT"] = ",".join(_.upper() for _ in format_)
+        self["FORMAT"] = ",".join(normalized_formats)
 
     @format.deleter
     def format(self):

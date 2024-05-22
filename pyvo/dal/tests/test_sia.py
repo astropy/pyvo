@@ -8,7 +8,7 @@ import re
 
 import pytest
 
-from pyvo.dal.sia import search, SIAService
+from pyvo.dal.sia import search, SIAService, SIAQuery
 
 from astropy.io.fits import HDUList
 from astropy.coordinates import SkyCoord
@@ -47,8 +47,9 @@ def _test_result(result):
 @pytest.mark.usefixtures('register_mocks')
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
 @pytest.mark.parametrize("position", ((288, 15), SkyCoord(288, 15, unit="deg")))
-def test_search(position):
-    results = search('http://example.com/sia', pos=position)
+@pytest.mark.parametrize("format", ("IMAGE/JPEG", "all"))
+def test_search(position, format):
+    results = search('http://example.com/sia', pos=position, format=format)
     result = results[0]
 
     _test_result(result)
@@ -71,3 +72,19 @@ class TestSIAService:
         _test_result(result)
 
         assert results[1].dateobs is None
+
+    @pytest.mark.usefixtures('sia')
+    @pytest.mark.usefixtures('register_mocks')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W42")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W49")
+    def test_formatter(self):
+        service = SIAQuery('http://example.com/sia')
+        service.format = "image"
+        assert service["FORMAT"] == "image"
+        service.format = "all"
+        assert service["FORMAT"] == "ALL"
+        service.format = "Graphic-png"
+        assert service["FORMAT"] == "GRAPHIC-png"
+        service.format = "Unsupported"
+        assert service["FORMAT"] == "Unsupported"
