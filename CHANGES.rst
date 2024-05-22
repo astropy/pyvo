@@ -23,8 +23,11 @@ Enhancements and Fixes
   them. [#517]
 
 - Introducing the new MIVOT module, enabling processed VOTable data mapped to
-  any model serialized in VO-DML. This package dynamically generates python objects 
+  any model serialized in VO-DML. This package dynamically generates python objects
   whose structure corresponds to the classes of the mapped models. [#497]
+
+- New sub-package discover for global dataset discovery. [#470]
+
 
 Deprecations and Removals
 -------------------------

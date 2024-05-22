@@ -132,8 +132,10 @@ Using ``pyvo``
 
    dal/index
    registry/index
+   discover/index
    io/index
    auth/index
    mivot/index
    utils/index
    utils/prototypes
+   utils/testing
