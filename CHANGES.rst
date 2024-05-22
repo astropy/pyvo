@@ -23,8 +23,9 @@ Enhancements and Fixes
   them. [#517]
 
 - Introducing the new MIVOT module, enabling processed VOTable data mapped to
-  any model serialized in VO-DML. This package dynamically generates python objects 
+  any model serialized in VO-DML. This package dynamically generates python objects
   whose structure corresponds to the classes of the mapped models. [#497]
+
 
 Deprecations and Removals
 -------------------------
@@ -38,6 +39,8 @@ Bug Fixes
 
 - Avoid Astropy Time error for SIAResult.dateobs when
   VOX:Image_MJDateObs or ssa:DataID.Date is nan. [#550]
+
+- More robust handling of SIA1 FORMAT [#545]
 
 
 1.5.1 (2024-02-21)
