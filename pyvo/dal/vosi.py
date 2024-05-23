@@ -37,7 +37,7 @@ class EndpointMixin():
 
         for ep_url in ep_urls:
             try:
-                response = self._session.get(ep_url, stream=True)
+                response = self._session.get(ep_url, stream=True, verify=False)
                 response.raise_for_status()
                 break
             except requests.RequestException:
