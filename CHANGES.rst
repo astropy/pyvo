@@ -31,7 +31,7 @@ Deprecations and Removals
 -------------------------
 
 
-1.5.2 (unreleased)
+1.5.2 (2024-05-22)
 ==================
 
 Bug Fixes
