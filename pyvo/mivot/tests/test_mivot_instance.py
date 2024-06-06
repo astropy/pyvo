@@ -4,10 +4,13 @@ Created on 19 févr. 2024
 
 @author: michel
 '''
+import os
 import pytest
 from astropy.table import Table
+from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.mivot_instance import MivotInstance
-
+from pyvo.mivot.utils.mivot_utils import MivotUtils
+from pyvo.mivot import MivotViewer
 
 fake_hk_dict = {
     "dmtype": "EpochPosition",
@@ -38,6 +41,84 @@ fake_dict = {
                 "unit": "deg",
             }
 }
+
+test_dict = {
+    "tableref": "Results",
+    "root_object": {
+        "dmid": "_ts_data",
+        "dmrole": "",
+        "dmtype": "cube:NDPoint",
+        "observable": [
+            {
+                "dmtype": "cube:Observable",
+                "dependent": {"value": True},
+                "measure": {
+                    "dmrole": "cube:MeasurementAxis.measure",
+                    "dmtype": "meas:Time",
+                    "coord": {
+                        "dmrole": "meas:Time.coord",
+                        "dmtype": "coords:MJD",
+                        "date": {"value": 1705.9437360200984},
+                    },
+                },
+            },
+            {
+                "dmtype": "cube:Observable",
+                "dependent": {"value": True},
+                "measure": {
+                    "dmrole": "cube:MeasurementAxis.measure",
+                    "dmtype": "meas:GenericMeasure",
+                    "coord": {
+                        "dmrole": "meas:GenericMeasure.coord",
+                        "dmtype": "coords:PhysicalCoordinate",
+                        "cval": {"value": 15.216575},
+                    },
+                },
+            },
+            {
+                "dmtype": "cube:Observable",
+                "dependent": {"value": True},
+                "measure": {
+                    "dmrole": "cube:MeasurementAxis.measure",
+                    "dmtype": "meas:GenericMeasure",
+                    "coord": {
+                        "dmrole": "meas:GenericMeasure.coord",
+                        "dmtype": "coords:PhysicalCoordinate",
+                        "cval": {"value": 15442.456},
+                    },
+                    "error": {
+                        "dmrole": "meas:Measure.error",
+                        "dmtype": "meas:Error",
+                        "statError": {
+                            "dmrole": "meas:Error.statError",
+                            "dmtype": "meas:Symmetrical",
+                            "radius": {"value": 44.15126},
+                        },
+                    },
+                },
+            },
+        ],
+    },
+}
+
+
+@pytest.fixture
+def m_viewer(data_path):
+    return MivotViewer(os.path.join(data_path, "data", "test.mivot_viewer.xml"),
+                       tableref="Results")
+
+
+@pytest.fixture
+def data_path():
+    return os.path.dirname(os.path.realpath(__file__))
+
+
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
+def test_xml_viewer(m_viewer):
+
+    xml_instance = m_viewer.xml_viewer.view
+    dm_instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
+    assert dm_instance.dict == test_dict
 
 
 def test_mivot_instance_constructor():

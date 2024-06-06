@@ -50,7 +50,7 @@ def recusive_xml_check(xml_simple_votable, MivotInstance):
                             elif child.tag == 'INSTANCE':
                                 recusive_xml_check(child, getattr(MivotInstance,
                                                                   MivotInstance._remove_model_name
-                                                                  (child.get('dmrole'), True)))
+                                                                  (child.get('dmrole'))))
                         else:
                             if child.tag == 'ATTRIBUTE':
                                 recusive_xml_check(child, getattr(MivotInstance,
@@ -59,7 +59,7 @@ def recusive_xml_check(xml_simple_votable, MivotInstance):
                             elif child.tag == 'INSTANCE':
                                 recusive_xml_check(child, getattr(MivotInstance,
                                                                   MivotInstance._remove_model_name(
-                                                                      child.get('dmrole'), True)))
+                                                                      child.get('dmrole'))))
                             elif child.tag == 'COLLECTION':
                                 recusive_xml_check(child, getattr(MivotInstance,
                                                                   MivotInstance._remove_model_name(
