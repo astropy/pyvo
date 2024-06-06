@@ -53,7 +53,7 @@ def test_table_ref(m_viewer):
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_global_getters(m_viewer, data_path):
     """
-    Test each getter of the model_viewer_level1 specific for the GLOBALS.
+    Test each getter for TEMPLATES of the model_viewer.
     """
     assert m_viewer.get_table_ids() == ['_PKTable', 'Results']
     assert m_viewer.get_globals_models() == DictUtils.read_dict_from_file(
@@ -76,7 +76,7 @@ def test_global_getters(m_viewer, data_path):
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_no_mivot(path_no_mivot):
     """
-    Test each getter of the model_viewer_level1 specific for the GLOBALS.
+    Test each getter for GLOBALS of the model_viewer specific .
     """
     m_viewer = MivotViewer(path_no_mivot)
     assert m_viewer.get_table_ids() is None

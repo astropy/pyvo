@@ -11,7 +11,7 @@ Although attribute values can be changed by users, this class is first
 meant to provide a convenient access the mapped VOTable data
 """
 from astropy import time
-from pyvo.mivot.utils.vocabulary import unit_mapping
+from pyvo.mivot.utils.vocabulary import unit_mapping, Constant
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.utils.dict_utils import DictUtils
@@ -74,22 +74,29 @@ class MivotInstance:
         ----------
         kwargs (dict): Dictionary of the XML object.
         """
+
         for key, value in kwargs.items():
+            # roles are used as key and the first element in a TEMPLATE has no role
+            if not key:
+                key = Constant.ROOT_OBJECT
             if isinstance(value, list):  # COLLECTION
                 setattr(self, self._remove_model_name(key), [])
                 for item in value:
                     getattr(self, self._remove_model_name(key)).append(MivotInstance(**item))
             elif isinstance(value, dict):  # INSTANCE
                 if not self._is_leaf(**value):
-                    setattr(self, self._remove_model_name(key, role_instance=True), MivotInstance(**value))
+                    setattr(self, self._remove_model_name(key), MivotInstance(**value))
                 if self._is_leaf(**value):
                     setattr(self, self._remove_model_name(key), MivotInstance(**value))
             else:  # ATTRIBUTE
                 if key == 'value':  # We cast the value read in the row
                     setattr(self, self._remove_model_name(key),
                             MivotUtils.cast_type_value(value, getattr(self, 'dmtype')))
-                else:
+                elif key not in ["dmtype", "dmrole"]:
                     setattr(self, self._remove_model_name(key), self._remove_model_name(value))
+                else:
+                    setattr(self, self._remove_model_name(key), value)
+
                 if key == 'unit':  # We convert the unit to astropy unit or to astropy time format if possible
                     # The first Vizier implementation used mas/year for the mapped pm unit: let's correct it
                     value = value.replace("year", "yr") if value else None
@@ -124,34 +131,19 @@ class MivotInstance:
                             MivotUtils.cast_type_value(row[ref], getattr(self, 'dmtype')))
 
     @staticmethod
-    def _remove_model_name(value, role_instance=False):
+    def _remove_model_name(value):
         """
-        Remove the model name before each colon ":" as well as the type of the object before each point ".".
-        If it is an INSTANCE of INSTANCEs, the dmrole represented as the key needs to keep his type object.
-        In this case (`role_instance=True`), we just replace the point "." With an underscore "_".
-        - if role_instance: a:b.c -> b_c else c
+        Return the last element of a model path built like model:a.b.c
 
         Parameters
         ----------
         value (str): The string to process.
-        role_instance (bool, optional): If True, keeps the type object for dmroles representing
-                                        an INSTANCE of INSTANCEs. Default is False.
         """
-        if isinstance(value, str):
-            # We first find the model_name before the colon
-            index_underscore = value.find(":")
-            if index_underscore != -1:
-                # Then we find the object type before the point
-                next_index_underscore = value.rfind(".")
-                if next_index_underscore != -1 and not role_instance:
-                    value_after_underscore = value[next_index_underscore + 1:]
-                else:
-                    value_after_underscore = (value[index_underscore + 1:]
-                                              .replace(':', '_').replace('.', '_'))
-                return value_after_underscore
-            return value  # Returns unmodified string if "_" wasn't found
-        else:
-            return value
+
+        if value:
+            next_index_underscore = value.rfind(".")
+            return value[next_index_underscore + 1:]
+        return value
 
     def _is_leaf(self, **kwargs):
         """

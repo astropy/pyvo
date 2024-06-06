@@ -84,8 +84,8 @@ to the ``EpochPosition`` class, can be consumed.
     ... )
     >>> mivot_instance = m_viewer.dm_instance
     >>> print(mivot_instance.dmtype)
-    EpochPosition
-    >>> print(mivot_instance.Coordinate_coordSys.spaceRefFrame.value)
+    mango:EpochPosition
+    >>> print(mivot_instance.coordSys.spaceRefFrame.value)
     ICRS
     >>> while m_viewer.next():
     ...     print(f"position: {mivot_instance.latitude.value} {mivot_instance.longitude.value}")
@@ -116,16 +116,16 @@ using the ``dict`` property of ``MivotInstance``.
 
     DictUtils.print_pretty_json(mivot_object_dict)
 	{
-        "dmtype": "EpochPosition",
+        "dmtype": "mango:EpochPosition",
         "longitude": {"value": 359.94372764, "unit": "deg"},
         "latitude": {"value": -0.28005255, "unit": "deg"},
         "pmLongitude": {"value": -5.14, "unit": "mas/yr"},
         "pmLatitude": {"value": -25.43, "unit": "mas/yr"},
         "epoch": {"value": 1991.25, "unit": "year"},
-        "Coordinate_coordSys": {
-            "dmtype": "SpaceSys",
-            "dmid": "SpaceFrame_ICRS",
-            "dmrole": "coordSys",
+        "coordSys": {
+            "dmtype": "coords:SpaceSys",
+            "dmid": "ICRS",
+            "dmrole": "coords:Coordinate.coordSys",
             "spaceRefFrame": {"value": "ICRS"},
         },
     }
@@ -217,12 +217,12 @@ identifiers, which have the following structure: ``model:a.b``.
     mivot_instance = mivot_viewer.dm_instance
 
     print(mivot_instance.__dict__.keys())
-    dict_keys(['dmtype', 'longitude', 'latitude', 'pmLongitude', 'pmLatitude', 'epoch', 'Coordinate_coordSys'])
+    dict_keys(['dmtype', 'longitude', 'latitude', 'pmLongitude', 'pmLatitude', 'epoch', 'coordSys'])
 
-    print(mivot_instance.Coordinate_coordSys.__dict__.keys())
+    print(mivot_instance.coordSys.__dict__.keys())
     dict_keys(['dmtype', 'dmid', 'dmrole', 'spaceRefFrame'])
 
-    print(mivot_instance.Coordinate_coordSys.spaceRefFrame.__dict__.keys())
+    print(mivot_instance.coordSys.spaceRefFrame.__dict__.keys())
     dict_keys(['dmtype', 'value', 'unit', 'ref'])
 
 Reference/API

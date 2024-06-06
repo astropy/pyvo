@@ -14,6 +14,7 @@ class Constant:
     FIELD_UNIT = "field_unit"
     COL_INDEX = "col_index"
     ROOT_COLLECTION = "root_collection"
+    ROOT_OBJECT = "root_object"
     NOT_SET = "NotSet"
     ANONYMOUS_TABLE = "AnonymousTable"
 
