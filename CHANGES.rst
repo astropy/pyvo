@@ -26,6 +26,8 @@ Enhancements and Fixes
   any model serialized in VO-DML. This package dynamically generates python objects
   whose structure corresponds to the classes of the mapped models. [#497]
 
+- MIVOT module: the model references in the dictionaries that are used to build ``MivotInstance``
+  objects are made more consistent [#551]
 
 Deprecations and Removals
 -------------------------
