@@ -7,6 +7,7 @@ Created on 19 févr. 2024
 import os
 import pytest
 from astropy.table import Table
+from astropy.utils.data import get_pkg_data_filename
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.mivot_instance import MivotInstance
 from pyvo.mivot.utils.mivot_utils import MivotUtils
@@ -103,14 +104,11 @@ test_dict = {
 
 
 @pytest.fixture
-def m_viewer(data_path):
-    return MivotViewer(os.path.join(data_path, "data", "test.mivot_viewer.xml"),
-                       tableref="Results")
-
-
-@pytest.fixture
-def data_path():
-    return os.path.dirname(os.path.realpath(__file__))
+def m_viewer():
+    data_path = get_pkg_data_filename(os.path.join("data",
+                                       "test.mivot_viewer.xml")
+    )
+    return MivotViewer(data_path, tableref="Results")
 
 
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
