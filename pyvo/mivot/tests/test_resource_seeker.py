@@ -2,9 +2,9 @@
 """
 Test for mivot.seekers.resource_seeker.py
 """
-import os
 import pytest
 from astropy.io.votable import parse
+from astropy.utils.data import get_pkg_data_filename
 from pyvo.mivot.seekers.resource_seeker import ResourceSeeker
 from pyvo.mivot.version_checker import check_astropy_version
 
@@ -59,15 +59,10 @@ def test_id_table(rseeker):
 
 
 @pytest.fixture
-def rseeker(data_path):
+def rseeker():
 
-    votable_path = os.path.join(data_path, "data", "test.mivot_viewer.xml")
+    votable_path = get_pkg_data_filename("data/test.mivot_viewer.xml")
 
     votable = parse(votable_path)
     for resource in votable.resources:
         return ResourceSeeker(resource)
-
-
-@pytest.fixture
-def data_path():
-    return os.path.dirname(os.path.realpath(__file__))

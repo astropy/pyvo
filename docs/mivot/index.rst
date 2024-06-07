@@ -109,8 +109,10 @@ using the ``dict`` property of ``MivotInstance``.
     :caption: Working with a model view as a dictionary
               (the JSON layout has been squashed for display purpose)
 
+	from pyvo.mivot import MivotViewer
     from pyvo.mivot.utils.dict_utils import DictUtils
-
+    
+    m_viewer = MivotViewer(path_to_votable)
     mivot_instance = m_viewer.dm_instance
     mivot_object_dict = mivot_object.dict
 
@@ -210,20 +212,6 @@ identifiers, which have the following structure: ``model:a.b``.
         on the fly each time the property is invoked.
   - 2.  From the internal  class dictionary ``MivotInstance.__dict__``
         (see the Python `data model <https://docs.python.org/3/reference/datamodel.html>`_).
-
- .. code-block:: python
-    :caption: Exploring the MivotInstance structure with the internal dictionaries
-
-    mivot_instance = mivot_viewer.dm_instance
-
-    print(mivot_instance.__dict__.keys())
-    dict_keys(['dmtype', 'longitude', 'latitude', 'pmLongitude', 'pmLatitude', 'epoch', 'coordSys'])
-
-    print(mivot_instance.coordSys.__dict__.keys())
-    dict_keys(['dmtype', 'dmid', 'dmrole', 'spaceRefFrame'])
-
-    print(mivot_instance.coordSys.spaceRefFrame.__dict__.keys())
-    dict_keys(['dmtype', 'value', 'unit', 'ref'])
 
 Reference/API
 =============
