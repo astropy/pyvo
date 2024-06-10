@@ -103,7 +103,7 @@ Model leaves (class attributes) are complex types that provide additional inform
 - ``ref``: identifier of the table column mapped on the attribute
 
 The model view on a data row can also be passed as a Python dictionary
-using the ``dict`` property of ``MivotInstance``.
+using the ``to_dict()`` method of ``MivotInstance``. 
 
 .. code-block:: python
     :caption: Working with a model view as a dictionary
@@ -114,7 +114,7 @@ using the ``dict`` property of ``MivotInstance``.
     
     m_viewer = MivotViewer(path_to_votable)
     mivot_instance = m_viewer.dm_instance
-    mivot_object_dict = mivot_object.dict
+    mivot_object_dict = mivot_object.to_dict()
 
     DictUtils.print_pretty_json(mivot_object_dict)
 	{
@@ -133,9 +133,11 @@ using the ``dict`` property of ``MivotInstance``.
     }
 
 - It is recommended to use a copy of the
-  dictionary as it will be rebuilt each time the ``dict`` property is invoked.
+  dictionary as it will be rebuilt each time the ``to_dict()`` method is invoked.
 - The default representation of ``MivotInstance`` instances is made with a pretty
-  string serialization of this dictionary.
+  string serialization of this dictionary (method ``__repr__()``).
+- An extended version of the object dictionary e.g. with information about where 
+  the values were picked from from, is available  using the method ``to_hk_dict()``.
 
 Per-Row Readout
 ---------------
@@ -207,7 +209,7 @@ identifiers, which have the following structure: ``model:a.b``.
 - Original ``@dmtype`` are kept as attributes of generated Python objects.
 - The structure of the ``MivotInstance`` objects can be inferred from the mapped model in 2 different ways:
 
-  - 1.  From the MIVOT instance property ``MivotInstance.dict`` a shown above.
+  - 1.  From the MIVOT instance property ``MivotInstance.to_dict()`` a shown above.
         This is a pure Python dictionary but its access can be slow because it is generated
         on the fly each time the property is invoked.
   - 2.  From the internal  class dictionary ``MivotInstance.__dict__``

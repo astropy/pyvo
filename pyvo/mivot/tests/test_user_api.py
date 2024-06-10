@@ -210,10 +210,10 @@ def test_with_dict(path_to_votable):
         # let's focus on the last data row
         while mivot_viewer.next():
             pass
-    DictUtils.print_pretty_json(mivot_object.hk_dict)
+    DictUtils.print_pretty_json(mivot_object.to_hk_dict())
 
     # check the slim (user friendly) dictionary
-    assert mivot_object.dict == {
+    assert mivot_object.to_dict() == {
         "dmtype": "mango:EpochPosition",
         "longitude": {"value": 359.94372764, "unit": "deg"},
         "latitude": {"value": -0.28005255, "unit": "deg"},
@@ -228,7 +228,7 @@ def test_with_dict(path_to_votable):
         },
     }
     # check the whole dictionary
-    assert mivot_object.hk_dict == {
+    assert mivot_object.to_hk_dict() == {
         "dmtype": "mango:EpochPosition",
         "longitude": {
             "dmtype": "ivoa:RealQuantity",
@@ -290,7 +290,7 @@ def test_with_full_dict(path_to_full_mapped_votable):
         # let's focus on the second data row
         while mivot_viewer.next():
             # check the slim (user friendly) dictionary
-            assert mivot_object.dict == {
+            assert mivot_object.to_dict() == {
                 "dmtype": "mango:EpochPosition",
                 "longitude": {"value": 307.79115807079, "unit": "deg"},
                 "latitude": {"value": 20.43108005561, "unit": "deg"},

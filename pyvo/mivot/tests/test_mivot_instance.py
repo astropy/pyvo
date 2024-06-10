@@ -116,7 +116,7 @@ def test_xml_viewer(m_viewer):
 
     xml_instance = m_viewer.xml_viewer.view
     dm_instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
-    assert dm_instance.dict == test_dict
+    assert dm_instance.to_dict() == test_dict
 
 
 def test_mivot_instance_constructor():
@@ -156,5 +156,5 @@ def test_mivot_instance_update_wrong_columns():
 def test_mivot_instance_display_dict():
     """Test the class generation from a dict and rebuild the dict from the instance."""
     mivot_object = MivotInstance(**fake_hk_dict)
-    assert mivot_object.hk_dict == fake_hk_dict
-    assert mivot_object.dict == fake_dict
+    assert mivot_object.to_hk_dict() == fake_hk_dict
+    assert mivot_object.to_dict() == fake_dict

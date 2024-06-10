@@ -45,10 +45,9 @@ class MivotInstance:
         """
         return  a human readable (json) representation of object
         """
-        return DictUtils._get_pretty_json(self.dict)
+        return DictUtils._get_pretty_json(self.to_dict())
 
-    @property
-    def hk_dict(self):
+    def to_hk_dict(self):
         """
         return a human readable (dict) representation of object with a few
         housekeeping data such as column references. This might be used
@@ -56,8 +55,7 @@ class MivotInstance:
         """
         return self._get_class_dict(self)
 
-    @property
-    def dict(self):
+    def to_dict(self):
         """
         return a human readable (dict) representation of object
         """
