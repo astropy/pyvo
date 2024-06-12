@@ -1,6 +1,12 @@
 1.6 (unreleased)
 ================
 
+Bug Fixes
+---------
+
+- cachedataset() and friends again produce reasonable file extensions.
+  [#553]
+
 Enhancements and Fixes
 ----------------------
 

@@ -915,7 +915,7 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
             out = re.sub(r'\s+', '_', out.strip())
         return out
 
-    def suggest_extension(self, *, default=None):
+    def suggest_extension(self, *, default='dat'):
         """
         returns a recommended filename extension for the dataset described
         by this record.  Typically, this would look at the column describing
