@@ -90,3 +90,21 @@ class TestSIAService:
         assert service["FORMAT"] == "GRAPHIC-png"
         service.format = "Unsupported"
         assert service["FORMAT"] == "Unsupported"
+
+
+@pytest.mark.usefixtures('sia')
+class TestNameMaking:
+    def test_slash_replace(self):
+        res = SIAService('http://example.com/sia').search(pos=(288, 15))
+        res["imageTitle"][0] = "ogsa/dai output"
+        assert res[0].make_dataset_filename() == "./ogsa_dai_output.fits"
+
+    def test_default_for_broken_media_type(self):
+        res = SIAService('http://example.com/sia').search(pos=(288, 15))
+        res["mime"][0] = "application/x-youcannotknowthis"
+        assert res[0].make_dataset_filename() == "./Test_Observation.dat"
+
+    def test_default_media_type_adaption(self):
+        res = SIAService('http://example.com/sia').search(pos=(288, 15))
+        res["mime"][0] = "image/png"
+        assert res[0].make_dataset_filename() == "./Test_Observation.png"

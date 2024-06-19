@@ -6,6 +6,8 @@ Bug Fixes
 
 - cachedataset() and friends again produce reasonable file extensions.
   [#553]
+- path separators are no longer taken over from image titles to file
+  system paths. [#557]
 
 Enhancements and Fixes
 ----------------------
