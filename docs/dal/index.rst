@@ -796,17 +796,22 @@ as quantities):
     >>> astropy_table = resultset.to_table()
     >>> astropy_qtable = resultset.to_qtable()
 
-Multiple datasets
------------------
-PyVO supports multiple datasets exposed on record level through the datalink.
-To get an iterator yielding specific datasets, call
-:py:meth:`pyvo.dal.adhoc.DatalinkResults.bysemantics` with the identifier
-identifying the dataset you want it to return.
+Datalink
+--------
 
-.. remove skip once https://github.com/astropy/pyvo/issues/361 is fixed
-.. doctest-skip::
+Datalink lets operators associate multiple artefacts with a dataset.
+Examples include linking raw data, applicable or applied calibration
+data, derived datasets such as extracted sources, extra documentation,
+and much more.
 
-    >>> preview = next(row.getdatalink().bysemantics('#preview')).getdataset()
+Datalink can both be used on result rows of queries and from
+datalink-valued URLs.  The typical use is to call ``iter_datalinks()``
+on some DAL result; this will iterate over all datalinks pyVO finds in a
+document and yields :py:class:`pyvo.dal.adhoc.DatalinkResults` instances
+for them.  In those, you can, for instance, pick out items by semantics,
+where the standard vocabulary datalink documents use is documented at
+http://www.ivoa.net/rdf/datalink/core.  Here is how to find URLs for
+previews:
 
 .. doctest-remote-data::
     >>> rows = vo.dal.TAPService("http://dc.g-vo.org/tap"
@@ -848,6 +853,9 @@ DatalinkResults using
     >>> # In this example you know the URL from somewhere
     >>> url = 'https://ws.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/caom2ops/datalink?ID=ivo%3A%2F%2Fcadc.nrc.ca%2FHSTHLA%3Fhst_12477_28_acs_wfc_f606w_01%2Fhst_12477_28_acs_wfc_f606w_01_drz'
     >>> datalink = DatalinkResults.from_result_url(url)
+    >>> next(datalink.bysemantics("#this")).content_type
+    'application/fits'
+
 
 Server-side processing
 ----------------------
@@ -855,8 +863,8 @@ Some services support the server-side processing of record datasets.
 This includes spatial cutouts for 2d-images, reducing of spectra to a certain
 waveband range, and many more depending on the service.
 
-Datalink
-^^^^^^^^
+Generic Datalink Processing Service
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Generic access to processing services is provided through the datalink
 interface.
 
@@ -866,8 +874,8 @@ interface.
     >>> datalink_proc = next(row.getdatalink().bysemantics('#proc'))
 
 .. note::
-  most times there is only one processing service per result, and thats all you
-  need.
+  Most datalink documents only have one processing service per dataset,
+  which is why there is the ``get_first_proc`` shortcut mentioned below.
 
 
 The returned object lets you access the available input parameters which you

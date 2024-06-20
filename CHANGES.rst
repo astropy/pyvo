@@ -37,6 +37,9 @@ Enhancements and Fixes
 - RegTAP constraints involving tables other than rr.resource are now
   done via subqueries for less duplication of interfaces. [#562]
 
+- Where datalink records are made from table rows, the table row is
+  now accessible as datalinks.original_row. []
+
 
 Deprecations and Removals
 -------------------------
