@@ -27,6 +27,13 @@ def _build_regtap_query_with_fake(
         *args, service=service, **kwargs)
 
 
+def _make_subquery(table, condition):
+    """returns how condition would show up in something produced by
+    SubqueriedConstraint.
+    """
+    return f"ivoid IN (SELECT ivoid FROM {table} WHERE {condition})"
+
+
 class TestAbstractConstraint:
     def test_no_search_condition(self):
         with pytest.raises(NotImplementedError):
@@ -108,7 +115,7 @@ class TestFreetextConstraint:
 class TestAuthorConstraint:
     def test_basic(self):
         assert (rtcons.Author("%Hubble%").get_search_condition(FAKE_GAVO)
-                == "role_name LIKE '%Hubble%' AND base_role='creator'")
+                == _make_subquery("rr.res_role", "role_name LIKE '%Hubble%' AND base_role='creator'"))
 
 
 class TestServicetypeConstraint:
@@ -229,45 +236,50 @@ class TestUCDConstraint:
     def test_basic(self):
         cons = rtcons.UCD("phot.mag;em.opt.%", "phot.mag;em.ir.%")
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "ucd LIKE 'phot.mag;em.opt.%' OR ucd LIKE 'phot.mag;em.ir.%'")
+                == _make_subquery("rr.table_column", "ucd LIKE 'phot.mag;em.opt.%' OR ucd LIKE 'phot.mag;em.ir.%'"))
 
 
 class TestSpatialConstraint:
     def test_point(self):
         cons = registry.Spatial([23, -40])
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = CONTAINS(MOC(6, POINT(23, -40)), coverage)"
-        assert cons._extra_tables == ["rr.stc_spatial"]
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(MOC(6, POINT(23, -40)), coverage)")
+        assert cons._extra_tables == []
 
     def test_circle_and_order(self):
         cons = registry.Spatial([23, -40, 0.25], order=7)
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = CONTAINS(MOC(7, CIRCLE(23, -40, 0.25)), coverage)"
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(MOC(7, CIRCLE(23, -40, 0.25)), coverage)")
 
     def test_polygon(self):
         cons = registry.Spatial([23, -40, 26, -39, 25, -43])
-        assert cons.get_search_condition(FAKE_GAVO) == (
-            "1 = CONTAINS(MOC(6, POLYGON(23, -40, 26, -39, 25, -43)), coverage)")
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(MOC(6, POLYGON(23, -40, 26, -39, 25, -43)), coverage)")
 
     def test_moc(self):
         cons = registry.Spatial("0/1-3 3/")
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = CONTAINS(MOC('0/1-3 3/'), coverage)"
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(MOC('0/1-3 3/'), coverage)")
 
     def test_SkyCoord(self):
         cons = registry.Spatial(SkyCoord(3 * u.deg, -30 * u.deg))
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = CONTAINS(MOC(6, POINT(3.0, -30.0)), coverage)"
-        assert cons._extra_tables == ["rr.stc_spatial"]
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(MOC(6, POINT(3.0, -30.0)), coverage)")
 
     def test_SkyCoord_Circle(self):
         cons = registry.Spatial((SkyCoord(3 * u.deg, -30 * u.deg), 3))
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = CONTAINS(MOC(6, CIRCLE(3.0, -30.0, 3)), coverage)"
-        assert cons._extra_tables == ["rr.stc_spatial"]
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(MOC(6, CIRCLE(3.0, -30.0, 3)), coverage)")
 
     def test_enclosed(self):
         cons = registry.Spatial("0/1-3", intersect="enclosed")
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = CONTAINS(coverage, MOC('0/1-3'))"
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(coverage, MOC('0/1-3'))")
 
     def test_overlaps(self):
         cons = registry.Spatial("0/1-3", intersect="overlaps")
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = INTERSECTS(coverage, MOC('0/1-3'))"
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = INTERSECTS(coverage, MOC('0/1-3'))")
 
     def test_not_an_intersect_mode(self):
         with pytest.raises(ValueError, match="'intersect' should be one of 'covers', 'enclosed',"
@@ -299,39 +311,50 @@ class TestSpectralConstraint:
     # that would be useful there.
     def test_energy_float(self):
         cons = registry.Spectral(1e-19)
-        assert cons.get_search_condition(FAKE_GAVO) == "1e-19 BETWEEN spectral_start AND spectral_end"
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spectral", "1e-19 BETWEEN spectral_start AND spectral_end")
 
     def test_energy_eV(self):
         cons = registry.Spectral(5 * u.eV)
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "8.01088317e-19 BETWEEN spectral_start AND spectral_end")
+                == _make_subquery(
+                    "rr.stc_spectral",
+                    "8.01088317e-19 BETWEEN spectral_start AND spectral_end"))
 
     def test_energy_interval(self):
         cons = registry.Spectral((1e-10 * u.erg, 2e-10 * u.erg))
-        assert cons.get_search_condition(FAKE_GAVO) == (
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spectral",
             "1 = ivo_interval_overlaps(spectral_start, spectral_end, 1e-17, 2e-17)")
 
     def test_wavelength(self):
         cons = registry.Spectral(5000 * u.Angstrom)
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "3.9728917142978567e-19 BETWEEN spectral_start AND spectral_end")
+                == _make_subquery(
+                    "rr.stc_spectral",
+                    "3.9728917142978567e-19 BETWEEN spectral_start AND spectral_end"))
 
     def test_wavelength_interval(self):
         cons = registry.Spectral((20 * u.cm, 22 * u.cm))
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "1 = ivo_interval_overlaps(spectral_start, spectral_end,"
-                " 9.932229285744642e-25, 9.029299350676949e-25)")
+                == _make_subquery(
+                    "rr.stc_spectral",
+                    "1 = ivo_interval_overlaps(spectral_start, spectral_end,"
+                    " 9.932229285744642e-25, 9.029299350676949e-25)"))
 
     def test_frequency(self):
         cons = registry.Spectral(2 * u.GHz)
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "1.32521403e-24 BETWEEN spectral_start AND spectral_end")
+                == _make_subquery(
+                    "rr.stc_spectral",
+                    "1.32521403e-24 BETWEEN spectral_start AND spectral_end"))
 
     def test_frequency_interval(self):
         cons = registry.Spectral((88 * u.MHz, 102 * u.MHz))
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "1 = ivo_interval_overlaps(spectral_start, spectral_end,"
-                " 5.830941732e-26, 6.758591553e-26)")
+                == _make_subquery(
+                    "rr.stc_spectral",
+                    "1 = ivo_interval_overlaps(spectral_start, spectral_end, 5.830941732e-26, 6.758591553e-26)"))
 
     def test_no_spectral(self):
         cons = registry.Spectral((88 * u.MHz, 102 * u.MHz))
@@ -345,18 +368,22 @@ class TestTemporalConstraint:
     def test_plain_float(self):
         cons = registry.Temporal((54130, 54200))
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "1 = ivo_interval_overlaps(time_start, time_end, 54130, 54200)")
+                == _make_subquery(
+                    "rr.stc_temporal",
+                    "1 = ivo_interval_overlaps(time_start, time_end, 54130, 54200)"))
 
     def test_single_time(self):
         cons = registry.Temporal(Time('2022-01-10'))
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "59589.0 BETWEEN time_start AND time_end")
+                == _make_subquery("rr.stc_temporal", "59589.0 BETWEEN time_start AND time_end"))
 
     def test_time_interval(self):
         cons = registry.Temporal((Time(2459000, format='jd'),
                                   Time(59002, format='mjd')))
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "1 = ivo_interval_overlaps(time_start, time_end, 58999.5, 59002.0)")
+                == _make_subquery(
+                    "rr.stc_temporal",
+                    "1 = ivo_interval_overlaps(time_start, time_end, 58999.5, 59002.0)"))
 
     def test_multi_times_rejected(self):
         with pytest.raises(ValueError) as excinfo:
@@ -385,15 +412,18 @@ class TestWhereClauseBuilding:
             rtcons.Waveband("EUV"),
             rtcons.Author("%Hubble%")
         ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
-              "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+              "  AND ({})".format(
+                _make_subquery(
+                    "rr.res_role",
+                    "role_name LIKE '%Hubble%' AND base_role='creator'")))
 
     @pytest.mark.usefixtures('messenger_vocabulary')
     def test_from_keywords(self):
         assert self.where_clause_for(
             waveband="EUV",
             author="%Hubble%"
-        ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
-              "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+        ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n  AND ({})".format(
+              _make_subquery("rr.res_role", "role_name LIKE '%Hubble%' AND base_role='creator'")))
 
     @pytest.mark.usefixtures('messenger_vocabulary')
     def test_mixed(self):
@@ -401,7 +431,8 @@ class TestWhereClauseBuilding:
             rtcons.Waveband("EUV"),
             author="%Hubble%"
         ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
-              "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+              "  AND ({})".format(
+                _make_subquery("rr.res_role", "role_name LIKE '%Hubble%' AND base_role='creator'")))
 
     def test_bad_keyword(self):
         with pytest.raises(TypeError) as excinfo:
