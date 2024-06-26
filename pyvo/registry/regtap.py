@@ -784,7 +784,6 @@ class RegistryResource(dalq.Record):
                           if ((not std_only) or intf.is_standard)
                           and not intf.is_vosi
                           and ((not service_type) or intf.supports(service_type))]
-
         if not candidates:
             raise ValueError("No matching interface.")
 

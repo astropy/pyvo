@@ -162,6 +162,10 @@ class Constraint:
     sequences of constraints.  Constraints that want to the all
     arguments in the constructor can set takes_sequence to True.
     """
+    # TODO: _extra_tables is only used in the legacy leg of
+    # the fulltext constraint any more, and there it's wrong, too.
+    # Let's do away with extra_tables and tell people to use
+    # SubqueriedConstraint whenever they think they need it.
     _extra_tables = []
     _condition = None
     _fillers = None
@@ -231,8 +235,8 @@ class SubqueriedConstraint(Constraint):
 
         return ("ivoid IN (SELECT ivoid FROM {subquery_table}"
             " WHERE {condition})".format(
-            subquery_table=self._subquery_table,
-            condition=self._condition.format(**self._get_sql_literals())))
+                subquery_table=self._subquery_table,
+                condition=self._condition.format(**self._get_sql_literals())))
 
 
 class Freetext(Constraint):
@@ -481,7 +485,7 @@ class Waveband(Constraint):
             for band in self.bands)
 
 
-class Datamodel(Constraint):
+class Datamodel(SubqueriedConstraint):
     """
     A constraint on the adherence to a data model.
 
@@ -516,30 +520,30 @@ class Datamodel(Constraint):
         if dmname not in self._known_dms:
             raise dalq.DALQueryError("Unknown data model id {}.  Known are: {}."
                                      .format(dmname, ", ".join(sorted(self._known_dms))))
-        self._condition = getattr(self, f"_make_{dmname}_constraint")()
+        self._subquery_table, self._condition = getattr(
+            self, f"_make_{dmname}_constraint")()
 
     def _make_obscore_constraint(self):
         # There was a bit of chaos with the DM ids for Obscore.
         # Be lenient here
-        self._extra_tables = ["rr.res_detail"]
         obscore_pat = 'ivo://ivoa.net/std/obscore%'
-        return ("detail_xpath = '/capability/dataModel/@ivo-id'"
-                f" AND 1 = ivo_nocasematch(detail_value, '{obscore_pat}')")
+        return "rr.res_detail", (
+            "detail_xpath = '/capability/dataModel/@ivo-id'"
+            f" AND 1 = ivo_nocasematch(detail_value, '{obscore_pat}')")
 
     def _make_epntap_constraint(self):
-        self._extra_tables = ["rr.res_table"]
         # we include legacy, pre-IVOA utypes for matches; lowercase
         # any new identifiers (utypes case-fold).
-        return " OR ".join(
+        return "rr.res_table", " OR ".join(
             f"table_utype LIKE '{pat}'" for pat in
             ['ivo://vopdc.obspm/std/epncore#schema-2.%',
              'ivo://ivoa.net/std/epntap#table-2.%'])
 
     def _make_regtap_constraint(self):
-        self._extra_tables = ["rr.res_detail"]
         regtap_pat = 'ivo://ivoa.net/std/RegTAP#1.%'
-        return ("detail_xpath = '/capability/dataModel/@ivo-id'"
-                f" AND 1 = ivo_nocasematch(detail_value, '{regtap_pat}')")
+        return "rr.res_detail", (
+            "detail_xpath = '/capability/dataModel/@ivo-id'"
+            f" AND 1 = ivo_nocasematch(detail_value, '{regtap_pat}')")
 
 
 class Ivoid(Constraint):

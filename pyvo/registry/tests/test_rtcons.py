@@ -196,25 +196,31 @@ class TestDatamodelConstraint:
     def test_obscore(self):
         cons = rtcons.Datamodel("ObsCore")
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "detail_xpath = '/capability/dataModel/@ivo-id'"
-                " AND 1 = ivo_nocasematch(detail_value,"
-                " 'ivo://ivoa.net/std/obscore%')")
-        assert (cons._extra_tables == ["rr.res_detail"])
+                == _make_subquery(
+                    "rr.res_detail",
+                    "detail_xpath = '/capability/dataModel/@ivo-id'"
+                    " AND 1 = ivo_nocasematch(detail_value,"
+                    " 'ivo://ivoa.net/std/obscore%')"))
+        assert cons._extra_tables == []
 
     def test_epntap(self):
         cons = rtcons.Datamodel("epntap")
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "table_utype LIKE 'ivo://vopdc.obspm/std/epncore#schema-2.%'"
-                " OR table_utype LIKE 'ivo://ivoa.net/std/epntap#table-2.%'")
-        assert (cons._extra_tables == ["rr.res_table"])
+                == _make_subquery(
+                    "rr.res_table",
+                    "table_utype LIKE 'ivo://vopdc.obspm/std/epncore#schema-2.%'"
+                    " OR table_utype LIKE 'ivo://ivoa.net/std/epntap#table-2.%'"))
+        assert cons._extra_tables == []
 
     def test_regtap(self):
         cons = rtcons.Datamodel("regtap")
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "detail_xpath = '/capability/dataModel/@ivo-id'"
-                " AND 1 = ivo_nocasematch(detail_value,"
-                " 'ivo://ivoa.net/std/RegTAP#1.%')")
-        assert (cons._extra_tables == ["rr.res_detail"])
+                == _make_subquery(
+                    "rr.res_detail",
+                    "detail_xpath = '/capability/dataModel/@ivo-id'"
+                    " AND 1 = ivo_nocasematch(detail_value,"
+                    " 'ivo://ivoa.net/std/RegTAP#1.%')"))
+        assert cons._extra_tables == []
 
 
 class TestIvoidConstraint:
@@ -236,7 +242,9 @@ class TestUCDConstraint:
     def test_basic(self):
         cons = rtcons.UCD("phot.mag;em.opt.%", "phot.mag;em.ir.%")
         assert (cons.get_search_condition(FAKE_GAVO)
-                == _make_subquery("rr.table_column", "ucd LIKE 'phot.mag;em.opt.%' OR ucd LIKE 'phot.mag;em.ir.%'"))
+                == _make_subquery(
+                    "rr.table_column",
+                    "ucd LIKE 'phot.mag;em.opt.%' OR ucd LIKE 'phot.mag;em.ir.%'"))
 
 
 class TestSpatialConstraint:
@@ -354,7 +362,8 @@ class TestSpectralConstraint:
         assert (cons.get_search_condition(FAKE_GAVO)
                 == _make_subquery(
                     "rr.stc_spectral",
-                    "1 = ivo_interval_overlaps(spectral_start, spectral_end, 5.830941732e-26, 6.758591553e-26)"))
+                    "1 = ivo_interval_overlaps("
+                    "spectral_start, spectral_end, 5.830941732e-26, 6.758591553e-26)"))
 
     def test_no_spectral(self):
         cons = registry.Spectral((88 * u.MHz, 102 * u.MHz))
@@ -410,8 +419,8 @@ class TestWhereClauseBuilding:
     def test_from_constraints(self):
         assert self.where_clause_for(
             rtcons.Waveband("EUV"),
-            rtcons.Author("%Hubble%")
-        ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
+            rtcons.Author("%Hubble%"))\
+            == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
               "  AND ({})".format(
                 _make_subquery(
                     "rr.res_role",
@@ -421,16 +430,16 @@ class TestWhereClauseBuilding:
     def test_from_keywords(self):
         assert self.where_clause_for(
             waveband="EUV",
-            author="%Hubble%"
-        ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n  AND ({})".format(
-              _make_subquery("rr.res_role", "role_name LIKE '%Hubble%' AND base_role='creator'")))
+            author="%Hubble%")\
+            == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n  AND ({})".format(
+                _make_subquery("rr.res_role", "role_name LIKE '%Hubble%' AND base_role='creator'")))
 
     @pytest.mark.usefixtures('messenger_vocabulary')
     def test_mixed(self):
         assert self.where_clause_for(
             rtcons.Waveband("EUV"),
-            author="%Hubble%"
-        ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
+            author="%Hubble%")\
+            == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
               "  AND ({})".format(
                 _make_subquery("rr.res_role", "role_name LIKE '%Hubble%' AND base_role='creator'")))
 
