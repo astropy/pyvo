@@ -720,16 +720,16 @@ Iterating over a resultset gives the rows in the result:
 
     >>> for row in resultset:
     ...     print(row['s_fov'])
-    0.05027778
-    0.05027778
-    0.05027778
-    0.05027778
-    0.05027778
-    0.05027778
     0.06527778
     0.06527778
     0.06527778
     0.06527778
+    0.06527778
+    0.06527778
+    0.05027778
+    0.05027778
+    0.05027778
+    0.05027778
 
 The total number of rows in the answer is available as its ``len()``:
 
