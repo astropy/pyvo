@@ -915,8 +915,7 @@ def build_regtap_query(constraints, service):
             "(" + constraint.get_search_condition(service) + ")")
         extra_tables |= set(constraint._extra_tables)
 
-    joined_tables = ["rr.resource", "rr.capability", "rr.interface",
-                     "rr.alt_identifier"
+    joined_tables = ["rr.resource", "rr.capability", "rr.interface"
                      ] + list(extra_tables)
 
     # see comment in regtap.RegistryResource for the following
