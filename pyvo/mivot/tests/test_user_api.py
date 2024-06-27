@@ -101,8 +101,8 @@ def test_mivot_viewer_next(path_to_votable):
     """
     mivot_viewer = MivotViewer(path_to_votable)
     mivot_instance = mivot_viewer.dm_instance
-    assert mivot_instance.dmtype == "EpochPosition"
-    assert mivot_instance.Coordinate_coordSys.spaceRefFrame.value == "ICRS"
+    assert mivot_instance.dmtype == "mango:EpochPosition"
+    assert mivot_instance.coordSys.spaceRefFrame.value == "ICRS"
     ra = []
     dec = []
     pmra = []
@@ -133,8 +133,8 @@ def test_mivot_tablerow_next(path_to_votable):
     mivot_viewer = MivotViewer(votable)
 
     mivot_instance = mivot_viewer.dm_instance
-    assert mivot_instance.dmtype == "EpochPosition"
-    assert mivot_instance.Coordinate_coordSys.spaceRefFrame.value == "ICRS"
+    assert mivot_instance.dmtype == "mango:EpochPosition"
+    assert mivot_instance.coordSys.spaceRefFrame.value == "ICRS"
     ra = []
     dec = []
     pmra = []
@@ -210,39 +210,70 @@ def test_with_dict(path_to_votable):
         # let's focus on the last data row
         while mivot_viewer.next():
             pass
+    DictUtils.print_pretty_json(mivot_object.to_hk_dict())
 
     # check the slim (user friendly) dictionary
-    assert mivot_object.dict == {
-        "dmtype": "EpochPosition",
+    assert mivot_object.to_dict() == {
+        "dmtype": "mango:EpochPosition",
         "longitude": {"value": 359.94372764, "unit": "deg"},
         "latitude": {"value": -0.28005255, "unit": "deg"},
         "pmLongitude": {"value": -5.14, "unit": "mas/yr"},
         "pmLatitude": {"value": -25.43, "unit": "mas/yr"},
         "epoch": {"value": 1991.25, "unit": "year"},
-        "Coordinate_coordSys": {
-            "dmtype": "SpaceSys",
+        "coordSys": {
+            "dmtype": "coords:SpaceSys",
             "dmid": "SpaceFrame_ICRS",
-            "dmrole": "coordSys",
+            "dmrole": "coords:Coordinate.coordSys",
             "spaceRefFrame": {"value": "ICRS"},
         },
     }
     # check the whole dictionary
-    assert mivot_object.hk_dict == {
-        "dmtype": "EpochPosition",
-        "longitude": {"dmtype": "RealQuantity", "value": 359.94372764,
-                      "unit": "deg", "astropy_unit": {}, "ref": "RAICRS"},
-        "latitude": {"dmtype": "RealQuantity", "value": -0.28005255,
-                     "unit": "deg", "astropy_unit": {}, "ref": "DEICRS"},
-        "pmLongitude": {"value": -5.14, "unit": "mas/yr", "dmtype": "RealQuantity",
-                        "ref": "pmRA", "astropy_unit": {}},
-        "pmLatitude": {"value": -25.43, "unit": "mas/yr", "dmtype": "RealQuantity",
-                       "ref": "pmDE", "astropy_unit": {}},
-        "epoch": {"dmtype": "RealQuantity", "ref": None, "unit": "year", "value": 1991.25},
-        "Coordinate_coordSys": {
-            "dmtype": "SpaceSys",
+    assert mivot_object.to_hk_dict() == {
+        "dmtype": "mango:EpochPosition",
+        "longitude": {
+            "dmtype": "ivoa:RealQuantity",
+            "value": 359.94372764,
+            "unit": "deg",
+            "astropy_unit": {},
+            "ref": "RAICRS",
+        },
+        "latitude": {
+            "dmtype": "ivoa:RealQuantity",
+            "value": -0.28005255,
+            "unit": "deg",
+            "astropy_unit": {},
+            "ref": "DEICRS",
+        },
+        "pmLongitude": {
+            "dmtype": "ivoa:RealQuantity",
+            "value": -5.14,
+            "unit": "mas/yr",
+            "astropy_unit": {},
+            "ref": "pmRA",
+        },
+        "pmLatitude": {
+            "dmtype": "ivoa:RealQuantity",
+            "value": -25.43,
+            "unit": "mas/yr",
+            "astropy_unit": {},
+            "ref": "pmDE",
+        },
+        "epoch": {
+            "dmtype": "ivoa:RealQuantity",
+            "value": 1991.25,
+            "unit": "year",
+            "ref": None,
+        },
+        "coordSys": {
+            "dmtype": "coords:SpaceSys",
             "dmid": "SpaceFrame_ICRS",
-            "dmrole": "coordSys",
-            "spaceRefFrame": {"dmtype": "SpaceFrame", "ref": None, "unit": None, "value": "ICRS"},
+            "dmrole": "coords:Coordinate.coordSys",
+            "spaceRefFrame": {
+                "dmtype": "coords:SpaceFrame",
+                "value": "ICRS",
+                "unit": None,
+                "ref": None,
+            },
         },
     }
 
@@ -258,10 +289,9 @@ def test_with_full_dict(path_to_full_mapped_votable):
         mivot_object = mivot_viewer.dm_instance
         # let's focus on the second data row
         while mivot_viewer.next():
-            DictUtils.print_pretty_json(mivot_object.dict)
             # check the slim (user friendly) dictionary
-            assert mivot_object.dict == {
-                "dmtype": "EpochPosition",
+            assert mivot_object.to_dict() == {
+                "dmtype": "mango:EpochPosition",
                 "longitude": {"value": 307.79115807079, "unit": "deg"},
                 "latitude": {"value": 20.43108005561, "unit": "deg"},
                 "parallax": {"value": 0.4319, "unit": "mas"},
@@ -270,80 +300,80 @@ def test_with_full_dict(path_to_full_mapped_votable):
                 "pmLatitude": {"value": -5.482, "unit": "mas/yr"},
                 "epoch": {"value": "2016.5"},
                 "pmCosDeltApplied": {"value": True},
-                "EpochPosition_errors": {
-                    "dmrole": "errors",
-                    "dmtype": "EpochPositionErrors",
-                    "EpochPositionErrors_parallax": {
-                        "dmrole": "parallax",
-                        "dmtype": "PropertyError1D",
+                "errors": {
+                    "dmrole": "mango:EpochPosition.errors",
+                    "dmtype": "mango:EpochPositionErrors",
+                    "parallax": {
+                        "dmrole": "mango:EpochPositionErrors.parallax",
+                        "dmtype": "mango:ErrorTypes.PropertyError1D",
                         "sigma": {"value": 0.06909999996423721, "unit": "mas"},
                     },
-                    "EpochPositionErrors_radialVelocity": {
-                        "dmrole": "radialVelocity",
-                        "dmtype": "PropertyError1D",
+                    "radialVelocity": {
+                        "dmrole": "mango:EpochPositionErrors.radialVelocity",
+                        "dmtype": "mango:ErrorTypes.PropertyError1D",
                         "sigma": {"value": None, "unit": "km/s"},
                     },
-                    "EpochPositionErrors_position": {
-                        "dmrole": "position",
-                        "dmtype": "ErrorMatrix",
+                    "position": {
+                        "dmrole": "mango:EpochPositionErrors.position",
+                        "dmtype": "mango:ErrorTypes.ErrorMatrix",
                         "sigma1": {"value": 0.0511, "unit": "mas"},
                         "sigma2": {"value": 0.0477, "unit": "mas"},
                     },
-                    "EpochPositionErrors_properMotion": {
-                        "dmrole": "properMotion",
-                        "dmtype": "ErrorMatrix",
+                    "properMotion": {
+                        "dmrole": "mango:EpochPositionErrors.properMotion",
+                        "dmtype": "mango:ErrorTypes.ErrorMatrix",
                         "sigma1": {"value": 0.06400000303983688, "unit": "mas/yr"},
                         "sigma2": {"value": 0.06700000166893005, "unit": "mas/yr"},
                     },
                 },
-                "EpochPosition_correlations": {
-                    "dmrole": "correlations",
-                    "dmtype": "EpochPositionCorrelations",
-                    "EpochPositionCorrelations_positionPm": {
-                        "dmrole": "positionPm",
-                        "dmtype": "Correlation22",
+                "correlations": {
+                    "dmrole": "mango:EpochPosition.correlations",
+                    "dmtype": "mango:EpochPositionCorrelations",
+                    "positionPm": {
+                        "dmrole": "mango:EpochPositionCorrelations.positionPm",
+                        "dmtype": "mango:Correlation22",
                         "isCovariance": {"value": True},
                         "a2b1": {"value": -0.0085},
                         "a2b2": {"value": -0.2983},
                         "a1b1": {"value": -0.4109},
                         "a1b2": {"value": -0.0072},
                     },
-                    "EpochPositionCorrelations_parallaxPm": {
-                        "dmrole": "parallaxPm",
-                        "dmtype": "Correlation12",
+                    "parallaxPm": {
+                        "dmrole": "mango:EpochPositionCorrelations.parallaxPm",
+                        "dmtype": "mango:Correlation12",
                         "isCovariance": {"value": True},
                         "a1b1": {"value": -0.2603},
                         "a1b2": {"value": -0.0251},
                     },
-                    "EpochPositionCorrelations_positionParallax": {
-                        "dmrole": "positionParallax",
-                        "dmtype": "Correlation21",
+                    "positionParallax": {
+                        "dmrole": "mango:EpochPositionCorrelations.positionParallax",
+                        "dmtype": "mango:Correlation21",
                         "isCovariance": {"value": True},
                         "a2b1": {"value": 0.0069},
                         "a1b1": {"value": 0.1337},
                     },
-                    "EpochPositionCorrelations_positionPosition": {
-                        "dmrole": "positionPosition",
-                        "dmtype": "Correlation22",
+                    "positionPosition": {
+                        "dmrole": "mango:EpochPositionCorrelations.positionPosition",
+                        "dmtype": "mango:Correlation22",
                         "isCovariance": {"value": True},
                         "a2b1": {"value": 0.1212},
                         "a1b2": {"value": 0.1212},
                     },
-                    "EpochPositionCorrelations_properMotionPm": {
-                        "dmrole": "properMotionPm",
-                        "dmtype": "Correlation22",
+                    "properMotionPm": {
+                        "dmrole": "mango:EpochPositionCorrelations.properMotionPm",
+                        "dmtype": "mango:Correlation22",
                         "isCovariance": {"value": True},
                         "a2b1": {"value": 0.2688},
                         "a1b2": {"value": 0.2688},
                     },
                 },
-                "EpochPosition_coordSys": {
+                "coordSys": {
                     "dmid": "_spacesys_icrs",
-                    "dmrole": "coordSys",
-                    "dmtype": "SpaceSys",
-                    "PhysicalCoordSys_frame": {
-                        "dmrole": "frame",
-                        "dmtype": "SpaceFrame",
+                    "dmrole": "mango:EpochPosition.coordSys",
+                    "dmtype": "coords:SpaceSys",
+                    "frame": {
+                        "dmrole": "coords:PhysicalCoordSys.frame",
+                        "dmtype": "coords:SpaceFrame",
                         "spaceRefFrame": {"value": "ICRS"},
                     },
                 },
@@ -365,8 +395,8 @@ def test_cone_search(vizier_url):
         )
     )
     mivot_instance = m_viewer.dm_instance
-    assert mivot_instance.dmtype == "EpochPosition"
-    assert mivot_instance.Coordinate_coordSys.spaceRefFrame.value == "ICRS"
+    assert mivot_instance.dmtype == "mango:EpochPosition"
+    assert mivot_instance.coordSys.spaceRefFrame.value == "ICRS"
     ra = []
     dec = []
     pmra = []

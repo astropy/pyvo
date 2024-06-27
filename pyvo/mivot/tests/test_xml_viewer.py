@@ -2,12 +2,12 @@
 """
 Test for mivot.viewer.model_viewer_level2.py
 """
-import os
 import pytest
 try:
     from defusedxml.ElementTree import Element as element
 except ImportError:
     from xml.etree.ElementTree import Element as element
+from astropy.utils.data import get_pkg_data_filename
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot import MivotViewer
 from pyvo.mivot.utils.exceptions import MivotException
@@ -62,11 +62,6 @@ def test_xml_viewer(m_viewer):
 
 
 @pytest.fixture
-def m_viewer(data_path):
-    return MivotViewer(os.path.join(data_path, "data", "test.mivot_viewer.xml"),
+def m_viewer():
+    return MivotViewer(get_pkg_data_filename("data/test.mivot_viewer.xml"),
                        tableref="Results")
-
-
-@pytest.fixture
-def data_path():
-    return os.path.dirname(os.path.realpath(__file__))
