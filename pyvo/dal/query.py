@@ -894,6 +894,9 @@ class Record(Mapping):
         if not ext:
             ext = self.suggest_extension(default="dat")
 
+        base = base.replace("/", "_"
+            ).replace("\\", "_")
+
         # be efficient when writing a bunch of files into the same directory
         # in succession
         n = self._dsname_no
