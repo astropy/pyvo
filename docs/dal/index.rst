@@ -683,7 +683,10 @@ To obtain the names of the columns in a service response, write:
 .. doctest-remote-data::
 
     >>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap")
-    >>> resultset = tap_service.search("SELECT TOP 10 * FROM ivoa.obscore")
+    >>> resultset = tap_service.search("SELECT * FROM ivoa.obscore"
+    ... " WHERE obs_collection='CALIFA' AND"
+    ... " 1=CONTAINS(s_region, CIRCLE(23, 42, 5))"
+    ... " ORDER BY obs_publisher_did")
     >>> print(resultset.fieldnames)
     ('dataproduct_type', 'dataproduct_subtype', 'calib_level',
     'obs_collection', 'obs_id', 'obs_title', 'obs_publisher_did',
@@ -720,35 +723,34 @@ Iterating over a resultset gives the rows in the result:
 
     >>> for row in resultset:
     ...     print(row['s_fov'])
-    0.05027778
-    0.05027778
-    0.05027778
-    0.05027778
-    0.05027778
-    0.05027778
-    0.06527778
-    0.06527778
-    0.06527778
-    0.06527778
+    0.01
+    0.01
+    0.01
+    0.01
+    0.01
+    0.01
+    0.01
+    0.01
+    0.01
 
 The total number of rows in the answer is available as its ``len()``:
 
 .. doctest-remote-data::
 
     >>> print(len(resultset))
-    10
+    9
 
 If the row contains datasets, they are exposed by several retrieval methods:
 
 .. remove skip once https://github.com/astropy/pyvo/issues/361 is fixed
 .. doctest-skip::
 
-    >>> url = row.getdataurl()
-    >>> fileobj = row.getdataset()
-    >>> obj = row.getdataobj()
+    >>> row.getdataurl()
+    'http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V500/NGC0551.V500.rscube.fits'
+    >>> type(row.getdataset())
+    <class 'urllib3.response.HTTPResponse'>
 
-Returning the access url, the file-like object or the appropriate python object
-to further work on.
+Returning the access url or the a file-like object to further work on.
 
 As with general numpy arrays, accessing individual columns via names gives an
 array of all of their values:
