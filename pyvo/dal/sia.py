@@ -47,7 +47,7 @@ __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "SIARecord"]
 
 
 def search(
-        url, pos, *, size=1.0, format=None, intersect=None, verbosity=2,
+        url, pos, size=1.0, *, format=None, intersect=None, verbosity=2,
         **keywords):
     """
     submit a simple SIA query that requests images overlapping a given region
@@ -189,7 +189,7 @@ class SIAService(DALService):
             return []
 
     def search(
-            self, pos, *, size=1.0, format=None, intersect=None,
+            self, pos, size=1.0, *, format=None, intersect=None,
             verbosity=2, **keywords):
         """
         submit a SIA query to this service with the given parameters.
@@ -260,7 +260,7 @@ class SIAService(DALService):
             pos=pos, size=size, format=format, intersect=intersect, verbosity=verbosity, **keywords).execute()
 
     def create_query(
-            self, pos=None, *, size=None, format=None, intersect=None,
+            self, pos=None, size=None, *, format=None, intersect=None,
             verbosity=None, **keywords):
         """
         create a query object that constraints can be added to and then
@@ -348,7 +348,7 @@ class SIAQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, pos=None, *, size=None, format=None, intersect=None,
+            self, baseurl, pos=None, size=None, *, format=None, intersect=None,
             verbosity=None, session=None, **keywords):
         """
         initialize the query object with a baseurl and the given parameters

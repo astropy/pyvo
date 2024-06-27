@@ -185,7 +185,7 @@ class SCSService(DALService):
         """
         return self.create_query(pos=pos, radius=radius, verbosity=verbosity, **keywords).execute()
 
-    def create_query(self, pos=None, *, radius=None, verbosity=None, **keywords):
+    def create_query(self, pos=None, radius=None, *, verbosity=None, **keywords):
         """
         create a query object that constraints can be added to and then
         executed.  The input arguments will initialize the query with the

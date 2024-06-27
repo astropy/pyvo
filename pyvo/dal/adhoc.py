@@ -300,7 +300,7 @@ class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
         --------
         DatalinkResults
         """
-        return self.create_query(id, responseformat, **keywords).execute()
+        return self.create_query(id, responseformat=responseformat, **keywords).execute()
 
     # alias for service discovery
     search = run_sync
@@ -321,7 +321,7 @@ class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
             the output format
         """
         return DatalinkQuery(
-            self.baseurl, id, responseformat, **keywords)
+            self.baseurl, id=id, responseformat=responseformat, **keywords)
 
 
 class DatalinkQuery(DALQuery):
