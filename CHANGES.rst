@@ -1,3 +1,13 @@
+1.5.3 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+- cachedataset() and friends again produce reasonable file extensions.
+  [#553]
+
+
 1.5.2 (2024-05-22)
 ==================
 

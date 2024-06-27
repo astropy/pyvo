@@ -25,8 +25,11 @@ def mime2extension(mimetype, default=None):
     implementations of ``suggest_extension()`` in ``Record`` subclasses.
 
       >>> mime2extension('application/fits')
+      'fits'
       >>> mime2extension('image/jpeg')
+      'jpg'
       >>> mime2extension('application/x-zed', 'dat')
+      'dat'
 
     Parameters
     ----------
@@ -46,11 +49,14 @@ def mime2extension(mimetype, default=None):
     if not mimetype:
         return default
 
-    if isinstance(mimetype, str):
-        mimetype = mimetype.encode('utf-8')
+    if isinstance(mimetype, bytes):
+        mimetype = mimetype.decode('utf-8')
 
     ext = mimetypes.guess_extension(mimetype, strict=False)
-    return ext
+    if ext is None:
+        return default
+
+    return ext.lstrip(".")
 
 
 def mime_object_maker(url, mimetype, session=None):
