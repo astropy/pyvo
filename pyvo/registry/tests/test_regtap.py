@@ -146,7 +146,7 @@ def datamodel_fixture(mocker):
         query = data['QUERY']
 
         assert (
-            "(detail_xpath = '/capability/dataModel/@ivo-id'" in query)
+            "detail_xpath = '/capability/dataModel/@ivo-id'" in query)
 
         assert (
             "ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/obscore%'))"
@@ -349,13 +349,15 @@ def get_regtap_results(**kwargs):
 def test_spatial():
     assert (rtcons.keywords_to_constraints({
             "spatial": (23, -40)})[0].get_search_condition(FAKE_GAVO)
-            == "1 = CONTAINS(MOC(6, POINT(23, -40)), coverage)")
+            == "ivoid IN (SELECT ivoid FROM rr.stc_spatial"
+            " WHERE 1 = CONTAINS(MOC(6, POINT(23, -40)), coverage))")
 
 
 def test_spectral():
     assert (rtcons.keywords_to_constraints({
             "spectral": (1e-17, 2e-17)})[0].get_search_condition(FAKE_GAVO)
-            == "1 = ivo_interval_overlaps(spectral_start, spectral_end, 1e-17, 2e-17)")
+            == "ivoid IN (SELECT ivoid FROM rr.stc_spectral WHERE"
+            " 1 = ivo_interval_overlaps(spectral_start, spectral_end, 1e-17, 2e-17))")
 
 
 def test_to_table(multi_interface_fixture, capabilities):

@@ -162,6 +162,10 @@ class Constraint:
     sequences of constraints.  Constraints that want to the all
     arguments in the constructor can set takes_sequence to True.
     """
+    # TODO: _extra_tables is only used in the legacy leg of
+    # the fulltext constraint any more, and there it's wrong, too.
+    # Let's do away with extra_tables and tell people to use
+    # SubqueriedConstraint whenever they think they need it.
     _extra_tables = []
     _condition = None
     _fillers = None
@@ -203,6 +207,36 @@ class Constraint:
         if self._fillers:
             return {k: make_sql_literal(v) for k, v in self._fillers.items()}
         return {}
+
+
+class SubqueriedConstraint(Constraint):
+    """
+    An (abstract) constraint for when the constraint is over a table
+    other than rr.resource.
+
+    We need to be careful with these, because they will in general have
+    1:n relationships to rr.resource, and these will lead to
+    duplicated interfaces if we just do the NATURAL JOIN we normally
+    do.
+
+    Instead, we have to resort to ivoid in (subquery) conditions.  In
+    particular, extra_tables will always be empty for these.
+
+    To configure those, give the table to query in _subquery_table
+    and _condition, _fillers, and _keyword as usual.  The rest is taken
+    care of by get_search_condition.
+    """
+    _subquery_table = None
+
+    def get_search_condition(self, service):
+        if self._condition is None or self._subquery_table is None:
+            raise NotImplementedError("{} is an abstract Constraint"
+                                      .format(self.__class__.__name__))
+
+        return ("ivoid IN (SELECT ivoid FROM {subquery_table}"
+            " WHERE {condition})".format(
+                subquery_table=self._subquery_table,
+                condition=self._condition.format(**self._get_sql_literals())))
 
 
 class Freetext(Constraint):
@@ -284,7 +318,7 @@ class Freetext(Constraint):
         return super().get_search_condition(service)
 
 
-class Author(Constraint):
+class Author(SubqueriedConstraint):
     """
     A constraint for creators (“authors”) of a resource; you can use SQL
     patterns here.
@@ -292,6 +326,7 @@ class Author(Constraint):
     The match is case-sensitive.
     """
     _keyword = "author"
+    _subquery_table = "rr.res_role"
 
     def __init__(self, name: str):
         """
@@ -306,7 +341,6 @@ class Author(Constraint):
         """
         self._condition = "role_name LIKE {auth} AND base_role='creator'"
         self._fillers = {"auth": name}
-        self._extra_tables = ["rr.res_role"]
 
 
 class Servicetype(Constraint):
@@ -451,7 +485,7 @@ class Waveband(Constraint):
             for band in self.bands)
 
 
-class Datamodel(Constraint):
+class Datamodel(SubqueriedConstraint):
     """
     A constraint on the adherence to a data model.
 
@@ -486,30 +520,30 @@ class Datamodel(Constraint):
         if dmname not in self._known_dms:
             raise dalq.DALQueryError("Unknown data model id {}.  Known are: {}."
                                      .format(dmname, ", ".join(sorted(self._known_dms))))
-        self._condition = getattr(self, f"_make_{dmname}_constraint")()
+        self._subquery_table, self._condition = getattr(
+            self, f"_make_{dmname}_constraint")()
 
     def _make_obscore_constraint(self):
         # There was a bit of chaos with the DM ids for Obscore.
         # Be lenient here
-        self._extra_tables = ["rr.res_detail"]
         obscore_pat = 'ivo://ivoa.net/std/obscore%'
-        return ("detail_xpath = '/capability/dataModel/@ivo-id'"
-                f" AND 1 = ivo_nocasematch(detail_value, '{obscore_pat}')")
+        return "rr.res_detail", (
+            "detail_xpath = '/capability/dataModel/@ivo-id'"
+            f" AND 1 = ivo_nocasematch(detail_value, '{obscore_pat}')")
 
     def _make_epntap_constraint(self):
-        self._extra_tables = ["rr.res_table"]
         # we include legacy, pre-IVOA utypes for matches; lowercase
         # any new identifiers (utypes case-fold).
-        return " OR ".join(
+        return "rr.res_table", " OR ".join(
             f"table_utype LIKE '{pat}'" for pat in
             ['ivo://vopdc.obspm/std/epncore#schema-2.%',
              'ivo://ivoa.net/std/epntap#table-2.%'])
 
     def _make_regtap_constraint(self):
-        self._extra_tables = ["rr.res_detail"]
         regtap_pat = 'ivo://ivoa.net/std/RegTAP#1.%'
-        return ("detail_xpath = '/capability/dataModel/@ivo-id'"
-                f" AND 1 = ivo_nocasematch(detail_value, '{regtap_pat}')")
+        return "rr.res_detail", (
+            "detail_xpath = '/capability/dataModel/@ivo-id'"
+            f" AND 1 = ivo_nocasematch(detail_value, '{regtap_pat}')")
 
 
 class Ivoid(Constraint):
@@ -540,12 +574,13 @@ class Ivoid(Constraint):
             f"ivoid={make_sql_literal(id)}" for id in self.ivoids)
 
 
-class UCD(Constraint):
+class UCD(SubqueriedConstraint):
     """
     A constraint selecting resources having tables with columns having
     UCDs matching a SQL pattern (% as wildcard).
     """
     _keyword = "ucd"
+    _subquery_table = "rr.table_column"
 
     def __init__(self, *patterns):
         """
@@ -558,14 +593,13 @@ class UCD(Constraint):
             UCDs.  The constraint will match when a resource has
             at least one column matching one of the patterns.
         """
-        self._extra_tables = ["rr.table_column"]
         self._condition = " OR ".join(
             f"ucd LIKE {{ucd{i}}}" for i in range(len(patterns)))
         self._fillers = dict((f"ucd{index}", pattern)
                              for index, pattern in enumerate(patterns))
 
 
-class Spatial(Constraint):
+class Spatial(SubqueriedConstraint):
     """
     A RegTAP constraint selecting resources covering a geometry in
     space.
@@ -614,7 +648,7 @@ class Spatial(Constraint):
         >>> resources = registry.Spatial((SkyCoord("23d +3d"), 3))
     """
     _keyword = "spatial"
-    _extra_tables = ["rr.stc_spatial"]
+    _subquery_table = "rr.stc_spatial"
 
     takes_sequence = True
 
@@ -702,7 +736,7 @@ class Spatial(Constraint):
         return super().get_search_condition(service)
 
 
-class Spectral(Constraint):
+class Spectral(SubqueriedConstraint):
     """
     A RegTAP constraint on the spectral coverage of resources.
 
@@ -735,7 +769,7 @@ class Spectral(Constraint):
         >>> resources =  registry.Spectral((88*u.MHz, 102*u.MHz))
     """
     _keyword = "spectral"
-    _extra_tables = ["rr.stc_spectral"]
+    _subquery_table = "rr.stc_spectral"
 
     takes_sequence = True
 
@@ -798,7 +832,7 @@ class Spectral(Constraint):
         return super().get_search_condition(service)
 
 
-class Temporal(Constraint):
+class Temporal(SubqueriedConstraint):
     """
     A RegTAP constraint on the temporal coverage of resources.
 
@@ -827,7 +861,7 @@ class Temporal(Constraint):
         >>> resources = registry.Temporal((54130, 54200))
     """
     _keyword = "temporal"
-    _extra_tables = ["rr.stc_temporal"]
+    _subquery_table = "rr.stc_temporal"
 
     takes_sequence = True
 

@@ -34,6 +34,9 @@ Enhancements and Fixes
   any model serialized in VO-DML. This package dynamically generates python objects
   whose structure corresponds to the classes of the mapped models. [#497]
 
+- RegTAP constraints involving tables other than rr.resource are now
+  done via subqueries for less duplication of interfaces. [#562]
+
 
 Deprecations and Removals
 -------------------------
