@@ -34,7 +34,9 @@ Basic interface
 
 
 The main interface for the module is :py:meth:`pyvo.registry.search`;
-the examples below assume::
+the examples below assume:
+
+.. doctest::
 
   >>> from pyvo import registry
 
@@ -101,13 +103,15 @@ the keyword arguments; for instance:
 
 .. doctest-remote-data::
 
-  >>> resources = registry.search(registry.Waveband("Radio", "Millimeter"))
+  >>> resources = registry.search(registry.Waveband("Radio", "Millimeter"),
+  ...   registry.Author("%Miller%"))
 
 is equivalent to:
 
 .. doctest-remote-data::
 
-  >>> resources = registry.search(waveband=["Radio", "Millimeter"])
+  >>> resources = registry.search(waveband=["Radio", "Millimeter"],
+  ...   author='%Miller%')
 
 There is also :py:meth:`~pyvo.registry.get_RegTAP_query`, accepting the
 same arguments as :py:meth:`pyvo.registry.search`.  This function simply
@@ -127,7 +131,7 @@ you would say:
 .. doctest-remote-data::
 
   >>> resources = registry.search(registry.UCD("src.redshift"),
-  ...                             registry.Freetext("supernova"))
+  ...                             registry.Freetext("Seyfert"))
 
 After that, ``resources`` is an instance of
 :py:class:`~pyvo.registry.regtap.RegistryResults`, which you can iterate over.  In
@@ -627,7 +631,7 @@ run all-VO queries without reading at least this sentence):
    ...           # some service is broken; you *should* complain, but
    ...           #print("  Broken: {} ({}).  Complain to {}.\n".format(
    ...           pass #    svc_rec.ivoid, msg, svc_rec.get_contact()))
-   ...       if i == 5:
+   ...       if i == 2:
    ...           break
    >>> total_result = vstack(results)  # doctest: +IGNORE_WARNINGS
    >>> total_result  # doctest: +IGNORE_OUTPUT
