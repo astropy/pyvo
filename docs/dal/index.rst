@@ -76,6 +76,8 @@ astrometric parameter, such as waveband ranges.
 
 Some services also accept `~astropy.time.Time` as ``time`` parameter.
 
+.. doctest::
+
     >>> from astropy.time import Time
     >>> time = Time(('2015-01-01T00:00:00', '2018-01-01T00:00:00'),
     ...             format='isot', scale='utc')
@@ -171,6 +173,16 @@ mean G-band magnitude between 19 - 20:
     2171810342771336704 323.25913736080776  51.94305655940998            19.0
     2180349528028140800  310.5233961869657   50.3486391034819            19.0
 
+While DALResultsTable has some convenience functions, is is often
+convenient to directly obtain a proper astropy Table using the
+``to_table`` method:
+
+.. doctest-remote-data::
+
+    >>> result.to_table().columns[:3]
+    <TableColumns names=('source_id','ra','dec')>
+
+
 To explore more query examples, you can try either the ``description``
 attribute for some services. For other services like this one, try
 the ``examples`` attribute.
@@ -193,21 +205,15 @@ the ``examples`` attribute.
         POINT(l.raj2000, l.dej2000)
     )<0.0002                            -- fine selection with PMs
 
-Furthermore, one can find the names of the tables using:
+TAPServices let you do extensive metadata inspection.  For instance,
+to see the tables available on the Simbad TAP service, say:
 
 .. doctest-remote-data::
 
-    >>> print([tab_name for tab_name in tap_service.tables.keys()])  # doctest: +IGNORE_WARNINGS
-    ['ivoa.obs_radio', 'ivoa.obscore', 'tap_schema.columns', 'tap_schema.tables',..., 'taptest.main', 'veronqsos.data', 'vlastripe82.stripe82']
+    >>> simbad = vo.dal.TAPService("http://simbad.cds.unistra.fr/simbad/sim-tap")
+    >>> print([tab_name for tab_name in simbad.tables.keys()])  # doctest: +IGNORE_WARNINGS
+    ['TAP_SCHEMA.schemas', 'TAP_SCHEMA.tables', 'TAP_SCHEMA.columns', 'TAP_SCHEMA.keys', ... 'mesVelocities', 'mesXmm', 'otypedef', 'otypes', 'ref']
 
-
-And also the names of the columns from a known table, for instance
-the first three columns:
-
-.. doctest-remote-data::
-
-    >>> result.table.columns[:3]    # doctest: +IGNORE_WARNINGS
-    <TableColumns names=('source_id','ra','dec')>
 
 If you know a TAP service's access URL, you can directly pass it to
 :py:class:`~pyvo.dal.TAPService` to obtain a service object.
@@ -347,7 +353,7 @@ you reach the ``maxrec`` limit:
 
 .. doctest-remote-data::
 
-    >>> tap_results = tap_service.search("SELECT * FROM ivoa.obscore", maxrec=100000)  # doctest: +SHOW_WARNINGS
+    >>> tap_results = tap_service.search("SELECT * FROM arihip.main", maxrec=5)  # doctest: +SHOW_WARNINGS
     DALOverflowWarning: Partial result set. Potential causes MAXREC, async storage space, etc.
 
 Services will not let you raise maxrec beyond the hard match limit:
@@ -522,8 +528,10 @@ region is always circular with ``pos`` as center:
 
 .. doctest-remote-data::
 
-    >>> ssa_service = vo.dal.SSAService("https://irsa.ipac.caltech.edu/SSA")
+    >>> ssa_service = vo.dal.SSAService("http://archive.stsci.edu/ssap/search2.php?id=BEFS&")
     >>> ssa_results = ssa_service.search(pos=pos, diameter=size)
+    >>> ssa_results[0].getdataurl()
+    'http://archive.stsci.edu/pub/vospectra/...'
 
 SSA queries can be further constrained by the ``band`` and ``time`` parameters.
 
@@ -800,11 +808,39 @@ identifying the dataset you want it to return.
 
     >>> preview = next(row.getdatalink().bysemantics('#preview')).getdataset()
 
-.. note::
-  Since the creation of datalink objects requires a network roundtrip, it is
-  recommended to call ``getdatalink`` only once.
+.. doctest-remote-data::
+    >>> rows = vo.dal.TAPService("http://dc.g-vo.org/tap"
+    ... ).run_sync("select top 5 * from califadr3.cubes order by califaid")
+    >>> for dl in rows.iter_datalinks():  # doctest: +IGNORE_WARNINGS
+    ...     print(next(dl.bysemantics("#preview"))["access_url"])
+    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V1200/IC5376.V1200.rscube.fits?preview=True
+    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/COMB/IC5376.COMB.rscube.fits?preview=True
+    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V500/IC5376.V500.rscube.fits?preview=True
+    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/COMB/UGC00005.COMB.rscube.fits?preview=True
+    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V1200/UGC00005.V1200.rscube.fits?preview=True
 
-Of course one can also build a datalink object from its url.
+The call to ``next`` in this example picks the first link marked
+*preview*.  For previews, this may be enough, but in general there can
+be multiple links for a given semantics value for one dataset.
+
+It is sometimes useful to go back to the original row the datalink was
+generated from; use the ``original_row`` attribute for that (which may
+be None if pyvo does not know what row the datalink came from):
+
+.. doctest-remote-data::
+  >>> dl.original_row["obs_title"]
+  'CALIFA V1200 UGC00005'
+
+Rows from tables supporting datalink also have a ``getdatalink()``
+method that returns a ``DatalinkResults`` instance.  In general, this is
+less flexible than using ``iter_datalinks``, and it may also cause more
+network traffic because each such call will cause a network request.
+
+When one has a link to a Datalink document – for instance, from an
+obscore or SIAP service, where the media type is
+application/x-votable;content=datalink –, one can build a
+DatalinkResults using
+:py:meth:`~pyvo.dal.adhoc.DatalinkResults.from_result_url`:
 
 .. doctest-remote-data::
 
