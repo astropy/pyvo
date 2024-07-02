@@ -799,7 +799,7 @@ as quantities):
 Datalink
 --------
 
-Datalink lets operators associate multiple artefacts with a dataset.
+Datalink lets operators associate multiple artifacts with a dataset.
 Examples include linking raw data, applicable or applied calibration
 data, derived datasets such as extracted sources, extra documentation,
 and much more.
