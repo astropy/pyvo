@@ -653,8 +653,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
 
     @classmethod
     def from_result_url(cls, result_url, *, session=None, original_row=None):
-        res = super(DatalinkResults, cls).from_result_url(
-            result_url, session=session)
+        res = super().from_result_url(result_url, session=session)
         res.original_row = original_row
         return res
 

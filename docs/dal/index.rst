@@ -836,6 +836,9 @@ be None if pyvo does not know what row the datalink came from):
   >>> dl.original_row["obs_title"]
   'CALIFA V1200 UGC00005'
 
+Consider ``original_row`` read only.  We do not define what happens when
+you modify it.
+
 Rows from tables supporting datalink also have a ``getdatalink()``
 method that returns a ``DatalinkResults`` instance.  In general, this is
 less flexible than using ``iter_datalinks``, and it may also cause more
