@@ -31,7 +31,7 @@ def _make_subquery(table, condition):
     """returns how condition would show up in something produced by
     SubqueriedConstraint.
     """
-    return f"ivoid IN (SELECT ivoid FROM {table} WHERE {condition})"
+    return f"ivoid IN (SELECT DISTINCT ivoid FROM {table} WHERE {condition})"
 
 
 class TestAbstractConstraint:
@@ -83,26 +83,38 @@ class TestSQLLiterals:
 class TestFreetextConstraint:
     def test_basic(self):
         assert rtcons.Freetext("star").get_search_condition(FAKE_GAVO) == (
-            "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'star') "
-            "UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'star') "
-            "UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%star%')")
+            "ivoid IN (SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_description, 'star') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_title, 'star') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.res_subject"
+            " WHERE rr.res_subject.res_subject ILIKE '%star%')")
 
     def test_interesting_literal(self):
         assert rtcons.Freetext("α Cen's planets").get_search_condition(FAKE_GAVO) == (
-            "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'α Cen''s planets')"
-            " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'α Cen''s planets')"
-            " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject"
+            "ivoid IN (SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_description, 'α Cen''s planets') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_title, 'α Cen''s planets') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.res_subject"
+            " WHERE rr.res_subject.res_subject"
             " ILIKE '%α Cen''s planets%')")
 
     def test_multipleLiterals(self):
         assert rtcons.Freetext("term1", "term2").get_search_condition(FAKE_GAVO) == (
-            "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'term1')"
-            " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'term1')"
-            " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%term1%')"
+            "ivoid IN (SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_description, 'term1') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_title, 'term1') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.res_subject"
+            " WHERE rr.res_subject.res_subject ILIKE '%term1%')"
             " AND "
-            "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'term2')"
-            " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'term2')"
-            " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%term2%')")
+            "ivoid IN (SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_description, 'term2') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_title, 'term2') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.res_subject"
+            " WHERE rr.res_subject.res_subject ILIKE '%term2%')")
 
     def test_adaption_to_service(self):
         assert rtcons.Freetext("term1", "term2").get_search_condition(FAKE_PLAIN) == (
@@ -460,13 +472,13 @@ class TestWhereClauseBuilding:
         assert self.where_clause_for(
             "plain", "string"
         ) == (
-            '(ivoid IN (SELECT ivoid FROM rr.resource WHERE '
-            "1=ivo_hasword(res_description, 'plain') UNION SELECT ivoid FROM rr.resource "
-            "WHERE 1=ivo_hasword(res_title, 'plain') UNION SELECT ivoid FROM "
+            '(ivoid IN (SELECT DISTINCT ivoid FROM rr.resource WHERE '
+            "1=ivo_hasword(res_description, 'plain') UNION ALL SELECT DISTINCT ivoid FROM rr.resource "
+            "WHERE 1=ivo_hasword(res_title, 'plain') UNION ALL SELECT DISTINCT ivoid FROM "
             "rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%plain%'))\n"
-            '  AND (ivoid IN (SELECT ivoid FROM rr.resource WHERE '
-            "1=ivo_hasword(res_description, 'string') UNION SELECT ivoid FROM rr.resource "
-            "WHERE 1=ivo_hasword(res_title, 'string') UNION SELECT ivoid FROM "
+            '  AND (ivoid IN (SELECT DISTINCT ivoid FROM rr.resource WHERE '
+            "1=ivo_hasword(res_description, 'string') UNION ALL SELECT DISTINCT ivoid FROM rr.resource "
+            "WHERE 1=ivo_hasword(res_title, 'string') UNION ALL SELECT DISTINCT ivoid FROM "
             "rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%string%'))")
 
 

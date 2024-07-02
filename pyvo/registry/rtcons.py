@@ -233,7 +233,7 @@ class SubqueriedConstraint(Constraint):
             raise NotImplementedError("{} is an abstract Constraint"
                                       .format(self.__class__.__name__))
 
-        return ("ivoid IN (SELECT ivoid FROM {subquery_table}"
+        return ("ivoid IN (SELECT DISTINCT ivoid FROM {subquery_table}"
             " WHERE {condition})".format(
                 subquery_table=self._subquery_table,
                 condition=self._condition.format(**self._get_sql_literals())))
@@ -274,11 +274,11 @@ class Freetext(Constraint):
 
     def _get_union_condition(self, service):
         base_queries = [
-            "SELECT ivoid FROM rr.resource WHERE"
+            "SELECT DISTINCT ivoid FROM rr.resource WHERE"
             " 1=ivo_hasword(res_description, {{{parname}}})",
-            "SELECT ivoid FROM rr.resource WHERE"
+            "SELECT DISTINCT ivoid FROM rr.resource WHERE"
             " 1=ivo_hasword(res_title, {{{parname}}})",
-            "SELECT ivoid FROM rr.res_subject WHERE"
+            "SELECT DISTINCT ivoid FROM rr.res_subject WHERE"
             " rr.res_subject.res_subject ILIKE {{{parpatname}}}"]
         self._fillers, subqueries = {}, []
 
@@ -288,7 +288,7 @@ class Freetext(Constraint):
             self._fillers[parname] = word
             self._fillers[parpatname] = '%' + word + '%'
             args = locals()
-            subqueries.append(" UNION ".join(
+            subqueries.append(" UNION ALL ".join(
                 q.format(**args) for q in base_queries))
 
         self._condition = " AND ".join(

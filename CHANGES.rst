@@ -27,7 +27,7 @@ Enhancements and Fixes
   whose structure corresponds to the classes of the mapped models. [#497]
 
 - RegTAP constraints involving tables other than rr.resource are now
-  done via subqueries for less duplication of interfaces. [#562]
+  done via subqueries for less duplication of interfaces. [#562, #572]
 
 
 Deprecations and Removals
