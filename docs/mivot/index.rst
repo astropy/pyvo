@@ -84,8 +84,8 @@ to the ``EpochPosition`` class, can be consumed.
     ... )
     >>> mivot_instance = m_viewer.dm_instance
     >>> print(mivot_instance.dmtype)
-    EpochPosition
-    >>> print(mivot_instance.Coordinate_coordSys.spaceRefFrame.value)
+    mango:EpochPosition
+    >>> print(mivot_instance.coordSys.spaceRefFrame.value)
     ICRS
     >>> while m_viewer.next():
     ...     print(f"position: {mivot_instance.latitude.value} {mivot_instance.longitude.value}")
@@ -103,37 +103,41 @@ Model leaves (class attributes) are complex types that provide additional inform
 - ``ref``: identifier of the table column mapped on the attribute
 
 The model view on a data row can also be passed as a Python dictionary
-using the ``dict`` property of ``MivotInstance``.
+using the ``to_dict()`` method of ``MivotInstance``. 
 
 .. code-block:: python
     :caption: Working with a model view as a dictionary
               (the JSON layout has been squashed for display purpose)
 
+	from pyvo.mivot import MivotViewer
     from pyvo.mivot.utils.dict_utils import DictUtils
-
+    
+    m_viewer = MivotViewer(path_to_votable)
     mivot_instance = m_viewer.dm_instance
-    mivot_object_dict = mivot_object.dict
+    mivot_object_dict = mivot_object.to_dict()
 
     DictUtils.print_pretty_json(mivot_object_dict)
 	{
-        "dmtype": "EpochPosition",
+        "dmtype": "mango:EpochPosition",
         "longitude": {"value": 359.94372764, "unit": "deg"},
         "latitude": {"value": -0.28005255, "unit": "deg"},
         "pmLongitude": {"value": -5.14, "unit": "mas/yr"},
         "pmLatitude": {"value": -25.43, "unit": "mas/yr"},
         "epoch": {"value": 1991.25, "unit": "year"},
-        "Coordinate_coordSys": {
-            "dmtype": "SpaceSys",
-            "dmid": "SpaceFrame_ICRS",
-            "dmrole": "coordSys",
+        "coordSys": {
+            "dmtype": "coords:SpaceSys",
+            "dmid": "ICRS",
+            "dmrole": "coords:Coordinate.coordSys",
             "spaceRefFrame": {"value": "ICRS"},
         },
     }
 
 - It is recommended to use a copy of the
-  dictionary as it will be rebuilt each time the ``dict`` property is invoked.
+  dictionary as it will be rebuilt each time the ``to_dict()`` method is invoked.
 - The default representation of ``MivotInstance`` instances is made with a pretty
-  string serialization of this dictionary.
+  string serialization of this dictionary (method ``__repr__()``).
+- An extended version of the object dictionary e.g. with information about where 
+  the values were picked from from, is available  using the method ``to_hk_dict()``.
 
 Per-Row Readout
 ---------------
@@ -205,25 +209,11 @@ identifiers, which have the following structure: ``model:a.b``.
 - Original ``@dmtype`` are kept as attributes of generated Python objects.
 - The structure of the ``MivotInstance`` objects can be inferred from the mapped model in 2 different ways:
 
-  - 1.  From the MIVOT instance property ``MivotInstance.dict`` a shown above.
+  - 1.  From the MIVOT instance property ``MivotInstance.to_dict()`` a shown above.
         This is a pure Python dictionary but its access can be slow because it is generated
         on the fly each time the property is invoked.
   - 2.  From the internal  class dictionary ``MivotInstance.__dict__``
         (see the Python `data model <https://docs.python.org/3/reference/datamodel.html>`_).
-
- .. code-block:: python
-    :caption: Exploring the MivotInstance structure with the internal dictionaries
-
-    mivot_instance = mivot_viewer.dm_instance
-
-    print(mivot_instance.__dict__.keys())
-    dict_keys(['dmtype', 'longitude', 'latitude', 'pmLongitude', 'pmLatitude', 'epoch', 'Coordinate_coordSys'])
-
-    print(mivot_instance.Coordinate_coordSys.__dict__.keys())
-    dict_keys(['dmtype', 'dmid', 'dmrole', 'spaceRefFrame'])
-
-    print(mivot_instance.Coordinate_coordSys.spaceRefFrame.__dict__.keys())
-    dict_keys(['dmtype', 'value', 'unit', 'ref'])
 
 Reference/API
 =============

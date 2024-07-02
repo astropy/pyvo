@@ -91,7 +91,7 @@ def test_with_name(path_to_withname, delt_coo):
     assert abs(mivot_object.pmLongitude.value - 1.5) < delt_coo
     assert abs(mivot_object.pmLatitude.value - -12.30000019) < delt_coo
     assert str(mivot_object.epoch.value) == '2013.418'
-    assert str(mivot_object.Coordinate_coordSys.spaceRefFrame.value) == 'ICRS'
+    assert str(mivot_object.coordSys.spaceRefFrame.value) == 'ICRS'
 
     m_viewer.next()
 
@@ -100,7 +100,7 @@ def test_with_name(path_to_withname, delt_coo):
     assert abs(mivot_object.pmLongitude.value - 1.5) < delt_coo
     assert abs(mivot_object.pmLatitude.value - -12.30000019) < delt_coo
     assert str(mivot_object.epoch.value) == '2013.418'
-    assert str(mivot_object.Coordinate_coordSys.spaceRefFrame.value) == 'ICRS'
+    assert str(mivot_object.coordSys.spaceRefFrame.value) == 'ICRS'
 
 
 @pytest.mark.remote_data
