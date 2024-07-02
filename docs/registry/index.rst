@@ -34,7 +34,9 @@ Basic interface
 
 
 The main interface for the module is :py:meth:`pyvo.registry.search`;
-the examples below assume::
+the examples below assume:
+
+.. doctest::
 
   >>> from pyvo import registry
 
@@ -101,13 +103,15 @@ the keyword arguments; for instance:
 
 .. doctest-remote-data::
 
-  >>> resources = registry.search(registry.Waveband("Radio", "Millimeter"))
+  >>> resources = registry.search(registry.Waveband("Radio", "Millimeter"),
+  ...   registry.Author("%Miller%"))
 
 is equivalent to:
 
 .. doctest-remote-data::
 
-  >>> resources = registry.search(waveband=["Radio", "Millimeter"])
+  >>> resources = registry.search(waveband=["Radio", "Millimeter"],
+  ...   author='%Miller%')
 
 There is also :py:meth:`~pyvo.registry.get_RegTAP_query`, accepting the
 same arguments as :py:meth:`pyvo.registry.search`.  This function simply
@@ -127,7 +131,7 @@ you would say:
 .. doctest-remote-data::
 
   >>> resources = registry.search(registry.UCD("src.redshift"),
-  ...                             registry.Freetext("supernova"))
+  ...                             registry.Freetext("AGB"))
 
 After that, ``resources`` is an instance of
 :py:class:`~pyvo.registry.regtap.RegistryResults`, which you can iterate over.  In
@@ -137,13 +141,15 @@ interactive data discovery, however, it is usually preferable to use the
 .. doctest-remote-data::
 
   >>> resources.to_table()  # doctest: +IGNORE_OUTPUT
-  <Table length=158>
-                               title                              ...        interfaces
-                               str67                              ...          str24
-  --------------------------------------------------------------- ... ------------------------
-                Asiago Supernova Catalogue (Barbon et al., 1999-) ... conesearch, tap#aux, web
-                    Asiago Supernova Catalogue (Version 2008-Mar) ... conesearch, tap#aux, web
-       Sloan Digital Sky Survey-II Supernova Survey (Sako+, 2018) ... conesearch, tap#aux, web
+  <Table length=9>
+                ivoid               ...
+                                    ...
+                object              ...
+  --------------------------------- ...
+       ivo://cds.vizier/j/a+a/392/1 ...
+     ivo://cds.vizier/j/a+a/566/a95 ...
+      ivo://cds.vizier/j/aj/151/146 ...
+      ivo://cds.vizier/j/apj/727/14 ...
   ...
 
 And to look for tap resources *in* a specific cone, you would do
@@ -151,15 +157,14 @@ And to look for tap resources *in* a specific cone, you would do
 .. doctest-remote-data::
 
   >>> from astropy.coordinates import SkyCoord
-  >>> registry.search(registry.Servicetype("tap"),
-  ...                 registry.Spatial((SkyCoord("23d +3d"), 3), intersect="enclosed"),
-  ...                 includeaux=True) # doctest: +IGNORE_OUTPUT
+  >>> registry.search(registry.Freetext("Wolf-Rayet"),
+  ...                 registry.Spatial((SkyCoord("23d +3d"), 3), intersect="enclosed")) # doctest: +IGNORE_OUTPUT
   <DALResultsTable length=1>
-              ivoid                   res_type       short_name                   res_title                  ...  intf_types  intf_roles          alt_identifier
-                                                                                                             ...
-              object                   object          object                       object                   ...    object      object                object
-  ------------------------------ ----------------- ------------- ------------------------------------------- ... ------------ ---------- --------------------------------
-  ivo://cds.vizier/j/apj/835/123 vs:catalogservice J/ApJ/835/123 Globular clusters in NGC 474 from CFHT obs. ... vs:paramhttp        std doi:10.26093/cds/vizier.18350123
+             ivoid             ...
+                               ...
+             object            ...
+  ---------------------------- ...
+  ivo://cds.vizier/j/aj/166/68 ...
 
 Where ``intersect`` can take the following values:
   * 'covers' is the default and returns resources that cover the geometry provided,
@@ -190,14 +195,14 @@ thus say:
 
 .. doctest-remote-data::
 
-  >>> voresource = resources["II/283"]
-  >>> voresource.get_service(service_type="conesearch").search(pos=(120, 73), sr=1)
+  >>> voresource = resources["J/ApJ/727/14"]
+  >>> voresource.get_service(service_type="conesearch").search(pos=(257.41, 64.345), sr=0.01)
   <DALResultsTable length=1>
-    _RAJ2000     _DEJ2000      _r    recno ... NED    RAJ2000      DEJ2000
-      deg          deg                     ...
-    float64      float64    float64  int32 ... str3    str12        str12
-  ------------ ------------ -------- ----- ... ---- ------------ ------------
-  117.98645833  73.00961111 0.588592   986 ...  NED 07 51 56.750 +73 00 34.60
+     _r    recno f_ID         ID          RAJ2000  ... SED  DR7  Sloan Simbad
+                                            deg    ...
+  float64  int32 str1       str18         float64  ... str3 str3  str5  str6
+  -------- ----- ---- ------------------ --------- ... ---- ---- ----- ------
+  0.000618     1    P 170938.52+642044.1 257.41049 ...  SED  DR7 Sloan Simbad
 
 This method will raise an error if there is more than one service of the desired
 type. If you know for sure that all declared conesearch will be the same, you can
@@ -216,8 +221,8 @@ constraint on the description ``get_service(service_type='conesearch', keyword='
   >>> for interface in voresource.list_interfaces():
   ...     print(interface)
   Interface(type='tap#aux', description='', url='http://tapvizier.cds.unistra.fr/TAPVizieR/tap')
-  Interface(type='vr:webbrowser', description='', url='http://vizier.cds.unistra.fr/viz-bin/VizieR-2?-source=II/283')
-  Interface(type='conesearch', description='Cone search capability for table II/283/sncat (List of SNe arranged in chronological order)', url='http://vizier.cds.unistra.fr/viz-bin/conesearch/II/283/sncat?')
+  Interface(type='vr:webbrowser', description='', url='http://vizier.cds.unistra.fr/viz-bin/VizieR-2?-source=J/ApJ/727/14')
+  Interface(type='conesearch', description='Cone search capability for table J/ApJ/727/14/table2 (AKARI IRC 3-24{mu}m, and Spitzer MIPS 24/70{mu}m photometry of Abell 2255 member galaxies)', url='http://vizier.cds.unistra.fr/viz-bin/conesearch/J/ApJ/727/14/table2?')
 
 Or construct the service object directly from the list of interfaces with:
 
@@ -241,27 +246,25 @@ attribute, but you can take a shortcut and call a RegistryResource's
 
 .. doctest-remote-data::
 
-  >>> tables = resources["II/283"].get_tables()  # doctest: +IGNORE_WARNINGS
+  >>> tables = resources["J/ApJ/727/14"].get_tables()  # doctest: +IGNORE_WARNINGS
   >>> list(tables.keys())
-  ['II/283/sncat']
-  >>> sorted(c.name for c in tables['II/283/sncat'].columns)
-  ['band', 'bmag', 'deg', 'dej2000', 'disc', 'epmax', 'galaxy', 'hrv', 'i', 'logd25', 'maxmag', 'mtype', 'n_bmag', 'n_sn', 'n_x', 'n_y', 'ned', 'pa', 'rag', 'raj2000', 'recno', 'simbad', 'sn', 't', 'type', 'u_epmax', 'u_maxmag', 'u_sn', 'u_y', 'u_z', 'x', 'y', 'z']
+  ['J/ApJ/727/14/table2']
+  >>> sorted(c.name for c in tables["J/ApJ/727/14/table2"].columns)
+  ['[24]', '[70]', 'dej2000', 'dr7', 'e_[24]', 'e_[70]', 'e_l15', 'e_l24', 'e_n3', 'e_n4', 'e_s11', 'e_s7', 'f_id', 'gmag', 'id', 'imag', 'l15', 'l24', 'n3', 'n4', 'raj2000', 'recno', 'rmag', 's11', 's7', 'sed', 'simbad', 'sloan', 'umag', 'y03', 'z', 'zmag']
+
 
 In this case, this is a table with one of VizieR's somewhat funky names.
 To run a TAP query based on this metadata, do something like:
 
 .. doctest-remote-data::
 
-  >>> resources["II/283"].get_service(service_type="tap#aux").run_sync(
-  ...   'SELECT sn, z FROM "J/A+A/437/789/table2" WHERE z>0.04')
-  <DALResultsTable length=4>
-    SN      z
-  object float64
-  ------ -------
-  1992bh   0.045
-  1992bp   0.079
-  1993ag   0.049
-   1993O   0.051
+  >>> resources["J/ApJ/727/14"].get_service(service_type="tap#aux").run_sync(
+  ...   'SELECT id, z FROM "J/ApJ/727/14/table2" WHERE z>0.09 and umag<18')
+  <DALResultsTable length=1>
+          ID            z
+        object       float64
+  ------------------ -------
+  171319.90+635428.0 0.09043
 
 A special sort of access mode is ``web``, which represents some facility related
 to the resource that works in a web browser.  You can ask for a
@@ -271,7 +274,7 @@ with the query facility (this uses python's ``webbrowser`` module):
 
 .. doctest-skip::
 
-  >>> resources["II/283"].get_service(service_type="web").search()  # doctest: +IGNORE_OUTPUT
+  >>> resources["J/ApJ/727/14"].get_service(service_type="web").search()  # doctest: +IGNORE_OUTPUT
 
 Note that for interactive data discovery in the VO Registry, you may
 also want to have a look at Aladin's discovery tree, TOPCAT's VO menu,
@@ -627,7 +630,7 @@ run all-VO queries without reading at least this sentence):
    ...           # some service is broken; you *should* complain, but
    ...           #print("  Broken: {} ({}).  Complain to {}.\n".format(
    ...           pass #    svc_rec.ivoid, msg, svc_rec.get_contact()))
-   ...       if i == 5:
+   ...       if i == 2:
    ...           break
    >>> total_result = vstack(results)  # doctest: +IGNORE_WARNINGS
    >>> total_result  # doctest: +IGNORE_OUTPUT
