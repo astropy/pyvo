@@ -198,7 +198,10 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                     if batch_size is None:
                         # first call.
                         self.query = DatalinkQuery.from_resource(
-                            [_ for _ in self], self._datalink, session=self._session)
+                            [_ for _ in self],
+                            self._datalink,
+                            session=self._session,
+                            original_row=row)
                         remaining_ids = self.query['ID']
                     if not remaining_ids:
                         # we are done
@@ -217,9 +220,13 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                 id1 = current_ids.pop(0)
                 processed_ids.append(id1)
                 remaining_ids.remove(id1)
-                yield current_batch.clone_byid(id1)
+                yield current_batch.clone_byid(
+                    id1,
+                    original_row=row)
             elif getattr(row, 'access_format', None) == DATALINK_MIME_TYPE:
-                yield DatalinkResults.from_result_url(row.getdataurl())
+                yield DatalinkResults.from_result_url(
+                    row.getdataurl(),
+                    original_row=row)
             else:
                 # Fall back to row-specific handling
                 try:
@@ -370,6 +377,8 @@ class DatalinkQuery(DALQuery):
                     ref="srcGroup"/>
             </GROUP>
         """
+        original_row = kwargs.pop("original_row", None)
+
         input_params = _get_input_params_from_resource(resource)
         # get params outside of any group
         dl_params = _get_params_from_resource(resource)
@@ -406,7 +415,11 @@ class DatalinkQuery(DALQuery):
             except KeyError:
                 query_params[name] = query_param
 
-        return cls(accessurl, session=session, **query_params)
+        return cls(
+            accessurl,
+            session=session,
+            original_row=original_row,
+            **query_params)
 
     def __init__(
             self, baseurl, id=None, responseformat=None, session=None, **keywords):
@@ -424,6 +437,8 @@ class DatalinkQuery(DALQuery):
         session : object
             optional session to use for network requests
         """
+        self.original_row = keywords.pop("original_row", None)
+
         super().__init__(baseurl, session=session, **keywords)
 
         if id is not None:
@@ -445,8 +460,11 @@ class DatalinkQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return DatalinkResults(self.execute_votable(post=post),
-                               url=self.queryurl, session=self._session)
+        return DatalinkResults(
+            self.execute_votable(post=post),
+            url=self.queryurl,
+            original_row=self.original_row,
+            session=self._session)
 
 
 class DatalinkResults(DatalinkResultsMixin, DALResults):
@@ -492,6 +510,10 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
     a Numpy array.
     """
 
+    def __init__(self, *args, **kwargs):
+        self.original_row = kwargs.pop("original_row", None)
+        super().__init__(*args, **kwargs)
+
     def getrecord(self, index):
         """
         return a representation of a datalink result record that follows
@@ -507,7 +529,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
 
         Returns
         -------
-        REc
+        Rec
            a dictionary-like wrapper containing the result record metadata.
 
         Raises
@@ -573,10 +595,10 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
             if record.semantics in semantics:
                 yield record
 
-    def clone_byid(self, id):
+    def clone_byid(self, id, *, original_row=None):
         """
         return a clone of the object with results and corresponding
-         resources matching a given id
+        resources matching a given id
 
         Returns
         -------
@@ -601,7 +623,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         for x in copy_tb.resources:
             if x.ID and x.ID not in referenced_serviced:
                 copy_tb.resources.remove(x)
-        return DatalinkResults(copy_tb)
+        return DatalinkResults(copy_tb, original_row=original_row)
 
     def getdataset(self, timeout=None):
         """
@@ -632,6 +654,12 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         for proc in self.iter_procs():
             return proc
         raise IndexError("No processing service found in datalink result")
+
+    @classmethod
+    def from_result_url(cls, result_url, *, session=None, original_row=None):
+        res = super().from_result_url(result_url, session=session)
+        res.original_row = original_row
+        return res
 
 
 class SodaRecordMixin:

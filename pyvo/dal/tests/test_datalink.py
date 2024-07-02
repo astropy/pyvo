@@ -110,6 +110,8 @@ def test_datalink():
 
     datalinks = next(results.iter_datalinks())
 
+    assert datalinks.original_row["accsize"] == 100800
+
     row = datalinks[0]
     assert row.semantics == "#progenitor"
 
@@ -132,7 +134,9 @@ def test_datalink_batch():
     results = vo.dal.imagesearch(
         'http://example.com/obscore', (30, 30))
 
-    assert len([_ for _ in results.iter_datalinks()]) == 3
+    dls = list(results.iter_datalinks())
+    assert len(dls) == 3
+    assert dls[0].original_row["obs_collection"] == "MACHO"
 
 
 @pytest.mark.usefixtures('proc', 'datalink_vocabulary')
@@ -143,6 +147,8 @@ def test_datalink_batch():
 class TestSemanticsRetrieval:
     def test_access_with_string(self):
         datalinks = DatalinkResults.from_result_url('http://example.com/proc')
+
+        assert datalinks.original_row is None
         res = [r["access_url"] for r in datalinks.bysemantics("#this")]
         assert len(res) == 1
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
