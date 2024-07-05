@@ -38,7 +38,7 @@ Enhancements and Fixes
   objects are made more consistent [#551]
 
 - RegTAP constraints involving tables other than rr.resource are now
-  done via subqueries for less duplication of interfaces. [#562]
+  done via subqueries for less duplication of interfaces. [#562, #572]
 
 - Where datalink records are made from table rows, the table row is
   now accessible as datalinks.original_row. []
