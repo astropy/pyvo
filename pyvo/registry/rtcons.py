@@ -207,7 +207,7 @@ class Constraint:
 
 class Freetext(Constraint):
     """
-    A contraint using plain text to match against title, description,
+    A constraint using plain text to match against title, description,
     subjects, and person names.
     """
     _keyword = "keywords"
@@ -217,11 +217,17 @@ class Freetext(Constraint):
 
         Parameters
         ----------
-        *words : tuple of str
+        *words : str
+            One or more string arguments.
             It is recommended to pass multiple words in multiple strings
             arguments.  You can pass in phrases (i.e., multiple words
             separated by space), but behaviour might then vary quite
             significantly between different registries.
+
+        Examples
+        --------
+        >>> from pyvo import registry
+        >>> registry.Freetext("Gamma", "Ray", "Burst") # doctest: +IGNORE_OUTPUT
         """
         self.words = words
 
@@ -353,7 +359,7 @@ class Servicetype(Constraint):
 
         Parameters
         ----------
-        *stds : tuple of str
+        *stds : str
             one or more standards identifiers.  The constraint will
             match records that have any of them.
         """
@@ -428,7 +434,7 @@ class Waveband(Constraint):
 
         Parameters
         ----------
-        *bands : tuple of strings
+        *bands : strings
             One or more of the terms given in http://www.ivoa.net/rdf/messenger.
             The constraint matches when a resource declares at least
             one of the messengers listed.
@@ -525,6 +531,7 @@ class Ivoid(Constraint):
         ----------
 
         ivoid : string
+            One or more string arguments.
             The IVOA identifier of the resource to match.  As RegTAP
             requires lowercasing ivoids on ingestion, the constraint
             lowercases the ivoid passed in, too.
@@ -546,7 +553,7 @@ class UCD(Constraint):
         Parameters
         ----------
 
-        patterns : tuple of strings
+        patterns : strings
             SQL patterns (i.e., ``%`` is 0 or more characters) for
             UCDs.  The constraint will match when a resource has
             at least one column matching one of the patterns.
