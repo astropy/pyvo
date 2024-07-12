@@ -1001,6 +1001,7 @@ class RegistryResource(dalq.Record):
         res.name = table_row["table_name"]
         res.title = table_row["table_title"]
         res.description = table_row["table_description"]
+        res.utype = table_row["table_utype"]
         res._columns = [
             self._build_vosi_column(row)
             for row in columns]
@@ -1028,7 +1029,8 @@ class RegistryResource(dalq.Record):
         svc = get_RegTAP_service()
 
         tables = svc.run_sync(
-            """SELECT table_name, table_description, table_index, table_title
+            """SELECT table_name, table_description, table_index, table_title,
+                table_utype
             FROM rr.res_table
             WHERE ivoid={}""".format(
                 rtcons.make_sql_literal(self.ivoid)))

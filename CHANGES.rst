@@ -18,6 +18,8 @@ Bug Fixes
 
 - Include port number if it is present in endpoint access URL. [#582]
 
+- Tables returned by RegistryResource.get_tables() now have a utype
+  attribute [#576]
 
 Deprecations and Removals
 -------------------------

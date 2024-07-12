@@ -31,7 +31,7 @@ get_pkg_data_contents = partial(
 
 
 @pytest.fixture(name='capabilities')
-def _capabilities(mocker):
+def _capabilities(mocker, scope="session"):
     def callback(request, context):
         return get_pkg_data_contents('data/capabilities.xml')
 
@@ -52,7 +52,7 @@ def _capabilities(mocker):
 
 
 @pytest.fixture(name='regtap_pulsar_distance_response')
-def _regtap_pulsar_distance_response(mocker):
+def _regtap_pulsar_distance_response(mocker, scope="session"):
     with mocker.register_uri(
         'POST', REGISTRY_BASEURL + '/sync',
             content=get_pkg_data_contents('data/regtap.xml')) as matcher:
@@ -60,7 +60,7 @@ def _regtap_pulsar_distance_response(mocker):
 
 
 @pytest.fixture()
-def keywords_fixture(mocker):
+def keywords_fixture(mocker, scope="session"):
     def keywordstest_callback(request, context):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
@@ -83,7 +83,7 @@ def keywords_fixture(mocker):
 
 
 @pytest.fixture()
-def single_keyword_fixture(mocker):
+def single_keyword_fixture(mocker, scope="session"):
     def keywordstest_callback(request, context):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
@@ -102,7 +102,7 @@ def single_keyword_fixture(mocker):
 
 
 @pytest.fixture()
-def servicetype_fixture(mocker):
+def servicetype_fixture(mocker, scope="session"):
     def servicetypetest_callback(request, context):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
@@ -123,7 +123,7 @@ def servicetype_fixture(mocker):
 
 
 @pytest.fixture()
-def waveband_fixture(mocker):
+def waveband_fixture(mocker, scope="session"):
     def wavebandtest_callback(request, content):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
@@ -140,7 +140,7 @@ def waveband_fixture(mocker):
 
 
 @pytest.fixture()
-def datamodel_fixture(mocker):
+def datamodel_fixture(mocker, scope="session"):
     def datamodeltest_callback(request, content):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
@@ -162,7 +162,7 @@ def datamodel_fixture(mocker):
 
 
 @pytest.fixture()
-def aux_fixture(mocker):
+def aux_fixture(mocker, scope="session"):
     def auxtest_callback(request, context):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
@@ -179,7 +179,7 @@ def aux_fixture(mocker):
 
 
 @pytest.fixture(name='multi_interface_fixture')
-def _multi_interface_fixture(mocker):
+def _multi_interface_fixture(mocker, scope="session"):
     # to update this, run
     # import requests
     # from pyvo.registry import regtap
@@ -197,7 +197,7 @@ def _multi_interface_fixture(mocker):
 
 
 @pytest.fixture(name='flash_service')
-def _flash_service(multi_interface_fixture):
+def _flash_service(multi_interface_fixture, scope="session"):
     return regtap.search(
         ivoid="ivo://org.gavo.dc/flashheros/q/ssa")[0]
 
@@ -819,14 +819,14 @@ class TestExtraResourceMethods:
 # TODO: While I suppose the contact test should keep requiring network,
 # I think we should can the network responses involved in the following;
 # the stuff might change upstream any time and then break our unit tests.
-@pytest.fixture(name='flash_tables')
-def _flash_tables():
+@pytest.fixture(name='obscore_tables')
+def _obscore_tables(scope="session"):
     rsc = _makeRegistryRecord(
-        ivoid="ivo://org.gavo.dc/flashheros/q/ssa")
+        ivoid="ivo://org.gavo.dc/__system__/obscore/obscore")
     return rsc.get_tables()
 
 
-@pytest.mark.usefixtures("flash_tables")
+@pytest.mark.usefixtures("obscore_tables")
 class TestGetTables:
     @pytest.mark.remote_data
     def test_get_tables_limit_enforced(self):
@@ -839,47 +839,47 @@ class TestGetTables:
                         "  Pass a higher table_limit to see them all.", str(excinfo.value))
 
     @pytest.mark.remote_data
-    def test_get_tables_names(self, flash_tables):
-        assert (list(sorted(flash_tables.keys()))
-                == ["flashheros.data", "ivoa.obscore"])
+    def test_get_tables_names(self, obscore_tables):
+        assert (list(sorted(obscore_tables.keys()))
+                == ["ivoa.obscore"])
 
     @pytest.mark.remote_data
-    def test_get_tables_table_instance(self, flash_tables):
-        assert (flash_tables["ivoa.obscore"].name
+    def test_get_tables_table_instance(self, obscore_tables):
+        assert (obscore_tables["ivoa.obscore"].name
                 == "ivoa.obscore")
-        assert (flash_tables["ivoa.obscore"].description
-                == "This data collection is queryable in GAVO Data"
-                " Center's obscore table.")
-        assert (flash_tables["flashheros.data"].title
-                == "Flash/Heros SSA table")
+        assert (obscore_tables["ivoa.obscore"].description[:42]
+                == "The IVOA-defined obscore table, containing")
+        assert (obscore_tables["ivoa.obscore"].title
+                == "GAVO Data Center Obscore Table")
 
-        assert (flash_tables["flashheros.data"].origin.ivoid
-                == "ivo://org.gavo.dc/flashheros/q/ssa")
+        assert (obscore_tables["ivoa.obscore"].origin.ivoid
+                == "ivo://org.gavo.dc/__system__/obscore/obscore")
 
     @pytest.mark.remote_data
-    def test_get_tables_column_meta(self, flash_tables):
-        def getflashcol(name):
-            for col in flash_tables["flashheros.data"].columns:
+    def test_get_tables_column_meta(self, obscore_tables):
+        def getcol(name):
+            for col in obscore_tables["ivoa.obscore"].columns:
                 if name == col.name:
                     return col
             raise KeyError(name)
 
-        assert getflashcol("accref").datatype.content == "char"
-        assert getflashcol("accref").datatype.arraysize == "*"
+        assert getcol("access_url").datatype.content == "char"
+        assert getcol("access_url").datatype.arraysize == "*"
 
-# TODO: upstream bug: the following needs to fixed in DaCHS before
-# the assertion passes
-        # assert getflashcol("ssa_region").datatype._extendedtype == "point"
+        assert getcol("access_format").ucd == 'meta.code.mime'
 
-        assert getflashcol("mime").ucd == 'meta.code.mime'
+        assert getcol("em_min").unit == "m"
 
-        assert getflashcol("ssa_specend").unit == "m"
+        assert (getcol("t_max").utype
+                == "obscore:char.timeaxis.coverage.bounds.limits.stoptime")
 
-        assert (getflashcol("ssa_specend").utype
-                == "ssa:char.spectralaxis.coverage.bounds.stop")
+        assert (getcol("t_exptime").description
+                == "Total exposure time")
 
-        assert (getflashcol("ssa_fluxcalib").description
-                == "Type of flux calibration")
+    @pytest.mark.remote_data
+    def test_get_tables_utype(self, obscore_tables):
+        assert (obscore_tables["ivoa.obscore"].utype
+                == "ivo://ivoa.net/std/obscore#table-1.1")
 
 
 @pytest.mark.remote_data
