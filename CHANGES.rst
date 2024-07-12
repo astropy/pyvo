@@ -41,7 +41,10 @@ Enhancements and Fixes
   done via subqueries for less duplication of interfaces. [#562, #572]
 
 - Where datalink records are made from table rows, the table row is
-  now accessible as datalinks.original_row. []
+  now accessible as datalinks.original_row. [#559]
+
+- Tables returned by RegistryResource.get_tables() now have a utype
+  attribute [#576]
 
 Deprecations and Removals
 -------------------------
