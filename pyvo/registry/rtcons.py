@@ -251,11 +251,16 @@ class Freetext(Constraint):
 
         Parameters
         ----------
-        *words : tuple of str
+        *words : str
             It is recommended to pass multiple words in multiple strings
             arguments.  You can pass in phrases (i.e., multiple words
             separated by space), but behaviour might then vary quite
             significantly between different registries.
+
+        Examples
+        --------
+        >>> from pyvo import registry
+        >>> registry.Freetext("Gamma", "Ray", "Burst") # doctest: +IGNORE_OUTPUT
         """
         self.words = words
 
