@@ -49,9 +49,10 @@ For instance::
   from astropy import time
 
   datasets, log = discover.images_globally(
-    space=(274.6880, -13.7920, 0.1),
-    spectrum=500.7*u.nm,
+    space=(273.5, -12.1, 0.1),
+    spectrum=1*u.nm,
     time=(time.Time('1995-01-01'), time.Time('1995-12-31')))
+  print(datasets)
 
 The function returns a pair of lists.  ``datasets`` is a list of
 `~pyvo.discover.image.ImageFound` instances.  This is the (potentially
@@ -186,9 +187,23 @@ is what you want, but if you really do not want this, you can pass
 one match per access URL of the dataset.
 
 Once you have set the services, call ``query_services()`` to fill the
-``results`` and ``log`` attributes.  It may be informative to watch
-these change from, say, a different thread.  Changing their content has
-undefined results.
+``results`` and ``log_messages`` attributes.  It may be informative to
+watch these change from, say, a different thread.  Changing their
+content has undefined results.
+
+A working example would look like this::
+
+  from pyvo import discover, registry
+  from astropy.time import Time
+
+  im_discoverer = discover.image.ImageDiscoverer(
+    space=(274.6880, -13.7920, 0.1),
+    time=(Time('1996-10-04'), Time('1996-10-10')))
+  im_discoverer.set_services(
+    registry.search(keywords=["heasarc rass"]))
+  im_discoverer.query_services()
+  print(im_discoverer.log_messages)
+  print(im_discoverer.results)
 
 
 
