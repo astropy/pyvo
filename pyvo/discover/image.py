@@ -558,7 +558,7 @@ class ImageDiscoverer:
         """queries the discovered image services according to our
         constraints.
 
-        This creates and fills the results and the log attributes.
+        This creates and fills the results and the log_messages attributes.
         """
         if (not self.sia1_recs
                 and not self.sia2_recs
