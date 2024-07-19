@@ -671,13 +671,6 @@ class SodaRecordMixin:
         except DALServiceError:
             pass
 
-        # let it count as soda resource
-        try:
-            return self._results.get_adhocservice_by_ivoid(
-                "ivo://ivoa.net/std/datalink#links")
-        except DALServiceError:
-            pass
-
         dataformat = self.getdataformat()
         if dataformat is None:
             raise DALServiceError(
