@@ -49,6 +49,8 @@ Enhancements and Fixes
 Deprecations and Removals
 -------------------------
 
+- SodaRecordMixin no longer will use a datalink#links endpoint for soda [#580]
+
 
 1.5.2 (2024-05-22)
 ==================
