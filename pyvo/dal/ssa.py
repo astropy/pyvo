@@ -412,7 +412,7 @@ class SSAQuery(DALQuery):
 
         if not isinstance(diameter, Quantity):
             valerr = ValueError(
-                'Radius must be exactly one value, expressing degrees')
+                'Diameter must be exactly one value, expressing degrees')
 
             try:
                 # assume degrees
