@@ -24,8 +24,12 @@ class EndpointMixin():
 
         # do not trust baseurl as it might contain query or fragments
         urlcomp = urlparse(self.baseurl)
+        # Include the port number if present
+        netloc = urlcomp.hostname
+        if urlcomp.port:
+            netloc += f':{urlcomp.port}'
         curated_baseurl = '{}://{}{}'.format(urlcomp.scheme,
-                                             urlcomp.hostname,
+                                             netloc,
                                              urlcomp.path)
         if not endpoint:
             raise AttributeError('endpoint required')
