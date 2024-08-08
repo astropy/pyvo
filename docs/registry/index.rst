@@ -48,7 +48,7 @@ keyword arguments.  The following constraints are available:
   freetext words, mached in the title, description or subject of the
   resource.
 * :py:class:`~pyvo.registry.Servicetype` (``servicetype``): constrain to
-  one of tap, ssa, sia, conesearch (or full ivoids for other service
+  one of tap, ssa, sia1, sia2, conesearch (or full ivoids for other service
   types).  This is the constraint you want
   to use for service discovery.
 * :py:class:`~pyvo.registry.UCD` (``ucd``): constrain by one or more UCD
@@ -358,7 +358,7 @@ it returns 33 matching services.
   >>> import warnings
   >>> warnings.filterwarnings('ignore', module="astropy.io.votable.*")
   >>>
-  >>> archives = vo.regsearch(servicetype='image', waveband='x-ray')
+  >>> archives = vo.regsearch(servicetype='sia1', waveband='x-ray')
   >>> pos = SkyCoord.from_name('Cas A')
   >>> len(archives)   # doctest: +IGNORE_OUTPUT
   33
@@ -404,7 +404,7 @@ NRAO VLA Sky Survey (NVSS):
 
 .. doctest-remote-data::
 
-  >>> colls = vo.regsearch(keywords=['NVSS'], servicetype='sia')
+  >>> colls = vo.regsearch(keywords=['NVSS'], servicetype='sia1')
   >>> for coll in colls:
   ...     print(coll.res_title, coll.access_url)
   NRA) VLA Sky Survey https://skyview.gsfc.nasa.gov/cgi-bin/vo/sia.pl?survey=nvss&
@@ -428,7 +428,7 @@ documentation).  Some attributes deserve a second look.
 .. doctest-remote-data::
 
   >>> import pyvo as vo
-  >>> colls = vo.regsearch(keywords=["NVSS"], servicetype='sia')
+  >>> colls = vo.regsearch(keywords=["NVSS"], servicetype='sia1')
   >>> nvss = colls["NVSS"]
   >>> nvss.res_title
   'NRA) VLA Sky Survey'
@@ -492,7 +492,7 @@ that takes the form of a
 
 .. doctest-remote-data::
 
-  >>> colls = vo.regsearch(keywords=["NVSS"], servicetype='sia')
+  >>> colls = vo.regsearch(keywords=["NVSS"], servicetype='sia1')
   >>> for coll in colls:
   ...     print(coll.ivoid)
   ivo://nasa.heasarc/skyview/nvss
@@ -503,7 +503,7 @@ registry.
 
 .. doctest-remote-data::
 
-  >>> nvss = vo.registry.search(ivoid='ivo://nasa.heasarc/skyview/nvss')[0].get_service(service_type='sia')
+  >>> nvss = vo.registry.search(ivoid='ivo://nasa.heasarc/skyview/nvss')[0].get_service(service_type='sia1')
   >>> nvss.search(pos=(350.85, 58.815),size=0.25,format="image/fits")
   <DALResultsTable length=1>
   Survey    Ra   ... LogicalName

@@ -34,6 +34,7 @@ SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/" + v)
                         for k, v in [
     ("image", "sia"),
     ("sia", "sia"),
+    ("sia1", "sia"),
     # SIA2 is irregular
     # funky scheme used by SIA2 without breaking everything else
     ("spectrum", "ssa"),
@@ -356,9 +357,9 @@ class Servicetype(Constraint):
 
     The constraint normally is a custom keyword, one of:
 
-    * ``image`` (image services; at this point equivalent to sia, but
-      scheduled to include sia2, too)
-    * ``sia`` (SIAP version 1 services)
+
+    * ``sia``, ``sia1`` (SIAP version 1 services; prefer ``sia1`` for symmetry,
+      although ``sia`` will be kept as the official IVOA short name for SIA1)
     * ``sia2`` (SIAP version 2 services)
     * ``spectrum``, ``ssa``, ``ssap`` (all synonymous for spectral
       services, prefer ``spectrum``)
@@ -366,6 +367,8 @@ class Servicetype(Constraint):
       ``scs``)
     * ``line`` (for SLAP services)
     * ``tap``, ``table`` (synonymous for TAP services, prefer ``tap``)
+    * ``image`` (a to be deprecated alias for sia1)
+    * ``spectrum`` (a to be deprecated alias for ssap)
 
     You can also pass in the standards' ivoid (which
     generally looks like
