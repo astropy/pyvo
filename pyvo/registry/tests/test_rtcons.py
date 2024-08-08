@@ -128,7 +128,7 @@ class TestServicetypeConstraint:
                 " 'ivo://ivoa.net/std/sia')")
 
     def test_includeaux(self):
-        assert (rtcons.Servicetype("http://extstandards/invention", "image"
+        assert (rtcons.Servicetype("http://extstandards/invention", "sia1"
                                    ).include_auxiliary_services().get_search_condition(FAKE_GAVO)
                 == "standard_id IN ('http://extstandards/invention',"
                 " 'http://extstandards/invention#aux',"
@@ -140,7 +140,7 @@ class TestServicetypeConstraint:
             rtcons.Servicetype("junk")
         assert str(excinfo.value) == ("Service type junk is neither"
                                       " a full standard URI nor one of the bespoke identifiers"
-                                      " image, sia, spectrum, ssap, ssa, scs, conesearch, line, slap,"
+                                      " image, sia, sia1, spectrum, ssap, ssa, scs, conesearch, line, slap,"
                                       " table, tap, sia2")
 
     def test_legacy_term(self):

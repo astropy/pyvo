@@ -10,6 +10,12 @@ Bug Fixes
   system paths. [#557]
 
 
+1.5.3 (unreleased)
+==================
+
+- Added `'sia1'` as servicetype for registry searches. [#583]
+
+
 1.5.2 (2024-05-22)
 ==================
 
