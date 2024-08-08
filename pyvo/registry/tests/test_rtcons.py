@@ -9,6 +9,8 @@ import datetime
 from astropy.time import Time
 from astropy import units as u
 from astropy.coordinates import SkyCoord
+from astropy.utils.exceptions import AstropyDeprecationWarning
+
 import numpy
 import pytest
 
@@ -141,7 +143,7 @@ class TestServicetypeConstraint:
                 == "standard_id IN ('http://extstandards/invention')")
 
     def test_multi(self):
-        assert (rtcons.Servicetype("http://extstandards/invention", "image"
+        assert (rtcons.Servicetype("http://extstandards/invention", "sia"
                                    ).get_search_condition(FAKE_GAVO)
                 == "standard_id IN ('http://extstandards/invention',"
                 " 'ivo://ivoa.net/std/sia')")
@@ -178,6 +180,16 @@ class TestServicetypeConstraint:
                 == ("standard_id IN ('ivo://ivoa.net/std/conesearch', 'ivo://ivoa.net/std/conesearch#aux')"
                     " OR standard_id like 'ivo://ivoa.net/std/sia#query-2.%'"
                     " OR standard_id like 'ivo://ivoa.net/std/sia#query-aux-2.%'"))
+
+    def test_image_deprecated(self):
+        with pytest.warns(AstropyDeprecationWarning):
+            assert (rtcons.Servicetype("image").get_search_condition(FAKE_GAVO)
+                == "standard_id IN ('ivo://ivoa.net/std/sia')")
+
+    def test_spectrum_deprecated(self):
+        with pytest.warns(AstropyDeprecationWarning):
+            assert (rtcons.Servicetype("spectrum").get_search_condition(FAKE_GAVO)
+                == "standard_id IN ('ivo://ivoa.net/std/ssa')")
 
 
 @pytest.mark.usefixtures('messenger_vocabulary')

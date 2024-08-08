@@ -11,10 +11,12 @@ classes.
 """
 
 import datetime
+import warnings
 
 from astropy import units as u
 from astropy import constants
 from astropy.coordinates import SkyCoord
+from astropy.utils.exceptions import AstropyDeprecationWarning
 import numpy
 
 from ..dal import query as dalq
@@ -361,14 +363,13 @@ class Servicetype(Constraint):
     * ``sia``, ``sia1`` (SIAP version 1 services; prefer ``sia1`` for symmetry,
       although ``sia`` will be kept as the official IVOA short name for SIA1)
     * ``sia2`` (SIAP version 2 services)
-    * ``spectrum``, ``ssa``, ``ssap`` (all synonymous for spectral
-      services, prefer ``spectrum``)
+    * ``ssa``, ``ssap`` (synonymous for SSAP services)
     * ``scs``, ``conesearch`` (synonymous for cone search services, prefer
       ``scs``)
     * ``line`` (for SLAP services)
     * ``tap``, ``table`` (synonymous for TAP services, prefer ``tap``)
-    * ``image`` (a to be deprecated alias for sia1)
-    * ``spectrum`` (a to be deprecated alias for ssap)
+    * ``image`` (a deprecated alias for sia)
+    * ``spectrum`` (a deprecated alias for ssap)
 
     You can also pass in the standards' ivoid (which
     generally looks like
@@ -379,6 +380,15 @@ class Servicetype(Constraint):
 
     Multiple service types can be passed in; a match in that case
     is for records having any of the service types passed in.
+
+    Contrary to what the names of the service types may suggest,
+    “image” and "spectrum" do *not* select all resources serving images
+    or spectra.  For instance, at the moment you would have to search for
+    images served in three different ways: SIAv1, SIAv2, and ObsTAP. Against
+    that, “image” only selects SIAv1, and "spectrum" similarly omits ObsTAP.  A
+    global discovery module is under active development to provide global
+    dataset discovery. When it is ready, these two misleading options may be
+    removed.
 
     The match is literal (i.e., no patterns are allowed); this means
     that you will not receive records that only have auxiliary
@@ -404,6 +414,13 @@ class Servicetype(Constraint):
         self.extra_fragments = []
 
         for std in stds:
+            if std in ('image', 'spectrum'):
+                warnings.warn(AstropyDeprecationWarning(
+                    f"The '{std}' servicetype is deprecated.  See"
+                    " https://pyvo.readthedocs.io/en/latest/api/pyvo.registry"
+                    ".Servicetype.html#pyvo.registry.Servicetype"
+                    " for more information."))
+
             if std in SERVICE_TYPE_MAP:
                 self.stdids.add(SERVICE_TYPE_MAP[std])
             elif "://" in std:
