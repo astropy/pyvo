@@ -564,8 +564,8 @@ class Datamodel(SubqueriedConstraint):
             f" AND 1 = ivo_nocasematch(detail_value, '{obscore_pat}')")
 
     def _make_obscore_new_constraint(self):
-        self._extra_tables = ["rr.res_table"]
-        return ("table_utype like 'ivo://ivoa.net/std/obscore#table-1.%'"
+        return "rr.res_table NATURAL JOIN rr.resource", (
+            "table_utype LIKE 'ivo://ivoa.net/std/obscore#table-1.%'"
             # Only use catalogresource-typed records to keep out
             # full TAP services that may have the table in their
             # tablesets.
@@ -795,7 +795,7 @@ class Spatial(SubqueriedConstraint):
 
         cond = super().get_search_condition(service)
         if self.inclusive:
-            return cond+" OR coverage IS NULL"
+            return cond[:-1]+" OR coverage IS NULL)"
         else:
             return cond
 

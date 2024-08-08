@@ -220,9 +220,11 @@ class TestDatamodelConstraint:
     def test_obscore_new(self):
         cons = rtcons.Datamodel("obscore_new")
         assert (cons.get_search_condition(FAKE_GAVO)
-            == "table_utype like 'ivo://ivoa.net/std/obscore#table-1.%'"
-                " AND res_type = 'vs:catalogresource'")
-        assert (cons._extra_tables == ["rr.res_table"])
+            == "ivoid IN (SELECT DISTINCT ivoid FROM rr.res_table"
+               " NATURAL JOIN rr.resource"
+               " WHERE table_utype LIKE 'ivo://ivoa.net/std/obscore#table-1.%'"
+               " AND res_type = 'vs:catalogresource')")
+        assert (cons._extra_tables == [])
 
     def test_obscore(self):
         cons = rtcons.Datamodel("ObsCore")
@@ -303,7 +305,7 @@ class TestSpatialConstraint:
     def test_moc_and_inclusive(self):
         cons = registry.Spatial("0/1-3 3/", inclusive=True)
         assert cons.get_search_condition(FAKE_GAVO) == \
-            "1 = CONTAINS(MOC('0/1-3 3/'), coverage) OR coverage IS NULL"
+            "ivoid IN (SELECT DISTINCT ivoid FROM rr.stc_spatial WHERE 1 = CONTAINS(MOC('0/1-3 3/'), coverage)) OR coverage IS NULL"
 
     def test_SkyCoord(self):
         cons = registry.Spatial(SkyCoord(3 * u.deg, -30 * u.deg))
@@ -405,7 +407,8 @@ class TestSpectralConstraint:
     def test_frequency_and_inclusive(self):
         cons = registry.Spectral(2 * u.GHz, inclusive=True)
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "(1.32521403e-24 BETWEEN spectral_start AND spectral_end)"
+                == "(ivoid IN (SELECT DISTINCT ivoid FROM rr.stc_spectral"
+                " WHERE 1.32521403e-24 BETWEEN spectral_start AND spectral_end))"
                 " OR NOT EXISTS(SELECT 1 FROM rr.stc_spectral AS inner_s"
                 " WHERE inner_s.ivoid=rr.resource.ivoid)")
 
@@ -436,7 +439,8 @@ class TestTemporalConstraint:
     def test_plain_float_and_inclusive(self):
         cons = registry.Temporal((54130, 54200), inclusive=True)
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "(1 = ivo_interval_overlaps(time_start, time_end, 54130, 54200))"
+                == "(ivoid IN (SELECT DISTINCT ivoid FROM rr.stc_temporal"
+                " WHERE 1 = ivo_interval_overlaps(time_start, time_end, 54130, 54200)))"
                 " OR NOT EXISTS(SELECT 1 FROM rr.stc_temporal AS inner_t"
                 " WHERE inner_t.ivoid=rr.resource.ivoid)")
 
