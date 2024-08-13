@@ -189,7 +189,7 @@ the ``examples`` attribute.
 
 .. doctest-remote-data::
 
-    >>> print(tap_service.examples[0]['QUERY'])
+    >>> print(tap_service.examples[1]['QUERY'])
     SELECT TOP 50 l.id, l.pmra as lpmra, l.pmde as lpmde,
     g.source_id, g.pmra as gpmra, g.pmdec as gpmde
     FROM
