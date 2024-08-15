@@ -255,7 +255,7 @@ class SCSService(DALService):
 
 class SCSQuery(DALQuery):
     """
-    a class for preparing an query to a Cone Search service.  Query constraints
+    a class for preparing a query to a Cone Search service.  Query constraints
     are added via its service type-specific methods.  The various execute()
     functions will submit the query and return the results.
 

@@ -290,7 +290,7 @@ class SSAService(DALService):
 
 class SSAQuery(DALQuery):
     """
-    a class for preparing an query to an SSA service.  Query constraints
+    a class for preparing a query to an SSA service.  Query constraints
     are added via its service type-specific properties and methods.  Once
     all the constraints are set, one of the various execute() functions
     can be called to submit the query and return the results.
