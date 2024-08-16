@@ -223,7 +223,7 @@ class SLAService(DALService):
 
 class SLAQuery(DALQuery):
     """
-    a class for preparing an query to an SLA service.  Query constraints
+    a class for preparing a query to an SLA service.  Query constraints
     are added via its service type-specific methods.  The various execute()
     functions will submit the query and return the results.
 

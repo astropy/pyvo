@@ -1011,8 +1011,8 @@ class AsyncTAPJob:
 
 class TAPQuery(DALQuery):
     """
-    a class for preparing an query to an TAP service.  Query constraints
-    are added via its service type-specific methods.  The various execute()
+    a class for preparing a query to a TAP service.  Query constraints
+    are added via service type-specific methods.  The various execute()
     functions will submit the query and return the results.
 
     The base URL for the query, which controls where the query will be sent
