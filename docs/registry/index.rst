@@ -536,7 +536,7 @@ least an e-Mail address:
 .. doctest-remote-data::
 
   >>> res.get_contact()
-  'GAVO Data Center Team (++49 6221 54 1837) <gavo@ari.uni-heidelberg.de>'
+  'GAVO Data Centre Team (+49 6221 54 1837) <gavo@ari.uni-heidelberg.de>'
 
 Finally, the registry has an idea of what kind of tables are published
 through a resource, much like the VOSI tables endpoint (as a matter of
