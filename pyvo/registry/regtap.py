@@ -940,15 +940,16 @@ class RegistryResource(dalq.Record):
         the DAL service type would expect.  See the documentation for the
         appropriate service type:
 
-        ============  =========================================
+        ============  ===========================================
         Service type  Use the argument syntax for
-        ============  =========================================
+        ============  ===========================================
         catalog       :py:meth:`pyvo.dal.scs.SCSService.search`
-        image         :py:meth:`pyvo.dal.sia.SIAService.search`
-        spectrum      :py:meth:`pyvo.dal.ssa.SSAService.search`
+        sia           :py:meth:`pyvo.dal.sia.SIAService.search`
+        sia2          :py:meth:`pyvo.dal.sia2.SIA2Service.search`
+        ssa           :py:meth:`pyvo.dal.ssa.SSAService.search`
         line          :py:meth:`pyvo.dal.sla.SLAService.search`
         database      *not yet supported*
-        ============  =========================================
+        ============  ===========================================
 
         Raises
         ------
