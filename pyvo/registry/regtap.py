@@ -806,10 +806,10 @@ class RegistryResource(dalq.Record):
 
         return candidates[0]
 
-    def get_service(self, service_type = None, *,
-                    lax = False,
-                    keyword = None,
-                    session = None):
+    def get_service(self, service_type: str = None, *,
+                    lax: bool = False,
+                    keyword: str = None,
+                    session: object = None):
         """
         return an appropriate DALService subclass for this resource that
         can be used to search the resource using service_type.
