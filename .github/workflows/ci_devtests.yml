@@ -32,7 +32,7 @@ jobs:
         run: tox -e py312-test-devdeps-alldeps-cov
 
       - name: Upload coverage to codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
           verbose: true
