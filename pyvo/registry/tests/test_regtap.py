@@ -717,7 +717,7 @@ def test_get_contact():
     rsc = _makeRegistryRecord(
         ivoid="ivo://org.gavo.dc/flashheros/q/ssa")
     assert (rsc.get_contact()
-            == "GAVO Data Center Team (++49 6221 54 1837)"
+            == "GAVO Data Centre Team (+49 6221 54 1837)"
             " <gavo@ari.uni-heidelberg.de>")
 
 
