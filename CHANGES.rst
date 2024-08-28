@@ -61,6 +61,9 @@ Deprecations and Removals
 
 - Added `'sia1'` as servicetype for registry searches. [#583]
 
+- Adding ``session`` kwarg to allow to pass a session along when turning
+  an Interface into a service via ``Interface.to_service``. [#590]
+
 
 1.5.2 (2024-05-22)
 ==================

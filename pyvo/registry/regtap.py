@@ -417,7 +417,7 @@ class Interface:
                 f"description={self.capability_description!r}, "
                 f"url={self.access_url!r})")
 
-    def to_service(self):
+    def to_service(self, *, session=None):
         if self.type == "vr:webbrowser":
             return _BrowserService(self.access_url, self.capability_description)
 
@@ -434,9 +434,13 @@ class Interface:
         if service_class == sia2.SIA2Service:
             return service_class(self.access_url,
                                  capability_description=self.capability_description,
-                                 check_baseurl=False)
+                                 check_baseurl=False,
+                                 session=session)
         else:
-            return service_class(self.access_url, capability_description=self.capability_description)
+            return service_class(
+                self.access_url,
+                capability_description=self.capability_description,
+                session=session)
 
     def supports(self, standard_id):
         """returns true if we believe the interface should be able to talk
@@ -804,7 +808,8 @@ class RegistryResource(dalq.Record):
 
     def get_service(self, service_type: str = None, *,
                     lax: bool = False,
-                    keyword: str = None):
+                    keyword: str = None,
+                    session: object = None):
         """
         return an appropriate DALService subclass for this resource that
         can be used to search the resource using service_type.
@@ -849,6 +854,10 @@ class RegistryResource(dalq.Record):
             service.  Use list_interfaces to find such a unique description
             fragment.
 
+        session : object
+            optional requests session to use to communicate with the service
+            constructed.
+
         Returns
         -------
         `pyvo.dal.DALService`
@@ -863,7 +872,7 @@ class RegistryResource(dalq.Record):
         list_interfaces : return a list with all the available services.
         """
         return self.get_interface(service_type=service_type, lax=lax, std_only=True,
-                                  keyword=keyword).to_service()
+                                  keyword=keyword).to_service(session=session)
 
     @property
     def service(self):
@@ -931,15 +940,16 @@ class RegistryResource(dalq.Record):
         the DAL service type would expect.  See the documentation for the
         appropriate service type:
 
-        ============  =========================================
+        ============  ===========================================
         Service type  Use the argument syntax for
-        ============  =========================================
+        ============  ===========================================
         catalog       :py:meth:`pyvo.dal.scs.SCSService.search`
-        image         :py:meth:`pyvo.dal.sia.SIAService.search`
-        spectrum      :py:meth:`pyvo.dal.ssa.SSAService.search`
+        sia           :py:meth:`pyvo.dal.sia.SIAService.search`
+        sia2          :py:meth:`pyvo.dal.sia2.SIA2Service.search`
+        ssa           :py:meth:`pyvo.dal.ssa.SSAService.search`
         line          :py:meth:`pyvo.dal.sla.SLAService.search`
         database      *not yet supported*
-        ============  =========================================
+        ============  ===========================================
 
         Raises
         ------
