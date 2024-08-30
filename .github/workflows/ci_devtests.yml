@@ -32,7 +32,20 @@ jobs:
         run: tox -e py312-test-devdeps-alldeps-cov
 
       - name: Upload coverage to codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
           verbose: true
+
+  py313:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13-dev"
+      - name: Install tox
+        run: python -m pip install --upgrade tox
+      - name: Run tests against dev dependencies
+        run: tox -e py313-test
