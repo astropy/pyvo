@@ -93,6 +93,7 @@ class MivotViewer:
         self._mapped_tables = []
         self._resource_seeker = None
         self._dm_instance = None
+        self._sky_coord = None
         try:
             self._set_resource()
             self._set_mapping_block()

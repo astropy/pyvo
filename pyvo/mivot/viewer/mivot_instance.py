@@ -10,11 +10,12 @@ Instances of this class are built by `pyvo.mivot.viewer.mivot_viewer`.
 Although attribute values can be changed by users, this class is first
 meant to provide a convenient access the mapped VOTable data
 """
-from astropy import time
-from pyvo.mivot.utils.vocabulary import unit_mapping, Constant
+from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.utils.dict_utils import DictUtils
+from pyvo.mivot.features.sky_coord_builder import SkyCoordBuilder
+
 
 # list of model leaf parameters that must be hidden for the final user
 hk_parameters = ["astropy_unit", "ref"]
@@ -53,7 +54,7 @@ class MivotInstance:
         housekeeping data such as column references. This might be used
         to apply the mapping out of the MivotViewer context
         """
-        return self._get_class_dict(self)
+        return self._get_class_dict(self, slim=False)
 
     def to_dict(self):
         """
@@ -98,10 +99,6 @@ class MivotInstance:
                 if key == 'unit':  # We convert the unit to astropy unit or to astropy time format if possible
                     # The first Vizier implementation used mas/year for the mapped pm unit: let's correct it
                     value = value.replace("year", "yr") if value else None
-                    if value in unit_mapping.keys():
-                        setattr(self, "astropy_unit", unit_mapping[value])
-                    elif value in time.TIME_FORMATS.keys():
-                        setattr(self, "astropy_unit_time", value)
 
     def update(self, row, ref=None):
         """
@@ -127,6 +124,14 @@ class MivotInstance:
                 if key == 'value' and ref is not None and ref != 'null':
                     setattr(self, self._remove_model_name(key),
                             MivotUtils.cast_type_value(row[ref], getattr(self, 'dmtype')))
+
+    def get_SkyCoord(self):
+        """        
+        returns
+        -------
+        - a SkyCoord instance or None
+        """
+        return SkyCoordBuilder(self.to_dict()).build_sky_coord()
 
     @staticmethod
     def _remove_model_name(value):
@@ -178,6 +183,7 @@ class MivotInstance:
         dict or object
             The serializable dictionary representation of the input.
         """
+
         if isinstance(obj, dict):
             data = {}
             for (k, v) in obj.items():
@@ -188,7 +194,7 @@ class MivotInstance:
         elif hasattr(obj, "__iter__") and not isinstance(obj, str):
             return [self._get_class_dict(v, classkey, slim=slim) for v in obj]
         elif hasattr(obj, "__dict__"):
-            data = dict([(key, self._get_class_dict(value, classkey, slim=slim))
+            data = dict([(key, obj._get_class_dict(value, classkey, slim=slim))
                          for key, value in obj.__dict__.items()
                          if not callable(value) and not key.startswith('_')])
             # remove the house keeping parameters

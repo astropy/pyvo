@@ -164,6 +164,27 @@ with the `astropy.io.votable` API:
 
 In this case, it is up to the user to ensure that the read data rows are those mapped by the Mivot annotations.
 
+Get a SkyCoord Instance Directly From the Annotations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once you get a ``MivotInstance`` representing the last row read, you can use it to create an ``astropy.SkyCoord`` object.
+
+.. code-block:: python
+    :caption: Accessing the model view of Astropy table rows
+
+	from pyvo.mivot import MivotViewer
+    from pyvo.mivot.utils.dict_utils import DictUtils
+    
+    m_viewer = MivotViewer(path_to_votable)
+    mivot_instance = m_viewer.dm_instance
+    print(mivot_instance.get_SkyCoord())
+    <SkyCoord (ICRS): (ra, dec) in deg(52.26722684, 59.94033461)
+          (pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>
+
+This feature works under the condition that the annotations contain a valid instance of ``mango:EPochPosition``. 
+Although not a standard at the time of writing, the class structure supported by this implementation must match the figure above.
+If the annotation do no contain any vali object, `None` is returned.
+
 For XML Hackers
 ---------------
 
