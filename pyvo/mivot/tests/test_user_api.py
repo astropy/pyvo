@@ -234,28 +234,24 @@ def test_with_dict(path_to_votable):
             "dmtype": "ivoa:RealQuantity",
             "value": 359.94372764,
             "unit": "deg",
-            "astropy_unit": {},
             "ref": "RAICRS",
         },
         "latitude": {
             "dmtype": "ivoa:RealQuantity",
             "value": -0.28005255,
             "unit": "deg",
-            "astropy_unit": {},
             "ref": "DEICRS",
         },
         "pmLongitude": {
             "dmtype": "ivoa:RealQuantity",
             "value": -5.14,
             "unit": "mas/yr",
-            "astropy_unit": {},
             "ref": "pmRA",
         },
         "pmLatitude": {
             "dmtype": "ivoa:RealQuantity",
             "value": -25.43,
             "unit": "mas/yr",
-            "astropy_unit": {},
             "ref": "pmDE",
         },
         "epoch": {

@@ -129,6 +129,20 @@ def test_vizier_output():
             == "<SkyCoord (ICRS): (ra, dec) in deg(52.26722684, 59.94033461) "
                "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
 
+    vizier_dict["coordSys"]["spaceRefFrame"]["value"] = "Galactic"
+    mivot_instance = MivotInstance(**vizier_dict)
+    scoo = mivot_instance.get_SkyCoord()
+    assert (str(scoo).replace("\n", "").replace("  ", "")
+            == "<SkyCoord (Galactic): (l, b) in deg(52.26722684, 59.94033461) "
+               "(pm_l_cosb, pm_b) in mas / yr(-0.82, -1.85)>")
+
+    vizier_dict["coordSys"]["spaceRefFrame"]["value"] = "QWERTY"
+    mivot_instance = MivotInstance(**vizier_dict)
+    scoo = mivot_instance.get_SkyCoord()
+    assert (str(scoo).replace("\n", "").replace("  ", "")
+            == "<SkyCoord (ICRS): (ra, dec) in deg(52.26722684, 59.94033461) "
+               "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
+
 
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_vizier_output_with_equinox_and_parallax():
@@ -142,8 +156,11 @@ def test_vizier_output_with_equinox_and_parallax():
             == "<SkyCoord (FK5: equinox=J2012.000): (ra, dec, distance) in "
                "(deg, deg, pc)(52.26722684, 59.94033461, 600.) "
                "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
+
+    vizier_equin_dict["coordSys"]["spaceRefFrame"]["value"] = "FK4"
+    mivot_instance = MivotInstance(**vizier_equin_dict)
     scoo = mivot_instance.get_SkyCoord()
     assert (str(scoo).replace("\n", "").replace("  ", "")
-            == "<SkyCoord (FK5: equinox=J2012.000): (ra, dec, distance) in "
+            == "<SkyCoord (FK4: equinox=B2012.000, obstime=J1991.250): (ra, dec, distance) in "
                "(deg, deg, pc)(52.26722684, 59.94033461, 600.) "
                "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")

@@ -67,13 +67,11 @@ class SkyCoordBuilder(object):
         -------
         - SkyCoord instance or None
         """
-        if not self._mivot_instance_dict:
-            return None
-        if self._mivot_instance_dict["dmtype"] == "mango:EpochPosition":
+        if self._mivot_instance_dict and self._mivot_instance_dict["dmtype"] == "mango:EpochPosition":
             return self._build_sky_coord_from_mango()
         return None
 
-    def _set_year_time_format(self, hk_field):
+    def _set_year_time_format(self, hk_field, besselian=False):
         """
         Format a date expressed in year as J-year
 
@@ -85,16 +83,22 @@ class SkyCoordBuilder(object):
         -------
         - formatted string
         """
-        return (f"j{hk_field['value']}" if hk_field["unit"] in ("yr", "year")
+        scale = "J" if not besselian else "B"
+        return (f"{scale}{hk_field['value']}" if hk_field["unit"] in ("yr", "year")
                 else hk_field["value"])
 
-    def _get_space_frame(self):
+    def _get_space_frame(self, obstime=None):
         """
         Build an astropy space frame instance from the MIVOT annotations.
 
         - Equinox are supported fot FK4/5
         - Ref location are not supported
 
+        parameters
+        ----------
+        - obstime: string
+                   Observation time is given here because KF4 set an default value
+                   if it is not given
         returns
         -------
         - Astropy space frame
@@ -106,8 +110,10 @@ class SkyCoordBuilder(object):
         if frame == 'fk4':
             self._map_coord_names = skycoord_param_default
             if "equinox" in coo_sys:
-                equinox = self._set_year_time_format(coo_sys["equinox"])
-                return FK4(equinox=equinox)
+                equinox = self._set_year_time_format(coo_sys["equinox"], True)
+                print(coo_sys["equinox"])
+                print(FK4(equinox=equinox, obstime="B345"))
+                return FK4(equinox=equinox, obstime=obstime)
             return FK4()
 
         if frame == 'fk5':
@@ -149,7 +155,12 @@ class SkyCoordBuilder(object):
             hk_field = self._mivot_instance_dict[key]
             # format the observation time (J-year by default)
             if value == "obstime":
-                kwargs[value] = self._set_year_time_format(hk_field)
+                # obstime must be set into the KK4 frame but not as an input parameter
+                fobstime = self._set_year_time_format(hk_field)
+                if isinstance(kwargs["frame"], FK4):
+                    kwargs["frame"] = self._get_space_frame(obstime=fobstime)
+                else:
+                    kwargs[value] = fobstime
             # Convert the parallax (mango) into a distance
             elif value == "distance":
                 kwargs[value] = (hk_field["value"]

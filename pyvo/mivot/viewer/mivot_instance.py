@@ -18,7 +18,7 @@ from pyvo.mivot.features.sky_coord_builder import SkyCoordBuilder
 
 
 # list of model leaf parameters that must be hidden for the final user
-hk_parameters = ["astropy_unit", "ref"]
+hk_parameters = ["ref"]
 
 
 @prototype_feature('MIVOT')
@@ -126,7 +126,7 @@ class MivotInstance:
                             MivotUtils.cast_type_value(row[ref], getattr(self, 'dmtype')))
 
     def get_SkyCoord(self):
-        """        
+        """
         returns
         -------
         - a SkyCoord instance or None

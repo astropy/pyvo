@@ -165,7 +165,7 @@ with the `astropy.io.votable` API:
 In this case, it is up to the user to ensure that the read data rows are those mapped by the Mivot annotations.
 
 Get a SkyCoord Instance Directly From the Annotations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------------------------
 
 Once you get a ``MivotInstance`` representing the last row read, you can use it to create an ``astropy.SkyCoord`` object.
 
