@@ -69,7 +69,6 @@ class SkyCoordBuilder(object):
         """
         if self._mivot_instance_dict and self._mivot_instance_dict["dmtype"] == "mango:EpochPosition":
             return self._build_sky_coord_from_mango()
-        return None
 
     def _set_year_time_format(self, hk_field, besselian=False):
         """
