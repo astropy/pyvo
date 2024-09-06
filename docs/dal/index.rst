@@ -293,7 +293,7 @@ the server is, it will immediately go to the EXECUTING status:
 
 .. doctest-remote-data::
 
-    >>> job.phase   # doctest: +IGNORE_OUTPUT
+    >>> job.phase  # doctest: +IGNORE_OUTPUT
     'EXECUTING'
 
 The job will eventually end up in one of the phases:
@@ -618,7 +618,7 @@ Get the current job phase:
 
 .. doctest-remote-data::
 
-    >>> print(job.phase)
+    >>> print(job.phase)  # doctest: +IGNORE_OUTPUT
     EXECUTING
 
 Maximum run time in seconds is available and can be changed with
