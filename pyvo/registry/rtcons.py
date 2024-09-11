@@ -673,6 +673,10 @@ class Spatial(SubqueriedConstraint):
     are interpreted in degrees)::
 
         >>> resources = registry.Spatial((SkyCoord("23d +3d"), 3))
+
+    Or you can provide the radius angle as an Astropy Quantity:
+
+        >>> resources = registry.Spatial((SkyCoord("23d +3d"), 1*u.rad))
     """
     _keyword = "spatial"
     _subquery_table = "rr.stc_spatial"
@@ -719,9 +723,16 @@ class Spatial(SubqueriedConstraint):
 
         elif len(geom_spec) == 2:
             if isinstance(geom_spec[0], SkyCoord):
+                # If radius given is astropy quantity, then convert to degrees
+                if isinstance(geom_spec[1], u.Quantity):
+                    if geom_spec[1].unit.physical_type != 'angle':
+                        raise ValueError("Radius quantity is not of type angle.")
+                    radius = geom_spec[1].to(u.deg).value
+                else:
+                    radius = geom_spec[1]
                 geom = tomoc(format_function_call("CIRCLE",
                                                   [geom_spec[0].ra.value, geom_spec[0].dec.value,
-                                                   geom_spec[1]]))
+                                                   radius]))
             else:
                 geom = tomoc(format_function_call("POINT", geom_spec))
 

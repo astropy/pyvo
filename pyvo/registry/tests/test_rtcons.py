@@ -303,6 +303,15 @@ class TestSpatialConstraint:
         assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
             "rr.stc_spatial", "1 = CONTAINS(MOC(6, CIRCLE(3.0, -30.0, 3)), coverage)")
 
+    def test_SkyCoord_Circle_RadiusQuantity(self):
+        for radius in [3*u.deg, 180*u.Unit('arcmin'), 10800*u.Unit('arcsec')]:
+            cons = registry.Spatial((SkyCoord(3 * u.deg, -30 * u.deg), radius))
+            assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+                "rr.stc_spatial", "1 = CONTAINS(MOC(6, CIRCLE(3.0, -30.0, 3.0)), coverage)")
+
+        with pytest.raises(ValueError, match="is not of type angle."):
+            cons = registry.Spatial((SkyCoord(3 * u.deg, -30 * u.deg), (1 * u.m)))
+
     def test_enclosed(self):
         cons = registry.Spatial("0/1-3", intersect="enclosed")
         assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(

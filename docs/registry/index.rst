@@ -166,6 +166,15 @@ And to look for tap resources *in* a specific cone, you would do
   ---------------------------- ...
   ivo://cds.vizier/j/aj/166/68 ...
 
+Astropy Quantities are also supported for the radius angle of a SkyCoord-defined circular region:
+
+.. doctest-remote-data::
+
+  >>> from astropy.coordinates import SkyCoord
+  >>> from astropy import units as u
+  >>> registry.search(registry.Freetext("Wolf-Rayet"),
+  ...                 registry.Spatial((SkyCoord("23d +3d"), 180*u.Unit('arcmin')), intersect="enclosed")) # doctest: +IGNORE_OUTPUT
+
 Where ``intersect`` can take the following values:
   * 'covers' is the default and returns resources that cover the geometry provided,
   * 'enclosed' is for services in the given region,
