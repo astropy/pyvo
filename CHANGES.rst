@@ -46,6 +46,8 @@ Enhancements and Fixes
 - Tables returned by RegistryResource.get_tables() now have a utype
   attribute [#576]
 
+- Registry Spatial constraint now supports Astropy Quantities for the radius argument [#594]
+
 Deprecations and Removals
 -------------------------
 
