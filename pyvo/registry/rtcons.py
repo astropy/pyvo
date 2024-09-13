@@ -615,6 +615,10 @@ class Spatial(Constraint):
     are interpreted in degrees)::
 
         >>> resources = registry.Spatial((SkyCoord("23d +3d"), 3))
+
+    Or you can provide the radius angle as an Astropy Quantity:
+
+        >>> resources = registry.Spatial((SkyCoord("23d +3d"), 1*u.rad))
     """
     _keyword = "spatial"
     _extra_tables = ["rr.stc_spatial"]
@@ -631,7 +635,7 @@ class Spatial(Constraint):
             as a DALI point, a 3-sequence as a DALI circle, a 2n sequence
             as a DALI polygon.  Additionally, strings are interpreted
             as ASCII MOCs, SkyCoords as points, and a pair of a
-            SkyCoord and a float as a circle.  Other types (proper
+            SkyCoord and a float or Quantity as a circle.  Other types (proper
             geometries or MOCPy objects) might be supported in the
             future.
         order : int, optional
@@ -661,9 +665,16 @@ class Spatial(Constraint):
 
         elif len(geom_spec) == 2:
             if isinstance(geom_spec[0], SkyCoord):
+                # If radius given is astropy quantity, then convert to degrees
+                if isinstance(geom_spec[1], u.Quantity):
+                    if geom_spec[1].unit.physical_type != 'angle':
+                        raise ValueError("Radius quantity is not of type angle.")
+                    radius = geom_spec[1].to(u.deg).value
+                else:
+                    radius = geom_spec[1]
                 geom = tomoc(format_function_call("CIRCLE",
                                                   [geom_spec[0].ra.value, geom_spec[0].dec.value,
-                                                   geom_spec[1]]))
+                                                   radius]))
             else:
                 geom = tomoc(format_function_call("POINT", geom_spec))
 

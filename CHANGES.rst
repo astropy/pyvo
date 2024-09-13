@@ -9,9 +9,7 @@ Bug Fixes
 - path separators are no longer taken over from image titles to file
   system paths. [#557]
 
-
-1.5.3 (unreleased)
-==================
+- Registry Spatial constraint now supports Astropy Quantities for the radius argument [#594]
 
 - Added `'sia1'` as servicetype for registry searches. [#583]
 
