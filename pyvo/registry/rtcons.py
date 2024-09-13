@@ -693,7 +693,7 @@ class Spatial(SubqueriedConstraint):
             as a DALI point, a 3-sequence as a DALI circle, a 2n sequence
             as a DALI polygon.  Additionally, strings are interpreted
             as ASCII MOCs, SkyCoords as points, and a pair of a
-            SkyCoord and a float as a circle.  Other types (proper
+            SkyCoord and a float or Quantity as a circle.  Other types (proper
             geometries or MOCPy objects) might be supported in the
             future.
         order : int, optional
