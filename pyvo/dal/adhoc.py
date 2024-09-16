@@ -104,7 +104,7 @@ def _get_accessurl_from_params(params):
 
 class AdhocServiceResultsMixin:
     """
-    Mixin for adhoc:service functionallity for results classes.
+    Mixin for adhoc:service functionality for results classes.
     """
 
     def __init__(self, votable, *, url=None, session=None):
@@ -169,6 +169,109 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
     """
     Mixin for datalink functionallity for results classes.
     """
+    def iter_datalinks_from_dlblock(self, datalink_service):
+        """yields datalinks from the current rows using a datalink
+        service RESOURCE.
+        """
+        remaining_ids = []  # remaining IDs to processed
+        current_batch = None  # retrieved but not returned yet
+        current_ids = []  # retrieved but not returned
+        processed_ids = []  # retrived and returned IDs
+        batch_size = None  # size of the batch
+
+        for row in self:
+            if not current_ids:
+                if batch_size is None:
+                    # first call.
+                    self.query = DatalinkQuery.from_resource(
+                        [_ for _ in self],
+                        self._datalink,
+                        session=self._session,
+                        original_row=row)
+                    remaining_ids = self.query['ID']
+                if not remaining_ids:
+                    # we are done
+                    return
+                if batch_size:
+                    # subsequent calls are limitted to batch size
+                    self.query['ID'] = remaining_ids[:batch_size]
+                current_batch = self.query.execute(post=True)
+                current_ids = list(OrderedDict.fromkeys(
+                    [_ for _ in current_batch.to_table()['ID']]))
+                if not current_ids:
+                    raise DALServiceError(
+                        'Could not retrieve datalinks for: {}'.format(
+                            ', '.join([_ for _ in remaining_ids])))
+                batch_size = len(current_ids)
+            id1 = current_ids.pop(0)
+            processed_ids.append(id1)
+            remaining_ids.remove(id1)
+            yield current_batch.clone_byid(
+                id1,
+                original_row=row)
+
+    @staticmethod
+    def _guess_access_format(row):
+        """returns a guess for the format of what __guess_access_url will
+        return.
+
+        This tries a few heuristics based on how obscore or SIA records might
+        be marked up.  If will return None if row does not look as if
+        it contained an access format.  Note that the heuristics are
+        tried in sequence; for now, we do not define the sequence of
+        heuristics.
+        """
+        if hasattr(row, "access_format"):
+            return row.access_format
+
+        if "access_format" in row:
+            return row["access_format"]
+
+        access_format = row.getbyutype("obscore:access.format")
+        if access_format:
+            return access_format
+
+        access_format = row.getbyucd("meta.code.mime")
+        if access_format:
+            return access_format
+
+    @staticmethod
+    def _guess_access_url(row):
+        """returns a guess for a URI to a data product in row.
+
+        This tries a few heuristics based on how obscore or SIA records might
+        be marked up.  If will return None if row does not look as if
+        it contained a product access url.  Note that the heuristics are
+        tried in sequence; for now, we do not define the sequence of
+        heuristics.
+        """
+        if hasattr(row, "access_url"):
+            return row.access_url
+
+        if "access_url" in row:
+            return row["access_url"]
+
+        access_url = row.getbyutype("obscore:access.reference")
+        if access_url:
+            return access_url
+
+        access_url = row.getbyucd("meta.ref.url")
+        if access_url:
+            return access_url
+
+    def iter_datalinks_from_product_rows(self):
+        """yield datalinks from self's rows if they describe datalink-valued
+        products.
+        """
+        for row in self:
+            # TODO: we should be more careful about whitespace, case
+            # and perhaps more parameters in the following comparison
+            if self._guess_access_format(row) == DATALINK_MIME_TYPE:
+                access_url = self._guess_access_url(row)
+                if access_url is not None:
+                    yield DatalinkResults.from_result_url(
+                        access_url,
+                        original_row=row)
 
     def iter_datalinks(self):
         """
@@ -186,51 +289,12 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                 self._datalink = self.get_adhocservice_by_ivoid(DATALINK_IVOID)
             except DALServiceError:
                 self._datalink = None
-        remaining_ids = []  # remaining IDs to processed
-        current_batch = None  # retrieved but not returned yet
-        current_ids = []  # retrieved but not returned
-        processed_ids = []  # retrived and returned IDs
-        batch_size = None  # size of the batch
 
-        for row in self:
-            if self._datalink:
-                if not current_ids:
-                    if batch_size is None:
-                        # first call.
-                        self.query = DatalinkQuery.from_resource(
-                            [_ for _ in self],
-                            self._datalink,
-                            session=self._session,
-                            original_row=row)
-                        remaining_ids = self.query['ID']
-                    if not remaining_ids:
-                        # we are done
-                        return
-                    if batch_size:
-                        # subsequent calls are limitted to batch size
-                        self.query['ID'] = remaining_ids[:batch_size]
-                    current_batch = self.query.execute(post=True)
-                    current_ids = list(OrderedDict.fromkeys(
-                        [_ for _ in current_batch.to_table()['ID']]))
-                    if not current_ids:
-                        raise DALServiceError(
-                            'Could not retrieve datalinks for: {}'.format(
-                                ', '.join([_ for _ in remaining_ids])))
-                    batch_size = len(current_ids)
-                id1 = current_ids.pop(0)
-                processed_ids.append(id1)
-                remaining_ids.remove(id1)
-                yield current_batch.clone_byid(
-                    id1,
-                    original_row=row)
-            elif getattr(row, 'access_format', None) == DATALINK_MIME_TYPE:
-                yield DatalinkResults.from_result_url(row.getdataurl())
-            else:
-                # Fall back to row-specific handling
-                try:
-                    yield row.getdatalink()
-                except AttributeError:
-                    yield None
+        if self._datalink is None:
+            yield from self.iter_datalinks_from_product_rows()
+
+        else:
+            yield from self.iter_datalinks_from_dlblock(self._datalink)
 
 
 class DatalinkRecordMixin:

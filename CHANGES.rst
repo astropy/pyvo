@@ -46,11 +46,15 @@ Enhancements and Fixes
 - Tables returned by RegistryResource.get_tables() now have a utype
   attribute [#576]
 
-- Registry Spatial constraint now supports Astropy Quantities for the radius argument [#594]
+- Registry Spatial constraint now supports Astropy Quantities for the
+  radius argument [#594]
+
+- iter_metadata() no longer crashes on tables with a datalink RESOURCE
+  and without obscore attributes [#599]
+
 
 Deprecations and Removals
 -------------------------
-
 
 - SodaRecordMixin no longer will use a datalink#links endpoint for soda [#580]
 

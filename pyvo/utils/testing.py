@@ -6,6 +6,12 @@ from astropy.io.votable import tree
 from pyvo.dal import query as dalquery
 
 
+try:
+    TABLE_ELEMENT = tree.TableElement
+except AttributeError:
+    TABLE_ELEMENT = tree.Table
+
+
 def create_votable(field_descs, records):
     """returns a VOTableFile with a a single table containing records,
     described by field_descs.
@@ -13,7 +19,7 @@ def create_votable(field_descs, records):
     votable = tree.VOTableFile()
     resource = tree.Resource(type="results")
     votable.resources.append(resource)
-    table = tree.Table(votable)
+    table = TABLE_ELEMENT(votable)
     resource.tables.append(table)
     table.fields.extend(
         tree.Field(votable, **desc) for desc in field_descs)
@@ -35,6 +41,6 @@ def create_dalresults(
 
     The arguments are as for create_votable.
     """
-    return  resultsClass(
+    return resultsClass(
         create_votable(field_descs, records),
         url="http://testing.pyvo/test-url")
