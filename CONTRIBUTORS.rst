@@ -2,7 +2,7 @@ PyVO Contributors
 -----------------
 
 PyVO is an open source project developed through GitHub at
-https://github.com/pyvirtobs; community contributions are welcome.
+https://github.com/astropy/pyvo; community contributions are welcome.
 
 This project began in 2012 as a product of the US Virtual Astronomical
 Observatory, funded through a cooperative agreement with the US National
