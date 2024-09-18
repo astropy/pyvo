@@ -41,7 +41,7 @@ Source Installation
 ^^^^^^^^^^^^^^^^^^^
 .. code-block:: bash
 
-  git clone http://github.com/pyvirtobs/pyvo
+  git clone http://github.com/astropy/pyvo
   cd pyvo
   python setup.py install
 
