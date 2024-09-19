@@ -173,7 +173,6 @@ Once you get a ``MivotInstance`` representing the last row read, you can use it 
     :caption: Accessing the model view of Astropy table rows
 
 	from pyvo.mivot import MivotViewer
-    from pyvo.mivot.utils.dict_utils import DictUtils
     
     m_viewer = MivotViewer(path_to_votable)
     mivot_instance = m_viewer.dm_instance
@@ -183,7 +182,7 @@ Once you get a ``MivotInstance`` representing the last row read, you can use it 
 
 This feature works under the condition that the annotations contain a valid instance of ``mango:EPochPosition``. 
 Although not a standard at the time of writing, the class structure supported by this implementation must match the figure above.
-If the annotation do no contain any vali object, `None` is returned.
+If the annotation do no contain any valid object, `None` is returned.
 
 For XML Hackers
 ---------------
