@@ -44,7 +44,7 @@ class SkyCoordBuilder(object):
     - SkyCoord instances can only be built from model classes containing the minimal
     set of required parameters (a position).
     - In this implementation, only the mango:EpochPosition class is supported since
-      it proposes anything required to compute the epoch propagation which is a major use-case
+      it contains the information required to compute the epoch propagation which is a major use-case
     '''
 
     def __init__(self, mivot_instance_dict):
@@ -117,8 +117,6 @@ class SkyCoordBuilder(object):
             self._map_coord_names = skycoord_param_default
             if "equinox" in coo_sys:
                 equinox = self._set_year_time_format(coo_sys["equinox"], True)
-                print(coo_sys["equinox"])
-                print(FK4(equinox=equinox, obstime="B345"))
                 return FK4(equinox=equinox, obstime=obstime)
             return FK4()
 
@@ -138,7 +136,7 @@ class SkyCoordBuilder(object):
 
     def _build_sky_coord_from_mango(self):
         """
-        Build silently a SlyCoord instance from the mango:EpochPosition instance.
+        Build silently a SkyCoord instance from the mango:EpochPosition instance.
         No error is trapped, unconsistencies in the mango:EpochPosition instance will
         raise Astropy errors.
 

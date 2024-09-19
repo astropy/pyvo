@@ -173,7 +173,6 @@ Once you get a ``MivotInstance`` representing the last row read, you can use it 
     :caption: Accessing the model view of Astropy table rows
 
 	from pyvo.mivot import MivotViewer
-    from pyvo.mivot.utils.dict_utils import DictUtils
     
     m_viewer = MivotViewer(path_to_votable)
     mivot_instance = m_viewer.dm_instance

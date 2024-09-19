@@ -1,9 +1,9 @@
 '''
-The first service in operation the annotates query responses in the fly is Vizier
+The first service in operation that annotates query responses in the fly is Vizier
 https://cds/viz-bin/mivotconesearch/VizierParams
 Data are mapped on the mango:EpochPropagtion class as it is implemented in the current code.
 This test case is based on 2 VOTables:
-Both tests check the generation of SkyCoord instances from the MivotInstances buil
+Both tests check the generation of SkyCoord instances from the MivotInstances built
 for the output of this service.
 '''
 import pytest
