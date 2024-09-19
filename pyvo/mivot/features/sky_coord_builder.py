@@ -131,7 +131,7 @@ class SkyCoordBuilder(object):
 
     def _build_sky_coord_from_mango(self):
         """
-        Build silently a SlyCoord instance from the mango:EpochPosition instance.
+        Build silently a SkyCoord instance from the mango:EpochPosition instance.
         No error is trapped, unconsistencies in the mango:EpochPosition instance will
         raise Astropy errors.
 
