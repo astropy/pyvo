@@ -46,7 +46,7 @@ Enhancements and Fixes
 - Tables returned by RegistryResource.get_tables() now have a utype
   attribute [#576]
  
-- MIVOT module: If the MIVOT annotation block contains a valid instance of the ``mango:EpochPosition` class,
+- MIVOT module: If the MIVOT annotation block contains a valid instance of the ``mango:EpochPosition`` class,
   the dynamic object describing the mapped data can generate a valid SkyCoord instance. [#591]
 
 Deprecations and Removals
