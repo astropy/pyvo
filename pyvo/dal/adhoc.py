@@ -169,7 +169,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
     """
     Mixin for datalink functionallity for results classes.
     """
-    def iter_datalinks_from_dlblock(self, datalink_service):
+    def _iter_datalinks_from_dlblock(self, datalink_service):
         """yields datalinks from the current rows using a datalink
         service RESOURCE.
         """
@@ -259,7 +259,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         if access_url:
             return access_url
 
-    def iter_datalinks_from_product_rows(self):
+    def _iter_datalinks_from_product_rows(self):
         """yield datalinks from self's rows if they describe datalink-valued
         products.
         """
@@ -291,10 +291,10 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                 self._datalink = None
 
         if self._datalink is None:
-            yield from self.iter_datalinks_from_product_rows()
+            yield from self._iter_datalinks_from_product_rows()
 
         else:
-            yield from self.iter_datalinks_from_dlblock(self._datalink)
+            yield from self._iter_datalinks_from_dlblock(self._datalink)
 
 
 class DatalinkRecordMixin:
