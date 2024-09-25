@@ -227,11 +227,13 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         if "access_format" in row:
             return row["access_format"]
 
-        access_format = row.getbyutype("obscore:access.format")
+        access_format = row.getbyutype("obscore:access.format"
+            ) or row.getbyutype("ssa:Access.Format")
         if access_format:
             return access_format
 
-        access_format = row.getbyucd("meta.code.mime")
+        access_format = row.getbyucd("meta.code.mime"
+            ) or row.getbyucd("VOX:Image_Format")
         if access_format:
             return access_format
 
@@ -251,11 +253,13 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         if "access_url" in row:
             return row["access_url"]
 
-        access_url = row.getbyutype("obscore:access.reference")
+        access_url = row.getbyutype("obscore:access.reference"
+            ) or row.getbyutype("ssa:Access.Reference")
         if access_url:
             return access_url
 
-        access_url = row.getbyucd("meta.ref.url")
+        access_url = row.getbyucd("meta.ref.url"
+            ) or row.getbyucd("VOX:Image_AccessReference")
         if access_url:
             return access_url
 

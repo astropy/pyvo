@@ -257,10 +257,24 @@ class TestIterDatalinksProducts:
 
     def test_sia1_record(self):
         res = testing.create_dalresults([
-            {"name": "access_url", "datatype": "char", "arraysize": "*",
+            {"name": "product", "datatype": "char", "arraysize": "*",
                 "ucd": "VOX:Image_AccessReference"},
-            {"name": "access_format", "datatype": "char", "arraysize": "*",
-                "utype": "VOX:Image_Format"},],
+            {"name": "mime", "datatype": "char", "arraysize": "*",
+                "ucd": "VOX:Image_Format"},],
+            [("http://example.com/datalink.xml",
+                "application/x-votable+xml;content=datalink")],
+            resultsClass=TAPResults)
+        links = list(res.iter_datalinks())
+        assert len(links) == 1
+        assert (next(links[0].bysemantics("#this"))["access_url"]
+            == "http://dc.zah.uni-heidelberg.de/getproduct/flashheros/data/ca90/f0011.mt")
+
+    def test_ssap_record(self):
+        res = testing.create_dalresults([
+            {"name": "product", "datatype": "char", "arraysize": "*",
+                "utype": "ssa:access.reference"},
+            {"name": "mime", "datatype": "char", "arraysize": "*",
+                "utype": "ssa:access.format"},],
             [("http://example.com/datalink.xml",
                 "application/x-votable+xml;content=datalink")],
             resultsClass=TAPResults)
