@@ -530,10 +530,11 @@ class DALResults:
         return the field name that has a given UType value or None if the UType
         is not found.
         """
+        utype = utype.lower()
         try:
             iterchain = (
                 self.getdesc(fieldname) for fieldname in self.fieldnames)
-            iterchain = (field for field in iterchain if field.utype == utype)
+            iterchain = (field for field in iterchain if (field.utype or "").lower() == utype)
             return next(iterchain).name
         except StopIteration:
             return None
