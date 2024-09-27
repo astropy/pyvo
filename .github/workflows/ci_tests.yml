@@ -39,11 +39,11 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938  # v4.2.0
       with:
         fetch-depth: 0
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3  # v5.2.0
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install tox
@@ -60,11 +60,11 @@ jobs:
         os: [macos-latest, windows-latest]
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938  # v4.2.0
       with:
         fetch-depth: 0
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3  # v5.2.0
       with:
         python-version: '3.10'
     - name: Install tox
@@ -78,12 +78,28 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938  # v4.2.0
       - name: Set up Python 3.8
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3  # v5.2.0
         with:
           python-version: 3.8
       - name: Install tox
         run: python -m pip install --upgrade tox
       - name: Check codestyle
         run: tox -e codestyle
+
+  linkcheck:
+    if: github.event_name == 'schedule' && github.repository == 'astropy/pyvo'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938  # v4.2.0
+      - name: Set up Python 3.10
+        uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3  # v5.2.0
+        with:
+          python-version: '3.10'
+      - name: Install tox
+        run: python -m pip install --upgrade tox
+      - name: Check docs links
+        run: tox -e linkcheck
