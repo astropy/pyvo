@@ -49,8 +49,6 @@ Enhancements and Fixes
 - MIVOT module: If the MIVOT annotation block contains a valid instance of the ``mango:EpochPosition`` class,
   the dynamic object describing the mapped data can generate a valid SkyCoord instance. [#591]
 
-- The MIVOT model is able to automatically build SkyCoord instance from ``mango:EpochPosition`` instances [#591]
-
 
 Deprecations and Removals
 -------------------------
