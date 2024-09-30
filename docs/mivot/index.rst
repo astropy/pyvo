@@ -183,7 +183,7 @@ Once you get a ``MivotInstance`` representing the last row read, you can use it 
 
 This feature works under the condition that the annotations contain a valid instance of ``mango:EPochPosition``. 
 Although not a standard at the time of writing, the class structure supported by this implementation must match the figure above.
-If the annotation do no contain any vali object, `None` is returned.
+If the annotation do no contain any valid object, a ``NoMatchingDMType`` exception is thrown.
 
 For XML Hackers
 ---------------

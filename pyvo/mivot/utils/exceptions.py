@@ -25,6 +25,16 @@ class MappingException(Exception):
     """
 
 
+class NoMatchingDMType(Exception):
+    """
+    Exception thrown when some PyVO code misses MIVOT element:
+    - When trying to build a SkyCoord while there is no position in the annotations
+    - is mapped to a model unknown to the PyVO code.
+    This exception is never caught by the mivot package.
+    It must be handled by the calling code.
+    """
+
+
 class AstropyVersionException(Exception):
     """
     Exception raised if the version of astropy is not compatible with MIVOT.

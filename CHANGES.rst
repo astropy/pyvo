@@ -46,6 +46,9 @@ Enhancements and Fixes
 - Tables returned by RegistryResource.get_tables() now have a utype
   attribute [#576]
 
+- The MIVOT model is able to automatically build SkyCoord instance from ``mango:EpochPosition`` instances [#591]
+
+
 Deprecations and Removals
 -------------------------
 
