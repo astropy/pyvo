@@ -21,7 +21,7 @@ import pytest
 from urllib.request import urlretrieve
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot import MivotViewer
-from pyvo.mivot.utils.exceptions import MivotException
+from pyvo.mivot.utils.exceptions import MivotError
 
 
 @pytest.fixture
@@ -125,5 +125,5 @@ def test_bad_ref(path_to_badref, delt_coo):
     """ Test that the epoch propagation works with all FIELDs referenced by name or by ID
     """
     # Test with all FILELDs referenced by names
-    with (pytest.raises(MivotException, match="Attribute mango:EpochPosition.epoch can not be set.*")):
+    with (pytest.raises(MivotError, match="Attribute mango:EpochPosition.epoch can not be set.*")):
         MivotViewer(votable_path=path_to_badref)

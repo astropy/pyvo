@@ -8,7 +8,7 @@ import re
 from astropy.utils.data import get_pkg_data_filename
 from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.mivot.utils.dict_utils import DictUtils
-from pyvo.mivot.utils.exceptions import MappingException
+from pyvo.mivot.utils.exceptions import MappingError
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot import MivotViewer
 from astropy import version as astropy_version
@@ -84,9 +84,9 @@ def test_no_mivot(path_no_mivot):
     assert m_viewer.get_globals_models() is None
 
     assert m_viewer.get_templates_models() is None
-    with pytest.raises(MappingException):
+    with pytest.raises(MappingError):
         m_viewer._connect_table('_PKTable')
-    with pytest.raises(MappingException):
+    with pytest.raises(MappingError):
         m_viewer._connect_table()
 
     assert m_viewer.next_table_row() is None

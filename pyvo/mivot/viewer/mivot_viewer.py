@@ -29,8 +29,8 @@ from astropy.io.votable.tree import VOTableFile
 from pyvo.dal import DALResults
 from pyvo.mivot.utils.vocabulary import Ele, Att
 from pyvo.mivot.utils.vocabulary import Constant, NoMapping
-from pyvo.mivot.utils.exceptions import (MappingException,
-                                         MivotException,
+from pyvo.mivot.utils.exceptions import (MappingError,
+                                         MivotError,
                                          AstropyVersionException)
 from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.utils.xpath_utils import XPath
@@ -100,7 +100,7 @@ class MivotViewer:
             self._set_mapped_tables()
             self._connect_table(tableref)
             self._init_instance()
-        except MappingException as mnf:
+        except MappingError as mnf:
             logging.error(str(mnf))
 
     def __enter__(self):
@@ -325,7 +325,7 @@ class MivotViewer:
             elif child[0] in collection:
                 return collection[0].get(Att.dmtype)
         else:
-            raise MivotException("Can't find the first " + Ele.INSTANCE
+            raise MivotError("Can't find the first " + Ele.INSTANCE
                                        + "/" + Ele.COLLECTION + " in " + Ele.TEMPLATES)
 
     def _connect_table(self, tableref=None):
@@ -340,7 +340,7 @@ class MivotViewer:
             Identifier of the table. If None, connects to the first table.
         """
         if not self._resource_seeker:
-            raise MappingException("No mapping block found")
+            raise MappingError("No mapping block found")
 
         stableref = tableref
         if tableref is None:
@@ -350,7 +350,7 @@ class MivotViewer:
                          "the mapping will be applied to the first table."
                          )
         elif tableref not in self._mapped_tables:
-            raise MappingException(f"The table {self._connected_tableref} doesn't match with any "
+            raise MappingError(f"The table {self._connected_tableref} doesn't match with any "
                                    f"mapped_table ({self._mapped_tables}) encountered in "
                                    + Ele.TEMPLATES
                                    )
@@ -359,11 +359,11 @@ class MivotViewer:
 
         self._connected_table = self._resource_seeker.get_table(tableref)
         if self.connected_table is None:
-            raise MivotException(f"Cannot find table {stableref} in VOTable")
+            raise MivotError(f"Cannot find table {stableref} in VOTable")
         logging.debug("table %s found in VOTable", stableref)
         self._templates = deepcopy(self.annotation_seeker.get_templates_block(tableref))
         if self._templates is None:
-            raise MivotException("Cannot find " + Ele.TEMPLATES + f" {stableref} ")
+            raise MivotError("Cannot find " + Ele.TEMPLATES + f" {stableref} ")
         logging.debug(Ele.TEMPLATES + " %s found ", stableref)
         self._table_iterator = TableIterator(self._connected_tableref,
                                              self.connected_table.to_table())
@@ -432,7 +432,7 @@ class MivotViewer:
         """
 
         if len(self._parsed_votable.resources) < 1:
-            raise MivotException("No resource detected in the VOTable")
+            raise MivotError("No resource detected in the VOTable")
         rnb = 0
         for res in self._parsed_votable.resources:
             if res.type.lower() == "results":
@@ -440,14 +440,14 @@ class MivotViewer:
                 self._resource = self._parsed_votable.resources[rnb]
                 return
             rnb += 1
-        raise MivotException("No resource @type='results'detected in the VOTable")
+        raise MivotError("No resource @type='results'detected in the VOTable")
 
     def _set_mapping_block(self):
         """
         Set the mapping block found in the resource and set the annotation_seeker
         """
         if NoMapping.search(self._resource.mivot_block.content):
-            raise MappingException("Mivot block is not found")
+            raise MappingError("Mivot block is not found")
         # The namespace should be removed
         self._mapping_block = (
             etree.fromstring(self._resource.mivot_block.content

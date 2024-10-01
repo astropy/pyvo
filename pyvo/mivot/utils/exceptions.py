@@ -3,19 +3,19 @@ MIVOT Exceptions
 
 3 exception classes
 - AstropyVersionException that prevent to use the package
-- MappingException if the annotation cannot be processed (e.g. no MIVOT block)
+- MappingError if the annotation cannot be processed (e.g. no MIVOT block)
   but the VOtable parsing can continue
-- MivotException in any other case (block the processing)
+- MivotError in any other case (block the processing)
 """
 
 
-class MivotException(Exception):
+class MivotError(Exception):
     """
     The annotation block is there but something went wrong with its processing
     """
 
 
-class MappingException(Exception):
+class MappingError(Exception):
     """
     Exception raised if a Resource or MIVOT element can't be mapped for one of these reasons:
     - It doesn't match with any Resource/MIVOT element expected.
@@ -25,7 +25,7 @@ class MappingException(Exception):
     """
 
 
-class NoMatchingDMTypeError(Exception):
+class NoMatchingDMTypeError(TypeError):
     """
     Exception thrown when some PyVO code misses MIVOT element:
     - When trying to build a SkyCoord while there is no position in the annotations
