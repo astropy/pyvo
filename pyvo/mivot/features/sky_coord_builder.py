@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Utility transforming MIVOT annotation into SKYCoord instances
+Utility transforming MIVOT annotation into SkyCoord instances
 """
 
 from astropy.coordinates import SkyCoord
@@ -11,7 +11,7 @@ from pyvo.mivot.utils.exceptions import NoMatchingDMTypeError
 
 class MangoRoles:
     """
-    Place holder for the roles of the mango:EpochPosition roles
+    Place holder for the roles (attribute names) of the mango:EpochPosition class
     """
     LONGITUDE = "longitude"
     LATITUDE = "latitude"
@@ -42,7 +42,7 @@ class SkyCoordBuilder(object):
     Utility generating SkyCoord instances from MIVOT annotations
 
     - SkyCoord instances can only be built from model classes containing the minimal
-    set of required parameters (a position).
+      set of required parameters (a position).
     - In this implementation, only the mango:EpochPosition class is supported since
       it contains the information required to compute the epoch propagation which is a major use-case
     '''
@@ -53,41 +53,49 @@ class SkyCoordBuilder(object):
 
         parameters
         -----------
-        - mivot_instance_dict: viewer.MivotInstance.to_dict()
-                               Internal dictionary of the dynamic Python object generated
-                               from the MIVOT block
+        mivot_instance_dict: viewer.MivotInstance.to_dict()
+            Internal dictionary of the dynamic Python object generated from the MIVOT block
         '''
         self._mivot_instance_dict = mivot_instance_dict
         self._map_coord_names = None
 
     def build_sky_coord(self):
         """
-        Build a SkyCoord instance from the dynamic Python object attribute.
+        Build a SkyCoord instance from the MivotInstance dictionary.
+        The operation requires the dictionary to have ``mango:EpochPosition`` as dmtype
+        This is a public method which could be extended to support other dmtypes.
 
         returns
         -------
-        - SkyCoord instance
+        SkyCoord
+            Instance built by the method
 
         raises
         ------
-        - NoMatchingDMTypeError: if the SkyCoord instance cannot be built.
+        NoMatchingDMTypeError
+            if the SkyCoord instance cannot be built.
         """
         if self._mivot_instance_dict and self._mivot_instance_dict["dmtype"] == "mango:EpochPosition":
             return self._build_sky_coord_from_mango()
-        raise NoMatchingDMTypeError("No INSTANCE with dmtype='mango:EpochPosition' has been found:"
-                               " cannot build a SkyCoord from annotations")
+        raise NoMatchingDMTypeError(
+            "No INSTANCE with dmtype='mango:EpochPosition' has been found:"
+            " cannot build a SkyCoord from annotations")
 
     def _set_year_time_format(self, hk_field, besselian=False):
         """
-        Format a date expressed in year as J-year
+        Format a date expressed in year as [scale]year
 
         parameters
         ----------
-        - hk_field: MIVOT instance parameter as a dict
+        hk_field: dict
+            MIVOT instance attribute
+        besselian: boolean
+            besselian time scale is used if True, otherwise Julian (default)
 
         returns
         -------
-        - formatted string
+        string
+            attribute value formatted as [scale]year
         """
         scale = "J" if not besselian else "B"
         return (f"{scale}{hk_field['value']}" if hk_field["unit"] in ("yr", "year")
@@ -97,17 +105,18 @@ class SkyCoordBuilder(object):
         """
         Build an astropy space frame instance from the MIVOT annotations.
 
-        - Equinox are supported fot FK4/5
-        - Ref location are not supported
+        - Equinox are supported for FK4/5
+        - Reference location is not supported
 
         parameters
         ----------
-        - obstime: string
-                   Observation time is given here because KF4 set an default value
-                   if it is not given
+        obstime: str
+            Observation time is given to the space frame builder (this method) because
+            it must be set by the coordinate system constructor in case of FK4 frame.
         returns
         -------
-        - Astropy space frame
+        FK2, FK5, ICRS or Galactic
+            Astropy space frame instance
         """
         coo_sys = self._mivot_instance_dict["coordSys"]
         equinox = None
@@ -136,18 +145,19 @@ class SkyCoordBuilder(object):
 
     def _build_sky_coord_from_mango(self):
         """
-        Build silently a SkyCoord instance from the mango:EpochPosition instance.
-        No error is trapped, unconsistencies in the mango:EpochPosition instance will
+        Build silently a SkyCoord instance from the ``mango:EpochPosition instance``.
+        No error is trapped, unconsistencies in the ``mango:EpochPosition`` instance will
         raise Astropy errors.
 
-        - The epoch (obstime) is meant to be given as J-year.
+        - The epoch (obstime) is meant to be given in year.
         - ICRS frame is taken by default
         - The cos-delta correction is meant to be applied.
-          The case mango:pmCosDeltApplied = False is not suppored yet
+          The case ``mango:pmCosDeltApplied = False`` is not supported yet
 
         returns
         -------
-        - SkyCoord instance
+        SkyCoord
+            instance built by the method
         """
         kwargs = {}
         kwargs["frame"] = self._get_space_frame()
