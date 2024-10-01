@@ -791,10 +791,11 @@ class TestTAPCapabilities:
         func = tapservice.get_tap_capability().get_adql().get_udf("IVO_hasword")  # case insensitive!
         assert func.form == "ivo_hasword(haystack TEXT, needle TEXT) -> INTEGER"
 
+
 def test_get_endpoint_candidates():
     # Directly instantiate the TAPService with a known base URL
     svc = TAPService("http://astroweb.projects.phys.ucl.ac.uk:8000/tap")
-    
+
     # Check if the correct endpoint candidates are generated
     expected_urls = [
         "http://astroweb.projects.phys.ucl.ac.uk:8000/tap/capabilities",

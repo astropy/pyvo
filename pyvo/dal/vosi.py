@@ -24,15 +24,12 @@ class EndpointMixin():
         netloc = urlcomp.hostname
         if urlcomp.port:
             netloc += f':{urlcomp.port}'
-        curated_baseurl = '{}://{}{}'.format(urlcomp.scheme, netloc, urlcomp.path)
+        curated_baseurl = f'{urlcomp.scheme}://{netloc}{urlcomp.path}'
 
         if not endpoint:
             raise AttributeError('endpoint required')
-        
-        return [
-            '{baseurl}/{endpoint}'.format(baseurl=curated_baseurl, endpoint=endpoint),
-            url_sibling(curated_baseurl, endpoint)
-        ]
+
+        return [f'{curated_baseurl}/{endpoint}', url_sibling(curated_baseurl, endpoint)]
 
     def _get_endpoint(self, endpoint):
         for ep_url in self._get_endpoint_candidates(endpoint):
@@ -43,8 +40,7 @@ class EndpointMixin():
             except requests.RequestException:
                 continue
         else:
-            raise DALServiceError(
-                f"No working {endpoint} endpoint provided")
+            raise DALServiceError(f"No working {endpoint} endpoint provided")
 
         return response.raw
 
@@ -144,6 +140,7 @@ class VOSITables:
     Access to table names is like accessing dictionary keys. using iterator
     syntax or `keys()`
     """
+
     def __init__(self, vosi_tables, endpoint_url, *, session=None):
         self._vosi_tables = vosi_tables
         self._endpoint_url = endpoint_url
