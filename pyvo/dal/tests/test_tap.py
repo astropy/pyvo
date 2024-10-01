@@ -793,7 +793,7 @@ class TestTAPCapabilities:
 
 def test_get_endpoint_candidates():
     # Directly instantiate the TAPService with a known base URL
-    svc = pyvo.dal.TAPService("http://astroweb.projects.phys.ucl.ac.uk:8000/tap")
+    svc = TAPService("http://astroweb.projects.phys.ucl.ac.uk:8000/tap")
     
     # Check if the correct endpoint candidates are generated
     expected_urls = [
