@@ -18,24 +18,21 @@ __all__ = ['CapabilityMixin', 'VOSITables']
 
 
 class EndpointMixin():
-    def _get_endpoint(self, endpoint):
-        # finds the endpoint relative to the base url or its parent
-        # and returns its content in raw format
-
-        # do not trust baseurl as it might contain query or fragments
+    def _get_endpoint_candidates(self, endpoint):
         urlcomp = urlparse(self.baseurl)
-        curated_baseurl = '{}://{}{}'.format(urlcomp.scheme,
-                                             urlcomp.hostname,
-                                             urlcomp.path)
+        # Include the port number if present
+        netloc = urlcomp.hostname
+        if urlcomp.port:
+            netloc += f':{urlcomp.port}'
+        curated_baseurl = f'{urlcomp.scheme}://{netloc}{urlcomp.path}'
+
         if not endpoint:
             raise AttributeError('endpoint required')
-        ep_urls = [
-            '{baseurl}/{endpoint}'.format(baseurl=curated_baseurl,
-                                          endpoint=endpoint),
-            url_sibling(curated_baseurl, endpoint)
-        ]
 
-        for ep_url in ep_urls:
+        return [f'{curated_baseurl}/{endpoint}', url_sibling(curated_baseurl, endpoint)]
+
+    def _get_endpoint(self, endpoint):
+        for ep_url in self._get_endpoint_candidates(endpoint):
             try:
                 response = self._session.get(ep_url, stream=True)
                 response.raise_for_status()
@@ -43,9 +40,7 @@ class EndpointMixin():
             except requests.RequestException:
                 continue
         else:
-            raise DALServiceError(
-                "No working {endpoint} endpoint provided".format(
-                    endpoint=endpoint))
+            raise DALServiceError(f"No working {endpoint} endpoint provided")
 
         return response.raw
 
@@ -145,6 +140,7 @@ class VOSITables:
     Access to table names is like accessing dictionary keys. using iterator
     syntax or `keys()`
     """
+
     def __init__(self, vosi_tables, endpoint_url, *, session=None):
         self._vosi_tables = vosi_tables
         self._endpoint_url = endpoint_url
