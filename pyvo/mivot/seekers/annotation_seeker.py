@@ -3,7 +3,7 @@
 Utilities for extracting sub-blocks from a MIVOT mapping block.
 """
 import logging
-from pyvo.mivot.utils.exceptions import MivotException, MappingException
+from pyvo.mivot.utils.exceptions import MivotError, MappingError
 from pyvo.mivot.utils.vocabulary import Att, Ele
 from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.mivot.utils.xpath_utils import XPath
@@ -73,7 +73,7 @@ class AnnotationSeeker:
                     logging.debug("Found " + Ele.TEMPLATES + " without " + Att.tableref)
                     self._templates_blocks["DEFAULT"] = child
                 else:
-                    raise MivotException(Ele.TEMPLATES + " without " + Att.tableref + " must be unique")
+                    raise MivotError(Ele.TEMPLATES + " without " + Att.tableref + " must be unique")
 
     def _rename_ref_and_join(self):
         """
@@ -391,7 +391,7 @@ class AnnotationSeeker:
         Raises
         ------
         MivotElementNotFound: If no element matches the criteria.
-        MappingException: If more than one element matches the criteria.
+        MappingError: If more than one element matches the criteria.
         """
         eset = XPath.x_path(self._globals_block, ".//" + Ele.COLLECTION + "[@" + Att.dmid + "='"
                             + coll_dmid + "']/" + Ele.INSTANCE + "/" + Att.primarykey
@@ -400,14 +400,14 @@ class AnnotationSeeker:
             message = (f"{Ele.INSTANCE} with {Att.primarykey} = {key_value} in "
                        f"{Ele.COLLECTION} {Att.dmid} {key_value} not found"
                        )
-            raise MivotException(message)
+            raise MivotError(message)
         if len(eset) > 1:
             message = (
                 f"More than one {Ele.INSTANCE} with {Att.primarykey}"
                 f" = {key_value} found in {Ele.COLLECTION} "
                 f"{Att.dmid} {key_value}"
             )
-            raise MappingException(message)
+            raise MappingError(message)
         logging.debug(Ele.INSTANCE + " with " + Att.primarykey + "=%s found in "
                      + Ele.COLLECTION + " "
                      + Att.dmid + "=%s", key_value, coll_dmid)

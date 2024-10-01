@@ -3,7 +3,7 @@
 XMLViewer provides several getters on XML instances built by
  `pyvo.mivot.viewer.mivot_viewer`.
 """
-from pyvo.mivot.utils.exceptions import MivotException
+from pyvo.mivot.utils.exceptions import MivotError
 from pyvo.mivot.utils.xpath_utils import XPath
 from pyvo.utils.prototype import prototype_feature
 
@@ -60,7 +60,7 @@ class XMLViewer:
             dmrole)
 
         if len(instances) == 0:
-            raise MivotException(
+            raise MivotError(
                 f"Cannot find dmrole {dmrole} in any instances of the VOTable")
 
         if all_instances is False:
@@ -98,7 +98,7 @@ class XMLViewer:
             dmtype)
 
         if len(instances) == 0:
-            raise MivotException(
+            raise MivotError(
                 f"Cannot find dmtype {dmtype} in any instances of the VOTable")
 
         if all_instances is False:
@@ -136,7 +136,7 @@ class XMLViewer:
             dmrole)
 
         if len(collections) == 0:
-            raise MivotException(
+            raise MivotError(
                 f"Cannot find dmrole {dmrole} in any collections of the VOTable")
 
         if all_instances is False:

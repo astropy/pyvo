@@ -19,14 +19,12 @@ fake_hk_dict = {
                 "dmtype": "RealQuantity",
                 "value": 52.2340018,
                 "unit": "deg",
-                "astropy_unit": {},
                 "ref": "RAICRS"
             },
             "latitude": {
                 "dmtype": "RealQuantity",
                 "value": 59.8937333,
                 "unit": "deg",
-                "astropy_unit": {},
                 "ref": "DEICRS"
             }
 }
