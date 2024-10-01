@@ -16,6 +16,8 @@ Bug Fixes
 - Adding ``session`` kwarg to allow to pass a session along when turning
   an Interface into a service via ``Interface.to_service``. [#590]
 
+- Include port number if it is present in endpoint access URL. [#582]
+
 
 1.5.2 (2024-05-22)
 ==================
