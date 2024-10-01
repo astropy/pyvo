@@ -180,7 +180,8 @@ Once you get a ``MivotInstance`` representing the last row read, you can use it 
     <SkyCoord (ICRS): (ra, dec) in deg(52.26722684, 59.94033461)
           (pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>
 
-This feature works under the condition that the annotations contain a valid instance of ``mango:EPochPosition``. 
+This feature works under the condition that the annotations contain a valid instance of ``mango:EPochPosition``, otherwise
+a ``NoMatchingDMTypeError`` is thrown. 
 Although not a standard at the time of writing, the class structure supported by this implementation must match the figure above.
 
 

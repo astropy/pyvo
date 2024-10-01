@@ -25,7 +25,7 @@ class MappingException(Exception):
     """
 
 
-class NoMatchingDMType(Exception):
+class NoMatchingDMTypeError(Exception):
     """
     Exception thrown when some PyVO code misses MIVOT element:
     - When trying to build a SkyCoord while there is no position in the annotations

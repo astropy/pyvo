@@ -6,7 +6,7 @@ Utility transforming MIVOT annotation into SKYCoord instances
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.coordinates import ICRS, Galactic, FK4, FK5
-from pyvo.mivot.utils.exceptions import NoMatchingDMType
+from pyvo.mivot.utils.exceptions import NoMatchingDMTypeError
 
 
 class MangoRoles:
@@ -70,11 +70,11 @@ class SkyCoordBuilder(object):
 
         raises
         ------
-        - NoMatchingDMType: if the SkyCoord instance cannot be built.
+        - NoMatchingDMTypeError: if the SkyCoord instance cannot be built.
         """
         if self._mivot_instance_dict and self._mivot_instance_dict["dmtype"] == "mango:EpochPosition":
             return self._build_sky_coord_from_mango()
-        raise NoMatchingDMType("No INSTANCE with dmtype='mango:EpochPosition' has been found:"
+        raise NoMatchingDMTypeError("No INSTANCE with dmtype='mango:EpochPosition' has been found:"
                                " cannot build a SkyCoord from annotations")
 
     def _set_year_time_format(self, hk_field, besselian=False):
