@@ -65,6 +65,9 @@ Deprecations and Removals
 - Deprecating the use of "image" and "spectrum" in registry Servicetype
   constraints [#449]
 
+- Removed usage of the astropy TestRunner, therefore the unadvertised
+  ``pyvo.test()`` functionality. [#606]
+
 
 1.5.3 (unreleased)
 ==================
