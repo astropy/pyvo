@@ -19,6 +19,13 @@ Bug Fixes
 - Include port number if it is present in endpoint access URL. [#582]
 
 
+Deprecations and Removals
+-------------------------
+
+- Removed usage of the astropy TestRunner, therefore the unadvertised
+  ``pyvo.test()`` functionality. [#606]
+
+
 1.5.2 (2024-05-22)
 ==================
 

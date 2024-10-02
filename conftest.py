@@ -5,6 +5,8 @@
 
 import os
 import tempfile
+import numpy as np
+from astropy.utils import minversion
 
 try:
     from pytest_astropy_header.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS
@@ -36,6 +38,11 @@ except ImportError:
 # revisit this config when minimum supported astropy is 5.1.
 from astropy.utils.iers import conf as iers_conf
 iers_conf.auto_download = False
+
+
+# Keep this until we require numpy to be >=2.0
+if minversion(np, "2.0.0.dev0+git20230726"):
+    np.set_printoptions(legacy="1.25")
 
 
 def pytest_configure(config):
