@@ -8,10 +8,11 @@ from functools import partial
 import pytest
 
 import pyvo as vo
-from pyvo.dal.adhoc import DatalinkResults
+from pyvo.dal.adhoc import DatalinkResults, DALServiceError
 from pyvo.dal.sia2 import SIA2Results
 from pyvo.dal.tap import TAPResults
 from pyvo.utils import testing, vocabularies
+from pyvo.dal.sia import search
 
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 
@@ -307,3 +308,14 @@ class TestIterDatalinksProducts:
         assert len(links) == 1
         assert (next(links[0].bysemantics("#this"))["access_url"]
             == "http://dc.zah.uni-heidelberg.de/getproduct/flashheros/data/ca90/f0011.mt")
+
+
+@pytest.mark.usefixtures('sia', 'register_mocks')
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+def test_search():
+    # for issue #328 getdatalink() exits messily when there isn't a datalink
+
+    results = search('http://example.com/sia', pos=(288, 15), format="all")
+    result = results[0]
+    with pytest.raises(DALServiceError, match="No datalink found for record."):
+        result.getdatalink()

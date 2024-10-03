@@ -307,6 +307,32 @@ class DatalinkRecordMixin:
 
     - ``getdataset()`` considers datalink.
     """
+    def getdatalinkurl(self):
+        """
+        look for and return the URL contained in record columns
+        to retrieve the datalink associated with this record.
+        DALServiceError is raised if no datalink column is found.
+        """
+        # First, check if the main url of the record is a datalink
+        access_format = self.getdataformat()
+        if ('datalink' in access_format) or ('votable' in access_format):
+            return self.getdataurl()
+
+        # Next, check if any columns are datalinks
+        for fieldname in self._results.fieldnames:
+            field = self._results.getdesc(fieldname)
+            if "meta.ref.url" in field.ucd:
+                out = self[fieldname]
+                if isinstance(out, bytes):
+                    out = out.decode('utf-8')
+                try:
+                    content = requests.get(out, stream=True).headers['Content-Type']
+                    if ('datalink' in content) or ('votable' in content):
+                        return out
+                except requests.exceptions.MissingSchema:
+                    pass
+                
+        raise DALServiceError("No datalink found for record.")
 
     def getdatalink(self):
         try:
@@ -315,7 +341,11 @@ class DatalinkRecordMixin:
             query = DatalinkQuery.from_resource(self, datalink, session=self._session)
             return query.execute()
         except DALServiceError:
-            return DatalinkResults.from_result_url(self.getdataurl(), session=self._session)
+            datalink_url = self.getdatalinkurl()
+            return DatalinkResults.from_result_url(datalink_url, session=self._session)
+
+
+
 
     @stream_decode_content
     def getdataset(self, timeout=None):
