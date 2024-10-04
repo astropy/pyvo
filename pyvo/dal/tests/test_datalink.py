@@ -4,6 +4,7 @@
 Tests for pyvo.dal.datalink
 """
 from functools import partial
+import re
 
 import pytest
 
@@ -30,6 +31,24 @@ def ssa_datalink(mocker):
     ) as matcher:
         yield matcher
 
+sia_re = re.compile('http://example.com/sia.*')
+
+
+@pytest.fixture()
+def register_mocks(mocker):
+    with mocker.register_uri(
+        'GET', 'http://example.com/querydata/image.fits',
+        content=get_pkg_data_contents('data/querydata/image.fits')
+    ) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
+def sia(mocker):
+    with mocker.register_uri(
+        'GET', sia_re, content=get_pkg_data_contents('data/sia/dataset.xml')
+    ) as matcher:
+        yield matcher
 
 @pytest.fixture()
 def datalink(mocker):
