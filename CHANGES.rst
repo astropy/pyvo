@@ -56,6 +56,9 @@ Enhancements and Fixes
 - iter_metadata() no longer crashes on tables with a datalink RESOURCE
   and without obscore attributes [#599]
 
+- getdatalink() now checks content type of urls and raises a more informative error
+  when no datalink is found [#328]
+
 
 Deprecations and Removals
 -------------------------
