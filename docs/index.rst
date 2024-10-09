@@ -132,9 +132,11 @@ Using ``pyvo``
 
    dal/index
    registry/index
+   discover/index
    io/index
    auth/index
    samp
    mivot/index
    utils/index
    utils/prototypes
+   utils/testing

@@ -57,6 +57,10 @@ Enhancements and Fixes
   and without obscore attributes [#599]
 
 
+- New sub-package discover for global dataset discovery. [#470]
+
+
+
 Deprecations and Removals
 -------------------------
 
