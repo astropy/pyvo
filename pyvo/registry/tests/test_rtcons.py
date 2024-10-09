@@ -304,8 +304,9 @@ class TestSpatialConstraint:
 
     def test_moc_and_inclusive(self):
         cons = registry.Spatial("0/1-3 3/", inclusive=True)
-        assert cons.get_search_condition(FAKE_GAVO) == \
-            "ivoid IN (SELECT DISTINCT ivoid FROM rr.stc_spatial WHERE 1 = CONTAINS(MOC('0/1-3 3/'), coverage)) OR coverage IS NULL"
+        assert cons.get_search_condition(FAKE_GAVO) == (
+            "ivoid IN (SELECT DISTINCT ivoid FROM rr.stc_spatial WHERE 1 = "
+            "CONTAINS(MOC('0/1-3 3/'), coverage) OR coverage IS NULL)")
 
     def test_SkyCoord(self):
         cons = registry.Spatial(SkyCoord(3 * u.deg, -30 * u.deg))

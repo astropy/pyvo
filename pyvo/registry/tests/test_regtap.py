@@ -88,8 +88,8 @@ def single_keyword_fixture(mocker, capabilities, scope="session"):
         data = dict(parse_qsl(request.body))
         query = data['QUERY']
 
-        assert (" UNION SELECT ivoid FROM rr.res_subject WHERE"
-            " rr.res_subject.res_subject ILIKE '%single%'") in query
+        assert (" UNION ALL SELECT DISTINCT ivoid FROM rr.res_subject WHERE "
+                "rr.res_subject.res_subject ILIKE '%single%'") in query
         assert "1=ivo_hasword(res_description, 'single') " in query
         assert "1=ivo_hasword(res_title, 'single')" in query
 
