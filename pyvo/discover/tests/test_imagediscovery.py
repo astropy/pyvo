@@ -13,13 +13,6 @@ from astropy import units as u
 
 from pyvo import dal
 from pyvo import registry
-
-# remove the following paragraph once discover's API has stabilised and we
-# no longer raise a PrototypeWarning.
-from pyvo.utils.prototype import PrototypeWarning
-import warnings
-warnings.simplefilter("ignore", PrototypeWarning)
-
 from pyvo.discover import image
 from pyvo import discover
 
