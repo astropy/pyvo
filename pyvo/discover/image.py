@@ -39,6 +39,8 @@ from ..registry import regtap
 from typing import Callable, Generator, List, Optional, Set, Tuple
 from astropy.units import quantity
 
+__all__ = ["ImageFound", "ImageDiscoverer", "images_globally"]
+
 
 # We should probably have a general way to set query timeouts in pyVO.
 # For now, we don't, but for global discovery there's really no way
@@ -59,7 +61,7 @@ class Queriable:
     """A facade for a queriable service.
 
     We keep these rather than work on
-    `pyvo.registry.regtap.RegistryResource`-s directly because the latter
+    `pyvo.registry.RegistryResource`-s directly because the latter
     actually live in VOTables which are very hard to manipulate.
 
     They are constructed with a resource record.
@@ -599,7 +601,7 @@ def images_globally(
         (if it declares a time).
     inclusive :
         Set to True to incluse services that do not declare their
-        STC coverage.  By 2023, it's a good idea to do that as many
+        STC coverage.  As of 2024, it may be advisable to do that as many
         relevant archives do not do that.
     watcher :
         A callable that will be called with the ImageDiscoverer instance and
@@ -615,7 +617,8 @@ def images_globally(
     Returns
     -------
     discovered_images, log_lines
-        The images found are returned in a list of `ImageFound` instances.
+        The images found are returned in a list of `pyvo.discover.ImageFound`
+        instances.
         log_lines is a list of strings reporting which services were
         queried with which result (and possibly more).  So far, this
         is not considered machine-readable.

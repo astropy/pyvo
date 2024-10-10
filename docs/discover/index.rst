@@ -55,7 +55,7 @@ For instance::
   print(datasets)
 
 The function returns a pair of lists.  ``datasets`` is a list of
-`~pyvo.discover.image.ImageFound` instances.  This is the (potentially
+`~pyvo.discover.ImageFound` instances.  This is the (potentially
 long) list of datasets located.
 
 The second returned value, ``log``, is a sequence of strings noting
@@ -210,4 +210,4 @@ A working example would look like this::
 Reference/API
 =============
 
-.. automodapi:: pyvo.discover.image
+.. automodapi:: pyvo.discover

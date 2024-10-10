@@ -11,4 +11,6 @@ warnings.warn("pyvo.discover's API is still under design in pyVO 1.6 and"
     " may change without prior notice.  Feedback to the authors is most"
     " welcome.", PrototypeWarning)
 
-from .image import images_globally, ImageDiscoverer
+from .image import images_globally, ImageDiscoverer, ImageFound
+
+__all__ = ['images_globally', "ImageDiscoverer", "ImageFound"]
