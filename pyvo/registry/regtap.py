@@ -235,7 +235,7 @@ def search(*constraints: rtcons.Constraint,
 
     Returns
     -------
-    ~pyvo.registry.regtap.RegistryResults`
+    ~pyvo.registry.RegistryResults`
        a container holding a table of matching resource (e.g. services)
 
     """

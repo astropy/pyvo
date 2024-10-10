@@ -15,4 +15,5 @@ __all__ = ["search", "get_RegTAP_query", "Constraint", "SubqueriedConstraint",
            "Freetext", "Author",
            "Servicetype", "Waveband", "Datamodel", "Ivoid", "UCD",
            "Spatial", "Spectral", "Temporal",
-           "choose_RegTAP_service", "RegTAPFeatureMissing"]
+           "choose_RegTAP_service", "RegTAPFeatureMissing",
+           "RegistryResults", "RegistryResource",]
