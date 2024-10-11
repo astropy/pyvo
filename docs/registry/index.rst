@@ -134,7 +134,7 @@ you would say:
   ...                             registry.Freetext("AGB"))
 
 After that, ``resources`` is an instance of
-:py:class:`~pyvo.registry.regtap.RegistryResults`, which you can iterate over.  In
+:py:class:`~pyvo.registry.RegistryResults`, which you can iterate over.  In
 interactive data discovery, however, it is usually preferable to use the
 ``to_table`` method for an overview of the resources available:
 
@@ -165,13 +165,12 @@ And to look for tap resources *in* a specific cone, you would do
                object             ...
   ------------------------------- ...
   ivo://cds.vizier/j/a+a/688/a104 ...
-     ivo://cds.vizier/j/aj/166/68 ...
+    ivo://cds.vizier/j/apj/938/73 ...
 
 Astropy Quantities are also supported for the radius angle of a SkyCoord-defined circular region:
 
 .. doctest-remote-data::
 
-  >>> from astropy.coordinates import SkyCoord
   >>> from astropy import units as u
   >>> registry.search(registry.Freetext("Wolf-Rayet"),
   ...                 registry.Spatial((SkyCoord("23d +3d"), 180*u.Unit('arcmin')), intersect="enclosed"))
@@ -181,7 +180,7 @@ Astropy Quantities are also supported for the radius angle of a SkyCoord-defined
                object             ...
   ------------------------------- ...
   ivo://cds.vizier/j/a+a/688/a104 ...
-     ivo://cds.vizier/j/aj/166/68 ...
+    ivo://cds.vizier/j/apj/938/73 ...
 
 Where ``intersect`` can take the following values:
   * 'covers' is the default and returns resources that cover the geometry provided,
@@ -205,7 +204,7 @@ are not), but it is rather clunky, and in the real VO short name
 collisions should be very rare.
 
 Use the ``get_service`` method of
-:py:class:`~pyvo.registry.regtap.RegistryResource` to obtain a DAL service
+:py:class:`~pyvo.registry.RegistryResource` to obtain a DAL service
 object for a particular sort of interface.
 To query the fourth match using simple cone search, you would
 thus say:
@@ -229,8 +228,8 @@ the first conesearch it finds.
 However some providers provide multiple services of the same type
 -- for example in VizieR you'll find one conesearch per table.
 In this case, you can inspect the available `~pyvo.registry.regtap.Interface` to services with
-`~pyvo.registry.regtap.RegistryResource.list_interfaces`. Then, you can refine your
-instructions to `~pyvo.registry.regtap.RegistryResource.get_service` with a keyword
+`~pyvo.registry.RegistryResource.list_interfaces`. Then, you can refine your
+instructions to `~pyvo.registry.RegistryResource.get_service` with a keyword
 constraint on the description ``get_service(service_type='conesearch', keyword='sncat')``.
 
 .. doctest-remote-data::
@@ -363,7 +362,7 @@ to find what x-ray images that have of CasA. For the arguments you will
 enter ``'image'`` for the service type and ``'x-ray'`` for the waveband.
 The position is provided by the Astropy library.
 
-The query returns a :py:class:`~pyvo.registry.regtap.RegistryResults` object
+The query returns a :py:class:`~pyvo.registry.RegistryResults` object
 which is a container holding a table of matching services. In this example
 it returns 33 matching services.
 
@@ -432,12 +431,12 @@ Search results
 ==============
 
 What is coming back from registry.search is
-:py:class:`pyvo.registry.regtap.RegistryResults` which is rather
+:py:class:`pyvo.registry.RegistryResults` which is rather
 similar to :ref:`pyvo-resultsets`; just remember that for interactive
 use there is the ``to_tables`` method discussed above.
 
 The individual items are instances of
-:py:class:`~pyvo.registry.regtap.RegistryResource`, which expose many
+:py:class:`~pyvo.registry.RegistryResource`, which expose many
 pieces of metadata (e.g., title, description, creators, etc) in
 attributes named like their RegTAP counterparts (see the class
 documentation).  Some attributes deserve a second look.
