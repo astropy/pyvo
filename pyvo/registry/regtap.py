@@ -238,6 +238,9 @@ def search(*constraints: rtcons.Constraint,
     ~pyvo.registry.RegistryResults`
        a container holding a table of matching resource (e.g. services)
 
+    See Also
+    --------
+    RegistryResults
     """
     service = get_RegTAP_service()
     query = RegistryQuery(
@@ -521,7 +524,7 @@ class RegistryResource(dalq.Record):
                       ] = self._parse_pseudo_array(self._mapping["access_urls"])
         self._mapping["standard_ids"] = [
             regularize_SIA2_id(id) for id in
-                self._parse_pseudo_array(self._mapping["standard_ids"])]
+            self._parse_pseudo_array(self._mapping["standard_ids"])]
         self._mapping["intf_types"
                       ] = self._parse_pseudo_array(self._mapping["intf_types"])
         self._mapping["intf_roles"

@@ -41,6 +41,7 @@ def create_dalresults(
 
     The arguments are as for create_votable.
     """
+
     return resultsClass(
         create_votable(field_descs, records),
         url="http://testing.pyvo/test-url")
