@@ -1,8 +1,8 @@
 .. _pyvo-utils:
 
-*****************************
-pyVO utilities (`pyvo.utils`)
-*****************************
+*******************************
+pyVO utilities (``pyvo.utils``)
+*******************************
 
 This subpackage collects a few packages intended to help developing
 and maintaining pyVO.  All of this is not part of pyVO's public API and
