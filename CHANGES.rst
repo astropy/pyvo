@@ -38,6 +38,9 @@ Enhancements and Fixes
 
 - New sub-package discover for global dataset discovery. [#470]
 
+- getdatalink() now checks content type of urls and raises a more informative error
+  when no datalink is found [#328]
+
 
 Deprecations and Removals
 -------------------------
