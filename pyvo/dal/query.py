@@ -211,8 +211,8 @@ class DALQuery(dict):
         except requests.RequestException as ex:
             # save for later use
             self._ex = ex
-        finally:
-            return response.raw
+
+        return response.raw
 
     def submit(self, *, post=False):
         """
@@ -1050,11 +1050,9 @@ class Upload:
 
             return fileobj
 
-        fileobj = self._content
-        try:
-            fileobj = open(self._content)
-        finally:
-            return fileobj
+        fileobj = open(self._content)
+
+        return fileobj
 
     def uri(self):
         """
