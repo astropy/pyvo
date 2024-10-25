@@ -39,6 +39,12 @@ Enhancements and Fixes
 - New sub-package discover for global dataset discovery. [#470]
 
 
+Bug Fixes
+---------
+
+- Fix propagating some previously swallowed exceptions. [#614]
+
+
 Deprecations and Removals
 -------------------------
 
