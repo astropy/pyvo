@@ -38,6 +38,8 @@ Enhancements and Fixes
 
 - New sub-package discover for global dataset discovery. [#470]
 
+- Updated getdatalink to be consistent with iter_datalinks. [#613]
+
 
 Deprecations and Removals
 -------------------------

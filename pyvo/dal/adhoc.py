@@ -263,6 +263,15 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         if access_url:
             return access_url
 
+    @staticmethod
+    def _guess_datalink(row, **kwargs):
+        # TODO: we should be more careful about whitespace, case
+        # and perhaps more parameters in the following comparison
+        if row._results._guess_access_format(row) == DATALINK_MIME_TYPE:
+            access_url = row._results._guess_access_url(row)
+            if access_url is not None:
+                return DatalinkResults.from_result_url(access_url, **kwargs)
+
     def _iter_datalinks_from_product_rows(self):
         """yield datalinks from self's rows if they describe datalink-valued
         products.
@@ -309,13 +318,31 @@ class DatalinkRecordMixin:
     """
 
     def getdatalink(self):
+        """
+        Retrieve the datalink information for this record.
+
+        Returns
+        -------
+        DatalinkResults
+            The datalink results for this record.
+
+        Raises
+        ------
+        DALServiceError
+            If no datalink information is found for this record.
+        """
         try:
             datalink = self._results.get_adhocservice_by_ivoid(DATALINK_IVOID)
 
             query = DatalinkQuery.from_resource(self, datalink, session=self._session)
             return query.execute()
-        except DALServiceError:
-            return DatalinkResults.from_result_url(self.getdataurl(), session=self._session)
+        except DALServiceError as error:
+            datalink = self._results._guess_datalink(self, session=self._session)
+            if datalink is not None:
+                return datalink
+            else:
+                # re-raise the original error if nothing works
+                raise DALServiceError("No datalink found for record.") from error
 
     @stream_decode_content
     def getdataset(self, timeout=None):
