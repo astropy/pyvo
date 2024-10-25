@@ -4,14 +4,16 @@
 Tests for pyvo.dal.datalink
 """
 from functools import partial
+import re
 
 import pytest
 
 import pyvo as vo
-from pyvo.dal.adhoc import DatalinkResults
+from pyvo.dal.adhoc import DatalinkResults, DALServiceError
 from pyvo.dal.sia2 import SIA2Results
 from pyvo.dal.tap import TAPResults
 from pyvo.utils import testing, vocabularies
+from pyvo.dal.sia import search
 
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 
@@ -26,6 +28,27 @@ def ssa_datalink(mocker):
 
     with mocker.register_uri(
         'GET', 'http://example.com/ssa_datalink', content=callback
+    ) as matcher:
+        yield matcher
+
+
+sia_re = re.compile("http://example.com/sia.*")
+
+
+@pytest.fixture()
+def register_mocks(mocker):
+    with mocker.register_uri(
+        "GET",
+        "http://example.com/querydata/image.fits",
+        content=get_pkg_data_contents("data/querydata/image.fits"),
+    ) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
+def sia(mocker):
+    with mocker.register_uri(
+        "GET", sia_re, content=get_pkg_data_contents("data/sia/dataset.xml")
     ) as matcher:
         yield matcher
 
@@ -307,3 +330,14 @@ class TestIterDatalinksProducts:
         assert len(links) == 1
         assert (next(links[0].bysemantics("#this"))["access_url"]
             == "http://dc.zah.uni-heidelberg.de/getproduct/flashheros/data/ca90/f0011.mt")
+
+
+@pytest.mark.usefixtures("sia", "register_mocks")
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+def test_no_datalink():
+    # for issue #328 getdatalink() exits messily when there isn't a datalink
+
+    results = search("http://example.com/sia", pos=(288, 15), format="all")
+    result = results[0]
+    with pytest.raises(DALServiceError, match="No datalink found for record."):
+        result.getdatalink()
