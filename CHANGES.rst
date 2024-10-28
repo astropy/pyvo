@@ -41,6 +41,12 @@ Enhancements and Fixes
 - Updated getdatalink to be consistent with iter_datalinks. [#613]
 
 
+Bug Fixes
+---------
+
+- Fix propagating some previously swallowed exceptions. [#614]
+
+
 Deprecations and Removals
 -------------------------
 
