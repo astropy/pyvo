@@ -1,4 +1,4 @@
-1.6 (unreleased)
+1.6 (2024-11-01)
 ================
 
 Enhancements and Fixes
