@@ -27,6 +27,7 @@ import shutil
 import re
 import requests
 from collections.abc import Mapping
+from io import BytesIO
 
 import collections
 
@@ -1033,15 +1034,18 @@ class Upload:
 
         # astropy table
         if isinstance(self._content, Table):
-            from io import BytesIO
+
             fileobj = BytesIO()
 
             self._content.write(output=fileobj, format="votable")
             fileobj.seek(0)
 
             return fileobj
+
+        elif isinstance(self._content, BytesIO):
+            return self._content
+
         elif isinstance(self._content, DALResults):
-            from io import BytesIO
             fileobj = BytesIO()
 
             table = self._content.to_table()
