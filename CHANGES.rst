@@ -1,4 +1,24 @@
-1.6 (unreleased)
+1.7 (unreleased)
+================
+
+Enhancements and Fixes
+----------------------
+
+
+Deprecations and Removals
+-------------------------
+
+
+1.6.1 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+- Fix propagating some previously swallowed exceptions. [#614]
+
+
+1.6 (2024-11-01)
 ================
 
 Enhancements and Fixes
@@ -39,12 +59,6 @@ Enhancements and Fixes
 - New sub-package discover for global dataset discovery. [#470]
 
 - Updated getdatalink to be consistent with iter_datalinks. [#613]
-
-
-Bug Fixes
----------
-
-- Fix propagating some previously swallowed exceptions. [#614]
 
 
 Deprecations and Removals
