@@ -526,3 +526,9 @@ class TestUpload:
         assert fileobj
 
         fileobj.close()
+
+    def test_upload_nonfileobj(self):
+        upload = Upload('up', 'some text that is not a resource')
+
+        with pytest.raises(ValueError):
+            upload.fileobj()
