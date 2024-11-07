@@ -6,7 +6,7 @@ Tests for pyvo.dal.query
 from functools import partial
 
 from contextlib import ExitStack
-
+from io import BytesIO
 from os import listdir
 
 import pytest
@@ -15,11 +15,12 @@ import numpy as np
 
 import platform
 
-from pyvo.dal.query import DALService, DALQuery, DALResults, Record
+from pyvo.dal.query import DALService, DALQuery, DALResults, Record, Upload
 from pyvo.dal.exceptions import DALServiceError, DALQueryError, DALFormatError, DALOverflowWarning
 from pyvo.version import version
 
 from astropy.table import Table, QTable
+from astropy.io.votable import parse as votableparse
 from astropy.io.votable.tree import VOTableFile
 
 try:
@@ -29,7 +30,7 @@ except ImportError:
     from astropy.io.votable.tree import Table as TableElement
 
 from astropy.io.fits import HDUList
-from astropy.utils.data import get_pkg_data_contents
+from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 
 get_pkg_data_contents = partial(
     get_pkg_data_contents, package=__package__, encoding='binary')
@@ -511,4 +512,23 @@ class TestRecord:
 
 
 class TestUpload:
-    pass
+    bytesio = BytesIO(get_pkg_data_contents('data/query/dataset.xml', encoding='binary'))
+    filename = get_pkg_data_filename('data/query/dataset.xml')
+    astropy_table = Table.read(filename)
+    records = DALResults(votableparse(filename))
+
+    @pytest.mark.parametrize('content', (bytesio, filename, astropy_table, records))
+    def test_upload(self, content):
+        upload = Upload('up', content)
+
+        fileobj = upload.fileobj()
+
+        assert fileobj
+
+        fileobj.close()
+
+    def test_upload_nonfileobj(self):
+        upload = Upload('up', 'some text that is not a resource')
+
+        with pytest.raises(ValueError):
+            upload.fileobj()
