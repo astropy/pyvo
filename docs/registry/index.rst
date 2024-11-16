@@ -158,7 +158,7 @@ And to look for tap resources *in* a specific cone, you would do
 
   >>> from astropy.coordinates import SkyCoord
   >>> registry.search(registry.Freetext("Wolf-Rayet"),
-  ...                 registry.Spatial((SkyCoord("23d +3d"), 3), intersect="enclosed"))
+  ...                 registry.Spatial((SkyCoord("23d +3d"), 3), intersect="enclosed"))  # doctest: +IGNORE_OUTPUT
   <DALResultsTable length=3>
                  ivoid                ...
                                       ...
@@ -174,7 +174,7 @@ Astropy Quantities are also supported for the radius angle of a SkyCoord-defined
 
   >>> from astropy import units as u
   >>> registry.search(registry.Freetext("Wolf-Rayet"),
-  ...                 registry.Spatial((SkyCoord("23d +3d"), 180*u.Unit('arcmin')), intersect="enclosed"))
+  ...                 registry.Spatial((SkyCoord("23d +3d"), 180*u.Unit('arcmin')), intersect="enclosed"))  # doctest: +IGNORE_OUTPUT
   <DALResultsTable length=3>
                  ivoid                ...
                                       ...
