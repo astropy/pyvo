@@ -11,10 +11,10 @@ from astropy.io.fits import HDUList
 from ..utils.http import use_session
 
 
-mimetypes.add_type('application/fits', 'fits')
-mimetypes.add_type('application/x-fits', 'fits')
-mimetypes.add_type('image/fits', 'fits')
-mimetypes.add_type('text/plain', 'txt')
+mimetypes.add_type('application/fits', '.fits')
+mimetypes.add_type('application/x-fits', '.fits')
+mimetypes.add_type('image/fits', '.fits')
+mimetypes.add_type('text/plain', '.txt')
 
 
 def mime2extension(mimetype, default=None):
