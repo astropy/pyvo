@@ -23,7 +23,7 @@ class XmlUtils:
         print(XmlUtils.pretty_string(xmltree))
 
     @staticmethod
-    def pretty_string(xmltree):
+    def pretty_string(xmltree, clean_ns=True):
         """
         Return a pretty string representation of an XML tree.
         Parameters
@@ -39,7 +39,12 @@ class XmlUtils:
         else:
             XmlUtils.indent(xmltree)
             new_xml = ET.tostring(xmltree, encoding='unicode')
-        return new_xml.replace("ns0:", "")
+        if clean_ns:
+            return new_xml.replace("ns0:", "")
+        else:
+            return new_xml
+
+            
 
     @staticmethod
     def indent(elem, level=0):
