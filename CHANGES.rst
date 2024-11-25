@@ -17,6 +17,8 @@ Bug Fixes
 
 - Fix propagating some previously swallowed exceptions. [#614]
 
+- Fix string literal generation for SQL query when using numpy >=2.0. [#624]
+
 
 1.6 (2024-11-01)
 ================
