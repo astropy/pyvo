@@ -102,11 +102,8 @@ def make_sql_literal(value):
     elif isinstance(value, bytes):
         return "'{}'".format(value.decode("ascii").replace("'", "''"))
 
-    elif isinstance(value, (int, numpy.integer)):
-        return "{:d}".format(value)
-
-    elif isinstance(value, (float, numpy.floating)):
-        return repr(value)
+    elif isinstance(value, (int, numpy.integer, float, numpy.floating)):
+        return f'{value}'
 
     elif isinstance(value, datetime.datetime):
         return "'{}'".format(value.isoformat())

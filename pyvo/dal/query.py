@@ -695,7 +695,7 @@ class Record(Mapping):
         return len(self._mapping)
 
     def __repr__(self):
-        return repr(tuple(self.values()))
+        return repr(tuple(f'{val}' for val in self.values()))
 
     def get(self, key, default=None, decode=False):
         """

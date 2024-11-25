@@ -461,7 +461,7 @@ class TestRecord:
         record = DALResults.from_result_url(
             'http://example.com/query/basic')[0]
         truth = 'Illuminatus'
-        assert repr(record) == repr((23, truth))
+        assert repr(record) == repr(('23', truth))
 
     def test_get(self):
         record = DALResults.from_result_url(
