@@ -11,7 +11,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-import numpy
+import numpy as np
 import pytest
 
 from pyvo import registry
@@ -19,6 +19,10 @@ from pyvo.registry import rtcons
 from pyvo.dal import query as dalq
 
 from .commonfixtures import messenger_vocabulary, FAKE_GAVO, FAKE_PLAIN  # noqa: F401
+
+
+# We should make sure non-legacy numpy works as expected for string literal generation
+np.set_printoptions(legacy=False)
 
 
 def _build_regtap_query_with_fake(
@@ -52,7 +56,7 @@ class TestSQLLiterals:
                 "bytes": b"keep this ascii for now",
                 "anInt": 210,
                 "aFloat": 5e7,
-                "numpyStuff": numpy.float64(23.7),
+                "numpyStuff": np.float64(23.7),
                 "timestamp": datetime.datetime(2021, 6, 30, 9, 1), }
 
         return _WithFillers()._get_sql_literals()
