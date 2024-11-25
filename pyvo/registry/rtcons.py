@@ -106,7 +106,7 @@ def make_sql_literal(value):
         return "{:d}".format(value)
 
     elif isinstance(value, (float, numpy.floating)):
-        return repr(value)
+        return f'{value}'
 
     elif isinstance(value, datetime.datetime):
         return "'{}'".format(value.isoformat())
