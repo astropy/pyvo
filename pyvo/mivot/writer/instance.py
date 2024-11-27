@@ -1,60 +1,73 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 MivotInstance is a simple API for building MIVOT instances step by step.
-- This code is totally model-agnostic
-- The basic syntax rules of MIVOT are checked
-- The context dependent syntax rules are ignored
 
-MivotInstance builds <INSTANCE> elements that can contain <ATTRIBUTE>, <INSTANCE> and <REFERENCE>
-<COLLECTION> are not supported yet
+Features
+--------
+- Model-agnostic: The implementation is independent of any specific data model.
+- Syntax validation: Ensures basic MIVOT syntax rules are followed.
+- Context-agnostic: Ignores context-dependent syntax rules.
 
-The code below shows a typical use of MivotInstance:
+MivotInstance builds <INSTANCE> elements that can contain <ATTRIBUTE>, <INSTANCE>, and <REFERENCE>.
+Support for <COLLECTION> elements is not yet implemented.
 
-    .. code-block:: python
+Usage Example
+-------------
+.. code-block:: python
 
-    instance1 = MivotInstance(dmtype="model:type.inst", dmid="id1")
-    instance1.add_attribute(dmtype="model:type.att1", dmrole="model:type.inst.role1",  value="value1", unit="m/s")
-    instance1.add_attribute(dmtype="model:type.att2", dmrole="model:type.inst.role2",  value="value2", unit="m/s")
-    
-    instance2 = MivotInstance(dmtype="model:type2.inst", dmrole="model:role.instance2", dmid="id2")
-    instance2.add_attribute(dmtype="model:type2.att1", dmrole="model:type2.inst.role1", value="value3", unit="m/s")
-    instance2.add_attribute(dmtype="model:type2.att2", dmrole="model:type2.inst.role2", value="value4", unit="m/s")
-    
-    instance1.add_instance(instance2)    
- 
-    mb =  MivotAnnotations()
-    mb.add_templates(instance1)
+    position = MivotInstance(dmtype="model:mango:EpochPosition", dmid="position")
+    position.add_attribute(dmtype="ivoa.RealQuantity",
+                           dmrole="mango:EpochPosition.longitude",
+                           unit="deg", ref="_RA_ICRS")
+    position.add_attribute(dmtype="ivoa.RealQuantity", dmrole="mango:EpochPosition.latitude",
+                           unit="deg", ref="_DFEC_ICRS")
+
+    position_error = MivotInstance(dmtype="mango:EpochPositionErrors",
+                                   dmrole="mango:EpochPosition.errors", dmid="id2")
+    position_error.add_attribute(dmtype="model:type2.att1",
+                                 dmrole="model:type2.inst.role1", value="value3", unit="m/s")
+    position_error.add_attribute(dmtype="model:type2.att2",
+                                 dmrole="model:type2.inst.role2", value="value4", unit="m/s")
+
+    position.add_instance(position_error)    
+
+    mb = MivotAnnotations()
+    mb.add_templates(position)
     mb.build_mivot_block()
     print(mb.mivot_block)
-
 """
-import os
+
 import logging
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.exceptions import MappingException
 
-@prototype_feature('MIVOT')
+
+@prototype_feature("MIVOT")
 class MivotInstance:
     """
-    API for building annotations elements step by step.
+    API for building <INSTANCE> elements of a MIVOT annotation step by step.
+
+    This class provides methods for adding attributes, references, and nested instances,
+    allowing incremental construction of a MIVOT instance.
     """
 
     def __init__(self, dmtype=None, dmrole=None, dmid=None):
         """
-        Constructor
-        
-        paremeters
+        Initialize a MivotInstance object.
+
+        Parameters
         ----------
-        dmtype: string
-            dmtype of the INSTANCE (mandatory)
-        dmrole: string
-            dmrole of the INSTANCE (optional)
-        dmid: string
-            dmid of the INSTANCE (optional)
-            
-        raise
-        -----
-        MappingException if no dmtype is provided
+        dmtype : str
+            The dmtype of the INSTANCE (mandatory).
+        dmrole : str, optional
+            The dmrole of the INSTANCE.
+        dmid : str, optional
+            The dmid of the INSTANCE.
+
+        Raises
+        ------
+        MappingException
+            If `dmtype` is not provided.
         """
         if not dmtype:
             raise MappingException("Cannot build an instance without dmtype")
@@ -62,35 +75,36 @@ class MivotInstance:
         self._dmrole = dmrole
         self._dmid = dmid
         self._content = []
-    
+
     def add_attribute(self, dmtype=None, dmrole=None, ref=None, value=None, unit=None):
         """
-        Add an ATTRIBUTE to the instance
-        
-        paremeters
+        Add an <ATTRIBUTE> element to the instance.
+
+        Parameters
         ----------
-        dmtype: string
-            dmtype of the ATTRIBUTE (mandatory)
-        dmrole: string
-            dmrole of the ATTRIBUTE (optional)
-        ref: string
-            id of the column to be used to set the attribute value (OPTIONAL)
-        value: string
-            default value of the attribute value (OPTIONAL)
-        unit: string
-            attribute unit (OPTIONAL)
-            
-        raise
-        -----
-        MappingException if ref and value are both undefined or if no dmtype or no dmrole either
+        dmtype : str
+            The dmtype of the ATTRIBUTE (mandatory).
+        dmrole : str
+            The dmrole of the ATTRIBUTE (mandatory).
+        ref : str, optional
+            ID of the column to set the attribute value.
+        value : str, optional
+            Default value of the attribute.
+        unit : str, optional
+            Unit of the attribute.
+
+        Raises
+        ------
+        MappingException
+            If `dmtype` or `dmrole` is not provided, or if both `ref` and `value` are not defined.
         """
         if not dmtype:
             raise MappingException("Cannot add an attribute without dmtype")
         if not dmrole:
             raise MappingException("Cannot add an attribute without dmrole")
         if not ref and not value:
-            raise MappingException("Cannot add an attribute without ref or value either")
-        
+            raise MappingException("Cannot add an attribute without ref or value")
+
         xml_string = f'<ATTRIBUTE dmtype="{dmtype}" dmrole="{dmrole}" '
         if unit:
             xml_string += f'unit="{unit}" '
@@ -98,63 +112,67 @@ class MivotInstance:
             xml_string += f'value="{value}" '
         if ref:
             xml_string += f'ref="{ref}" '
-        xml_string += ' />'
+        xml_string += " />"
         self._content.append(xml_string)
 
     def add_reference(self, dmrole=None, dmref=None):
         """
-        Add an REFERENCE to the instance
-        
-        paremeters
+        Add a <REFERENCE> element to the instance.
+
+        Parameters
         ----------
-        dmtype: string
-            dmtype of the ATTRIBUTE (mandatory)
-        dmref: string
-            dmrole of the ATTRIBUTE (mandatory)
-             
-        raise
-        -----
-        MappingException if dmref or dmrole are undefined
+        dmrole : str
+            The dmrole of the REFERENCE (mandatory).
+        dmref : str
+            The dmref of the REFERENCE (mandatory).
+
+        Raises
+        ------
+        MappingException
+            If `dmrole` or `dmref` is not provided.
         """
         if not dmref:
             raise MappingException("Cannot add a reference without dmref")
         if not dmrole:
             raise MappingException("Cannot add a reference without dmrole")
-        
+
         xml_string = f'<REFERENCE dmrole="{dmrole}" dmref="{dmref}" />'
         self._content.append(xml_string)
-    
+
     def add_instance(self, mivot_instance):
         """
-        Add an INSTANCE to the instance
-        
-        paremeters
-        ----------
-        mivot_instance: MivotInstance
-            INSTANCE to ab added
-        """
-        if type(mivot_instance) != MivotInstance:
-            raise MappingException("Instance added must be of type MivotInstance")
-        self._content.append(mivot_instance.xml_string() )
+        Add a nested <INSTANCE> element to the instance.
 
-    
+        Parameters
+        ----------
+        mivot_instance : MivotInstance
+            The INSTANCE to be added.
+
+        Raises
+        ------
+        MappingException
+            If `mivot_instance` is not of type `MivotInstance`.
+        """
+        if not isinstance(mivot_instance, MivotInstance):
+            raise MappingException("Instance added must be of type MivotInstance")
+        self._content.append(mivot_instance.xml_string())
+
     def xml_string(self):
         """
-        Build the XML INSTANCE serialized as a string
-        
-        returns
+        Build and serialize the INSTANCE element to a string.
+
+        Returns
         -------
         str
-           the string serialization of the XML INSTANCE
+            The string representation of the INSTANCE element.
         """
-        xml_string  = f'<INSTANCE dmtype="{self._dmtype}" '
+        xml_string = f'<INSTANCE dmtype="{self._dmtype}" '
         if self._dmrole:
             xml_string += f'dmrole="{self._dmrole}" '
         if self._dmid:
             xml_string += f'dmid="{self._dmid}" '
-        xml_string += '>\n'
+        xml_string += ">\n"
         for element in self._content:
-           xml_string += "   " +  element + "\n"
-        xml_string += '</INSTANCE>\n'
+            xml_string += "   " + element + "\n"
+        xml_string += "</INSTANCE>\n"
         return xml_string
-        

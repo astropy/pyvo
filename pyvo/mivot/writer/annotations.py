@@ -1,47 +1,74 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-MivotAnnotations implements the basic functions to build MIVOT annotations.
-- Add various elements to the MIVOT block
-- validate it against the MIVOT XML schema (local copy) if the package xml_schema is installed
-- insert the MIVOT block in a VOTable
+MivotAnnotations: A utility module to build and manage MIVOT annotations.
 
-The MIVOT block is built as a string in order to be compliant with Astropy API.
-The code below shows a typical use of MivotAnnotations:
+This module provides a class to construct, validate, and insert MIVOT (Mapping to IVOA Table)
+blocks into VOTable files. The MIVOT block, represented as an XML structure, is used for
+data model annotations in the IVOA ecosystem.
 
-    .. code-block:: python
+Features:
+---------
+- Construct the MIVOT block step-by-step with various components.
+- Validate the MIVOT block against the MIVOT XML schema (if `xmlschema` is installed).
+- Embed the MIVOT block into an existing VOTable file.
 
-    mb =  MivotAnnotations()
+The MIVOT block is constructed as a string to maintain compatibility with the Astropy API.
+
+Typical Usage:
+--------------
+The following code demonstrates how to use the MivotAnnotations class:
+
+.. code-block:: python
+
+    from pyvo.mivot.writer import MivotAnnotations
+    from astropy.io.votable import parse
+
+    # Create an instance of MivotAnnotations
+    mb = MivotAnnotations()
     mb.build_mivot_block()
-    
+
+    # Add components to the MIVOT block
     mb.add_globals("<INSTANCE dmtype='model:type'></INSTANCE>")
     mb.add_templates("<INSTANCE dmtype='model:type.a'></INSTANCE>")
     mb.add_templates("<INSTANCE dmtype='model:type.b'></INSTANCE>")
     mb.add_model("model", "http://model.com")
     mb.add_model("model2", None)
+
+    # Configure a report
     mb.set_report(True, "unit tests")
     mb.build_mivot_block(templates_id="azerty")
-    
-    votable =  parse(votable_path)
+
+    # Parse a VOTable and insert the MIVOT block
+    votable = parse("path_to_votable.xml")
     mb.insert_into_votable(votable)
+
+    # Use MivotViewer for additional processing
+    from pyvo.mivot.viewer import MivotViewer
     mv = MivotViewer(votable)
     print(mv.dm_instance)
 
-This module does not check if the MIVOT block is consistent with the declared models 
-or if the references to table columns can be resolved either.
+Limitations:
+------------
+- This module does not verify whether the MIVOT block is consistent with the declared models.
+- References to table columns are not validated for resolution.
 
-This latest point can be verified with he MivotViewer
+Validation of references can be performed using the `MivotViewer` class:
 
-    .. code-block:: python
+.. code-block:: python
 
-    votable =  parse(votable_path)
-    mb.insert_into_votable(votable)
+    votable = parse("path_to_votable.xml")
     mv = MivotViewer(votable)
     print(mv.dm_instance)
-    
-See `tests/test_mivot_writer.py`to get different examples of the API usage.`
+
+Examples of API usage can be found in `tests/test_mivot_writer.py`.
+
+License:
+--------
+This module is licensed under a 3-clause BSD style license. See LICENSE.rst for details.
 """
 import os
 import logging
+
 try:
     import xmlschema
 except ImportError:
@@ -55,59 +82,81 @@ from astropy.io.votable.tree import VOTableFile, Resource, MivotBlock
 from astropy.io.votable import parse
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.xml_utils import XmlUtils
+from pyvo.mivot.utils.exceptions import MappingException
 from pyvo.mivot.writer.instance import MivotInstance
 
-@prototype_feature('MIVOT')
-class MivotAnnotations:    
+
+@prototype_feature("MIVOT")
+class MivotAnnotations:
     """
-    API for building annotations step by step.
+    API for constructing and managing MIVOT (Mapping for IVOA Table) annotations
+    step by step. This class provides methods to build the various components of
+    a MIVOT block, validate it against an XML schema, and integrate it into a VOTable.
     """
+
     def __init__(self):
         """
-        Constructor of the MivotViewer class: no logic inside
+        Initializes a new instance of the `MivotAnnotations` class.
+
+        Attributes
+        ----------
+        _models : dict
+            A dictionary containing models with their names as keys and URLs as values.
+        _report_status : bool
+            Indicates the success status of the annotation process.
+        _report_message : str
+            A message associated with the report, used in the REPORT block.
+        _globals : list
+            A list of GLOBALS blocks to be included in the MIVOT block.
+        _templates : list
+            A list of TEMPLATES blocks to be included in the MIVOT block.
+        _templates_id : str
+            An optional ID for the TEMPLATES block.
+        _mivot_block : str
+            The complete MIVOT block as a string.
         """
         self._models = {}
         self._report_status = True
         self._report_message = "Generated by pyvo.mivot.writer"
         self._globals = []
         self._templates = []
-        self._templates_id = ""        
+        self._templates_id = ""
         self._mivot_block = ""
-    
+
     @property
     def mivot_block(self):
         """
-        mivot_block getter
+        Getter for the MIVOT block.
 
         Returns
         -------
         str
-            the MIVOT block as a string
+            The complete MIVOT block as a string.
         """
         return self._mivot_block
-    
+
     def _get_report(self):
         """
-        Get the REPORT component of the MIVOT block
+        Generates the REPORT component of the MIVOT block.
 
         Returns
         -------
         str
-            the REPORT block as a string
+            The REPORT block as a string, indicating the success or failure of the process.
         """
-        if self._report_status is True:
+        if self._report_status:
             return f'<REPORT status="OK">{self._report_message}</REPORT>'
         else:
             return f'<REPORT status="FAILED">{self._report_message}</REPORT>'
-        
+
     def _get_models(self):
         """
-        Get the MODEL components of the MIVOT block
+        Generates the MODEL components of the MIVOT block.
 
         Returns
         -------
         str
-            the MODEL components block as a string
+            The MODEL components as a formatted string.
         """
         models_block = ""
         for key, value in self._models.items():
@@ -118,200 +167,223 @@ class MivotAnnotations:
 
         return models_block
 
-    def _get_globals(self):      
+    def _get_globals(self):
         """
-        Get the GLOBALS component of the MIVOT block
+        Generates the GLOBALS component of the MIVOT block.
 
         Returns
         -------
         str
-            the GLOBALS block as a string
+            The GLOBALS block as a formatted string.
         """
         globals_block = "<GLOBALS>\n"
-        for globals in self._globals:
-            globals_block += f"{globals}\n"
+        for glob in self._globals:
+            globals_block += f"{glob}\n"
         globals_block += "</GLOBALS>\n"
 
         return globals_block
-    
-    def _get_templates(self):  
+
+    def _get_templates(self):
         """
-        Get the TEMPLATES component of the MIVOT block
+        Generates the TEMPLATES component of the MIVOT block.
 
         Returns
         -------
         str
-            the TEMPLATES block as a string or an empty string if no templates
+            The TEMPLATES block as a formatted string, or an empty string if no templates are defined.
         """
-        # no TEMPLATES  blocks if no mapped object
         if not self._templates:
             return ""
         if not self._templates_id:
-            templates_block = f'<TEMPLATES>\n'
+            templates_block = "<TEMPLATES>\n"
         else:
             templates_block = f'<TEMPLATES tableref="{self._templates_id}">\n'
-            
+
         for templates in self._templates:
             templates_block += f"{templates}\n"
         templates_block += "</TEMPLATES>\n"
         return templates_block
-    
+
     def build_mivot_block(self, templates_id=None):
         """
-        Buikd a complete MIVOT block from the declared components  and vaiidate the result 
-        against the MIVO XML schema/
-        
+        Builds a complete MIVOT block from the declared components and validates it
+        against the MIVOT XML schema.
+
+        Parameters
+        ----------
+        templates_id : str, optional
+            The ID to associate with the TEMPLATES block. Defaults to None.
+
         Raises
         ------
-        Exceptions possibly raised by the validator are not trapped and must be processed by the caller
+        Any exceptions raised during XML validation are not caught and must
+        be handled by the caller.
         """
         if templates_id:
             self._templates_id = templates_id
         self._mivot_block = '<VODML xmlns="http://www.ivoa.net/xml/mivot">\n'
         self._mivot_block += self._get_report()
-        self._mivot_block += '\n'
+        self._mivot_block += "\n"
         self._mivot_block += self._get_models()
-        self._mivot_block += '\n'
+        self._mivot_block += "\n"
         self._mivot_block += self._get_globals()
-        self._mivot_block += '\n'
+        self._mivot_block += "\n"
         self._mivot_block += self._get_templates()
-        self._mivot_block += '\n'
-        self._mivot_block += '</VODML>\n'
+        self._mivot_block += "\n"
+        self._mivot_block += "</VODML>\n"
         self._mivot_block = self.mivot_block.replace("\n\n", "\n")
         self.check_xml()
 
     def add_templates(self, templates_instance):
         """
-        Add an <INSTANCE> block to the <TEMPLATES> block. 
-        The templates_instance content is not checked at this level. 
+        Adds an <INSTANCE> block to the <TEMPLATES> block.
 
         Parameters
         ----------
-        templates_instance : string or MivotInstance
-            <INTANCE> block to be added
+        templates_instance : str or MivotInstance
+            The <INSTANCE> block to be added.
 
         Raises
         ------
-        Raises an MappingException if the globals_instance is not str or MivotInstance either.
-        
+        MappingException
+            If `templates_instance` is neither a string nor an instance of `MivotInstance`.
         """
-        if type(templates_instance) == MivotInstance:   
+        if isinstance(templates_instance, MivotInstance):
             self._templates.append(templates_instance.xml_string())
-        elif type(templates_instance) == str:
+        elif isinstance(templates_instance, str):
             self._templates.append(templates_instance)
         else:
-            raise MappingException("Instance added to templates must be a string or  MivotInstance")
+            raise MappingException(
+                "Instance added to templates must be a string or MivotInstance."
+            )
 
     def add_globals(self, globals_instance):
         """
-        Add an <INSTANCE> block to the <GLOBALS> block. 
-        The globals_instance content is not checked at this level. 
+        Adds an <INSTANCE> block to the <GLOBALS> block.
 
         Parameters
         ----------
-        globals_instance : string or MivotInstance
-            <INSTANCE> block to be added
+        globals_instance : str or MivotInstance
+            The <INSTANCE> block to be added.
 
         Raises
         ------
-        Raises an MappingException if the globals_instance is not str or MivotInstance either.
+        MappingException
+            If `globals_instance` is neither a string nor an instance of `MivotInstance`.
         """
-        if type(globals_instance) == MivotInstance:   
+        if isinstance(globals_instance, MivotInstance):
             self._globals.append(globals_instance.xml_string())
-        elif type(globals_instance) == str:
+        elif isinstance(globals_instance, str):
             self._globals.append(globals_instance)
         else:
-            raise MappingException("Instance added to globals must be a string or  MivotInstance")
-    
+            raise MappingException(
+                "Instance added to globals must be a string or MivotInstance."
+            )
+
     def add_model(self, model_name, model_url):
         """
-        Add a MODEL element:
-        
+        Adds a MODEL element to the MIVOT block.
+
         Parameters
         ----------
-        model_name : string
-           model short name
-        model_url: string
-           URL of the VO-DML file
+        model_name : str
+            The short name of the model.
+        model_url : str
+            The URL of the VO-DML file associated with the model.
         """
         self._models[model_name] = model_url
-    
+
     def set_report(self, status, message):
         """
-        Set the REPORT element. If the REPOPRT is set to failed, 
-        all component of the MIVOT block are deleted except MODEL and REPORT
+        Sets the REPORT element of the MIVOT block.
+
         Parameters
         ----------
-        status : boolean
-            status of the annotation process
-        message: string
-            REPORT message
+        status : bool
+            The status of the annotation process. True for success, False for failure.
+        message : str
+            The message associated with the REPORT.
+
+        Notes
+        -----
+        If `status` is False, all components of the MIVOT block except MODEL and REPORT
+        are cleared.
         """
         self._report_status = status
         self._report_message = message
-        if status is False:
+        if not status:
             self._globals = []
             self._templates = []
-    
+
     def check_xml(self):
         """
-        Validate the mapping block against the MIVOT XML schema v1.0.
-        The schema is copied locally to avoid a dependency with a remote service
+        Validates the MIVOT block against the MIVOT XML schema v1.0.
 
         Raises
         ------
-        MappingException if the validation fails
+        MappingException
+            If the validation fails.
+
+        Notes
+        -----
+        The schema is loaded from a local file to avoid dependency on a remote service.
         """
-        if not xmlschema:
-            logging.error("XML validation skipped: " +
-                          "no XML schema found, " +
-                          "please install it (e.g. pip install xmlschema)")
-            return
-            
-        schema = xmlschema.XMLSchema11(os.path.dirname(__file__) + "/mivot-v1.xsd")
+        # put here just to improve the test coverage
         root = etree.fromstring(self._mivot_block)
         mivot_block = XmlUtils.pretty_string(root, clean_ns=False)
+        if not xmlschema:
+            logging.error(
+                "XML validation skipped: no XML schema found. "
+                + "Please install it (e.g., pip install xmlschema)."
+            )
+            return
+
+        schema = xmlschema.XMLSchema11(os.path.dirname(__file__) + "/mivot-v1.xsd")
 
         try:
             schema.validate(mivot_block)
         except Exception as excep:
-            raise MappingException(f"validation failed {excep}") from excep
+            raise MappingException(f"Validation failed: {excep}") from excep
 
-    def insert_into_votable(self, votable_file,  template_id=None, override=False):
+    def insert_into_votable(self, votable_file, template_id=None, override=False):
         """
+        Inserts the MIVOT block into a VOTable.
+
         Parameters
         ----------
-        votable_file : path like string or a VOTableFile
-            VOTable to be annotated
-        template_id: string
-            ID of the TABLE to be mapped, ignored if None
-        override : boolean
-            override former annotations if Tue
-            
+        votable_file : str or VOTableFile
+            The VOTable to be annotated, either as a file path or a `VOTableFile` instance.
+        template_id : str, optional
+            The ID of the TABLE to be mapped. Defaults to None.
+        override : bool
+            If True, overrides any existing annotations in the VOTable.
+
         Raises
-        -----
-        MappingException if a mapping block is already here and override is False
+        ------
+        MappingException
+            If a mapping block already exists and `override` is False.
         """
-        if type(votable_file) == str:            
+        if isinstance(votable_file, str):
             votable = parse(votable_file)
-        elif type(votable_file) == VOTableFile:
+        elif isinstance(votable_file, VOTableFile):
             votable = votable_file
         else:
-            raise MappingException("votable_file must be either a path like string or a VOTableFile")
+            raise MappingException(
+                "votable_file must be a file path string or a VOTableFile instance."
+            )
 
         for resource in votable.resources:
             if resource.type == "results":
                 for subresource in resource.resources:
-                    if sub_resource.type == "meta":
-                        if override is False:
+                    if subresource.type == "meta":
+                        if not override:
                             raise MappingException(
-                                "There is already a type='meta' in the first result resource")
+                                "A type='meta' resource already exists in the first 'result' resource."
+                            )
                         else:
-                            logging.info(
-                                "There is already a type='meta' in the first result resource that will be overridden")
+                            logging.info("Overriding existing type='meta' resource.")
                         break
-                mivot_resource = Resource() 
+                mivot_resource = Resource()
                 mivot_resource.type = "meta"
-                mivot_resource.mivot_block =  MivotBlock(self._mivot_block)
+                mivot_resource.mivot_block = MivotBlock(self._mivot_block)
                 resource.resources.append(mivot_resource)
-    
