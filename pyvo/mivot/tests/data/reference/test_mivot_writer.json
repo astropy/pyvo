@@ -1,0 +1,46 @@
+{
+  "dmtype": "EpochPosition",
+  "longitude": {
+    "value": 52.2340018,
+    "unit": "deg"
+  },
+  "latitude": {
+    "value": 59.8937333,
+    "unit": "deg"
+  },
+  "EpochPosition_errors": {
+    "dmtype": "EpochPositionErrors",
+    "dmrole": "errors",
+    "EpochPositionErrors_position": {
+      "dmtype": "ErrorCorrMatrix",
+      "dmrole": "position",
+      "sigma1": {
+        "value": 6.0,
+        "unit": "arcsec"
+      },
+      "sigma2": {
+        "value": 6.0,
+        "unit": "arcsec"
+      }
+    }
+  },
+  "EpochPosition_spaceSys": {
+    "dmtype": "SpaceSys",
+    "dmid": "_spacesys_icrs",
+    "dmrole": "spaceSys",
+    "PhysicalCoordSys_frame": {
+      "dmtype": "SpaceFrame",
+      "dmrole": "frame",
+      "spaceRefFrame": {
+        "value": "ICRS"
+      },
+      "SpaceFrame_refPosition": {
+        "dmtype": "StdRefLocation",
+        "dmrole": "refPosition",
+        "position": {
+          "value": "BARYCENTER"
+        }
+      }
+    }
+  }
+}
