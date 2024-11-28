@@ -26,7 +26,10 @@ Enhancements and Fixes
   any model serialized in VO-DML. This package dynamically generates python objects
   whose structure corresponds to the classes of the mapped models. [#497]
 
-
+- Extending the MIVOT module with the ability to build annotations component by component
+  and put them into a VOTable. [#XYZ]
+  
+  
 Deprecations and Removals
 -------------------------
 
