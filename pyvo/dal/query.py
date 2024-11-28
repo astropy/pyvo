@@ -27,7 +27,7 @@ import shutil
 import re
 import requests
 from collections.abc import Mapping
-from io import BytesIO
+from io import BytesIO, StringIO
 
 import collections
 
@@ -1042,7 +1042,7 @@ class Upload:
 
             return fileobj
 
-        elif isinstance(self._content, BytesIO):
+        elif isinstance(self._content, (BytesIO, StringIO)):
             return self._content
 
         elif isinstance(self._content, DALResults):
