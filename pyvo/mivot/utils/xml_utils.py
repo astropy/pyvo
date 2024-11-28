@@ -44,8 +44,6 @@ class XmlUtils:
         else:
             return new_xml
 
-            
-
     @staticmethod
     def indent(elem, level=0):
         """

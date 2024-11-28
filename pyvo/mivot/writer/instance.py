@@ -29,7 +29,7 @@ Usage Example
     position_error.add_attribute(dmtype="model:type2.att2",
                                  dmrole="model:type2.inst.role2", value="value4", unit="m/s")
 
-    position.add_instance(position_error)    
+    position.add_instance(position_error)
 
     mb = MivotAnnotations()
     mb.add_templates(position)
@@ -37,7 +37,6 @@ Usage Example
     print(mb.mivot_block)
 """
 
-import logging
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.exceptions import MappingException
 
