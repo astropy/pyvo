@@ -2,7 +2,7 @@
 MIVOT (`pyvo.mivot`)
 ********************
 
-This module contains the new feature of annotations in VOTable.
+This module contains the new feature handling model annotations in VOTable.
 Astropy version >= 6.0 is required.
 
 Introduction
@@ -63,8 +63,8 @@ Using the MIVOT package
 
 The ``pyvo.mivot`` module can be used to either read or build annotations.
 
-- How to `read <./viewer.html>`_ MIVOT annotations
-- How to `write <./writer.html>`_ MIVOT annotations
+- `Reading <./viewer.html>`_ MIVOT annotations
+- `Writing <./writer.html>`_ MIVOT annotations
 
 Reference/API
 =============

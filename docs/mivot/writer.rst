@@ -2,9 +2,6 @@
 MIVOT (`pyvo.mivot`): Annotation Writer
 ***************************************
 
-This module contains the new feature of annotations in VOTable.
-Astropy version >= 6.0 is required.
-
 Introduction
 ============
 .. pull-quote::
@@ -32,22 +29,20 @@ Building Annotation Object per Object
 
 Creating annotations consists of 3 steps:
 
-#. Create individual instances  (INSTANCE) using the ``MivotInstance`` class: Objects are 
+#. Create individual instances  (INSTANCE) using the ``MivotInstance`` class: objects are 
    built attribute by attribute. These components can then be aggregated into
    more complex objects following the structure of the mapped model(s).
-#. Wrap the annotations with the ``MivotAnnotations`` class: Declare to the annotation builder
-   the models used, and place individual instances
-   at the right place (TEMPLATES or GLOBALS).
+#. Wrap the annotations with the ``MivotAnnotations`` class: declare to the annotation builder
+   the models used, and place individual instances at the right place (TEMPLATES or GLOBALS).
 #. Insert the annotations into a VOtable by using the Astropy API (wrapped in the package logic).
 
-The Annotation Builder does not check whether the XML conforms to any particular model.
+The annotation builder does not check whether the XML conforms to any particular model.
 It simply validates it against the MIVOT XML Schema if the ``xmlvalidator`` package if is installed. 
 
 The example below shows a step-by-step construction of a MIVOT block mapping
-a position with its error (as defined in the MANGO draft)
-and its space coordinate system (as defined in the coords model and imported by MANGO).
+a position with its error (as defined in the ``MANGO`` draft)
+and its space coordinate system (as defined in the ``coord`` model and imported by ``MANGO``).
 
-(imports have been removed from the code snippet for readability)
 
 Building the Coordinate System Object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -57,9 +52,18 @@ object (see the `coords <https://ivoa.net/documents/Coords/20221004/index.html>`
 
 - Individual instances are built one by one and then packed together.
 - The top level object has a ``dmid`` which will be used as a reference by the ``EpochPosition`` instance.
-- ``MIVOT`` being still an experimental feature which must be activated
+- ``MIVOT`` is still an experimental feature which must be activated
 
 .. code-block:: python
+
+
+    from astropy.io.votable import parse
+    from pyvo.utils import activate_features
+    from pyvo.mivot.utils.exceptions import MappingException
+    from pyvo.mivot.utils.dict_utils import DictUtils
+    from pyvo.mivot.writer.annotations import MivotAnnotations
+    from pyvo.mivot.writer.instance import MivotInstance
+    from pyvo.mivot.viewer.mivot_viewer import MivotViewer
     
     activate_features("MIVOT")
        
@@ -85,14 +89,14 @@ object (see the `coords <https://ivoa.net/documents/Coords/20221004/index.html>`
 Building the EpochPosition Object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- IN this example we only use the position attributes (RA/DEC) of the ``EpochPosition`` class.
+- In this example we only use the position attributes (RA/DEC) of the ``EpochPosition`` class.
 - The reference to the space coordinate system is added at the end.
 - The ``ref`` XML attributes reference columns that must be used to set the model attributes.
   Their values depend on the VOTable to be mapped.
   
 .. code-block:: python
-    
-    
+
+ 
     position = MivotInstance(dmtype="mango:EpochPosition")
     position.add_attribute(
         dmtype="ivoa:RealQuantity",
@@ -114,8 +118,8 @@ Building the EpochPosition Object
 Building the Position Error
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- We assume that the position error is the same on both axes and that axes are not correlated. 
-  In terms of MANGO error, this corresponds to a 2x2 diagonal error matrix with two equal coefficients
+- We assume that the position error is the same on both axes without correlation. 
+  In terms of MANGO error, this corresponds to a 2x2 diagonal error matrix with two equal coefficients.
 - Finally, the error is added as a component of the ``EpochPosition`` instance.  
   
 .. code-block:: python
@@ -149,14 +153,15 @@ Building the MIVOT Block
 
 - The MIVOT block consists of:
  
-  - A list of mapped models
   - A process status
+  - A list of mapped models
   - A list of globals, which are objects not associated with 
-    VOTale data and that can be shared by any other component.
-  - a list of templates, which are objects that are connected to 
+    VOTable data and that can be shared by any other MIVOT instance.
+  - A list of templates, which are objects that are connected to 
     VOTable data and whose leaf values change from one row to another.
    
-- The latest step includes a validation of the MIVOT syntax if the ``xmlvaldator`` package has been installed.  
+- The latest step (build_mivot_block) includes a validation of the MIVOT syntax that works only 
+  if the ``xmlvaldator`` package has been installed.  
  
 .. code-block:: python
 
@@ -187,7 +192,7 @@ Insert the MIVOT Block in a VOTable
 - This straightforward step is based on the Astropy VOTable API.
 - Annotations are stored in-memory (in the parsed VOtable)
 - The mapping can be tested with the ``MivotViewer`` API (see the doc `page <viewer.html>`_)
-- The VOtable must be explicitly saved on disk.
+- The VOtable must be explicitly saved on disk if needed.
 
  .. code-block:: python
 
@@ -207,7 +212,7 @@ Validate the annotation against the model(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~s~~~~~~
  
 - This action requires the ``mivot-validator`` package to be installed.
-- It validates the mapped classes against the the models they come from.
+- It validates the mapped classes against the models they come from.
 
 
  .. code-block:: shell
@@ -215,3 +220,6 @@ Validate the annotation against the model(s)
     
     % pip install mivot-validator
     % mivot-instance-validate pyvo-tuto.xml
+    ...
+    Valid if no error message
+    ...

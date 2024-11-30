@@ -24,8 +24,8 @@ Integrated Readout
 ------------------
 The ``ModelViewer`` module manages access to data mapped to a model through dynamically
 generated objects (``MivotInstance``class).
-The example below shows how a VOTable, resulting from a cone-search query which data are mapped
-to the ``EpochPosition`` class, can be consumed.
+The example below shows how can be consumed a VOTable resulting from a cone-search query which data are mapped
+to the ``EpochPosition`` class.
 
 .. doctest-remote-data::
     >>> import astropy.units as u
