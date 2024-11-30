@@ -185,7 +185,7 @@ class SCSService(DALService):
         """
         return self.create_query(pos=pos, radius=radius, verbosity=verbosity, **keywords).execute()
 
-    def create_query(self, pos=None, *, radius=None, verbosity=None, **keywords):
+    def create_query(self, pos=None, radius=None, *, verbosity=None, **keywords):
         """
         create a query object that constraints can be added to and then
         executed.  The input arguments will initialize the query with the
@@ -255,7 +255,7 @@ class SCSService(DALService):
 
 class SCSQuery(DALQuery):
     """
-    a class for preparing an query to a Cone Search service.  Query constraints
+    a class for preparing a query to a Cone Search service.  Query constraints
     are added via its service type-specific methods.  The various execute()
     functions will submit the query and return the results.
 

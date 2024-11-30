@@ -1,4 +1,26 @@
-1.6 (unreleased)
+1.7 (unreleased)
+================
+
+Enhancements and Fixes
+----------------------
+
+
+Deprecations and Removals
+-------------------------
+
+
+1.6.1 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+- Fix propagating some previously swallowed exceptions. [#614]
+
+- Fix string literal generation for SQL query when using numpy >=2.0. [#624]
+
+
+1.6 (2024-11-01)
 ================
 
 Enhancements and Fixes
@@ -28,7 +50,7 @@ Enhancements and Fixes
 
 - MIVOT module: the model references in the dictionaries that are used to build ``MivotInstance``
   objects are made more consistent [#551]
-
+  
 - RegTAP constraints involving tables other than rr.resource are now
   done via subqueries for less duplication of interfaces. [#562, #572]
 
@@ -46,6 +68,52 @@ Enhancements and Fixes
   
 Deprecations and Removals
 -------------------------
+
+- SodaRecordMixin no longer will use a datalink#links endpoint for soda [#580]
+
+- Deprecating the use of "image" and "spectrum" in registry Servicetype
+  constraints [#449]
+
+
+1.5.3 (2024-10-14)
+==================
+
+Bug Fixes
+---------
+
+- ``cachedataset()`` and friends again produce reasonable file extensions.
+  [#553]
+
+- Path separators are no longer taken over from image titles to file
+  system paths. [#557]
+
+- Added `'sia1'` as servicetype for registry searches. [#583]
+
+- Adding ``session`` kwarg to allow to pass a session along when turning
+  an Interface into a service via ``Interface.to_service``. [#590]
+
+- Include port number if it is present in endpoint access URL. [#582]
+
+- Where datalink records are made from table rows, the table row is
+  now accessible as datalinks.original_row. [#559]
+
+- Tables returned by RegistryResource.get_tables() now have a utype
+  attribute. [#576]
+
+- Registry Spatial constraint now supports Astropy Quantities for the radius
+  argument. [#594]
+
+- ``iter_metadata()`` no longer crashes on tables with a datalink RESOURCE
+  and without obscore attributes. [#599]
+
+- Avoid assuming that ``'access_url'`` always exits. [#570]
+
+
+Deprecations and Removals
+-------------------------
+
+- Removed usage of the astropy TestRunner, therefore the unadvertised
+  ``pyvo.test()`` functionality. [#606]
 
 
 1.5.2 (2024-05-22)

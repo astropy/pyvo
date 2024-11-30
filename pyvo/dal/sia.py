@@ -47,7 +47,7 @@ __all__ = ["search", "SIAService", "SIAQuery", "SIAResults", "SIARecord"]
 
 
 def search(
-        url, pos, *, size=1.0, format=None, intersect=None, verbosity=2,
+        url, pos, size=1.0, *, format=None, intersect=None, verbosity=2,
         **keywords):
     """
     submit a simple SIA query that requests images overlapping a given region
@@ -189,7 +189,7 @@ class SIAService(DALService):
             return []
 
     def search(
-            self, pos, *, size=1.0, format=None, intersect=None,
+            self, pos, size=1.0, *, format=None, intersect=None,
             verbosity=2, **keywords):
         """
         submit a SIA query to this service with the given parameters.
@@ -260,7 +260,7 @@ class SIAService(DALService):
             pos=pos, size=size, format=format, intersect=intersect, verbosity=verbosity, **keywords).execute()
 
     def create_query(
-            self, pos=None, *, size=None, format=None, intersect=None,
+            self, pos=None, size=None, *, format=None, intersect=None,
             verbosity=None, **keywords):
         """
         create a query object that constraints can be added to and then
@@ -329,7 +329,7 @@ class SIAService(DALService):
 
 class SIAQuery(DALQuery):
     """
-    a class for preparing an query to an SIA service.  Query constraints
+    a class for preparing a query to an SIA service.  Query constraints
     are added via its service type-specific methods.  The various execute()
     functions will submit the query and return the results.
 
@@ -348,7 +348,7 @@ class SIAQuery(DALQuery):
     """
 
     def __init__(
-            self, baseurl, pos=None, *, size=None, format=None, intersect=None,
+            self, baseurl, pos=None, size=None, *, format=None, intersect=None,
             verbosity=None, session=None, **keywords):
         """
         initialize the query object with a baseurl and the given parameters
@@ -706,7 +706,7 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
     @property
     def dateobs(self):
         """
-        the modified Julien date (MJD) of the mid-point of the
+        the modified Julian date (MJD) of the mid-point of the
         observational data that went into the image,
         as an astropy.time.Time instance
         """
@@ -807,13 +807,24 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         """
         the astropy unit used to represent spectral values.
         """
-        sia = self.getbyucd("VOX:BandPass_Unit", decode=True)
+        sia_unit = self.getbyucd("VOX:BandPass_Unit", decode=True)
 
-        if sia:
-            return Unit(sia)
-        else:
-            # dimensionless
-            return Unit("")
+        # the standard says this should be `"meters", "hertz", and "keV"',
+        # which in practice everyone has ignored.  Still, let's
+        # translate the standard terms.  Somewhat more dangerously,
+        # we replace a missing unit with metres; in theory, we should
+        # reject anything but the three terms above, but then 99%
+        # of SIA services would break.  And without the assumption of
+        # a metre default, 20% of 2024 SIA1 services would have unusable
+        # bandpasses.
+
+        astropy_unit = {
+            None: "m",
+            "": "m",
+            "meters": "m",
+            "hertz": "Hz"}.get(sia_unit, sia_unit)
+
+        return Unit(astropy_unit)
 
     @property
     def bandpass_refvalue(self):
@@ -821,24 +832,27 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
         the characteristic (reference) wavelength, frequency or energy
         for the bandpass model, as an astropy Quantity of bandpass_unit
         """
-        return Quantity(
-            self.getbyucd("VOX:BandPass_RefValue"), self.bandpass_unit)
+        value = self.getbyucd("VOX:BandPass_RefValue")
+        if value is not None and self.bandpass_unit:
+            return Quantity(value, self.bandpass_unit)
 
     @property
     def bandpass_hilimit(self):
         """
         the upper limit of the bandpass as astropy Quantity in bandpass_unit
         """
-        return Quantity(
-            self.getbyucd("VOX:BandPass_HiLimit"), self.bandpass_unit)
+        value = self.getbyucd("VOX:BandPass_HiLimit")
+        if value is not None and self.bandpass_unit:
+            return Quantity(value, self.bandpass_unit)
 
     @property
     def bandpass_lolimit(self):
         """
         the lower limit of the bandpass as astropy Quantity in bandpass_unit
         """
-        return Quantity(
-            self.getbyucd("VOX:BandPass_LoLimit"), self.bandpass_unit)
+        value = self.getbyucd("VOX:BandPass_LoLimit")
+        if value is not None and self.bandpass_unit:
+            return Quantity(value, self.bandpass_unit)
 
     # Processig Metadata
     @property
@@ -915,7 +929,7 @@ class SIARecord(SodaRecordMixin, DatalinkRecordMixin, Record):
             out = re.sub(r'\s+', '_', out.strip())
         return out
 
-    def suggest_extension(self, *, default=None):
+    def suggest_extension(self, *, default='dat'):
         """
         returns a recommended filename extension for the dataset described
         by this record.  Typically, this would look at the column describing

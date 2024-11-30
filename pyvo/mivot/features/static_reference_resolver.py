@@ -2,7 +2,7 @@
 Class used to resolve each static REFERENCE found in mivot_block.
 """
 from copy import deepcopy
-from pyvo.mivot.utils.exceptions import MivotException
+from pyvo.mivot.utils.exceptions import MivotError
 from pyvo.mivot.utils.xpath_utils import XPath
 from pyvo.utils.prototype import prototype_feature
 
@@ -33,7 +33,7 @@ class StaticReferenceResolver:
             The number of references resolved.
         Raises
         ------
-        MappingException
+        MappingError
             If the reference cannot be resolved.
         NotImplementedError
             If the reference is dynamic.
@@ -50,7 +50,7 @@ class StaticReferenceResolver:
                 target = annotation_seeker.get_templates_instance_by_dmid(templates_ref, dmref)
                 found_in_global = False
             if target is None:
-                raise MivotException(f"Cannot resolve reference={dmref}")
+                raise MivotError(f"Cannot resolve reference={dmref}")
             # Resolve static references recursively
             if not found_in_global:
                 StaticReferenceResolver.resolve(annotation_seeker, templates_ref, ele)

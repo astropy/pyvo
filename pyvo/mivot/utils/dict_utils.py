@@ -3,7 +3,7 @@ Utility class to process dictionary.
 """
 import json
 import logging
-from pyvo.mivot.utils.exceptions import MivotException
+from pyvo.mivot.utils.exceptions import MivotError
 from pyvo.mivot.utils.json_encoder import MivotJsonEncoder
 
 
@@ -31,7 +31,7 @@ class DictUtils:
                 return json.load(file, object_pairs_hook=OrderedDict)
         except Exception as exception:
             if fatal:
-                raise MivotException("reading {}".format(filename))
+                raise MivotError("reading {}".format(filename))
             else:
                 logging.error("{} reading {}".format(exception, filename))
 

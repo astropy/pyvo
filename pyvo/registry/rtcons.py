@@ -11,10 +11,12 @@ classes.
 """
 
 import datetime
+import warnings
 
 from astropy import units as u
 from astropy import constants
 from astropy.coordinates import SkyCoord
+from astropy.utils.exceptions import AstropyDeprecationWarning
 import numpy
 
 from ..dal import query as dalq
@@ -34,6 +36,7 @@ SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/" + v)
                         for k, v in [
     ("image", "sia"),
     ("sia", "sia"),
+    ("sia1", "sia"),
     # SIA2 is irregular
     # funky scheme used by SIA2 without breaking everything else
     ("spectrum", "ssa"),
@@ -99,11 +102,8 @@ def make_sql_literal(value):
     elif isinstance(value, bytes):
         return "'{}'".format(value.decode("ascii").replace("'", "''"))
 
-    elif isinstance(value, (int, numpy.integer)):
-        return "{:d}".format(value)
-
-    elif isinstance(value, (float, numpy.floating)):
-        return repr(value)
+    elif isinstance(value, (int, numpy.integer, float, numpy.floating)):
+        return f'{value}'
 
     elif isinstance(value, datetime.datetime):
         return "'{}'".format(value.isoformat())
@@ -162,6 +162,10 @@ class Constraint:
     sequences of constraints.  Constraints that want to the all
     arguments in the constructor can set takes_sequence to True.
     """
+    # TODO: _extra_tables is only used in the legacy leg of
+    # the fulltext constraint any more, and there it's wrong, too.
+    # Let's do away with extra_tables and tell people to use
+    # SubqueriedConstraint whenever they think they need it.
     _extra_tables = []
     _condition = None
     _fillers = None
@@ -205,9 +209,39 @@ class Constraint:
         return {}
 
 
+class SubqueriedConstraint(Constraint):
+    """
+    An (abstract) constraint for when the constraint is over a table
+    other than rr.resource.
+
+    We need to be careful with these, because they will in general have
+    1:n relationships to rr.resource, and these will lead to
+    duplicated interfaces if we just do the NATURAL JOIN we normally
+    do.
+
+    Instead, we have to resort to ivoid in (subquery) conditions.  In
+    particular, extra_tables will always be empty for these.
+
+    To configure those, give the table to query in _subquery_table
+    and _condition, _fillers, and _keyword as usual.  The rest is taken
+    care of by get_search_condition.
+    """
+    _subquery_table = None
+
+    def get_search_condition(self, service):
+        if self._condition is None or self._subquery_table is None:
+            raise NotImplementedError("{} is an abstract Constraint"
+                                      .format(self.__class__.__name__))
+
+        return ("ivoid IN (SELECT DISTINCT ivoid FROM {subquery_table}"
+            " WHERE {condition})".format(
+                subquery_table=self._subquery_table,
+                condition=self._condition.format(**self._get_sql_literals())))
+
+
 class Freetext(Constraint):
     """
-    A contraint using plain text to match against title, description,
+    A constraint using plain text to match against title, description,
     subjects, and person names.
     """
     _keyword = "keywords"
@@ -217,11 +251,17 @@ class Freetext(Constraint):
 
         Parameters
         ----------
-        *words : tuple of str
+        *words : str
+            One or more string arguments.
             It is recommended to pass multiple words in multiple strings
             arguments.  You can pass in phrases (i.e., multiple words
             separated by space), but behaviour might then vary quite
             significantly between different registries.
+
+        Examples
+        --------
+        >>> from pyvo import registry
+        >>> registry.Freetext("Gamma", "Ray", "Burst") # doctest: +IGNORE_OUTPUT
         """
         self.words = words
 
@@ -240,11 +280,11 @@ class Freetext(Constraint):
 
     def _get_union_condition(self, service):
         base_queries = [
-            "SELECT ivoid FROM rr.resource WHERE"
+            "SELECT DISTINCT ivoid FROM rr.resource WHERE"
             " 1=ivo_hasword(res_description, {{{parname}}})",
-            "SELECT ivoid FROM rr.resource WHERE"
+            "SELECT DISTINCT ivoid FROM rr.resource WHERE"
             " 1=ivo_hasword(res_title, {{{parname}}})",
-            "SELECT ivoid FROM rr.res_subject WHERE"
+            "SELECT DISTINCT ivoid FROM rr.res_subject WHERE"
             " rr.res_subject.res_subject ILIKE {{{parpatname}}}"]
         self._fillers, subqueries = {}, []
 
@@ -254,7 +294,7 @@ class Freetext(Constraint):
             self._fillers[parname] = word
             self._fillers[parpatname] = '%' + word + '%'
             args = locals()
-            subqueries.append(" UNION ".join(
+            subqueries.append(" UNION ALL ".join(
                 q.format(**args) for q in base_queries))
 
         self._condition = " AND ".join(
@@ -284,7 +324,7 @@ class Freetext(Constraint):
         return super().get_search_condition(service)
 
 
-class Author(Constraint):
+class Author(SubqueriedConstraint):
     """
     A constraint for creators (“authors”) of a resource; you can use SQL
     patterns here.
@@ -292,6 +332,7 @@ class Author(Constraint):
     The match is case-sensitive.
     """
     _keyword = "author"
+    _subquery_table = "rr.res_role"
 
     def __init__(self, name: str):
         """
@@ -306,7 +347,6 @@ class Author(Constraint):
         """
         self._condition = "role_name LIKE {auth} AND base_role='creator'"
         self._fillers = {"auth": name}
-        self._extra_tables = ["rr.res_role"]
 
 
 class Servicetype(Constraint):
@@ -316,16 +356,17 @@ class Servicetype(Constraint):
 
     The constraint normally is a custom keyword, one of:
 
-    * ``image`` (image services; at this point equivalent to sia, but
-      scheduled to include sia2, too)
-    * ``sia`` (SIAP version 1 services)
+
+    * ``sia``, ``sia1`` (SIAP version 1 services; prefer ``sia1`` for symmetry,
+      although ``sia`` will be kept as the official IVOA short name for SIA1)
     * ``sia2`` (SIAP version 2 services)
-    * ``spectrum``, ``ssa``, ``ssap`` (all synonymous for spectral
-      services, prefer ``spectrum``)
+    * ``ssa``, ``ssap`` (synonymous for SSAP services)
     * ``scs``, ``conesearch`` (synonymous for cone search services, prefer
       ``scs``)
     * ``line`` (for SLAP services)
     * ``tap``, ``table`` (synonymous for TAP services, prefer ``tap``)
+    * ``image`` (a deprecated alias for sia)
+    * ``spectrum`` (a deprecated alias for ssap)
 
     You can also pass in the standards' ivoid (which
     generally looks like
@@ -336,6 +377,15 @@ class Servicetype(Constraint):
 
     Multiple service types can be passed in; a match in that case
     is for records having any of the service types passed in.
+
+    Contrary to what the names of the service types may suggest,
+    “image” and "spectrum" do *not* select all resources serving images
+    or spectra.  For instance, at the moment you would have to search for
+    images served in three different ways: SIAv1, SIAv2, and ObsTAP. Against
+    that, “image” only selects SIAv1, and "spectrum" similarly omits ObsTAP.  A
+    global discovery module is under active development to provide global
+    dataset discovery. When it is ready, these two misleading options may be
+    removed.
 
     The match is literal (i.e., no patterns are allowed); this means
     that you will not receive records that only have auxiliary
@@ -353,7 +403,7 @@ class Servicetype(Constraint):
 
         Parameters
         ----------
-        *stds : tuple of str
+        *stds : str
             one or more standards identifiers.  The constraint will
             match records that have any of them.
         """
@@ -361,6 +411,13 @@ class Servicetype(Constraint):
         self.extra_fragments = []
 
         for std in stds:
+            if std in ('image', 'spectrum'):
+                warnings.warn(AstropyDeprecationWarning(
+                    f"The '{std}' servicetype is deprecated.  See"
+                    " https://pyvo.readthedocs.io/en/latest/api/pyvo.registry"
+                    ".Servicetype.html#pyvo.registry.Servicetype"
+                    " for more information."))
+
             if std in SERVICE_TYPE_MAP:
                 self.stdids.add(SERVICE_TYPE_MAP[std])
             elif "://" in std:
@@ -428,7 +485,7 @@ class Waveband(Constraint):
 
         Parameters
         ----------
-        *bands : tuple of strings
+        *bands : strings
             One or more of the terms given in http://www.ivoa.net/rdf/messenger.
             The constraint matches when a resource declares at least
             one of the messengers listed.
@@ -451,7 +508,7 @@ class Waveband(Constraint):
             for band in self.bands)
 
 
-class Datamodel(Constraint):
+class Datamodel(SubqueriedConstraint):
     """
     A constraint on the adherence to a data model.
 
@@ -459,11 +516,17 @@ class Datamodel(Constraint):
     one of several well-known data models; the SQL produced depends
     on the data model identifier.
 
+    Records returned with these constraints will have a TAP (or
+    auxiliary TAP) capability.
+
     Known data models at this point include:
 
     * obscore -- generic observational data
     * epntap -- solar system data
     * regtap -- the VO registry.
+    * obscore-new -- the table-based new-style obscore discovery.  Don't
+      use in code built to last: this will become normal obscore
+      when we have migrated the VO.
 
     DM names are matched case-insensitively here mainly for
     historical reasons.
@@ -472,7 +535,7 @@ class Datamodel(Constraint):
 
     # if you add to this list, you have to define a method
     # _make_<dmname>_constraint.
-    _known_dms = {"obscore", "epntap", "regtap"}
+    _known_dms = {"obscore", "epntap", "regtap", "obscore_new"}
 
     def __init__(self, dmname):
         """
@@ -486,30 +549,38 @@ class Datamodel(Constraint):
         if dmname not in self._known_dms:
             raise dalq.DALQueryError("Unknown data model id {}.  Known are: {}."
                                      .format(dmname, ", ".join(sorted(self._known_dms))))
-        self._condition = getattr(self, f"_make_{dmname}_constraint")()
+        self._subquery_table, self._condition = getattr(
+            self, f"_make_{dmname}_constraint")()
 
     def _make_obscore_constraint(self):
         # There was a bit of chaos with the DM ids for Obscore.
         # Be lenient here
-        self._extra_tables = ["rr.res_detail"]
         obscore_pat = 'ivo://ivoa.net/std/obscore%'
-        return ("detail_xpath = '/capability/dataModel/@ivo-id'"
-                f" AND 1 = ivo_nocasematch(detail_value, '{obscore_pat}')")
+        return "rr.res_detail", (
+            "detail_xpath = '/capability/dataModel/@ivo-id'"
+            f" AND 1 = ivo_nocasematch(detail_value, '{obscore_pat}')")
+
+    def _make_obscore_new_constraint(self):
+        return "rr.res_table NATURAL JOIN rr.resource", (
+            "table_utype LIKE 'ivo://ivoa.net/std/obscore#table-1.%'"
+            # Only use catalogresource-typed records to keep out
+            # full TAP services that may have the table in their
+            # tablesets.
+            " AND res_type = 'vs:catalogresource'")
 
     def _make_epntap_constraint(self):
-        self._extra_tables = ["rr.res_table"]
         # we include legacy, pre-IVOA utypes for matches; lowercase
         # any new identifiers (utypes case-fold).
-        return " OR ".join(
+        return "rr.res_table", " OR ".join(
             f"table_utype LIKE '{pat}'" for pat in
             ['ivo://vopdc.obspm/std/epncore#schema-2.%',
              'ivo://ivoa.net/std/epntap#table-2.%'])
 
     def _make_regtap_constraint(self):
-        self._extra_tables = ["rr.res_detail"]
         regtap_pat = 'ivo://ivoa.net/std/RegTAP#1.%'
-        return ("detail_xpath = '/capability/dataModel/@ivo-id'"
-                f" AND 1 = ivo_nocasematch(detail_value, '{regtap_pat}')")
+        return "rr.res_detail", (
+            "detail_xpath = '/capability/dataModel/@ivo-id'"
+            f" AND 1 = ivo_nocasematch(detail_value, '{regtap_pat}')")
 
 
 class Ivoid(Constraint):
@@ -525,6 +596,7 @@ class Ivoid(Constraint):
         ----------
 
         ivoid : string
+            One or more string arguments.
             The IVOA identifier of the resource to match.  As RegTAP
             requires lowercasing ivoids on ingestion, the constraint
             lowercases the ivoid passed in, too.
@@ -540,12 +612,13 @@ class Ivoid(Constraint):
             f"ivoid={make_sql_literal(id)}" for id in self.ivoids)
 
 
-class UCD(Constraint):
+class UCD(SubqueriedConstraint):
     """
     A constraint selecting resources having tables with columns having
     UCDs matching a SQL pattern (% as wildcard).
     """
     _keyword = "ucd"
+    _subquery_table = "rr.table_column"
 
     def __init__(self, *patterns):
         """
@@ -553,19 +626,18 @@ class UCD(Constraint):
         Parameters
         ----------
 
-        patterns : tuple of strings
+        patterns : strings
             SQL patterns (i.e., ``%`` is 0 or more characters) for
             UCDs.  The constraint will match when a resource has
             at least one column matching one of the patterns.
         """
-        self._extra_tables = ["rr.table_column"]
         self._condition = " OR ".join(
             f"ucd LIKE {{ucd{i}}}" for i in range(len(patterns)))
         self._fillers = dict((f"ucd{index}", pattern)
                              for index, pattern in enumerate(patterns))
 
 
-class Spatial(Constraint):
+class Spatial(SubqueriedConstraint):
     """
     A RegTAP constraint selecting resources covering a geometry in
     space.
@@ -612,13 +684,18 @@ class Spatial(Constraint):
     are interpreted in degrees)::
 
         >>> resources = registry.Spatial((SkyCoord("23d +3d"), 3))
+
+    Or you can provide the radius angle as an Astropy Quantity:
+
+        >>> resources = registry.Spatial((SkyCoord("23d +3d"), 1*u.rad))
     """
     _keyword = "spatial"
-    _extra_tables = ["rr.stc_spatial"]
+    _subquery_table = "rr.stc_spatial"
 
     takes_sequence = True
 
-    def __init__(self, geom_spec, order=6, intersect="covers"):
+    def __init__(self, geom_spec,
+            *, order=6, intersect="covers", inclusive=False):
         """
 
         Parameters
@@ -628,7 +705,7 @@ class Spatial(Constraint):
             as a DALI point, a 3-sequence as a DALI circle, a 2n sequence
             as a DALI polygon.  Additionally, strings are interpreted
             as ASCII MOCs, SkyCoords as points, and a pair of a
-            SkyCoord and a float as a circle.  Other types (proper
+            SkyCoord and a float or Quantity as a circle.  Other types (proper
             geometries or MOCPy objects) might be supported in the
             future.
         order : int, optional
@@ -643,8 +720,13 @@ class Spatial(Constraint):
             that completely cover the *geom_spec* region, 'enclosed' for services
             completely enclosed in the region and 'overlaps' for services which
             coverage intersect the region.
-
+        inclusive : bool, optional
+            Normally, this constraint will remove all resources that do
+            not declare their spatial coverage.  Pass inclusive=True to
+            retain these.
         """
+        self.inclusive = inclusive
+
         def tomoc(s):
             return _AsIs("MOC({}, {})".format(order, s))
 
@@ -658,9 +740,16 @@ class Spatial(Constraint):
 
         elif len(geom_spec) == 2:
             if isinstance(geom_spec[0], SkyCoord):
+                # If radius given is astropy quantity, then convert to degrees
+                if isinstance(geom_spec[1], u.Quantity):
+                    if geom_spec[1].unit.physical_type != 'angle':
+                        raise ValueError("Radius quantity is not of type angle.")
+                    radius = geom_spec[1].to(u.deg).value
+                else:
+                    radius = geom_spec[1]
                 geom = tomoc(format_function_call("CIRCLE",
                                                   [geom_spec[0].ra.value, geom_spec[0].dec.value,
-                                                   geom_spec[1]]))
+                                                   radius]))
             else:
                 geom = tomoc(format_function_call("POINT", geom_spec))
 
@@ -691,18 +780,24 @@ class Spatial(Constraint):
         # MOC-based geometries but does not have a MOC function.
         if not service.get_tap_capability().get_adql().get_feature(
                 "ivo://org.gavo.dc/std/exts#extra-adql-keywords", "MOC"):
-            raise RegTAPFeatureMissing("Current RegTAP service does not support MOC.")
+            raise RegTAPFeatureMissing(
+                "Current RegTAP service does not support MOC.")
 
         # We should compare case-insensitively here, but then we don't
         # with delimited identifiers -- in the end, that would have to
         # be handled in dal.vosi.VOSITables.
         if "rr.stc_spatial" not in service.tables:
-            raise RegTAPFeatureMissing("stc_spatial missing on current RegTAP service")
+            raise RegTAPFeatureMissing(
+                "stc_spatial missing on current RegTAP service")
 
-        return super().get_search_condition(service)
+        cond = super().get_search_condition(service)
+        if self.inclusive:
+            return cond[:-1]+" OR coverage IS NULL)"
+        else:
+            return cond
 
 
-class Spectral(Constraint):
+class Spectral(SubqueriedConstraint):
     """
     A RegTAP constraint on the spectral coverage of resources.
 
@@ -735,11 +830,11 @@ class Spectral(Constraint):
         >>> resources =  registry.Spectral((88*u.MHz, 102*u.MHz))
     """
     _keyword = "spectral"
-    _extra_tables = ["rr.stc_spectral"]
+    _subquery_table = "rr.stc_spectral"
 
     takes_sequence = True
 
-    def __init__(self, spec):
+    def __init__(self, spec, *, inclusive=False):
         """
 
         Parameters
@@ -750,7 +845,14 @@ class Spectral(Constraint):
             in which case the argument is interpreted as an interval.
             All resources *overlapping* the interval are returned.
             Plain floats are interpreted as messenger energy in Joule.
+
+        inclusive : bool, optional
+            Normally, this constraint will remove all resources that do
+            not declare their spectral coverage.  Pass inclusive=True to
+            retain these.
         """
+        self.inclusive = inclusive
+
         if isinstance(spec, tuple):
             self._fillers = {
                 "spec_lo": self._to_joule(spec[0]),
@@ -793,12 +895,18 @@ class Spectral(Constraint):
 
     def get_search_condition(self, service):
         if "rr.stc_spectral" not in service.tables:
-            raise RegTAPFeatureMissing("stc_spectral missing on current RegTAP service")
+            raise RegTAPFeatureMissing(
+                "stc_spectral missing on current RegTAP service")
+        cond = super().get_search_condition(service)
+        if self.inclusive:
+            return (f"({cond}) OR NOT EXISTS("
+                "SELECT 1 FROM rr.stc_spectral AS inner_s WHERE"
+                    " inner_s.ivoid=rr.resource.ivoid)")
+        else:
+            return cond
 
-        return super().get_search_condition(service)
 
-
-class Temporal(Constraint):
+class Temporal(SubqueriedConstraint):
     """
     A RegTAP constraint on the temporal coverage of resources.
 
@@ -827,11 +935,11 @@ class Temporal(Constraint):
         >>> resources = registry.Temporal((54130, 54200))
     """
     _keyword = "temporal"
-    _extra_tables = ["rr.stc_temporal"]
+    _subquery_table = "rr.stc_temporal"
 
     takes_sequence = True
 
-    def __init__(self, times):
+    def __init__(self, times, *, inclusive=False):
         """
 
         Parameters
@@ -840,7 +948,14 @@ class Temporal(Constraint):
             A point in time or time interval to cover.  Plain numbers
             are interpreted as MJD.  All resources *overlapping* the
             interval are returned.
+
+        inclusive : bool, optional
+            Normally, this constraint will remove all resources that do
+            not declare their temproal coverage.  Pass inclusive=True to
+            retain these.
         """
+        self.inclusive = inclusive
+
         if isinstance(times, tuple):
             self._fillers = {
                 "time_lo": self._to_mjd(times[0]),
@@ -871,9 +986,16 @@ class Temporal(Constraint):
 
     def get_search_condition(self, service):
         if "rr.stc_temporal" not in service.tables:
-            raise RegTAPFeatureMissing("stc_temporal missing on current RegTAP service")
+            raise RegTAPFeatureMissing(
+                "stc_temporal missing on current RegTAP service")
 
-        return super().get_search_condition(service)
+        cond = super().get_search_condition(service)
+        if self.inclusive:
+            return (f"({cond}) OR NOT EXISTS("
+                "SELECT 1 FROM rr.stc_temporal AS inner_t WHERE"
+                    " inner_t.ivoid=rr.resource.ivoid)")
+        else:
+            return cond
 
 
 # NOTE: If you add new Contraint-s, don't forget to add them in
@@ -915,9 +1037,8 @@ def build_regtap_query(constraints, service):
             "(" + constraint.get_search_condition(service) + ")")
         extra_tables |= set(constraint._extra_tables)
 
-    joined_tables = ["rr.resource", "rr.capability", "rr.interface",
-                     "rr.alt_identifier"
-                     ] + list(extra_tables)
+    joined_tables = ["rr.resource", "rr.capability", "rr.interface"
+                     ] + list(sorted(extra_tables))
 
     # see comment in regtap.RegistryResource for the following
     # oddity

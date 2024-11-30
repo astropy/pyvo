@@ -57,6 +57,7 @@ The following packages are optional dependencies and are required for the
 full functionality:
 
  * pillow
+ * defusedxml
 
 For running the tests, and building the documentation, the following
 infrastructure packages are required:

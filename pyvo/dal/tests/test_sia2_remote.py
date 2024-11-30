@@ -168,28 +168,27 @@ class TestSIACadc():
 
     @pytest.mark.filterwarnings("ignore::pyvo.dal.exceptions.DALOverflowWarning")
     def test_fov(self):
-        results = search(CADC_SIA_URL, field_of_view=(10, 20), maxrec=5)
+        results = search(CADC_SIA_URL, field_of_view=(10, 20), collection='TESS', maxrec=5)
         assert len(results) == 5
         # how to test values
 
     @pytest.mark.filterwarnings("ignore::pyvo.dal.exceptions.DALOverflowWarning")
     def test_spatial_res(self):
-        results = search(CADC_SIA_URL, spatial_resolution=(1, 2), maxrec=5)
+        results = search(CADC_SIA_URL, spatial_resolution=(1, 2), collection='MACHO', maxrec=5)
         assert len(results) == 5
         for rr in results:
             assert 1 * u.arcsec <= rr.s_resolution <= 2 * u.arcsec
 
     @pytest.mark.filterwarnings("ignore::pyvo.dal.exceptions.DALOverflowWarning")
     def test_spec_resp(self):
-        results = search(CADC_SIA_URL, spectral_resolving_power=(1, 2), maxrec=5)
+        results = search(CADC_SIA_URL, spectral_resolving_power=(1, 2), collection='NEOSSAT', maxrec=5)
         assert len(results) == 5
         for rr in results:
             assert 1 <= rr.em_res_power <= 2
 
     @pytest.mark.filterwarnings("ignore::pyvo.dal.exceptions.DALOverflowWarning")
     def test_exptime(self):
-        results = search(CADC_SIA_URL, exptime=(1, 2),
-                         maxrec=5)
+        results = search(CADC_SIA_URL, exptime=(1, 2), collection='GEMINI', maxrec=5)
         assert len(results) == 5
         for rr in results:
             assert 1 * u.second <= rr.t_exptime <= 2 * u.second
@@ -219,17 +218,17 @@ class TestSIACadc():
 
     @pytest.mark.filterwarnings("ignore::pyvo.dal.exceptions.DALOverflowWarning")
     def test_collection(self):
-        results = search(CADC_SIA_URL, collection='CFHT', maxrec=5)
+        results = search(CADC_SIA_URL, collection='IRIS', maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert rr.obs_collection == 'CFHT'
+            assert rr.obs_collection == 'IRIS'
 
     @pytest.mark.filterwarnings("ignore::pyvo.dal.exceptions.DALOverflowWarning")
     def test_instrument(self):
-        results = search(CADC_SIA_URL, instrument='SCUBA-2', maxrec=5)
+        results = search(CADC_SIA_URL, instrument='IRAS', maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert rr.instrument_name == 'SCUBA-2'
+            assert rr.instrument_name == 'IRAS'
 
     @pytest.mark.filterwarnings("ignore::pyvo.dal.exceptions.DALOverflowWarning")
     def test_dataproduct_type(self):
@@ -240,10 +239,10 @@ class TestSIACadc():
 
     @pytest.mark.filterwarnings("ignore::pyvo.dal.exceptions.DALOverflowWarning")
     def test_target_name(self):
-        results = search(CADC_SIA_URL, target_name='OGF:t028', maxrec=5)
+        results = search(CADC_SIA_URL, target_name='BarnardStar', collection='NEOSSAT', maxrec=5)
         assert len(results) == 5
         for rr in results:
-            assert rr.target_name == 'OGF:t028'
+            assert rr.target_name == 'BarnardStar'
 
     @pytest.mark.filterwarnings("ignore::pyvo.dal.exceptions.DALOverflowWarning")
     def test_res_format(self):

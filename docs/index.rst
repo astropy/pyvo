@@ -41,7 +41,7 @@ Source Installation
 ^^^^^^^^^^^^^^^^^^^
 .. code-block:: bash
 
-  git clone http://github.com/pyvirtobs/pyvo
+  git clone http://github.com/astropy/pyvo
   cd pyvo
   python setup.py install
 
@@ -132,8 +132,10 @@ Using ``pyvo``
 
    dal/index
    registry/index
+   discover/index
    io/index
    auth/index
+   samp
    mivot/index
    utils/index
    utils/prototypes

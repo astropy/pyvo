@@ -42,8 +42,8 @@ Some of the examples have been provided by a special end-point of the Vizier con
 (https://cdsarc.cds.unistra.fr/beta/viz-bin/mivotconesearch) that maps query results to this model.
 
 .. image:: _images/mangoEpochPosition.png
-  :width: 500
-  :alt: EpochPropagation class used to validate this api.
+   :width: 500
+   :alt: EpochPropagation class used to validate this api.
 
 It is to be noted that the Vizier service does not annotate errors at the time of writing (Q1 2024)
 
@@ -58,6 +58,7 @@ which allows to get (and set) Mivot blocks from/into VOTables as an XML element 
     - ``JOIN`` features are not supported.
     - ``TEMPLATES`` with more than one ``INSTANCE`` not supported.
 
+
 Using the MIVOT package
 =======================
 
@@ -65,6 +66,7 @@ The ``pyvo.mivot`` module can be used to either read or build annotations.
 
 - `Reading <./viewer.html>`_ MIVOT annotations
 - `Writing <./writer.html>`_ MIVOT annotations
+
 
 Reference/API
 =============

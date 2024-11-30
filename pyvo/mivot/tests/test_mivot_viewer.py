@@ -5,9 +5,10 @@ Test for mivot.viewer.mivot_viewer.py
 import os
 import pytest
 import re
+from astropy.utils.data import get_pkg_data_filename
 from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.mivot.utils.dict_utils import DictUtils
-from pyvo.mivot.utils.exceptions import MappingException
+from pyvo.mivot.utils.exceptions import MappingError
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot import MivotViewer
 from astropy import version as astropy_version
@@ -51,15 +52,15 @@ def test_table_ref(m_viewer):
 
 
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
-def test_global_getters(m_viewer, data_path):
+def test_global_getters(m_viewer):
     """
-    Test each getter of the model_viewer_level1 specific for the GLOBALS.
+    Test each getter for TEMPLATES of the model_viewer.
     """
     assert m_viewer.get_table_ids() == ['_PKTable', 'Results']
     assert m_viewer.get_globals_models() == DictUtils.read_dict_from_file(
-        os.path.join(data_path, "data/reference/globals_models.json"))
+        get_pkg_data_filename("data/reference/globals_models.json"))
     assert m_viewer.get_templates_models() == DictUtils.read_dict_from_file(
-        os.path.join(data_path, "data/reference/templates_models.json"))
+        get_pkg_data_filename("data/reference/templates_models.json"))
     m_viewer._connect_table('_PKTable')
     row = m_viewer.next_table_row()
     assert row[0] == '5813181197970338560'
@@ -76,16 +77,16 @@ def test_global_getters(m_viewer, data_path):
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_no_mivot(path_no_mivot):
     """
-    Test each getter of the model_viewer_level1 specific for the GLOBALS.
+    Test each getter for GLOBALS of the model_viewer specific .
     """
     m_viewer = MivotViewer(path_no_mivot)
     assert m_viewer.get_table_ids() is None
     assert m_viewer.get_globals_models() is None
 
     assert m_viewer.get_templates_models() is None
-    with pytest.raises(MappingException):
+    with pytest.raises(MappingError):
         m_viewer._connect_table('_PKTable')
-    with pytest.raises(MappingException):
+    with pytest.raises(MappingError):
         m_viewer._connect_table()
 
     assert m_viewer.next_table_row() is None
@@ -106,37 +107,31 @@ def test_check_version(path_to_viewer):
 
 
 @pytest.fixture
-def m_viewer(data_path):
+def m_viewer():
     if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
     votable_name = "test.mivot_viewer.xml"
-    votable_path = os.path.join(data_path, "data", votable_name)
+    votable_path = get_pkg_data_filename(os.path.join("data", votable_name))
     return MivotViewer(votable_path=votable_path)
 
 
 @pytest.fixture
-def path_to_viewer(data_path):
+def path_to_viewer():
     if not check_astropy_version():
         pytest.skip("MIVOT test skipped because of the astropy version.")
 
     votable_name = "test.mivot_viewer.xml"
-    return os.path.join(data_path, "data", votable_name)
+    return get_pkg_data_filename(os.path.join("data", votable_name))
 
 
 @pytest.fixture
-def path_to_first_instance(data_path):
-
+def path_to_first_instance():
     votable_name = "test.mivot_viewer.first_instance.xml"
-    return os.path.join(data_path, "data", votable_name)
+    return get_pkg_data_filename(os.path.join("data", votable_name))
 
 
 @pytest.fixture
-def path_no_mivot(data_path):
+def path_no_mivot():
     votable_name = "test.mivot_viewer.no_mivot.xml"
-    return os.path.join(data_path, "data", votable_name)
-
-
-@pytest.fixture
-def data_path():
-    return os.path.dirname(os.path.realpath(__file__))
+    return get_pkg_data_filename(os.path.join("data", votable_name))

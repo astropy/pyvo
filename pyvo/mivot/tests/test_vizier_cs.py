@@ -21,7 +21,7 @@ import pytest
 from urllib.request import urlretrieve
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot import MivotViewer
-from pyvo.mivot.utils.exceptions import MivotException
+from pyvo.mivot.utils.exceptions import MivotError
 
 
 @pytest.fixture
@@ -91,7 +91,7 @@ def test_with_name(path_to_withname, delt_coo):
     assert abs(mivot_object.pmLongitude.value - 1.5) < delt_coo
     assert abs(mivot_object.pmLatitude.value - -12.30000019) < delt_coo
     assert str(mivot_object.epoch.value) == '2013.418'
-    assert str(mivot_object.Coordinate_coordSys.spaceRefFrame.value) == 'ICRS'
+    assert str(mivot_object.coordSys.spaceRefFrame.value) == 'ICRS'
 
     m_viewer.next()
 
@@ -100,7 +100,7 @@ def test_with_name(path_to_withname, delt_coo):
     assert abs(mivot_object.pmLongitude.value - 1.5) < delt_coo
     assert abs(mivot_object.pmLatitude.value - -12.30000019) < delt_coo
     assert str(mivot_object.epoch.value) == '2013.418'
-    assert str(mivot_object.Coordinate_coordSys.spaceRefFrame.value) == 'ICRS'
+    assert str(mivot_object.coordSys.spaceRefFrame.value) == 'ICRS'
 
 
 @pytest.mark.remote_data
@@ -125,5 +125,5 @@ def test_bad_ref(path_to_badref, delt_coo):
     """ Test that the epoch propagation works with all FIELDs referenced by name or by ID
     """
     # Test with all FILELDs referenced by names
-    with (pytest.raises(MivotException, match="Attribute mango:EpochPosition.epoch can not be set.*")):
+    with (pytest.raises(MivotError, match="Attribute mango:EpochPosition.epoch can not be set.*")):
         MivotViewer(votable_path=path_to_badref)

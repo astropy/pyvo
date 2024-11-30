@@ -104,7 +104,7 @@ def _get_accessurl_from_params(params):
 
 class AdhocServiceResultsMixin:
     """
-    Mixin for adhoc:service functionallity for results classes.
+    Mixin for adhoc:service functionality for results classes.
     """
 
     def __init__(self, votable, *, url=None, session=None):
@@ -169,6 +169,122 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
     """
     Mixin for datalink functionallity for results classes.
     """
+    def _iter_datalinks_from_dlblock(self, datalink_service):
+        """yields datalinks from the current rows using a datalink
+        service RESOURCE.
+        """
+        remaining_ids = []  # remaining IDs to processed
+        current_batch = None  # retrieved but not returned yet
+        current_ids = []  # retrieved but not returned
+        processed_ids = []  # retrived and returned IDs
+        batch_size = None  # size of the batch
+
+        for row in self:
+            if not current_ids:
+                if batch_size is None:
+                    # first call.
+                    self.query = DatalinkQuery.from_resource(
+                        [_ for _ in self],
+                        self._datalink,
+                        session=self._session,
+                        original_row=row)
+                    remaining_ids = self.query['ID']
+                if not remaining_ids:
+                    # we are done
+                    return
+                if batch_size:
+                    # subsequent calls are limitted to batch size
+                    self.query['ID'] = remaining_ids[:batch_size]
+                current_batch = self.query.execute(post=True)
+                current_ids = list(OrderedDict.fromkeys(
+                    [_ for _ in current_batch.to_table()['ID']]))
+                if not current_ids:
+                    raise DALServiceError(
+                        'Could not retrieve datalinks for: {}'.format(
+                            ', '.join([_ for _ in remaining_ids])))
+                batch_size = len(current_ids)
+            id1 = current_ids.pop(0)
+            processed_ids.append(id1)
+            remaining_ids.remove(id1)
+            yield current_batch.clone_byid(
+                id1,
+                original_row=row)
+
+    @staticmethod
+    def _guess_access_format(row):
+        """returns a guess for the format of what __guess_access_url will
+        return.
+
+        This tries a few heuristics based on how obscore or SIA records might
+        be marked up.  If will return None if row does not look as if
+        it contained an access format.  Note that the heuristics are
+        tried in sequence; for now, we do not define the sequence of
+        heuristics.
+        """
+        if hasattr(row, "access_format"):
+            return row.access_format
+
+        if "access_format" in row:
+            return row["access_format"]
+
+        access_format = row.getbyutype("obscore:access.format"
+            ) or row.getbyutype("ssa:Access.Format")
+        if access_format:
+            return access_format
+
+        access_format = row.getbyucd("meta.code.mime"
+            ) or row.getbyucd("VOX:Image_Format")
+        if access_format:
+            return access_format
+
+    @staticmethod
+    def _guess_access_url(row):
+        """returns a guess for a URI to a data product in row.
+
+        This tries a few heuristics based on how obscore or SIA records might
+        be marked up.  If will return None if row does not look as if
+        it contained a product access url.  Note that the heuristics are
+        tried in sequence; for now, we do not define the sequence of
+        heuristics.
+        """
+        if hasattr(row, "access_url"):
+            return row.access_url
+
+        if "access_url" in row:
+            return row["access_url"]
+
+        access_url = row.getbyutype("obscore:access.reference"
+            ) or row.getbyutype("ssa:Access.Reference")
+        if access_url:
+            return access_url
+
+        access_url = row.getbyucd("meta.ref.url"
+            ) or row.getbyucd("VOX:Image_AccessReference")
+        if access_url:
+            return access_url
+
+    @staticmethod
+    def _guess_datalink(row, **kwargs):
+        # TODO: we should be more careful about whitespace, case
+        # and perhaps more parameters in the following comparison
+        if row._results._guess_access_format(row) == DATALINK_MIME_TYPE:
+            access_url = row._results._guess_access_url(row)
+            if access_url is not None:
+                return DatalinkResults.from_result_url(access_url, **kwargs)
+
+    def _iter_datalinks_from_product_rows(self):
+        """yield datalinks from self's rows if they describe datalink-valued
+        products.
+        """
+        for row in self:
+            # TODO: we should be more careful about whitespace, case
+            # and perhaps more parameters in the following comparison
+            if self._guess_access_format(row) == DATALINK_MIME_TYPE:
+                access_url = self._guess_access_url(row)
+                if access_url is not None:
+                    yield DatalinkResults.from_result_url(
+                        access_url,
+                        original_row=row)
 
     def iter_datalinks(self):
         """
@@ -186,42 +302,12 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                 self._datalink = self.get_adhocservice_by_ivoid(DATALINK_IVOID)
             except DALServiceError:
                 self._datalink = None
-        remaining_ids = []  # remaining IDs to processed
-        current_batch = None  # retrieved but not returned yet
-        current_ids = []  # retrieved but not returned
-        processed_ids = []  # retrived and returned IDs
-        batch_size = None  # size of the batch
 
-        for row in self:
-            if self._datalink:
-                if not current_ids:
-                    if batch_size is None:
-                        # first call.
-                        self.query = DatalinkQuery.from_resource(
-                            [_ for _ in self], self._datalink, session=self._session)
-                        remaining_ids = self.query['ID']
-                    if not remaining_ids:
-                        # we are done
-                        return
-                    if batch_size:
-                        # subsequent calls are limitted to batch size
-                        self.query['ID'] = remaining_ids[:batch_size]
-                    current_batch = self.query.execute(post=True)
-                    current_ids = list(OrderedDict.fromkeys(
-                        [_ for _ in current_batch.to_table()['ID']]))
-                    if not current_ids:
-                        raise DALServiceError(
-                            'Could not retrieve datalinks for: {}'.format(
-                                ', '.join([_ for _ in remaining_ids])))
-                    batch_size = len(current_ids)
-                id1 = current_ids.pop(0)
-                processed_ids.append(id1)
-                remaining_ids.remove(id1)
-                yield current_batch.clone_byid(id1)
-            elif row.access_format == DATALINK_MIME_TYPE:
-                yield DatalinkResults.from_result_url(row.getdataurl())
-            else:
-                yield None
+        if self._datalink is None:
+            yield from self._iter_datalinks_from_product_rows()
+
+        else:
+            yield from self._iter_datalinks_from_dlblock(self._datalink)
 
 
 class DatalinkRecordMixin:
@@ -232,13 +318,31 @@ class DatalinkRecordMixin:
     """
 
     def getdatalink(self):
+        """
+        Retrieve the datalink information for this record.
+
+        Returns
+        -------
+        DatalinkResults
+            The datalink results for this record.
+
+        Raises
+        ------
+        DALServiceError
+            If no datalink information is found for this record.
+        """
         try:
             datalink = self._results.get_adhocservice_by_ivoid(DATALINK_IVOID)
 
             query = DatalinkQuery.from_resource(self, datalink, session=self._session)
             return query.execute()
-        except DALServiceError:
-            return DatalinkResults.from_result_url(self.getdataurl(), session=self._session)
+        except DALServiceError as error:
+            datalink = self._results._guess_datalink(self, session=self._session)
+            if datalink is not None:
+                return datalink
+            else:
+                # re-raise the original error if nothing works
+                raise DALServiceError("No datalink found for record.") from error
 
     @stream_decode_content
     def getdataset(self, timeout=None):
@@ -300,7 +404,7 @@ class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
         --------
         DatalinkResults
         """
-        return self.create_query(id, responseformat, **keywords).execute()
+        return self.create_query(id, responseformat=responseformat, **keywords).execute()
 
     # alias for service discovery
     search = run_sync
@@ -321,7 +425,7 @@ class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
             the output format
         """
         return DatalinkQuery(
-            self.baseurl, id, responseformat, **keywords)
+            self.baseurl, id=id, responseformat=responseformat, **keywords)
 
 
 class DatalinkQuery(DALQuery):
@@ -366,6 +470,8 @@ class DatalinkQuery(DALQuery):
                     ref="srcGroup"/>
             </GROUP>
         """
+        original_row = kwargs.pop("original_row", None)
+
         input_params = _get_input_params_from_resource(resource)
         # get params outside of any group
         dl_params = _get_params_from_resource(resource)
@@ -402,7 +508,11 @@ class DatalinkQuery(DALQuery):
             except KeyError:
                 query_params[name] = query_param
 
-        return cls(accessurl, session=session, **query_params)
+        return cls(
+            accessurl,
+            session=session,
+            original_row=original_row,
+            **query_params)
 
     def __init__(
             self, baseurl, *, id=None, responseformat=None, session=None, **keywords):
@@ -420,6 +530,8 @@ class DatalinkQuery(DALQuery):
         session : object
             optional session to use for network requests
         """
+        self.original_row = keywords.pop("original_row", None)
+
         super().__init__(baseurl, session=session, **keywords)
 
         if id is not None:
@@ -441,8 +553,11 @@ class DatalinkQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return DatalinkResults(self.execute_votable(post=post),
-                               url=self.queryurl, session=self._session)
+        return DatalinkResults(
+            self.execute_votable(post=post),
+            url=self.queryurl,
+            original_row=self.original_row,
+            session=self._session)
 
 
 class DatalinkResults(DatalinkResultsMixin, DALResults):
@@ -488,6 +603,10 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
     a Numpy array.
     """
 
+    def __init__(self, *args, **kwargs):
+        self.original_row = kwargs.pop("original_row", None)
+        super().__init__(*args, **kwargs)
+
     def getrecord(self, index):
         """
         return a representation of a datalink result record that follows
@@ -503,7 +622,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
 
         Returns
         -------
-        REc
+        Rec
            a dictionary-like wrapper containing the result record metadata.
 
         Raises
@@ -569,10 +688,10 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
             if record.semantics in semantics:
                 yield record
 
-    def clone_byid(self, id):
+    def clone_byid(self, id, *, original_row=None):
         """
         return a clone of the object with results and corresponding
-         resources matching a given id
+        resources matching a given id
 
         Returns
         -------
@@ -597,7 +716,7 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         for x in copy_tb.resources:
             if x.ID and x.ID not in referenced_serviced:
                 copy_tb.resources.remove(x)
-        return DatalinkResults(copy_tb)
+        return DatalinkResults(copy_tb, original_row=original_row)
 
     def getdataset(self, *, timeout=None):
         """
@@ -629,6 +748,12 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
             return proc
         raise IndexError("No processing service found in datalink result")
 
+    @classmethod
+    def from_result_url(cls, result_url, *, session=None, original_row=None):
+        res = super().from_result_url(result_url, session=session)
+        res.original_row = original_row
+        return res
+
 
 class SodaRecordMixin:
     """
@@ -640,13 +765,6 @@ class SodaRecordMixin:
     def _get_soda_resource(self):
         try:
             return self._results.get_adhocservice_by_ivoid(SODA_SYNC_IVOID)
-        except DALServiceError:
-            pass
-
-        # let it count as soda resource
-        try:
-            return self._results.get_adhocservice_by_ivoid(
-                "ivo://ivoa.net/std/datalink#links")
         except DALServiceError:
             pass
 
