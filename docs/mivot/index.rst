@@ -74,3 +74,4 @@ Reference/API
 .. automodapi:: pyvo.mivot.seekers
 .. automodapi:: pyvo.mivot.features
 .. automodapi:: pyvo.mivot.utils
+.. automodapi:: pyvo.mivot.writer
