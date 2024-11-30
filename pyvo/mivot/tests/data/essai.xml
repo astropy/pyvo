@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Produced with astropy.io.votable version 7.0.0
+     http://www.astropy.org/ -->
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd">
+ <RESOURCE ID="yCat_1329" type="results">
+  <DESCRIPTION>
+   URAT1 Catalog (Zacharias+ 2015)
+  </DESCRIPTION>
+  <COOSYS ID="H" system="ICRS"/>
+  <TIMESYS ID="time_1" refposition="UNKNOWN" timeorigin="0.0" timescale="UNKNOWN"/>
+  <INFO ID="ivoid" name="ivoid" value="ivo://cds.vizier/i/329">IVOID of underlying data collection</INFO>
+  <RESOURCE type="meta">
+   <VODML xmlns="http://www.ivoa.net/xml/mivot">
+   <REPORT status="OK">Mivot writer unit test</REPORT>
+   <MODEL name="ivoa" url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml" />
+   <MODEL name="coords" url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml" />
+   <MODEL name="mango" url="https://raw.githubusercontent.com/lmichel/MANGO/draft-0.1/vo-dml/mango.vo-dml.xml" />
+   <GLOBALS>
+   <INSTANCE dmtype="coords:SpaceSys" dmid="_spacesys_icrs" >
+      <INSTANCE dmtype="coords:SpaceFrame" dmrole="coords:PhysicalCoordSys.frame" >
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:SpaceFrame.spaceRefFrame" value="ICRS"  />
+      <INSTANCE dmtype="coords:StdRefLocation" dmrole="coords:SpaceFrame.refPosition" >
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:StdRefLocation.position" value="BARYCENTER"  />
+   </INSTANCE>
+   </INSTANCE>
+   </INSTANCE>
+   </GLOBALS>
+   <TEMPLATES>
+   <INSTANCE dmtype="mango:EpochPosition" >
+      <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.longitude" unit="deg" ref="RAICRS"  />
+      <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.latitude" unit="deg" ref="DEICRS"  />
+      <REFERENCE dmrole="mango:EpochPosition.spaceSys" dmref="_spacesys_icrs" />
+      <INSTANCE dmtype="mango:EpochPositionErrors" dmrole="mango:EpochPosition.errors" >
+      <INSTANCE dmtype="mango:error.ErrorCorrMatrix" dmrole="mango:EpochPositionErrors.position" >
+      <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.ErrorCorrMatrix.sigma1" unit="arcsec" ref="sigm"  />
+      <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.ErrorCorrMatrix.sigma2" unit="arcsec" ref="sigm"  />
+   </INSTANCE>
+   </INSTANCE>
+   </INSTANCE>
+   </TEMPLATES>
+   </VODML>
+  </RESOURCE>
+  <TABLE ID="I_329_urat1" name="I/329/urat1" nrows="1">
+   <DESCRIPTION>
+    URAT1 catalog
+   </DESCRIPTION>
+   <FIELD ID="_r" datatype="double" name="_r" precision="6" ucd="pos.angDistance" unit="---" width="8">
+    <DESCRIPTION>
+     Distance from center (052.2670800+59.9402700)[ICRS], at Epoch of
+     catalog (Epoch)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="URAT1" arraysize="10" datatype="char" name="URAT1" ucd="meta.id;meta.main">
+    <DESCRIPTION>
+     URAT1 recommended identifier (ZZZ-NNNNNN) (13) [datatype=char]
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="RAICRS" datatype="double" name="RAICRS" precision="7" ref="H" ucd="pos.eq.ra;meta.main" unit="deg" width="11">
+    <DESCRIPTION>
+     Right ascension on ICRS, at "Epoch" (1)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="DEICRS" datatype="double" name="DEICRS" precision="7" ref="H" ucd="pos.eq.dec;meta.main" unit="deg" width="11">
+    <DESCRIPTION>
+     Declination on ICRS, at "Epoch" (1)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="sigs" datatype="short" name="sigs" ucd="stat.error" unit="mas" width="3">
+    <DESCRIPTION>
+     Position error per coordinate, from scatter (2)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="sigm" datatype="short" name="sigm" ucd="stat.error" unit="mas" width="3">
+    <DESCRIPTION>
+     Position error per coordinate, from model (2)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Ns" datatype="short" name="Ns" ucd="meta.number" width="2">
+    <DESCRIPTION>
+     (nst) Total number of sets the star is in (3)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Nu" datatype="short" name="Nu" ucd="meta.number" width="2">
+    <DESCRIPTION>
+     (nsu) Number of sets used for mean position (3)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="_tab1_8" datatype="double" name="Epoch" precision="3" ref="H" ucd="time.epoch;obs;stat.mean" unit="yr" width="8">
+    <DESCRIPTION>
+     (epoc) Mean URAT observation epoch (1)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="f.mag" datatype="float" name="f.mag" precision="3" ucd="phot.mag;em.opt.R" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(mmag) mean URAT model fit magnitude (4)
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="e_f.mag" datatype="float" name="e_f.mag" precision="3" ucd="stat.error" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(sigp) URAT photometry error (5)
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="Nm" datatype="short" name="Nm" ucd="meta.number" width="2">
+    <DESCRIPTION>
+     (nsm) Number of sets used for URAT magnitude (3)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="r" datatype="unsignedByte" name="r" ucd="meta.code" width="1">
+    <DESCRIPTION>
+     (ref) largest reference star flag (6)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Nit" datatype="short" name="Nit" ucd="meta.number" width="3">
+    <DESCRIPTION>
+     (nit) Total number of images (observations)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Niu" datatype="short" name="Niu" ucd="meta.number" width="3">
+    <DESCRIPTION>
+     (niu) Number of images used for mean position
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Ngt" datatype="short" name="Ngt" ucd="meta.number" width="3">
+    <DESCRIPTION>
+     (ngt) Total number of 1st order grating observations
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Ngu" datatype="short" name="Ngu" ucd="meta.number" width="3">
+    <DESCRIPTION>
+     (ngu) Number of 1st order grating positions used
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="pmRA" datatype="float" name="pmRA" precision="1" ref="H" ucd="pos.pm;pos.eq.ra" unit="mas.yr-1" width="6">
+    <DESCRIPTION>
+     ?(pmr) Proper motion RA*cosDec (from 2MASS) (7)
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="pmDE" datatype="float" name="pmDE" precision="1" ref="H" ucd="pos.pm;pos.eq.dec" unit="mas.yr-1" width="6">
+    <DESCRIPTION>
+     ?(pmd) Proper motion in Declination (7)
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="e_pm" datatype="float" name="e_pm" precision="1" ucd="stat.error" unit="mas.yr-1" width="4">
+    <DESCRIPTION>
+     ?(pme) Proper motion error per coordinate (8)
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="mf2" datatype="short" name="mf2" ucd="meta.code" width="2">
+    <DESCRIPTION>
+     [1/11] Match flag URAT with 2MASS (9)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="mfa" datatype="short" name="mfa" ucd="meta.code" width="2">
+    <DESCRIPTION>
+     [1/11] Match flag URAT with APASS (9)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="G" arraysize="1" datatype="char" name="G" ucd="meta.code">
+    <DESCRIPTION>
+     [-] "-" if there is no match with GSC2.4 (14)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="_2Mkey" datatype="long" name="2Mkey" ucd="meta.id" width="10">
+    <DESCRIPTION>
+     ?(id2) unique 2MASS star identification number
+    </DESCRIPTION>
+    <VALUES null="-9223372036854775808"/>
+   </FIELD>
+   <FIELD ID="Jmag" datatype="float" name="Jmag" precision="3" ucd="phot.mag;em.IR.J" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(jmag) 2MASS J-band magnitude
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="e_Jmag" datatype="float" name="e_Jmag" precision="3" ucd="stat.error;phot.mag" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(ejmag) Error on Jmag
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="q_Jmag" arraysize="2" datatype="char" name="q_Jmag" ucd="meta.code.qual">
+    <DESCRIPTION>
+     [0,58]? J-band quality-confusion flag (10)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Hmag" datatype="float" name="Hmag" precision="3" ucd="phot.mag;em.IR.H" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(hmag) 2MASS H-band magnitude
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="e_Hmag" datatype="float" name="e_Hmag" precision="3" ucd="stat.error;phot.mag" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(ehmag) Error on H-band magnitude (10)
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="q_Hmag" arraysize="2" datatype="char" name="q_Hmag" ucd="meta.code.qual">
+    <DESCRIPTION>
+     [0,58]? H-band quality-confusion flag (10)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Kmag" datatype="float" name="Kmag" precision="3" ucd="phot.mag;em.IR.K" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(kmag) 2MASS Ks-band magnitude
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="e_Kmag" datatype="float" name="e_Kmag" precision="3" ucd="stat.error;phot.mag" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(ekmag) Error on Ks-band magnitude (10)
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="q_Kmag" arraysize="2" datatype="char" name="q_Kmag" ucd="meta.code.qual">
+    <DESCRIPTION>
+     [0,58]? Ks-band quality-confusion flag (10)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Nn" datatype="short" name="Nn" ucd="meta.number" width="3">
+    <DESCRIPTION>
+     (ann) Number of APASS observation nights (12)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="No" datatype="short" name="No" ucd="meta.number" width="3">
+    <DESCRIPTION>
+     (ano) Number of APASS observations (12)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Bmag" datatype="float" name="Bmag" precision="3" ucd="phot.mag;em.opt.B" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(abm) APASS B-band magnitude (11)
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="e_Bmag" datatype="float" name="e_Bmag" precision="3" ucd="stat.error;phot.mag" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(ebm) Error on Bmag
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="Vmag" datatype="float" name="Vmag" precision="3" ucd="phot.mag;em.opt.V" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(avm) APASS V-band magnitude
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="e_Vmag" datatype="float" name="e_Vmag" precision="3" ucd="stat.error;phot.mag" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(evm) Error on Vmag
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="gmag" datatype="float" name="gmag" precision="3" ucd="phot.mag;em.opt.B" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(agm) APASS g-band magnitude
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="e_gmag" datatype="float" name="e_gmag" precision="3" ucd="stat.error;phot.mag" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(egm) Error on gmag
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="rmag" datatype="float" name="rmag" precision="3" ucd="phot.mag;em.opt.R" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(arm) APASS r-band magnitude
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="e_rmag" datatype="float" name="e_rmag" precision="3" ucd="stat.error;phot.mag" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(erm) Error on rmag
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="imag" datatype="float" name="imag" precision="3" ucd="phot.mag;em.opt.I" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(aim) APASS i-band magnitude
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <FIELD ID="e_imag" datatype="float" name="e_imag" precision="3" ucd="stat.error;phot.mag" unit="mag" width="6">
+    <DESCRIPTION>
+     ?(eim) Error on imag
+    </DESCRIPTION>
+    <VALUES null="nan"/>
+   </FIELD>
+   <DATA>
+    <TABLEDATA>
+     <TR>
+      <TD>0.049402</TD>
+      <TD>750-146023</TD>
+      <TD> 52.2340018</TD>
+      <TD> 59.8937333</TD>
+      <TD>9</TD>
+      <TD>6</TD>
+      <TD>13</TD>
+      <TD>13</TD>
+      <TD>2013.418</TD>
+      <TD>15.340</TD>
+      <TD> 0.013</TD>
+      <TD>13</TD>
+      <TD>9</TD>
+      <TD>74</TD>
+      <TD>74</TD>
+      <TD>0</TD>
+      <TD>0</TD>
+      <TD>   1.5</TD>
+      <TD> -12.3</TD>
+      <TD> 5.9</TD>
+      <TD>1</TD>
+      <TD>5</TD>
+      <TD/>
+      <TD>758808681</TD>
+      <TD>13.713</TD>
+      <TD> 0.028</TD>
+      <TD>5</TD>
+      <TD>13.340</TD>
+      <TD> 0.034</TD>
+      <TD>5</TD>
+      <TD>13.101</TD>
+      <TD> 0.034</TD>
+      <TD>5</TD>
+      <TD>1</TD>
+      <TD>4</TD>
+      <TD>17.632</TD>
+      <TD> 0.204</TD>
+      <TD>16.164</TD>
+      <TD> 0.001</TD>
+      <TD>16.690</TD>
+      <TD> 0.001</TD>
+      <TD>15.750</TD>
+      <TD> 0.001</TD>
+      <TD/>
+      <TD/>
+     </TR>
+    </TABLEDATA>
+   </DATA>
+  </TABLE>
+ </RESOURCE>
+</VOTABLE>
