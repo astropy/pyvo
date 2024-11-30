@@ -27,7 +27,7 @@ Enhancements and Fixes
   whose structure corresponds to the classes of the mapped models. [#497]
 
 - Extending the MIVOT module with the ability to build annotations component by component
-  and put them into a VOTable. [#XYZ]
+  and put them into a VOTable. [#627]
   
   
 Deprecations and Removals
