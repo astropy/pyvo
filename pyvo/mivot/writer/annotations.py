@@ -87,7 +87,7 @@ from astropy.io.votable import parse
 from astropy import version
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.xml_utils import XmlUtils
-from pyvo.mivot.utils.exceptions import MappingException, AstropyVersionException
+from pyvo.mivot.utils.exceptions import MappingError, AstropyVersionException
 from pyvo.mivot.writer.instance import MivotInstance
 from pyvo.mivot.version_checker import check_astropy_version
 
@@ -251,7 +251,7 @@ class MivotAnnotations:
 
         Raises
         ------
-        MappingException
+        MappingError
             If `templates_instance` is neither a string nor an instance of `MivotInstance`.
         """
         if isinstance(templates_instance, MivotInstance):
@@ -259,7 +259,7 @@ class MivotAnnotations:
         elif isinstance(templates_instance, str):
             self._templates.append(templates_instance)
         else:
-            raise MappingException(
+            raise MappingError(
                 "Instance added to templates must be a string or MivotInstance."
             )
 
@@ -274,7 +274,7 @@ class MivotAnnotations:
 
         Raises
         ------
-        MappingException
+        MappingError
             If `globals_instance` is neither a string nor an instance of `MivotInstance`.
         """
         if isinstance(globals_instance, MivotInstance):
@@ -282,7 +282,7 @@ class MivotAnnotations:
         elif isinstance(globals_instance, str):
             self._globals.append(globals_instance)
         else:
-            raise MappingException(
+            raise MappingError(
                 "Instance added to globals must be a string or MivotInstance."
             )
 
@@ -327,7 +327,7 @@ class MivotAnnotations:
 
         Raises
         ------
-        MappingException
+        MappingError
             If the validation fails.
 
         Notes
@@ -349,7 +349,7 @@ class MivotAnnotations:
         try:
             schema.validate(mivot_block)
         except Exception as excep:
-            raise MappingException(f"Validation failed: {excep}") from excep
+            raise MappingError(f"Validation failed: {excep}") from excep
 
     def insert_into_votable(self, votable_file, template_id=None, override=False):
         """
@@ -366,7 +366,7 @@ class MivotAnnotations:
 
         Raises
         ------
-        MappingException
+        MappingError
             If a mapping block already exists and `override` is False.
         """
         if not check_astropy_version():
@@ -377,7 +377,7 @@ class MivotAnnotations:
         elif isinstance(votable_file, VOTableFile):
             votable = votable_file
         else:
-            raise MappingException(
+            raise MappingError(
                 "votable_file must be a file path string or a VOTableFile instance."
             )
 
@@ -386,7 +386,7 @@ class MivotAnnotations:
                 for subresource in resource.resources:
                     if subresource.type == "meta":
                         if not override:
-                            raise MappingException(
+                            raise MappingError(
                                 "A type='meta' resource already exists in the first 'result' resource."
                             )
                         else:

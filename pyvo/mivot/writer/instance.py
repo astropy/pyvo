@@ -38,7 +38,7 @@ Usage Example
 """
 
 from pyvo.utils.prototype import prototype_feature
-from pyvo.mivot.utils.exceptions import MappingException
+from pyvo.mivot.utils.exceptions import MappingError
 
 
 @prototype_feature("MIVOT")
@@ -65,11 +65,11 @@ class MivotInstance:
 
         Raises
         ------
-        MappingException
+        MappingError
             If `dmtype` is not provided.
         """
         if not dmtype:
-            raise MappingException("Cannot build an instance without dmtype")
+            raise MappingError("Cannot build an instance without dmtype")
         self._dmtype = dmtype
         self._dmrole = dmrole
         self._dmid = dmid
@@ -94,15 +94,15 @@ class MivotInstance:
 
         Raises
         ------
-        MappingException
+        MappingError
             If `dmtype` or `dmrole` is not provided, or if both `ref` and `value` are not defined.
         """
         if not dmtype:
-            raise MappingException("Cannot add an attribute without dmtype")
+            raise MappingError("Cannot add an attribute without dmtype")
         if not dmrole:
-            raise MappingException("Cannot add an attribute without dmrole")
+            raise MappingError("Cannot add an attribute without dmrole")
         if not ref and not value:
-            raise MappingException("Cannot add an attribute without ref or value")
+            raise MappingError("Cannot add an attribute without ref or value")
 
         xml_string = f'<ATTRIBUTE dmtype="{dmtype}" dmrole="{dmrole}" '
         if unit:
@@ -127,13 +127,13 @@ class MivotInstance:
 
         Raises
         ------
-        MappingException
+        MappingError
             If `dmrole` or `dmref` is not provided.
         """
         if not dmref:
-            raise MappingException("Cannot add a reference without dmref")
+            raise MappingError("Cannot add a reference without dmref")
         if not dmrole:
-            raise MappingException("Cannot add a reference without dmrole")
+            raise MappingError("Cannot add a reference without dmrole")
 
         xml_string = f'<REFERENCE dmrole="{dmrole}" dmref="{dmref}" />'
         self._content.append(xml_string)
@@ -149,11 +149,11 @@ class MivotInstance:
 
         Raises
         ------
-        MappingException
+        MappingError
             If `mivot_instance` is not of type `MivotInstance`.
         """
         if not isinstance(mivot_instance, MivotInstance):
-            raise MappingException("Instance added must be of type MivotInstance")
+            raise MappingError("Instance added must be of type MivotInstance")
         self._content.append(mivot_instance.xml_string())
 
     def xml_string(self):
