@@ -9,6 +9,7 @@ import os
 import pytest
 from astropy.io.votable import parse
 from pyvo.utils import activate_features
+from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.utils.exceptions import MappingException
 from pyvo.mivot.utils.dict_utils import DictUtils
 from pyvo.mivot.writer.annotations import MivotAnnotations
@@ -42,6 +43,7 @@ def strip_xml(xml_string):
     )
 
 
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_MivotInstance():
     """
     Test the MivotInstance class for various operations including attribute addition,
@@ -82,6 +84,7 @@ def test_MivotInstance():
     )
 
 
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_MivotAnnotations():
     """
     Test the MivotAnnotations class for template and global instance addition. Verifies
@@ -95,7 +98,8 @@ def test_MivotAnnotations():
         mb.add_globals(12)
 
 
-def test_MivotInstance2():
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
+def test_MivotInstanceAll():
     """
     Test the creation and combination of multiple MivotInstance objects, their attributes,
     references, and integration into a MivotAnnotations instance. Verifies correct XML
@@ -190,7 +194,3 @@ def test_MivotInstance2():
         os.path.join(data_path, "reference/test_mivot_writer.json")
     )
     votable.to_xml(data_path + "/essai.xml")
-
-
-if __name__ == "__main__":
-    test_MivotInstance2()

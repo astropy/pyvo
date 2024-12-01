@@ -1,3 +1,5 @@
+.. _index:
+
 ********************
 MIVOT (`pyvo.mivot`)
 ********************
@@ -63,8 +65,10 @@ Using the MIVOT package
 
 The ``pyvo.mivot`` module can be used to either read or build annotations.
 
-- `Reading <./viewer.html>`_ MIVOT annotations
-- `Writing <./writer.html>`_ MIVOT annotations
+.. toctree::
+
+   viewer
+   writer
 
 Reference/API
 =============

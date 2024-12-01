@@ -78,12 +78,18 @@ try:
     from defusedxml import ElementTree as etree
 except ImportError:
     from xml.etree import ElementTree as etree
-from astropy.io.votable.tree import VOTableFile, Resource, MivotBlock
+from astropy.io.votable.tree import VOTableFile, Resource
+try:
+    from astropy.io.votable.tree import MivotBlock
+except ImportError:
+    pass
 from astropy.io.votable import parse
+from astropy import version
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.xml_utils import XmlUtils
-from pyvo.mivot.utils.exceptions import MappingException
+from pyvo.mivot.utils.exceptions import MappingException, AstropyVersionException
 from pyvo.mivot.writer.instance import MivotInstance
+from pyvo.mivot.version_checker import check_astropy_version
 
 
 @prototype_feature("MIVOT")
@@ -363,6 +369,9 @@ class MivotAnnotations:
         MappingException
             If a mapping block already exists and `override` is False.
         """
+        if not check_astropy_version():
+            raise AstropyVersionException(f"Astropy version {version.version} "
+                                          f"is below the required version 6.0 for the use of MIVOT.")
         if isinstance(votable_file, str):
             votable = parse(votable_file)
         elif isinstance(votable_file, VOTableFile):

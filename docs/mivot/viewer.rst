@@ -18,7 +18,7 @@ Introduction
     MIVOT syntax allows to describe a data structure as a hierarchy of classes.
     It is also able to represent relations and composition between them. It can
     also build up data model objects by aggregating instances from different
-    tables of the VOTable (get more `here <./index.html>`_).
+    tables of the VOTable (get more in `index`_).
 
 Integrated Readout
 ------------------
