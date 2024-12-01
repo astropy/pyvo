@@ -28,7 +28,8 @@ class XmlUtils:
         Return a pretty string representation of an XML tree.
         Parameters
         ----------
-        xmltree (~`xml.etree.ElementTree.Element`): XML tree to convert to a pretty string.
+        xmltree (~`xml.etree.ElementTree.Element`): XML tree to convert to a pretty string
+        clean_ns (boolean): Ddefault namspace (ns0) removed from element names if True
         Returns
         -------
         str: The pretty string representation of the XML tree.

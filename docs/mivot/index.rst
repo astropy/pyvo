@@ -1,8 +1,6 @@
-.. _index:
-
-********************
-MIVOT (`pyvo.mivot`)
-********************
+*********************
+MIVOT (``pyvo.mivo``)
+*********************
 
 This module contains the new feature handling model annotations in VOTable.
 Astropy version >= 6.0 is required.
@@ -76,8 +74,4 @@ Reference/API
 =============
 
 .. automodapi:: pyvo.mivot
-.. automodapi:: pyvo.mivot.viewer
-.. automodapi:: pyvo.mivot.seekers
-.. automodapi:: pyvo.mivot.features
-.. automodapi:: pyvo.mivot.utils
-.. automodapi:: pyvo.mivot.writer
+

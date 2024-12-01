@@ -10,7 +10,7 @@ import pytest
 from astropy.io.votable import parse
 from pyvo.utils import activate_features
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot.utils.exceptions import MappingException
+from pyvo.mivot.utils.exceptions import MappingError
 from pyvo.mivot.utils.dict_utils import DictUtils
 from pyvo.mivot.writer.annotations import MivotAnnotations
 from pyvo.mivot.writer.instance import MivotInstance
@@ -48,25 +48,25 @@ def test_MivotInstance():
     """
     Test the MivotInstance class for various operations including attribute addition,
     reference addition, and XML generation. Verifies that invalid operations raise
-    the expected MappingException.
+    the expected MappingError.
     """
-    with pytest.raises(MappingException):
+    with pytest.raises(MappingError):
         MivotInstance(dmid="model:type.inst")
 
     instance1 = MivotInstance(dmtype="model:type.inst", dmid="id1")
-    with pytest.raises(MappingException):
+    with pytest.raises(MappingError):
         instance1.add_attribute(
             dmrole="model:type.inst.role1", value="value1", unit="m/s"
         )
-    with pytest.raises(MappingException):
+    with pytest.raises(MappingError):
         instance1.add_attribute(
             dmtype="model:type.att1", dmrole="model:type.inst.role1"
         )
-    with pytest.raises(MappingException):
+    with pytest.raises(MappingError):
         instance1.add_reference(dmref="dmreference")
-    with pytest.raises(MappingException):
+    with pytest.raises(MappingError):
         instance1.add_reference(dmrole="model:type.inst.role2")
-    with pytest.raises(MappingException):
+    with pytest.raises(MappingError):
         instance1.add_instance("azerty")
 
     instance1.add_reference(dmrole="model:type.inst.role2", dmref="dmreference")
@@ -88,13 +88,13 @@ def test_MivotInstance():
 def test_MivotAnnotations():
     """
     Test the MivotAnnotations class for template and global instance addition. Verifies
-    that invalid operations raise the expected MappingException.
+    that invalid operations raise the expected MappingError.
     """
     mb = MivotAnnotations()
 
-    with pytest.raises(MappingException):
+    with pytest.raises(MappingError):
         mb.add_templates(12)
-    with pytest.raises(MappingException):
+    with pytest.raises(MappingError):
         mb.add_globals(12)
 
 
@@ -190,7 +190,7 @@ def test_MivotInstanceAll():
 
     mv = MivotViewer(votable)
     print(mv.dm_instance)
-    assert mv.dm_instance.dict == DictUtils.read_dict_from_file(
+    assert mv.dm_instance.to_dict() == DictUtils.read_dict_from_file(
         os.path.join(data_path, "reference/test_mivot_writer.json")
     )
     votable.to_xml(data_path + "/essai.xml")
