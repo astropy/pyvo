@@ -1,6 +1,6 @@
-***************************************
-MIVOT (`pyvo.mivot`): Annotation Viewer
-***************************************
+*****************************************
+MIVOT (``pyvo.mivot``): Annotation Viewer
+*****************************************
 
 
 Introduction
@@ -18,7 +18,7 @@ Introduction
     MIVOT syntax allows to describe a data structure as a hierarchy of classes.
     It is also able to represent relations and composition between them. It can
     also build up data model objects by aggregating instances from different
-    tables of the VOTable (get more in `index`_).
+    tables of the VOTable (get more in  :doc:`index`).
 
 Integrated Readout
 ------------------
@@ -187,11 +187,3 @@ identifiers, which have the following structure: ``model:a.b``.
     print(mivot_instance.Coordinate_coordSys.spaceRefFrame.__dict__.keys())
     dict_keys(['dmtype', 'value', 'unit', 'ref'])
 
-Reference/API
-=============
-
-.. automodapi:: pyvo.mivot
-.. automodapi:: pyvo.mivot.viewer
-.. automodapi:: pyvo.mivot.seekers
-.. automodapi:: pyvo.mivot.features
-.. automodapi:: pyvo.mivot.utils

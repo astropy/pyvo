@@ -1,8 +1,6 @@
-.. _viewer:
-
-***************************************
-MIVOT (`pyvo.mivot`): Annotation Writer
-***************************************
+*****************************************
+MIVOT (``pyvo.mivot``): Annotation Writer
+*****************************************
 
 Introduction
 ============
@@ -19,7 +17,7 @@ Introduction
     MIVOT syntax allows to describe a data structure as a hierarchy of classes.
     It is also able to represent relations and composition between them. It can
     also build up data model objects by aggregating instances from different
-    tables of the VOTable (get more in `index`_).
+    tables of the VOTable (get more in :doc:`index`).
 
 - Model Instances in VOTables is a VO `standard <https://ivoa.net/documents/MIVOT/20230620/REC-mivot-1.0.pdf>`_
 - Requires Astropy>=6.0
@@ -193,7 +191,7 @@ Insert the MIVOT Block in a VOTable
 
 - This straightforward step is based on the Astropy VOTable API.
 - Annotations are stored in-memory (in the parsed VOtable)
-- The mapping can be tested with the ``MivotViewer`` API (see the doc `viewer`_)
+- The mapping can be tested with the ``MivotViewer`` API (see the  :doc:`viewer`)
 - The VOtable must be explicitly saved on disk if needed.
 
  .. code-block:: python
