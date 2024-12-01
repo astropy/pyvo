@@ -4,12 +4,16 @@
 Tests for pyvo.dal.datalink
 """
 from functools import partial
+import re
 
 import pytest
 
 import pyvo as vo
-from pyvo.dal.adhoc import DatalinkResults
-from pyvo.utils import vocabularies
+from pyvo.dal.adhoc import DatalinkResults, DALServiceError
+from pyvo.dal.sia2 import SIA2Results
+from pyvo.dal.tap import TAPResults
+from pyvo.utils import testing, vocabularies
+from pyvo.dal.sia import search
 
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 
@@ -28,6 +32,27 @@ def ssa_datalink(mocker):
         yield matcher
 
 
+sia_re = re.compile("http://example.com/sia.*")
+
+
+@pytest.fixture()
+def register_mocks(mocker):
+    with mocker.register_uri(
+        "GET",
+        "http://example.com/querydata/image.fits",
+        content=get_pkg_data_contents("data/querydata/image.fits"),
+    ) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
+def sia(mocker):
+    with mocker.register_uri(
+        "GET", sia_re, content=get_pkg_data_contents("data/sia/dataset.xml")
+    ) as matcher:
+        yield matcher
+
+
 @pytest.fixture()
 def datalink(mocker):
     def callback(request, context):
@@ -35,6 +60,17 @@ def datalink(mocker):
 
     with mocker.register_uri(
         'POST', 'http://example.com/datalink', content=callback
+    ) as matcher:
+        yield matcher
+
+
+@pytest.fixture()
+def datalink_product(mocker):
+    def callback(request, context):
+        return get_pkg_data_contents('data/datalink/datalink.xml')
+
+    with mocker.register_uri(
+        'GET', 'http://example.com/datalink.xml', content=callback
     ) as matcher:
         yield matcher
 
@@ -110,6 +146,8 @@ def test_datalink():
 
     datalinks = next(results.iter_datalinks())
 
+    assert datalinks.original_row["accsize"] == 100800
+
     row = datalinks[0]
     assert row.semantics == "#progenitor"
 
@@ -132,7 +170,9 @@ def test_datalink_batch():
     results = vo.dal.imagesearch(
         'http://example.com/obscore', (30, 30))
 
-    assert len([_ for _ in results.iter_datalinks()]) == 3
+    dls = list(results.iter_datalinks())
+    assert len(dls) == 3
+    assert dls[0].original_row["obs_collection"] == "MACHO"
 
 
 @pytest.mark.usefixtures('proc', 'datalink_vocabulary')
@@ -143,6 +183,8 @@ def test_datalink_batch():
 class TestSemanticsRetrieval:
     def test_access_with_string(self):
         datalinks = DatalinkResults.from_result_url('http://example.com/proc')
+
+        assert datalinks.original_row is None
         res = [r["access_url"] for r in datalinks.bysemantics("#this")]
         assert len(res) == 1
         assert res[0].endswith("eq010000ms/20100927.comb_avg.0001.fits.fz")
@@ -192,3 +234,110 @@ class TestSemanticsRetrieval:
         assert res[1].endswith("comb_avg.0001.fits.fz?preview=True")
         assert res[2].endswith("http://dc.zah.uni-heidelberg.de/wider.dat")
         assert res[3].endswith("when-will-it-be-back")
+
+
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
+@pytest.mark.usefixtures('datalink_product', 'datalink_vocabulary')
+class TestIterDatalinksProducts:
+    """Tests for producing datalinks from tables containing links to
+    datalink documents.
+    """
+    def test_no_access_format(self):
+        res = testing.create_dalresults([
+            {"name": "access_url", "datatype": "char", "arraysize": "*",
+                "utype": "obscore:access.reference"}],
+            [("http://foo.bar/baz.jpeg",)],
+            resultsClass=TAPResults)
+        assert list(res.iter_datalinks()) == []
+
+    def test_obscore_utype(self):
+        res = testing.create_dalresults([
+            {"name": "data_product", "datatype": "char", "arraysize": "*",
+                "utype": "obscore:access.reference"},
+            {"name": "content_type", "datatype": "char", "arraysize": "*",
+                "utype": "obscore:access.format"},],
+            [("http://example.com/datalink.xml",
+                "application/x-votable+xml;content=datalink")],
+            resultsClass=TAPResults)
+        links = list(res.iter_datalinks())
+        assert len(links) == 1
+        assert (next(links[0].bysemantics("#this"))["access_url"]
+            == "http://dc.zah.uni-heidelberg.de/getproduct/flashheros/data/ca90/f0011.mt")
+
+    def test_sia2_record(self):
+        res = testing.create_dalresults([
+            {"name": "access_url", "datatype": "char", "arraysize": "*",
+                "utype": "obscore:access.reference"},
+            {"name": "access_format", "datatype": "char", "arraysize": "*",
+                "utype": "obscore:access.format"},],
+            [("http://example.com/datalink.xml",
+                "application/x-votable+xml;content=datalink")],
+            resultsClass=SIA2Results)
+        links = list(res.iter_datalinks())
+        assert len(links) == 1
+        assert (next(links[0].bysemantics("#this"))["access_url"]
+            == "http://dc.zah.uni-heidelberg.de/getproduct/flashheros/data/ca90/f0011.mt")
+
+    def test_sia1_record(self):
+        res = testing.create_dalresults([
+            {"name": "product", "datatype": "char", "arraysize": "*",
+                "ucd": "VOX:Image_AccessReference"},
+            {"name": "mime", "datatype": "char", "arraysize": "*",
+                "ucd": "VOX:Image_Format"},],
+            [("http://example.com/datalink.xml",
+                "application/x-votable+xml;content=datalink")],
+            resultsClass=TAPResults)
+        links = list(res.iter_datalinks())
+        assert len(links) == 1
+        assert (next(links[0].bysemantics("#this"))["access_url"]
+            == "http://dc.zah.uni-heidelberg.de/getproduct/flashheros/data/ca90/f0011.mt")
+
+    def test_ssap_record(self):
+        res = testing.create_dalresults([
+            {"name": "product", "datatype": "char", "arraysize": "*",
+                "utype": "ssa:access.reference"},
+            {"name": "mime", "datatype": "char", "arraysize": "*",
+                "utype": "ssa:access.format"},],
+            [("http://example.com/datalink.xml",
+                "application/x-votable+xml;content=datalink")],
+            resultsClass=TAPResults)
+        links = list(res.iter_datalinks())
+        assert len(links) == 1
+        assert (next(links[0].bysemantics("#this"))["access_url"]
+            == "http://dc.zah.uni-heidelberg.de/getproduct/flashheros/data/ca90/f0011.mt")
+
+    def test_generic_record(self):
+        # The meta.code.mime and meta.ref.url UCDs are perhaps too
+        # generic.  To ensure a somewhat predictable behaviour,
+        # we at least make sure we pick the first of possibly multiple
+        # pairs (not that this would preclude arbitrary amounts of
+        # chaos).
+        res = testing.create_dalresults([
+            {"name": "access_url", "datatype": "char", "arraysize": "*",
+                "ucd": "meta.ref.url"},
+            {"name": "access_format", "datatype": "char", "arraysize": "*",
+                "utype": "meta.code.mime"},
+            {"name": "alt_access_url", "datatype": "char", "arraysize": "*",
+                "ucd": "meta.ref.url"},
+            {"name": "alt_access_format", "datatype": "char", "arraysize": "*",
+                "utype": "meta.code.mime"},],
+            [("http://example.com/datalink.xml",
+                "application/x-votable+xml;content=datalink",
+                "http://example.com/bad-pick.xml",
+                "application/x-votable+xml;content=datalink",)],
+            resultsClass=TAPResults)
+        links = list(res.iter_datalinks())
+        assert len(links) == 1
+        assert (next(links[0].bysemantics("#this"))["access_url"]
+            == "http://dc.zah.uni-heidelberg.de/getproduct/flashheros/data/ca90/f0011.mt")
+
+
+@pytest.mark.usefixtures("sia", "register_mocks")
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+def test_no_datalink():
+    # for issue #328 getdatalink() exits messily when there isn't a datalink
+
+    results = search("http://example.com/sia", pos=(288, 15), format="all")
+    result = results[0]
+    with pytest.raises(DALServiceError, match="No datalink found for record."):
+        result.getdatalink()

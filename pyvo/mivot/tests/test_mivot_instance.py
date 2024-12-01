@@ -4,10 +4,14 @@ Created on 19 févr. 2024
 
 @author: michel
 '''
+import os
 import pytest
 from astropy.table import Table
+from astropy.utils.data import get_pkg_data_filename
+from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.mivot_instance import MivotInstance
-
+from pyvo.mivot.utils.mivot_utils import MivotUtils
+from pyvo.mivot import MivotViewer
 
 fake_hk_dict = {
     "dmtype": "EpochPosition",
@@ -15,14 +19,12 @@ fake_hk_dict = {
                 "dmtype": "RealQuantity",
                 "value": 52.2340018,
                 "unit": "deg",
-                "astropy_unit": {},
                 "ref": "RAICRS"
             },
             "latitude": {
                 "dmtype": "RealQuantity",
                 "value": 59.8937333,
                 "unit": "deg",
-                "astropy_unit": {},
                 "ref": "DEICRS"
             }
 }
@@ -38,6 +40,81 @@ fake_dict = {
                 "unit": "deg",
             }
 }
+
+test_dict = {
+    "tableref": "Results",
+    "root_object": {
+        "dmid": "_ts_data",
+        "dmrole": "",
+        "dmtype": "cube:NDPoint",
+        "observable": [
+            {
+                "dmtype": "cube:Observable",
+                "dependent": {"value": True},
+                "measure": {
+                    "dmrole": "cube:MeasurementAxis.measure",
+                    "dmtype": "meas:Time",
+                    "coord": {
+                        "dmrole": "meas:Time.coord",
+                        "dmtype": "coords:MJD",
+                        "date": {"value": 1705.9437360200984},
+                    },
+                },
+            },
+            {
+                "dmtype": "cube:Observable",
+                "dependent": {"value": True},
+                "measure": {
+                    "dmrole": "cube:MeasurementAxis.measure",
+                    "dmtype": "meas:GenericMeasure",
+                    "coord": {
+                        "dmrole": "meas:GenericMeasure.coord",
+                        "dmtype": "coords:PhysicalCoordinate",
+                        "cval": {"value": 15.216575},
+                    },
+                },
+            },
+            {
+                "dmtype": "cube:Observable",
+                "dependent": {"value": True},
+                "measure": {
+                    "dmrole": "cube:MeasurementAxis.measure",
+                    "dmtype": "meas:GenericMeasure",
+                    "coord": {
+                        "dmrole": "meas:GenericMeasure.coord",
+                        "dmtype": "coords:PhysicalCoordinate",
+                        "cval": {"value": 15442.456},
+                    },
+                    "error": {
+                        "dmrole": "meas:Measure.error",
+                        "dmtype": "meas:Error",
+                        "statError": {
+                            "dmrole": "meas:Error.statError",
+                            "dmtype": "meas:Symmetrical",
+                            "radius": {"value": 44.15126},
+                        },
+                    },
+                },
+            },
+        ],
+    },
+}
+
+
+@pytest.fixture
+def m_viewer():
+    data_path = get_pkg_data_filename(os.path.join("data",
+                                       "test.mivot_viewer.xml")
+    )
+    return MivotViewer(data_path, tableref="Results")
+
+
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
+def test_xml_viewer(m_viewer):
+
+    xml_instance = m_viewer.xml_viewer.view
+    dm_instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
+    assert dm_instance.to_dict() == test_dict
 
 
 def test_mivot_instance_constructor():
@@ -77,5 +154,5 @@ def test_mivot_instance_update_wrong_columns():
 def test_mivot_instance_display_dict():
     """Test the class generation from a dict and rebuild the dict from the instance."""
     mivot_object = MivotInstance(**fake_hk_dict)
-    assert mivot_object.hk_dict == fake_hk_dict
-    assert mivot_object.dict == fake_dict
+    assert mivot_object.to_hk_dict() == fake_hk_dict
+    assert mivot_object.to_dict() == fake_dict

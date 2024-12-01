@@ -5,6 +5,8 @@
 
 import os
 import tempfile
+import numpy as np
+from astropy.utils import minversion
 
 try:
     from pytest_astropy_header.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS

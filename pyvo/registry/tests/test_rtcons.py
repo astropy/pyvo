@@ -9,7 +9,9 @@ import datetime
 from astropy.time import Time
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-import numpy
+from astropy.utils.exceptions import AstropyDeprecationWarning
+
+import numpy as np
 import pytest
 
 from pyvo import registry
@@ -19,12 +21,23 @@ from pyvo.dal import query as dalq
 from .commonfixtures import messenger_vocabulary, FAKE_GAVO, FAKE_PLAIN  # noqa: F401
 
 
+# We should make sure non-legacy numpy works as expected for string literal generation
+np.set_printoptions(legacy=False)
+
+
 def _build_regtap_query_with_fake(
         *args,
         service=FAKE_GAVO,
         **kwargs):
     return rtcons.build_regtap_query(
         *args, service=service, **kwargs)
+
+
+def _make_subquery(table, condition):
+    """returns how condition would show up in something produced by
+    SubqueriedConstraint.
+    """
+    return f"ivoid IN (SELECT DISTINCT ivoid FROM {table} WHERE {condition})"
 
 
 class TestAbstractConstraint:
@@ -43,7 +56,7 @@ class TestSQLLiterals:
                 "bytes": b"keep this ascii for now",
                 "anInt": 210,
                 "aFloat": 5e7,
-                "numpyStuff": numpy.float64(23.7),
+                "numpyStuff": np.float64(23.7),
                 "timestamp": datetime.datetime(2021, 6, 30, 9, 1), }
 
         return _WithFillers()._get_sql_literals()
@@ -76,26 +89,38 @@ class TestSQLLiterals:
 class TestFreetextConstraint:
     def test_basic(self):
         assert rtcons.Freetext("star").get_search_condition(FAKE_GAVO) == (
-            "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'star') "
-            "UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'star') "
-            "UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%star%')")
+            "ivoid IN (SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_description, 'star') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_title, 'star') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.res_subject"
+            " WHERE rr.res_subject.res_subject ILIKE '%star%')")
 
     def test_interesting_literal(self):
         assert rtcons.Freetext("α Cen's planets").get_search_condition(FAKE_GAVO) == (
-            "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'α Cen''s planets')"
-            " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'α Cen''s planets')"
-            " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject"
+            "ivoid IN (SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_description, 'α Cen''s planets') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_title, 'α Cen''s planets') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.res_subject"
+            " WHERE rr.res_subject.res_subject"
             " ILIKE '%α Cen''s planets%')")
 
     def test_multipleLiterals(self):
         assert rtcons.Freetext("term1", "term2").get_search_condition(FAKE_GAVO) == (
-            "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'term1')"
-            " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'term1')"
-            " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%term1%')"
+            "ivoid IN (SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_description, 'term1') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_title, 'term1') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.res_subject"
+            " WHERE rr.res_subject.res_subject ILIKE '%term1%')"
             " AND "
-            "ivoid IN (SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_description, 'term2')"
-            " UNION SELECT ivoid FROM rr.resource WHERE 1=ivo_hasword(res_title, 'term2')"
-            " UNION SELECT ivoid FROM rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%term2%')")
+            "ivoid IN (SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_description, 'term2') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.resource"
+            " WHERE 1=ivo_hasword(res_title, 'term2') "
+            "UNION ALL SELECT DISTINCT ivoid FROM rr.res_subject"
+            " WHERE rr.res_subject.res_subject ILIKE '%term2%')")
 
     def test_adaption_to_service(self):
         assert rtcons.Freetext("term1", "term2").get_search_condition(FAKE_PLAIN) == (
@@ -108,7 +133,7 @@ class TestFreetextConstraint:
 class TestAuthorConstraint:
     def test_basic(self):
         assert (rtcons.Author("%Hubble%").get_search_condition(FAKE_GAVO)
-                == "role_name LIKE '%Hubble%' AND base_role='creator'")
+                == _make_subquery("rr.res_role", "role_name LIKE '%Hubble%' AND base_role='creator'"))
 
 
 class TestServicetypeConstraint:
@@ -122,13 +147,13 @@ class TestServicetypeConstraint:
                 == "standard_id IN ('http://extstandards/invention')")
 
     def test_multi(self):
-        assert (rtcons.Servicetype("http://extstandards/invention", "image"
+        assert (rtcons.Servicetype("http://extstandards/invention", "sia"
                                    ).get_search_condition(FAKE_GAVO)
                 == "standard_id IN ('http://extstandards/invention',"
                 " 'ivo://ivoa.net/std/sia')")
 
     def test_includeaux(self):
-        assert (rtcons.Servicetype("http://extstandards/invention", "image"
+        assert (rtcons.Servicetype("http://extstandards/invention", "sia1"
                                    ).include_auxiliary_services().get_search_condition(FAKE_GAVO)
                 == "standard_id IN ('http://extstandards/invention',"
                 " 'http://extstandards/invention#aux',"
@@ -140,7 +165,7 @@ class TestServicetypeConstraint:
             rtcons.Servicetype("junk")
         assert str(excinfo.value) == ("Service type junk is neither"
                                       " a full standard URI nor one of the bespoke identifiers"
-                                      " image, sia, spectrum, ssap, ssa, scs, conesearch, line, slap,"
+                                      " image, sia, sia1, spectrum, ssap, ssa, scs, conesearch, line, slap,"
                                       " table, tap, sia2")
 
     def test_legacy_term(self):
@@ -159,6 +184,16 @@ class TestServicetypeConstraint:
                 == ("standard_id IN ('ivo://ivoa.net/std/conesearch', 'ivo://ivoa.net/std/conesearch#aux')"
                     " OR standard_id like 'ivo://ivoa.net/std/sia#query-2.%'"
                     " OR standard_id like 'ivo://ivoa.net/std/sia#query-aux-2.%'"))
+
+    def test_image_deprecated(self):
+        with pytest.warns(AstropyDeprecationWarning):
+            assert (rtcons.Servicetype("image").get_search_condition(FAKE_GAVO)
+                == "standard_id IN ('ivo://ivoa.net/std/sia')")
+
+    def test_spectrum_deprecated(self):
+        with pytest.warns(AstropyDeprecationWarning):
+            assert (rtcons.Servicetype("spectrum").get_search_condition(FAKE_GAVO)
+                == "standard_id IN ('ivo://ivoa.net/std/ssa')")
 
 
 @pytest.mark.usefixtures('messenger_vocabulary')
@@ -184,30 +219,45 @@ class TestDatamodelConstraint:
         with pytest.raises(dalq.DALQueryError) as excinfo:
             rtcons.Datamodel("junk")
         assert str(excinfo.value) == (
-            "Unknown data model id junk.  Known are: epntap, obscore, regtap.")
+            "Unknown data model id junk.  Known are: epntap, obscore, obscore_new, regtap.")
+
+    def test_obscore_new(self):
+        cons = rtcons.Datamodel("obscore_new")
+        assert (cons.get_search_condition(FAKE_GAVO)
+            == "ivoid IN (SELECT DISTINCT ivoid FROM rr.res_table"
+               " NATURAL JOIN rr.resource"
+               " WHERE table_utype LIKE 'ivo://ivoa.net/std/obscore#table-1.%'"
+               " AND res_type = 'vs:catalogresource')")
+        assert (cons._extra_tables == [])
 
     def test_obscore(self):
         cons = rtcons.Datamodel("ObsCore")
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "detail_xpath = '/capability/dataModel/@ivo-id'"
-                " AND 1 = ivo_nocasematch(detail_value,"
-                " 'ivo://ivoa.net/std/obscore%')")
-        assert (cons._extra_tables == ["rr.res_detail"])
+                == _make_subquery(
+                    "rr.res_detail",
+                    "detail_xpath = '/capability/dataModel/@ivo-id'"
+                    " AND 1 = ivo_nocasematch(detail_value,"
+                    " 'ivo://ivoa.net/std/obscore%')"))
+        assert cons._extra_tables == []
 
     def test_epntap(self):
         cons = rtcons.Datamodel("epntap")
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "table_utype LIKE 'ivo://vopdc.obspm/std/epncore#schema-2.%'"
-                " OR table_utype LIKE 'ivo://ivoa.net/std/epntap#table-2.%'")
-        assert (cons._extra_tables == ["rr.res_table"])
+                == _make_subquery(
+                    "rr.res_table",
+                    "table_utype LIKE 'ivo://vopdc.obspm/std/epncore#schema-2.%'"
+                    " OR table_utype LIKE 'ivo://ivoa.net/std/epntap#table-2.%'"))
+        assert cons._extra_tables == []
 
     def test_regtap(self):
         cons = rtcons.Datamodel("regtap")
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "detail_xpath = '/capability/dataModel/@ivo-id'"
-                " AND 1 = ivo_nocasematch(detail_value,"
-                " 'ivo://ivoa.net/std/RegTAP#1.%')")
-        assert (cons._extra_tables == ["rr.res_detail"])
+                == _make_subquery(
+                    "rr.res_detail",
+                    "detail_xpath = '/capability/dataModel/@ivo-id'"
+                    " AND 1 = ivo_nocasematch(detail_value,"
+                    " 'ivo://ivoa.net/std/RegTAP#1.%')"))
+        assert cons._extra_tables == []
 
 
 class TestIvoidConstraint:
@@ -229,45 +279,67 @@ class TestUCDConstraint:
     def test_basic(self):
         cons = rtcons.UCD("phot.mag;em.opt.%", "phot.mag;em.ir.%")
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "ucd LIKE 'phot.mag;em.opt.%' OR ucd LIKE 'phot.mag;em.ir.%'")
+                == _make_subquery(
+                    "rr.table_column",
+                    "ucd LIKE 'phot.mag;em.opt.%' OR ucd LIKE 'phot.mag;em.ir.%'"))
 
 
 class TestSpatialConstraint:
     def test_point(self):
         cons = registry.Spatial([23, -40])
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = CONTAINS(MOC(6, POINT(23, -40)), coverage)"
-        assert cons._extra_tables == ["rr.stc_spatial"]
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(MOC(6, POINT(23, -40)), coverage)")
+        assert cons._extra_tables == []
 
     def test_circle_and_order(self):
         cons = registry.Spatial([23, -40, 0.25], order=7)
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = CONTAINS(MOC(7, CIRCLE(23, -40, 0.25)), coverage)"
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(MOC(7, CIRCLE(23, -40, 0.25)), coverage)")
 
     def test_polygon(self):
         cons = registry.Spatial([23, -40, 26, -39, 25, -43])
-        assert cons.get_search_condition(FAKE_GAVO) == (
-            "1 = CONTAINS(MOC(6, POLYGON(23, -40, 26, -39, 25, -43)), coverage)")
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(MOC(6, POLYGON(23, -40, 26, -39, 25, -43)), coverage)")
 
     def test_moc(self):
         cons = registry.Spatial("0/1-3 3/")
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = CONTAINS(MOC('0/1-3 3/'), coverage)"
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(MOC('0/1-3 3/'), coverage)")
+
+    def test_moc_and_inclusive(self):
+        cons = registry.Spatial("0/1-3 3/", inclusive=True)
+        assert cons.get_search_condition(FAKE_GAVO) == (
+            "ivoid IN (SELECT DISTINCT ivoid FROM rr.stc_spatial WHERE 1 = "
+            "CONTAINS(MOC('0/1-3 3/'), coverage) OR coverage IS NULL)")
 
     def test_SkyCoord(self):
         cons = registry.Spatial(SkyCoord(3 * u.deg, -30 * u.deg))
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = CONTAINS(MOC(6, POINT(3.0, -30.0)), coverage)"
-        assert cons._extra_tables == ["rr.stc_spatial"]
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(MOC(6, POINT(3.0, -30.0)), coverage)")
 
     def test_SkyCoord_Circle(self):
         cons = registry.Spatial((SkyCoord(3 * u.deg, -30 * u.deg), 3))
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = CONTAINS(MOC(6, CIRCLE(3.0, -30.0, 3)), coverage)"
-        assert cons._extra_tables == ["rr.stc_spatial"]
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(MOC(6, CIRCLE(3.0, -30.0, 3)), coverage)")
+
+    def test_SkyCoord_Circle_RadiusQuantity(self):
+        for radius in [3*u.deg, 180*u.Unit('arcmin'), 10800*u.Unit('arcsec')]:
+            cons = registry.Spatial((SkyCoord(3 * u.deg, -30 * u.deg), radius))
+            assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+                "rr.stc_spatial", "1 = CONTAINS(MOC(6, CIRCLE(3.0, -30.0, 3.0)), coverage)")
+
+        with pytest.raises(ValueError, match="is not of type angle."):
+            cons = registry.Spatial((SkyCoord(3 * u.deg, -30 * u.deg), (1 * u.m)))
 
     def test_enclosed(self):
         cons = registry.Spatial("0/1-3", intersect="enclosed")
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = CONTAINS(coverage, MOC('0/1-3'))"
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = CONTAINS(coverage, MOC('0/1-3'))")
 
     def test_overlaps(self):
         cons = registry.Spatial("0/1-3", intersect="overlaps")
-        assert cons.get_search_condition(FAKE_GAVO) == "1 = INTERSECTS(coverage, MOC('0/1-3'))"
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spatial", "1 = INTERSECTS(coverage, MOC('0/1-3'))")
 
     def test_not_an_intersect_mode(self):
         with pytest.raises(ValueError, match="'intersect' should be one of 'covers', 'enclosed',"
@@ -299,39 +371,59 @@ class TestSpectralConstraint:
     # that would be useful there.
     def test_energy_float(self):
         cons = registry.Spectral(1e-19)
-        assert cons.get_search_condition(FAKE_GAVO) == "1e-19 BETWEEN spectral_start AND spectral_end"
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spectral", "1e-19 BETWEEN spectral_start AND spectral_end")
 
     def test_energy_eV(self):
         cons = registry.Spectral(5 * u.eV)
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "8.01088317e-19 BETWEEN spectral_start AND spectral_end")
+                == _make_subquery(
+                    "rr.stc_spectral",
+                    "8.01088317e-19 BETWEEN spectral_start AND spectral_end"))
 
     def test_energy_interval(self):
         cons = registry.Spectral((1e-10 * u.erg, 2e-10 * u.erg))
-        assert cons.get_search_condition(FAKE_GAVO) == (
+        assert cons.get_search_condition(FAKE_GAVO) == _make_subquery(
+            "rr.stc_spectral",
             "1 = ivo_interval_overlaps(spectral_start, spectral_end, 1e-17, 2e-17)")
 
     def test_wavelength(self):
         cons = registry.Spectral(5000 * u.Angstrom)
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "3.9728917142978567e-19 BETWEEN spectral_start AND spectral_end")
+                == _make_subquery(
+                    "rr.stc_spectral",
+                    "3.9728917142978567e-19 BETWEEN spectral_start AND spectral_end"))
 
     def test_wavelength_interval(self):
         cons = registry.Spectral((20 * u.cm, 22 * u.cm))
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "1 = ivo_interval_overlaps(spectral_start, spectral_end,"
-                " 9.932229285744642e-25, 9.029299350676949e-25)")
+                == _make_subquery(
+                    "rr.stc_spectral",
+                    "1 = ivo_interval_overlaps(spectral_start, spectral_end,"
+                    " 9.932229285744642e-25, 9.029299350676949e-25)"))
 
     def test_frequency(self):
         cons = registry.Spectral(2 * u.GHz)
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "1.32521403e-24 BETWEEN spectral_start AND spectral_end")
+                == _make_subquery(
+                    "rr.stc_spectral",
+                    "1.32521403e-24 BETWEEN spectral_start AND spectral_end"))
+
+    def test_frequency_and_inclusive(self):
+        cons = registry.Spectral(2 * u.GHz, inclusive=True)
+        assert (cons.get_search_condition(FAKE_GAVO)
+                == "(ivoid IN (SELECT DISTINCT ivoid FROM rr.stc_spectral"
+                " WHERE 1.32521403e-24 BETWEEN spectral_start AND spectral_end))"
+                " OR NOT EXISTS(SELECT 1 FROM rr.stc_spectral AS inner_s"
+                " WHERE inner_s.ivoid=rr.resource.ivoid)")
 
     def test_frequency_interval(self):
         cons = registry.Spectral((88 * u.MHz, 102 * u.MHz))
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "1 = ivo_interval_overlaps(spectral_start, spectral_end,"
-                " 5.830941732e-26, 6.758591553e-26)")
+                == _make_subquery(
+                    "rr.stc_spectral",
+                    "1 = ivo_interval_overlaps("
+                    "spectral_start, spectral_end, 5.830941732e-26, 6.758591553e-26)"))
 
     def test_no_spectral(self):
         cons = registry.Spectral((88 * u.MHz, 102 * u.MHz))
@@ -345,18 +437,30 @@ class TestTemporalConstraint:
     def test_plain_float(self):
         cons = registry.Temporal((54130, 54200))
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "1 = ivo_interval_overlaps(time_start, time_end, 54130, 54200)")
+                == _make_subquery(
+                    "rr.stc_temporal",
+                    "1 = ivo_interval_overlaps(time_start, time_end, 54130, 54200)"))
+
+    def test_plain_float_and_inclusive(self):
+        cons = registry.Temporal((54130, 54200), inclusive=True)
+        assert (cons.get_search_condition(FAKE_GAVO)
+                == "(ivoid IN (SELECT DISTINCT ivoid FROM rr.stc_temporal"
+                " WHERE 1 = ivo_interval_overlaps(time_start, time_end, 54130, 54200)))"
+                " OR NOT EXISTS(SELECT 1 FROM rr.stc_temporal AS inner_t"
+                " WHERE inner_t.ivoid=rr.resource.ivoid)")
 
     def test_single_time(self):
         cons = registry.Temporal(Time('2022-01-10'))
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "59589.0 BETWEEN time_start AND time_end")
+                == _make_subquery("rr.stc_temporal", "59589.0 BETWEEN time_start AND time_end"))
 
     def test_time_interval(self):
         cons = registry.Temporal((Time(2459000, format='jd'),
                                   Time(59002, format='mjd')))
         assert (cons.get_search_condition(FAKE_GAVO)
-                == "1 = ivo_interval_overlaps(time_start, time_end, 58999.5, 59002.0)")
+                == _make_subquery(
+                    "rr.stc_temporal",
+                    "1 = ivo_interval_overlaps(time_start, time_end, 58999.5, 59002.0)"))
 
     def test_multi_times_rejected(self):
         with pytest.raises(ValueError) as excinfo:
@@ -383,25 +487,29 @@ class TestWhereClauseBuilding:
     def test_from_constraints(self):
         assert self.where_clause_for(
             rtcons.Waveband("EUV"),
-            rtcons.Author("%Hubble%")
-        ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
-              "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+            rtcons.Author("%Hubble%"))\
+            == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
+              "  AND ({})".format(
+                _make_subquery(
+                    "rr.res_role",
+                    "role_name LIKE '%Hubble%' AND base_role='creator'")))
 
     @pytest.mark.usefixtures('messenger_vocabulary')
     def test_from_keywords(self):
         assert self.where_clause_for(
             waveband="EUV",
-            author="%Hubble%"
-        ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
-              "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+            author="%Hubble%")\
+            == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n  AND ({})".format(
+                _make_subquery("rr.res_role", "role_name LIKE '%Hubble%' AND base_role='creator'")))
 
     @pytest.mark.usefixtures('messenger_vocabulary')
     def test_mixed(self):
         assert self.where_clause_for(
             rtcons.Waveband("EUV"),
-            author="%Hubble%"
-        ) == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
-              "  AND (role_name LIKE '%Hubble%' AND base_role='creator')")
+            author="%Hubble%")\
+            == ("(1 = ivo_hashlist_has(rr.resource.waveband, 'euv'))\n"
+              "  AND ({})".format(
+                _make_subquery("rr.res_role", "role_name LIKE '%Hubble%' AND base_role='creator'")))
 
     def test_bad_keyword(self):
         with pytest.raises(TypeError) as excinfo:
@@ -420,13 +528,13 @@ class TestWhereClauseBuilding:
         assert self.where_clause_for(
             "plain", "string"
         ) == (
-            '(ivoid IN (SELECT ivoid FROM rr.resource WHERE '
-            "1=ivo_hasword(res_description, 'plain') UNION SELECT ivoid FROM rr.resource "
-            "WHERE 1=ivo_hasword(res_title, 'plain') UNION SELECT ivoid FROM "
+            '(ivoid IN (SELECT DISTINCT ivoid FROM rr.resource WHERE '
+            "1=ivo_hasword(res_description, 'plain') UNION ALL SELECT DISTINCT ivoid FROM rr.resource "
+            "WHERE 1=ivo_hasword(res_title, 'plain') UNION ALL SELECT DISTINCT ivoid FROM "
             "rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%plain%'))\n"
-            '  AND (ivoid IN (SELECT ivoid FROM rr.resource WHERE '
-            "1=ivo_hasword(res_description, 'string') UNION SELECT ivoid FROM rr.resource "
-            "WHERE 1=ivo_hasword(res_title, 'string') UNION SELECT ivoid FROM "
+            '  AND (ivoid IN (SELECT DISTINCT ivoid FROM rr.resource WHERE '
+            "1=ivo_hasword(res_description, 'string') UNION ALL SELECT DISTINCT ivoid FROM rr.resource "
+            "WHERE 1=ivo_hasword(res_title, 'string') UNION ALL SELECT DISTINCT ivoid FROM "
             "rr.res_subject WHERE rr.res_subject.res_subject ILIKE '%string%'))")
 
 

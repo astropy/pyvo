@@ -27,6 +27,7 @@ import shutil
 import re
 import requests
 from collections.abc import Mapping
+from io import BytesIO
 
 import collections
 
@@ -211,8 +212,8 @@ class DALQuery(dict):
         except requests.RequestException as ex:
             # save for later use
             self._ex = ex
-        finally:
-            return response.raw
+
+        return response.raw
 
     def submit(self, *, post=False):
         """
@@ -530,10 +531,11 @@ class DALResults:
         return the field name that has a given UType value or None if the UType
         is not found.
         """
+        utype = utype.lower()
         try:
             iterchain = (
                 self.getdesc(fieldname) for fieldname in self.fieldnames)
-            iterchain = (field for field in iterchain if field.utype == utype)
+            iterchain = (field for field in iterchain if (field.utype or "").lower() == utype)
             return next(iterchain).name
         except StopIteration:
             return None
@@ -693,7 +695,7 @@ class Record(Mapping):
         return len(self._mapping)
 
     def __repr__(self):
-        return repr(tuple(self.values()))
+        return repr(tuple(f'{val}' for val in self.values()))
 
     def get(self, key, default=None, decode=False):
         """
@@ -894,6 +896,9 @@ class Record(Mapping):
         if not ext:
             ext = self.suggest_extension(default="dat")
 
+        base = base.replace("/", "_"
+            ).replace("\\", "_")
+
         # be efficient when writing a bunch of files into the same directory
         # in succession
         n = self._dsname_no
@@ -1029,15 +1034,18 @@ class Upload:
 
         # astropy table
         if isinstance(self._content, Table):
-            from io import BytesIO
+
             fileobj = BytesIO()
 
             self._content.write(output=fileobj, format="votable")
             fileobj.seek(0)
 
             return fileobj
+
+        elif isinstance(self._content, BytesIO):
+            return self._content
+
         elif isinstance(self._content, DALResults):
-            from io import BytesIO
             fileobj = BytesIO()
 
             table = self._content.to_table()
@@ -1046,11 +1054,9 @@ class Upload:
 
             return fileobj
 
-        fileobj = self._content
-        try:
-            fileobj = open(self._content)
-        finally:
-            return fileobj
+        fileobj = open(self._content)
+
+        return fileobj
 
     def uri(self):
         """
