@@ -194,6 +194,3 @@ def test_MivotInstanceAll():
         os.path.join(data_path, "reference/test_mivot_writer.json")
     )
     votable.to_xml(data_path + "/essai.xml")
-
-if __name__ == "__main__":
-    test_MivotInstanceAll()
