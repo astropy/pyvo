@@ -193,7 +193,7 @@ Insert the MIVOT Block in a VOTable
 
 - This straightforward step is based on the Astropy VOTable API.
 - Annotations are stored in-memory (in the parsed VOtable)
-- The mapping can be tested with the ``MivotViewer`` API (see the doc `viewer`_)
+- The mapping can be tested with the ``MivotViewer`` API (see the `viewer`_ doc)
 - The VOtable must be explicitly saved on disk if needed.
 
  .. code-block:: python
