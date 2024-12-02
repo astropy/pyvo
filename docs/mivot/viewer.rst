@@ -46,8 +46,8 @@ to the ``EpochPosition`` class.
     ... )
     >>> mivot_instance = m_viewer.dm_instance
     >>> print(mivot_instance.dmtype)
-    EpochPosition
-    >>> print(mivot_instance.Coordinate_coordSys.spaceRefFrame.value)
+    mango:EpochPosition
+    >>> print(mivot_instance.coordSys.spaceRefFrame.value)
     ICRS
     >>> while m_viewer.next():
     ...     print(f"position: {mivot_instance.latitude.value} {mivot_instance.longitude.value}")
