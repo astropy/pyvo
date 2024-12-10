@@ -602,7 +602,6 @@ RegTAP services using:
   ...   for r in res)))
   http://dc.zah.uni-heidelberg.de/tap
   http://gavo.aip.de/tap
-  http://voparis-rr.obspm.fr/tap
   https://vao.stsci.edu/RegTAP/TapService.aspx
 
 
