@@ -1,6 +1,6 @@
-*********************
-MIVOT (``pyvo.mivo``)
-*********************
+**********************
+MIVOT (``pyvo.mivot``)
+**********************
 
 This module contains the new feature handling model annotations in VOTable.
 Astropy version >= 6.0 is required.
@@ -28,7 +28,7 @@ Introduction
 
 
 Implementation Scope
---------------------
+====================
 This implementation is totally model-agnostic.
 
 - It does not operate any validation against specific data models.
@@ -65,7 +65,8 @@ Using the MIVOT package
 The ``pyvo.mivot`` module can be used to either read or build annotations.
 
 .. toctree::
-
+   :maxdepth: 2
+   
    viewer
    writer
 

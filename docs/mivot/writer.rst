@@ -23,6 +23,8 @@ Introduction
 - Requires Astropy>=6.0
 - ``pyvo.mivot`` is a prototype feature which must be activated with ``activate_features("MIVOT")``
 
+Using the API
+=============
 
 Building Annotation Object per Object
 -------------------------------------
@@ -223,3 +225,9 @@ Validate the annotation against the model(s)
     ...
     Valid if no error message
     ...
+
+Reference/API
+=============
+
+.. automodapi:: pyvo.mivot.writer
+

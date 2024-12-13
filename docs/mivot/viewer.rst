@@ -20,6 +20,9 @@ Introduction
     also build up data model objects by aggregating instances from different
     tables of the VOTable (get more in  :doc:`index`).
 
+Using the API
+=============
+
 Integrated Readout
 ------------------
 The ``ModelViewer`` module manages access to data mapped to a model through dynamically
@@ -186,4 +189,9 @@ identifiers, which have the following structure: ``model:a.b``.
 
     print(mivot_instance.Coordinate_coordSys.spaceRefFrame.__dict__.keys())
     dict_keys(['dmtype', 'value', 'unit', 'ref'])
+
+Reference/API
+=============
+
+.. automodapi:: pyvo.mivot.viewer
 
