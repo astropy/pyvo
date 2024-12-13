@@ -251,8 +251,8 @@ class MivotAnnotations:
 
         Raises
         ------
-        MappingError
-            If `templates_instance` is neither a string nor an instance of `MivotInstance`.
+        Mappingrror
+            If ``templates_instance`` is neither a string nor an instance of `MivotInstance`.
         """
         if isinstance(templates_instance, MivotInstance):
             self._templates.append(templates_instance.xml_string())
@@ -275,7 +275,7 @@ class MivotAnnotations:
         Raises
         ------
         MappingError
-            If `globals_instance` is neither a string nor an instance of `MivotInstance`.
+            If ``globals_instance`` is neither a string nor an instance of `MivotInstance`.
         """
         if isinstance(globals_instance, MivotInstance):
             self._globals.append(globals_instance.xml_string())
@@ -312,7 +312,7 @@ class MivotAnnotations:
 
         Notes
         -----
-        If `status` is False, all components of the MIVOT block except MODEL and REPORT
+        If ``status`` is False, all components of the MIVOT block except MODEL and REPORT
         are cleared.
         """
         self._report_status = status
@@ -358,7 +358,7 @@ class MivotAnnotations:
         Parameters
         ----------
         votable_file : str or VOTableFile
-            The VOTable to be annotated, either as a file path or a `VOTableFile` instance.
+            The VOTable to be annotated, either as a file path or a ``VOTableFile`` instance.
         template_id : str, optional
             The ID of the TABLE to be mapped. Defaults to None.
         override : bool
@@ -367,7 +367,7 @@ class MivotAnnotations:
         Raises
         ------
         MappingError
-            If a mapping block already exists and `override` is False.
+            If a mapping block already exists and ``override`` is False.
         """
         if not check_astropy_version():
             raise AstropyVersionException(f"Astropy version {version.version} "

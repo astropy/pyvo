@@ -66,7 +66,7 @@ class MivotInstance:
         Raises
         ------
         MappingError
-            If `dmtype` is not provided.
+            If ``dmtype`` is not provided.
         """
         if not dmtype:
             raise MappingError("Cannot build an instance without dmtype")
@@ -95,7 +95,7 @@ class MivotInstance:
         Raises
         ------
         MappingError
-            If `dmtype` or `dmrole` is not provided, or if both `ref` and `value` are not defined.
+            If ``dmtype`` or ``dmrole`` is not provided, or if both ``ref`` and ``value`` are not defined.
         """
         if not dmtype:
             raise MappingError("Cannot add an attribute without dmtype")
@@ -128,7 +128,7 @@ class MivotInstance:
         Raises
         ------
         MappingError
-            If `dmrole` or `dmref` is not provided.
+            If ``dmrole`` or ``dmref`` is not provided.
         """
         if not dmref:
             raise MappingError("Cannot add a reference without dmref")
@@ -150,7 +150,7 @@ class MivotInstance:
         Raises
         ------
         MappingError
-            If `mivot_instance` is not of type `MivotInstance`.
+            If ``mivot_instance`` is not of type ``MivotInstance``.
         """
         if not isinstance(mivot_instance, MivotInstance):
             raise MappingError("Instance added must be of type MivotInstance")
