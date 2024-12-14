@@ -155,7 +155,7 @@ class MivotAnnotations:
         templates_block += "</TEMPLATES>\n"
         return templates_block
 
-    def build_mivot_block(self, templates_id=None):
+    def build_mivot_block(self, *, templates_id=None):
         """
         Builds a complete MIVOT block from the declared components and validates it
         against the MIVOT XML schema.
@@ -296,7 +296,7 @@ class MivotAnnotations:
         except Exception as excep:
             raise MappingError(f"Validation failed: {excep}") from excep
 
-    def insert_into_votable(self, votable_file, template_id=None, override=False):
+    def insert_into_votable(self, votable_file, override=False):
         """
         Inserts the MIVOT block into a VOTable.
 
@@ -304,8 +304,6 @@ class MivotAnnotations:
         ----------
         votable_file : str or VOTableFile
             The VOTable to be annotated, either as a file path or a ``VOTableFile`` instance.
-        template_id : str, optional
-            The ID of the TABLE to be mapped. Defaults to None.
         override : bool
             If True, overrides any existing annotations in the VOTable.
 

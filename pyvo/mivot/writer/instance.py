@@ -57,7 +57,7 @@ class MivotInstance:
         self._dmid = dmid
         self._content = []
 
-    def add_attribute(self, dmtype=None, dmrole=None, ref=None, value=None, unit=None):
+    def add_attribute(self, dmtype=None, dmrole=None, *, ref=None, value=None, unit=None):
         """
         Add an <ATTRIBUTE> element to the instance.
 
