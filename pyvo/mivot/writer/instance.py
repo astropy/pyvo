@@ -6,6 +6,7 @@ MivotInstance is a simple API for building MIVOT instances step by step.
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.exceptions import MappingError
 
+__all__ = ["MivotInstance"]
 
 @prototype_feature("MIVOT")
 class MivotInstance:

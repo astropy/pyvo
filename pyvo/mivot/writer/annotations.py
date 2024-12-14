@@ -27,6 +27,7 @@ from pyvo.mivot.utils.exceptions import MappingError, AstropyVersionException
 from pyvo.mivot.writer.instance import MivotInstance
 from pyvo.mivot.version_checker import check_astropy_version
 
+__all__ = ["MivotAnnotations"]
 
 @prototype_feature("MIVOT")
 class MivotAnnotations:
