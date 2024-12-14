@@ -1,70 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 MivotAnnotations: A utility module to build and manage MIVOT annotations.
-
-This module provides a class to construct, validate, and insert MIVOT (Mapping to IVOA Table)
-blocks into VOTable files. The MIVOT block, represented as an XML structure, is used for
-data model annotations in the IVOA ecosystem.
-
-Features:
----------
-- Construct the MIVOT block step-by-step with various components.
-- Validate the MIVOT block against the MIVOT XML schema (if `xmlschema` is installed).
-- Embed the MIVOT block into an existing VOTable file.
-
-The MIVOT block is constructed as a string to maintain compatibility with the Astropy API.
-
-Typical Usage:
---------------
-The following code demonstrates how to use the MivotAnnotations class:
-
-.. code-block:: python
-
-    from pyvo.mivot.writer import MivotAnnotations
-    from astropy.io.votable import parse
-
-    # Create an instance of MivotAnnotations
-    mb = MivotAnnotations()
-    mb.build_mivot_block()
-
-    # Add components to the MIVOT block
-    mb.add_globals("<INSTANCE dmtype='model:type'></INSTANCE>")
-    mb.add_templates("<INSTANCE dmtype='model:type.a'></INSTANCE>")
-    mb.add_templates("<INSTANCE dmtype='model:type.b'></INSTANCE>")
-    mb.add_model("model", "http://model.com")
-    mb.add_model("model2", None)
-
-    # Configure a report
-    mb.set_report(True, "unit tests")
-    mb.build_mivot_block(templates_id="azerty")
-
-    # Parse a VOTable and insert the MIVOT block
-    votable = parse("path_to_votable.xml")
-    mb.insert_into_votable(votable)
-
-    # Use MivotViewer for additional processing
-    from pyvo.mivot.viewer import MivotViewer
-    mv = MivotViewer(votable)
-    print(mv.dm_instance)
-
-Limitations:
-------------
-- This module does not verify whether the MIVOT block is consistent with the declared models.
-- References to table columns are not validated for resolution.
-
-Validation of references can be performed using the `MivotViewer` class:
-
-.. code-block:: python
-
-    votable = parse("path_to_votable.xml")
-    mv = MivotViewer(votable)
-    print(mv.dm_instance)
-
-Examples of API usage can be found in `tests/test_mivot_writer.py`.
-
-License:
---------
-This module is licensed under a 3-clause BSD style license. See LICENSE.rst for details.
 """
 import os
 import logging
@@ -95,31 +31,39 @@ from pyvo.mivot.version_checker import check_astropy_version
 @prototype_feature("MIVOT")
 class MivotAnnotations:
     """
-    API for constructing and managing MIVOT (Mapping for IVOA Table) annotations
-    step by step. This class provides methods to build the various components of
-    a MIVOT block, validate it against an XML schema, and integrate it into a VOTable.
+    This module provides a class to construct, validate, and insert MIVOT
+    blocks into VOTable files. 
+    The MIVOT block, represented as an XML structure, is used for
+    data model annotations in the IVOA ecosystem.
+    
+    The main features are:
+    
+    - Construct the MIVOT block step-by-step with various components.
+    - Validate the MIVOT block against the MIVOT XML schema (if ``xmlschema`` is installed).
+    - Embed the MIVOT block into an existing VOTable file.
+
+    The MIVOT block is constructed as a string to maintain compatibility with the Astropy API.
+
+    Attributes
+    ----------
+    _models : dict
+        A dictionary containing models with their names as keys and URLs as values.
+    _report_status : bool
+        Indicates the success status of the annotation process.
+    _report_message : str
+        A message associated with the report, used in the REPORT block.
+    _globals : list
+        A list of GLOBALS blocks to be included in the MIVOT block.
+    _templates : list
+        A list of TEMPLATES blocks to be included in the MIVOT block.
+    _templates_id : str
+        An optional ID for the TEMPLATES block.
+    _mivot_block : str
+        The complete MIVOT block as a string.
     """
 
     def __init__(self):
         """
-        Initializes a new instance of the `MivotAnnotations` class.
-
-        Attributes
-        ----------
-        _models : dict
-            A dictionary containing models with their names as keys and URLs as values.
-        _report_status : bool
-            Indicates the success status of the annotation process.
-        _report_message : str
-            A message associated with the report, used in the REPORT block.
-        _globals : list
-            A list of GLOBALS blocks to be included in the MIVOT block.
-        _templates : list
-            A list of TEMPLATES blocks to be included in the MIVOT block.
-        _templates_id : str
-            An optional ID for the TEMPLATES block.
-        _mivot_block : str
-            The complete MIVOT block as a string.
         """
         self._models = {}
         self._report_status = True
@@ -137,7 +81,7 @@ class MivotAnnotations:
         Returns
         -------
         str
-            The complete MIVOT block as a string.
+            Complete MIVOT block as a string.
         """
         return self._mivot_block
 
@@ -251,7 +195,7 @@ class MivotAnnotations:
 
         Raises
         ------
-        Mappingrror
+        MappingError
             If ``templates_instance`` is neither a string nor an instance of `MivotInstance`.
         """
         if isinstance(templates_instance, MivotInstance):

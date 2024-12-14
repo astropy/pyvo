@@ -1,40 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 MivotInstance is a simple API for building MIVOT instances step by step.
-
-Features
---------
-- Model-agnostic: The implementation is independent of any specific data model.
-- Syntax validation: Ensures basic MIVOT syntax rules are followed.
-- Context-agnostic: Ignores context-dependent syntax rules.
-
-MivotInstance builds <INSTANCE> elements that can contain <ATTRIBUTE>, <INSTANCE>, and <REFERENCE>.
-Support for <COLLECTION> elements is not yet implemented.
-
-Usage Example
--------------
-.. code-block:: python
-
-    position = MivotInstance(dmtype="model:mango:EpochPosition", dmid="position")
-    position.add_attribute(dmtype="ivoa.RealQuantity",
-                           dmrole="mango:EpochPosition.longitude",
-                           unit="deg", ref="_RA_ICRS")
-    position.add_attribute(dmtype="ivoa.RealQuantity", dmrole="mango:EpochPosition.latitude",
-                           unit="deg", ref="_DFEC_ICRS")
-
-    position_error = MivotInstance(dmtype="mango:EpochPositionErrors",
-                                   dmrole="mango:EpochPosition.errors", dmid="id2")
-    position_error.add_attribute(dmtype="model:type2.att1",
-                                 dmrole="model:type2.inst.role1", value="value3", unit="m/s")
-    position_error.add_attribute(dmtype="model:type2.att2",
-                                 dmrole="model:type2.inst.role2", value="value4", unit="m/s")
-
-    position.add_instance(position_error)
-
-    mb = MivotAnnotations()
-    mb.add_templates(position)
-    mb.build_mivot_block()
-    print(mb.mivot_block)
 """
 
 from pyvo.utils.prototype import prototype_feature
@@ -44,16 +10,31 @@ from pyvo.mivot.utils.exceptions import MappingError
 @prototype_feature("MIVOT")
 class MivotInstance:
     """
-    API for building <INSTANCE> elements of a MIVOT annotation step by step.
+    API for building <INSTANCE> elements of MIVOT annotation step by step.
 
-    This class provides methods for adding attributes, references, and nested instances,
-    allowing incremental construction of a MIVOT instance.
+    This class provides methods for incremental construction of a MIVOT instance.
+    It builds <INSTANCE> elements that can contain <ATTRIBUTE>, <INSTANCE>, and <REFERENCE>.
+    Support for <COLLECTION> elements is not yet implemented.
+    
+    The main features are:
+
+    - Model-agnostic: The implementation is independent of any specific data model.
+    - Syntax validation: Ensures basic MIVOT syntax rules are followed.
+    - Context-agnostic: Ignores context-dependent syntax rules.
+    
+    attributes
+    ----------
+    _dmtype : string
+              Instance type (class VO-DML ID)
+    _dmrole : string
+              Role played by the instance in the context where it is used 
+              (given by the VO-DML serialization of the model)
+    _dmid : string
+            Free identifier of the instance
+
     """
-
-    def __init__(self, dmtype=None, dmrole=None, dmid=None):
+    def __init__(self, dmtype=None, *, dmrole=None, dmid=None):
         """
-        Initialize a MivotInstance object.
-
         Parameters
         ----------
         dmtype : str
