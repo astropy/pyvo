@@ -50,20 +50,22 @@ Enhancements and Fixes
 
 - MIVOT module: the model references in the dictionaries that are used to build ``MivotInstance``
   objects are made more consistent [#551]
-  
-- RegTAP constraints involving tables other than rr.resource are now
-  done via subqueries for less duplication of interfaces. [#562, #572]
 
 - MIVOT module: If the MIVOT annotation block contains a valid instance of the
   ``mango:EpochPosition`` class, the dynamic object describing the mapped
   data can generate a valid SkyCoord instance. [#591]
 
+- Extending the MIVOT module with the ability to build annotations component by component
+  and put them into a VOTable. [#627]
+  
+- RegTAP constraints involving tables other than rr.resource are now
+  done via subqueries for less duplication of interfaces. [#562, #572]
+
+
 - New sub-package discover for global dataset discovery. [#470]
 
 - Updated getdatalink to be consistent with iter_datalinks. [#613]
 
-- Extending the MIVOT module with the ability to build annotations component by component
-  and put them into a VOTable. [#627]
   
   
 Deprecations and Removals
