@@ -29,16 +29,17 @@ from pyvo.mivot.version_checker import check_astropy_version
 
 __all__ = ["MivotAnnotations"]
 
+
 @prototype_feature("MIVOT")
 class MivotAnnotations:
     """
     This module provides a class to construct, validate, and insert MIVOT
-    blocks into VOTable files. 
+    blocks into VOTable files.
     The MIVOT block, represented as an XML structure, is used for
     data model annotations in the IVOA ecosystem.
-    
+
     The main features are:
-    
+
     - Construct the MIVOT block step-by-step with various components.
     - Validate the MIVOT block against the MIVOT XML schema (if ``xmlschema`` is installed).
     - Embed the MIVOT block into an existing VOTable file.
@@ -281,7 +282,7 @@ class MivotAnnotations:
         """
         # put here just to improve the test coverage
         root = etree.fromstring(self._mivot_block)
-        mivot_block = XmlUtils.pretty_string(root, clean_ns=False)
+        mivot_block = XmlUtils.pretty_string(root, clean_namespace=False)
         if not xmlschema:
             logging.error(
                 "XML validation skipped: no XML schema found. "

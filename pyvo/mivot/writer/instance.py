@@ -8,6 +8,7 @@ from pyvo.mivot.utils.exceptions import MappingError
 
 __all__ = ["MivotInstance"]
 
+
 @prototype_feature("MIVOT")
 class MivotInstance:
     """
@@ -16,19 +17,19 @@ class MivotInstance:
     This class provides methods for incremental construction of a MIVOT instance.
     It builds <INSTANCE> elements that can contain <ATTRIBUTE>, <INSTANCE>, and <REFERENCE>.
     Support for <COLLECTION> elements is not yet implemented.
-    
+
     The main features are:
 
     - Model-agnostic: The implementation is independent of any specific data model.
     - Syntax validation: Ensures basic MIVOT syntax rules are followed.
     - Context-agnostic: Ignores context-dependent syntax rules.
-    
+
     attributes
     ----------
     _dmtype : string
               Instance type (class VO-DML ID)
     _dmrole : string
-              Role played by the instance in the context where it is used 
+              Role played by the instance in the context where it is used
               (given by the VO-DML serialization of the model)
     _dmid : string
             Free identifier of the instance

@@ -20,7 +20,7 @@ import os
 import pytest
 from urllib.request import urlretrieve
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot import MivotViewer
+from pyvo.mivot.viewer import MivotViewer
 from pyvo.mivot.utils.exceptions import MivotError
 
 
