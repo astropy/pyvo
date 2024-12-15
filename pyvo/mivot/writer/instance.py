@@ -40,16 +40,16 @@ class MivotInstance:
         Parameters
         ----------
         dmtype : str
-            The dmtype of the INSTANCE (mandatory).
+            dmtype of the INSTANCE (mandatory)
         dmrole : str, optional
-            The dmrole of the INSTANCE.
+            dmrole of the INSTANCE
         dmid : str, optional
-            The dmid of the INSTANCE.
+            dmid of the INSTANCE
 
         Raises
         ------
         MappingError
-            If ``dmtype`` is not provided.
+            If ``dmtype`` is not provided
         """
         if not dmtype:
             raise MappingError("Cannot build an instance without dmtype")
@@ -65,20 +65,20 @@ class MivotInstance:
         Parameters
         ----------
         dmtype : str
-            The dmtype of the ATTRIBUTE (mandatory).
+            dmtype of the ATTRIBUTE (mandatory)
         dmrole : str
-            The dmrole of the ATTRIBUTE (mandatory).
+            dmrole of the ATTRIBUTE (mandatory)
         ref : str, optional
-            ID of the column to set the attribute value.
+            ID of the column to set the attribute value
         value : str, optional
-            Default value of the attribute.
+            Default value of the attribute
         unit : str, optional
-            Unit of the attribute.
+            Unit of the attribute
 
         Raises
         ------
         MappingError
-            If ``dmtype`` or ``dmrole`` is not provided, or if both ``ref`` and ``value`` are not defined.
+            If ``dmtype`` or ``dmrole`` is not provided, or if both ``ref`` and ``value`` are not defined
         """
         if not dmtype:
             raise MappingError("Cannot add an attribute without dmtype")
@@ -104,14 +104,14 @@ class MivotInstance:
         Parameters
         ----------
         dmrole : str
-            The dmrole of the REFERENCE (mandatory).
+            dmrole of the REFERENCE (mandatory)
         dmref : str
-            The dmref of the REFERENCE (mandatory).
+            dmref of the REFERENCE (mandatory)
 
         Raises
         ------
         MappingError
-            If ``dmrole`` or ``dmref`` is not provided.
+            If ``dmrole`` or ``dmref`` is not provided
         """
         if not dmref:
             raise MappingError("Cannot add a reference without dmref")
@@ -128,12 +128,12 @@ class MivotInstance:
         Parameters
         ----------
         mivot_instance : MivotInstance
-            The INSTANCE to be added.
+            INSTANCE to be added
 
         Raises
         ------
         MappingError
-            If ``mivot_instance`` is not of type ``MivotInstance``.
+            If ``mivot_instance`` is not of type ``MivotInstance``
         """
         if not isinstance(mivot_instance, MivotInstance):
             raise MappingError("Instance added must be of type MivotInstance")
@@ -141,12 +141,12 @@ class MivotInstance:
 
     def xml_string(self):
         """
-        Build and serialize the INSTANCE element to a string.
+        Build and serialize the <INSTANCE> element as a string.
 
         Returns
         -------
         str
-            The string representation of the INSTANCE element.
+            The string representation of the <INSTANCE> element
         """
         xml_string = f'<INSTANCE dmtype="{self._dmtype}" '
         if self._dmrole:

@@ -78,7 +78,7 @@ class MivotAnnotations:
     @property
     def mivot_block(self):
         """
-        Getter for the MIVOT block.
+        Getter for the whole MIVOT block.
 
         Returns
         -------
@@ -89,12 +89,12 @@ class MivotAnnotations:
 
     def _get_report(self):
         """
-        Generates the REPORT component of the MIVOT block.
+        Generate the <REPORT> component of the MIVOT block.
 
         Returns
         -------
         str
-            The REPORT block as a string, indicating the success or failure of the process.
+            The <REPORT> block as a string, indicating the success or failure of the process.
         """
         if self._report_status:
             return f'<REPORT status="OK">{self._report_message}</REPORT>'
@@ -103,12 +103,12 @@ class MivotAnnotations:
 
     def _get_models(self):
         """
-        Generates the MODEL components of the MIVOT block.
+        Generate the <MODEL> components of the MIVOT block.
 
         Returns
         -------
         str
-            The MODEL components as a formatted string.
+            The <MODEL> components as a formatted string.
         """
         models_block = ""
         for key, value in self._models.items():
@@ -121,12 +121,12 @@ class MivotAnnotations:
 
     def _get_globals(self):
         """
-        Generates the GLOBALS component of the MIVOT block.
+        Generate the <GLOBALS> component of the MIVOT block.
 
         Returns
         -------
         str
-            The GLOBALS block as a formatted string.
+            The <GLOBALS> block as a formatted string.
         """
         globals_block = "<GLOBALS>\n"
         for glob in self._globals:
@@ -137,12 +137,12 @@ class MivotAnnotations:
 
     def _get_templates(self):
         """
-        Generates the TEMPLATES component of the MIVOT block.
+        Generate the <TEMPLATES> component of the MIVOT block.
 
         Returns
         -------
         str
-            The TEMPLATES block as a formatted string, or an empty string if no templates are defined.
+            The <TEMPLATES> block as a formatted string, or an empty string if no templates are defined.
         """
         if not self._templates:
             return ""
@@ -158,13 +158,13 @@ class MivotAnnotations:
 
     def build_mivot_block(self, *, templates_id=None):
         """
-        Builds a complete MIVOT block from the declared components and validates it
+        Build a complete MIVOT block from the declared components and validates it
         against the MIVOT XML schema.
 
         Parameters
         ----------
         templates_id : str, optional
-            The ID to associate with the TEMPLATES block. Defaults to None.
+            The ID to associate with the <TEMPLATES> block. Defaults to None.
 
         Raises
         ------
@@ -188,12 +188,12 @@ class MivotAnnotations:
 
     def add_templates(self, templates_instance):
         """
-        Adds an <INSTANCE> block to the <TEMPLATES> block.
+        Add an <INSTANCE> element to the <TEMPLATES> block.
 
         Parameters
         ----------
         templates_instance : str or MivotInstance
-            The <INSTANCE> block to be added.
+            The <INSTANCE> element to be added.
 
         Raises
         ------
@@ -211,7 +211,7 @@ class MivotAnnotations:
 
     def add_globals(self, globals_instance):
         """
-        Adds an <INSTANCE> block to the <GLOBALS> block.
+        Add an <INSTANCE> block to the <GLOBALS> block.
 
         Parameters
         ----------
@@ -232,22 +232,22 @@ class MivotAnnotations:
                 "Instance added to globals must be a string or MivotInstance."
             )
 
-    def add_model(self, model_name, model_url):
+    def add_model(self, model_name, *, model_url=None):
         """
-        Adds a MODEL element to the MIVOT block.
+        Add a <MODEL> element to the MIVOT block.
 
         Parameters
         ----------
         model_name : str
             The short name of the model.
-        model_url : str
+        model_url : str, optional
             The URL of the VO-DML file associated with the model.
         """
         self._models[model_name] = model_url
 
     def set_report(self, status, message):
         """
-        Sets the REPORT element of the MIVOT block.
+        Set the <REPORT> element of the MIVOT block.
 
         Parameters
         ----------
@@ -269,7 +269,7 @@ class MivotAnnotations:
 
     def check_xml(self):
         """
-        Validates the MIVOT block against the MIVOT XML schema v1.0.
+        Validate the MIVOT block against the MIVOT XML schema v1.0.
 
         Raises
         ------
@@ -278,7 +278,7 @@ class MivotAnnotations:
 
         Notes
         -----
-        The schema is loaded from a local file to avoid dependency on a remote service.
+        The schema (mivot 1.0) is loaded from a local file to avoid dependency on a remote service.
         """
         # put here just to improve the test coverage
         root = etree.fromstring(self._mivot_block)
@@ -299,7 +299,7 @@ class MivotAnnotations:
 
     def insert_into_votable(self, votable_file, override=False):
         """
-        Inserts the MIVOT block into a VOTable.
+        Insert the MIVOT block into a VOTable.
 
         Parameters
         ----------
