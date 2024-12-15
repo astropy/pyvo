@@ -232,7 +232,7 @@ class MivotAnnotations:
                 "Instance added to globals must be a string or MivotInstance."
             )
 
-    def add_model(self, model_name, *, model_url=None):
+    def add_model(self, model_name, *, vodml_url=None):
         """
         Add a <MODEL> element to the MIVOT block.
 
@@ -240,10 +240,10 @@ class MivotAnnotations:
         ----------
         model_name : str
             The short name of the model.
-        model_url : str, optional
+        vodml_url : str, optional
             The URL of the VO-DML file associated with the model.
         """
-        self._models[model_name] = model_url
+        self._models[model_name] = vodml_url
 
     def set_report(self, status, message):
         """

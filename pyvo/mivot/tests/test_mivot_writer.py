@@ -165,14 +165,16 @@ def test_MivotInstanceAll():
 
     mivot_annotations = MivotAnnotations()
     mivot_annotations.add_model(
-        "ivoa", "https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml"
+        "ivoa",
+        vodml_url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml"
     )
     mivot_annotations.add_model(
-        "coords", "https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml"
+        "coords",
+        vodml_url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml"
     )
     mivot_annotations.add_model(
         "mango",
-        "https://raw.githubusercontent.com/lmichel/MANGO/draft-0.1/vo-dml/mango.vo-dml.xml",
+        vodml_url="https://raw.githubusercontent.com/lmichel/MANGO/draft-0.1/vo-dml/mango.vo-dml.xml",
     )
     mivot_annotations.set_report(True, "Mivot writer unit test")
 
