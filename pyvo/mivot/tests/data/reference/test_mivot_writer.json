@@ -1,0 +1,46 @@
+{
+  "dmtype": "mango:EpochPosition",
+  "longitude": {
+    "value": 52.2340018,
+    "unit": "deg"
+  },
+  "latitude": {
+    "value": 59.8937333,
+    "unit": "deg"
+  },
+  "errors": {
+    "dmtype": "mango:EpochPositionErrors",
+    "dmrole": "mango:EpochPosition.errors",
+    "position": {
+      "dmtype": "mango:error.ErrorCorrMatrix",
+      "dmrole": "mango:EpochPositionErrors.position",
+      "sigma1": {
+        "value": 6.0,
+        "unit": "arcsec"
+      },
+      "sigma2": {
+        "value": 6.0,
+        "unit": "arcsec"
+      }
+    }
+  },
+  "spaceSys": {
+    "dmtype": "coords:SpaceSys",
+    "dmid": "_spacesys_icrs",
+    "dmrole": "mango:EpochPosition.spaceSys",
+    "frame": {
+      "dmtype": "coords:SpaceFrame",
+      "dmrole": "coords:PhysicalCoordSys.frame",
+      "spaceRefFrame": {
+        "value": "ICRS"
+      },
+      "refPosition": {
+        "dmtype": "coords:StdRefLocation",
+        "dmrole": "coords:SpaceFrame.refPosition",
+        "position": {
+          "value": "BARYCENTER"
+        }
+      }
+    }
+  }
+}
