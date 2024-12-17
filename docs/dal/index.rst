@@ -212,7 +212,7 @@ to see the tables available on the Simbad TAP service, say:
 
     >>> simbad = vo.dal.TAPService("http://simbad.cds.unistra.fr/simbad/sim-tap")
     >>> print([tab_name for tab_name in simbad.tables.keys()])  # doctest: +IGNORE_WARNINGS
-    ['TAP_SCHEMA.schemas', 'TAP_SCHEMA.tables', 'TAP_SCHEMA.columns', 'TAP_SCHEMA.keys', ... 'mesVelocities', 'mesXmm', 'otypedef', 'otypes', 'ref']
+    ['TAP_SCHEMA.schemas', 'TAP_SCHEMA.tables', ... 'otypedef', 'otypes', 'ref']
 
 
 If you know a TAP service's access URL, you can directly pass it to
