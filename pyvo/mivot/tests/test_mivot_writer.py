@@ -191,7 +191,26 @@ def test_MivotInstanceAll():
     mivot_annotations.insert_into_votable(votable)
 
     mv = MivotViewer(votable)
-    print(mv.dm_instance)
     assert mv.dm_instance.to_dict() == DictUtils.read_dict_from_file(
         os.path.join(data_path, "reference/test_mivot_writer.json")
     )
+
+
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
+def test_frames():
+        """
+        Test the generation of both space and time frames following the Coords 1.0 model
+        and the capability of inserting them in the globals
+        """
+        mivot_annotations = MivotAnnotations()
+        mivot_annotations.add_simple_space_frame(ref_frame="FK5", ref_position="BARYCENTER", equinox="J2000", dmid="_fk5")
+        mivot_annotations.add_simple_time_frame(ref_frame="TCB", ref_position="BARYCENTER", dmid="_tcb")
+        mivot_annotations.build_mivot_block()
+        print(mivot_annotations.mivot_block)
+        with open(
+            os.path.join(data_path, "reference/test_mivot_frames.xml"), "r"
+            ) as xml_ref:
+            assert strip_xml(xml_ref.read()) == strip_xml(mivot_annotations.mivot_block)
+
+if __name__ == "__main__":
+    test_frames()
