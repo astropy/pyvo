@@ -367,12 +367,16 @@ class PosQueryParam(AbstractDalQueryParam):
                     self._validate_ra(m)
 
     def _validate_ra(self, ra):
+        if isinstance(ra, str):
+            ra = Unit(ra)
         if not isinstance(ra, Quantity):
             ra = ra * u.deg
         if ra.to(u.deg).value < 0 or ra.to(u.deg).value > 360.0:
             raise ValueError('Invalid ra: {}'.format(ra))
 
     def _validate_dec(self, dec):
+        if isinstance(dec, str):
+            dec = Unit(dec)
         if not isinstance(dec, Quantity):
             dec = dec * u.deg
         if dec.to(u.deg).value < -90.0 or dec.to(u.deg).value > 90.0:
@@ -414,9 +418,13 @@ class IntervalQueryParam(AbstractDalQueryParam):
             raise ValueError('Invalid interval: min({}) > max({})'.format(
                 low, high))
         if self._unit:
+            if isinstance(low, str):
+                low = Unit(low)
             if not isinstance(low, Quantity):
                 low = low * self._unit
             low = low.to(self._unit, equivalencies=self._equivalencies).value
+            if isinstance(high, str):
+                high = Unit(high)
             if not isinstance(high, Quantity):
                 high = high * self._unit
             high = high.to(self._unit, equivalencies=self._equivalencies).value
