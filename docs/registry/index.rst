@@ -600,7 +600,7 @@ RegTAP services using:
   >>> res = registry.search(datamodel="regtap")
   >>> print("\n".join(sorted(r.get_interface(service_type="tap", lax=True).access_url
   ...   for r in res)))
-  http://dc.zah.uni-heidelberg.de/tap
+  http://dc.g-vo.org/tap
   http://gavo.aip.de/tap
   http://voparis-rr.obspm.fr/tap
   https://vao.stsci.edu/RegTAP/TapService.aspx

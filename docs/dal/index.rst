@@ -264,7 +264,7 @@ starting it, it creates a new object :py:class:`~pyvo.dal.AsyncTAPJob`.
 .. doctest-remote-data::
 
     >>> job.url
-    'http://dc.zah.uni-heidelberg.de/__system__/tap/run/async/...'
+    'http://dc.g-vo.org/__system__/tap/run/async/0nh4f2pt'
 
 The job URL mentioned before is available in the ``url`` attribute.
 Clicking on the URL leads you to the query itself, where you can check
@@ -819,10 +819,11 @@ previews:
     >>> for dl in rows.iter_datalinks():  # doctest: +IGNORE_WARNINGS
     ...     print(next(dl.bysemantics("#preview"))["access_url"])
     http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V1200/IC5376.V1200.rscube.fits?preview=True
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/COMB/IC5376.COMB.rscube.fits?preview=True
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V500/IC5376.V500.rscube.fits?preview=True
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/COMB/UGC00005.COMB.rscube.fits?preview=True
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V1200/UGC00005.V1200.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/V1200/IC5376.V1200.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/COMB/IC5376.COMB.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/V500/IC5376.V500.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/COMB/UGC00005.COMB.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/V1200/UGC00005.V1200.rscube.fits?preview=True
 
 The call to ``next`` in this example picks the first link marked
 *preview*.  For previews, this may be enough, but in general there can

@@ -201,7 +201,7 @@ def test_single_sia1():
     assert abs(im.s_dec+29) < 2
     assert im.instrument_name == 'Robotic Bochum Twin Telescope (RoBoTT)'
     assert "BGDS GDS_" in im.obs_title
-    assert "dc.zah.uni-heidelberg.de/getproduct/bgds/data" in im.access_url
+    assert "dc.g-vo.org/getproduct/bgds/data" in im.access_url
 
 
 @pytest.mark.remote_data
