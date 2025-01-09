@@ -264,7 +264,7 @@ starting it, it creates a new object :py:class:`~pyvo.dal.AsyncTAPJob`.
 .. doctest-remote-data::
 
     >>> job.url
-    'http://dc.g-vo.org/__system__/tap/run/async/0nh4f2pt'
+    'http://dc.g-vo.org/__system__/tap/run/async/...'
 
 The job URL mentioned before is available in the ``url`` attribute.
 Clicking on the URL leads you to the query itself, where you can check
@@ -818,7 +818,6 @@ previews:
     ... ).run_sync("select top 5 * from califadr3.cubes order by califaid")
     >>> for dl in rows.iter_datalinks():  # doctest: +IGNORE_WARNINGS
     ...     print(next(dl.bysemantics("#preview"))["access_url"])
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V1200/IC5376.V1200.rscube.fits?preview=True
     http://dc.g-vo.org/getproduct/califa/datadr3/V1200/IC5376.V1200.rscube.fits?preview=True
     http://dc.g-vo.org/getproduct/califa/datadr3/COMB/IC5376.COMB.rscube.fits?preview=True
     http://dc.g-vo.org/getproduct/califa/datadr3/V500/IC5376.V500.rscube.fits?preview=True
