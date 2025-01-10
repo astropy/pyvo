@@ -275,11 +275,13 @@ class MivotAnnotations:
         dmid : string, default None
         """
         # add (or overwrite) used models
-        self.add_model("ivoa", vodml_url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml")
-        self.add_model("coords", vodml_url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml")
+        self.add_model("ivoa",
+                       vodml_url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml")
+        self.add_model("coords",
+                       vodml_url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml")
 
         # check whether ref_frame and ref_position are set with appropriate values
-        if ref_frame not in MivotAnnotations.suggested_time_frames:
+        if ref_frame not in MivotAnnotations.suggested_space_frames:
             logging.warning("Ref frame %s is not in %s, make sure there is no typo",
                             ref_frame, MivotAnnotations.suggested_space_frames)
         if ref_position not in MivotAnnotations.suggested_ref_positions:
@@ -287,18 +289,30 @@ class MivotAnnotations:
                             ref_position,
                             MivotAnnotations.suggested_ref_positions)
 
-        #Build the SpaceSys instance component by component
-        space_frame_instance = MivotInstance(dmtype="coords:SpaceSys", dmid=dmid)
-        space_frame_instance.add_attribute(dmtype=IVOA_STRING, dmrole="coords:SpaceFrame.spaceRefFrame", value=ref_frame)
-
+        # Build the SpaceSys instance component by component
+        space_system_instance = MivotInstance(dmtype="coords:SpaceSys",
+                                              dmid=dmid)
+        # let's start with the space frame
+        space_frame_instance = MivotInstance(dmtype="coords:SpaceFrame",
+                                             dmrole="coords:PhysicalCoordSys.frame")
+        space_frame_instance.add_attribute(dmtype=IVOA_STRING,
+                                           dmrole="coords:SpaceFrame.spaceRefFrame",
+                                           value=ref_frame)
         if equinox is not None:
-            space_frame_instance.add_attribute(dmtype="coords:Epoch", dmrole="coords:SpaceFrame.equinox", value=equinox)
-
-        ref_position_instance = MivotInstance(dmtype="coords:StdRefLocation", dmrole="coords:SpaceFrame.refPosition")
-        ref_position_instance.add_attribute(dmtype=IVOA_STRING, dmrole="coords:StdRefLocation.position", value=ref_position)
+            space_frame_instance.add_attribute(dmtype="coords:Epoch",
+                                               dmrole="coords:SpaceFrame.equinox",
+                                               value=equinox)
+        # then let's build the reference position
+        ref_position_instance = MivotInstance(dmtype="coords:StdRefLocation",
+                                              dmrole="coords:SpaceFrame.refPosition")
+        ref_position_instance.add_attribute(dmtype=IVOA_STRING,
+                                            dmrole="coords:StdRefLocation.position",
+                                            value=ref_position)
+        # and pack everything
         space_frame_instance.add_instance(ref_position_instance)
+        space_system_instance.add_instance(space_frame_instance)
         # add the SpaceSys instance to the GLOBALS block
-        self.add_globals(space_frame_instance)
+        self.add_globals(space_system_instance)
 
     def add_simple_time_frame(self, ref_frame="TCB", *, ref_position="BARYCENTER", dmid=None):
         """
@@ -312,15 +326,17 @@ class MivotAnnotations:
         - No error is risen if the parameter values are not consistent.
         parameters:
         ==========
-        ref_frame : string, default ICRS
+        ref_frame : string, default TCB
         ref_position : string, default BARYCENTER
         equinox : string, default None
         dmid : string, default None
         """
 
         # add (or overwrite) used models
-        self.add_model("ivoa", vodml_url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml")
-        self.add_model("coords", vodml_url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml")
+        self.add_model("ivoa",
+                       vodml_url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml")
+        self.add_model("coords",
+                       vodml_url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml")
         # check whether ref_frame and ref_position are set with appropriate values
         if ref_frame not in MivotAnnotations.suggested_time_frames:
             logging.warning("Ref frame %s is not in %s, make sure there is no typo",
@@ -330,14 +346,22 @@ class MivotAnnotations:
             logging.warning("Ref position %s is not in %s, make sure there is no typo",
                             ref_position,
                             MivotAnnotations.suggested_ref_positions)
-        #Build the TimeSys instance component by component
-        time_sys_instance = MivotInstance(dmtype="coords:TimeSys", dmid=dmid)
-        time_frame_instance = MivotInstance(dmtype="coords:TimeFrame", dmrole="coords:PhysicalCoordSys.frame")
-        time_frame_instance.add_attribute(dmtype=IVOA_STRING, dmrole="coords:TimeFrame.timescale", value=ref_frame)
-
-        ref_position_instance = MivotInstance(dmtype="coords:StdRefLocation", dmrole="coords:TimeFrame.refPosition")
-        ref_position_instance.add_attribute(dmtype=IVOA_STRING, dmrole="coords:StdRefLocation.position", value=ref_position)
-
+        # Build the TimeSys instance component by component
+        time_sys_instance = MivotInstance(dmtype="coords:TimeSys",
+                                          dmid=dmid)
+        # Let's start with the time frame
+        time_frame_instance = MivotInstance(dmtype="coords:TimeFrame",
+                                            dmrole="coords:PhysicalCoordSys.frame")
+        time_frame_instance.add_attribute(dmtype=IVOA_STRING,
+                                          dmrole="coords:TimeFrame.timescale",
+                                          value=ref_frame)
+        # Then let's build the reference position
+        ref_position_instance = MivotInstance(dmtype="coords:StdRefLocation",
+                                              dmrole="coords:TimeFrame.refPosition")
+        ref_position_instance.add_attribute(dmtype=IVOA_STRING,
+                                            dmrole="coords:StdRefLocation.position",
+                                            value=ref_position)
+        # pack everything
         time_frame_instance.add_instance(ref_position_instance)
         time_sys_instance.add_instance(time_frame_instance)
         # add the TimeSys instance to the GLOBALS block
