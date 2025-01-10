@@ -147,7 +147,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         returns tables as a dict-like object
         """
         if self._tables is None:
-            tables_url = '{}/tables'.format(self.baseurl)
+            tables_url = f'{self.baseurl}/tables'
 
             response = self._session.get(tables_url, stream=True)
 
@@ -201,7 +201,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         returns examples as a list of TAPQuery objects
         """
         if self._examples is None:
-            examples_url = '{}/examples'.format(self.baseurl)
+            examples_url = f'{self.baseurl}/examples'
 
             self._examples = self._parse_examples(examples_url)
         return self._examples
@@ -443,7 +443,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
                 after = _from_ivoa_format(after)
             params['AFTER'] = after.strftime(IVOA_DATETIME_FORMAT)
 
-        response = self._session.get('{}/async'.format(self.baseurl),
+        response = self._session.get(f'{self.baseurl}/async',
                                      params=params,
                                      stream=True)
         response.raw.read = partial(response.raw.read, decode_content=True)
@@ -508,7 +508,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
                 format(format, ' '.join(TABLE_DEF_FORMAT.keys())))
 
         headers = {'Content-Type': TABLE_DEF_FORMAT[format]}
-        response = self._session.put('{}/tables/{}'.format(self.baseurl, name),
+        response = self._session.put(f'{self.baseurl}/tables/{name}',
                                      headers=headers,
                                      data=definition)
         response.raise_for_status()
@@ -530,7 +530,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
                 format(name))
 
         response = self._session.delete(
-            '{}/tables/{}'.format(self.baseurl, name))
+            f'{self.baseurl}/tables/{name}')
         response.raise_for_status()
 
     @prototype_feature('cadc-tb-upload')
@@ -559,7 +559,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
 
         headers = {'Content-Type': TABLE_UPLOAD_FORMAT[format]}
         response = self._session.post(
-            '{}/load/{}'.format(self.baseurl, name),
+            f'{self.baseurl}/load/{name}',
             headers=headers,
             data=source)
         response.raise_for_status()
@@ -583,7 +583,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
                 'table and column names are required in index: {}/{}'.
                 format(table_name, column_name))
 
-        result = self._session.post('{}/table-update'.format(self.baseurl),
+        result = self._session.post(f'{self.baseurl}/table-update',
                                     data={'table': table_name,
                                           'index': column_name,
                                           'unique': 'true' if unique
@@ -736,7 +736,7 @@ class AsyncTAPJob:
     def execution_duration(self, value):
         try:
             response = self._session.post(
-                "{}/executionduration".format(self.url),
+                f"{self.url}/executionduration",
                 data={"EXECUTIONDURATION": str(value)})
             response.raise_for_status()
         except requests.RequestException as ex:
@@ -769,7 +769,7 @@ class AsyncTAPJob:
 
         try:
             response = self._session.post(
-                "{}/destruction".format(self.url),
+                f"{self.url}/destruction",
                 data={"DESTRUCTION": value.strftime(IVOA_DATETIME_FORMAT)})
             response.raise_for_status()
         except requests.RequestException as ex:
@@ -808,7 +808,7 @@ class AsyncTAPJob:
     def query(self, query):
         try:
             response = self._session.post(
-                '{}/parameters'.format(self.url),
+                f'{self.url}/parameters',
                 data={"QUERY": query})
             response.raise_for_status()
         except requests.RequestException as ex:
@@ -829,7 +829,7 @@ class AsyncTAPJob:
 
         try:
             response = self._session.post(
-                '{}/parameters'.format(self.url),
+                f'{self.url}/parameters',
                 data={'UPLOAD': uploads.param()},
                 files=files
             )
@@ -900,7 +900,7 @@ class AsyncTAPJob:
         """
         try:
             response = self._session.post(
-                '{}/phase'.format(self.url), data={"PHASE": "RUN"})
+                f'{self.url}/phase', data={"PHASE": "RUN"})
             response.raise_for_status()
         except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
@@ -913,7 +913,7 @@ class AsyncTAPJob:
         """
         try:
             response = self._session.post(
-                '{}/phase'.format(self.url), data={"PHASE": "ABORT"})
+                f'{self.url}/phase', data={"PHASE": "ABORT"})
             response.raise_for_status()
         except requests.RequestException as ex:
             raise DALServiceError.from_except(ex, self.url)
@@ -1079,7 +1079,7 @@ class TAPQuery(DALQuery):
         queries.
 
         """
-        return '{baseurl}/{mode}'.format(baseurl=self.baseurl, mode=self._mode)
+        return f'{self.baseurl}/{self._mode}'
 
     def execute_stream(self, *, post=False):
         """

@@ -318,15 +318,15 @@ class RegistryResults(dalq.DALResults):
                 "Resource description",
                 "Access modes offered"))
 
-    @functools.lru_cache(maxsize=None)
+    @functools.cache
     def _get_ivo_index(self):
-        return dict((r.ivoid, index)
-                    for index, r in enumerate(self))
+        return {r.ivoid: index
+                    for index, r in enumerate(self)}
 
-    @functools.lru_cache(maxsize=None)
+    @functools.cache
     def _get_short_name_index(self):
-        return dict((r.short_name, index)
-                    for index, r in enumerate(self))
+        return {r.short_name: index
+                    for index, r in enumerate(self)}
 
     def __getitem__(self, item):
         """
@@ -728,10 +728,10 @@ class RegistryResource(dalq.Record):
 
         This will ignore VOSI (infrastructure) services.
         """
-        return set(shorten_stdid(intf.standard_id) or "web"
+        return {shorten_stdid(intf.standard_id) or "web"
                    for intf in self.interfaces
                    if (intf.standard_id or intf.type == "vr:webbrowser")
-                   and not intf.is_vosi)
+                   and not intf.is_vosi}
 
     def get_interface(self, *,
                       service_type: str,

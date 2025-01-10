@@ -1,14 +1,15 @@
 import inspect
 import warnings
 from functools import wraps
-from typing import Dict, Iterable
+from typing import Dict
+from collections.abc import Iterable
 from .protofeature import Feature
 
 from pyvo.dal.exceptions import PyvoUserWarning
 
 __all__ = ['features', 'prototype_feature', 'activate_features', 'PrototypeWarning', 'PrototypeError']
 
-features: Dict[str, "Feature"] = {
+features: dict[str, "Feature"] = {
     'cadc-tb-upload': Feature('cadc-tb-upload',
                               'https://wiki.ivoa.net/twiki/bin/view/IVOA/TAP-1_1-Next',
                               False),

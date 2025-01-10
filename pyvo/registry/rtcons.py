@@ -32,7 +32,7 @@ __all__ = ["build_regtap_query"]
 # corresponding standards.  This is mostly to keep legacy APIs.
 # In the future, preferably rely on shorten_stdid and expand_stdid
 # from regtap.
-SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/" + v)
+SERVICE_TYPE_MAP = {k: "ivo://ivoa.net/std/" + v
                         for k, v in [
     ("image", "sia"),
     ("sia", "sia"),
@@ -48,7 +48,7 @@ SERVICE_TYPE_MAP = dict((k, "ivo://ivoa.net/std/" + v)
     ("slap", "slap"),
     ("table", "tap"),
     ("tap", "tap"),
-])
+]}
 
 
 class RegTAPFeatureMissing(dalq.DALQueryError):
@@ -106,7 +106,7 @@ def make_sql_literal(value):
         return f'{value}'
 
     elif isinstance(value, datetime.datetime):
-        return "'{}'".format(value.isoformat())
+        return f"'{value.isoformat()}'"
 
     else:
         raise ValueError("Cannot format {} as a SQL literal"
@@ -289,8 +289,8 @@ class Freetext(Constraint):
         self._fillers, subqueries = {}, []
 
         for index, word in enumerate(self.words):
-            parname = "fulltext{}".format(index)
-            parpatname = "fulltextpar{}".format(index)
+            parname = f"fulltext{index}"
+            parpatname = f"fulltextpar{index}"
             self._fillers[parname] = word
             self._fillers[parpatname] = '%' + word + '%'
             args = locals()
@@ -310,8 +310,8 @@ class Freetext(Constraint):
         self._fillers, conditions = {}, []
 
         for index, word in enumerate(self.words):
-            parname = "fulltext{}".format(index)
-            parpatname = "fulltextpar{}".format(index)
+            parname = f"fulltext{index}"
+            parpatname = f"fulltextpar{index}"
             self._fillers[parname] = word
             self._fillers[parpatname] = '%' + word + '%'
             args = locals()
@@ -456,8 +456,8 @@ class Servicetype(Constraint):
         This is a convenience to maintain registry.search's signature.
         """
         expanded = self.clone()
-        expanded.stdids |= set(
-            std + '#aux' for std in expanded.stdids)
+        expanded.stdids |= {
+            std + '#aux' for std in expanded.stdids}
         if "standard_id like 'ivo://ivoa.net/std/sia#query-2.%'" in expanded.extra_fragments:
             expanded.extra_fragments.append(
                 "standard_id like 'ivo://ivoa.net/std/sia#query-aux-2.%'")
@@ -633,8 +633,8 @@ class UCD(SubqueriedConstraint):
         """
         self._condition = " OR ".join(
             f"ucd LIKE {{ucd{i}}}" for i in range(len(patterns)))
-        self._fillers = dict((f"ucd{index}", pattern)
-                             for index, pattern in enumerate(patterns))
+        self._fillers = {f"ucd{index}": pattern
+                             for index, pattern in enumerate(patterns)}
 
 
 class Spatial(SubqueriedConstraint):
@@ -728,7 +728,7 @@ class Spatial(SubqueriedConstraint):
         self.inclusive = inclusive
 
         def tomoc(s):
-            return _AsIs("MOC({}, {})".format(order, s))
+            return _AsIs(f"MOC({order}, {s})")
 
         if isinstance(geom_spec, str):
             geom = _AsIs("MOC({})".format(
