@@ -1,7 +1,6 @@
 import inspect
 import warnings
 from functools import wraps
-from typing import Dict
 from collections.abc import Iterable
 from .protofeature import Feature
 

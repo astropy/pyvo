@@ -34,21 +34,21 @@ __all__ = ["build_regtap_query"]
 # from regtap.
 SERVICE_TYPE_MAP = {k: "ivo://ivoa.net/std/" + v
                         for k, v in [
-    ("image", "sia"),
-    ("sia", "sia"),
-    ("sia1", "sia"),
-    # SIA2 is irregular
-    # funky scheme used by SIA2 without breaking everything else
-    ("spectrum", "ssa"),
-    ("ssap", "ssa"),
-    ("ssa", "ssa"),
-    ("scs", "conesearch"),
-    ("conesearch", "conesearch"),
-    ("line", "slap"),
-    ("slap", "slap"),
-    ("table", "tap"),
-    ("tap", "tap"),
-]}
+                            ("image", "sia"),
+                            ("sia", "sia"),
+                            ("sia1", "sia"),
+                            # SIA2 is irregular
+                            # funky scheme used by SIA2 without breaking everything else
+                            ("spectrum", "ssa"),
+                            ("ssap", "ssa"),
+                            ("ssa", "ssa"),
+                            ("scs", "conesearch"),
+                            ("conesearch", "conesearch"),
+                            ("line", "slap"),
+                            ("slap", "slap"),
+                            ("table", "tap"),
+                            ("tap", "tap"),
+                        ]}
 
 
 class RegTAPFeatureMissing(dalq.DALQueryError):

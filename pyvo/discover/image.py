@@ -36,7 +36,7 @@ from ..registry import regtap
 
 
 # imports for type hints
-from typing import Callable, List, Optional, Set, Tuple
+from typing import Callable, Optional
 from collections.abc import Generator
 from astropy.units import quantity
 
@@ -67,6 +67,7 @@ class Queriable:
 
     They are constructed with a resource record.
     """
+
     def __init__(self, res_rec):
         self.res_rec = res_rec
         self.ivoid = res_rec.ivoid
