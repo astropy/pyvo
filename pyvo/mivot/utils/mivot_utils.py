@@ -5,7 +5,7 @@ These dictionaries are used to generate ``MivotInstance`` objects
 import numpy
 
 
-class MivotUtils(object):
+class MivotUtils:
     @staticmethod
     def xml_to_dict(element):
         """

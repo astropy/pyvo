@@ -88,7 +88,7 @@ def mime_object_maker(url, mimetype, *, session=None):
     params = pp[1:]
     mtype = [x.strip() for x in full_type.split('/')] if '/' in full_type else None
     if not mtype or len(mtype) > 2:
-        raise ValueError("Can't parse mimetype \"{}\"".format(full_type))
+        raise ValueError(f"Can't parse mimetype \"{full_type}\"")
 
     if mtype[0] == 'text':
         return session.get(url).text

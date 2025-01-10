@@ -27,7 +27,7 @@ def XSInDate(val):
     except ValueError:
         pass
 
-    raise ValueError('Cannot parse datetime {}'.format(val))
+    raise ValueError(f'Cannot parse datetime {val}')
 
 
 InDuration = partial(TimeDelta, format='sec')

@@ -50,7 +50,7 @@ class DALAccessError(Exception):
         return self._reason
 
     def __repr__(self):
-        return "{}: {}".format(self._typeName(self), self._reason)
+        return f"{self._typeName(self)}: {self._reason}"
 
     @property
     def reason(self):
@@ -188,13 +188,13 @@ class DALServiceError(DALProtocolError):
                 code = response.status_code
                 content_type = response.headers.get('content-type', None)
                 if content_type and 'text/plain' in content_type:
-                    message = '{} for {}'.format(response.text, url)
+                    message = f'{response.text} for {url}'
 
             # TODO votable handling
 
             return DALServiceError(message, code, exc, url)
         elif isinstance(exc, Exception):
-            return DALServiceError("{}: {}".format(cls._typeName(exc), str(exc)),
+            return DALServiceError(f"{cls._typeName(exc)}: {str(exc)}",
                                    cause=exc, url=url)
         else:
             raise TypeError("from_except: expected Exception")

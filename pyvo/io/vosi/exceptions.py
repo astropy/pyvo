@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# -*- coding: utf-8 -*-
 """
 .. _warnings:
 Warnings
@@ -26,8 +25,8 @@ from astropy.utils.exceptions import AstropyWarning
 from ...utils.xml.exceptions import XMLWarning
 
 __all__ = ["VOSIWarning"]
-__all__ += ["W{:0>2}".format(i) for i in range(1, 36)]
-__all__ += ["E{:0>2}".format(i) for i in range(1, 10)]
+__all__ += [f"W{i:0>2}" for i in range(1, 36)]
+__all__ += [f"E{i:0>2}" for i in range(1, 10)]
 
 
 class VOSIWarning(AstropyWarning):

@@ -37,7 +37,7 @@ skycoord_param_galactic = {
     MangoRoles.RADIAL_VELOCITY: 'radial_velocity', MangoRoles.EPOCH: 'obstime'}
 
 
-class SkyCoordBuilder(object):
+class SkyCoordBuilder:
     '''
     Utility generating SkyCoord instances from MIVOT annotations
 

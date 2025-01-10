@@ -113,7 +113,7 @@ class TablesMixin(CapabilityMixin):
             tables_urls = (_.value for _ in accessurls)
         except StopIteration:
             tables_urls = [
-                '{}/tables'.format(self.baseurl),
+                f'{self.baseurl}/tables',
                 url_sibling(self.baseurl, 'tables')
             ]
 
@@ -167,7 +167,7 @@ class VOSITables:
         table = self._vosi_tables.get_table_by_name(name)
 
         if not table.columns and not table.foreignkeys:
-            tables_url = '{}/{}'.format(self._endpoint_url, name)
+            tables_url = f'{self._endpoint_url}/{name}'
             response = self._get_table_file(tables_url)
 
             try:

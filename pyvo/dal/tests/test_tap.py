@@ -198,7 +198,7 @@ class MockAsyncTAPServer:
         context.status_code = 303
         context.reason = 'See other'
         context.headers['Location'] = (
-            'http://example.com/tap/async/{}'.format(newid))
+            f'http://example.com/tap/async/{newid}')
 
         self._jobs[newid] = job
 
@@ -279,7 +279,7 @@ class MockAsyncTAPServer:
                         uploads1.update(uploads2)
 
                         param.content = ';'.join([
-                            '{}={}'.format(key, value) for key, value
+                            f'{key}={value}' for key, value
                             in uploads1.items()
                         ])
 
@@ -767,7 +767,7 @@ class TestTAPCapabilities:
     def test_get_featurelist(self, tapservice):
         features = tapservice.get_tap_capability().get_adql().get_feature_list(
             "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo")
-        assert set(f.form for f in features) == {
+        assert {f.form for f in features} == {
             'CENTROID', 'CONTAINS', 'COORD1', 'POLYGON',
             'INTERSECTS', 'COORD2', 'BOX', 'AREA', 'DISTANCE',
             'REGION', 'CIRCLE', 'POINT'}

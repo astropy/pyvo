@@ -36,7 +36,8 @@ from ..registry import regtap
 
 
 # imports for type hints
-from typing import Callable, Generator, List, Optional, Set, Tuple
+from typing import Callable, Optional
+from collections.abc import Generator
 from astropy.units import quantity
 
 __all__ = ["ImageFound", "ImageDiscoverer", "images_globally"]
@@ -66,6 +67,7 @@ class Queriable:
 
     They are constructed with a resource record.
     """
+
     def __init__(self, res_rec):
         self.res_rec = res_rec
         self.ivoid = res_rec.ivoid
@@ -78,7 +80,7 @@ class Queriable:
         return str(self)
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def obscore_column_names():
     """returns the names of obscore columns.
 
@@ -152,7 +154,7 @@ class ImageFound(obscore.ObsCoreMetadata):
             yield cls(origin_service, mapped)
 
 
-def _clean_for(records: List[Queriable], ivoids_to_remove: Set[str]):
+def _clean_for(records: list[Queriable], ivoids_to_remove: set[str]):
     """returns the Queriables in records the ivoids of which are
     not in ivoids_to_remove.
     """
@@ -210,10 +212,10 @@ class ImageDiscoverer:
 
         self.inclusive = inclusive
         self.already_queried, self.failed_services = 0, 0
-        self.results: List[obscore.ObsCoreMetadata] = []
+        self.results: list[obscore.ObsCoreMetadata] = []
         self.watcher = watcher
-        self.log_messages: List[str] = []
-        self.known_access_urls: Set[str] = set()
+        self.log_messages: list[str] = []
+        self.known_access_urls: set[str] = set()
 
         self._service_list_lock = threading.Lock()
         with self._service_list_lock:
@@ -239,7 +241,7 @@ class ImageDiscoverer:
         services from our current services lists.
         """
         def ids(recs):
-            return set(r.ivoid for r in recs)
+            return {r.ivoid for r in recs}
 
         self.sia1_recs = _clean_for(self.sia1_recs,
                 ids(self.sia2_recs) | ids(self.obscore_recs))
@@ -272,7 +274,7 @@ class ImageDiscoverer:
             self._log(f"Skipping {rec['ivoid']} because"
                 f" it is served by {rec['related_id']}")
 
-        collections_to_remove = set(r["ivoid"] for r in services_for)
+        collections_to_remove = {r["ivoid"] for r in services_for}
         self.sia1_recs = _clean_for(self.sia1_recs, collections_to_remove)
         self.sia2_recs = _clean_for(self.sia2_recs, collections_to_remove)
         self.obscore_recs = _clean_for(self.obscore_recs, collections_to_remove)
@@ -295,12 +297,12 @@ class ImageDiscoverer:
 
         new_style_access_urls = set()
         for rec in obscore_services:
-            new_style_access_urls |= set(
-                i.access_url for i in rec.list_interfaces("tap"))
+            new_style_access_urls |= {
+                i.access_url for i in rec.list_interfaces("tap")}
 
         for tap_rec in tap_services_with_obscore:
-            access_urls = set(
-                i.baseurl for i in rec.list_services("tap"))
+            access_urls = {
+                i.baseurl for i in rec.list_services("tap")}
             if new_style_access_urls.isdisjoint(access_urls):
                 obscore_services.append(obscore_services)
 
@@ -334,11 +336,11 @@ class ImageDiscoverer:
         with self._service_list_lock:
             self.sia1_recs = [Queriable(r) for r in registry.search(
                 registry.Servicetype("sia"), *constraints)]
-            self._info("Found {} SIA1 service(s)".format(len(self.sia1_recs)))
+            self._info(f"Found {len(self.sia1_recs)} SIA1 service(s)")
 
             self.sia2_recs = [Queriable(r) for r in registry.search(
                 registry.Servicetype("sia2"), *constraints)]
-            self._info("Found {} SIA2 service(s)".format(len(self.sia2_recs)))
+            self._info(f"Found {len(self.sia2_recs)} SIA2 service(s)")
 
             self.obscore_recs = self._discover_obscore_services(*constraints)
             self._info("Found {} Obscore service(s)".format(
@@ -436,7 +438,7 @@ class ImageDiscoverer:
                     return False
             return True
 
-        self._info("Querying SIA1 {}...".format(rec.title))
+        self._info(f"Querying SIA1 {rec.title}...")
         svc = rec.res_rec.get_service("sia", session=self.session, lax=True)
         n_found = self._add_records(
             ImageFound.from_sia1_recs(
@@ -471,7 +473,7 @@ class ImageDiscoverer:
     def _query_one_sia2(self, rec: Queriable):
         """runs our query against a SIA2 capability of rec.
         """
-        self._info("Querying SIA2 {}...".format(rec.title))
+        self._info(f"Querying SIA2 {rec.title}...")
 
         svc = rec.res_rec.get_service("sia2", session=self.session, lax=True)
         constraints = {}
@@ -505,7 +507,7 @@ class ImageDiscoverer:
     def _query_one_obscore(self, rec: Queriable, where_clause: str):
         """runs our query against a Obscore capability of rec.
         """
-        self._info("Querying Obscore {}...".format(rec.title))
+        self._info(f"Querying Obscore {rec.title}...")
         svc = rec.res_rec.get_service("tap", session=self.session, lax=True)
 
         n_found = self._add_records(
@@ -575,14 +577,14 @@ class ImageDiscoverer:
 
 def images_globally(
         *,
-        space: Optional[Tuple[float, float, float]] = None,
+        space: Optional[tuple[float, float, float]] = None,
         spectrum: Optional[quantity.Quantity] = None,
         time: Optional[time.Time] = None,
         inclusive: bool = False,
         watcher: Optional[Callable[['ImageDiscoverer', str], None]] = None,
         timeout: float = 20,
         services: Optional[registry.RegistryResults] = None)\
-        -> Tuple[List[obscore.ObsCoreMetadata], List[str]]:
+        -> tuple[list[obscore.ObsCoreMetadata], list[str]]:
     """returns a collection of ObsCoreMetadata-s matching certain constraints
     and a list of log lines.
 

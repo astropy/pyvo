@@ -7,7 +7,7 @@ from . import securitymethods
 __all__ = ["CredentialStore"]
 
 
-class CredentialStore(object):
+class CredentialStore:
     """
     The credential store takes user credentials, and uses them
     to create appropriate requests sessions for dispatching

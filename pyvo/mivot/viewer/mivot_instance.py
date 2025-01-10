@@ -194,9 +194,9 @@ class MivotInstance:
         elif hasattr(obj, "__iter__") and not isinstance(obj, str):
             return [self._get_class_dict(v, classkey, slim=slim) for v in obj]
         elif hasattr(obj, "__dict__"):
-            data = dict([(key, obj._get_class_dict(value, classkey, slim=slim))
+            data = {key: obj._get_class_dict(value, classkey, slim=slim)
                          for key, value in obj.__dict__.items()
-                         if not callable(value) and not key.startswith('_')])
+                         if not callable(value) and not key.startswith('_')}
             # remove the house keeping parameters
             if slim is True:
                 # data is atomic value (e.g. float): the type be hidden
