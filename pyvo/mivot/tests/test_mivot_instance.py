@@ -11,7 +11,7 @@ from astropy.utils.data import get_pkg_data_filename
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.mivot_instance import MivotInstance
 from pyvo.mivot.utils.mivot_utils import MivotUtils
-from pyvo.mivot import MivotViewer
+from pyvo.mivot.viewer import MivotViewer
 
 fake_hk_dict = {
     "dmtype": "EpochPosition",
