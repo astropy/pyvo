@@ -149,7 +149,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         if self._tables is None:
             tables_url = '{}/tables'.format(self.baseurl)
 
-            response = self._session.get(tables_url, stream=True)
+            response = self._session.get(tables_url, params={"detail": "min"}, stream=True)
 
             try:
                 response.raise_for_status()
