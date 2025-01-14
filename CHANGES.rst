@@ -19,7 +19,7 @@ Bug Fixes
 
 - Fix string literal generation for SQL query when using numpy >=2.0. [#624]
 
-- Try minimal VOSI tables downloads by default for TAP metadata [#634]
+- Switch to do minimal VOSI tables downloads for TAP metadata. [#634]
 
 
 1.6 (2024-11-01)
