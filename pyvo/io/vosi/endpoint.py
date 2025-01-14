@@ -311,7 +311,7 @@ class TablesFile(Element):
         for table in self.iter_tables():
             if table.name == name:
                 return table
-        raise KeyError("No table with name {} found".format(name))
+        raise KeyError(f"No table with name {name} found")
 
 
 class CapabilitiesFile(Element, HomogeneousList):
