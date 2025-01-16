@@ -680,7 +680,7 @@ class AsyncTAPJob:
         if self._delete_on_exit:
             try:
                 self.delete()
-            except Exception:
+            except DALServiceError:
                 pass
 
     def _update(self, wait_for_statechange=False, timeout=10.):
