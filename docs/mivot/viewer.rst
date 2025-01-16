@@ -26,7 +26,7 @@ Using the API
 Integrated Readout
 ------------------
 The ``ModelViewer`` module manages access to data mapped to a model through dynamically
-generated objects (``MivotInstance``class).
+generated objects (``MivotInstance`` class).
 The example below shows how can be consumed a VOTable resulting from a cone-search query which data are mapped
 to the ``EpochPosition`` class.
 
