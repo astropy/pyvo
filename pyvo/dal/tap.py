@@ -282,7 +282,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
 
     def run_async(
             self, query, *, language="ADQL", maxrec=None, uploads=None,
-            **keywords):
+            delete=True, **keywords):
         """
         runs async query and returns its result
 
@@ -297,6 +297,8 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             the maximum records to return. defaults to the service default
         uploads : dict
             a mapping from table names to objects containing a votable
+        delete : bool
+            delete the job after fetching the results
 
         Returns
         -------
@@ -323,7 +325,9 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         job = job.run().wait()
         job.raise_if_error()
         result = job.fetch_result()
-        job.delete()
+
+        if delete:
+            job.delete()
 
         return result
 
@@ -643,7 +647,7 @@ class AsyncTAPJob:
         job = cls(response.url, session=session)
         return job
 
-    def __init__(self, url, *, session=None):
+    def __init__(self, url, *, session=None, delete=True):
         """
         initialize the job object with the given url and fetch remote values
 
@@ -651,9 +655,14 @@ class AsyncTAPJob:
         ----------
         url : str
             the job url
+        session : object, optional
+            session to use for network requests
+        delete : bool, optional
+            whether to delete the job when exiting (default: True)
         """
         self._url = url
         self._session = use_session(session)
+        self._delete_on_exit = delete
         self._update()
 
     def __enter__(self):
@@ -664,12 +673,15 @@ class AsyncTAPJob:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """
-        Exits the context. The job is silently deleted.
+        Exits the context. Unless delete=False was set at initialization,
+        the job is deleted. Any deletion errors are silently ignored
+        to ensure proper context exit.
         """
-        try:
-            self.delete()
-        except Exception:
-            pass
+        if self._delete_on_exit:
+            try:
+                self.delete()
+            except Exception:
+                pass
 
     def _update(self, wait_for_statechange=False, timeout=10.):
         """
