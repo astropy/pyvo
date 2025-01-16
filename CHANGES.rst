@@ -4,7 +4,7 @@
 Enhancements and Fixes
 ----------------------
 
-- Make deletion of TAP jobs optional via a delete flag. Default: True
+- Make deletion of TAP jobs optional via a new ``delete`` kwarg. [#640]
 
 Deprecations and Removals
 -------------------------
