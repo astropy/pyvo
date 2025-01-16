@@ -4,6 +4,7 @@
 Enhancements and Fixes
 ----------------------
 
+- Make deletion of TAP jobs optional via a delete flag. Default: True
 
 Deprecations and Removals
 -------------------------
