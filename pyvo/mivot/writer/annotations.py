@@ -32,6 +32,7 @@ __all__ = ["MivotAnnotations"]
 
 IVOA_STRING = "ivoa:string"
 
+
 @prototype_feature("MIVOT")
 class MivotAnnotations:
     """
@@ -62,10 +63,10 @@ class MivotAnnotations:
 
     """
 
-    #https://www.ivoa.net/rdf/refframe/2022-02-22/refframe.html
+    # https://www.ivoa.net/rdf/refframe/2022-02-22/refframe.html
     suggested_space_frames = ["FK4", "FK5", "ICRS", "GALACTIC", "SUPER_GALACTIC", "ECLIPTIC"]
     suggested_ref_positions = ["BARYCENTER", "GEOCENTER", "TOPOCENTER"]
-    #https://www.ivoa.net/rdf/timescale/2019-03-15/timescale.html
+    # https://www.ivoa.net/rdf/timescale/2019-03-15/timescale.html
     suggested_time_frames = ["TAI", "TT", "TDT", "ET", "IAT", "UT1",
                         "UTC", "GMT", "GPS", "TCG", "TCB", "TBD", "LOCAL"]
 
@@ -259,20 +260,31 @@ class MivotAnnotations:
 
     def add_simple_space_frame(self, ref_frame="ICRS", *, ref_position="BARYCENTER", equinox=None, dmid=None):
         """
-        Add to the globals a SpaceSys instance as defined in  the Coordinates
-        data model V1.0 (https://ivoa.net/documents/Coords/20221004/index.html)
+        Adds a SpaceSys instance to the GLOBALS block as defined in the Coordinates
+        data model V1.0 (https://ivoa.net/documents/Coords/20221004/index.html).
 
-        - This function only implements the most used features. The custom reference position,
-          that can be used for TOPOCENTER frames is not supported.
-          However, methods that implement missing features can easily be derived from this code.
-        - A warning is emitted   if either ref_frame or ref_position have unexpected values.
-        - No error is risen if the parameter values are not consistent.
-        parameters:
-        ==========
-        ref_frame : string, default ICRS
-        ref_position : string, default BARYCENTER
-        equinox : string, default None
-        dmid : string, default None
+        Notes:
+
+        - This function implements only the most commonly used features. Custom reference positions
+          for TOPOCENTER frames are not supported. However, methods for implementing the missing
+          features can be derived from this code.
+        - A warning is emitted if either ``ref_frame`` or ``ref_position`` have unexpected values.
+        - No error is raised if the parameter values are inconsistent.
+
+        Parameters
+        ----------
+        ref_frame : str, optional, default "ICRS"
+            The reference frame for the space frame.
+
+        ref_position : str, optional, default "BARYCENTER"
+            The reference position for the space frame.
+
+        equinox : str, optional, default None
+            The equinox for the reference frame, if applicable.
+
+        dmid : str, optional, default None
+            An identifier for the data model instance.
+
         """
         # add (or overwrite) used models
         self.add_model("ivoa",
@@ -283,7 +295,8 @@ class MivotAnnotations:
         # check whether ref_frame and ref_position are set with appropriate values
         if ref_frame not in MivotAnnotations.suggested_space_frames:
             logging.warning("Ref frame %s is not in %s, make sure there is no typo",
-                            ref_frame, MivotAnnotations.suggested_space_frames)
+                            ref_frame,
+                            MivotAnnotations.suggested_space_frames)
         if ref_position not in MivotAnnotations.suggested_ref_positions:
             logging.warning("Ref position %s is not in %s, make sure there is no typo",
                             ref_position,
@@ -316,22 +329,28 @@ class MivotAnnotations:
 
     def add_simple_time_frame(self, ref_frame="TCB", *, ref_position="BARYCENTER", dmid=None):
         """
-        Add to the globals a TimeSys instance as defined in  the Coordinates
-        data model V1.0 (https://ivoa.net/documents/Coords/20221004/index.html)
+        Adds a TimeSys instance to the GLOBALS block as defined in the Coordinates
+        data model V1.0 (https://ivoa.net/documents/Coords/20221004/index.html).
 
-        - This function only implements the most used features. The custom reference direction,
-          is not supported.
-          However, methods that implement missing features can easily be derived from this code.
-        - A warning is emitted   if either ref_frame or ref_position have unexpected values.
-        - No error is risen if the parameter values are not consistent.
-        parameters:
-        ==========
-        ref_frame : string, default TCB
-        ref_position : string, default BARYCENTER
-        equinox : string, default None
-        dmid : string, default None
+        Notes:
+
+        - This function implements only the most commonly used features. Custom reference directions
+          are not supported. However, methods for implementing missing features can be derived from
+          this code.
+        - A warning is emitted if either ``ref_frame`` or ``ref_position`` have unexpected values.
+        - No error is raised if the parameter values are inconsistent.
+
+        Parameters
+        ----------
+        ref_frame : str, optional, default "TCB"
+            The reference frame for the time frame.
+
+        ref_position : str, optional, default "BARYCENTER"
+            The reference position for the time frame.
+
+        dmid : str, optional, default None
+            An identifier for the data model instance.
         """
-
         # add (or overwrite) used models
         self.add_model("ivoa",
                        vodml_url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml")
