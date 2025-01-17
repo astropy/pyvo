@@ -841,6 +841,65 @@ class TestTAPService:
 
             assert "<No useful error from server>" in str(excinfo.value)
 
+    @pytest.mark.usefixtures('async_fixture')
+    def test_endpoint_503_with_retry_after(self):
+        service = TAPService('http://example.com/tap')
+
+        with requests_mock.Mocker() as rm:
+            rm.get('http://example.com/tap/capabilities',
+                   status_code=503,
+                   headers={'Retry-After': '30'},
+                   text='Service temporarily unavailable')
+
+            rm.get('http://example.com/capabilities',
+                   status_code=404)
+
+            with pytest.raises(DALServiceError) as excinfo:
+                service._get_endpoint('capabilities')
+
+            error_msg = str(excinfo.value)
+            assert "503 Service Unavailable (Retry-After: 30)" in error_msg
+            assert "404 Not Found" in error_msg
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_endpoint_case_insensitive_retry_after(self):
+        service = TAPService('http://example.com/tap')
+
+        with requests_mock.Mocker() as rm:
+            rm.get('http://example.com/tap/capabilities',
+                   status_code=503,
+                   headers={'RETRY-AFTER': '60'},
+                   text='Service temporarily unavailable')
+            rm.get('http://example.com/capabilities',
+                   status_code=404)
+
+            with pytest.raises(DALServiceError) as excinfo:
+                service._get_endpoint('capabilities')
+
+            error_msg = str(excinfo.value)
+            assert "503 Service Unavailable (Retry-After: 60)" in error_msg
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_endpoint_stops_on_server_error(self):
+        service = TAPService('http://example.com/tap')
+
+        with requests_mock.Mocker() as rm:
+            first_url = rm.get('http://example.com/tap/capabilities',
+                               status_code=500,
+                               text='Internal Server Error')
+
+            second_url = rm.get('http://example.com/capabilities',
+                                text='Success')
+
+            with pytest.raises(DALServiceError) as excinfo:
+                service._get_endpoint('capabilities')
+
+            assert first_url.call_count == 1
+            assert second_url.call_count == 0
+
+            error_msg = str(excinfo.value)
+            assert "HTTP Code: 500" in error_msg
+
 
 @pytest.mark.usefixtures("tapservice")
 class TestTAPCapabilities:
@@ -906,6 +965,197 @@ def test_get_endpoint_candidates():
         "http://astroweb.projects.phys.ucl.ac.uk:8000/capabilities"
     ]
     assert svc._get_endpoint_candidates("capabilities") == expected_urls
+
+
+def test_timeout_error():
+    service = TAPService('http://example.com/tap')
+
+    with requests_mock.Mocker() as rm:
+        rm.register_uri(
+            'GET',
+            'http://example.com/tap/capabilities',
+            exc=requests.Timeout("Request timed out")
+        )
+        rm.register_uri(
+            'GET',
+            'http://example.com/capabilities',
+            exc=requests.Timeout("Request timed out")
+        )
+
+        with pytest.raises(DALServiceError) as excinfo:
+            _ = service.capabilities
+
+        error_message = str(excinfo.value)
+        assert "Request timed out" in error_message
+
+
+def test_generic_request_exception():
+    service = TAPService('http://example.com/tap')
+
+    with requests_mock.Mocker() as rm:
+        rm.register_uri(
+            'GET',
+            'http://example.com/tap/capabilities',
+            exc=requests.RequestException("Some request error")
+        )
+        rm.register_uri(
+            'GET',
+            'http://example.com/capabilities',
+            exc=requests.RequestException("Some request error")
+        )
+
+        with pytest.raises(DALServiceError) as excinfo:
+            _ = service.capabilities
+
+        error_message = str(excinfo.value)
+        assert "Some request error" in error_message
+
+
+def test_unexpected_exception():
+    service = TAPService('http://example.com/tap')
+
+    class CustomException(Exception):
+        pass
+
+    with requests_mock.Mocker() as rm:
+        rm.register_uri(
+            'GET',
+            'http://example.com/tap/capabilities',
+            exc=CustomException("Unexpected error occurred")
+        )
+        rm.register_uri(
+            'GET',
+            'http://example.com/capabilities',
+            exc=CustomException("Unexpected error occurred")
+        )
+
+        with pytest.raises(DALServiceError) as excinfo:
+            _ = service.capabilities
+
+        error_message = str(excinfo.value)
+        assert "Unable to access the capabilities endpoint at:" in error_message
+
+
+def test_tap_service_initialization_error():
+    with requests_mock.Mocker() as rm:
+        rm.register_uri(
+            'GET',
+            'http://example.com/tap/capabilities',
+            status_code=404
+        )
+        rm.register_uri(
+            'GET',
+            'http://example.com/capabilities',
+            status_code=404
+        )
+
+        service = TAPService('http://example.com/tap')
+        with pytest.raises(DALServiceError) as excinfo:
+            _ = service.capabilities
+
+        error_message = str(excinfo.value)
+        assert "Unable to access the capabilities endpoint at:" in error_message
+        assert "404" in error_message
+
+
+def test_endpoint_connection_errors():
+    service = TAPService('http://example.com/tap')
+
+    with requests_mock.Mocker() as rm:
+        rm.register_uri(
+            'GET',
+            'http://example.com/tap/capabilities',
+            status_code=404
+        )
+        rm.register_uri(
+            'GET',
+            'http://example.com/capabilities',
+            status_code=404
+        )
+
+        with pytest.raises(DALServiceError) as excinfo:
+            _ = service.capabilities
+
+        error_message = str(excinfo.value)
+        assert "Unable to access the capabilities endpoint at:" in error_message
+        assert "404" in error_message
+        assert "The service URL is incorrect" in error_message
+
+
+def test_invalid_tap_url():
+    service = TAPService('not-a-url')
+
+    with requests_mock.Mocker() as rm:
+        rm.register_uri(
+            'GET',
+            requests_mock.ANY,
+            exc=requests.exceptions.ConnectionError(
+                "Failed to establish connection")
+        )
+
+        with pytest.raises(DALServiceError) as excinfo:
+            _ = service.capabilities
+
+        error_message = str(excinfo.value)
+        assert "Unable to access the capabilities endpoint at:" in error_message
+        assert "Connection failed" in error_message
+
+
+def test_http_error_responses():
+    error_codes = {
+        403: "Forbidden",
+        500: "Internal Server Error",
+        502: "Bad Gateway",
+        503: "Service Unavailable"
+    }
+
+    for code, reason in error_codes.items():
+        with requests_mock.Mocker() as rm:
+            rm.register_uri(
+                'GET',
+                'http://example.com/tap/capabilities',
+                status_code=code,
+                reason=reason
+            )
+            rm.register_uri(
+                'GET',
+                'http://example.com/capabilities',
+                status_code=code,
+                reason=reason
+            )
+
+            service = TAPService('http://example.com/tap')
+            with pytest.raises(DALServiceError) as excinfo:
+                _ = service.capabilities
+
+            error_message = str(excinfo.value)
+            assert "Unable to access the capabilities endpoint at:" in error_message
+            assert f"{code} {reason}" in error_message
+
+
+def test_network_error():
+    service = TAPService('http://example.com/tap')
+
+    with requests_mock.Mocker() as rm:
+        rm.register_uri(
+            'GET',
+            'http://example.com/tap/capabilities',
+            exc=requests.exceptions.ConnectionError(
+                "Failed to establish connection")
+        )
+        rm.register_uri(
+            'GET',
+            'http://example.com/capabilities',
+            exc=requests.exceptions.ConnectionError(
+                "Failed to establish connection")
+        )
+
+        with pytest.raises(DALServiceError) as excinfo:
+            _ = service.capabilities
+
+        error_message = str(excinfo.value)
+        assert "Unable to access the capabilities endpoint at:" in error_message
+        assert "Connection failed" in error_message
 
 
 @pytest.mark.remote_data
