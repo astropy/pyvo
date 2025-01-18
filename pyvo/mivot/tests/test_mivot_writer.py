@@ -123,3 +123,8 @@ def test_frames():
 
     votable = parse(votable_path)
     mivot_annotations.insert_into_votable(votable)
+
+if __name__ == "__main__":
+    mivot_annotations = MivotAnnotations()
+    mivot_annotations.add_photcal("aeaea")
+    mivot_annotations.add_photcal("SLOAN/SDSS.g/AB")
