@@ -4,12 +4,13 @@ MivotAnnotations: A utility module to build and manage MIVOT annotations.
 """
 import os
 import logging
-
+import urllib
+import re
 try:
     import xmlschema
 except ImportError:
     xmlschema = None
-# Use defusedxml only if already present in order to avoid a new depency.
+# Use defusedxml only if already present in order to avoid a new dependency.
 try:
     from defusedxml import ElementTree as etree
 except ImportError:
@@ -23,6 +24,8 @@ from astropy.io.votable import parse
 from astropy import version
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.xml_utils import XmlUtils
+from pyvo.mivot.utils.xpath_utils import XPath
+from pyvo.mivot.utils.vocabulary import Att, Ele
 from pyvo.mivot.utils.exceptions import MappingError, AstropyVersionException
 from pyvo.mivot.writer.instance import MivotInstance
 from pyvo.mivot.version_checker import check_astropy_version
@@ -31,7 +34,7 @@ __all__ = ["MivotAnnotations"]
 
 
 IVOA_STRING = "ivoa:string"
-
+FPS_URL = "http://svo2.cab.inta-csic.es/svo/theory/fps/fpsmivot.php?PhotCalID="
 
 @prototype_feature("MIVOT")
 class MivotAnnotations:
@@ -386,6 +389,54 @@ class MivotAnnotations:
         # add the TimeSys instance to the GLOBALS block
         self.add_globals(time_sys_instance)
 
+    def add_photcal(self, filter_name=None):
+        """
+        """
+        fps_data_stream = urllib.request.urlopen(FPS_URL + filter_name)
+        if fps_data_stream.getcode() != 200:
+            logging.error("FPS service error: %s", fps_data_stream.getcode())
+            return
+        # get the MIVOT serialization of the requested Photcal (as a string)     
+        fps_reponse = fps_data_stream.read().decode('utf-8')
+        # basic parsing of the response to check if an error has been returned
+        if "<INFO name=\"QUERY_STATUS\" value=\"ERROR\">" in fps_reponse:
+            logging.error("FPS service error: %s",
+                          re.search(r'<DESCRIPTION>(.*)</DESCRIPTION>', fps_reponse).group(1))
+            return
+
+        # set the identifier that will be used for both PhotCal and PhotFilter
+        cal_id = filter_name.replace("/", "_").replace(".", "_").replace("-", "_")
+        filter_id = f"_photfilter_{cal_id}"
+        logging.info("%s PhotCal can be referred with dmref='%s'", cal_id)
+        # parse the PhotCal and extract the PhotFilter node
+        photcal_block = etree.fromstring(fps_reponse)
+        filter_block = XPath.x_path_contains(photcal_block,
+                                 ".//" + Ele.INSTANCE,
+                                 Att.dmtype,
+                                 'Phot:photometryFilter'
+                                 )
+        # Tune the Photcal to placed on the GLOBALS (no role but an id)
+        # and remove the PhotFilter node which will be shifted at the GLOBALS level
+        del photcal_block.attrib["dmrole"]
+        photcal_block.set("dmid", f"_photcal_{cal_id}")
+        photcal_block.remove(filter_block[0])
+        
+        # Tune the PhotFilter to be placed as GLOBALS child (no role but an id)        
+        filter_role = filter_block[0].get("dmrole")
+        del filter_block[0].attrib["dmrole"]
+        filter_block[0].set("dmid", filter_id)
+        XmlUtils.pretty_print(filter_block[0], lshift="    ")
+        print("--------")
+        # Append REFERENCE on the PhotFilter node to the PhotCal
+        reference = etree.Element("REFERENCE")
+        reference.set("dmrole", filter_role)
+        reference.set("dmref", filter_id)
+        photcal_block.append(reference)
+        
+        XmlUtils.pretty_print(photcal_block, lshift="    ")
+        return f"_photcal_{cal_id}"
+
+        
     def set_report(self, status, message):
         """
         Set the <REPORT> element of the MIVOT block.
