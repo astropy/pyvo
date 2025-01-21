@@ -27,13 +27,13 @@ class DictUtils:
         try:
             logging.debug("Reading json from %s", filename)
             from collections import OrderedDict
-            with open(filename, 'r') as file:
+            with open(filename) as file:
                 return json.load(file, object_pairs_hook=OrderedDict)
         except Exception as exception:
             if fatal:
-                raise MivotError("reading {}".format(filename))
+                raise MivotError(f"reading {filename}")
             else:
-                logging.error("{} reading {}".format(exception, filename))
+                logging.error(f"{exception} reading {filename}")
 
     @staticmethod
     def _get_pretty_json(dictionary):

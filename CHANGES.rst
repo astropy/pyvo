@@ -7,6 +7,7 @@ Enhancements and Fixes
 - Extending the MIVOT module with the ability to build annotations component by component
   and put them into a VOTable. [#627]
   
+- Make deletion of TAP jobs optional via a new ``delete`` kwarg. [#640]
 
 Deprecations and Removals
 -------------------------
@@ -21,6 +22,8 @@ Bug Fixes
 - Fix propagating some previously swallowed exceptions. [#614]
 
 - Fix string literal generation for SQL query when using numpy >=2.0. [#624]
+
+- Switch to do minimal VOSI tables downloads for TAP metadata. [#634]
 
 
 1.6 (2024-11-01)

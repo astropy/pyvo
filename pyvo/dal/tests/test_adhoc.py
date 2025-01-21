@@ -62,7 +62,7 @@ def test_pos():
 
     # errors
     test_obj.pos.pop()
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         test_obj.pos.add(('A', 2, 3))
     with pytest.raises(ValueError):
         test_obj.pos.add((-2, 7, 3))
@@ -116,7 +116,7 @@ def test_band():
         test_obj.band.add(())
     with pytest.raises(ValueError):
         test_obj.band.add((1, 2, 3))
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         test_obj.band.add(('INVALID', 6))
     with pytest.raises(ValueError):
         test_obj.band.add((3, 1))
@@ -216,7 +216,7 @@ def test_soda_query():
     assert not hasattr(test_obj, '_range')
 
     # error cases
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         test_obj.circle = ('A', 1, 2)
     with pytest.raises(ValueError):
         test_obj.circle = (1, 1, 2, 2)

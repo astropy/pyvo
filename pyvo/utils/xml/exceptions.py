@@ -12,7 +12,7 @@ def _format_message(message, name, config=None, pos=None):
         pos = ('?', '?')
     filename = config.get('filename', '?')
 
-    return '{}:{}:{}: {}: {}'.format(filename, pos[0], pos[1], name, message)
+    return f'{filename}:{pos[0]}:{pos[1]}: {name}: {message}'
 
 
 class XMLWarning(AstropyWarning):

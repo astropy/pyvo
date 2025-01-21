@@ -105,7 +105,7 @@ class TestTimeCondition:
                 time.Time("1970-10-13T17:00:00")))
         d._query_one_sia2(queriable)
 
-        assert set(queriable.search_kwargs) == set(["time"])
+        assert set(queriable.search_kwargs) == {"time"}
         assert abs(queriable.search_kwargs["time"][0].utc.value
             - 40872.54166667) < 1e-8
 
@@ -115,7 +115,7 @@ class TestTimeCondition:
             time=time.Time("1970-10-13T13:00:00"))
         d._query_one_sia2(queriable)
 
-        assert set(queriable.search_kwargs) == set(["time"])
+        assert set(queriable.search_kwargs) == {"time"}
         assert abs(queriable.search_kwargs["time"][0].utc.value
             - 40872.54166667) < 1e-8
         assert abs(queriable.search_kwargs["time"][1].utc.value
@@ -201,7 +201,7 @@ def test_single_sia1():
     assert abs(im.s_dec+29) < 2
     assert im.instrument_name == 'Robotic Bochum Twin Telescope (RoBoTT)'
     assert "BGDS GDS_" in im.obs_title
-    assert "dc.zah.uni-heidelberg.de/getproduct/bgds/data" in im.access_url
+    assert "dc.g-vo.org/getproduct/bgds/data" in im.access_url
 
 
 @pytest.mark.remote_data

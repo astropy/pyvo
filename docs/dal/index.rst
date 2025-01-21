@@ -212,7 +212,7 @@ to see the tables available on the Simbad TAP service, say:
 
     >>> simbad = vo.dal.TAPService("http://simbad.cds.unistra.fr/simbad/sim-tap")
     >>> print([tab_name for tab_name in simbad.tables.keys()])  # doctest: +IGNORE_WARNINGS
-    ['TAP_SCHEMA.schemas', 'TAP_SCHEMA.tables', 'TAP_SCHEMA.columns', 'TAP_SCHEMA.keys', ... 'mesVelocities', 'mesXmm', 'otypedef', 'otypes', 'ref']
+    ['TAP_SCHEMA.schemas', 'TAP_SCHEMA.tables', ... 'otypedef', 'otypes', 'ref']
 
 
 If you know a TAP service's access URL, you can directly pass it to
@@ -264,7 +264,7 @@ starting it, it creates a new object :py:class:`~pyvo.dal.AsyncTAPJob`.
 .. doctest-remote-data::
 
     >>> job.url
-    'http://dc.zah.uni-heidelberg.de/__system__/tap/run/async/...'
+    'http://dc.g-vo.org/__system__/tap/run/async/...'
 
 The job URL mentioned before is available in the ``url`` attribute.
 Clicking on the URL leads you to the query itself, where you can check
@@ -818,11 +818,11 @@ previews:
     ... ).run_sync("select top 5 * from califadr3.cubes order by califaid")
     >>> for dl in rows.iter_datalinks():  # doctest: +IGNORE_WARNINGS
     ...     print(next(dl.bysemantics("#preview"))["access_url"])
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V1200/IC5376.V1200.rscube.fits?preview=True
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/COMB/IC5376.COMB.rscube.fits?preview=True
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V500/IC5376.V500.rscube.fits?preview=True
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/COMB/UGC00005.COMB.rscube.fits?preview=True
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V1200/UGC00005.V1200.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/V1200/IC5376.V1200.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/COMB/IC5376.COMB.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/V500/IC5376.V500.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/COMB/UGC00005.COMB.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/V1200/UGC00005.V1200.rscube.fits?preview=True
 
 The call to ``next`` in this example picks the first link marked
 *preview*.  For previews, this may be enough, but in general there can
