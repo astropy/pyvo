@@ -6,6 +6,7 @@ import os
 import logging
 import urllib
 import re
+import requests
 try:
     import xmlschema
 except ImportError:
@@ -27,6 +28,7 @@ from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.utils.xpath_utils import XPath
 from pyvo.mivot.utils.vocabulary import Att, Ele
 from pyvo.mivot.utils.exceptions import MappingError, AstropyVersionException
+from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.writer.instance import MivotInstance
 from pyvo.mivot.version_checker import check_astropy_version
 
@@ -88,6 +90,8 @@ class MivotAnnotations:
         self._templates = []
         # str: An optional ID for the TEMPLATES block.
         self._templates_id = ""
+        # str: list of the dmid of the INSTANCE stored in the GLOBALS
+        self._dmids = []
         # str: Complete MIVOT block as a string
         self._mivot_block = ""
 
@@ -172,7 +176,7 @@ class MivotAnnotations:
         templates_block += "</TEMPLATES>\n"
         return templates_block
 
-    def build_mivot_block(self, *, templates_id=None):
+    def build_mivot_block(self, *, templates_id=None, no_schema_check=False):
         """
         Build a complete MIVOT block from the declared components and validates it
         against the MIVOT XML schema.
@@ -181,6 +185,8 @@ class MivotAnnotations:
         ----------
         templates_id : str, optional
             The ID to associate with the <TEMPLATES> block. Defaults to None.
+        no_schema_check : boolean, optional
+            Skip the XSD validation if True (use to make test working in local mode).
 
         Raises
         ------
@@ -200,7 +206,8 @@ class MivotAnnotations:
         self._mivot_block += "\n"
         self._mivot_block += "</VODML>\n"
         self._mivot_block = self.mivot_block.replace("\n\n", "\n")
-        self.check_xml()
+        if not no_schema_check:
+            self.check_xml()
 
     def add_templates(self, templates_instance):
         """
@@ -218,6 +225,8 @@ class MivotAnnotations:
         """
         if isinstance(templates_instance, MivotInstance):
             self._templates.append(templates_instance.xml_string())
+            if templates_instance.dmid is not None:
+                self._dmids.append(templates_instance.dmid)
         elif isinstance(templates_instance, str):
             self._templates.append(templates_instance)
         else:
@@ -241,6 +250,8 @@ class MivotAnnotations:
         """
         if isinstance(globals_instance, MivotInstance):
             self._globals.append(globals_instance.xml_string())
+            if globals_instance.dmid is not None:
+                self._dmids.append(globals_instance.dmid)
         elif isinstance(globals_instance, str):
             self._globals.append(globals_instance)
         else:
@@ -273,6 +284,7 @@ class MivotAnnotations:
           features can be derived from this code.
         - A warning is emitted if either ``ref_frame`` or ``ref_position`` have unexpected values.
         - No error is raised if the parameter values are inconsistent.
+        - The ``dmid`` of the time rame is built from ``ref_frame``, ``ref_position`` and ``equinox``.
 
         Parameters
         ----------
@@ -285,10 +297,23 @@ class MivotAnnotations:
         equinox : str, optional, default None
             The equinox for the reference frame, if applicable.
 
-        dmid : str, optional, default None
-            An identifier for the data model instance.
-
+        return
+        ------
+        str: The actual dmid of the time frame INSTANCE
         """
+        # buikd the dmid
+        dmid = f"_spaceframe_{ref_frame}"
+        if equinox:
+            dmid += f"_{equinox}"
+        if ref_position:
+            dmid += f"_{ref_position}"
+
+        # skip if the same dmid is already recorded
+        if dmid in self._dmids:
+            logging.warning("An instance with dmid=%s has already been stored in GLOBALS: skip",
+                            dmid)
+            return dmid
+        self._dmids.append(dmid)
         # add (or overwrite) used models
         self.add_model("ivoa",
                        vodml_url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml")
@@ -330,7 +355,9 @@ class MivotAnnotations:
         # add the SpaceSys instance to the GLOBALS block
         self.add_globals(space_system_instance)
 
-    def add_simple_time_frame(self, ref_frame="TCB", *, ref_position="BARYCENTER", dmid=None):
+        return dmid
+
+    def add_simple_time_frame(self, ref_frame="TCB", *, ref_position="BARYCENTER"):
         """
         Adds a TimeSys instance to the GLOBALS block as defined in the Coordinates
         data model V1.0 (https://ivoa.net/documents/Coords/20221004/index.html).
@@ -342,6 +369,7 @@ class MivotAnnotations:
           this code.
         - A warning is emitted if either ``ref_frame`` or ``ref_position`` have unexpected values.
         - No error is raised if the parameter values are inconsistent.
+        - The ``dmid`` of the time rame is built from ``ref_frame`` and ``ref_position``.
 
         Parameters
         ----------
@@ -351,9 +379,20 @@ class MivotAnnotations:
         ref_position : str, optional, default "BARYCENTER"
             The reference position for the time frame.
 
-        dmid : str, optional, default None
-            An identifier for the data model instance.
+        return
+        ------
+        str: The actual dmid of the time frame INSTANCE
         """
+        # buikd the dmid
+        dmid = f"_timeframe_{ref_frame}"
+        if ref_position:
+            dmid += f"_{ref_position}"
+        dmid = MivotUtils.format_dmid(dmid)
+        # skip if the same dmid is already recorded
+        if dmid in self._dmids:
+            logging.warning("An instance with dmid=%s has already been stored in GLOBALS: skip", dmid)
+            return dmid
+        self._dmids.append(dmid)
         # add (or overwrite) used models
         self.add_model("ivoa",
                        vodml_url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml")
@@ -389,54 +428,96 @@ class MivotAnnotations:
         # add the TimeSys instance to the GLOBALS block
         self.add_globals(time_sys_instance)
 
-    def add_photcal(self, filter_name=None):
+        return dmid
+
+    def add_photcal(self, filter_name):
         """
+        Add to the GLOBALS the requested photometric calibration as defined in PhotDM1.1.
+
+        The MIVOT serialization is provided by the SVO Filter Profile Service
+        (https://ui.adsabs.harvard.edu/abs/2020sea..confE.182R/abstract)
+
+        It is returned as one block containing the whole PhotCal instance.
+        The Filter instance is extracted from the PhotCal one where it is replaced by a REFERENCE.
+        This make the filter accessible as a GLOBALS for objects that would need it.
+
+        - The dmid of the PhotCal is ``_photcal_DMID`` where DMID is the formatted version of ``dmid``
+          (see `MivotUtils.format_dmid`).
+        - The dmid of the PhotFilter is ``_photfilter_DMID`` where DMID is the formatted version of ``dmid``.
+
+        Parameters
+        ----------
+        filter_name: str
+            FPS identifier of the request filter
+        return
+        ------
+        str: The actual dmid of the PhotCal INSTANCE or None
         """
-        fps_data_stream = urllib.request.urlopen(FPS_URL + filter_name)
-        if fps_data_stream.getcode() != 200:
-            logging.error("FPS service error: %s", fps_data_stream.getcode())
-            return
-        # get the MIVOT serialization of the requested Photcal (as a string)     
-        fps_reponse = fps_data_stream.read().decode('utf-8')
+        response = requests.get(FPS_URL + filter_name)
+        if (http_code := response.status_code) != 200:
+            logging.error("FPS service error: %s", http_code)
+            return None
+        # get the MIVOT serialization of the requested Photcal (as a string)
+        # FPS returns bytes but that might change
+        fps_reponse = response.content
+        try:
+            fps_reponse = fps_reponse.decode('utf-8')
+        except (UnicodeDecodeError, AttributeError):
+            pass
+
         # basic parsing of the response to check if an error has been returned
         if "<INFO name=\"QUERY_STATUS\" value=\"ERROR\">" in fps_reponse:
             logging.error("FPS service error: %s",
                           re.search(r'<DESCRIPTION>(.*)</DESCRIPTION>', fps_reponse).group(1))
-            return
+            return None
 
         # set the identifier that will be used for both PhotCal and PhotFilter
-        cal_id = filter_name.replace("/", "_").replace(".", "_").replace("-", "_")
+        cal_id = MivotUtils.format_dmid(filter_name)
+        # skip if the same dmid is already recorded
+        if cal_id in self._dmids:
+            logging.warning("An instance with dmid=%s has already been stored in GLOBALS: skip", cal_id)
+            return cal_id
+        self._dmids.append(cal_id)
+
+        photcal_id = f"_photcal_{cal_id}"
         filter_id = f"_photfilter_{cal_id}"
         logging.info("%s PhotCal can be referred with dmref='%s'", cal_id)
         # parse the PhotCal and extract the PhotFilter node
         photcal_block = etree.fromstring(fps_reponse)
-        filter_block = XPath.x_path_contains(photcal_block,
-                                 ".//" + Ele.INSTANCE,
-                                 Att.dmtype,
-                                 'Phot:photometryFilter'
-                                 )
-        # Tune the Photcal to placed on the GLOBALS (no role but an id)
+        filter_block = XPath.x_path_contains(
+                                photcal_block,
+                                ".//" + Ele.INSTANCE,
+                                Att.dmtype,
+                                "Phot:photometryFilter"
+                                )[0]
+        # Tune the Photcal to be placed as a GLOBALS child (no role but an id)
         # and remove the PhotFilter node which will be shifted at the GLOBALS level
         del photcal_block.attrib["dmrole"]
-        photcal_block.set("dmid", f"_photcal_{cal_id}")
-        photcal_block.remove(filter_block[0])
-        
-        # Tune the PhotFilter to be placed as GLOBALS child (no role but an id)        
-        filter_role = filter_block[0].get("dmrole")
-        del filter_block[0].attrib["dmrole"]
-        filter_block[0].set("dmid", filter_id)
-        XmlUtils.pretty_print(filter_block[0], lshift="    ")
-        print("--------")
-        # Append REFERENCE on the PhotFilter node to the PhotCal
+        photcal_block.set("dmid", photcal_id)
+        photcal_block.remove(filter_block)
+
+        # Tune the PhotFilter to be placed as GLOBALS child (no role but an id)
+        filter_role = filter_block.get("dmrole")
+        del filter_block.attrib["dmrole"]
+        filter_block.set("dmid", filter_id)
+
+        # Append a REFERENCE on the PhotFilter node to the PhotCal block
         reference = etree.Element("REFERENCE")
         reference.set("dmrole", filter_role)
         reference.set("dmref", filter_id)
         photcal_block.append(reference)
-        
-        XmlUtils.pretty_print(photcal_block, lshift="    ")
-        return f"_photcal_{cal_id}"
 
-        
+        self.add_model("ivoa",
+                       vodml_url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml")
+        self.add_model("Phot",
+                       vodml_url="https://ivoa.net/xml/VODML/Phot-v1.vodml.xml")
+
+        self.add_globals(XmlUtils.pretty_string(photcal_block, lshift="    "))
+        self.add_globals(XmlUtils.pretty_string(filter_block, lshift="    "))
+
+        return photcal_id
+
+
     def set_report(self, status, message):
         """
         Set the <REPORT> element of the MIVOT block.
