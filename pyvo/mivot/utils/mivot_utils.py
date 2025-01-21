@@ -118,3 +118,17 @@ class MivotUtils:
             return float(value)
         else:
             return value
+
+    @staticmethod
+    def format_dmid(dmid):
+        """
+        Replace characters that could confuse XPath queries with '_'
+        This is not required by the MIVOT schema but this make this API more robust
+        
+        return
+        ------
+        str: formatted dmid
+        """
+        if dmid is not None:
+            return dmid.replace("/", "_").replace(".", "_").replace("-", "_")
+        return ""

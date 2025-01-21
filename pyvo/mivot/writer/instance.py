@@ -10,6 +10,7 @@ The MIVOT INSTANCE structure is defined by the data model on which the data is m
 
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.exceptions import MappingError
+from pyvo.mivot.utils.mivot_utils import MivotUtils
 
 __all__ = ["MivotInstance"]
 
@@ -60,9 +61,13 @@ class MivotInstance:
             raise MappingError("Cannot build an instance without dmtype")
         self._dmtype = dmtype
         self._dmrole = dmrole
-        self._dmid = dmid
+        self._dmid = MivotUtils.format_dmid(dmid)
         self._content = []
 
+    @property
+    def dmid(self):
+        return self._dmid
+    
     def add_attribute(self, dmtype=None, dmrole=None, *, ref=None, value=None, unit=None):
         """
         Add an <ATTRIBUTE> element to the instance.
