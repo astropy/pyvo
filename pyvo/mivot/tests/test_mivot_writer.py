@@ -7,8 +7,12 @@ expected, including error handling and XML generation for data models.
 
 import os
 import pytest
+from unittest.mock import patch
 from astropy.io.votable import parse
+from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 from pyvo.utils import activate_features
+from pyvo.utils import testing, vocabularies
+
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.utils.exceptions import MappingError
 from pyvo.mivot.utils.dict_utils import DictUtils
@@ -27,6 +31,20 @@ data_path = os.path.realpath(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
 )
 
+@pytest.fixture()
+def mocked_fps_xxx(mocker):
+    def callback(request, context):
+        return get_pkg_data_contents('data/datalink/datalink.xml')
+    print("===================")
+    with mocker.register_uri(
+        'GET', 'http://svo2.cab.inta-csic.es/svo/theory/fps/fpsmivot.php?PhotCalID=SLOAN/SDSS.g/AB', content=callback
+    ) as matcher:
+        yield matcher
+
+@pytest.fixture
+def mocked_fps():
+    with patch('requests.get') as mock_get:
+        yield mock_get
 
 def strip_xml(xml_string):
     """
@@ -105,16 +123,17 @@ def test_frames():
     and verify their insertion into the GLOBALS element.
     """
     mivot_annotations = MivotAnnotations()
-    mivot_annotations.add_simple_space_frame(ref_frame="FK5",
+    dmid = mivot_annotations.add_simple_space_frame(ref_frame="FK5",
                                              ref_position="BARYCENTER",
-                                             equinox="J2000",
-                                             dmid="_fk5"
+                                             equinox="J2000"
                                              )
-    mivot_annotations.add_simple_time_frame(ref_frame="TCB",
-                                            ref_position="BARYCENTER",
-                                            dmid="_tcb"
+    assert dmid == "_spaceframe_FK5_J2000_BARYCENTER"
+    dmid = mivot_annotations.add_simple_time_frame(ref_frame="TCB",
+                                            ref_position="BARYCENTER"
                                             )
-    mivot_annotations.build_mivot_block()
+    assert dmid == "_timeframe_TCB_BARYCENTER"
+
+    mivot_annotations.build_mivot_block(no_schema_check=True)
 
     with open(os.path.join(data_path, "reference/test_mivot_frames.xml"),
               "r"
@@ -124,7 +143,33 @@ def test_frames():
     votable = parse(votable_path)
     mivot_annotations.insert_into_votable(votable)
 
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
+def test_phot_cal():
+     # Mock setup
+     
+    with patch('requests.get') as mock_get:
+        # Configure the mock to return a response with the XML content
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.content = get_pkg_data_contents('data/test.photcal_error.xml')
+        # Call the function
+        mivot_annotations = MivotAnnotations()
+        assert mivot_annotations.add_photcal("aeaea") == None
+
+        mock_get.return_value.content = get_pkg_data_contents('data/test.photcal_SDSS.xml')
+        # Call the function
+        mivot_annotations = MivotAnnotations()
+        dmid = mivot_annotations.add_photcal("SLOAN/SDSS.g/AB")
+        assert dmid == "_photcal_SLOAN_SDSS_g_AB"
+        mivot_annotations.build_mivot_block(no_schema_check=True)
+        assert (strip_xml(get_pkg_data_contents('data/reference/test_mivot_photcal.xml')) == strip_xml(mivot_annotations.mivot_block))
+
+        mivot_annotations.add_photcal("SLOAN/SDSS.g/AB")
+        mivot_annotations.build_mivot_block(no_schema_check=True)
+        assert (strip_xml(get_pkg_data_contents('data/reference/test_mivot_photcal.xml')) == strip_xml(mivot_annotations.mivot_block))
+
+
 if __name__ == "__main__":
     mivot_annotations = MivotAnnotations()
-    mivot_annotations.add_photcal("aeaea")
-    mivot_annotations.add_photcal("SLOAN/SDSS.g/AB")
+    dmid = mivot_annotations.add_photcal("SLOAN/SDSS.g/AB")
+
+

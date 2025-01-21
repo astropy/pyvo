@@ -3,7 +3,7 @@
   <MODEL name="ivoa" url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml" />
   <MODEL name="coords" url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml" />
   <GLOBALS>
-    <INSTANCE dmtype="coords:SpaceSys" dmid="_fk5">
+    <INSTANCE dmtype="coords:SpaceSys" dmid="_spaceframe_FK5_J2000_BARYCENTER">
       <INSTANCE dmtype="coords:SpaceFrame" dmrole="coords:PhysicalCoordSys.frame">
         <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:SpaceFrame.spaceRefFrame" value="FK5" />
         <ATTRIBUTE dmtype="coords:Epoch" dmrole="coords:SpaceFrame.equinox" value="J2000" />
@@ -13,7 +13,7 @@
       </INSTANCE>
     </INSTANCE>
 
-    <INSTANCE dmtype="coords:TimeSys" dmid="_tcb">
+    <INSTANCE dmtype="coords:TimeSys" dmid="_timeframe_TCB_BARYCENTER">
       <INSTANCE dmtype="coords:TimeFrame" dmrole="coords:PhysicalCoordSys.frame">
         <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:TimeFrame.timescale" value="TCB" />
         <INSTANCE dmtype="coords:StdRefLocation" dmrole="coords:TimeFrame.refPosition">
@@ -21,6 +21,7 @@
         </INSTANCE>
       </INSTANCE>
     </INSTANCE>
+    
   </GLOBALS>
 
 </VODML>
