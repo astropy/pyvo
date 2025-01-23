@@ -492,7 +492,7 @@ class BaseParam(Element):
         self._utype = None
 
     def __repr__(self):
-        return '<BaseParam name="{}"/>'.format(self.name)
+        return f'<BaseParam name="{self.name}"/>'
 
     @xmlelement(plain=True, multiple_exc=W05)
     def name(self):

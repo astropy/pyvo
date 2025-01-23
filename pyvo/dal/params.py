@@ -32,7 +32,7 @@ def find_param_by_keyword(keyword, params):
     if keyword in params:
         return params[keyword]
 
-    raise KeyError('No param named {} defined'.format(keyword))
+    raise KeyError(f'No param named {keyword} defined')
 
 
 registry = dict()
@@ -332,7 +332,7 @@ class PosQueryParam(AbstractDalQueryParam):
             else:
                 radius = pos[1]
             if radius <= 0 * u.deg or radius.to(u.deg) > 90 * u.deg:
-                raise ValueError('Invalid circle radius: {}'.format(radius))
+                raise ValueError(f'Invalid circle radius: {radius}')
         elif len(pos) == 3:
             self._validate_ra(pos[0])
             self._validate_dec(pos[1])
@@ -341,7 +341,7 @@ class PosQueryParam(AbstractDalQueryParam):
             else:
                 radius = pos[2]
             if radius <= 0 * u.deg or radius.to(u.deg) > 90 * u.deg:
-                raise ValueError('Invalid circle radius: {}'.format(radius))
+                raise ValueError(f'Invalid circle radius: {radius}')
         elif len(pos) == 4:
             ra_min = pos[0] if isinstance(pos[0], Quantity) else pos[0] * u.deg
             ra_max = pos[1] if isinstance(pos[1], Quantity) else pos[1] * u.deg
@@ -367,16 +367,14 @@ class PosQueryParam(AbstractDalQueryParam):
                     self._validate_ra(m)
 
     def _validate_ra(self, ra):
-        if not isinstance(ra, Quantity):
-            ra = ra * u.deg
+        ra = Quantity(ra, u.deg)
         if ra.to(u.deg).value < 0 or ra.to(u.deg).value > 360.0:
-            raise ValueError('Invalid ra: {}'.format(ra))
+            raise ValueError(f'Invalid ra: {ra}')
 
     def _validate_dec(self, dec):
-        if not isinstance(dec, Quantity):
-            dec = dec * u.deg
+        dec = Quantity(dec, u.deg)
         if dec.to(u.deg).value < -90.0 or dec.to(u.deg).value > 90.0:
-            raise ValueError('Invalid dec: {}'.format(dec))
+            raise ValueError(f'Invalid dec: {dec}')
 
 
 class IntervalQueryParam(AbstractDalQueryParam):
@@ -415,17 +413,18 @@ class IntervalQueryParam(AbstractDalQueryParam):
                 low, high))
         if self._unit:
             if not isinstance(low, Quantity):
-                low = low * self._unit
+                low = u.Quantity(low, self._unit)
             low = low.to(self._unit, equivalencies=self._equivalencies).value
+
             if not isinstance(high, Quantity):
-                high = high * self._unit
+                high = Quantity(high, self._unit)
             high = high.to(self._unit, equivalencies=self._equivalencies).value
 
             if low > high:
                 # interval could become invalid during transform (e.g. GHz->m)
                 low, high = high, low
 
-        return '{} {}'.format(low, high)
+        return f'{low} {high}'
 
 
 class TimeQueryParam(AbstractDalQueryParam):
@@ -454,7 +453,7 @@ class TimeQueryParam(AbstractDalQueryParam):
             raise ValueError('Invalid time interval: min({}) > max({})'.format(
                 min_time, max_time
             ))
-        return '{} {}'.format(min_time.mjd, max_time.mjd)
+        return f'{min_time.mjd} {max_time.mjd}'
 
 
 class EnumQueryParam(AbstractDalQueryParam):

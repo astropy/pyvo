@@ -6,7 +6,7 @@ from functools import partial
 from contextlib import ExitStack
 import datetime
 import re
-from io import BytesIO
+from io import BytesIO, StringIO
 from urllib.parse import parse_qsl
 import tempfile
 
@@ -198,7 +198,7 @@ class MockAsyncTAPServer:
         context.status_code = 303
         context.reason = 'See other'
         context.headers['Location'] = (
-            'http://example.com/tap/async/{}'.format(newid))
+            f'http://example.com/tap/async/{newid}')
 
         self._jobs[newid] = job
 
@@ -279,7 +279,7 @@ class MockAsyncTAPServer:
                         uploads1.update(uploads2)
 
                         param.content = ';'.join([
-                            '{}={}'.format(key, value) for key, value
+                            f'{key}={value}' for key, value
                             in uploads1.items()
                         ])
 
@@ -767,7 +767,7 @@ class TestTAPCapabilities:
     def test_get_featurelist(self, tapservice):
         features = tapservice.get_tap_capability().get_adql().get_feature_list(
             "ivo://ivoa.net/std/TAPRegExt#features-adqlgeo")
-        assert set(f.form for f in features) == {
+        assert {f.form for f in features} == {
             'CENTROID', 'CONTAINS', 'COORD1', 'POLYGON',
             'INTERSECTS', 'COORD2', 'BOX', 'AREA', 'DISTANCE',
             'REGION', 'CIRCLE', 'POINT'}
@@ -802,3 +802,37 @@ def test_get_endpoint_candidates():
         "http://astroweb.projects.phys.ucl.ac.uk:8000/capabilities"
     ]
     assert svc._get_endpoint_candidates("capabilities") == expected_urls
+
+
+@pytest.mark.remote_data
+@pytest.mark.parametrize('stream_type', [BytesIO, StringIO])
+def test_tap_upload_remote(stream_type):
+    tmp_table = ('''<?xml version="1.0" encoding="UTF-8"?>
+    <VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3">
+      <RESOURCE>
+        <TABLE>
+          <FIELD name="prop_id" datatype="char" arraysize="*">
+            <DESCRIPTION>external URI for the physical artifact</DESCRIPTION>
+          </FIELD>
+          <DATA>
+            <TABLEDATA>
+              <TR>
+                <TD>2013.1.01365.S</TD>
+              </TR>
+            </TABLEDATA>
+          </DATA>
+        </TABLE>
+      </RESOURCE>
+    </VOTABLE>''')
+
+    if stream_type == BytesIO:
+        tmp_table = tmp_table.encode()
+    query = ('select top 3 proposal_id from ivoa.ObsCore oc join '
+             'TAP_UPLOAD.proj_codes pc on oc.proposal_id=pc.prop_id')
+    service = TAPService('https://almascience.nrao.edu/tap')
+
+    res = service.search(query, uploads={'proj_codes': stream_type(tmp_table)})
+    assert len(res) == 3
+    for row in res:
+        assert row['proposal_id'] == '2013.1.01365.S'
