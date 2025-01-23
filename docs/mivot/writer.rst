@@ -29,6 +29,10 @@ Using the API
 Building Annotation Object per Object
 -------------------------------------
 
+This documentation is intended for developers of data model classes who want to map them to VOTables
+and not for end users. A future version will allow end users to create annotations with
+ready-to-use data model building blocks.
+
 Creating annotations consists of 3 steps:
 
 #. Create individual instances  (INSTANCE) using the ``MivotInstance`` class: objects are

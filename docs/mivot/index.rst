@@ -2,7 +2,7 @@
 MIVOT (``pyvo.mivot``)
 **********************
 
-This module contains the new feature handling model annotations in VOTable.
+This module contains the new feature of handling model annotations in VOTable.
 Astropy version >= 6.0 is required.
 
 Introduction
