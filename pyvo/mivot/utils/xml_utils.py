@@ -33,11 +33,11 @@ class XmlUtils:
     @staticmethod
     def pretty_string(xmltree, *, lshift="", clean_namespace=True):
         """
-        Return a pretty string representation of an XML tree
+        Return a pretty string representation of an XML tree (as Etree or string)
         
         Parameters
         ----------
-        xmltree (~`xml.etree.ElementTree.Element`):
+        xmltree (~`xml.etree.ElementTree.Element`) or string:
             XML tree to convert to a pretty string
             
         lshift : str, optional, default ""
@@ -45,17 +45,20 @@ class XmlUtils:
             Usually a space sequence 
             
         clean_namespace : boolean, optional, default True
-            Default namspace (ns0) removed from element names if True
+            Default namespace (ns0) removed from element names if True
 
         Returns
         -------
         str: The pretty string representation of the XML tree.
         """
-        if hasattr(xmltree, 'getroot'):
-            root = ET.tostring(xmltree.getroot(), encoding='unicode')
+        if isinstance(xmltree, str):
+            root = xmltree
         else:
-            root = ET.tostring(xmltree, encoding='unicode')
-        root = root.replace("<?xml version=\"1.0\" ?>\n", "")
+            if hasattr(xmltree, 'getroot'):
+                root = ET.tostring(xmltree.getroot(), encoding='unicode')
+            else:
+                root = ET.tostring(xmltree, encoding='unicode')
+            root = root.replace("<?xml version=\"1.0\" ?>\n", "")
         reparsed = minidom.parseString(root)
         pretty_string = re.sub(r" +\n","", reparsed.toprettyxml(indent="  "))
         pretty_string = pretty_string.replace("<?xml version=\"1.0\" ?>\n", "") \
