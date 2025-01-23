@@ -98,7 +98,7 @@ class MivotInstance:
             raise MappingError("Cannot add an attribute without ref or value")
 
         xml_string = f'<ATTRIBUTE dmtype="{dmtype}" dmrole="{dmrole}" '
-        if unit:
+        if unit and unit != "None":
             xml_string += f'unit="{unit}" '
         if value:
             xml_string += f'value="{value}" '

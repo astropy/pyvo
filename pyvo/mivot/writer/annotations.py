@@ -4,7 +4,6 @@ MivotAnnotations: A utility module to build and manage MIVOT annotations.
 """
 import os
 import logging
-import urllib
 import re
 import requests
 try:
@@ -30,6 +29,7 @@ from pyvo.mivot.utils.vocabulary import Att, Ele
 from pyvo.mivot.utils.exceptions import MappingError, AstropyVersionException
 from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.writer.instance import MivotInstance
+from pyvo.mivot.writer.mango_instance import MangoInstance
 from pyvo.mivot.version_checker import check_astropy_version
 
 __all__ = ["MivotAnnotations"]
@@ -206,6 +206,7 @@ class MivotAnnotations:
         self._mivot_block += "\n"
         self._mivot_block += "</VODML>\n"
         self._mivot_block = self.mivot_block.replace("\n\n", "\n")
+        self._mivot_block = XmlUtils.pretty_string(self._mivot_block)
         if not no_schema_check:
             self.check_xml()
 
@@ -272,7 +273,7 @@ class MivotAnnotations:
         """
         self._models[model_name] = vodml_url
 
-    def add_simple_space_frame(self, ref_frame="ICRS", *, ref_position="BARYCENTER", equinox=None, dmid=None):
+    def add_simple_space_frame(self, ref_frame="ICRS", *, ref_position="BARYCENTER", equinox=None):
         """
         Adds a SpaceSys instance to the GLOBALS block as defined in the Coordinates
         data model V1.0 (https://ivoa.net/documents/Coords/20221004/index.html).
@@ -448,7 +449,7 @@ class MivotAnnotations:
         Parameters
         ----------
         filter_name: str
-            FPS identifier of the request filter
+            FPS identifier (SVO Photcal ID) of the request filter
         return
         ------
         str: The actual dmid of the PhotCal INSTANCE or None
@@ -517,6 +518,22 @@ class MivotAnnotations:
 
         return photcal_id
 
+    def add_mango_epoch_position(self, table, *, space_frame={}, time_frame={}, sky_position={}, correlations={}, errors={}):
+        space_frame_id = self.add_simple_space_frame(**space_frame)
+        time_frame_id = self.add_simple_time_frame(**time_frame)
+        self.add_model("mango",
+                       vodml_url="https://raw.githubusercontent.com/lmichel/MANGO/refs/heads/draft-0.1/vo-dml/desc.mango.vo-dml.xml")
+        mango_instance = MangoInstance(table)
+        ep_instance = mango_instance.get_epoch_position(space_frame_id, time_frame_id, sky_position, correlations, errors)
+        self.add_templates(ep_instance)
+
+    def add_mango_magnitude(self, table, filter_name, mag={}):
+        filter_id = self.add_photcal(filter_name)
+        mango_instance = MangoInstance(table)
+        print(filter_id)
+        print(mag)
+        mag_instance = mango_instance.get_brightness(filter_id, mag)
+        self.add_templates(mag_instance)
 
     def set_report(self, status, message):
         """
