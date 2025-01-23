@@ -145,7 +145,7 @@ def test_frames():
 
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_phot_cal():
-     # Mock setup
+    # Mock setup
      
     with patch('requests.get') as mock_get:
         # Configure the mock to return a response with the XML content
