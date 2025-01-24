@@ -861,14 +861,14 @@ class AsyncTAPJob:
     @property
     def result(self):
         """
-        The job result if exists
+        Returns the UWS result with id='result' if it exists, otherwise None.
         """
         try:
             for r in self._job.results:
                 if r.id_ == 'result':
                     return r
 
-            return self._job.results[0]
+            return None
         except IndexError:
             return None
 
@@ -885,7 +885,10 @@ class AsyncTAPJob:
         the uri of the result
         """
         try:
-            uri = self.result.href
+            result = self.result
+            if result is None:
+                return None
+            uri = result.href
             if not urlparse(uri).netloc:
                 uri = urljoin(self.url, uri)
             return uri
@@ -1007,6 +1010,12 @@ class AsyncTAPJob:
         """
         returns the result votable if query is finished
         """
+        result_uri = self.result_uri
+        if result_uri is None:
+            self._update()
+            self.raise_if_error()
+            raise DALServiceError("No result URI available", self.url)
+
         try:
             response = self._session.get(self.result_uri, stream=True)
             response.raise_for_status()
