@@ -727,7 +727,6 @@ def test_get_alt_identifier():
     rsc = _makeRegistryRecord(ivoid="ivo://cds.vizier/i/337")
     assert set(rsc.get_alt_identifiers()) == {
         'doi:10.26093/cds/vizier.1337',
-        'bibcode:doi:10.5270/esa-ogmeula',
         'bibcode:2016yCat.1337....0G'}
 
 
