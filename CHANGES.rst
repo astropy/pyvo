@@ -6,6 +6,9 @@ Enhancements and Fixes
 
 - Make deletion of TAP jobs optional via a new ``delete`` kwarg. [#640]
 
+- Change AsyncTAPJob.result to return None if no result is found explicitly [#644]
+
+
 Deprecations and Removals
 -------------------------
 
