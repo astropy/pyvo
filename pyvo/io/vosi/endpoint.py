@@ -67,6 +67,9 @@ def parse_tables(source, *, pedantic=None, filename=None,
         then *source* will be used as a filename for error messages.
         Therefore, *filename* is only required when source is a
         file-like object.
+    _debug_python_based_parser : bool, optional
+        If `True`, use the Python-based parser. This is useful for
+        debugging purposes.  Defaults to False.
 
     Returns
     -------
@@ -113,6 +116,9 @@ def parse_capabilities(source, *, pedantic=None, filename=None,
         then *source* will be used as a filename for error messages.
         Therefore, *filename* is only required when source is a
         file-like object.
+    _debug_python_based_parser : bool, optional
+        If `True`, use the Python-based parser. This is useful for
+        debugging purposes.  Defaults to False.
 
     Returns
     -------
@@ -159,6 +165,11 @@ def parse_availability(source, *, pedantic=None, filename=None,
         then *source* will be used as a filename for error messages.
         Therefore, *filename* is only required when source is a
         file-like object.
+    _debug_python_based_parser : bool, optional
+        If `True`, use the Python-based parser. This is useful for
+        debugging purposes.  Defaults to False.
+
+
 
     Returns
     -------

@@ -19,6 +19,7 @@ __all__ = ['CapabilityMixin', 'VOSITables']
 
 class EndpointMixin():
     def _get_endpoint_candidates(self, endpoint):
+        """Construct endpoint URLs from base URL and endpoint"""
         urlcomp = urlparse(self.baseurl)
         # Include the port number if present
         netloc = urlcomp.hostname
@@ -31,18 +32,92 @@ class EndpointMixin():
 
         return [f'{curated_baseurl}/{endpoint}', url_sibling(curated_baseurl, endpoint)]
 
+    @staticmethod
+    def _build_error_message(endpoint, attempted_urls):
+        """Build error message from attempted URLs and their failures"""
+        return (
+            f"Unable to access the {endpoint} endpoint at:\n"
+            f"{chr(10).join(attempted_urls)}\n\n"
+            f"This could mean:\n"
+            f"1. The service URL is incorrect\n"
+            f"2. The service is temporarily unavailable\n"
+            f"3. The service doesn't support this protocol\n"
+            f"4. If a 503 was encountered, retry after the suggested delay.\n"
+        )
+
+    @staticmethod
+    def _get_response_body(response):
+        """Extract response body for error messagess"""
+
+        max_length = 500
+        # Truncate if too long (500 chars), to avoid overwhelming the user
+        if response is None or not response.headers.get("Content-Type",
+                                                        "").startswith("text"):
+            return ""
+
+        return f" Response body: {response.text[:max_length]}"
+
+    def _handle_http_error(self, error, url, attempted_urls):
+        """Handle HTTP errors and update attempted_urls list"""
+
+        response_body = self._get_response_body(error.response)
+
+        if error.response.status_code == 503:
+            # Handle Retry-After header, if present
+            retry_after = None
+            for header in error.response.headers:
+                if header.lower() == 'retry-after':
+                    retry_after = error.response.headers[header]
+                    break
+
+            if retry_after:
+                attempted_urls.append(
+                    f"- {url}: 503 Service Unavailable (Retry-After: "
+                    f"{retry_after}){response_body}")
+                return True
+        elif error.response.status_code == 404:
+            attempted_urls.append(f"- {url}: 404 Not Found")
+            return True
+
+        status_code = error.response.status_code
+        attempted_urls.append(
+            f"- {url}: HTTP Code: {status_code} "
+            f"{error.response.reason}{response_body}")
+        return False
+
     def _get_endpoint(self, endpoint):
-        for ep_url in self._get_endpoint_candidates(endpoint):
+        """Attempt to connect to service endpoint"""
+        attempted_urls = []
+        try:
+            candidates = self._get_endpoint_candidates(endpoint)
+        except (ValueError, AttributeError) as e:
+            raise DALServiceError(
+                f"Cannot construct endpoint URL from base '{self.baseurl}' and endpoint '{endpoint}'. "
+                f"{type(e).__name__}: {str(e)}"
+            ) from e
+
+        for ep_url in candidates:
             try:
                 response = self._session.get(ep_url, stream=True)
                 response.raise_for_status()
+                return response.raw
+            except requests.HTTPError as e:
+                if not self._handle_http_error(e, ep_url, attempted_urls):
+                    break
+            except requests.ConnectionError:
+                attempted_urls.append(
+                    f"- {ep_url}: Connection failed "
+                    f"(Possible causes: incorrect URL, DNS issue, or service is down)")
                 break
-            except requests.RequestException:
-                continue
-        else:
-            raise DALServiceError(f"No working {endpoint} endpoint provided")
+            except requests.Timeout:
+                attempted_urls.append(
+                    f"- {ep_url}: Request timed out (Service may be overloaded or slow)")
+            except (requests.RequestException, Exception) as e:
+                attempted_urls.append(f"- {ep_url}: {str(e)}")
+                break
 
-        return response.raw
+        raise DALServiceError(
+            self._build_error_message(endpoint, attempted_urls))
 
 
 @deprecated(since="1.5")
@@ -88,8 +163,7 @@ class CapabilityMixin(EndpointMixin):
     @stream_decode_content
     def _capabilities(self):
         """
-        Returns capabilities as a
-        py:class:`~pyvo.io.vosi.availability.Availability` object
+        Retrieve the raw capabilities document from the service.
         """
         return self._get_endpoint('capabilities')
 

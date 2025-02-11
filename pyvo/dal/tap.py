@@ -118,14 +118,18 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         session : object
            optional session to use for network requests
         """
-        super().__init__(baseurl, session=session, capability_description=capability_description)
+        try:
+            super().__init__(baseurl, session=session, capability_description=capability_description)
 
-        # Check if the session has an update_from_capabilities attribute.
-        # This means that the session is aware of IVOA capabilities,
-        # and can use this information in processing network requests.
-        # One such use case for this is auth.
-        if hasattr(self._session, 'update_from_capabilities'):
-            self._session.update_from_capabilities(self.capabilities)
+            # Check if the session has an update_from_capabilities attribute.
+            # This means that the session is aware of IVOA capabilities,
+            # and can use this information in processing network requests.
+            # One such use case for this is auth.
+            if hasattr(self._session, 'update_from_capabilities'):
+                self._session.update_from_capabilities(self.capabilities)
+        except DALServiceError as e:
+            raise DALServiceError(f"Cannot find TAP service at '"
+                                  f"{baseurl}'.\n\n{str(e)}") from None
 
     def get_tap_capability(self):
         """
@@ -369,8 +373,6 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
 
         Parameters
         ----------
-        baseurl : str
-            the base URL for the TAP service
         query : str
             the query string / parameters
         mode : str
@@ -928,6 +930,8 @@ class AsyncTAPJob:
         ----------
         phases : list
             phases to wait for
+        timeout : float
+            maximum time to wait in seconds
 
         Raises
         ------

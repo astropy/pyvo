@@ -10,6 +10,8 @@ Bug Fixes
 
 - Switch to do minimal VOSI tables downloads for TAP metadata. [#634]
 
+- Provide more informative exception message when requests to endpoints fail. [#641]
+
 
 1.6 (2024-11-01)
 ================
