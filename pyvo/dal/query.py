@@ -20,7 +20,8 @@ other externally defined table.  In this case there is no VO defined
 standard data model.  Usually the field names are used to uniquely
 identify table columns.
 """
-__all__ = ["DALService", "DALQuery", "DALResults", "Record"]
+__all__ = ["DALService", "DALServiceError", "DALQuery", "DALQueryError",
+           "DALResults", "Record"]
 
 import os
 import shutil
@@ -64,7 +65,7 @@ class DALService:
            the base URL that should be used for forming queries to the service.
         session : object
            optional session to use for network requests
-        description : str, optional
+        capability_description : str, optional
            the description of the service.
         """
         self._baseurl = baseurl

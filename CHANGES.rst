@@ -6,6 +6,8 @@ Enhancements and Fixes
 
 - Make deletion of TAP jobs optional via a new ``delete`` kwarg. [#640]
 
+- Provide more informative exception message when requests to endpoints fail. [#641]
+
 - Change AsyncTAPJob.result to return None if no result is found explicitly [#644]
 
 
