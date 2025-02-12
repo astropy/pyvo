@@ -18,7 +18,7 @@ from pyvo import registry
 from pyvo.registry import rtcons
 from pyvo.dal import query as dalq
 
-from .commonfixtures import messenger_vocabulary, FAKE_GAVO, FAKE_PLAIN  # noqa: F401
+from .commonfixtures import uat_vocabulary, messenger_vocabulary, FAKE_GAVO, FAKE_PLAIN  # noqa: F401
 
 
 # We should make sure non-legacy numpy works as expected for string literal generation
@@ -284,6 +284,35 @@ class TestUCDConstraint:
                     "ucd LIKE 'phot.mag;em.opt.%' OR ucd LIKE 'phot.mag;em.ir.%'"))
 
 
+@pytest.mark.usefixtures('uat_vocabulary')
+class TestUATConstraint:
+    def test_basic(self):
+        cons = rtcons.UAT("solar-flares")
+        assert (cons.get_search_condition(FAKE_GAVO)
+            == "ivoid IN (SELECT DISTINCT ivoid FROM rr.res_subject WHERE res_subject in ('solar-flares'))")
+
+    def test_nonterm(self):
+        with pytest.raises(dalq.DALQueryError, match="solarium does not identify"):
+            cons = rtcons.UAT("solarium")
+
+    def test_wider(self):
+        cons = rtcons.UAT("solar-flares", expand_up=2)
+        assert (cons.get_search_condition(FAKE_GAVO)
+            == "ivoid IN (SELECT DISTINCT ivoid FROM rr.res_subject WHERE res_subject in"
+                " ('solar-activity', 'solar-flares', 'solar-physics', 'solar-storm'))")
+
+    def test_narrower(self):
+        cons = rtcons.UAT("solar-activity", expand_down=1)
+        assert (cons.get_search_condition(FAKE_GAVO)
+            == "ivoid IN (SELECT DISTINCT ivoid FROM rr.res_subject WHERE res_subject in"
+                " ('solar-active-regions', 'solar-activity', 'solar-filaments', 'solar-flares',"
+                " 'solar-magnetic-bright-points', 'solar-prominences', 'solar-storm'))")
+        cons = rtcons.UAT("solar-activity", expand_down=2)
+        assert (cons.get_search_condition(FAKE_GAVO).startswith(
+            "ivoid IN (SELECT DISTINCT ivoid FROM rr.res_subject WHERE res_subject in"
+                " ('ephemeral-active-regions', 'quiescent-solar-prominence', 'solar-active-region-filaments'"))
+
+
 class TestSpatialConstraint:
     def test_point(self):
         cons = registry.Spatial([23, -40])
@@ -522,7 +551,7 @@ class TestWhereClauseBuilding:
         assert str(excinfo.value) == ("foo is not a valid registry"
                                       " constraint keyword.  Use one of"
                                       " author, datamodel, ivoid, keywords, servicetype,"
-                                      " spatial, spectral, temporal, ucd, waveband.")
+                                      " spatial, spectral, temporal, uat, ucd, waveband.")
 
     def test_with_legacy_keyword(self):
         assert self.where_clause_for(

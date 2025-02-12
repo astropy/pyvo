@@ -637,6 +637,93 @@ class UCD(SubqueriedConstraint):
                              for index, pattern in enumerate(patterns)}
 
 
+class UAT(SubqueriedConstraint):
+    """
+    A constraint selecting resources having UAT keywords as subjects.
+
+    The UAT (Unified Astronomy Thesaurus) is a hierarchical system
+    of concepts in astronomy.  In the VO, its concept identifiers
+    are dashed strings, something like ``x-ray-transient-sources``.
+    The full list of identifiers is available from
+    http://www.ivoa.net/rdf/uat.
+
+    Note that not all data providers properly use UAT keywords in their
+    subjects even in 2025 (they should, though), and their keyword
+    assignments may not always be optimal.  Consider doing free
+    text searches if UAT-based results are disappointing, and then
+    telling the respective data providers about missing keywords.
+    """
+    _keyword = "uat"
+    _subquery_table = "rr.res_subject"
+    _uat = None
+
+    @classmethod
+    def _expand(cls, term, level, attribute):
+        """
+        Recursively expand term in the uat.
+
+        This returns a set of concepts that are ``level`` levels wider
+        or narrower (depending on the value of ``attribute``) than term.
+
+        This function assumes the _uat class attribute has been filled
+        before; that is the case once a constraint has been constructed.
+
+        Parameters
+        ----------
+
+        term: str
+            the start term
+        level: int
+            expand this many levels
+        attribute: str
+            either ``wider`` to expand towards more general concepts
+            or ``narrower`` to expand toward more specialised concepts.
+        """
+        result = {term}
+        new_concepts = cls._uat[term][attribute]
+        if level:
+            for concept in new_concepts:
+                result |= cls._expand(concept, level-1, attribute)
+        return result
+
+    def __init__(self, uat_keyword, *, expand_up=0, expand_down=0):
+        """
+
+        Parameters
+        ----------
+
+        uat_keyword: str
+            An identifier from http://www.ivoa.net/rdf/uat, i.e., a
+            string like type-ib-supernovae.  Note that these are
+            always all-lowercase.
+        expand_up: int
+            In addition to the concept itself, also include expand_up
+            levels of parent concepts (this is probably rarely makes
+            sense beyond 1).
+        expand_down: int
+            In addition to the concept itself, also include expand_down
+            levels of more specialised concepts (this is usually a good
+            idea; having more than 10 here for now is equivalent to
+            infinity).
+        """
+        if self.__class__._uat is None:
+            self.__class__._uat = vocabularies.get_vocabulary("uat")["terms"]
+
+        if uat_keyword not in self._uat:
+            raise dalq.DALQueryError(
+                f"{uat_keyword} does not identify an IVOA uat"
+                " concept (see http://www.ivoa.net/rdf/uat).")
+
+        query_terms = {uat_keyword}
+        if expand_up:
+            query_terms |= self._expand(uat_keyword, expand_up, "wider")
+        if expand_down:
+            query_terms |= self._expand(uat_keyword, expand_down, "narrower")
+
+        self._condition = "res_subject in ({})".format(
+            ", ".join(make_sql_literal(s) for s in sorted(query_terms)))
+
+
 class Spatial(SubqueriedConstraint):
     """
     A RegTAP constraint selecting resources covering a geometry in
