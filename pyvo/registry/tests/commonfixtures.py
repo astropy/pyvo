@@ -3,10 +3,11 @@
 Common fixtures for pyVO registry tests
 """
 
+import os
+
 import pytest
 
 from astropy.utils.data import (
-    clear_download_cache,
     get_pkg_data_filename,
     import_file_to_cache)
 # We need to populate the vocabulary cache with our test data;
@@ -54,16 +55,19 @@ def uat_vocabulary(mocker):
     too much space.  The source code here contains a program to refresh
     this vocabulary selection.
     """
+    voc_url = 'http://www.ivoa.net/rdf/uat'
     import_file_to_cache(
-        'http://www.ivoa.net/rdf/uat',
+        voc_url,
         get_pkg_data_filename(
             'data/uat-selection.desise',
             package=__package__))
     yield
     # it would be nice if we only did that if we polluted the
     # cache before the yield, but we can't easily see if we did that.
-    clear_download_cache('http://www.ivoa.net/rdf/uat')
-
+    cache_dir = _get_download_cache_loc('astropy')
+    cache_dirname = _url_to_dirname(voc_url)
+    local_dirname = os.path.join(cache_dir, cache_dirname)
+    os.unlink(os.path.join(local_dirname, "contents"))
 
 # We need an object standing in for TAP services for query generation.
 # It would perhaps be nice to pull up a real TAPService instance from
