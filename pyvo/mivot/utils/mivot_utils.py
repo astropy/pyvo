@@ -3,6 +3,7 @@ Some utilities making easier the transformation of Mivot elements into dictionar
 These dictionaries are used to generate ``MivotInstance`` objects
 '''
 import numpy
+from pyvo.mivot.utils.exceptions import MappingError
 
 
 class MivotUtils:
@@ -95,11 +96,14 @@ class MivotUtils:
         Returns
         -------
         Union[bool, float, str, None]
-            The cast value based on the dmtype.
+            The cast value based on the dmtype, or None
         """
+        lower_dmtype = dmtype.lower()
+        # empty strings cannot be casted
+        if not "string" in lower_dmtype and value == "":
+            return None
         if type(value) is numpy.float32 or type(value) is numpy.float64:
             return float(value)
-        lower_dmtype = dmtype.lower()
         if isinstance(value, str):
             lower_value = value.lower()
         else:
@@ -132,3 +136,30 @@ class MivotUtils:
         if dmid is not None:
             return dmid.replace("/", "_").replace(".", "_").replace("-", "_")
         return ""
+
+    @staticmethod
+    def check_column(table, column_id):
+        """
+        return unit, ref, literal
+        """
+        ref, literal = MivotUtils.is_ref_or_literal(column_id)
+        if literal:
+            return None, None, literal
+        else:
+            try: 
+                field = table.get_field_by_id_or_name(ref)
+                return str(field.unit), column_id, None
+            except KeyError as keyerror:
+                raise MappingError() from keyerror
+        
+    @staticmethod
+    def is_ref_or_literal(value):
+        """
+        return ref, literal
+        """
+        if not value:
+            raise MappingError(" AN attribute cannot be set with a None value")
+        elif isinstance(value, str):
+            return (None, value.replace("*", "")) if value.startswith("*") else (value, None)
+        else:
+            return (None, value)
