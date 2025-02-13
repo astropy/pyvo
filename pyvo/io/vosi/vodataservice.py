@@ -107,7 +107,7 @@ class TableSet(Element, HomogeneousList):
     @xmlelement(name='schema')
     def schemas(self):
         """
-        A list of schemas. Must contain only `Schema` objects.
+        A list of schemas. Must contain only `~pyvo.io.vosi.vodataservice.TableSchema` objects.
 
         A named description of a set of logically related tables.
 
@@ -222,7 +222,8 @@ class TableSchema(Element, HomogeneousList):
     @xmlelement(name='table')
     def tables(self):
         """
-        A list of tables in the schema.  Must contain only `Table` objects.
+        A list of tables in the schema.
+        Must contain only `~pyvo.io.vosi.vodataservice.VODataServiceTable` objects.
 
         A description of one of the tables that makes up the set.
         The table names for the table should be unique.
@@ -429,7 +430,7 @@ class VODataServiceTable(Element):
     def columns(self):
         """
         A list of columns in the table.
-        Must contain only `TableParams` objects.
+        Must contain only `~pyvo.io.vosi.vodataservice.TableParam` objects.
 
         A description of a table column.
         """
@@ -444,7 +445,7 @@ class VODataServiceTable(Element):
     @xmlelement(name='foreignKey')
     def foreignkeys(self):
         """
-        A list of columns in the table.  Must contain only `ForeignKey` objects
+        A list of columns in the table.  Must contain only `~pyvo.io.vosi.vodataservice.ForeignKey` objects
 
         a description of a foreign keys, one or more columns
         from the current table that can be used to join with
@@ -1004,7 +1005,7 @@ class ForeignKey(Element):
     @xmlelement(name='fkColumn')
     def fkcolumns(self):
         """
-        A list of foreign key columns. Must contain only `FKColumn` objects.
+        A list of foreign key columns. Must contain only `~pyvo.io.vosi.vodataservice.FKColumn` objects.
 
         a pair of column names, one from this table and one
         from the target table that should be used to join the

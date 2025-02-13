@@ -1,6 +1,0 @@
-sphinx-astropy
-# 27/Oct/2021 - docutils pinned due to:
-# https://github.com/readthedocs/readthedocs.org/issues/8616
-# https://github.com/sphinx-doc/sphinx/issues/9727
-
-docutils<0.18

@@ -242,7 +242,7 @@ class TablesFile(Element):
     @xmlelement
     def tableset(self):
         """
-        The tableset. Must be a `TableSet` object.
+        The tableset. Must be a `~pyvo.io.vosi.vodataservice.TableSet` object.
         """
         return self._tableset
 
@@ -259,7 +259,7 @@ class TablesFile(Element):
     @xmlelement(cls=vs.VODataServiceTable)
     def table(self):
         """
-        The `VODataServiceTable` root element if present.
+        The `~pyvo.io.vosi.vodataservice.VODataServiceTable` root element if present.
         """
         return self._table
 
