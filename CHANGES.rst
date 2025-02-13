@@ -6,8 +6,6 @@ Enhancements and Fixes
 
 - Make deletion of TAP jobs optional via a new ``delete`` kwarg. [#640]
 
-- Provide more informative exception message when requests to endpoints fail. [#641]
-
 - Change AsyncTAPJob.result to return None if no result is found explicitly [#644]
 
 
@@ -15,7 +13,15 @@ Deprecations and Removals
 -------------------------
 
 
-1.6.1 (unreleased)
+1.6.2 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+
+
+1.6.1 (2025-02-12)
 ==================
 
 Bug Fixes
@@ -26,6 +32,8 @@ Bug Fixes
 - Fix string literal generation for SQL query when using numpy >=2.0. [#624]
 
 - Switch to do minimal VOSI tables downloads for TAP metadata. [#634]
+
+- Provide more informative exception message when requests to endpoints fail. [#641]
 
 
 1.6 (2024-11-01)
