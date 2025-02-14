@@ -18,7 +18,7 @@ from pyvo import registry
 from pyvo.registry import rtcons
 from pyvo.dal import query as dalq
 
-from .commonfixtures import uat_vocabulary, messenger_vocabulary, FAKE_GAVO, FAKE_PLAIN  # noqa: F401
+from .commonfixtures import messenger_vocabulary, FAKE_GAVO, FAKE_PLAIN  # noqa: F401
 
 
 # We should make sure non-legacy numpy works as expected for string literal generation
@@ -284,7 +284,7 @@ class TestUCDConstraint:
                     "ucd LIKE 'phot.mag;em.opt.%' OR ucd LIKE 'phot.mag;em.ir.%'"))
 
 
-@pytest.mark.usefixtures('uat_vocabulary')
+@pytest.mark.remote_data
 class TestUATConstraint:
     def test_basic(self):
         cons = rtcons.UAT("solar-flares")
@@ -293,7 +293,7 @@ class TestUATConstraint:
 
     def test_nonterm(self):
         with pytest.raises(dalq.DALQueryError, match="solarium does not identify"):
-            cons = rtcons.UAT("solarium")
+            rtcons.UAT("solarium")
 
     def test_wider(self):
         cons = rtcons.UAT("solar-flares", expand_up=2)
@@ -310,7 +310,8 @@ class TestUATConstraint:
         cons = rtcons.UAT("solar-activity", expand_down=2)
         assert (cons.get_search_condition(FAKE_GAVO).startswith(
             "ivoid IN (SELECT DISTINCT ivoid FROM rr.res_subject WHERE res_subject in"
-                " ('ephemeral-active-regions', 'quiescent-solar-prominence', 'solar-active-region-filaments'"))
+                " ('ephemeral-active-regions', 'quiescent-solar-prominence',"
+                " 'solar-active-region-filaments'"))
 
 
 class TestSpatialConstraint:
@@ -643,9 +644,10 @@ def test_all_constraints():
     moc = rtcons.Spatial("0/0-11", intersect="overlaps")
     spectral = rtcons.Spectral((5000 * u.Angstrom, 6000 * u.Angstrom))
     time = rtcons.Temporal((50000, 60000))
+    uat = rtcons.UAT('galaxies', expand_down=3)
     result = registry.search(
         text, author, servicetype, waveband, datamodel,
-        ivoid, ucd, moc, spectral, time
+        ivoid, ucd, moc, spectral, time, uat
     )
     assert result.fieldnames == (
         'ivoid', 'res_type', 'short_name',

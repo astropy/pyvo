@@ -108,6 +108,9 @@ def make_sql_literal(value):
     elif isinstance(value, datetime.datetime):
         return f"'{value.isoformat()}'"
 
+    elif isinstance(value, set):
+        return '('+", ".join(make_sql_literal(s) for s in sorted(value))+')'
+
     else:
         raise ValueError("Cannot format {} as a SQL literal"
                          .format(repr(value)))
@@ -655,15 +658,16 @@ class UAT(SubqueriedConstraint):
     """
     _keyword = "uat"
     _subquery_table = "rr.res_subject"
+    _condition = "res_subject in {query_terms}"
     _uat = None
 
     @classmethod
-    def _expand(cls, term, level, attribute):
+    def _expand(cls, term, level, direction):
         """
         Recursively expand term in the uat.
 
         This returns a set of concepts that are ``level`` levels wider
-        or narrower (depending on the value of ``attribute``) than term.
+        or narrower (depending on the value of ``direction``) than term.
 
         This function assumes the _uat class attribute has been filled
         before; that is the case once a constraint has been constructed.
@@ -675,15 +679,15 @@ class UAT(SubqueriedConstraint):
             the start term
         level: int
             expand this many levels
-        attribute: str
+        direction: str
             either ``wider`` to expand towards more general concepts
             or ``narrower`` to expand toward more specialised concepts.
         """
         result = {term}
-        new_concepts = cls._uat[term][attribute]
+        new_concepts = cls._uat[term][direction]
         if level:
             for concept in new_concepts:
-                result |= cls._expand(concept, level-1, attribute)
+                result |= cls._expand(concept, level-1, direction)
         return result
 
     def __init__(self, uat_keyword, *, expand_up=0, expand_down=0):
@@ -720,8 +724,7 @@ class UAT(SubqueriedConstraint):
         if expand_down:
             query_terms |= self._expand(uat_keyword, expand_down, "narrower")
 
-        self._condition = "res_subject in ({})".format(
-            ", ".join(make_sql_literal(s) for s in sorted(query_terms)))
+        self._fillers = {"query_terms": query_terms}
 
 
 class Spatial(SubqueriedConstraint):

@@ -3,8 +3,6 @@
 Common fixtures for pyVO registry tests
 """
 
-import os
-
 import pytest
 
 from astropy.utils.data import (
@@ -27,47 +25,6 @@ def messenger_vocabulary(mocker):
             'data/messenger.desise',
             package=__package__))
 
-
-# The moc UAT was produced by this program:
-# import json
-# import pyvo
-#
-# def gather_children(voc, t):
-# 	result = {t}
-# 	voc[t].pop("description", None)
-# 	for c in voc[t]["narrower"]:
-# 		result |= gather_children(voc, c)
-# 	return result
-#
-# uat = pyvo.utils.vocabularies.get_vocabulary("uat")
-# solphys = gather_children(uat["terms"], "solar-physics")
-# uat["terms"] = {t: m for t, m in uat["terms"].items()
-# 	if t in solphys}
-# with open("uat-selection.desise", "w", encoding="utf-8") as f:
-# 	json.dump(uat, f, indent=1)
-
-@pytest.fixture()
-def uat_vocabulary(mocker):
-    """a small sample of the IVOA UAT vocabulary in astropy's cache.
-
-    We need to clean up behind ourselves, because our version of the
-    UAT is limited to the solar-physics branch in order to not waste
-    too much space.  The source code here contains a program to refresh
-    this vocabulary selection.
-    """
-    voc_url = 'http://www.ivoa.net/rdf/uat'
-    import_file_to_cache(
-        voc_url,
-        get_pkg_data_filename(
-            'data/uat-selection.desise',
-            package=__package__))
-    yield
-    # it would be nice if we only did that if we polluted the
-    # cache before the yield, but we can't easily see if we did that.
-    cache_dir = _get_download_cache_loc('astropy')
-    cache_dirname = _url_to_dirname(voc_url)
-    local_dirname = os.path.join(cache_dir, cache_dirname)
-    os.unlink(os.path.join(local_dirname, "contents"))
 
 # We need an object standing in for TAP services for query generation.
 # It would perhaps be nice to pull up a real TAPService instance from

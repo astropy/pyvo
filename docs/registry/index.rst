@@ -170,7 +170,7 @@ interactive data discovery, however, it is usually preferable to use the
 
 And to look for tap resources *in* a specific cone, you would do
 
-.. doctest-remote-data:: # doctest: +IGNORE_OUTPUT
+.. doctest-remote-data::
 
   >>> from astropy.coordinates import SkyCoord
   >>> registry.search(registry.Freetext("Wolf-Rayet"),
