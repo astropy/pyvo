@@ -51,9 +51,9 @@ def test_MivotInstance():
     the expected MappingError.
     """
     with pytest.raises(MappingError):
-        MivotInstance(dmid="model:type.inst")
+        MivotInstance("")
 
-    instance1 = MivotInstance(dmtype="model:type.inst", dmid="id1")
+    instance1 = MivotInstance("model:type.inst", dmid="id1")
     with pytest.raises(MappingError):
         instance1.add_attribute(
             dmrole="model:type.inst.role1", value="value1", unit="m/s"

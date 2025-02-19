@@ -1,6 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 MivotInstance is a simple API for building MIVOT instances step by step.
+
+A MIVOT instance is a MIVOT serialisation of an object whose attributes are set
+with column values or literals.
+A MIVOT instance can contain ATTRIBUTEs elements, COLLECTIONs of elements, or other INSTANCEs.
+The MIVOT INSTANCE structure is defined by the data model on which the data is mapped.
 """
 
 from pyvo.utils.prototype import prototype_feature
@@ -35,7 +40,7 @@ class MivotInstance:
             Free identifier of the instance
 
     """
-    def __init__(self, dmtype=None, *, dmrole=None, dmid=None):
+    def __init__(self, dmtype, *, dmrole=None, dmid=None):
         """
         Parameters
         ----------
