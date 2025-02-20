@@ -43,6 +43,7 @@ from pyvo.mivot.viewer.mivot_instance import MivotInstance
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.viewer.xml_viewer import XMLViewer
+from mivot_validator.utils.dict_utils import DictUtils
 # Use defusedxml only if already present in order to avoid a new depency.
 try:
     from defusedxml import ElementTree as etree
@@ -56,7 +57,7 @@ class MivotViewer:
     MivotViewer is a PyVO table wrapper aiming at providing
     a model view on VOTable data read with usual tools.
     """
-    def __init__(self, votable_path, tableref=None):
+    def __init__(self, votable_path, tableref=None, resolve_ref=False):
         """
         Constructor of the MivotViewer class.
 
@@ -68,6 +69,11 @@ class MivotViewer:
         tableref : str, optional
             Used to identify the table to process. If not specified,
             the first table is taken by default.
+        Parameters
+        ----------
+        resolve_ref : bool, optional
+            If True, resolves the references (i.e. include space frames in sky position)
+            Default is False.
         """
         if not check_astropy_version():
             raise AstropyVersionException(f"Astropy version {version.version} "
@@ -93,6 +99,7 @@ class MivotViewer:
         self._mapped_tables = []
         self._resource_seeker = None
         self._dm_instance = None
+        self._resolve_ref = resolve_ref
         try:
             self._set_resource()
             self._set_mapping_block()
@@ -371,18 +378,13 @@ class MivotViewer:
         self._set_column_indices()
         self._set_column_units()
 
-    def _get_model_view(self, resolve_ref=True):
+    def _get_model_view(self):
         """
         Return an XML model view of the last read row.
         This function resolves references by default.
-
-        Parameters
-        ----------
-        resolve_ref : bool, optional
-            If True, resolves the references. Default is True.
         """
         templates_copy = deepcopy(self._templates)
-        if resolve_ref is True:
+        if self._resolve_ref is True:
             while StaticReferenceResolver.resolve(self._annotation_seeker, self._connected_tableref,
                                                   templates_copy) > 0:
                 pass
@@ -412,6 +414,9 @@ class MivotViewer:
             first_instance = self.get_first_instance_dmtype(tableref=self.connected_table_ref)
             xml_instance = self.xml_viewer.get_instance_by_type(first_instance)
             self._dm_instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
+            print("@@@ -------- vieiwer_init_instance")
+            XmlUtils.pretty_print(xml_instance)
+            DictUtils.print_pretty_json(MivotUtils.xml_to_dict(xml_instance))
             self.rewind()
         return self._dm_instance
 
