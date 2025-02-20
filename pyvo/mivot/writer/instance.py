@@ -68,7 +68,7 @@ class MivotInstance:
     def dmid(self):
         return self._dmid
     
-    def add_attribute(self, dmtype=None, dmrole=None, *, ref=None, value=None, unit=None):
+    def add_attribute(self, dmtype=None, dmrole=None, *, value=None, unit=None):
         """
         Add an <ATTRIBUTE> element to the instance.
 
@@ -78,10 +78,11 @@ class MivotInstance:
             dmtype of the ATTRIBUTE (mandatory)
         dmrole : str
             dmrole of the ATTRIBUTE (mandatory)
-        ref : str, optional
-            ID of the column to set the attribute value
-        value : str, optional
-            Default value of the attribute
+        value : str or numerical, optional
+            ID of the column to set the attribute value.
+            If ref is a string starting with a * or is numerical,
+            it is considered as a value (* stripped)
+            as a ref otherwise
         unit : str, optional
             Unit of the attribute
 
@@ -94,15 +95,16 @@ class MivotInstance:
             raise MappingError("Cannot add an attribute without dmtype")
         if not dmrole:
             raise MappingError("Cannot add an attribute without dmrole")
+        ref, literal = MivotUtils.get_ref_or_literal(value)
         if not ref and not value:
             raise MappingError("Cannot add an attribute without ref or value")
 
         xml_string = f'<ATTRIBUTE dmtype="{dmtype}" dmrole="{dmrole}" '
         if unit and unit != "None":
             xml_string += f'unit="{unit}" '
-        if value:
-            xml_string += f'value="{value}" '
-        if ref:
+        if literal:
+            xml_string += f'value="{literal}" '
+        else: 
             xml_string += f'ref="{ref}" '
         xml_string += " />"
         self._content.append(xml_string)
@@ -148,6 +150,24 @@ class MivotInstance:
         if not isinstance(mivot_instance, MivotInstance):
             raise MappingError("Instance added must be of type MivotInstance")
         self._content.append(mivot_instance.xml_string())
+
+    def add_collection(self, dmrole, mivot_instances):
+        """
+        to be documented
+        """
+        dm_att = ""
+        if dmrole:
+            dm_att = f"dmrole=\"{dmrole}\""
+            
+        self._content.append(f'<COLLECTION {dm_att}>')
+        for mivot_instance in mivot_instances:
+            if isinstance(mivot_instance, MivotInstance):
+                self._content.append(mivot_instance.xml_string())
+            else:
+                self._content.append(mivot_instance)
+            self._content.append("\n")
+        self._content.append(f'</COLLECTION>')
+
 
     def xml_string(self):
         """
