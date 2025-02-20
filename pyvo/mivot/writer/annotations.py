@@ -4,8 +4,7 @@ MivotAnnotations: A utility module to build and manage MIVOT annotations.
 """
 import os
 import logging
-import re
-import requests
+
 try:
     import xmlschema
 except ImportError:
@@ -24,12 +23,8 @@ from astropy.io.votable import parse
 from astropy import version
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.xml_utils import XmlUtils
-from pyvo.mivot.utils.xpath_utils import XPath
-from pyvo.mivot.utils.vocabulary import Att, Ele
 from pyvo.mivot.utils.exceptions import MappingError, AstropyVersionException
-from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.writer.instance import MivotInstance
-from pyvo.mivot.writer.mango_instance import MangoInstance
 from pyvo.mivot.version_checker import check_astropy_version
 
 __all__ = ["MivotAnnotations"]
@@ -273,268 +268,6 @@ class MivotAnnotations:
         """
         self._models[model_name] = vodml_url
 
-    def add_simple_space_frame(self, ref_frame="ICRS", *, ref_position="BARYCENTER", equinox=None):
-        """
-        Adds a SpaceSys instance to the GLOBALS block as defined in the Coordinates
-        data model V1.0 (https://ivoa.net/documents/Coords/20221004/index.html).
-
-        Notes:
-
-        - This function implements only the most commonly used features. Custom reference positions
-          for TOPOCENTER frames are not supported. However, methods for implementing the missing
-          features can be derived from this code.
-        - A warning is emitted if either ``ref_frame`` or ``ref_position`` have unexpected values.
-        - No error is raised if the parameter values are inconsistent.
-        - The ``dmid`` of the time rame is built from ``ref_frame``, ``ref_position`` and ``equinox``.
-
-        Parameters
-        ----------
-        ref_frame : str, optional, default "ICRS"
-            The reference frame for the space frame.
-
-        ref_position : str, optional, default "BARYCENTER"
-            The reference position for the space frame.
-
-        equinox : str, optional, default None
-            The equinox for the reference frame, if applicable.
-
-        return
-        ------
-        str: The actual dmid of the time frame INSTANCE
-        """
-        # buikd the dmid
-        dmid = f"_spaceframe_{ref_frame}"
-        if equinox:
-            dmid += f"_{equinox}"
-        if ref_position:
-            dmid += f"_{ref_position}"
-
-        # skip if the same dmid is already recorded
-        if dmid in self._dmids:
-            logging.warning("An instance with dmid=%s has already been stored in GLOBALS: skip",
-                            dmid)
-            return dmid
-        self._dmids.append(dmid)
-        # add (or overwrite) used models
-        self.add_model("ivoa",
-                       vodml_url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml")
-        self.add_model("coords",
-                       vodml_url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml")
-
-        # check whether ref_frame and ref_position are set with appropriate values
-        if ref_frame not in MivotAnnotations.suggested_space_frames:
-            logging.warning("Ref frame %s is not in %s, make sure there is no typo",
-                            ref_frame,
-                            MivotAnnotations.suggested_space_frames)
-        if ref_position not in MivotAnnotations.suggested_ref_positions:
-            logging.warning("Ref position %s is not in %s, make sure there is no typo",
-                            ref_position,
-                            MivotAnnotations.suggested_ref_positions)
-
-        # Build the SpaceSys instance component by component
-        space_system_instance = MivotInstance(dmtype="coords:SpaceSys",
-                                              dmid=dmid)
-        # let's start with the space frame
-        space_frame_instance = MivotInstance(dmtype="coords:SpaceFrame",
-                                             dmrole="coords:PhysicalCoordSys.frame")
-        space_frame_instance.add_attribute(dmtype=IVOA_STRING,
-                                           dmrole="coords:SpaceFrame.spaceRefFrame",
-                                           value=ref_frame)
-        if equinox is not None:
-            space_frame_instance.add_attribute(dmtype="coords:Epoch",
-                                               dmrole="coords:SpaceFrame.equinox",
-                                               value=equinox)
-        # then let's build the reference position
-        ref_position_instance = MivotInstance(dmtype="coords:StdRefLocation",
-                                              dmrole="coords:SpaceFrame.refPosition")
-        ref_position_instance.add_attribute(dmtype=IVOA_STRING,
-                                            dmrole="coords:StdRefLocation.position",
-                                            value=ref_position)
-        # and pack everything
-        space_frame_instance.add_instance(ref_position_instance)
-        space_system_instance.add_instance(space_frame_instance)
-        # add the SpaceSys instance to the GLOBALS block
-        self.add_globals(space_system_instance)
-
-        return dmid
-
-    def add_simple_time_frame(self, ref_frame="TCB", *, ref_position="BARYCENTER"):
-        """
-        Adds a TimeSys instance to the GLOBALS block as defined in the Coordinates
-        data model V1.0 (https://ivoa.net/documents/Coords/20221004/index.html).
-
-        Notes:
-
-        - This function implements only the most commonly used features. Custom reference directions
-          are not supported. However, methods for implementing missing features can be derived from
-          this code.
-        - A warning is emitted if either ``ref_frame`` or ``ref_position`` have unexpected values.
-        - No error is raised if the parameter values are inconsistent.
-        - The ``dmid`` of the time rame is built from ``ref_frame`` and ``ref_position``.
-
-        Parameters
-        ----------
-        ref_frame : str, optional, default "TCB"
-            The reference frame for the time frame.
-
-        ref_position : str, optional, default "BARYCENTER"
-            The reference position for the time frame.
-
-        return
-        ------
-        str: The actual dmid of the time frame INSTANCE
-        """
-        # buikd the dmid
-        dmid = f"_timeframe_{ref_frame}"
-        if ref_position:
-            dmid += f"_{ref_position}"
-        dmid = MivotUtils.format_dmid(dmid)
-        # skip if the same dmid is already recorded
-        if dmid in self._dmids:
-            logging.warning("An instance with dmid=%s has already been stored in GLOBALS: skip", dmid)
-            return dmid
-        self._dmids.append(dmid)
-        # add (or overwrite) used models
-        self.add_model("ivoa",
-                       vodml_url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml")
-        self.add_model("coords",
-                       vodml_url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml")
-        # check whether ref_frame and ref_position are set with appropriate values
-        if ref_frame not in MivotAnnotations.suggested_time_frames:
-            logging.warning("Ref frame %s is not in %s, make sure there is no typo",
-                            ref_frame,
-                            MivotAnnotations.suggested_time_frames)
-        if ref_position not in MivotAnnotations.suggested_ref_positions:
-            logging.warning("Ref position %s is not in %s, make sure there is no typo",
-                            ref_position,
-                            MivotAnnotations.suggested_ref_positions)
-        # Build the TimeSys instance component by component
-        time_sys_instance = MivotInstance(dmtype="coords:TimeSys",
-                                          dmid=dmid)
-        # Let's start with the time frame
-        time_frame_instance = MivotInstance(dmtype="coords:TimeFrame",
-                                            dmrole="coords:PhysicalCoordSys.frame")
-        time_frame_instance.add_attribute(dmtype=IVOA_STRING,
-                                          dmrole="coords:TimeFrame.timescale",
-                                          value=ref_frame)
-        # Then let's build the reference position
-        ref_position_instance = MivotInstance(dmtype="coords:StdRefLocation",
-                                              dmrole="coords:TimeFrame.refPosition")
-        ref_position_instance.add_attribute(dmtype=IVOA_STRING,
-                                            dmrole="coords:StdRefLocation.position",
-                                            value=ref_position)
-        # pack everything
-        time_frame_instance.add_instance(ref_position_instance)
-        time_sys_instance.add_instance(time_frame_instance)
-        # add the TimeSys instance to the GLOBALS block
-        self.add_globals(time_sys_instance)
-
-        return dmid
-
-    def add_photcal(self, filter_name):
-        """
-        Add to the GLOBALS the requested photometric calibration as defined in PhotDM1.1.
-
-        The MIVOT serialization is provided by the SVO Filter Profile Service
-        (https://ui.adsabs.harvard.edu/abs/2020sea..confE.182R/abstract)
-
-        It is returned as one block containing the whole PhotCal instance.
-        The Filter instance is extracted from the PhotCal one where it is replaced by a REFERENCE.
-        This make the filter accessible as a GLOBALS for objects that would need it.
-
-        - The dmid of the PhotCal is ``_photcal_DMID`` where DMID is the formatted version of ``dmid``
-          (see `MivotUtils.format_dmid`).
-        - The dmid of the PhotFilter is ``_photfilter_DMID`` where DMID is the formatted version of ``dmid``.
-
-        Parameters
-        ----------
-        filter_name: str
-            FPS identifier (SVO Photcal ID) of the request filter
-        return
-        ------
-        str: The actual dmid of the PhotCal INSTANCE or None
-        """
-        response = requests.get(FPS_URL + filter_name)
-        if (http_code := response.status_code) != 200:
-            logging.error("FPS service error: %s", http_code)
-            return None
-        # get the MIVOT serialization of the requested Photcal (as a string)
-        # FPS returns bytes but that might change
-        fps_reponse = response.content
-        try:
-            fps_reponse = fps_reponse.decode('utf-8')
-        except (UnicodeDecodeError, AttributeError):
-            pass
-
-        # basic parsing of the response to check if an error has been returned
-        if "<INFO name=\"QUERY_STATUS\" value=\"ERROR\">" in fps_reponse:
-            logging.error("FPS service error: %s",
-                          re.search(r'<DESCRIPTION>(.*)</DESCRIPTION>', fps_reponse).group(1))
-            return None
-
-        # set the identifier that will be used for both PhotCal and PhotFilter
-        cal_id = MivotUtils.format_dmid(filter_name)
-        # skip if the same dmid is already recorded
-        if cal_id in self._dmids:
-            logging.warning("An instance with dmid=%s has already been stored in GLOBALS: skip", cal_id)
-            return cal_id
-        self._dmids.append(cal_id)
-
-        photcal_id = f"_photcal_{cal_id}"
-        filter_id = f"_photfilter_{cal_id}"
-        logging.info("%s PhotCal can be referred with dmref='%s'", cal_id)
-        # parse the PhotCal and extract the PhotFilter node
-        photcal_block = etree.fromstring(fps_reponse)
-        filter_block = XPath.x_path_contains(
-                                photcal_block,
-                                ".//" + Ele.INSTANCE,
-                                Att.dmtype,
-                                "Phot:photometryFilter"
-                                )[0]
-        # Tune the Photcal to be placed as a GLOBALS child (no role but an id)
-        # and remove the PhotFilter node which will be shifted at the GLOBALS level
-        del photcal_block.attrib["dmrole"]
-        photcal_block.set("dmid", photcal_id)
-        photcal_block.remove(filter_block)
-
-        # Tune the PhotFilter to be placed as GLOBALS child (no role but an id)
-        filter_role = filter_block.get("dmrole")
-        del filter_block.attrib["dmrole"]
-        filter_block.set("dmid", filter_id)
-
-        # Append a REFERENCE on the PhotFilter node to the PhotCal block
-        reference = etree.Element("REFERENCE")
-        reference.set("dmrole", filter_role)
-        reference.set("dmref", filter_id)
-        photcal_block.append(reference)
-
-        self.add_model("ivoa",
-                       vodml_url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml")
-        self.add_model("Phot",
-                       vodml_url="https://ivoa.net/xml/VODML/Phot-v1.vodml.xml")
-
-        self.add_globals(XmlUtils.pretty_string(photcal_block, lshift="    "))
-        self.add_globals(XmlUtils.pretty_string(filter_block, lshift="    "))
-
-        return photcal_id
-
-    def add_mango_epoch_position(self, table, *, space_frame={}, time_frame={}, sky_position={}, correlations={}, errors={}):
-        space_frame_id = self.add_simple_space_frame(**space_frame)
-        time_frame_id = self.add_simple_time_frame(**time_frame)
-        self.add_model("mango",
-                       vodml_url="https://raw.githubusercontent.com/lmichel/MANGO/refs/heads/draft-0.1/vo-dml/desc.mango.vo-dml.xml")
-        mango_instance = MangoInstance(table)
-        ep_instance = mango_instance.get_epoch_position(space_frame_id, time_frame_id, sky_position, correlations, errors)
-        self.add_templates(ep_instance)
-
-    def add_mango_magnitude(self, table, filter_name, mag={}):
-        filter_id = self.add_photcal(filter_name)
-        mango_instance = MangoInstance(table)
-        print(filter_id)
-        print(mag)
-        mag_instance = mango_instance.get_brightness(filter_id, mag)
-        self.add_templates(mag_instance)
-
     def set_report(self, status, message):
         """
         Set the <REPORT> element of the MIVOT block.
@@ -612,7 +345,7 @@ class MivotAnnotations:
             votable = votable_file
         else:
             raise MappingError(
-                "votable_file must be a file path string or a VOTableFile instance."
+                f"votable_file must be a file path string or a VOTableFile instance, not a {type(votable_file)}."
             )
 
         for resource in votable.resources:
