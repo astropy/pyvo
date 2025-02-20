@@ -201,7 +201,8 @@ class MivotInstance:
             if slim is True:
                 # data is atomic value (e.g. float): the type be hidden
                 if "ref" in data or "value" in data:
-                    data.pop("dmtype", None)
+                    print("@@@@@ no longer ignore dmtype")
+                    #data.pop("dmtype", None)
                 # remove unit when not set
                 if "unit" in data and not data["unit"]:
                     data.pop("unit", None)
