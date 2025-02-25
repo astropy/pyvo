@@ -14,7 +14,7 @@ from ..utils.url import url_sibling
 from ..utils.decorators import stream_decode_content, response_decode_content
 from ..utils.http import use_session
 
-__all__ = ['AvailabilityMixin', 'CapabilityMixin', 'VOSITables']
+__all__ = ['CapabilityMixin', 'VOSITables']
 
 
 class EndpointMixin:
