@@ -186,12 +186,12 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         try:
             root = xml.etree.ElementTree.parse(
                 io.BytesIO(response.content)).getroot()
-            exampleElements = root.findall('.//*[@property="query"]')
+            example_elements = root.findall('.//*[@property="query"]')
         except Exception as ex:
             raise DALServiceError.from_except(ex, examples_uri)
 
         examples = [TAPQuery(self.baseurl, example.text)
-            for example in exampleElements]
+            for example in example_elements]
 
         for continuation in root.findall('.//*[@property="continuation"]'):
             examples.extend(
@@ -464,7 +464,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         Print a summary description of this service.
 
         This includes the interface capabilities, and the content description
-        if it doesn't contains multiple data collections (in other words, it is
+        if it doesn't contain multiple data collections (in other words, it is
         not a TAP service).
         """
         if len(self.tables) == 1:

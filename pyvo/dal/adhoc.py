@@ -123,7 +123,7 @@ class AdhocServiceResultsMixin:
 
         Parameters
         ----------
-        ivoid : str
+        ivo_id : str
            the ivoid of the service we want to have.
 
         Returns
@@ -417,8 +417,6 @@ class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
 
         Parameters
         ----------
-        baseurl : str
-            the base URL for the Datalink service
         id : str
             the dataset identifier
         responseformat : str
@@ -936,7 +934,7 @@ class DatalinkRecord(DatalinkRecordMixin, SodaRecordMixin, Record):
         return list(_get_input_params_from_resource(proc_resource).values())
 
 
-class AxisParamMixin():
+class AxisParamMixin:
     """
     Stores the axis parameters (pos, band, time and pol) used in SODA
     or SIA2 queries
