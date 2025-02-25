@@ -11,6 +11,10 @@ Enhancements and Fixes
 
 - Change AsyncTAPJob.result to return None if no result is found explicitly [#644]
 
+- Add a UAT constraint to the registry interface for constraining
+  subjects [#649]
+
+
 
 Deprecations and Removals
 -------------------------

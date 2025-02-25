@@ -12,11 +12,12 @@ from .regtap import (search, ivoid2service,
 
 from .rtcons import (Constraint, SubqueriedConstraint,
                      Freetext, Author, Servicetype, Waveband, Datamodel, Ivoid,
-                     UCD, Spatial, Spectral, Temporal, RegTAPFeatureMissing)
+                     UCD, UAT, Spatial, Spectral, Temporal,
+                     RegTAPFeatureMissing)
 
 __all__ = ["search", "get_RegTAP_query", "Constraint", "SubqueriedConstraint",
            "Freetext", "Author",
            "Servicetype", "Waveband", "Datamodel", "Ivoid", "UCD",
-           "Spatial", "Spectral", "Temporal",
+           "UAT", "Spatial", "Spectral", "Temporal",
            "choose_RegTAP_service", "RegTAPFeatureMissing",
            "RegistryResults", "RegistryResource",]

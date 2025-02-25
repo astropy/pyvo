@@ -54,6 +54,8 @@ keyword arguments.  The following constraints are available:
 * :py:class:`~pyvo.registry.UCD` (``ucd``): constrain by one or more UCD
   patterns; resources match when they serve columns having a matching
   UCD (e.g., ``phot.mag;em.ir.%`` for “any infrared magnitude”).
+* :py:class:`~pyvo.registry.UAT` (``uat``): constrain by concepts
+  from the IVOA Unified Astronomy Thesaurus http://www.ivoa.net/rdf/uat.
 * :py:class:`~pyvo.registry.Waveband` (``waveband``): one or more terms
   from the vocabulary at http://www.ivoa.net/rdf/messenger giving the rough
   spectral location of the resource.
@@ -97,9 +99,22 @@ or:
   ...                             registry.Waveband("UV"))
 
 or a mixture between the two.  Constructing using explicit
-constraints is generally preferable with more complex queries.  Where
-the constraints accept multiple arguments, you can pass in sequences to
-the keyword arguments; for instance:
+constraints is generally preferable with more complex queries.
+An advantage of using explicit constraints is that you can pass
+additional parameters to the constraints.  For instance, the UAT
+constraint can optionally expand your keyword to narrower or wider
+concepts.  When looking for resources talking about Cepheids of all
+kinds, you can thus say:
+
+.. doctest-remote-data::
+
+  >>> resources = registry.search(
+  ...   registry.UAT("cepheid-variable-stars", expand_down=3))
+
+There is no way to express this using keyword arguments.
+
+However, where the constraints accept multiple equivalent arguments, you
+can pass in sequences to the keyword arguments; for instance:
 
 .. doctest-remote-data::
 
@@ -112,6 +127,7 @@ is equivalent to:
 
   >>> resources = registry.search(waveband=["Radio", "Millimeter"],
   ...   author='%Miller%')
+
 
 There is also :py:meth:`~pyvo.registry.get_RegTAP_query`, accepting the
 same arguments as :py:meth:`pyvo.registry.search`.  This function simply

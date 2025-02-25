@@ -168,9 +168,11 @@ are two ways to do that:
   to call something like::
 
     discoverer.set_services(
-      registry.search(registry.Author("Hubble, %")))
+      registry.search(registry.UAT("galaxies", expand_down=3)))
 
-  to query services that give a particular author.  More realistically,
+  to query services that claim to deal with galaxies or perhaps more
+  specific concepts (although this *will* pull a lot of extra services
+  that the discoverer will just discard).  More realistically,
 
   ::
 
