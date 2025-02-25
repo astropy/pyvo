@@ -204,6 +204,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                 session=self._session,
                 original_row=row)
         remaining_ids = self.query['ID']
+        # self.query['ID'] = remaining_ids[:1] # batch size 1
         if not remaining_ids:
             # we are done
             return
@@ -217,6 +218,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                     ', '.join([_ for _ in remaining_ids])))
         batch_size = len(current_ids)  # this could be set by the datalink service
         while remaining_ids:
+            start_remaining_ids = len(remaining_ids)
             copy_tb = VOTableFile()
             res_votable = current_batch.votable.get_first_table()
             # now remove unreferenced services from resources
@@ -253,6 +255,11 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             yield DatalinkResults(copy_tb, original_row=original_row)
             if not remaining_ids:
                 return  # we are done
+            if len(remaining_ids) == start_remaining_ids:
+                # no progress
+                raise DALServiceError(
+                    'Could not retrieve datalinks for: {}'.format(
+                        ', '.join([_ for _ in remaining_ids])))
             self.query['ID'] = remaining_ids[:batch_size]
             current_batch = self.query.execute(post=True)
             if not current_batch:
