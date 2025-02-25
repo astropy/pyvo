@@ -10,7 +10,7 @@ from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.mivot.utils.dict_utils import DictUtils
 from pyvo.mivot.utils.exceptions import MappingError
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot import MivotViewer
+from pyvo.mivot.viewer import MivotViewer
 from astropy import version as astropy_version
 
 

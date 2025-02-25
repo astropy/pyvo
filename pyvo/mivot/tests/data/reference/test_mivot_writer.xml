@@ -1,0 +1,29 @@
+<VODML xmlns="http://www.ivoa.net/xml/mivot">
+  <REPORT status="OK">Mivot writer unit test</REPORT>
+  <MODEL name="ivoa" url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml" />
+  <MODEL name="coords" url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml" />
+  <MODEL name="mango" url="https://raw.githubusercontent.com/lmichel/MANGO/draft-0.1/vo-dml/mango.vo-dml.xml" />
+  <GLOBALS>
+    <INSTANCE dmtype="coords:SpaceSys" dmid="_spacesys_icrs">
+      <INSTANCE dmtype="coords:SpaceFrame" dmrole="coords:PhysicalCoordSys.frame">
+        <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:SpaceFrame.spaceRefFrame" value="ICRS" />
+        <INSTANCE dmtype="coords:StdRefLocation" dmrole="coords:SpaceFrame.refPosition">
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:StdRefLocation.position" value="BARYCENTER" />
+        </INSTANCE>
+      </INSTANCE>
+    </INSTANCE>
+  </GLOBALS>
+  <TEMPLATES>
+    <INSTANCE dmtype="mango:EpochPosition">
+      <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.longitude" unit="deg" ref="RAICRS" />
+      <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.latitude" unit="deg" ref="DEICRS" />
+      <REFERENCE dmrole="mango:EpochPosition.spaceSys" dmref="_spacesys_icrs" />
+      <INSTANCE dmtype="mango:EpochPositionErrors" dmrole="mango:EpochPosition.errors">
+        <INSTANCE dmtype="mango:error.ErrorCorrMatrix" dmrole="mango:EpochPositionErrors.position">
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.ErrorCorrMatrix.sigma1" unit="arcsec" ref="sigm" />
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.ErrorCorrMatrix.sigma2" unit="arcsec" ref="sigm" />
+        </INSTANCE>
+      </INSTANCE>
+    </INSTANCE>
+  </TEMPLATES>
+</VODML>

@@ -23,12 +23,13 @@ class XmlUtils:
         print(XmlUtils.pretty_string(xmltree))
 
     @staticmethod
-    def pretty_string(xmltree):
+    def pretty_string(xmltree, clean_namespace=True):
         """
         Return a pretty string representation of an XML tree.
         Parameters
         ----------
-        xmltree (~`xml.etree.ElementTree.Element`): XML tree to convert to a pretty string.
+        xmltree (~`xml.etree.ElementTree.Element`): XML tree to convert to a pretty string
+        clean_namespace (boolean): Ddefault namspace (ns0) removed from element names if True
         Returns
         -------
         str: The pretty string representation of the XML tree.
@@ -39,7 +40,10 @@ class XmlUtils:
         else:
             XmlUtils.indent(xmltree)
             new_xml = ET.tostring(xmltree, encoding='unicode')
-        return new_xml.replace("ns0:", "")
+        if clean_namespace:
+            return new_xml.replace("ns0:", "")
+        else:
+            return new_xml
 
     @staticmethod
     def indent(elem, level=0):

@@ -1,2 +1,1 @@
-# package entry point
-from .viewer.mivot_viewer import MivotViewer
+# Licensed under a 3-clause BSD style license - see LICENSE.rst

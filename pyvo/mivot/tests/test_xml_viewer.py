@@ -9,7 +9,7 @@ except ImportError:
     from xml.etree.ElementTree import Element as element
 from astropy.utils.data import get_pkg_data_filename
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot import MivotViewer
+from pyvo.mivot.viewer import MivotViewer
 from pyvo.mivot.utils.exceptions import MivotError
 
 
