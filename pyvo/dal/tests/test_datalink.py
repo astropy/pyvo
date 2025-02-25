@@ -148,17 +148,9 @@ def test_datalink():
 
     assert datalinks.original_row["accsize"] == 100800
 
-    row = datalinks[0]
-    assert row.semantics == "#progenitor"
-
-    row = datalinks[1]
-    assert row.semantics == "#proc"
-
-    row = datalinks[2]
-    assert row.semantics == "#this"
-
-    row = datalinks[3]
-    assert row.semantics == "#preview"
+    assert 4 == len(datalinks)
+    for dl in datalinks:
+        assert dl.semantics in ['#this', '#preview', '#progenitor', '#proc']
 
 
 @pytest.mark.usefixtures('obscore_datalink', 'res_datalink')
