@@ -18,7 +18,7 @@ from astropy import units as u
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
 
-from astropy.io.votable.tree import Resource, Group
+from astropy.io.votable.tree import Resource, Group, VOTableFile, TableElement
 from astropy.utils.collections import HomogeneousList
 
 from ..utils.decorators import stream_decode_content
@@ -167,48 +167,98 @@ class AdhocServiceResultsMixin:
 
 class DatalinkResultsMixin(AdhocServiceResultsMixin):
     """
-    Mixin for datalink functionallity for results classes.
+    Mixin for datalink functionality for results classes.
     """
     def _iter_datalinks_from_dlblock(self, datalink_service):
         """yields datalinks from the current rows using a datalink
         service RESOURCE.
         """
-        remaining_ids = []  # remaining IDs to processed
-        current_batch = None  # retrieved but not returned yet
-        current_ids = []  # retrieved but not returned
-        processed_ids = []  # retrived and returned IDs
-        batch_size = None  # size of the batch
+        # For performance reasons the implementation of this method sends batches of IDs
+        # to the datalink service. To mimic individual responses, a scheleton of the
+        # original VOTable response is created and for each iteration the results are
+        # updated to correspond to the next ID in the batch before the response is
+        # yielded to the caller.
+        def update_results_resource(tb, fields, rows):
+            # updates the results resources of a table (tb) with new fields and rows
+            for rsc in copy_tb.resources:
+                if rsc.type == "results":
+                    copy_tb.resources.remove(rsc)
+                    break
+            new_table = TableElement(tb)
+            new_table.fields.extend(fields)
+            new_table.create_arrays(len(rows))
+            for index, row in enumerate(rows):
+                new_table.array[index] = row
+            new_results = Resource()
+            new_results.type = "results"
+            resource.tables.append(new_table)
+            tb.resources.append(resource)
+            return tb
 
+        original_row = None
         for row in self:
-            if not current_ids:
-                if batch_size is None:
-                    # first call.
-                    self.query = DatalinkQuery.from_resource(
-                        [_ for _ in self],
-                        self._datalink,
-                        session=self._session,
-                        original_row=row)
-                    remaining_ids = self.query['ID']
-                if not remaining_ids:
-                    # we are done
-                    return
-                if batch_size:
-                    # subsequent calls are limitted to batch size
-                    self.query['ID'] = remaining_ids[:batch_size]
-                current_batch = self.query.execute(post=True)
-                current_ids = list(OrderedDict.fromkeys(
-                    [_ for _ in current_batch.to_table()['ID']]))
-                if not current_ids:
-                    raise DALServiceError(
-                        'Could not retrieve datalinks for: {}'.format(
-                            ', '.join([_ for _ in remaining_ids])))
-                batch_size = len(current_ids)
-            id1 = current_ids.pop(0)
-            processed_ids.append(id1)
-            remaining_ids.remove(id1)
-            yield current_batch.clone_byid(
-                id1,
+            original_row = row
+            self.query = DatalinkQuery.from_resource(
+                [_ for _ in self],
+                self._datalink,
+                session=self._session,
                 original_row=row)
+        remaining_ids = self.query['ID']
+        if not remaining_ids:
+            # we are done
+            return
+
+        current_batch = self.query.execute(post=True)
+        current_ids = list(OrderedDict.fromkeys(
+            [_ for _ in current_batch.to_table()['ID']]))
+        if not current_ids:
+            raise DALServiceError(
+                'Could not retrieve datalinks for: {}'.format(
+                    ', '.join([_ for _ in remaining_ids])))
+        batch_size = len(current_ids)  # this could be set by the datalink service
+        while remaining_ids:
+            copy_tb = VOTableFile()
+            res_votable = current_batch.votable.get_first_table()
+            # now remove unreferenced services from resources
+            referenced_serviced = [x for x in res_votable.array['service_def'] if x]
+            for resource in current_batch.votable.resources:
+                if resource.type != "results" and resource.ID and resource.ID not in referenced_serviced:
+                    copy_tb.resources.append(Resource())  # TODO deepcopy? Create only once?
+
+            # find index of ID column
+            id_index = None
+            for index, field in enumerate(res_votable.fields):
+                if field.name == 'ID':
+                    id_index = index
+                    break
+            if id_index is None:
+                raise ValueError("No ID column found in the votable")
+
+            # sort results by ID in order to process them in one go
+            np.ma.MaskedArray.sort(res_votable.array, id_index)
+            last_id = res_votable.array[id_index][0]
+            rows = []
+            for index, row in enumerate(res_votable.array):
+                if row[id_index] == last_id:
+                    rows.append(row)
+                else:
+                    _ = last_id
+                    last_id = row[id_index]
+                    update_results_resource(copy_tb, res_votable.fields, rows)
+                    rows = []
+                    remaining_ids.remove(_)
+                    yield DatalinkResults(copy_tb, original_row=original_row)
+            remaining_ids.remove(last_id)
+            update_results_resource(copy_tb, res_votable.fields, rows)
+            yield DatalinkResults(copy_tb, original_row=original_row)
+            if not remaining_ids:
+                return  # we are done
+            self.query['ID'] = remaining_ids[:batch_size]
+            current_batch = self.query.execute(post=True)
+            if not current_batch:
+                raise DALServiceError(
+                    'Could not retrieve datalinks for: {}'.format(
+                        ', '.join([_ for _ in remaining_ids])))
 
     @staticmethod
     def _guess_access_format(row):
