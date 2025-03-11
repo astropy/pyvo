@@ -603,6 +603,7 @@ RegTAP services using:
   http://dc.g-vo.org/tap
   http://gavo.aip.de/tap
   http://voparis-rr.obspm.fr/tap
+  https://registry.euro-vo.org/regtap/tap
   https://vao.stsci.edu/RegTAP/TapService.aspx
 
 
