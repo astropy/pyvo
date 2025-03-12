@@ -930,7 +930,7 @@ def test_sia2_service_operation():
 
 @pytest.mark.remote_data
 def test_endpoint_switching():
-    alt_svc = "http://vao.stsci.edu/RegTAP/TapService.aspx"
+    alt_svc = "https://mast.stsci.edu/vo-tap/api/v0.1/registry"
     previous_url = regtap.REGISTRY_BASEURL
     try:
         regtap.choose_RegTAP_service(alt_svc)

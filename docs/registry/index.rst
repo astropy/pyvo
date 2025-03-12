@@ -597,7 +597,7 @@ You can pre-select the URL by setting the ``IVOA_REGISTRY`` environment
 variable to the TAP access URL of the service you would like to use.  In
 a bash-like shell, you would say::
 
-  export IVOA_REGISTRY="http://vao.stsci.edu/RegTAP/TapService.aspx"
+  export IVOA_REGISTRY="https://mast.stsci.edu/vo-tap/api/v0.1/registry"
 
 before starting python (or the notebook processor).
 
@@ -619,8 +619,8 @@ RegTAP services using:
   http://dc.g-vo.org/tap
   http://gavo.aip.de/tap
   http://voparis-rr.obspm.fr/tap
+  https://mast.stsci.edu/vo-tap/api/v0.1/registry
   https://registry.euro-vo.org/regtap/tap
-  https://vao.stsci.edu/RegTAP/TapService.aspx
 
 
 
