@@ -619,8 +619,8 @@ RegTAP services using:
   http://dc.g-vo.org/tap
   http://gavo.aip.de/tap
   http://voparis-rr.obspm.fr/tap
-  https://registry.euro-vo.org/regtap/tap
   https://mast.stsci.edu/vo-tap/api/v0.1/registry
+  https://registry.euro-vo.org/regtap/tap
 
 
 
