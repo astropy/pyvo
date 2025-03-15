@@ -169,7 +169,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
     """
     Mixin for datalink functionality for results classes.
     """
-    def _iter_datalinks_from_dlblock(self, datalink_service):
+    def _iter_datalinks_from_dlblock(self, datalink_service, trivial=False):
         """yields datalinks from the current rows using a datalink
         service RESOURCE.
         """
@@ -178,33 +178,46 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         # original VOTable response is created and for each iteration the results are
         # updated to correspond to the next ID in the batch before the response is
         # yielded to the caller.
-        def update_results_resource(tb, fields, rows):
-            # updates the results resources of a table (tb) with new fields and rows
-            for rsc in copy_tb.resources:
-                if rsc.type == "results":
-                    copy_tb.resources.remove(rsc)
-                    break
+        def get_id_results(src_datalink_tb, rows):
+            # takes a datalink VOTable and a list of rows and returns a new
+            # VOTable corresponding to the rows
+            tb = VOTableFile()
             new_table = TableElement(tb)
-            new_table.fields.extend(fields)
+            new_table.fields.extend(src_datalink_tb.get_first_table().fields)
             new_table.create_arrays(len(rows))
             for index, row in enumerate(rows):
                 new_table.array[index] = row
-            new_results = Resource()
-            new_results.type = "results"
-            resource.tables.append(new_table)
-            tb.resources.append(resource)
+            results_resource = Resource()
+            results_resource.type = "results"
+            results_resource.tables.append(new_table)
+            tb.resources.append(results_resource)
+            # now remove unreferenced services from resources
+            referenced_serviced = [x for x in
+                                   tb.get_first_table().array['service_def']
+                                   if x]
+            appended = []
+            for resource in src_datalink_tb.resources:
+                if resource.type != "results" and resource.ID and resource.ID in referenced_serviced:
+                    tb.resources.append(resource)
+                    appended.append(resource)
+            src_datalink_tb.resources[:] = [x for x in src_datalink_tb.resources if x not in appended]
             return tb
 
+        if trivial:
+            for id in self:
+                self.query = DatalinkQuery.from_resource(id, self._datalink, session=self._session, original_row=None)
+                yield DatalinkResults(
+                    self.query.execute(post=True).votable,
+                    original_row=None)
+            return
+
         original_row = None
-        for row in self:
-            original_row = row
-            self.query = DatalinkQuery.from_resource(
-                [_ for _ in self],
-                self._datalink,
-                session=self._session,
-                original_row=row)
+        self.query = DatalinkQuery.from_resource(
+            [_ for _ in self],
+            self._datalink,
+            session=self._session,
+            original_row=None)
         remaining_ids = self.query['ID']
-        # self.query['ID'] = remaining_ids[:1] # batch size 1
         if not remaining_ids:
             # we are done
             return
@@ -219,14 +232,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         batch_size = len(current_ids)  # this could be set by the datalink service
         while remaining_ids:
             start_remaining_ids = len(remaining_ids)
-            copy_tb = VOTableFile()
             res_votable = current_batch.votable.get_first_table()
-            # now remove unreferenced services from resources
-            referenced_serviced = [x for x in res_votable.array['service_def'] if x]
-            for resource in current_batch.votable.resources:
-                if resource.type != "results" and resource.ID and resource.ID not in referenced_serviced:
-                    copy_tb.resources.append(Resource())  # TODO deepcopy? Create only once?
-
             # find index of ID column
             id_index = None
             for index, field in enumerate(res_votable.fields):
@@ -246,13 +252,12 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                 else:
                     _ = last_id
                     last_id = row[id_index]
-                    update_results_resource(copy_tb, res_votable.fields, rows)
+                    yield DatalinkResults(get_id_results(current_batch.votable, rows), original_row=original_row)
                     rows = []
+                    rows.append(row)
                     remaining_ids.remove(_)
-                    yield DatalinkResults(copy_tb, original_row=original_row)
             remaining_ids.remove(last_id)
-            update_results_resource(copy_tb, res_votable.fields, rows)
-            yield DatalinkResults(copy_tb, original_row=original_row)
+            yield DatalinkResults(get_id_results(current_batch.votable, rows), original_row=original_row)
             if not remaining_ids:
                 return  # we are done
             if len(remaining_ids) == start_remaining_ids:
@@ -343,7 +348,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                         access_url,
                         original_row=row)
 
-    def iter_datalinks(self):
+    def iter_datalinks(self, trivial=False):
         """
         Iterates over all datalinks in a DALResult.
         """
@@ -364,7 +369,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             yield from self._iter_datalinks_from_product_rows()
 
         else:
-            yield from self._iter_datalinks_from_dlblock(self._datalink)
+            yield from self._iter_datalinks_from_dlblock(self._datalink, trivial=trivial)
 
 
 class DatalinkRecordMixin:
