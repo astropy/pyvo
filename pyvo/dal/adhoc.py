@@ -169,21 +169,24 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
     """
     Mixin for datalink functionality for results classes.
     """
-    def _iter_datalinks_from_dlblock(self, datalink_service, trivial=False):
+    def _iter_datalinks_from_dlblock(self, trivial=False):
         """yields datalinks from the current rows using a datalink
         service RESOURCE.
+
+        Parameters
+        ----------
+
+        trivial : bool
+            True for sending each ID individually to the datalink service, False
+            for sending batches of IDs. Note that this only affects the
+            implementation - functionally the two options are equivalent.
         """
-        # For performance reasons the implementation of this method sends batches of IDs
-        # to the datalink service. To mimic individual responses, a scheleton of the
-        # original VOTable response is created and for each iteration the results are
-        # updated to correspond to the next ID in the batch before the response is
-        # yielded to the caller.
-        def get_id_results(src_datalink_tb, rows):
-            # takes a datalink VOTable and a list of rows and returns a new
-            # VOTable corresponding to the rows
+        def get_results_tb(rows, dl_batch_tb):
+            # Creates a new DL result table with the given rows as the results data
+            # and the dl_batch_tb as the template for both fields and resources
             tb = VOTableFile()
             new_table = TableElement(tb)
-            new_table.fields.extend(src_datalink_tb.get_first_table().fields)
+            new_table.fields.extend(dl_batch_tb.get_first_table().fields)
             new_table.create_arrays(len(rows))
             for index, row in enumerate(rows):
                 new_table.array[index] = row
@@ -191,16 +194,10 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             results_resource.type = "results"
             results_resource.tables.append(new_table)
             tb.resources.append(results_resource)
-            # now remove unreferenced services from resources
-            referenced_serviced = [x for x in
-                                   tb.get_first_table().array['service_def']
-                                   if x]
-            appended = []
-            for resource in src_datalink_tb.resources:
-                if resource.type != "results" and resource.ID and resource.ID in referenced_serviced:
+            # now add all the other resources from the dl_batch_tb
+            for resource in dl_batch_tb.resources:
+                if resource.type != "results":
                     tb.resources.append(resource)
-                    appended.append(resource)
-            src_datalink_tb.resources[:] = [x for x in src_datalink_tb.resources if x not in appended]
             return tb
 
         if trivial:
@@ -224,7 +221,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
 
         current_batch = self.query.execute(post=True)
         current_ids = list(OrderedDict.fromkeys(
-            [_ for _ in current_batch.to_table()['ID']]))
+            [_ for _ in current_batch['ID']]))
         if not current_ids:
             raise DALServiceError(
                 'Could not retrieve datalinks for: {}'.format(
@@ -233,16 +230,10 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         while remaining_ids:
             start_remaining_ids = len(remaining_ids)
             res_votable = current_batch.votable.get_first_table()
-            # find index of ID column
-            id_index = None
-            for index, field in enumerate(res_votable.fields):
-                if field.name == 'ID':
-                    id_index = index
-                    break
-            if id_index is None:
-                raise ValueError("No ID column found in the votable")
 
-            # sort results by ID in order to process them in one go
+            id_index = 0  # Datalink spec
+            # Datalink spec: "... all links for a single ID value must be served in
+            # consecutive rows in the output"
             np.ma.MaskedArray.sort(res_votable.array, id_index)
             last_id = res_votable.array[id_index][0]
             rows = []
@@ -252,12 +243,12 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                 else:
                     _ = last_id
                     last_id = row[id_index]
-                    yield DatalinkResults(get_id_results(current_batch.votable, rows), original_row=original_row)
+                    yield DatalinkResults(get_results_tb(rows, current_batch.votable), original_row=original_row)
                     rows = []
                     rows.append(row)
                     remaining_ids.remove(_)
             remaining_ids.remove(last_id)
-            yield DatalinkResults(get_id_results(current_batch.votable, rows), original_row=original_row)
+            yield DatalinkResults(get_results_tb(rows, current_batch.votable), original_row=original_row)
             if not remaining_ids:
                 return  # we are done
             if len(remaining_ids) == start_remaining_ids:
@@ -369,7 +360,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             yield from self._iter_datalinks_from_product_rows()
 
         else:
-            yield from self._iter_datalinks_from_dlblock(self._datalink, trivial=trivial)
+            yield from self._iter_datalinks_from_dlblock(trivial=trivial)
 
 
 class DatalinkRecordMixin:
