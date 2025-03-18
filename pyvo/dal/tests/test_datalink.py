@@ -144,13 +144,14 @@ def test_datalink():
     results = vo.spectrumsearch(
         'http://example.com/ssa_datalink', (30, 30))
 
-    datalinks = next(results.iter_datalinks())
+    for trivial in [False, True]:
+        datalinks = next(results.iter_datalinks(trivial=trivial))
 
-    assert datalinks.original_row["accsize"] == 100800
+        assert datalinks.original_row["accsize"] == 100800
 
-    assert 4 == len(datalinks)
-    for dl in datalinks:
-        assert dl.semantics in ['#this', '#preview', '#progenitor', '#proc']
+        assert 4 == len(datalinks)
+        for dl in datalinks:
+            assert dl.semantics in ['#this', '#preview', '#progenitor', '#proc']
 
 
 @pytest.mark.usefixtures('obscore_datalink', 'res_datalink')

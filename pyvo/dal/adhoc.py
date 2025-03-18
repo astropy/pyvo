@@ -201,14 +201,25 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             return tb
 
         if trivial:
-            for id in self:
-                self.query = DatalinkQuery.from_resource(id, self._datalink, session=self._session, original_row=None)
+            for row in self:
+                self.query = DatalinkQuery.from_resource(
+                    row, self._datalink, session=self._session, original_row=None)
                 yield DatalinkResults(
                     self.query.execute(post=True).votable,
-                    original_row=None)
+                    original_row=row)
             return
 
-        original_row = None
+        # map of IDs to original rows
+        original_rows = {}
+        input_params = _get_input_params_from_resource(self._datalink)
+        for name, input_param in input_params.items():
+            for row in self:
+                try:
+                    if row[input_param.ref]:
+                        original_rows[row[input_param.ref]] = row
+                except KeyError:
+                    pass
+
         self.query = DatalinkQuery.from_resource(
             [_ for _ in self],
             self._datalink,
@@ -234,21 +245,23 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             id_index = 0  # Datalink spec
             # Datalink spec: "... all links for a single ID value must be served in
             # consecutive rows in the output"
-            np.ma.MaskedArray.sort(res_votable.array, id_index)
+            np.ma.MaskedArray.sort(res_votable.array, id_index)  # TODO
             last_id = res_votable.array[id_index][0]
             rows = []
             for index, row in enumerate(res_votable.array):
                 if row[id_index] == last_id:
                     rows.append(row)
                 else:
-                    _ = last_id
+                    cur_id = last_id
                     last_id = row[id_index]
-                    yield DatalinkResults(get_results_tb(rows, current_batch.votable), original_row=original_row)
-                    rows = []
-                    rows.append(row)
-                    remaining_ids.remove(_)
+
+                    yield DatalinkResults(get_results_tb(rows, current_batch.votable),
+                                          original_row=original_rows.get(cur_id, None))
+                    rows = [row]
+                    remaining_ids.remove(cur_id)
             remaining_ids.remove(last_id)
-            yield DatalinkResults(get_results_tb(rows, current_batch.votable), original_row=original_row)
+            yield DatalinkResults(get_results_tb(rows, current_batch.votable),
+                                  original_row=original_rows.get(last_id, None))
             if not remaining_ids:
                 return  # we are done
             if len(remaining_ids) == start_remaining_ids:
