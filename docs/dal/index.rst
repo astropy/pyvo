@@ -834,7 +834,7 @@ be None if pyvo does not know what row the datalink came from):
 
 .. doctest-remote-data::
   >>> dl.original_row["obs_title"]
-  'CALIFA V1200 UGC00005'
+  'CALIFA V1200 UGC00005'  # doctest: +IGNORE_OUTPUT
 
 Consider ``original_row`` read only.  We do not define what happens when
 you modify it.

@@ -18,7 +18,11 @@ from astropy import units as u
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
 
-from astropy.io.votable.tree import Resource, Group, VOTableFile, TableElement
+from astropy.io.votable.tree import Resource, Group, VOTableFile
+try:
+    from astropy.io.votable.tree import TableElement
+except ImportError:
+    from astropy.io.votable.tree import Table as TableElement
 from astropy.utils.collections import HomogeneousList
 
 from ..utils.decorators import stream_decode_content
@@ -245,7 +249,9 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             id_index = 0  # Datalink spec
             # Datalink spec: "... all links for a single ID value must be served in
             # consecutive rows in the output"
-            np.ma.MaskedArray.sort(res_votable.array, id_index)  # TODO
+            # Accordingly, the line below should not be necessary but in
+            # practice it might be needed
+            np.ma.MaskedArray.sort(res_votable.array, id_index)
             last_id = res_votable.array[id_index][0]
             rows = []
             for index, row in enumerate(res_votable.array):
@@ -258,8 +264,10 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                     yield DatalinkResults(get_results_tb(rows, current_batch.votable),
                                           original_row=original_rows.get(cur_id, None))
                     rows = [row]
-                    remaining_ids.remove(cur_id)
-            remaining_ids.remove(last_id)
+                    if cur_id in remaining_ids:
+                        remaining_ids.remove(cur_id)
+            if last_id in remaining_ids:
+                remaining_ids.remove(last_id)
             yield DatalinkResults(get_results_tb(rows, current_batch.votable),
                                   original_row=original_rows.get(last_id, None))
             if not remaining_ids:

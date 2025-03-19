@@ -163,9 +163,10 @@ def test_datalink_batch():
     results = vo.dal.imagesearch(
         'http://example.com/obscore', (30, 30))
 
-    dls = list(results.iter_datalinks())
-    assert len(dls) == 3
-    assert dls[0].original_row["obs_collection"] == "MACHO"
+    for trivial in [False, True]:
+        dls = list(results.iter_datalinks(trivial=trivial))
+        assert len(dls) == 3
+        assert dls[0].original_row["obs_collection"] == "MACHO"
 
 
 @pytest.mark.usefixtures('proc', 'datalink_vocabulary')
