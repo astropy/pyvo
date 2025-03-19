@@ -833,8 +833,8 @@ generated from; use the ``original_row`` attribute for that (which may
 be None if pyvo does not know what row the datalink came from):
 
 .. doctest-remote-data::
-  >>> dl.original_row["obs_title"]
-  'CALIFA V1200 UGC00005'  # doctest: +IGNORE_OUTPUT
+  >>> dl.original_row["obs_title"]  # doctest: +IGNORE_OUTPUT
+  'CALIFA V1200 UGC00005'
 
 Consider ``original_row`` read only.  We do not define what happens when
 you modify it.
