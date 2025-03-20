@@ -144,8 +144,8 @@ def test_datalink():
     results = vo.spectrumsearch(
         'http://example.com/ssa_datalink', (30, 30))
 
-    for trivial in [False, True]:
-        datalinks = next(results.iter_datalinks(trivial=trivial))
+    for preserve_order in [False, True]:
+        datalinks = next(results.iter_datalinks(preserve_order=preserve_order))
 
         assert datalinks.original_row["accsize"] == 100800
 
@@ -163,8 +163,8 @@ def test_datalink_batch():
     results = vo.dal.imagesearch(
         'http://example.com/obscore', (30, 30))
 
-    for trivial in [False, True]:
-        dls = list(results.iter_datalinks(trivial=trivial))
+    for preserve_order in [False, True]:
+        dls = list(results.iter_datalinks(preserve_order=preserve_order))
         assert len(dls) == 3
         assert dls[0].original_row["obs_collection"] == "MACHO"
 
