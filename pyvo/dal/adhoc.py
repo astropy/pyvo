@@ -6,7 +6,6 @@ import numpy as np
 import warnings
 import copy
 import requests
-from collections import OrderedDict
 
 from .query import DALResults, DALQuery, DALService, Record
 from .exceptions import DALServiceError
@@ -173,21 +172,24 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
     """
     Mixin for datalink functionality for results classes.
     """
-    def _iter_datalinks_from_dlblock(self, trivial=False):
+    def _iter_datalinks_from_dlblock(self, preserve_order=False):
         """yields datalinks from the current rows using a datalink
         service RESOURCE.
 
         Parameters
         ----------
 
-        trivial : bool
-            True for sending each ID individually to the datalink service, False
-            for sending batches of IDs. Note that this only affects the
-            implementation - functionally the two options are equivalent.
+        preserve_order : bool
+            True to return the datalinks keeping the order of the current rows.
+            NOTE: There might be a performance penalty for keeping the order as
+            one request per row is sent to the service. When the order of the
+            datalinks is not important, the execution is optimized to query the
+            service in batches.
+
         """
-        def get_results_tb(rows, dl_batch_tb):
+        def _get_results_tb(rows, dl_batch_tb):
             # Creates a new DL result table with the given rows as the results data
-            # and the dl_batch_tb as the template for both fields and resources
+            # and the dl_batch_tb as the template for both table fields and other resources
             tb = VOTableFile()
             new_table = TableElement(tb)
             new_table.fields.extend(dl_batch_tb.get_first_table().fields)
@@ -204,7 +206,8 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                     tb.resources.append(resource)
             return tb
 
-        if trivial:
+        if preserve_order:
+            # one request at the time to preserve order
             for row in self:
                 self.query = DatalinkQuery.from_resource(
                     row, self._datalink, session=self._session, original_row=None)
@@ -213,7 +216,8 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                     original_row=row)
             return
 
-        # map of IDs to original rows
+        # map of IDs to original rows needed to map the results back to the
+        # original rows
         original_rows = {}
         input_params = _get_input_params_from_resource(self._datalink)
         for name, input_param in input_params.items():
@@ -231,22 +235,21 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             original_row=None)
         remaining_ids = self.query['ID']
         if not remaining_ids:
-            # we are done
+            # we are done before starting
             return
 
         current_batch = self.query.execute(post=True)
-        current_ids = list(OrderedDict.fromkeys(
-            [_ for _ in current_batch['ID']]))
-        if not current_ids:
+        if len(current_batch) == 0:
             raise DALServiceError(
                 'Could not retrieve datalinks for: {}'.format(
                     ', '.join([_ for _ in remaining_ids])))
-        batch_size = len(current_ids)  # this could be set by the datalink service
+        batch_size = 0  # unknown yet
+        batch_size_determined = False  # apparent only after first returned batch
         while remaining_ids:
             start_remaining_ids = len(remaining_ids)
             res_votable = current_batch.votable.get_first_table()
 
-            id_index = 0  # Datalink spec
+            id_index = 0  # Datalink spec: ID is the first column
             # Datalink spec: "... all links for a single ID value must be served in
             # consecutive rows in the output"
             # Accordingly, the line below should not be necessary but in
@@ -258,17 +261,22 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                 if row[id_index] == last_id:
                     rows.append(row)
                 else:
-                    cur_id = last_id
+                    yield DatalinkResults(_get_results_tb(rows, current_batch.votable),
+                                          original_row=original_rows.get(last_id, None))
+                    if not batch_size_determined:
+                        batch_size += 1
+                    if last_id in remaining_ids:
+                        remaining_ids.remove(last_id)
+                    # proceed to the next ID
                     last_id = row[id_index]
-
-                    yield DatalinkResults(get_results_tb(rows, current_batch.votable),
-                                          original_row=original_rows.get(cur_id, None))
                     rows = [row]
-                    if cur_id in remaining_ids:
-                        remaining_ids.remove(cur_id)
+
             if last_id in remaining_ids:
                 remaining_ids.remove(last_id)
-            yield DatalinkResults(get_results_tb(rows, current_batch.votable),
+            if not batch_size_determined:
+                batch_size += 1
+                batch_size_determined = True
+            yield DatalinkResults(_get_results_tb(rows, current_batch.votable),
                                   original_row=original_rows.get(last_id, None))
             if not remaining_ids:
                 return  # we are done
@@ -360,17 +368,22 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                         access_url,
                         original_row=row)
 
-    def iter_datalinks(self, trivial=False):
+    def iter_datalinks(self, preserve_order=False):
         """
         Iterates over all datalinks in a DALResult.
+
+        Parameters
+        ----------
+
+        preserve_order : bool
+            True to return the datalinks keeping the order of the current rows.
+            NOTE: There might be a performance penalty for keeping the order as
+            one request per row is sent to the service. When the order of the
+            datalinks is not important, the execution is optimized to query the
+            service in batches.
+
         """
-        # To reduce the number of calls to the Datalink service, multiple
-        # IDs are sent in batches. The appropriate batch size is not available
-        # as each service has its own criteria for determining the maximum
-        # number of IDs processed per request. To overcome this limitation,
-        # this method initially sends all the available IDs and if the
-        # response is partial, uses the size of the response as the batch
-        # size.
+
         if not hasattr(self, '_datalink'):
             try:
                 self._datalink = self.get_adhocservice_by_ivoid(DATALINK_IVOID)
@@ -381,7 +394,8 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             yield from self._iter_datalinks_from_product_rows()
 
         else:
-            yield from self._iter_datalinks_from_dlblock(trivial=trivial)
+            yield from self._iter_datalinks_from_dlblock(
+                preserve_order=preserve_order)
 
 
 class DatalinkRecordMixin:

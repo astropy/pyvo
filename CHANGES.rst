@@ -27,6 +27,8 @@ Bug Fixes
 
 - Switch to do minimal VOSI tables downloads for TAP metadata. [#634]
 
+- Fix performance issues with datalink results. [#635]
+
 
 1.6 (2024-11-01)
 ================
