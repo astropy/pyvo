@@ -12,7 +12,7 @@ import astropy.units as u
 from astropy.coordinates import SkyCoord
 from pyvo.dal.scs import SCSService
 from pyvo.mivot.version_checker import check_astropy_version
-from pyvo.mivot import MivotViewer
+from pyvo.mivot.viewer import MivotViewer
 from astropy.io.votable import parse
 from pyvo.mivot.utils.dict_utils import DictUtils
 

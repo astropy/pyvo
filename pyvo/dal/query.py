@@ -21,7 +21,7 @@ standard data model.  Usually the field names are used to uniquely
 identify table columns.
 """
 __all__ = ["DALService", "DALServiceError", "DALQuery", "DALQueryError",
-           "DALResults", "Record"]
+           "DALResults", "Record", "UploadList"]
 
 import os
 import shutil
@@ -311,7 +311,7 @@ class DALResults:
 
         Parameters
         ----------
-        votable : str
+        votable : astropy.io.votable.tree.VOTableFile
            the service response parsed into an
            astropy.io.votable.tree.VOTableFile instance.
         url : str

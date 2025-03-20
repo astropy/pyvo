@@ -4,18 +4,31 @@
 Enhancements and Fixes
 ----------------------
 
+- Extending the MIVOT module with the ability to build annotations component by component
+  and put them into a VOTable. [#627]
+  
 - Make deletion of TAP jobs optional via a new ``delete`` kwarg. [#640]
 
-- Provide more informative exception message when requests to endpoints fail. [#641]
-
 - Change AsyncTAPJob.result to return None if no result is found explicitly [#644]
+
+- Add a UAT constraint to the registry interface for constraining
+  subjects [#649]
+
 
 
 Deprecations and Removals
 -------------------------
 
 
-1.6.1 (unreleased)
+1.6.2 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+
+
+1.6.1 (2025-02-12)
 ==================
 
 Bug Fixes
@@ -26,6 +39,8 @@ Bug Fixes
 - Fix string literal generation for SQL query when using numpy >=2.0. [#624]
 
 - Switch to do minimal VOSI tables downloads for TAP metadata. [#634]
+
+- Provide more informative exception message when requests to endpoints fail. [#641]
 
 - Fix performance issues with datalink results. [#635]
 
@@ -61,18 +76,20 @@ Enhancements and Fixes
 - MIVOT module: the model references in the dictionaries that are used to build ``MivotInstance``
   objects are made more consistent [#551]
 
-- RegTAP constraints involving tables other than rr.resource are now
-  done via subqueries for less duplication of interfaces. [#562, #572]
-
 - MIVOT module: If the MIVOT annotation block contains a valid instance of the
   ``mango:EpochPosition`` class, the dynamic object describing the mapped
   data can generate a valid SkyCoord instance. [#591]
+
+- RegTAP constraints involving tables other than rr.resource are now
+  done via subqueries for less duplication of interfaces. [#562, #572]
+
 
 - New sub-package discover for global dataset discovery. [#470]
 
 - Updated getdatalink to be consistent with iter_datalinks. [#613]
 
-
+  
+  
 Deprecations and Removals
 -------------------------
 

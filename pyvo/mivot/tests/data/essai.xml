@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Produced with astropy.io.votable version 6.0.0
+<!-- Produced with astropy.io.votable version 6.1.7
      http://www.astropy.org/ -->
 <VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd">
  <RESOURCE ID="yCat_1329" type="results">
@@ -9,6 +9,37 @@
   <COOSYS ID="H" system="ICRS"/>
   <TIMESYS ID="time_1" refposition="UNKNOWN" timeorigin="0.0" timescale="UNKNOWN"/>
   <INFO ID="ivoid" name="ivoid" value="ivo://cds.vizier/i/329">IVOID of underlying data collection</INFO>
+  <RESOURCE type="meta">
+   <VODML xmlns="http://www.ivoa.net/xml/mivot">
+   <REPORT status="OK">Mivot writer unit test</REPORT>
+   <MODEL name="ivoa" url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml" />
+   <MODEL name="coords" url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml" />
+   <MODEL name="mango" url="https://raw.githubusercontent.com/lmichel/MANGO/draft-0.1/vo-dml/mango.vo-dml.xml" />
+   <GLOBALS>
+   <INSTANCE dmtype="coords:SpaceSys" dmid="_spacesys_icrs" >
+      <INSTANCE dmtype="coords:SpaceFrame" dmrole="coords:PhysicalCoordSys.frame" >
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:SpaceFrame.spaceRefFrame" value="ICRS"  />
+      <INSTANCE dmtype="coords:StdRefLocation" dmrole="coords:SpaceFrame.refPosition" >
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:StdRefLocation.position" value="BARYCENTER"  />
+   </INSTANCE>
+   </INSTANCE>
+   </INSTANCE>
+   </GLOBALS>
+   <TEMPLATES>
+   <INSTANCE dmtype="mango:EpochPosition" >
+      <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.longitude" unit="deg" ref="RAICRS"  />
+      <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.latitude" unit="deg" ref="DEICRS"  />
+      <REFERENCE dmrole="mango:EpochPosition.spaceSys" dmref="_spacesys_icrs" />
+      <INSTANCE dmtype="mango:EpochPositionErrors" dmrole="mango:EpochPosition.errors" >
+      <INSTANCE dmtype="mango:error.ErrorCorrMatrix" dmrole="mango:EpochPositionErrors.position" >
+      <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.ErrorCorrMatrix.sigma1" unit="arcsec" ref="sigm"  />
+      <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.ErrorCorrMatrix.sigma2" unit="arcsec" ref="sigm"  />
+   </INSTANCE>
+   </INSTANCE>
+   </INSTANCE>
+   </TEMPLATES>
+   </VODML>
+  </RESOURCE>
   <TABLE ID="I_329_urat1" name="I/329/urat1" nrows="1">
    <DESCRIPTION>
     URAT1 catalog

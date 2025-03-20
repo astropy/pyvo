@@ -84,9 +84,7 @@ class DALProtocolError(DALAccessError):
         ----------
         reason : str
            a message describing the cause of the error
-        code : int
-           the HTTP error code (as an integer)
-        cause : str
+        cause : Exception
            an exception issued as the underlying cause.  A value
            of None indicates that no underlying exception was
            caught.
@@ -117,7 +115,7 @@ class DALFormatError(DALProtocolError):
 
         Parameters
         ----------
-        cause : str
+        cause : Exception
            an exception issued as the underlying cause.  A value
            of None indicates that no underlying exception was caught.
         url
@@ -150,7 +148,7 @@ class DALServiceError(DALProtocolError):
            a message describing the cause of the error
         code : int
            the HTTP error code (as an integer)
-        cause : str
+        cause : Exception
            an exception issued as the underlying cause.  A value
            of None indicates that no underlying exception was
            caught.

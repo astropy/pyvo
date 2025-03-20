@@ -17,7 +17,7 @@ from ..utils.http import use_session
 __all__ = ['CapabilityMixin', 'VOSITables']
 
 
-class EndpointMixin():
+class EndpointMixin:
     def _get_endpoint_candidates(self, endpoint):
         """Construct endpoint URLs from base URL and endpoint"""
         urlcomp = urlparse(self.baseurl)

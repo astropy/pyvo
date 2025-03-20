@@ -15,7 +15,7 @@ metadata.
 .. doctest-remote-data::
 
     >>> import pyvo as vo
-    >>> service = vo.dal.SIAService("http://dc.zah.uni-heidelberg.de/lswscans/res/positions/siap/siap.xml")
+    >>> service = vo.dal.SIAService("http://dc.g-vo.org/lswscans/res/positions/siap/siap.xml")
     >>> print(service.description)
     Scans of plates kept at Landessternwarte Heidelberg-Königstuhl. They
     were obtained at location, at the German-Spanish Astronomical Center
@@ -473,7 +473,7 @@ Basic queries are done with the ``pos`` and ``size`` parameters described in
 
     >>> pos = SkyCoord.from_name('Eta Carina')
     >>> size = Quantity(0.5, unit="deg")
-    >>> sia_service = vo.dal.SIAService("http://dc.zah.uni-heidelberg.de/hppunion/q/im/siap.xml")
+    >>> sia_service = vo.dal.SIAService("http://dc.g-vo.org/hppunion/q/im/siap.xml")
     >>> sia_results = sia_service.search(pos=pos, size=size)
 
 The dataset format, 'all' by default, can be specified:
@@ -565,7 +565,7 @@ within a circular region on the sky defined by the parameters ``pos``
 
 .. doctest-remote-data::
 
-    >>> scs_srv = vo.dal.SCSService('http://dc.zah.uni-heidelberg.de/arihip/q/cone/scs.xml')
+    >>> scs_srv = vo.dal.SCSService('http://dc.g-vo.org/arihip/q/cone/scs.xml')
     >>> scs_results = scs_srv.search(pos=pos, radius=size)
 
 This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter.
@@ -754,7 +754,7 @@ If the row contains datasets, they are exposed by several retrieval methods:
 .. doctest-skip::
 
     >>> row.getdataurl()
-    'http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V500/NGC0551.V500.rscube.fits'
+    'http://dc.g-vo.org/getproduct/califa/datadr3/V500/NGC0551.V500.rscube.fits'
     >>> type(row.getdataset())
     <class 'urllib3.response.HTTPResponse'>
 
