@@ -816,7 +816,7 @@ previews:
 .. doctest-remote-data::
     >>> rows = vo.dal.TAPService("http://dc.g-vo.org/tap"
     ... ).run_sync("select top 5 * from califadr3.cubes order by califaid")
-    >>> for dl in rows.iter_datalinks():  # doctest: +IGNORE_WARNINGS
+    >>> for dl in rows.iter_datalinks(preserve_order=True):  # doctest: +IGNORE_WARNINGS
     ...     print(next(dl.bysemantics("#preview"))["access_url"])
     http://dc.g-vo.org/getproduct/califa/datadr3/V1200/IC5376.V1200.rscube.fits?preview=True
     http://dc.g-vo.org/getproduct/califa/datadr3/COMB/IC5376.COMB.rscube.fits?preview=True

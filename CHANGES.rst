@@ -42,6 +42,8 @@ Bug Fixes
 
 - Provide more informative exception message when requests to endpoints fail. [#641]
 
+- Fix performance issues with datalink results. [#635]
+
 
 1.6 (2024-11-01)
 ================
