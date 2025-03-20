@@ -3,6 +3,8 @@
 """
 Tests for pyvo.io.vosi
 """
+
+import contextlib
 import io
 from operator import eq as equals
 
@@ -20,6 +22,12 @@ from astropy.utils.data import get_pkg_data_filename
 def _parsed_caps():
     return vosi.parse_capabilities(get_pkg_data_filename(
         "data/capabilities.xml"))
+
+
+@pytest.fixture(name='parsed_minimal_tapregext')
+def _minimal_tapregext():
+    return vosi.parse_capabilities(get_pkg_data_filename(
+        "data/capabilities/minimal-tapregext.xml"))
 
 
 @pytest.mark.usefixtures("parsed_caps")
@@ -149,6 +157,34 @@ class TestCapabilities:
             vosi.parse_capabilities(get_pkg_data_filename(
                 'data/capabilities/multiple_capa_descriptions.xml'),
                 pedantic=True)
+
+
+@pytest.mark.usefixtures("parsed_minimal_tapregext")
+class TestMinimalTAPRegExt:
+    def test_standard_id(self, parsed_minimal_tapregext):
+        assert isinstance(parsed_minimal_tapregext[2], tr.TableAccess)
+
+    def test_limits(self, parsed_minimal_tapregext):
+        assert parsed_minimal_tapregext[2]._uploadlimit is None
+        assert parsed_minimal_tapregext[2]._outputlimit is None
+
+    def test_adql(self, parsed_minimal_tapregext):
+        assert parsed_minimal_tapregext[2].get_adql().name == "ADQL"
+
+    def test_udfs(self, parsed_minimal_tapregext):
+        assert parsed_minimal_tapregext[2].get_adql(
+            ).languagefeaturelists == []
+
+    def test_uploadmethods(self, parsed_minimal_tapregext):
+        assert parsed_minimal_tapregext[2].uploadmethods == []
+
+    def test_describe(self, parsed_minimal_tapregext):
+        with io.StringIO() as buf, contextlib.redirect_stdout(buf):
+            parsed_minimal_tapregext[2].describe()
+            output = buf.getvalue()
+        assert "http://example.org/tap" in output
+        assert "Output format text/xml" in output
+        assert "Maximal size" not in output
 
 
 @pytest.mark.usefixtures("parsed_caps")
