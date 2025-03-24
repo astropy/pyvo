@@ -172,8 +172,7 @@ class TestMinimalTAPRegExt:
         assert parsed_minimal_tapregext[2].get_adql().name == "ADQL"
 
     def test_udfs(self, parsed_minimal_tapregext):
-        assert parsed_minimal_tapregext[2].get_adql(
-            ).languagefeaturelists == []
+        assert parsed_minimal_tapregext[2].get_adql().languagefeaturelists == []
 
     def test_uploadmethods(self, parsed_minimal_tapregext):
         assert parsed_minimal_tapregext[2].uploadmethods == []
