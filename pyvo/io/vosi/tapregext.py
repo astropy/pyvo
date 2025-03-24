@@ -369,6 +369,9 @@ class DataLimit(ContentMixin, Element):
 
         self.unit = unit
 
+    def __str__(self):
+        return f"{self.unit}:{self.content}"
+
     @xmlattribute
     def unit(self):
         return self._unit
@@ -400,12 +403,12 @@ class DataLimits(Element):
         self.hard = None
 
     def __repr__(self):
-        return '<DataLimits default={}:{} hard={}:{}/>'.format(
-            self.default.unit,
-            self.default.content,
-            self.hard.unit,
-            self.hard.content
-        )
+        parts = []
+        if self.default is not None:
+            parts.append("default={self.default}")
+        if self.hard is not None:
+            parts.append("hard={self.hard}")
+        return '<DataLimits {}/>'.format(" ".join(parts))
 
     @xmlelement(cls=DataLimit, multiple_exc=W29)
     def default(self):
@@ -494,7 +497,7 @@ class TableAccess(TAPCapRestriction):
                 )
             print()
 
-        if self.uploadlimit:
+        if self.uploadlimit and self.uploadlimit.hard:
             print("Maximal size of uploads")
             print(indent("Maximum {} {}".format(
                 self.uploadlimit.hard.content, self.uploadlimit.hard.unit), INDENT))
