@@ -145,8 +145,9 @@ def test_datalink():
         'http://example.com/ssa_datalink', (30, 30))
 
     for preserve_order in [False, True]:
-        datalinks = next(results.iter_datalinks(preserve_order=preserve_order))
-
+        dl_res = set(results.iter_datalinks(preserve_order=preserve_order))
+        assert len(dl_res) == 1
+        datalinks = dl_res.pop()
         assert datalinks.original_row["accsize"] == 100800
 
         assert 4 == len(datalinks)
