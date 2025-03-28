@@ -202,7 +202,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             tb.resources.append(results_resource)
             # now add all the other resources from the dl_batch_tb
             for resource in dl_batch_tb.resources:
-                if resource.type != "results":
+                if resource.type == "meta":
                     tb.resources.append(resource)
             return tb
 
@@ -216,17 +216,16 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                     original_row=row)
             return
 
-        # map of IDs to original rows needed to map the results back to the
-        # original rows
+        # results from batch calls are not guaranteed to be in the same order with
+        # the results rows. To map the links back to the original result rows,
+        # create a dictionary of IDs to result rows, where ID is the value of
+        # the column given by the ref field of the service descriptor (input parameter)
         original_rows = {}
         input_params = _get_input_params_from_resource(self._datalink)
         for name, input_param in input_params.items():
-            for row in self:
-                try:
-                    if row[input_param.ref]:
-                        original_rows[row[input_param.ref]] = row
-                except KeyError:
-                    pass
+            if input_param.ref:
+                for row in self:
+                    original_rows[row[input_param.ref]] = row
 
         self.query = DatalinkQuery.from_resource(
             [_ for _ in self],
