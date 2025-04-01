@@ -6,7 +6,7 @@ Enhancements and Fixes
 
 - Extending the MIVOT module with the ability to build annotations component by component
   and put them into a VOTable. [#627]
-  
+
 - Make deletion of TAP jobs optional via a new ``delete`` kwarg. [#640]
 
 - Change AsyncTAPJob.result to return None if no result is found explicitly [#644]
@@ -41,6 +41,8 @@ Bug Fixes
 - Switch to do minimal VOSI tables downloads for TAP metadata. [#634]
 
 - Provide more informative exception message when requests to endpoints fail. [#641]
+
+- Fix performance issues with datalink results. [#635]
 
 
 1.6 (2024-11-01)
@@ -86,8 +88,8 @@ Enhancements and Fixes
 
 - Updated getdatalink to be consistent with iter_datalinks. [#613]
 
-  
-  
+
+
 Deprecations and Removals
 -------------------------
 
