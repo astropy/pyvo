@@ -1,3 +1,12 @@
+1.6.2 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+- Fix performance issues with datalink results. [#654]
+
+
 1.6.1 (2025-02-12)
 ==================
 

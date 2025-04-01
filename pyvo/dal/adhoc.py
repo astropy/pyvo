@@ -6,7 +6,6 @@ import numpy as np
 import warnings
 import copy
 import requests
-from collections import OrderedDict
 
 from .query import DALResults, DALQuery, DALService, Record
 from .exceptions import DALServiceError
@@ -18,7 +17,11 @@ from astropy import units as u
 from astropy.units import Quantity, Unit
 from astropy.units import spectral as spectral_equivalencies
 
-from astropy.io.votable.tree import Resource, Group
+from astropy.io.votable.tree import Resource, Group, VOTableFile
+try:
+    from astropy.io.votable.tree import TableElement
+except ImportError:
+    from astropy.io.votable.tree import Table as TableElement
 from astropy.utils.collections import HomogeneousList
 
 from ..utils.decorators import stream_decode_content
@@ -167,48 +170,126 @@ class AdhocServiceResultsMixin:
 
 class DatalinkResultsMixin(AdhocServiceResultsMixin):
     """
-    Mixin for datalink functionallity for results classes.
+    Mixin for datalink functionality for results classes.
     """
-    def _iter_datalinks_from_dlblock(self, datalink_service):
+    def _iter_datalinks_from_dlblock(self, preserve_order=False):
         """yields datalinks from the current rows using a datalink
         service RESOURCE.
-        """
-        remaining_ids = []  # remaining IDs to processed
-        current_batch = None  # retrieved but not returned yet
-        current_ids = []  # retrieved but not returned
-        processed_ids = []  # retrived and returned IDs
-        batch_size = None  # size of the batch
 
-        for row in self:
-            if not current_ids:
-                if batch_size is None:
-                    # first call.
-                    self.query = DatalinkQuery.from_resource(
-                        [_ for _ in self],
-                        self._datalink,
-                        session=self._session,
-                        original_row=row)
-                    remaining_ids = self.query['ID']
-                if not remaining_ids:
-                    # we are done
-                    return
-                if batch_size:
-                    # subsequent calls are limitted to batch size
-                    self.query['ID'] = remaining_ids[:batch_size]
-                current_batch = self.query.execute(post=True)
-                current_ids = list(OrderedDict.fromkeys(
-                    [_ for _ in current_batch.to_table()['ID']]))
-                if not current_ids:
-                    raise DALServiceError(
-                        'Could not retrieve datalinks for: {}'.format(
-                            ', '.join([_ for _ in remaining_ids])))
-                batch_size = len(current_ids)
-            id1 = current_ids.pop(0)
-            processed_ids.append(id1)
-            remaining_ids.remove(id1)
-            yield current_batch.clone_byid(
-                id1,
-                original_row=row)
+        Parameters
+        ----------
+
+        preserve_order : bool
+            True to return the datalinks keeping the order of the current rows.
+            NOTE: There might be a performance penalty for keeping the order as
+            one request per row is sent to the service. When the order of the
+            datalinks is not important, the execution is optimized to query the
+            service in batches.
+
+        """
+        def _get_results_tb(rows, dl_batch_tb):
+            # Creates a new DL result table with the given rows as the results data
+            # and the dl_batch_tb as the template for both table fields and other resources
+            tb = VOTableFile()
+            new_table = TableElement(tb)
+            new_table.fields.extend(dl_batch_tb.get_first_table().fields)
+            new_table.create_arrays(len(rows))
+            for index, row in enumerate(rows):
+                new_table.array[index] = row
+            results_resource = Resource()
+            results_resource.type = "results"
+            results_resource.tables.append(new_table)
+            tb.resources.append(results_resource)
+            # now add all the other resources from the dl_batch_tb
+            for resource in dl_batch_tb.resources:
+                if resource.type == "meta":
+                    tb.resources.append(resource)
+            return tb
+
+        if preserve_order:
+            # one request at the time to preserve order
+            for row in self:
+                self.query = DatalinkQuery.from_resource(
+                    row, self._datalink, session=self._session, original_row=None)
+                yield DatalinkResults(
+                    self.query.execute(post=True).votable,
+                    original_row=row)
+            return
+
+        # results from batch calls are not guaranteed to be in the same order with
+        # the results rows. To map the links back to the original result rows,
+        # create a dictionary of IDs to result rows, where ID is the value of
+        # the column given by the ref field of the service descriptor (input parameter)
+        original_rows = {}
+        input_params = _get_input_params_from_resource(self._datalink)
+        for name, input_param in input_params.items():
+            if input_param.ref:
+                for row in self:
+                    original_rows[row[input_param.ref]] = row
+
+        self.query = DatalinkQuery.from_resource(
+            [_ for _ in self],
+            self._datalink,
+            session=self._session,
+            original_row=None)
+        remaining_ids = self.query['ID']
+        if not remaining_ids:
+            # we are done before starting
+            return
+
+        current_batch = self.query.execute(post=True)
+        if len(current_batch) == 0:
+            raise DALServiceError(
+                'Could not retrieve datalinks for: {}'.format(
+                    ', '.join([_ for _ in remaining_ids])))
+        batch_size = 0  # unknown yet
+        batch_size_determined = False  # apparent only after first returned batch
+        while remaining_ids:
+            start_remaining_ids = len(remaining_ids)
+            res_votable = current_batch.votable.get_first_table()
+
+            id_index = 0  # Datalink spec: ID is the first column
+            # Datalink spec: "... all links for a single ID value must be served in
+            # consecutive rows in the output"
+            # Accordingly, the line below should not be necessary but in
+            # practice it might be needed
+            np.ma.MaskedArray.sort(res_votable.array, id_index)
+            last_id = res_votable.array[id_index][0]
+            rows = []
+            for index, row in enumerate(res_votable.array):
+                if row[id_index] == last_id:
+                    rows.append(row)
+                else:
+                    yield DatalinkResults(_get_results_tb(rows, current_batch.votable),
+                                          original_row=original_rows.get(last_id, None))
+                    if not batch_size_determined:
+                        batch_size += 1
+                    if last_id in remaining_ids:
+                        remaining_ids.remove(last_id)
+                    # proceed to the next ID
+                    last_id = row[id_index]
+                    rows = [row]
+
+            if last_id in remaining_ids:
+                remaining_ids.remove(last_id)
+            if not batch_size_determined:
+                batch_size += 1
+                batch_size_determined = True
+            yield DatalinkResults(_get_results_tb(rows, current_batch.votable),
+                                  original_row=original_rows.get(last_id, None))
+            if not remaining_ids:
+                return  # we are done
+            if len(remaining_ids) == start_remaining_ids:
+                # no progress
+                raise DALServiceError(
+                    'Could not retrieve datalinks for: {}'.format(
+                        ', '.join([_ for _ in remaining_ids])))
+            self.query['ID'] = remaining_ids[:batch_size]
+            current_batch = self.query.execute(post=True)
+            if not current_batch:
+                raise DALServiceError(
+                    'Could not retrieve datalinks for: {}'.format(
+                        ', '.join([_ for _ in remaining_ids])))
 
     @staticmethod
     def _guess_access_format(row):
@@ -286,17 +367,22 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                         access_url,
                         original_row=row)
 
-    def iter_datalinks(self):
+    def iter_datalinks(self, preserve_order=False):
         """
         Iterates over all datalinks in a DALResult.
+
+        Parameters
+        ----------
+
+        preserve_order : bool
+            True to return the datalinks keeping the order of the current rows.
+            NOTE: There might be a performance penalty for keeping the order as
+            one request per row is sent to the service. When the order of the
+            datalinks is not important, the execution is optimized to query the
+            service in batches.
+
         """
-        # To reduce the number of calls to the Datalink service, multiple
-        # IDs are sent in batches. The appropriate batch size is not available
-        # as each service has its own criteria for determining the maximum
-        # number of IDs processed per request. To overcome this limitation,
-        # this method initially sends all the available IDs and if the
-        # response is partial, uses the size of the response as the batch
-        # size.
+
         if not hasattr(self, '_datalink'):
             try:
                 self._datalink = self.get_adhocservice_by_ivoid(DATALINK_IVOID)
@@ -307,7 +393,8 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             yield from self._iter_datalinks_from_product_rows()
 
         else:
-            yield from self._iter_datalinks_from_dlblock(self._datalink)
+            yield from self._iter_datalinks_from_dlblock(
+                preserve_order=preserve_order)
 
 
 class DatalinkRecordMixin:
