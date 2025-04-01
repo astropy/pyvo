@@ -406,7 +406,7 @@ functionality is only available to authenticated (and authorized) users.
 
     >>> auth_session = vo.auth.AuthSession()
     >>> # authenticate. For ex: auth_session.credentials.set_client_certificate('<cert_file>')
-    >>> tap_service = vo.dal.TAPService("https://ws-cadc.canfar.net/youcat", auth_session)
+    >>> tap_service = vo.dal.TAPService("https://ws-cadc.canfar.net/youcat", session=auth_session)
     >>>
     >>> table_definition = '''
     ... <vosi:table xmlns:vosi="http://www.ivoa.net/xml/VOSITables/v1.0" xmlns:vod="http://www.ivoa.net/xml/VODataService/v1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" type="output">
