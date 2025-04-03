@@ -30,9 +30,6 @@ from pyvo.mivot.version_checker import check_astropy_version
 __all__ = ["MivotAnnotations"]
 
 
-IVOA_STRING = "ivoa:string"
-FPS_URL = "http://svo2.cab.inta-csic.es/svo/theory/fps/fpsmivot.php?PhotCalID="
-
 @prototype_feature("MIVOT")
 class MivotAnnotations:
     """
@@ -62,13 +59,6 @@ class MivotAnnotations:
         This list matches https://www.ivoa.net/rdf/timescale/2019-03-15/timescale.html.
 
     """
-
-    # https://www.ivoa.net/rdf/refframe/2022-02-22/refframe.html
-    suggested_space_frames = ["FK4", "FK5", "ICRS", "GALACTIC", "SUPER_GALACTIC", "ECLIPTIC"]
-    suggested_ref_positions = ["BARYCENTER", "GEOCENTER", "TOPOCENTER"]
-    # https://www.ivoa.net/rdf/timescale/2019-03-15/timescale.html
-    suggested_time_frames = ["TAI", "TT", "TDT", "ET", "IAT", "UT1",
-                        "UTC", "GMT", "GPS", "TCG", "TCB", "TBD", "LOCAL"]
 
     def __init__(self):
         """
@@ -307,8 +297,8 @@ class MivotAnnotations:
         root = etree.fromstring(self._mivot_block)
         mivot_block = XmlUtils.pretty_string(root, clean_namespace=False)
         if not xmlschema:
-            logging.error(
-                "XML validation skipped: no XML schema found. "
+            logging.warning(
+                "XML validation skipped: no XML schema validator found. "
                 + "Please install it (e.g., pip install xmlschema)."
             )
             return
@@ -338,14 +328,15 @@ class MivotAnnotations:
         """
         if not check_astropy_version():
             raise AstropyVersionException(f"Astropy version {version.version} "
-                                          f"is below the required version 6.0 for the use of MIVOT.")
+                                          "is below the required version 6.0 for the use of MIVOT.")
         if isinstance(votable_file, str):
             votable = parse(votable_file)
         elif isinstance(votable_file, VOTableFile):
             votable = votable_file
         else:
             raise MappingError(
-                f"votable_file must be a file path string or a VOTableFile instance, not a {type(votable_file)}."
+                "votable_file must be a file path string or a VOTableFile instance, "
+                "not a {type(votable_file)}."
             )
 
         for resource in votable.resources:
