@@ -68,11 +68,5 @@ The ``pyvo.mivot`` module can be used to either read or build annotations.
    :maxdepth: 2
    
    viewer
+   annoter
    writer
-
-
-Reference/API
-=============
-
-.. automodapi:: pyvo.mivot
-

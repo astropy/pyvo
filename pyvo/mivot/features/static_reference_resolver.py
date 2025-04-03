@@ -5,7 +5,6 @@ from copy import deepcopy
 from pyvo.mivot.utils.exceptions import MivotError
 from pyvo.mivot.utils.xpath_utils import XPath
 from pyvo.utils.prototype import prototype_feature
-from pyvo.mivot.utils.xml_utils import XmlUtils
 
 
 @prototype_feature('MIVOT')
@@ -46,16 +45,14 @@ class StaticReferenceResolver:
             if dmref is None:
                 raise NotImplementedError("Dynamic reference not implemented")
             target = annotation_seeker.get_globals_instance_by_dmid(dmref)
-            found_in_global = True
             if target is None and templates_ref is not None:
                 target = annotation_seeker.get_templates_instance_by_dmid(templates_ref, dmref)
-                found_in_global = False
             if target is None:
                 raise MivotError(f"Cannot resolve reference={dmref}")
             # Resolve static references recursively
-            #if not found_in_global:
+            # if not found_in_global:
             #    StaticReferenceResolver.resolve(annotation_seeker, templates_ref, ele)
-            #else:
+            # else:
             #    StaticReferenceResolver.resolve(annotation_seeker, None, ele)
             # Set the reference role to the copied instance
             target_copy = deepcopy(target)

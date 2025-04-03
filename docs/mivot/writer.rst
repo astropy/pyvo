@@ -1,6 +1,6 @@
-*****************************************
-MIVOT (``pyvo.mivot``): Annotation Writer
-*****************************************
+***************************************************
+MIVOT (``pyvo.mivot``): Annotation Writer - Dev API
+***************************************************
 
 Introduction
 ============
@@ -225,20 +225,16 @@ Insert the MIVOT Block in a VOTable
 Validate the annotations against the models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- This action requires the ``mivot-validator`` package to be installed.
+- This action requires the ``mivot-validatorXXX`` package to be installed.
 - It validates the mapped classes against the models they come from.
 
 
  .. code-block:: shell
 
 
-    % pip install mivot-validator
+    % pip install mivot-validatorXXX
     % mivot-instance-validate pyvo-tuto.xml
     ...
     Valid if no error message
     ...
 
-Reference/API
-=============
-
-.. automodapi:: pyvo.mivot.writer
