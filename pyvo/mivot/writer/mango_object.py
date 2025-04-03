@@ -4,170 +4,281 @@ Created on 22 Jan 2025
 @author: laurentmichel
 '''
 from pyvo.mivot.utils.exceptions import MappingError
+from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.writer.instance import MivotInstance
-
-POSITION_LEAVES = {"class": "EpochPosition",
-                   "leaves": ["longitude", "latitude", "parallax",
-                              "radialVelocity", "pmLongitude", "pmLatitude",
-                              "epoch"]
-                   }
-CORRELATION_LEAVES = {"class": "EpochPositionCorrelations",
-                      "leaves": ["longitudeParallax", "latitudeParallax",
-                                 "pmLongitudeParallax", "pmlatitudeParallax",
-                                 "longitudeLatitude", "pmLongitudePmLatitude",
-                                 "latitudePmLatitude", "latitudePmLongitude",
-                                 "longitudePmLatitude", "longitudePmLongitude",
-                                 "isCovariance"]
-                     }
-ERROR_LEAVES = {"class": "PropertyError",
-                   "leaves": ["parallax", "radialVelocity",
-                              "position", "properMotion"]
-                   }
-BRIGHTNESS_LEAVES = {"class": "PhotometricProperty",
-                   "leaves": ["value", "error"]
-                   }
-
-MODEL_PREFIX = "mango"
-
-class MangoInstance(object):
-    '''
-    classdocs
-    '''
+from pyvo.mivot.glossary import IvoaType, ModelPrefix, Roles
 
 
-    def __init__(self, table):
+class Property(MivotInstance):
+    """
+    Class representing one property of a MangoInstance. MangoInstance property
+    instances are `pyvo.mivot.writer.MivotInstance` augmented with a semantics block.
+    """
+    def __init__(self, dmtype=None, *, dmrole=None, dmid=None, semantics={}):
+        """
+        Parameters
+        ----------
+        dmtype : str
+            dmtype of the INSTANCE (mandatory)
+        dmrole : str, optional  (default as None)
+            dmrole of the INSTANCE
+        dmid : str, optional  (default as None)
+            dmid of the INSTANCE
+        semantics : dict, optional  (default as {})
+            Mapping of the semantic block (supported key: descripton, uri, label)
+
+        Raises
+        ------
+        MappingError
+            If ``dmtype`` is not provided
+        """
+        super().__init__(dmtype, dmrole=dmrole, dmid=dmid)
+        if "description" in semantics:
+            # we assume the description as always being a literal
+            self.add_attribute(dmtype="ivoa:string",
+                               dmrole="mango:Property.description",
+                               value=f"*{semantics['description']}")
+        if "uri" in semantics or "label" in semantics:
+            semantics_instance = MivotInstance(dmtype="mango:VocabularyTerm",
+                                               dmrole="mango:Property.semantics")
+            if "uri" in semantics:
+                semantics_instance.add_attribute(dmtype="ivoa:string",
+                                                 dmrole="mango:VocabularyTerm.uri",
+                                                 value=f"*{semantics['uri']}")
+            if "label" in semantics:
+                semantics_instance.add_attribute(dmtype="ivoa:string", dmrole="mango:VocabularyTerm.label",
+                                                 value=f"*{semantics['label']}")
+            self.add_instance(semantics_instance)
+
+
+class MangoObject(object):
+    """
+    This class handles all the components of a MangoObject (properties, origin, instance identifier).
+     It is meant to be used by `pyvo.mivot.writer.InstancesFromModels` but not by end users.
+
+    - There is one specific method for each supported property (EpochPosition, photometry)
+    - The internal structure of the classes is hard-coded in the class logic.
+
+    """
+
+    def __init__(self, table, *, dmid=None):
         '''
-        Constructor
+        Constructor parameters:
+
+        parameters
+        ----------
+        table: astropy.io.votable.tree.TableElement
+            VOTable table which data is mapped on Mango
+        dmid: stringn optional (default as None)
+            Reference of the column to be used as a MangoObject identifier
         '''
         self._table = table
-        
-    def _user_role_exist(self, user_role, model_roles):
-    
-        class_name = model_roles["class"]
-        for leaf in model_roles["leaves"]:
-            dmrole = f"{MODEL_PREFIX}:{class_name}.{leaf}"
-            if dmrole.lower().endswith("." + user_role.lower()):
-                return dmrole
-        raise MappingError(f"Cannot find any attribute of class {MODEL_PREFIX}:{class_name} " +
-                           f"matching {user_role} " +
-                           f"Allowed roles are {model_roles['leaves']}")
-    
-    def _check_column(self, column_id):
-        """
-        return unit, ref, literal
-        """
-        if column_id.startswith("*"):
-            return None, None, column_id.replace("*", "")
-        try: 
-            field = self._table.get_field_by_id_or_name(column_id)
-            return str(field.unit), column_id, None
-        except KeyError as keyerror:
-            raise MappingError() from keyerror
-       
-    def _build_Symmetric1D(self, dmrole, ref):
-        unit, ref, literal = self._check_column(ref)
-        prop_err_instance = MivotInstance(dmtype=f"{MODEL_PREFIX}:mango:error.Symmetric1D",
-                             dmrole=dmrole)
-        
-        prop_err_instance.add_attribute(dmtype=f"ivoa:RealQuantity",
-                             dmrole=f"{MODEL_PREFIX}:error.PropertyError1D.sigma",
-                             ref=ref, value=literal, unit=unit)
-        return prop_err_instance
-    
-    def _build_2D_error(self, dmrole, mapping):
-        columns = mapping["columns"]
-        literals = []
-        refs = []
-        units = []
-        for column in columns:
-            unit, ref, literal = self._check_column(column)
-            units.append(unit)
-            literals.append(literal)
-            refs.append(ref)
+        self._properties = []
+        self._dmid = dmid
 
-        err_class = mapping["class"]
-        prop_err_instance = None
-        if err_class in ["ErrorCorrMatrix", "ErrorCovMatrix"]:
-            prop_err_instance = MivotInstance(dmtype=f"{MODEL_PREFIX}:error.{err_class}",
-                             dmrole=dmrole) 
-            prop_err_instance.add_attribute(dmtype=f"ivoa:RealQuantity",
-                             dmrole=f"{MODEL_PREFIX}:error.{err_class}.sigma1",
-                             ref=refs[0], unit=units[0])
-            prop_err_instance.add_attribute(dmtype=f"ivoa:RealQuantity",
-                             dmrole=f"{MODEL_PREFIX}:error.{err_class}.sigma2",
-                             ref=refs[1], value=literals[1], unit=units[0])
-        else:
-            raise MappingError(f"2D Error type {err_class} not supported (or unknown)")
+    def _get_error_instance(self, class_name, dmrole, mapping):
+        """
+        Private method building and returning an Mango error instance
+
+        Returns: MivotInstance
+        """
+        prop_err_instance = MivotInstance(dmtype=f"{ModelPrefix.mango}:error.{class_name}",
+                                          dmrole=dmrole)
+        MivotUtils.populate_instance(prop_err_instance, class_name, mapping,
+                                     self._table, IvoaType.RealQuantity, package="error")
         return prop_err_instance
-    
-    def _get_epoch_position_correlations(self, **correlations):
-        epc_instance = MivotInstance(dmtype=f"{MODEL_PREFIX}:EpochPositionCorrelations",
-                                     dmrole=f"{MODEL_PREFIX}:EpochPosition.correlations")
-        for role, column in correlations.items():
-            if (dmrole := self._user_role_exist(role, CORRELATION_LEAVES)) and column:
-                unit, ref, literal = self._check_column(column)
-                epc_instance.add_attribute(dmtype="ivoa:real", dmrole=dmrole,
-                                               ref=ref, value=literal, unit=unit)
+
+    def _add_epoch_position_correlations(self, **correlations):
+        """
+        Private method building and returning an the correlation block of the EpocPosition object.
+
+        Returns
+        -------
+        `Property`
+            The EpochPosition correlations component
+        """
+        epc_instance = MivotInstance(dmtype=f"{ModelPrefix.mango}:EpochPositionCorrelations",
+                                     dmrole=f"{ModelPrefix.mango}:EpochPosition.correlations")
+
+        MivotUtils.populate_instance(epc_instance, "EpochPositionCorrelations",
+                                     correlations, self._table, IvoaType.real)
         return epc_instance
-     
-    def _get_epoch_position_errors(self, **errors):
-        err_instance = MivotInstance(dmtype=f"{MODEL_PREFIX}:EpochPositionErrors",
-                                     dmrole=f"{MODEL_PREFIX}:mango:EpochPosition.errors")
-        for role, column in errors.items():
-            prop_err_instance = None      
-            if (dmrole := self._user_role_exist(role, ERROR_LEAVES)) and column:
-                if role.endswith("parallax"):
-                    prop_err_instance = self._build_Symmetric1D(
-                        f"{MODEL_PREFIX}:EpochPositionErrors.parallax",
-                        column)
-                elif role.endswith("radialVelocity"):
-                    prop_err_instance = self._build_Symmetric1D(
-                        f"{MODEL_PREFIX}:EpochPositionErrors.parallax",
-                        column)
-                elif role.endswith("position"):
-                    prop_err_instance = self._build_2D_error(
-                        f"{MODEL_PREFIX}:EpochPositionErrors.position",
-                        column)
-                elif role.endswith("properMotion"):
-                    prop_err_instance = self._build_2D_error(
-                        f"{MODEL_PREFIX}:EpochPositionErrors.properMotion",
-                        column)
-                
-            if prop_err_instance:
-                err_instance.add_instance(prop_err_instance)   
-        return  err_instance
-    
 
-    def get_epoch_position(self, space_frame_id, time_frame_id, sky_position, correlations, errors):
-        ep_instance = MivotInstance( dmtype=f"{MODEL_PREFIX}:EpochPosition")
-        for role, column in sky_position.items():
-            if (dmrole := self._user_role_exist(role, POSITION_LEAVES)) and column:
-                unit, ref, literal = self._check_column(column)
-                ep_instance.add_attribute(dmtype="ivoa:RealQuantity", dmrole=dmrole,
-                                              ref=ref, value=literal, unit=unit)
-                
-        ep_instance.add_instance(self._get_epoch_position_correlations(**correlations))
-        ep_instance.add_instance(self._get_epoch_position_errors(**errors))
-        ep_instance.add_reference(dmrole=f"{MODEL_PREFIX}:EpochPosition.spaceSys", dmref=space_frame_id)
-        ep_instance.add_reference(dmrole=f"{MODEL_PREFIX}:EpochPosition.timeSys", dmref=time_frame_id)
+    def _add_epoch_position_errors(self, **errors):
+        """
+        Private method building and returning an the error block of the EpocPosition object.
+
+        Returns
+        -------
+        `Property`
+            The EpochPosition error instance
+        """
+        err_instance = MivotInstance(dmtype=f"{ModelPrefix.mango}:EpochPositionErrors",
+                                     dmrole=f"{ModelPrefix.mango}:EpochPosition.errors")
+
+        for role, mapping in errors.items():
+            error_class = mapping["class"]
+            if (role in Roles.EpochPositionErrors
+                    and error_class in ["PErrorSym2D", "PErrorSym1D", "PErrorAsym1D"]):
+                err_instance.add_instance(
+                    self._get_error_instance(error_class,
+                                             f"{ModelPrefix.mango}:EpochPositionErrors.{role}",
+                                             mapping))
+        return err_instance
+
+    def add_epoch_position(self, space_frame_id, time_frame_id, mapping, semantics):
+        """
+        Add an ``EpochPosition`` instance to the properties of the current ``MangoObject``.
+        Both mapping and semantics arguments inherit from
+        `pyvo.mivot.writer.InstancesFromModels.add_mango_epoch_position`.
+
+        Parameters
+        ----------
+        space_frame_id: string
+            Identifier (dmid) of space system INSTANCE located in the GLOBALS
+        time_frame_id: string
+            Identifier (dmid) of time system INSTANCE located in the GLOBALS
+        mapping: dict
+            Mapping of the EpochPosition fields
+        semantics: dict
+            Mapping of the MangoObject property
+
+        Returns
+        -------
+        `Property`
+            The EpochPosition instance
+        """
+        ep_instance = Property(dmtype=f"{ModelPrefix.mango}:EpochPosition",
+                                    semantics=semantics)
+        MivotUtils.populate_instance(ep_instance, "EpochPosition",
+                                     mapping, self._table, IvoaType.RealQuantity)
+
+        ep_instance.add_instance(self._add_epoch_position_correlations(**mapping["correlations"]))
+        ep_instance.add_instance(self._add_epoch_position_errors(**mapping["errors"]))
+        ep_instance.add_reference(dmrole=f"{ModelPrefix.mango}:EpochPosition.spaceSys",
+                                  dmref=space_frame_id)
+        ep_instance.add_reference(dmrole=f"{ModelPrefix.mango}:EpochPosition.timeSys",
+                                  dmref=time_frame_id)
+        self._properties.append(ep_instance)
         return ep_instance
 
-    def get_brightness(self, filter_id, mag):
+    def add_brightness_property(self, filter_id, mapping, semantics={}):
         """
-        Not in sync with the model yet
+        Add an ``Brightness`` instance to the properties of the current ``MangoObject``.
+        Both mapping and semantics arguments inherit from
+        `pyvo.mivot.writer.InstancesFromModels.add_mango_brightness`.
+
+        Parameters
+        ----------
+        filter_id: string
+            Identifier (dmid) of the PhotCal INSTANCE located in the GLOBALS
+        mapping: dict
+            Mapping of the EpochPosition fields
+        semantics: dict
+            Mapping of the MangoObject property
+
+        Returns
+        -------
+        `Property`
+            The Brightness instance
         """
-        mag_instance = MivotInstance( dmtype=f"{MODEL_PREFIX}:PhotometricProperty")
-        for role, column in mag.items():
-            if (dmrole := self._user_role_exist(role, BRIGHTNESS_LEAVES)) and column:
-                unit, ref, literal = self._check_column(column)
-                mag_instance.add_attribute(dmtype="ivoa:RealQuantity", dmrole=dmrole,
-                                              ref=ref, value=literal, unit=unit)
-        mag_instance.add_reference(dmrole=f"{MODEL_PREFIX}:PhotometricProperty.photCal", dmref=filter_id)                
+        # create the MIVOT instance mapping the MANGO property
+        mag_instance = Property(dmtype=f"{ModelPrefix.mango}:Brightness",
+                                semantics=semantics)
+        # set MANGO property attribute
+        MivotUtils.populate_instance(mag_instance, "PhotometricProperty",
+                                     mapping, self._table, IvoaType.RealQuantity)
+        # build the error instance if it is mapped
+        if "error" in mapping:
+            error_mapping = mapping["error"]
+            error_class = error_mapping["class"]
+            mag_instance.add_instance(
+                self._get_error_instance(error_class,
+                                         f"{ModelPrefix.mango}:PhotometricProperty.error",
+                                         error_mapping))
+        # add MIVOT reference to the photometric calibration instance
+        mag_instance.add_reference(dmrole=f"{ModelPrefix.mango}:Brightness.photCal", dmref=filter_id)
+        self._properties.append(mag_instance)
         return mag_instance
-         
-         
-    @staticmethod
-    def get_color():
-        pass      
-    
-    
+
+    def add_color_instance(self, filter_low_id, filter_high_id, mapping, semantics={}):
+        """
+        Add an ``Brightness`` instance to the properties of the current ``MangoObject``.
+        Both mapping and semantics arguments inherit from
+        `pyvo.mivot.writer.InstancesFromModels.add_mango_color`.
+
+        Parameters
+        ----------
+        filter_low_id: string
+            Identifier (dmid) of the low energy Photfilter INSTANCE located in the GLOBALS
+        filter_high_id: string
+            Identifier (dmid) of the high energy Photfilter INSTANCE located in the GLOBALS
+        mapping: dict
+            Mapping of the EpochPosition fields
+        semantics: dict
+            Mapping of the MangoObject property
+
+        Returns
+        -------
+        `Property`
+            The Color instance
+        """
+        error_mapping = mapping["error"]
+        mag_instance = Property(dmtype=f"{ModelPrefix.mango}:Color",
+                                semantics=semantics)
+        coldef_instance = MivotInstance(dmtype=f"{ModelPrefix.mango}:ColorDef",
+                                        dmrole=f"{ModelPrefix.mango}:Color.colorDef")
+        mapped_roles = MivotUtils._valid_mapped_dmroles(mapping.items(), "Color")
+        def_found = False
+        for dmrole, column in mapped_roles:
+            if dmrole.endswith("definition"):
+                def_found = True
+                coldef_instance.add_attribute(dmtype="mango:ColorDefinition",
+                                              dmrole="mango:ColorDef.definition",
+                                              value=f"*{column}")
+        if not def_found:
+            raise MappingError("Missing color definition")
+        mapping.pop("definition")
+        MivotUtils.populate_instance(mag_instance, "PhotometricProperty", mapping,
+                                     self._table, IvoaType.RealQuantity)
+        coldef_instance.add_reference(dmrole=f"{ModelPrefix.mango}:ColorDef.low",
+                                      dmref=filter_low_id)
+        coldef_instance.add_reference(dmrole=f"{ModelPrefix.mango}:ColorDef.high",
+                                      dmref=filter_high_id)
+        error_class = error_mapping["class"]
+        mag_instance.add_instance(self._get_error_instance(error_class,
+                                                           f"{ModelPrefix.mango}:PhotometricProperty.error",
+                                                           error_mapping))
+        mag_instance.add_instance(coldef_instance)
+        self._properties.append(mag_instance)
+        return mag_instance
+
+    def get_mango_object(self, with_origin=False):
+        """
+        Make and return the XML serialization of the MangoObject.
+
+        Parameters
+        ----------
+        with_origin: bool
+            Ask for adding a reference (_origin) to the query origin possibly located in the GLOBALS
+
+        Returns
+        -------
+        string
+            The XML serialization of the MangoObject
+        """
+        mango_object = MivotInstance(dmtype="mango:MangoObject", dmid=self._dmid)
+        if self._dmid:
+            ref, value = MivotUtils.get_ref_or_literal(self._dmid)
+            att_value = ref if ref else value
+
+            mango_object.add_attribute(dmrole="mango:MangoObject.identifier",
+                                       dmtype=IvoaType.string,
+                                       value=att_value)
+        if with_origin:
+            mango_object.add_reference("mango:MangoObject.queryOrigin", "_origin")
+        m_properties = []
+        for prop in self._properties:
+            m_properties.append(prop.xml_string())
+        mango_object.add_collection("mango:MangoObject.propertyDock", m_properties)
+        return mango_object
