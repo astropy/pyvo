@@ -62,7 +62,7 @@ class MivotInstance:
     @property
     def dmid(self):
         return self._dmid
-    
+
     def add_attribute(self, dmtype=None, dmrole=None, *, value=None, unit=None):
         """
         Add an <ATTRIBUTE> element to the instance.
@@ -73,7 +73,7 @@ class MivotInstance:
             dmtype of the ATTRIBUTE (mandatory)
         dmrole : str
             dmrole of the ATTRIBUTE (mandatory)
-        value : str or numerical, optional
+        value : str or numerical, optional =======A CORRIGER======
             ID of the column to set the attribute value.
             If ref is a string starting with a * or is numerical,
             it is considered as a value (* stripped)
@@ -99,7 +99,7 @@ class MivotInstance:
             xml_string += f'unit="{unit}" '
         if literal:
             xml_string += f'value="{literal}" '
-        else: 
+        else:
             xml_string += f'ref="{ref}" '
         xml_string += " />"
         self._content.append(xml_string)
@@ -153,7 +153,7 @@ class MivotInstance:
         dm_att = ""
         if dmrole:
             dm_att = f"dmrole=\"{dmrole}\""
-            
+
         self._content.append(f'<COLLECTION {dm_att}>')
         for mivot_instance in mivot_instances:
             if isinstance(mivot_instance, MivotInstance):
@@ -161,8 +161,7 @@ class MivotInstance:
             else:
                 self._content.append(mivot_instance)
             self._content.append("\n")
-        self._content.append(f'</COLLECTION>')
-
+        self._content.append("</COLLECTION>")
 
     def xml_string(self):
         """

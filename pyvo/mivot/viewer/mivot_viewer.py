@@ -43,7 +43,6 @@ from pyvo.mivot.viewer.mivot_instance import MivotInstance
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.viewer.xml_viewer import XMLViewer
-from mivot_validator.utils.dict_utils import DictUtils
 # Use defusedxml only if already present in order to avoid a new depency.
 try:
     from defusedxml import ElementTree as etree
@@ -414,9 +413,6 @@ class MivotViewer:
             first_instance = self.get_first_instance_dmtype(tableref=self.connected_table_ref)
             xml_instance = self.xml_viewer.get_instance_by_type(first_instance)
             self._dm_instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
-            print("@@@ -------- vieiwer_init_instance")
-            XmlUtils.pretty_print(xml_instance)
-            DictUtils.print_pretty_json(MivotUtils.xml_to_dict(xml_instance))
             self.rewind()
         return self._dm_instance
 

@@ -1,0 +1,705 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
+  xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/v1.3">
+  <DESCRIPTION>
+    VizieR Astronomical Server vizier.cds.unistra.fr
+    Date: 2024-03-21T15:16:08 [V7.33.3]
+    Explanations and Statistics of
+    UCDs: See LINK below
+    In case of problem, please report to: cds-question@unistra.fr
+  </DESCRIPTION>
+  <!-- VOTable description at http://www.ivoa.net/Documents/latest/VOT.html -->
+  <INFO name="service_protocol" value="ASU">  IVOID of the protocol through which the data was retrieved</INFO>
+  <INFO name="request_date" value="2024-03-21T15:16:08">  Query execution date</INFO>
+  <INFO name="request"
+    value="https://vizier.cds.unistra.fr/viz-bin/votable?-oc.form=dec&amp;-out.max=5&amp;-out.add=_r&amp;-out.add=_RAJ,_DEJ&amp;-sort=_r&amp;-c.eq=J2000&amp;-c.r=  2&amp;-c.u=arcmin&amp;-c.geom=r&amp;-source=I/355/gaiadr3&amp;-order=I&amp;-out.orig=standard&amp;-out=DR3Name&amp;-out=RA_ICRS&amp;-out=DE_ICRS&amp;-out=Source&amp;-out=e_RA_ICRS&amp;-out=e_DE_ICRS&amp;-out=Plx&amp;-out=e_Plx&amp;-out=PM&amp;-out=pmRA&amp;-out=e_pmRA&amp;-out=pmDE&amp;-out=e_pmDE&amp;-out=RADEcor&amp;-out=RAPlxcor&amp;-out=RApmRAcor&amp;-out=RApmDEcor&amp;-out=DEPlxcor&amp;-out=DEpmRAcor&amp;-out=DEpmDEcor&amp;-out=PlxpmRAcor&amp;-out=PlxpmDEcor&amp;-out=pmRApmDEcor&amp;-out=RV&amp;-out=e_RV&amp;-out=Vbroad&amp;-out=GRVSmag&amp;-out=QSO&amp;-out=Gal&amp;-out=NSS&amp;-out=XPcont&amp;-out=XPsamp&amp;-out=RVS&amp;-out=EpochPh&amp;-out=EpochRV&amp;-out=MCMCGSP&amp;-out=MCMCMSC&amp;-out=And&amp;-out=Teff&amp;-out=logg&amp;-out=[Fe/H]&amp;-out=Dist&amp;-out=A0&amp;-out=HIP&amp;-out=PS1&amp;-out=SDSS13&amp;-out=SKYM2&amp;-out=TYC2&amp;-out=URAT1&amp;-out=AllWISE&amp;-out=APASS9&amp;-out=GSC23&amp;-out=RAVE5&amp;-out=2MASS&amp;-out=RAVE6&amp;-out=RAJ2000&amp;-out=DEJ2000&amp;">  Full request URL (POST)</INFO>
+  <INFO name="contact" value="cds-question@unistra.fr">  Email or URL to contact publisher</INFO>
+  <INFO name="server_software" value="7.33.3">  Software version</INFO>
+  <INFO name="publisher" value="CDS">  Data centre that produced the VOTable</INFO>
+
+  <!-- Execution Reports -->
+
+  <RESOURCE ID="yCat_1355" name="I/355">
+    <DESCRIPTION>Gaia DR3 Part 1. Main source (Gaia Collaboration, 2022)</DESCRIPTION>
+    <INFO name="ivoid" value="ivo://cds.vizier/i/355">    IVOID of underlying data collection  </INFO>
+    <INFO name="creator" value="Gaia collaboration">    First author or institution  </INFO>
+    <INFO name="cites" value="bibcode:2022yCat.1355....0G">    Bibcode of the dataset  </INFO>
+    <INFO name="original_date" value="2022">    Year of the article publication  </INFO>
+    <INFO name="reference_url" value="https://cdsarc.cds.unistra.fr/viz-bin/cat/I/355">    Dataset landing page  </INFO>
+    <INFO name="citation" value="doi:10.26093/cds/vizier.1355">    Dataset identifier that can be used for citation  </INFO>
+    <INFO name="publication_date" value="2024-01-24">    Date of first publication in the data centre  </INFO>
+    <INFO name="rights_uri" value="https://cds.unistra.fr/vizier-org/licences_vizier.html">    Licence URI  </INFO>
+
+    <COOSYS ID="H_2016.000" system="ICRS" epoch="2016.000" />
+    <COOSYS ID="J2000" system="eq_FK5" equinox="J2000" />
+
+    <RESOURCE type="meta">
+      <VODML xmlns="http://www.ivoa.net/xml/mivot">
+        <REPORT status="OK">hand-made mapping</REPORT>
+          <MODEL name="ivoa" url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml" />
+          <MODEL name="coords" url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml" />
+          <MODEL name="meas" url="https://www.ivoa.net/xml/Meas/20200908/Meas-v1.0.vo-dml.xml" />
+          <MODEL name="mango" url="https://raw.githubusercontent.com/lmichel/MANGO/draft-0.1/vo-dml/mango.vo-dml.xml" />
+        <GLOBALS>
+          <INSTANCE dmid="_spacesys_icrs" dmrole="" dmtype="coords:SpaceSys">
+            <INSTANCE dmrole="coords:PhysicalCoordSys.frame" dmtype="coords:SpaceFrame">
+              <ATTRIBUTE dmrole="coords:SpaceFrame.spaceRefFrame" dmtype="ivoa:string" value="ICRS" />
+              <INSTANCE dmrole="coords:SpaceFrame.refPosition" dmtype="coords:StdRefLocation">
+                  <ATTRIBUTE dmrole="coords:StdRefLocation.position" dmtype="ivoa:string" value="BARYCENTER"/>
+              </INSTANCE>
+            </INSTANCE>
+          </INSTANCE>
+          <!-- Not sure about the time frame used for the GAIA catalog -->
+          <INSTANCE dmid="_timesys_tcb" dmrole="" dmtype="coords:TimeSys">
+            <INSTANCE dmrole="coords:PhysicalCoordSys.frame" dmtype="coords:TimeFrame">
+              <ATTRIBUTE dmrole="coords:TimeFrame.timescale" dmtype="ivoa:string" value="TCB" />
+              <INSTANCE dmrole="coords:TimeFrame.refPosition" dmtype="coords:StdRefLocation">
+                  <ATTRIBUTE dmrole="coords:StdRefLocation.position" dmtype="ivoa:string" value="BARYCENTER"/>
+              </INSTANCE>
+            </INSTANCE>
+          </INSTANCE>
+
+        </GLOBALS>
+        <TEMPLATES>
+          <INSTANCE dmtype="mango:EpochPosition">
+            <!-- This class is a view of \texttt{Astronomical Coordinates and Coordinate Systems} components that have been put together 
+              to form a consistent description of the position of an object moving over time. It consists of a celestial position, a proper motion, 
+              a radial velocity and a parallax. All components share the same spatial coordinate system. \begin{itemize} \item Both position and 
+              proper motion reuse the \texttt{coords:LonLatPoint} elements. \item The space coordinate system is imported from \texttt{coords:spaceSys}. 
+              \end{itemize} The error is specific to this class as it must support covariance and correlation between the components. " -->
+            <ATTRIBUTE dmrole="mango:EpochPosition.longitude" dmtype="ivoa:RealQuantity" ref="RA_ICRS" unit="deg"/>
+            <ATTRIBUTE dmrole="mango:EpochPosition.latitude" dmtype="ivoa:RealQuantity" ref="DE_ICRS" unit="deg"/>
+            <ATTRIBUTE dmrole="mango:EpochPosition.parallax" dmtype="ivoa:RealQuantity" unit="mas" ref="Plx" />
+            <ATTRIBUTE dmrole="mango:EpochPosition.radialVelocity" dmtype="ivoa:RealQuantity" unit="km/s" ref="RV" />
+            <ATTRIBUTE dmrole="mango:EpochPosition.pmLongitude" dmtype="ivoa:RealQuantity" unit="mas/yr" ref="pmRA" />
+            <ATTRIBUTE dmrole="mango:EpochPosition.pmLatitude" dmtype="ivoa:RealQuantity" unit="mas/yr" ref="pmDE" />
+            <ATTRIBUTE dmrole="mango:EpochPosition.epoch" dmtype="coords:Epoch" value="2016.5" />
+            
+            <ATTRIBUTE dmrole="mango:EpochPosition.pmCosLat_applied" dmtype="ivoa:boolean" value="true" />
+
+            <!-- Errors on individual quantities -->
+            <INSTANCE dmrole="mango:EpochPosition.errors" dmtype="mango:EpochPositionErrors">
+              <!-- Error on parallax -->
+              <INSTANCE dmrole="mango:EpochPositionErrors.parallax" dmtype="mango:error.PropertyError1D">
+                <ATTRIBUTE dmrole="mango:error.PropertyError1D.sigma" dmtype="ivoa:RealQuantity" unit="mas" ref="e_Plx" />
+              </INSTANCE>
+              <!-- Error on radial velocity -->
+              <INSTANCE dmrole="mango:EpochPositionErrors.radialVelocity" dmtype="mango:error.PropertyError1D">
+                <ATTRIBUTE dmrole="mango:error.PropertyError1D.sigma" dmtype="ivoa:RealQuantity" unit="km/s" ref="e_RV" />
+              </INSTANCE>
+              <!-- Error on position (diagonal matrix) -->
+              <INSTANCE dmrole="mango:EpochPositionErrors.position" dmtype="mango:error.ErrorCorrMatrix">
+                <!-- Error matrix for 2D quantities" -->
+                <ATTRIBUTE dmrole="mango:error.ErrorCorrMatrix.sigma1" dmtype="ivoa:RealQuantity" unit="mas" ref="e_RA_ICRS" />
+                <ATTRIBUTE dmrole="mango:error.ErrorCorrMatrix.sigma2" dmtype="ivoa:RealQuantity" unit="mas" ref="e_DE_ICRS" />
+              </INSTANCE>
+              <!-- Error on proper motion (diagonal matrix) -->
+              <INSTANCE dmrole="mango:EpochPositionErrors.properMotion" dmtype="mango:error.ErrorCorrMatrix">
+                <!-- Error matrix for 2D quantities" -->
+                <ATTRIBUTE dmrole="mango:error.ErrorCorrMatrix.sigma1" dmtype="ivoa:RealQuantity" unit="mas/yr" ref="e_pmRA" />
+                <ATTRIBUTE dmrole="mango:error.ErrorCorrMatrix.sigma2" dmtype="ivoa:RealQuantity" unit="mas/yr" ref="e_pmDE" />
+              </INSTANCE>
+            </INSTANCE>
+
+            <!-- Correlation between quantities -->
+            <INSTANCE dmrole="mango:EpochPosition.correlations" dmtype="mango:EpochPositionCorrelations">
+              <!-- Position/proper-motion correlation -->
+              <ATTRIBUTE dmrole="mango:EpochPositionCorrelations.isCovariance" dmtype="ivoa:boolean" value="false" />
+              <ATTRIBUTE dmrole="mango:EpochPositionCorrelations.latitudePmLongitude" dmtype="ivoa:real" ref="DEpmRAcor" />
+              <ATTRIBUTE dmrole="mango:EpochPositionCorrelations.latitudePmLatitude" dmtype="ivoa:real" ref="DEpmDEcor" />
+              <ATTRIBUTE dmrole="mango:EpochPositionCorrelations.longitudePmLongitude" dmtype="ivoa:real" ref="RApmRAcor" />
+              <ATTRIBUTE dmrole="mango:EpochPositionCorrelations.longitudePmLatitude" dmtype="ivoa:real" ref="RApmDEcor" />
+              <!-- parallax/proper-motion correlation -->
+              <ATTRIBUTE dmrole="mango:EpochPositionCorrelations.pmLongitudeParallax" dmtype="ivoa:real" ref="PlxpmRAcor" />
+              <ATTRIBUTE dmrole="mango:EpochPositionCorrelations.pmLatitudeParallax" dmtype="ivoa:real" ref="PlxpmDEcor" />
+              <!-- position/parallax correlation -->
+              <ATTRIBUTE dmrole="mango:EpochPositionCorrelations.longitudeParallax" dmtype="ivoa:real" ref="RAPlxcor" />
+              <ATTRIBUTE dmrole="mango:EpochPositionCorrelations.latitudeParallax" dmtype="ivoa:real" ref="DEPlxcor" />
+              <!-- position/position correlation -->
+              <ATTRIBUTE dmrole="mango:EpochPositionCorrelations.longitudeLatitude" dmtype="ivoa:real" ref="RADEcor" />
+              <!-- proper-motion/proper-motion correlation -->
+              <ATTRIBUTE dmrole="mango:EpochPositionCorrelations.pmLongitudePmLatitude" dmtype="ivoa:real" ref="pmRApmDEcor" />
+            </INSTANCE>
+            <REFERENCE dmref="_spacesys_icrs" dmrole="mango:EpochPosition.spaceSys" />
+            <REFERENCE dmref="_timesys_tcb" dmrole="mango:EpochPosition.timeSys" />
+          </INSTANCE>
+
+        </TEMPLATES>
+      </VODML>
+    </RESOURCE>
+
+
+    <TABLE ID="I_355_gaiadr3" name="I/355/gaiadr3">
+      <DESCRIPTION>Gaia DR3 source catalog (1811709771 sources)</DESCRIPTION>
+      <!-- Gaia data release 3 (Gaia DR3). (\originalcolumnnames)\vizContent{timeSerie}\vizContent{spectrum} -->
+
+      <!-- Definitions of GROUPs and FIELDs -->
+      <FIELD name="_RAJ2000" ucd="pos.eq.ra" ref="J2000" datatype="double" width="17" precision="13" unit="deg"><!-- ucd="POS_EQ_RA" -->
+        <DESCRIPTION>Right ascension (FK5, Equinox=J2000.0) at Epoch=J2000, proper motions taken into account </DESCRIPTION>
+      </FIELD>
+      <FIELD name="_DEJ2000" ucd="pos.eq.dec" ref="J2000" datatype="double" width="17" precision="13" unit="deg"><!-- ucd="POS_EQ_DEC" -->
+        <DESCRIPTION>Declination (FK5, Equinox=J2000.0) at Epoch=J2000, proper motions taken into account </DESCRIPTION>
+      </FIELD>
+      <FIELD name="DR3Name" ucd="meta.id" datatype="char" arraysize="28*"><!-- ucd="ID_ALTERNATIVE" -->
+        <DESCRIPTION>Unique source designation (unique across all Data Releases) (designation)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="RA_ICRS" ucd="pos.eq.ra;meta.main" ref="H_2016.000" datatype="double" width="15" precision="11"
+        unit="deg"><!-- ucd="POS_EQ_RA_MAIN" -->
+        <DESCRIPTION>Right ascension (ICRS) at Ep=2016.0 (ra)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="DE_ICRS" ucd="pos.eq.dec;meta.main" ref="H_2016.000" datatype="double" width="15" precision="11"
+        unit="deg"><!-- ucd="POS_EQ_DEC_MAIN" -->
+        <DESCRIPTION>Declination (ICRS) at Ep=2016.0 (dec)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="Source" ucd="meta.id;meta.main" datatype="long" width="19"><!-- ucd="ID_MAIN" -->
+        <DESCRIPTION>Unique source identifier (unique within a particular Data Release) (source_id)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="e_RA_ICRS" ucd="stat.error;pos.eq.ra" datatype="double" width="7" precision="4" unit="mas"><!-- ucd="ERROR" -->
+        <DESCRIPTION>Standard error of right ascension (ra_error)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="e_DE_ICRS" ucd="stat.error;pos.eq.dec" datatype="double" width="7" precision="4" unit="mas"><!-- ucd="ERROR" -->
+        <DESCRIPTION>Standard error of declination (dec_error)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="Plx" ucd="pos.parallax.trig" datatype="double" width="9" precision="4" unit="mas"><!-- ucd="POS_PARLX_TRIG" -->
+        <DESCRIPTION>? Parallax (parallax)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="e_Plx" ucd="stat.error;pos.parallax.trig" datatype="float" width="7" precision="4" unit="mas"><!-- ucd="ERROR" -->
+        <DESCRIPTION>? Standard error of parallax (parallax_error)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PM" ucd="pos.pm;pos.eq" datatype="double" width="9" precision="3" unit="mas/yr"><!-- ucd="POS_EQ_PM" -->
+        <DESCRIPTION>? Total proper motion (pm)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="pmRA" ucd="pos.pm;pos.eq.ra" ref="H_2016.000" datatype="double" width="9" precision="3" unit="mas/yr"><!-- ucd="POS_EQ_PMRA" -->
+        <DESCRIPTION>? Proper motion in right ascension direction, pmRA*cosDE (pmra)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="e_pmRA" ucd="stat.error;pos.pm;pos.eq.ra" datatype="float" width="6" precision="3" unit="mas/yr"><!-- ucd="ERROR" -->
+        <DESCRIPTION>? Standard error of proper motion in right ascension direction (pmra_error)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="pmDE" ucd="pos.pm;pos.eq.dec" ref="H_2016.000" datatype="double" width="9" precision="3" unit="mas/yr"><!-- ucd="POS_EQ_PMDEC" -->
+        <DESCRIPTION>? Proper motion in declination direction (pmdec)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="e_pmDE" ucd="stat.error;pos.pm;pos.eq.dec" datatype="float" width="6" precision="3" unit="mas/yr"><!-- ucd="ERROR" -->
+        <DESCRIPTION>? Standard error of proper motion in declination direction (pmdec_error)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="RADEcor" ucd="stat.correlation" datatype="double" width="7" precision="4"><!-- ucd="STAT_CORRELATION" -->
+        <DESCRIPTION>[-1/1] Correlation between right ascension and declination (ra_dec_corr)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="RAPlxcor" ucd="stat.correlation" datatype="double" width="7" precision="4"><!-- ucd="STAT_CORRELATION" -->
+        <DESCRIPTION>[-1/1]? Correlation between right ascension and parallax (ra_parallax_corr)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="RApmRAcor" ucd="stat.correlation" datatype="double" width="7" precision="4"><!-- ucd="STAT_CORRELATION" -->
+        <DESCRIPTION>[-1/1]? Correlation between right ascension and proper motion in right ascension (ra_pmra_corr)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="RApmDEcor" ucd="stat.correlation" datatype="double" width="7" precision="4"><!-- ucd="STAT_CORRELATION" -->
+        <DESCRIPTION>[-1/1]? Correlation between right ascension and proper motion in declination (ra_pmdec_corr)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="DEPlxcor" ucd="stat.correlation" datatype="double" width="7" precision="4"><!-- ucd="STAT_CORRELATION" -->
+        <DESCRIPTION>[-1/1]? Correlation between declination and parallax (dec_parallax_corr)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="DEpmRAcor" ucd="stat.correlation" datatype="double" width="7" precision="4"><!-- ucd="STAT_CORRELATION" -->
+        <DESCRIPTION>[-1/1]? Correlation between declination and proper motion in right ascension (dec_pmra_corr)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="DEpmDEcor" ucd="stat.correlation" datatype="double" width="7" precision="4"><!-- ucd="STAT_CORRELATION" -->
+        <DESCRIPTION>[-1/1]? Correlation between declination and proper motion in declination (dec_pmdec_corr)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PlxpmRAcor" ucd="stat.correlation" datatype="double" width="7" precision="4"><!-- ucd="STAT_CORRELATION" -->
+        <DESCRIPTION>[-1/1]? Correlation between parallax and proper motion in right ascension (parallax_pmra_corr)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="PlxpmDEcor" ucd="stat.correlation" datatype="double" width="7" precision="4"><!-- ucd="STAT_CORRELATION" -->
+        <DESCRIPTION>[-1/1]? Correlation between parallax and proper motion in declination (parallax_pmdec_corr)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="pmRApmDEcor" ucd="stat.correlation" datatype="double" width="7" precision="4"><!-- ucd="STAT_CORRELATION" -->
+        <DESCRIPTION>[-1/1]? Correlation between proper motion in right ascension and proper motion in declination
+          (pmra_pmdec_corr)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="RV" ucd="spect.dopplerVeloc.opt;em.opt.I" datatype="double" width="7" precision="2" unit="km/s"><!-- ucd="VELOC_BARYCENTER" -->
+        <DESCRIPTION>? Radial velocity (radial_velocity)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="e_RV" ucd="stat.error;spect.dopplerVeloc.opt;em.opt.I" datatype="float" width="5" precision="2"
+        unit="km/s"><!-- ucd="ERROR" -->
+        <DESCRIPTION>? Radial velocity error (radial_velocity_error)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Vbroad" ucd="spect.dopplerVeloc.opt;em.opt.I" datatype="double" width="8" precision="4" unit="km/s"><!-- ucd="SPECT_LINE_BROADENING" -->
+        <DESCRIPTION>? Spectral line broadening parameter (vbroad)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="GRVSmag" ucd="phot.mag;em.opt" datatype="double" width="9" precision="6" unit="mag"><!-- ucd="PHOT_MAG_OPTICAL" -->
+        <DESCRIPTION>? Integrated Grvs magnitude (grvs_mag)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="QSO" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Flag indicating the availability of additional information in the QSO candidates table
+          (in_qso_candidates)
+        </DESCRIPTION>
+        <LINK
+          href="http://vizier.cds.unistra.fr/viz-bin/nph-htx/A?%5cifmatch%7b1%7d%7b${QSO}%7d%5cvMore%7b-source=I/356/qsocand%5c%26Source=${Source}%7d%7b${QSO}%7d%5celse%7b${QSO}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="Gal" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Flag indicating the availability of additional information in the galaxy candidates table
+          (in_galaxy_candidates)
+        </DESCRIPTION>
+        <LINK
+          href="http://vizier.cds.unistra.fr/viz-bin/nph-htx/A?%5cifmatch%7b1%7d%7b${Gal}%7d%5cvMore%7b-source=I/356/galcand%5c%26Source=${Source}%7d%7b${Gal}%7d%5celse%7b${Gal}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="NSS" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/7] Flag indicating the availability of additional information in the various Non-Single Star tables
+          (non_single_star)
+        </DESCRIPTION>
+        <LINK
+          href="http://vizier.cds.unistra.fr/viz-bin/nph-htx/A?%5cifmatch%7b1%7d%7b${NSS}%7d%5cvMore%7b-source=I/357/tb%2a%5c%26Source=${Source}%7d%7b${NSS}%7d%5celse%7b${NSS}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="XPcont" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Flag indicating the availability of mean BP/RP spectrum in continuous representation for this source
+          (has_xp_continuous)
+        </DESCRIPTION>
+        <LINK
+          href="http://vizier.cds.unistra.fr/viz-bin/nph-htx/A?%5cifmatch%7b1%7d%7b${XPcont}%7d%5cvMore%7b-source=I/355/xpco%2a%5c%26Source=${Source}%7d%7b${XPcont}%7d%5celse%7b${XPcont}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="XPsamp" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Flag indicating the availability of mean BP/RP spectrum in sampled form for this source
+          (has_xp_sampled)
+        </DESCRIPTION>
+        <LINK content-type="timeserie/votable"
+          href="http://vizier.cds.unistra.fr/viz-bin/nph-htx/A?%5cifmatch%7b1%7d%7b${XPsamp}%7d%5cvizContent%7bspectrum%7d%5cvplotTS%7bI/355%7d%7b.graph_sql_xpsamp%7d%7bPos=${RA_ICRS}${DE_ICRS}%26Source=${Source}%7d%7b${XPsamp}%7d%5celse%7b${XPsamp}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="RVS" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Flag indicating the availability of mean RVS spectrum for this source (has_rvs)</DESCRIPTION>
+        <LINK content-type="timeserie/votable"
+          href="http://vizier.cds.unistra.fr/viz-bin/nph-htx/A?%5cifmatch%7b1%7d%7b${RVS}%7d%5cvizContent%7btimeSerie%7d%5cvplotTS%7bI/355%7d%7b.graph_sql_rvs%7d%7bPos=${RA_ICRS}${DE_ICRS}%26Source=${Source}%7d%7b${RVS}%7d%5celse%7b${RVS}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="EpochPh" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Flag indicating the availability of epoch photometry for this source (has_epoch_photometry)
+        </DESCRIPTION>
+        <LINK content-type="timeserie/votable"
+          href="http://vizier.cds.unistra.fr/viz-bin/nph-htx/A?%5cifmatch%7b1%7d%7b${EpochPh}%7d%5cvizContent%7btimeSerie%7d%5cvplotTS%7bI/355%7d%7b.graph_sql_epphot%7d%7bPos=${RA_ICRS}${DE_ICRS}%26Source=${Source}%7d%7b${EpochPh}%7d%5celse%7b${EpochPh}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="EpochRV" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Flag indicating the availability of epoch radial velocity for this source (has_epoch_rv)
+        </DESCRIPTION>
+        <LINK
+          href="http://vizier.cds.unistra.fr/viz-bin/nph-htx/A?%5cifmatch%7b1%7d%7b${EpochRV}%7d%5cvMore%7b-source=I/358/veprv%5c%26Source=${Source}%7d%7b${EpochRV}%7d%5celse%7b${EpochRV}%7d%5cfi" />
+      </FIELD>
+      <FIELD name="MCMCGSP" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Flag indicating the availability of GSP-Phot MCMC samples for this source (has_mcmc_gspphot)
+        </DESCRIPTION>
+      </FIELD>
+      <FIELD name="MCMCMSC" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Flag indicating the availability of MSC MCMC samples for this source (has_mcmc_msc)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="And" ucd="meta.code.status" datatype="unsignedByte" width="1"><!-- ucd="CODE_MISC" -->
+        <DESCRIPTION>[0/1] Flag indicating that the source is present in the Gaia Andromeda Photometric Survey (GAPS)
+          (in_andromeda_survey)
+        </DESCRIPTION>
+      </FIELD>
+      <FIELD name="Teff" ucd="phys.temperature.effective" datatype="double" width="7" precision="1" unit="K"><!-- ucd="PHYS_TEMP_EFFEC" -->
+        <DESCRIPTION>? Effective temperature from GSP-Phot Aeneas best library using BP/RP spectra (teff_gspphot)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="logg" ucd="phys.gravity" datatype="double" width="7" precision="4" unit="log(cm.s**-2)"><!-- ucd="PHYS_GRAVITY_SURFACE" -->
+        <DESCRIPTION>? Surface gravity from GSP-Phot Aeneas best library using BP/RP spectra (logg_gspphot)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="[Fe/H]" ID="__Fe_H_" ucd="phys.abund.Z" datatype="double" width="7" precision="4" unit=""><!-- ucd="PHYS_ABUND_FE/H" -->
+        <DESCRIPTION>? Iron abundance from GSP-Phot Aeneas best library using BP/RP spectra (mh_gspphot)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="Dist" ucd="pos.distance;pos.eq" datatype="double" width="10" precision="4" unit="pc"><!-- ucd="PHYS_DISTANCE_TRUE" -->
+        <DESCRIPTION>? Distance from GSP-Phot Aeneas best library using BP/RP spectra (distance_gspphot)</DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="A0" ucd="phys.absorption;em.opt" datatype="double" width="7" precision="4" unit="mag"><!-- ucd="PHOT_EXTINCTION_TOTAL" -->
+        <DESCRIPTION>? Monochromatic extinction A_0 at 547.7nm from GSP-Phot Aeneas best library using BP/RP spectra
+          (azero_gspphot)
+        </DESCRIPTION>
+        <VALUES null="NaN" />
+      </FIELD>
+      <FIELD name="HIP" ucd="meta.number;phys.atmol.number" datatype="int" width="6"><!-- ucd="ID_NUMBER" -->
+        <DESCRIPTION>? HIP cross-id number, van Leeuwen, Cat. I/311 (hip_original_ext_source_id)</DESCRIPTION>
+        <VALUES null="-2147483648" />
+      </FIELD>
+      <FIELD name="PS1" ucd="meta.id.cross" datatype="long" width="18"><!-- ucd="ID_CROSSID" -->
+        <DESCRIPTION>? PS1 cross-id name, Chambers et al., Cat. II/349 (ps1_original_ext_source_id)</DESCRIPTION>
+        <VALUES null="-9223372036854775808" />
+      </FIELD>
+      <FIELD name="SDSS13" ucd="meta.id.cross" datatype="long" width="19"><!-- ucd="ID_CROSSID" -->
+        <DESCRIPTION>? SDSS name, Albareti et al., 2017ApJS..233...25A (sdss13_ext_source_id)</DESCRIPTION>
+        <VALUES null="-9223372036854775808" />
+      </FIELD>
+      <FIELD name="SKYM2" ucd="meta.id.cross" datatype="int" width="9"><!-- ucd="ID_CROSSID" -->
+        <DESCRIPTION>? SkyMapperDR2 cross-id name, Onken et al., 2019PASA...36...33O (skym2_original_ext_source_id)
+        </DESCRIPTION>
+        <VALUES null="-2147483648" />
+      </FIELD>
+      <FIELD name="TYC2" ucd="meta.id.cross" datatype="char" arraysize="12*"><!-- ucd="ID_CROSSID" -->
+        <DESCRIPTION>Tycho-2 cross-id name, Hog et al., Cat. I/259 (tyc2_original_ext_source_id)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="URAT1" ucd="meta.id.cross" datatype="char" arraysize="15*"><!-- ucd="ID_CROSSID" -->
+        <DESCRIPTION>URAT1 name, Zacharias et al., Cat. I/329 (urat1_original_ext_source_id)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="AllWISE" ucd="meta.id.cross" datatype="char" arraysize="19*"><!-- ucd="ID_CROSSID" -->
+        <DESCRIPTION>ALLWISE cross-id name, Cutri et al., Cat. II/328 (allwise_original_ext_source_id)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="APASS9" ucd="meta.id.cross" datatype="int" width="8"><!-- ucd="ID_CROSSID" -->
+        <DESCRIPTION>? APASS9 identification, Henden et al., Cat. II/336 (apass9_original_ext_source_id)</DESCRIPTION>
+        <VALUES null="-2147483648" />
+      </FIELD>
+      <FIELD name="GSC23" ucd="meta.id.cross" datatype="char" arraysize="10*"><!-- ucd="ID_CROSSID" -->
+        <DESCRIPTION>GSC2.3 cross-id name, Lasker et al., Cat. I/305 (gsc23_original_ext_source_id)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="RAVE5" ucd="meta.id.cross" datatype="char" arraysize="16*"><!-- ucd="ID_CROSSID" -->
+        <DESCRIPTION>RAVE DR5 cross-id name, Kunder et al., Cat. III/279 (rave5_original_ext_source_id)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="2MASS" ucd="meta.id.cross" ID="_2MASS" datatype="char" arraysize="17*"><!-- ucd="ID_CROSSID" -->
+        <DESCRIPTION>2MASS cross-id name, Cutri et al., Cat. II/246 (twomass_original_ext_source_id)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="RAVE6" ucd="meta.id.cross" datatype="char" arraysize="21*"><!-- ucd="ID_CROSSID" -->
+        <DESCRIPTION>RAVE DR6 cross-id name, Steinmetz et al., Cat. III/283 (rave6_original_ext_source_id)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="RAJ2000" ucd="pos.eq.ra" datatype="double" width="15" precision="11" unit="deg"><!-- ucd="POS_EQ_RA_OTHER" -->
+        <DESCRIPTION>Barycentric right ascension (ICRS) at Ep=2000.0 (added by CDS) (ra2000)</DESCRIPTION>
+      </FIELD>
+      <FIELD name="DEJ2000" ucd="pos.eq.dec" datatype="double" width="15" precision="11" unit="deg"><!-- ucd="POS_EQ_DEC_OTHER" -->
+        <DESCRIPTION>Barycentric declination (ICRS) at Ep=2000.0 (added by CDS) (dec2000)</DESCRIPTION>
+      </FIELD>
+      <DATA>
+        <TABLEDATA>
+          <TR>
+            <TD>307.7911702004070</TD>
+            <TD>+20.4311044212247</TD>
+            <TD>Gaia DR3 1816065554621487360</TD>
+            <TD>307.79115807079</TD>
+            <TD>+20.43108005561</TD>
+            <TD>1816065554621487360</TD>
+            <TD>0.0511</TD>
+            <TD>0.0477</TD>
+            <TD>0.4319</TD>
+            <TD>0.0691</TD>
+            <TD>6.049</TD>
+            <TD>-2.557</TD>
+            <TD>0.064</TD>
+            <TD>-5.482</TD>
+            <TD>0.067</TD>
+            <TD>0.1212</TD>
+            <TD>0.1337</TD>
+            <TD>-0.4109</TD>
+            <TD>-0.0072</TD>
+            <TD>0.0069</TD>
+            <TD>-0.0085</TD>
+            <TD>-0.2983</TD>
+            <TD>-0.2603</TD>
+            <TD>-0.0251</TD>
+            <TD>0.2688</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>1</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>1</TD>
+            <TD>1</TD>
+            <TD>0</TD>
+            <TD>4696.2</TD>
+            <TD>4.1928</TD>
+            <TD>-0.7942</TD>
+            <TD>2428.5532</TD>
+            <TD>0.0380</TD>
+            <TD></TD>
+            <TD>132513077911637877</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>URAT1-553569515</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>N2PD017546</TD>
+            <TD></TD>
+            <TD>20310987+2025519</TD>
+            <TD></TD>
+            <TD>307.79117020041</TD>
+            <TD>20.43110442122</TD>
+          </TR>
+          <TR>
+            <TD>307.7958370989668</TD>
+            <TD>+20.4325479549513</TD>
+            <TD>Gaia DR3 1816065558924798592</TD>
+            <TD>307.79582391363</TD>
+            <TD>+20.43253083107</TD>
+            <TD>1816065558924798592</TD>
+            <TD>0.3203</TD>
+            <TD>0.2898</TD>
+            <TD>-0.5553</TD>
+            <TD>0.4195</TD>
+            <TD>4.751</TD>
+            <TD>-2.780</TD>
+            <TD>0.395</TD>
+            <TD>-3.853</TD>
+            <TD>0.426</TD>
+            <TD>0.3740</TD>
+            <TD>0.1981</TD>
+            <TD>-0.3253</TD>
+            <TD>-0.0486</TD>
+            <TD>0.0632</TD>
+            <TD>-0.0608</TD>
+            <TD>-0.1303</TD>
+            <TD>-0.2989</TD>
+            <TD>-0.0876</TD>
+            <TD>0.4716</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>132513077957999584</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>N2PD017483</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>307.79583709897</TD>
+            <TD>20.43254795495</TD>
+          </TR>
+          <TR>
+            <TD>307.7973736604703</TD>
+            <TD>+20.4355882715396</TD>
+            <TD>Gaia DR3 1816065558920966528</TD>
+            <TD>307.79737366047</TD>
+            <TD>+20.43558827154</TD>
+            <TD>1816065558920966528</TD>
+            <TD>6.0643</TD>
+            <TD>2.1063</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>0.7514</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>132523077973693273</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>307.79737366047</TD>
+            <TD>20.43558827154</TD>
+          </TR>
+          <TR>
+            <TD>307.7885745651585</TD>
+            <TD>+20.4301331822264</TD>
+            <TD>Gaia DR3 1816065558924801792</TD>
+            <TD>307.78856137441</TD>
+            <TD>+20.43011713943</TD>
+            <TD>1816065558924801792</TD>
+            <TD>0.1196</TD>
+            <TD>0.1127</TD>
+            <TD>0.0910</TD>
+            <TD>0.1671</TD>
+            <TD>4.557</TD>
+            <TD>-2.781</TD>
+            <TD>0.153</TD>
+            <TD>-3.610</TD>
+            <TD>0.165</TD>
+            <TD>0.1448</TD>
+            <TD>0.1580</TD>
+            <TD>-0.3400</TD>
+            <TD>0.0468</TD>
+            <TD>0.0149</TD>
+            <TD>0.0299</TD>
+            <TD>-0.2083</TD>
+            <TD>-0.2178</TD>
+            <TD>0.0615</TD>
+            <TD>0.3266</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>1</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>5071.5</TD>
+            <TD>4.6975</TD>
+            <TD>-0.7109</TD>
+            <TD>2923.6248</TD>
+            <TD>0.0090</TD>
+            <TD></TD>
+            <TD>132513077885716709</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>URAT1-553569502</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>N2PD017266</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>307.78857456516</TD>
+            <TD>20.43013318223</TD>
+          </TR>
+          <TR>
+            <TD>307.7897816527446</TD>
+            <TD>+20.4315208963567</TD>
+            <TD>Gaia DR3 1816065554622254464</TD>
+            <TD>307.78977228741</TD>
+            <TD>+20.43150439876</TD>
+            <TD>1816065554622254464</TD>
+            <TD>0.3688</TD>
+            <TD>0.3801</TD>
+            <TD>-0.6243</TD>
+            <TD>0.5059</TD>
+            <TD>4.205</TD>
+            <TD>-1.975</TD>
+            <TD>0.444</TD>
+            <TD>-3.712</TD>
+            <TD>0.498</TD>
+            <TD>0.2553</TD>
+            <TD>0.0889</TD>
+            <TD>-0.3890</TD>
+            <TD>-0.0365</TD>
+            <TD>-0.0773</TD>
+            <TD>-0.0307</TD>
+            <TD>-0.2998</TD>
+            <TD>-0.2452</TD>
+            <TD>0.0025</TD>
+            <TD>0.3249</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD>0</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>132513077897708356</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>N2PD096440</TD>
+            <TD></TD>
+            <TD></TD>
+            <TD></TD>
+            <TD>307.78978165274</TD>
+            <TD>20.43152089636</TD>
+          </TR>
+        </TABLEDATA>
+      </DATA>
+    </TABLE>
+    <INFO name="matches" value="5">matching records</INFO>
+
+    <INFO name="Warning" value="No center provided++++" />
+    <INFO name="Warning" value="increase the precision for computed column 14" />
+    <INFO name="Warning" value="increase the precision for computed column 14" />
+    <INFO name="Warning" value="truncated result (maxtup=5)" />
+    <INFO name="QUERY_STATUS" value="OVERFLOW"> value="truncated result (maxtup=5)"</INFO>
+
+  </RESOURCE>
+</VOTABLE>
