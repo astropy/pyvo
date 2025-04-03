@@ -18,15 +18,15 @@ class XmlUtils:
     def pretty_print(xmltree, *, lshift=""):
         """
         Pretty print an XML tree
-        
+
         Parameters
         ----------
         xmltree: (~`xml.etree.ElementTree.Element`)
             XML tree to pretty print
-            
+
         lshift : str, optional, default ""
             Sequence to be inserted at the beginning of each line
-            Usually a space sequence 
+            Usually a space sequence
         """
         print(XmlUtils.pretty_string(xmltree, lshift=lshift))
 
@@ -34,16 +34,16 @@ class XmlUtils:
     def pretty_string(xmltree, *, lshift="", clean_namespace=True):
         """
         Return a pretty string representation of an XML tree (as Etree or string)
-        
+
         Parameters
         ----------
         xmltree (~`xml.etree.ElementTree.Element`) or string:
             XML tree to convert to a pretty string
-            
+
         lshift : str, optional, default ""
             Sequence to be inserted at the beginning of each line
-            Usually a space sequence 
-            
+            Usually a space sequence
+
         clean_namespace : boolean, optional, default True
             Default namespace (ns0) removed from element names if True
 
@@ -60,7 +60,7 @@ class XmlUtils:
                 root = ET.tostring(xmltree, encoding='unicode')
             root = root.replace("<?xml version=\"1.0\" ?>\n", "")
         reparsed = minidom.parseString(root)
-        pretty_string = re.sub(r" +\n","", reparsed.toprettyxml(indent="  "))
+        pretty_string = re.sub(r" +\n", "", reparsed.toprettyxml(indent="  "))
         pretty_string = pretty_string.replace("<?xml version=\"1.0\" ?>\n", "") \
                                      .replace("\n\n", "\n") \
                                      .replace("<", f"{lshift}<")
@@ -70,6 +70,21 @@ class XmlUtils:
         else:
             return pretty_string
 
+    @staticmethod
+    def strip_xml(xml_string):
+        """
+        Strip unnecessary whitespace and newline characters from an XML string.
+        Used by unit tests to compare xml strings
+
+        Parameters:
+        - xml_string (str): The XML string to strip.
+
+        Returns:
+        - str: The stripped XML string.
+        """
+        return (
+            xml_string.replace("\n", "").replace(" ", "").replace("'", "").replace('"', "")
+        )
 
     @staticmethod
     def add_column_indices(mapping_block, index_map):
