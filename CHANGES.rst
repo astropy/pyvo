@@ -15,17 +15,21 @@ Enhancements and Fixes
   subjects [#649]
 
 
-
 Deprecations and Removals
 -------------------------
 
+- Versions of Python <3.9 are no longer supported. [#639]
 
-1.6.2 (unreleased)
+
+1.6.2 (2025-04-07)
 ==================
 
 Bug Fixes
 ---------
 
+- Fix performance issues with datalink results. [#654]
+
+- More careful NULL value handling in tapregext data limits. [#659]
 
 
 1.6.1 (2025-02-12)
@@ -41,8 +45,6 @@ Bug Fixes
 - Switch to do minimal VOSI tables downloads for TAP metadata. [#634]
 
 - Provide more informative exception message when requests to endpoints fail. [#641]
-
-- Fix performance issues with datalink results. [#635]
 
 
 1.6 (2024-11-01)
@@ -76,18 +78,16 @@ Enhancements and Fixes
 - MIVOT module: the model references in the dictionaries that are used to build ``MivotInstance``
   objects are made more consistent [#551]
 
+- RegTAP constraints involving tables other than rr.resource are now
+  done via subqueries for less duplication of interfaces. [#562, #572]
+
 - MIVOT module: If the MIVOT annotation block contains a valid instance of the
   ``mango:EpochPosition`` class, the dynamic object describing the mapped
   data can generate a valid SkyCoord instance. [#591]
 
-- RegTAP constraints involving tables other than rr.resource are now
-  done via subqueries for less duplication of interfaces. [#562, #572]
-
-
 - New sub-package discover for global dataset discovery. [#470]
 
 - Updated getdatalink to be consistent with iter_datalinks. [#613]
-
 
 
 Deprecations and Removals
