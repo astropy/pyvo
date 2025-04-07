@@ -1,10 +1,12 @@
-1.6.2 (unreleased)
+1.6.2 (2025-04-07)
 ==================
 
 Bug Fixes
 ---------
 
 - Fix performance issues with datalink results. [#654]
+
+- More careful NULL value handling in tapregext data limits. [#659]
 
 
 1.6.1 (2025-02-12)
