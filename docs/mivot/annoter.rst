@@ -77,21 +77,32 @@ Add the Mango ``QueryOrigin`` instance to the current ``MangoObject``.
 
 .. figure:: _images/mangoDataOrigin.png
    :width: 500
-   
-   
+ 
    DataOrigin package of Mango.
 
 
 ``QueryOrigin`` is the object grouping together all the components needed to model the origin
-of the MangoObject.
+of the MangoObject. It is always identified with ``dmid="_origin"``
 
 .. code-block:: python
 
     builder.add_query_origin(mapping)
 
 
-The detail of the ``mapping`` parameter is given in the `pyvo.mivot.writer.InstancesFromModels.add_query_origin` documentation 
-    
+The detail of the ``mapping`` parameter is given in the `pyvo.mivot.writer.InstancesFromModels.add_query_origin` documentation
+
+The ``QueryOrigin`` object can be automatically built from the INFO tags the VOtable. The success of this operation depends
+on the way INFO tags are populated. 
+
+- This code has been optimized to work with Vizier output.
+- INFO tags of the VOTable header are analysed to set the ``QueryOrigin`` attributes.
+- INFO tags of the header of the first resource are analysed to set the ``DataOrigin`` objects.
+
+.. code-block:: python
+
+    builder.extract_data_origin()
+
+   
 Add Properties
 --------------
 
@@ -122,7 +133,13 @@ with their correlations and errors and the coordinate system for bot space and t
 The detail of the parameters is given with the description of the 
 :py:meth:`pyvo.mivot.writer.InstancesFromModels.add_mango_epoch_position` method.
 
+The first parameter (``frames``) specifies both space and time frames.
+It can either contain the dmid-s of frames if they are already installed, for instance from TIMESYS and COOSYS tags:
 
+.. code-block:: python
+
+    frame_mapping = builder.extract_frames()
+    builder.add_epoch_position(frame_mapping, mapping, semantics)
 
 Add Brightness
 ^^^^^^^^^^^^^^
