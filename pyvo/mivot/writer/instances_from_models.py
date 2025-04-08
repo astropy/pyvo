@@ -85,15 +85,16 @@ class InstancesFromModels(object):
 
         Returns
         -------
-        {"space": [], "time": []}
+        {"spaceSys": [{"dmid"}], "timeSys": [{"dmid"}]}
             Dictionary of all dmid-s of the frames actually added to the annotations.
             These dmid-s must be used by instances ATTRIBUTEs to their related frames.
+            This dictionary can be used ``frames`` parameter of ``add_epoch_position`` 
         """
-        ids = {"space": [], "time": []}
+        ids = {"spaceSys": [], "timeSys": []}
         for coosys_mapping in self._header_mapper.extract_coosys_mapping():
-            ids["space"].append(self.add_simple_space_frame(**coosys_mapping))
+            ids["spaceSys"].append({"dmid": self.add_simple_space_frame(**coosys_mapping)})
         for timesys_mapping in self._header_mapper.extract_timesys_mapping():
-            ids["space"].append(self.add_simple_time_frame(**timesys_mapping))
+            ids["timeSys"].append({"dmid": self.add_simple_time_frame(**timesys_mapping)})
         return ids
 
     def extract_data_origin(self):
