@@ -178,7 +178,7 @@ class MivotInstance:
         slim (bool, optional): if true, only @values and @units (if not empty) are
                                attached to model leaves.
                                @dmtype and @ref attributes are ignored
-        with_dmtypes (boolean, optional) : if true dmtypes are added to the 
+        with_dmtypes (boolean, optional) : if true dmtypes are added to the
                                            primitive types (model leaves)
         Returns
         -------

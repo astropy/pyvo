@@ -15,7 +15,6 @@ from pyvo.utils import activate_features
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.writer.instances_from_models import InstancesFromModels
-from pyvo.mivot.utils.dict_utils import DictUtils
 
 # Enable MIVOT-specific features in the pyvo library
 activate_features("MIVOT")
@@ -152,9 +151,22 @@ def test_all():
     add_photometry(builder)
     add_epoch_positon(builder)
     builder.pack_into_votable()
-    XmlUtils.pretty_print(builder._annotation.mivot_block)
     assert XmlUtils.strip_xml(builder._annotation.mivot_block) == (
         XmlUtils.strip_xml(get_pkg_data_contents("data/reference/mango_object.xml"))
+    )
+
+
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
+def test_extraction_from_votable_header():
+    votable_filename = get_pkg_data_filename("data/test.header_extraction.xml")
+
+    votable = parse(votable_filename)
+    builder = InstancesFromModels(votable, dmid="URAT1")
+    builder.extract_frames()
+    builder.extract_data_origin()
+    builder.pack_into_votable()
+    assert XmlUtils.strip_xml(builder._annotation.mivot_block) == (
+        XmlUtils.strip_xml(get_pkg_data_contents("data/reference/test_header_extraction.xml"))
     )
 
 
