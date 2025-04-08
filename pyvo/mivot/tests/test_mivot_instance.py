@@ -12,7 +12,6 @@ from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.mivot_instance import MivotInstance
 from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.viewer import MivotViewer
-from pyvo.mivot.utils.dict_utils import DictUtils
 
 fake_hk_dict = {
     "dmtype": "EpochPosition",
@@ -33,12 +32,12 @@ fake_hk_dict = {
 fake_dict = {
     "dmtype": "EpochPosition",
             "longitude": {
-                "dmtype": "RealQuantity", 
+                "dmtype": "RealQuantity",
                 "value": 52.2340018,
                 "unit": "deg",
             },
             "latitude": {
-                "dmtype": "RealQuantity", 
+                "dmtype": "RealQuantity",
                 "value": 59.8937333,
                 "unit": "deg",
             }
@@ -73,7 +72,7 @@ test_dict = {
                     "coord": {
                         "dmrole": "meas:GenericMeasure.coord",
                         "dmtype": "coords:PhysicalCoordinate",
-                        "cval": {"dmtype": "ivoa:RealQuantity","value": 15.216575},
+                        "cval": {"dmtype": "ivoa:RealQuantity", "value": 15.216575},
                     },
                 },
             },
