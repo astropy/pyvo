@@ -25,6 +25,9 @@
               <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.Article.editor" value="A&amp;A"/>
             </INSTANCE>
           </COLLECTION>
+          <COLLECTION dmrole="mango:origin.DataOrigin.creators">
+            <ATTRIBUTE dmtype="ivoa:string" value="Gaia collaboration"/>
+          </COLLECTION>
         </INSTANCE>
       </COLLECTION>
     </INSTANCE>

@@ -13,6 +13,7 @@ try:
     from xml.etree.ElementTree import Element
 except ImportError:
     from xml.etree import ElementTree as etree
+    from xml.etree.ElementTree import Element
 from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.utils.xpath_utils import XPath
@@ -21,6 +22,8 @@ from pyvo.mivot.utils.exceptions import MappingError
 from pyvo.mivot.writer.annotations import MivotAnnotations
 from pyvo.mivot.writer.mango_object import MangoObject
 from pyvo.mivot.writer.instance import MivotInstance
+from pyvo.mivot.writer.header_mapper import HeaderMapper
+
 from pyvo.mivot.glossary import (
     VodmlUrl, IvoaType, ModelPrefix, Url, CoordSystems)
 
@@ -56,6 +59,7 @@ class InstancesFromModels(object):
         """
         self._votable = votable
         self._table = votable.get_first_table()
+        self._header_mapper = HeaderMapper(self._votable)
         self._mango_instance = MangoObject(self._table, dmid=dmid)
         self._annotation = MivotAnnotations()
         self._annotation.add_model("ivoa",
@@ -68,6 +72,43 @@ class InstancesFromModels(object):
         if word.replace("*", "") not in suggested_words:
             logging.warning("Ref frame %s is not in %s, make sure there is no typo",
                            word, suggested_words)
+
+    def extract_frames(self):
+        """
+        Build space and time frames (``coords:SpaceSys`` and ``coords:TimeSys``) from
+        the INFO elements located in the header of the first VOTable resource.
+        The instances are added to the GLOBALS Mivot block.
+
+        .. note::
+           The VOTable can host multiple instances of COOSYS or TIMESYS.
+           All of them are the  instancied
+
+        Returns
+        -------
+        {"space": [], "time": []}
+            Dictionary of all dmid-s of the frames actually added to the annotations.
+            These dmid-s must be used by instances ATTRIBUTEs to their related frames.
+        """
+        ids = {"space": [], "time": []}
+        for coosys_mapping in self._header_mapper.extract_coosys_mapping():
+            ids["space"].append(self.add_simple_space_frame(**coosys_mapping))
+        for timesys_mapping in self._header_mapper.extract_timesys_mapping():
+            ids["space"].append(self.add_simple_time_frame(**timesys_mapping))
+        return ids
+
+    def extract_data_origin(self):
+        """
+        Build a ``mango:QueryOrigin`` from
+        the INFO elements located in the VOTable header.
+        The instance is added to the GLOBALS Mivot block.
+
+        Returns
+        -------
+        `MivotInstance`
+            The ``mango:QueryOrigin`` Mivot instance
+        """
+        mapping = self._header_mapper.extract_origin_mapping()
+        return self.add_query_origin(mapping)
 
     def add_photcal(self, filter_name):
         """
@@ -91,8 +132,8 @@ class InstancesFromModels(object):
         filter_name: str
             FPS identifier (SVO Photcal ID) of the request filter
 
-        return
-        ------
+        Returns
+        -------
         (str, str)
             dmids of photcal and filter instances
 
@@ -194,8 +235,8 @@ class InstancesFromModels(object):
         equinox : str, optional, default None
             The equinox for the reference frame, if applicable.
 
-        return
-        ------
+        Returns
+        -------
         str
             The actual dmid of the time frame INSTANCE
         """
@@ -270,8 +311,8 @@ class InstancesFromModels(object):
         refPosition : str, optional, default "BARYCENTER"
             The reference position for the time frame.
 
-        return
-        ------
+        Returns
+        -------
         str
             The actual dmid of the time frame INSTANCE
         """
@@ -438,7 +479,10 @@ class InstancesFromModels(object):
         ----------
         frames : dict, optional (default to an empty dictionary {})
             A dictionary specifying the frames (space and time coordinate systems) to be used.
-            Frames parameters are global, they cannot refer to table columns
+            Frames parameters are global, they cannot refer to table columns.
+            If a frame description contains the "dmid" key, that value will be used as an identifier
+            an already installed frame (e.g. with ``extract_frames()``). Otherwise the content of
+            the frame description is meant to be used in input parameter for ``add_simple_(space)time_frame()``
         mapping : dict, optional (default to an empty dictionary {})
             A dictionary defining the mapping of values. It includes:
 
@@ -488,8 +532,18 @@ class InstancesFromModels(object):
         """
         self._annotation.add_model(ModelPrefix.mango, vodml_url=VodmlUrl.mango)
 
-        space_frame_id = self.add_simple_space_frame(**frames["spaceSys"])
-        time_frame_id = self.add_simple_time_frame(**frames["timeSys"])
+        space_frame_id = ""
+        if "spaceSys" in frames:
+            if "dmid" in frames["spaceSys"]:
+                space_frame_id = frames["spaceSys"]["dmid"]
+            else:
+                space_frame_id = self.add_simple_space_frame(**frames["spaceSys"])
+        time_frame_id = ""
+        if "timeSys" in frames:
+            if "dmid" in frames["timeSys"]:
+                time_frame_id = frames["timeSys"]["dmid"]
+            else:
+                time_frame_id = self.add_simple_time_frame(**frames["timeSys"])
         return self._mango_instance.add_epoch_position(space_frame_id, time_frame_id, mapping,
                                                        semantics)
 
@@ -522,39 +576,44 @@ class InstancesFromModels(object):
                                                                                      {"identifier": "ID2"}]
                                                     }]
                                       })
-
         """
-
         self._annotation.add_model(ModelPrefix.mango, vodml_url=VodmlUrl.mango)
-        qo_instance = MivotInstance(dmtype=f"{ModelPrefix.mango}:origin.QueryOrigin", dmid="_origin")
-        MivotUtils.populate_instance(qo_instance, "QueryOrigin", mapping, self._table,
+        query_origin_instance = MivotInstance(dmtype=f"{ModelPrefix.mango}:origin.QueryOrigin",
+                                              dmid="_origin")
+        MivotUtils.populate_instance(query_origin_instance, "QueryOrigin", mapping, self._table,
                                      IvoaType.string, as_literals=True, package="origin")
         if "dataOrigin" in mapping:
             origins = []
-            do_mappings = mapping["dataOrigin"]
-            for do_mapping in do_mappings:
-                do_instance = MivotInstance(dmtype=f"{ModelPrefix.mango}:origin.DataOrigin")
-                MivotUtils.populate_instance(do_instance, "DataOrigin", do_mapping, self._table,
+            data_origin_mappings = mapping["dataOrigin"]
+            for data_origin_mapping in data_origin_mappings:
+                data_origin_instance = MivotInstance(dmtype=f"{ModelPrefix.mango}:origin.DataOrigin")
+                MivotUtils.populate_instance(data_origin_instance, "DataOrigin",
+                                             data_origin_mapping, self._table,
                                              IvoaType.string, as_literals=True, package="origin")
-                if "articles" in do_mapping:
+                if "articles" in data_origin_mapping:
                     articles = []
-                    art_mappings = do_mapping["articles"]
-                    for art_mapping in art_mappings:
+                    for art_mapping in data_origin_mapping["articles"]:
                         art_instance = MivotInstance(dmtype=f"{ModelPrefix.mango}:origin.Article")
                         MivotUtils.populate_instance(art_instance, "Article", art_mapping,
                                                      self._table, IvoaType.string,
                                                      as_literals=True, package="origin")
                         articles.append(art_instance)
-                    do_instance.add_collection(f"{ModelPrefix.mango}:origin.DataOrigin.articles",
-                                               articles)
+                    data_origin_instance.add_collection(f"{ModelPrefix.mango}:origin.DataOrigin.articles",
+                                                        articles)
+                if "creators" in data_origin_mapping:
+                    creators = []
+                    for art_mapping in data_origin_mapping["creators"]:
+                        creators.append(f"<ATTRIBUTE dmtype=\"ivoa:string\" value=\"{art_mapping}\" />")
+                    data_origin_instance.add_collection(f"{ModelPrefix.mango}:origin.DataOrigin.creators",
+                                                        creators)
 
-                origins.append(do_instance)
+                origins.append(data_origin_instance)
 
-            qo_instance.add_collection(f"{ModelPrefix.mango}:origin.QueryOrigin.dataOrigin",
-                                       origins)
-        self._annotation.add_globals(qo_instance)
+            query_origin_instance.add_collection(f"{ModelPrefix.mango}:origin.QueryOrigin.dataOrigin",
+                                                 origins)
+        self._annotation.add_globals(query_origin_instance)
         self._annotation._dmids.append("_origin")
-        return qo_instance
+        return query_origin_instance
 
     def pack_into_votable(self, *, report_msg="", sparse=False):
         """
