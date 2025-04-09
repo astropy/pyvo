@@ -161,3 +161,12 @@ class VodmlUrl:
     #: VODML URL of the `Astronomical Measurements Model
     #: <https://www.ivoa.net/documents/Meas/20221004/index.html>`_
     meas = "https://ivoa.net/xml/VODML/Meas-v1.vo-dml.xml"
+
+class EpochPositionAutoMapping:
+    longitude = ["POS_EQ_RA_MAIN", "pos.eq.ra;meta.main"]
+    latitude = ["POS_EQ_DEC_MAIN", "pos.eq.dec;meta.main"]
+    pmLongitude = ["pos.pm;pos.eq.ra"]
+    pmLatitude = ["pos.pm;pos.eq.dec"]
+    epoch = ["time.epoch;obs;stat.mean", "time.epoch;obs"]
+    parallax = ["pos.parallax.trig"]
+    radialVelocity = "spect.dopplerVeloc.opt"

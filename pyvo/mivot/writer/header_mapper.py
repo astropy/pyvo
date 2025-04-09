@@ -2,7 +2,7 @@
 ``HeaderMapper`` class source
 """
 import logging
-from pyvo.mivot.glossary import Roles
+from pyvo.mivot.glossary import Roles, EpochPositionAutoMapping
 from pyvo.mivot.utils.dict_utils import DictUtils
 
 
@@ -165,3 +165,55 @@ class HeaderMapper:
                 mappings.append(mapping)
 
         return mappings
+    
+    def _check_ucd(self, mapping_entry, ucd, mapping):
+        if mapping_entry in mapping:
+            return False
+        dict_entry = getattr(EpochPositionAutoMapping, mapping_entry)
+        if isinstance(dict_entry, list):
+            return ucd in dict_entry
+        else:
+            return ucd.startswith(dict_entry)
+    def XXX(self):
+        table = self._votable.get_first_table()
+        fields = table.fields
+        mapping = {}
+        error_mapping = {}
+        
+        for field in fields:
+            ucd = field.ucd
+            print(field.ucd)
+            for mapping_entry in Roles.EpochPosition:
+                if self._check_ucd(mapping_entry, ucd, mapping) is True:
+                    mapping[mapping_entry] = field.ID if field.ID is not None else field.name
+                    for err_field in fields:
+                        err_ucd = err_field.ucd
+                        if err_ucd == ("stat.error;" + ucd):
+                            error_mapping[mapping_entry] = err_field.ID if err_field.ID is not None else err_field.name
+
+
+        print(mapping)            
+        print(error_mapping)            
+        """
+            {"longitude": "_RAJ2000", "latitude": "_DEJ2000",
+                     "pmLongitude": "pmRA", "pmLatitude": "pmDE",
+                     "parallax": "Plx", "radialVelocity": "RV",
+                     "correlations": {"isCovariance": True, "longitudeLatitude": "RADEcor",
+                                      "latitudePmLongitude": "DEpmRAcor", "latitudePmLatitude": "DEpmDEcor",
+                                      "longitudePmLongitude": "RApmRAcor", "longitudePmLatitude": "RApmDEcor",
+                                      "longitudeParallax": "RAPlxcor", "latitudeParallax": "DEPlxcor",
+                                      "pmLongitudeParallax": "PlxpmRAcor", "pmLatitudeParallax": "PlxpmDEcor",
+                     },
+                     "errors": { "position": { "class": "PErrorSym2D", "sigma1": "e_RA_ICRS",
+                                               "sigma2": "e_DE_ICRS"},
+                                 "properMotion": { "class": "PErrorSym2D", "sigma1": "e_pmRA",
+                                                   "sigma2": "e_pmDE"},
+                                 "parallax": { "class": "PErrorSym1D", "sigma": "e_Plx"},
+                                 "radialVelocity": { "class": "PErrorSym1D", "sigma": "e_RV"}
+                     }
+            }
+            semantics={"description": "6 parameters position",
+                       "uri": "https://www.ivoa.net/rdf/uat/2024-06-25/uat.html#astronomical-location",
+                       "label": "Astronomical location"}
+    
+        """

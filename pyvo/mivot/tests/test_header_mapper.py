@@ -48,7 +48,7 @@ def test_all():
     """
     checks that the mapping dictionaries extracte from the VOTable match the expected ones
     """
-    votable = parse(get_pkg_data_filename("data/test.header_extraction.xml"))
+    votable = parse(get_pkg_data_filename("data/test.mivot_viewer.no_mivot.xml"))
 
     builder = HeaderMapper(votable)
     assert builder.extract_origin_mapping() == data_origin_mapping
@@ -58,4 +58,6 @@ def test_all():
 
 
 if __name__ == "__main__":
-    test_all()
+    votable = parse(get_pkg_data_filename("data/gaia_epoch_propagation_flat_full.xml"))
+    builder = HeaderMapper(votable)
+    builder.XXX()
