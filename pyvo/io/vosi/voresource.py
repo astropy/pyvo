@@ -239,7 +239,7 @@ class Interface(ElementWithXSIType):
         """
         Prints out a human readable description
         """
-        print('Interface {}'.format(self._xsi_type))
+        print(f'Interface {self._xsi_type}')
 
         accessurls = '\n'.join(
             accessurl.content for accessurl in self.accessurls)
@@ -370,7 +370,7 @@ class Capability(ElementWithXSIType):
         """
         Prints out a human readable description
         """
-        print("Capability {}".format(self.standardid))
+        print(f"Capability {self.standardid}")
         print()
 
         if self.description:

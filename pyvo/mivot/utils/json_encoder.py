@@ -27,4 +27,4 @@ class MivotJsonEncoder(json.JSONEncoder):
         elif isinstance(obj, numpy.ndarray):
             return obj.tolist()
         else:
-            return super(MivotJsonEncoder, self).default(obj)
+            return super().default(obj)

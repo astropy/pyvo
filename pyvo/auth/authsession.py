@@ -22,7 +22,7 @@ class AuthSession:
     """
 
     def __init__(self):
-        super(AuthSession, self).__init__()
+        super().__init__()
         self.credentials = CredentialStore()
         self._auth_urls = AuthURLs()
 

@@ -100,10 +100,9 @@ class AuthURLs():
         # the longest URLs (the most specific ones, if
         # there is a tie) are used to determine the
         # auth method.
-        for url, method in sorted(self.base_urls.items(),
+        yield from sorted(self.base_urls.items(),
                                   key=sort_by_len,
-                                  reverse=True):
-            yield url, method
+                                  reverse=True)
 
     def __repr__(self):
         urls = []

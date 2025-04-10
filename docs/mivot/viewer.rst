@@ -27,6 +27,7 @@ Integrated Readout
 ------------------
 The ``ModelViewer`` module manages access to data mapped to a model through dynamically
 generated objects (``MivotInstance`` class).
+
 The example below shows how can be consumed a VOTable resulting from a cone-search query which data are mapped
 to the ``EpochPosition`` class.
 
@@ -138,7 +139,7 @@ The model instances can also be serialized as XML elements that can be parsed wi
         	xml_view = mivot_viewer.xml_view
         	# do whatever you want with this XML element
 
-It to be noted that ``mivot_viewer.xml_view`` is a shortcut
+It is to be noted that ``mivot_viewer.xml_view`` is a shortcut
 for ``mivot_viewer.xml_view.view`` where ``mivot_viewer.xml_view``
 is is an instance of ``pyvo.mivot.viewer.XmlViewer``.
 This object provides many functions facilitating the XML parsing.

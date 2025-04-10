@@ -39,7 +39,7 @@ class DataModelType(ContentMixin, Element):
         """
         Prints out a human readable description
         """
-        print("Datamodel {}".format(self.content))
+        print(f"Datamodel {self.content}")
         print(indent(self.ivo_id, INDENT))
         print()
 
@@ -71,7 +71,7 @@ class OutputFormat(Element):
         """
         Prints out a human readable description
         """
-        print('Output format {}'.format(self.mime))
+        print(f'Output format {self.mime}')
 
         if self.aliases:
             print(indent('Also available as {}'.format(', '.join(self.aliases)),
@@ -100,7 +100,7 @@ class UploadMethod(Element):
         self.ivo_id = ivo_id
 
     def __repr__(self):
-        return '<UploadMethod ivo-id="{}"/>'.format(self.ivo_id)
+        return f'<UploadMethod ivo-id="{self.ivo_id}"/>'
 
     def describe(self):
         """
@@ -232,13 +232,13 @@ class Language(Element):
         self._languagefeaturelists = HomogeneousList(LanguageFeatureList)
 
     def __repr__(self):
-        return '<Language>{}</Language>'.format(self.name)
+        return f'<Language>{self.name}</Language>'
 
     def describe(self):
         """
         Prints out a human readable description
         """
-        print("Language {}".format(self.name))
+        print(f"Language {self.name}")
 
         for languagefeaturelist in self.languagefeaturelists:
             print(indent(languagefeaturelist.type, INDENT))
@@ -369,6 +369,9 @@ class DataLimit(ContentMixin, Element):
 
         self.unit = unit
 
+    def __str__(self):
+        return f"{self.unit}:{self.content}"
+
     @xmlattribute
     def unit(self):
         return self._unit
@@ -400,12 +403,12 @@ class DataLimits(Element):
         self.hard = None
 
     def __repr__(self):
-        return '<DataLimits default={}:{} hard={}:{}/>'.format(
-            self.default.unit,
-            self.default.content,
-            self.hard.unit,
-            self.hard.content
-        )
+        parts = []
+        if self.default is not None:
+            parts.append("default={self.default}")
+        if self.hard is not None:
+            parts.append("hard={self.hard}")
+        return '<DataLimits {}/>'.format(" ".join(parts))
 
     @xmlelement(cls=DataLimit, multiple_exc=W29)
     def default(self):
@@ -470,16 +473,16 @@ class TableAccess(TAPCapRestriction):
 
         if self.retentionperiod:
             print("Time a job is kept (in seconds)")
-            print(indent("Default {}".format(self.retentionperiod.default), INDENT))
+            print(indent(f"Default {self.retentionperiod.default}", INDENT))
             if self.retentionperiod.hard:
-                print(indent("Maximum {}".format(self.retentionperiod.hard), INDENT))
+                print(indent(f"Maximum {self.retentionperiod.hard}", INDENT))
             print()
 
         if self.executionduration:
             print("Maximal run time of a job")
-            print(indent("Default {}".format(self.executionduration.default), INDENT))
+            print(indent(f"Default {self.executionduration.default}", INDENT))
             if self.executionduration.hard:
-                print(indent("Maximum {}".format(self.executionduration.hard), INDENT))
+                print(indent(f"Maximum {self.executionduration.hard}", INDENT))
             print()
 
         if self.outputlimit:
@@ -494,7 +497,7 @@ class TableAccess(TAPCapRestriction):
                 )
             print()
 
-        if self.uploadlimit:
+        if self.uploadlimit and self.uploadlimit.hard:
             print("Maximal size of uploads")
             print(indent("Maximum {} {}".format(
                 self.uploadlimit.hard.content, self.uploadlimit.hard.unit), INDENT))

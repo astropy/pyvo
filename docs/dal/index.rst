@@ -15,7 +15,7 @@ metadata.
 .. doctest-remote-data::
 
     >>> import pyvo as vo
-    >>> service = vo.dal.SIAService("http://dc.zah.uni-heidelberg.de/lswscans/res/positions/siap/siap.xml")
+    >>> service = vo.dal.SIAService("http://dc.g-vo.org/lswscans/res/positions/siap/siap.xml")
     >>> print(service.description)
     Scans of plates kept at Landessternwarte Heidelberg-Königstuhl. They
     were obtained at location, at the German-Spanish Astronomical Center
@@ -212,7 +212,7 @@ to see the tables available on the Simbad TAP service, say:
 
     >>> simbad = vo.dal.TAPService("http://simbad.cds.unistra.fr/simbad/sim-tap")
     >>> print([tab_name for tab_name in simbad.tables.keys()])  # doctest: +IGNORE_WARNINGS
-    ['TAP_SCHEMA.schemas', 'TAP_SCHEMA.tables', 'TAP_SCHEMA.columns', 'TAP_SCHEMA.keys', ... 'mesVelocities', 'mesXmm', 'otypedef', 'otypes', 'ref']
+    ['TAP_SCHEMA.schemas', 'TAP_SCHEMA.tables', ... 'otypedef', 'otypes', 'ref']
 
 
 If you know a TAP service's access URL, you can directly pass it to
@@ -264,7 +264,7 @@ starting it, it creates a new object :py:class:`~pyvo.dal.AsyncTAPJob`.
 .. doctest-remote-data::
 
     >>> job.url
-    'http://dc.zah.uni-heidelberg.de/__system__/tap/run/async/...'
+    'http://dc.g-vo.org/__system__/tap/run/async/...'
 
 The job URL mentioned before is available in the ``url`` attribute.
 Clicking on the URL leads you to the query itself, where you can check
@@ -406,7 +406,7 @@ functionality is only available to authenticated (and authorized) users.
 
     >>> auth_session = vo.auth.AuthSession()
     >>> # authenticate. For ex: auth_session.credentials.set_client_certificate('<cert_file>')
-    >>> tap_service = vo.dal.TAPService("https://ws-cadc.canfar.net/youcat", auth_session)
+    >>> tap_service = vo.dal.TAPService("https://ws-cadc.canfar.net/youcat", session=auth_session)
     >>>
     >>> table_definition = '''
     ... <vosi:table xmlns:vosi="http://www.ivoa.net/xml/VOSITables/v1.0" xmlns:vod="http://www.ivoa.net/xml/VODataService/v1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" type="output">
@@ -473,7 +473,7 @@ Basic queries are done with the ``pos`` and ``size`` parameters described in
 
     >>> pos = SkyCoord.from_name('Eta Carina')
     >>> size = Quantity(0.5, unit="deg")
-    >>> sia_service = vo.dal.SIAService("http://dc.zah.uni-heidelberg.de/hppunion/q/im/siap.xml")
+    >>> sia_service = vo.dal.SIAService("http://dc.g-vo.org/hppunion/q/im/siap.xml")
     >>> sia_results = sia_service.search(pos=pos, size=size)
 
 The dataset format, 'all' by default, can be specified:
@@ -565,7 +565,7 @@ within a circular region on the sky defined by the parameters ``pos``
 
 .. doctest-remote-data::
 
-    >>> scs_srv = vo.dal.SCSService('http://dc.zah.uni-heidelberg.de/arihip/q/cone/scs.xml')
+    >>> scs_srv = vo.dal.SCSService('http://dc.g-vo.org/arihip/q/cone/scs.xml')
     >>> scs_results = scs_srv.search(pos=pos, radius=size)
 
 This service exposes the :ref:`verbosity <pyvo-verbosity>` parameter.
@@ -754,7 +754,7 @@ If the row contains datasets, they are exposed by several retrieval methods:
 .. doctest-skip::
 
     >>> row.getdataurl()
-    'http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V500/NGC0551.V500.rscube.fits'
+    'http://dc.g-vo.org/getproduct/califa/datadr3/V500/NGC0551.V500.rscube.fits'
     >>> type(row.getdataset())
     <class 'urllib3.response.HTTPResponse'>
 
@@ -816,13 +816,13 @@ previews:
 .. doctest-remote-data::
     >>> rows = vo.dal.TAPService("http://dc.g-vo.org/tap"
     ... ).run_sync("select top 5 * from califadr3.cubes order by califaid")
-    >>> for dl in rows.iter_datalinks():  # doctest: +IGNORE_WARNINGS
+    >>> for dl in rows.iter_datalinks(preserve_order=True):  # doctest: +IGNORE_WARNINGS
     ...     print(next(dl.bysemantics("#preview"))["access_url"])
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V1200/IC5376.V1200.rscube.fits?preview=True
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/COMB/IC5376.COMB.rscube.fits?preview=True
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V500/IC5376.V500.rscube.fits?preview=True
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/COMB/UGC00005.COMB.rscube.fits?preview=True
-    http://dc.zah.uni-heidelberg.de/getproduct/califa/datadr3/V1200/UGC00005.V1200.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/V1200/IC5376.V1200.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/COMB/IC5376.COMB.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/V500/IC5376.V500.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/COMB/UGC00005.COMB.rscube.fits?preview=True
+    http://dc.g-vo.org/getproduct/califa/datadr3/V1200/UGC00005.V1200.rscube.fits?preview=True
 
 The call to ``next`` in this example picks the first link marked
 *preview*.  For previews, this may be enough, but in general there can

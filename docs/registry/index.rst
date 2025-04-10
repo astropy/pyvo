@@ -54,6 +54,8 @@ keyword arguments.  The following constraints are available:
 * :py:class:`~pyvo.registry.UCD` (``ucd``): constrain by one or more UCD
   patterns; resources match when they serve columns having a matching
   UCD (e.g., ``phot.mag;em.ir.%`` for “any infrared magnitude”).
+* :py:class:`~pyvo.registry.UAT` (``uat``): constrain by concepts
+  from the IVOA Unified Astronomy Thesaurus http://www.ivoa.net/rdf/uat.
 * :py:class:`~pyvo.registry.Waveband` (``waveband``): one or more terms
   from the vocabulary at http://www.ivoa.net/rdf/messenger giving the rough
   spectral location of the resource.
@@ -97,9 +99,22 @@ or:
   ...                             registry.Waveband("UV"))
 
 or a mixture between the two.  Constructing using explicit
-constraints is generally preferable with more complex queries.  Where
-the constraints accept multiple arguments, you can pass in sequences to
-the keyword arguments; for instance:
+constraints is generally preferable with more complex queries.
+An advantage of using explicit constraints is that you can pass
+additional parameters to the constraints.  For instance, the UAT
+constraint can optionally expand your keyword to narrower or wider
+concepts.  When looking for resources talking about Cepheids of all
+kinds, you can thus say:
+
+.. doctest-remote-data::
+
+  >>> resources = registry.search(
+  ...   registry.UAT("cepheid-variable-stars", expand_down=3))
+
+There is no way to express this using keyword arguments.
+
+However, where the constraints accept multiple equivalent arguments, you
+can pass in sequences to the keyword arguments; for instance:
 
 .. doctest-remote-data::
 
@@ -112,6 +127,7 @@ is equivalent to:
 
   >>> resources = registry.search(waveband=["Radio", "Millimeter"],
   ...   author='%Miller%')
+
 
 There is also :py:meth:`~pyvo.registry.get_RegTAP_query`, accepting the
 same arguments as :py:meth:`pyvo.registry.search`.  This function simply
@@ -240,7 +256,7 @@ constraint on the description ``get_service(service_type='conesearch', keyword='
   ...     print(interface)
   Interface(type='tap#aux', description='', url='http://tapvizier.cds.unistra.fr/TAPVizieR/tap')
   Interface(type='vr:webbrowser', description='', url='http://vizier.cds.unistra.fr/viz-bin/VizieR-2?-source=J/ApJ/727/14')
-  Interface(type='conesearch', description='Cone search capability for table J/ApJ/727/14/table2 (AKARI IRC 3-24{mu}m, and Spitzer MIPS 24/70{mu}m photometry of Abell 2255 member galaxies)', url='http://vizier.cds.unistra.fr/viz-bin/conesearch/J/ApJ/727/14/table2?')
+  Interface(type='conesearch', description='Cone search capability for table J/ApJ/727/14/table2 (AKARI IRC 3-24{mu}m, and Spitzer MIPS 24/70{mu}m photometry of Abell 2255 member galaxies)', url='https://vizier.cds.unistra.fr/viz-bin/conesearch/J/ApJ/727/14/table2?')
 
 Or construct the service object directly from the list of interfaces with:
 
@@ -581,7 +597,7 @@ You can pre-select the URL by setting the ``IVOA_REGISTRY`` environment
 variable to the TAP access URL of the service you would like to use.  In
 a bash-like shell, you would say::
 
-  export IVOA_REGISTRY="http://vao.stsci.edu/RegTAP/TapService.aspx"
+  export IVOA_REGISTRY="https://mast.stsci.edu/vo-tap/api/v0.1/registry"
 
 before starting python (or the notebook processor).
 
@@ -600,10 +616,11 @@ RegTAP services using:
   >>> res = registry.search(datamodel="regtap")
   >>> print("\n".join(sorted(r.get_interface(service_type="tap", lax=True).access_url
   ...   for r in res)))
-  http://dc.zah.uni-heidelberg.de/tap
+  http://dc.g-vo.org/tap
   http://gavo.aip.de/tap
   http://voparis-rr.obspm.fr/tap
-  https://vao.stsci.edu/RegTAP/TapService.aspx
+  https://mast.stsci.edu/vo-tap/api/v0.1/registry
+  https://registry.euro-vo.org/regtap/tap
 
 
 

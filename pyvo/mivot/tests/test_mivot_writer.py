@@ -35,9 +35,9 @@ def test_MivotInstance():
     the expected MappingError.
     """
     with pytest.raises(MappingError):
-        MivotInstance(dmid="model:type.inst")
+        MivotInstance("")
 
-    instance1 = MivotInstance(dmtype="model:type.inst", dmid="id1")
+    instance1 = MivotInstance("model:type.inst", dmid="id1")
     with pytest.raises(MappingError):
         instance1.add_attribute(
             dmrole="model:type.inst.role1", value="value1", unit="m/s"
@@ -80,8 +80,3 @@ def test_MivotAnnotations():
         mb.add_templates(12)
     with pytest.raises(MappingError):
         mb.add_globals(12)
-
-
-if __name__ == "__main__":
-    mivot_annotations = MivotAnnotations()
-    dmid = mivot_annotations.add_photcal("SLOAN/SDSS.g/AB")

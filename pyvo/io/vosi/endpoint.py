@@ -67,6 +67,9 @@ def parse_tables(source, *, pedantic=None, filename=None,
         then *source* will be used as a filename for error messages.
         Therefore, *filename* is only required when source is a
         file-like object.
+    _debug_python_based_parser : bool, optional
+        If `True`, use the Python-based parser. This is useful for
+        debugging purposes.  Defaults to False.
 
     Returns
     -------
@@ -113,6 +116,9 @@ def parse_capabilities(source, *, pedantic=None, filename=None,
         then *source* will be used as a filename for error messages.
         Therefore, *filename* is only required when source is a
         file-like object.
+    _debug_python_based_parser : bool, optional
+        If `True`, use the Python-based parser. This is useful for
+        debugging purposes.  Defaults to False.
 
     Returns
     -------
@@ -159,6 +165,11 @@ def parse_availability(source, *, pedantic=None, filename=None,
         then *source* will be used as a filename for error messages.
         Therefore, *filename* is only required when source is a
         file-like object.
+    _debug_python_based_parser : bool, optional
+        If `True`, use the Python-based parser. This is useful for
+        debugging purposes.  Defaults to False.
+
+
 
     Returns
     -------
@@ -231,7 +242,7 @@ class TablesFile(Element):
     @xmlelement
     def tableset(self):
         """
-        The tableset. Must be a `TableSet` object.
+        The tableset. Must be a `~pyvo.io.vosi.vodataservice.TableSet` object.
         """
         return self._tableset
 
@@ -248,7 +259,7 @@ class TablesFile(Element):
     @xmlelement(cls=vs.VODataServiceTable)
     def table(self):
         """
-        The `VODataServiceTable` root element if present.
+        The `~pyvo.io.vosi.vodataservice.VODataServiceTable` root element if present.
         """
         return self._table
 
@@ -311,7 +322,7 @@ class TablesFile(Element):
         for table in self.iter_tables():
             if table.name == name:
                 return table
-        raise KeyError("No table with name {} found".format(name))
+        raise KeyError(f"No table with name {name} found")
 
 
 class CapabilitiesFile(Element, HomogeneousList):

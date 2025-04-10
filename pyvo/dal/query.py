@@ -20,14 +20,15 @@ other externally defined table.  In this case there is no VO defined
 standard data model.  Usually the field names are used to uniquely
 identify table columns.
 """
-__all__ = ["DALService", "DALQuery", "DALResults", "Record"]
+__all__ = ["DALService", "DALServiceError", "DALQuery", "DALQueryError",
+           "DALResults", "Record", "UploadList"]
 
 import os
 import shutil
 import re
 import requests
 from collections.abc import Mapping
-from io import BytesIO
+from io import BytesIO, StringIO
 
 import collections
 
@@ -64,7 +65,7 @@ class DALService:
            the base URL that should be used for forming queries to the service.
         session : object
            optional session to use for network requests
-        description : str, optional
+        capability_description : str, optional
            the description of the service.
         """
         self._baseurl = baseurl
@@ -129,7 +130,7 @@ class DALService:
         """
         describe the general information about the DAL service
         """
-        print('DAL Service at {}'.format(self.baseurl))
+        print(f'DAL Service at {self.baseurl}')
 
 
 class DALQuery(dict):
@@ -310,7 +311,7 @@ class DALResults:
 
         Parameters
         ----------
-        votable : str
+        votable : astropy.io.votable.tree.VOTableFile
            the service response parsed into an
            astropy.io.votable.tree.VOTableFile instance.
         url : str
@@ -551,7 +552,7 @@ class DALResults:
 
             return self.resultstable.array[name]
         except KeyError:
-            raise KeyError("No such column: {}".format(name))
+            raise KeyError(f"No such column: {name}")
 
     def getrecord(self, index):
         """
@@ -686,7 +687,7 @@ class Record(Mapping):
 
             return self._mapping[key]
         except KeyError:
-            raise KeyError("No such column: {}".format(key))
+            raise KeyError(f"No such column: {key}")
 
     def __iter__(self):
         return iter(self._mapping)
@@ -889,7 +890,7 @@ class Record(Mapping):
         if not os.path.exists(dir):
             os.mkdir(dir)
         if not os.path.isdir(dir):
-            raise ValueError("{}: not a directory".format(dir))
+            raise ValueError(f"{dir}: not a directory")
 
         if not base:
             base = self.suggest_dataset_basename()
@@ -904,7 +905,7 @@ class Record(Mapping):
         n = self._dsname_no
 
         def mkpath(i):
-            return os.path.join(dir, "{}-{}.{}".format(base, i, ext))
+            return os.path.join(dir, f"{base}-{i}.{ext}")
 
         if n > 0:
             # find the last file written of the form, base-n.ext
@@ -914,7 +915,7 @@ class Record(Mapping):
             n += 1
         if n == 0:
             # never wrote a file of form, base-n.ext; try base.ext
-            path = os.path.join(dir, "{}.{}".format(base, ext))
+            path = os.path.join(dir, f"{base}.{ext}")
             if not os.path.exists(path):
                 return path
             n += 1
@@ -1042,7 +1043,7 @@ class Upload:
 
             return fileobj
 
-        elif isinstance(self._content, BytesIO):
+        elif isinstance(self._content, (BytesIO, StringIO)):
             return self._content
 
         elif isinstance(self._content, DALResults):

@@ -144,21 +144,15 @@ def test_datalink():
     results = vo.spectrumsearch(
         'http://example.com/ssa_datalink', (30, 30))
 
-    datalinks = next(results.iter_datalinks())
+    for preserve_order in [False, True]:
+        dl_res = set(results.iter_datalinks(preserve_order=preserve_order))
+        assert len(dl_res) == 1
+        datalinks = dl_res.pop()
+        assert datalinks.original_row["accsize"] == 100800
 
-    assert datalinks.original_row["accsize"] == 100800
-
-    row = datalinks[0]
-    assert row.semantics == "#progenitor"
-
-    row = datalinks[1]
-    assert row.semantics == "#proc"
-
-    row = datalinks[2]
-    assert row.semantics == "#this"
-
-    row = datalinks[3]
-    assert row.semantics == "#preview"
+        assert 4 == len(datalinks)
+        for dl in datalinks:
+            assert dl.semantics in ['#this', '#preview', '#progenitor', '#proc']
 
 
 @pytest.mark.usefixtures('obscore_datalink', 'res_datalink')
@@ -170,9 +164,10 @@ def test_datalink_batch():
     results = vo.dal.imagesearch(
         'http://example.com/obscore', (30, 30))
 
-    dls = list(results.iter_datalinks())
-    assert len(dls) == 3
-    assert dls[0].original_row["obs_collection"] == "MACHO"
+    for preserve_order in [False, True]:
+        dls = list(results.iter_datalinks(preserve_order=preserve_order))
+        assert len(dls) == 3
+        assert dls[0].original_row["obs_collection"] == "MACHO"
 
 
 @pytest.mark.usefixtures('proc', 'datalink_vocabulary')

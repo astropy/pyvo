@@ -24,12 +24,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: py38 oldest dependencies, Linux
-            python-version: '3.8'
-            tox_env: py38-test-oldestdeps-alldeps
-          - name: py39 mandatory dependencies only, Linux
+          - name: py39 oldest dependencies, Linux
             python-version: '3.9'
-            tox_env: py39-test
+            tox_env: py39-test-oldestdeps-alldeps
+          - name: py310 mandatory dependencies only, Linux
+            python-version: '3.10'
+            tox_env: py310-test
           - name: py311 with online tests, Linux
             python-version: '3.11'
             tox_env: py311-test-alldeps-online
@@ -40,7 +40,7 @@ jobs:
       with:
         fetch-depth: 0
     - name: Set up Python
-      uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
+      uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55  # v5.5.0
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install tox
@@ -61,13 +61,13 @@ jobs:
       with:
         fetch-depth: 0
     - name: Set up Python
-      uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
+      uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55  # v5.5.0
       with:
-        python-version: '3.10'
+        python-version: '3.12'
     - name: Install tox
       run: python -m pip install --upgrade tox
-    - name: Python 3.10 with latest astropy
-      run: tox -e py310-test-alldeps
+    - name: Python 3.12 with latest astropy
+      run: tox -e py312-test-alldeps
 
 
   stylecheck:
@@ -76,10 +76,10 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
+      - name: Set up Python 3.12
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55  # v5.5.0
         with:
-          python-version: 3.8
+          python-version: '3.12'
       - name: Install tox
         run: python -m pip install --upgrade tox
       - name: Check codestyle
@@ -93,7 +93,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
       - name: Set up Python 3.10
-        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55  # v5.5.0
         with:
           python-version: '3.10'
       - name: Install tox

@@ -727,7 +727,6 @@ def test_get_alt_identifier():
     rsc = _makeRegistryRecord(ivoid="ivo://cds.vizier/i/337")
     assert set(rsc.get_alt_identifiers()) == {
         'doi:10.26093/cds/vizier.1337',
-        'bibcode:doi:10.5270/esa-ogmeula',
         'bibcode:2016yCat.1337....0G'}
 
 
@@ -931,7 +930,7 @@ def test_sia2_service_operation():
 
 @pytest.mark.remote_data
 def test_endpoint_switching():
-    alt_svc = "http://vao.stsci.edu/RegTAP/TapService.aspx"
+    alt_svc = "https://mast.stsci.edu/vo-tap/api/v0.1/registry"
     previous_url = regtap.REGISTRY_BASEURL
     try:
         regtap.choose_RegTAP_service(alt_svc)

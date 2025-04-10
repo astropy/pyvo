@@ -26,7 +26,7 @@ class VocabularyError(Exception):
     """
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_vocabulary(voc_name, force_update=False):
     """returns an IVOA vocabulary in its "desise" form.
 
@@ -61,7 +61,7 @@ def get_vocabulary(voc_name, force_update=False):
                           f" {voc_name} failed: {msg}",
                           category=PyvoUserWarning)
 
-    with open(src_name, "r", encoding="utf-8") as f:
+    with open(src_name, encoding="utf-8") as f:
         return json.load(f)
 
 
