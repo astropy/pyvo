@@ -56,7 +56,7 @@ class MangoObject(object):
     This class handles all the components of a MangoObject (properties, origin, instance identifier).
      It is meant to be used by `pyvo.mivot.writer.InstancesFromModels` but not by end users.
 
-    - There is one specific method for each supported property (EpochPosition, photometry)
+    - There is one specific method for each supported property (EpochPosition, photometry and QueryOrigin).
     - The internal structure of the classes is hard-coded in the class logic.
 
     """
@@ -67,7 +67,7 @@ class MangoObject(object):
 
         parameters
         ----------
-        table: astropy.io.votable.tree.TableElement
+        table : astropy.io.votable.tree.TableElement
             VOTable table which data is mapped on Mango
         dmid: stringn optional (default as None)
             Reference of the column to be used as a MangoObject identifier
@@ -134,13 +134,13 @@ class MangoObject(object):
 
         Parameters
         ----------
-        space_frame_id: string
+        space_frame_id : string
             Identifier (dmid) of space system INSTANCE located in the GLOBALS
-        time_frame_id: string
+        time_frame_id : string
             Identifier (dmid) of time system INSTANCE located in the GLOBALS
-        mapping: dict
+        mapping : dict
             Mapping of the EpochPosition fields
-        semantics: dict
+        semantics : dict
             Mapping of the MangoObject property
 
         Returns
@@ -164,17 +164,17 @@ class MangoObject(object):
 
     def add_brightness_property(self, filter_id, mapping, semantics={}):
         """
-        Add an ``Brightness`` instance to the properties of the current ``MangoObject``.
+        Add a ``Brightness`` instance to the properties of the current ``MangoObject``.
         Both mapping and semantics arguments inherit from
         `pyvo.mivot.writer.InstancesFromModels.add_mango_brightness`.
 
         Parameters
         ----------
-        filter_id: string
+        filter_id : string
             Identifier (dmid) of the PhotCal INSTANCE located in the GLOBALS
-        mapping: dict
+        mapping : dict
             Mapping of the EpochPosition fields
-        semantics: dict
+        semantics : dict
             Mapping of the MangoObject property
 
         Returns
@@ -203,19 +203,19 @@ class MangoObject(object):
 
     def add_color_instance(self, filter_low_id, filter_high_id, mapping, semantics={}):
         """
-        Add an ``Brightness`` instance to the properties of the current ``MangoObject``.
+        Add an ``Color`` instance to the properties of the current ``MangoObject``.
         Both mapping and semantics arguments inherit from
         `pyvo.mivot.writer.InstancesFromModels.add_mango_color`.
 
         Parameters
         ----------
-        filter_low_id: string
+        filter_low_id : string
             Identifier (dmid) of the low energy Photfilter INSTANCE located in the GLOBALS
-        filter_high_id: string
+        filter_high_id : string
             Identifier (dmid) of the high energy Photfilter INSTANCE located in the GLOBALS
-        mapping: dict
+        mapping : dict
             Mapping of the EpochPosition fields
-        semantics: dict
+        semantics : dict
             Mapping of the MangoObject property
 
         Returns
@@ -259,7 +259,7 @@ class MangoObject(object):
 
         Parameters
         ----------
-        with_origin: bool
+        with_origin : bool
             Ask for adding a reference (_origin) to the query origin possibly located in the GLOBALS
 
         Returns

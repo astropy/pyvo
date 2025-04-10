@@ -109,7 +109,7 @@ def add_epoch_positon(builder):
 
 @pytest.mark.usefixtures("mocked_fps_grvs", "mocked_fps_grp")
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
-def test_all():
+def test_all_properties():
     votable_filename = get_pkg_data_filename("data/gaia_nomivot.xml")
 
     votable = parse(votable_filename)
@@ -158,17 +158,21 @@ def test_all():
 
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_extraction_from_votable_header():
-    votable_filename = get_pkg_data_filename("data/test.header_extraction.xml")
+    votable_filename = get_pkg_data_filename("data/gaia_epoch_propagation_flat_full.xml")
 
     votable = parse(votable_filename)
     builder = InstancesFromModels(votable, dmid="URAT1")
     builder.extract_frames()
     builder.extract_data_origin()
+    epoch_position_mapping = builder.extract_epoch_position_parameters()
+
+    builder.add_mango_epoch_position(**epoch_position_mapping)
     builder.pack_into_votable()
+
     assert XmlUtils.strip_xml(builder._annotation.mivot_block) == (
         XmlUtils.strip_xml(get_pkg_data_contents("data/reference/test_header_extraction.xml"))
     )
 
 
 if __name__ == "__main__":
-    test_all()
+    test_extraction_from_votable_header()

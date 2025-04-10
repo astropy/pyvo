@@ -3,13 +3,13 @@ MIVOT (``pyvo.mivot``): Annotation Writer - Public API
 ******************************************************
 
 This API allows to easily map VOTable data to recommended VO models, especially MANGO.
-Only a little knowledge of the models is required
+Only a little knowledge of the models is required.
 
 Mango is a model designed to enhance the description of table data in a way that each table
 row can be interpreted as a Mango Object.
 Mango objects are made of a property container, a description of the data origin and links on other Mango objects (not implemented yet).
 
-In this current implementation, only a few properties are supported (Epoch position and photometry)
+In this current implementation, only a few properties are supported (Epoch position, photometry, and color)
 and the data origin can be added as literal values (not connected with table data). 
 
 The pseudo codes below show the way to use this API.
@@ -20,6 +20,8 @@ The first step is to create the Annotation Builder and connect it to the VOTable
 
     votable = parse("MY/VOTABLE")
     builder = InstancesFromModels(votable, dmid="DR3Name")
+
+The ``dmid`` optional parameter gives the column (ID or name) to be used as identifier of the Mango objects.
 
 The builder is then ready to get the properties to add to the Mango object.
 
@@ -45,7 +47,7 @@ Now the MIVOT block can be completed and inserted into the VOtable.
  .. code-block:: python
  
     builder.pack_into_votable()
-    votable.to_xml("MYY/ANNOTATED/VOTABLE")
+    votable.to_xml("MY/ANNOTATED/VOTABLE")
 
 About Parameters
 ================
@@ -96,7 +98,9 @@ on the way INFO tags are populated.
 
 - This code has been optimized to work with Vizier output.
 - INFO tags of the VOTable header are analysed to set the ``QueryOrigin`` attributes.
-- INFO tags of the header of the first resource are analysed to set the ``DataOrigin`` objects.
+- INFO tags of the header of the first resource are analyzed to set the ``DataOrigin`` objects.
+
+The method below, analyzes the INFO tags and insert the resulting query origin the annotations.
 
 .. code-block:: python
 
@@ -124,7 +128,7 @@ Add EpochPosition
 
 The ``EpochPosition`` property describes the astrometry of a moving source.
 It handles six parameters (position, proper motion, parallax and radial velocity)
-with their correlations and errors and the coordinate system for bot space and time axis.
+with their correlations and errors and the coordinate system for both space and time axis.
 
 .. code-block:: python
 
@@ -134,12 +138,27 @@ The detail of the parameters is given with the description of the
 :py:meth:`pyvo.mivot.writer.InstancesFromModels.add_mango_epoch_position` method.
 
 The first parameter (``frames``) specifies both space and time frames.
-It can either contain the dmid-s of frames if they are already installed, for instance from TIMESYS and COOSYS tags:
+It can either contain the frame dmid-s if they are already installed, for instance from TIMESYS and COOSYS tags:
 
 .. code-block:: python
 
     frame_mapping = builder.extract_frames()
     builder.add_epoch_position(frame_mapping, mapping, semantics)
+
+This automatic metedata extraction can be extended to all method parameters:.
+
+- COOSYS -> coords:SpaceSys
+- TIMESYS -> coords:TimeSys
+- FIELD -> mango:EpochPosition
+
+.. code-block:: python
+
+    epoch_position_mapping = builder.extract_epoch_position_parameters()
+    builder.add_mango_epoch_position(**epoch_position_mapping)
+
+However, it is advisable to take a look at the automatic mapping, as its content
+is highly dependent on the VO table metadata, and the risk of incompleteness,
+mismatches or confusion cannot be ruled out.
 
 Add Brightness
 ^^^^^^^^^^^^^^

@@ -57,6 +57,25 @@ def test_all():
     assert builder.extract_timesys_mapping() == timesys_mappings
 
 
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
+def test_field_extraction():
+    """
+    checks that the epochPosition mapping dictionaries extracted from
+    the VOTable columns match the expected ones
+    """
+    votable = parse(get_pkg_data_filename("data/gaia_epoch_propagation_flat_full.xml"))
+    builder = HeaderMapper(votable)
+    mapping, error_mapping = builder.extract_epochposition_mapping()
+    assert mapping == {"longitude": "RA_ICRS", "latitude": "DE_ICRS", "parallax": "Plx",
+                       "pmLongitude": "pmRA", "pmLatitude": "pmDE", "radialVelocity": "RV"}
+    assert error_mapping == {"position": {"class": "PErrorSym2D",
+                                          "sigma1": "e_RA_ICRS", "sigma2": "e_DE_ICRS"},
+                             "parallax": {"class": "PErrorSym1D", "sigma": "e_Plx"},
+                             "properMotion": {"class": "PErrorSym2D",
+                                              "sigma1": "e_pmRA", "sigma2": "e_pmDE"},
+                             "radialVelocity": {"class": "PErrorSym1D", "sigma": "e_RV"}}
+
+
 if __name__ == "__main__":
     votable = parse(get_pkg_data_filename("data/gaia_epoch_propagation_flat_full.xml"))
     builder = HeaderMapper(votable)

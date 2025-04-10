@@ -1,11 +1,12 @@
 """
 Glossary for the MIVOT package
 
-- Model related words
+- Model related words (hard-coded for now)
 - URLs
 """
 
-__all__ = ["Url", "IvoaType", "Roles", "CoordSystems", "ModelPrefix", "VodmlUrl"]
+__all__ = ["Url", "IvoaType", "Roles", "CoordSystems", "ModelPrefix",
+           "VodmlUrl", "EpochPositionAutoMapping"]
 
 
 class Url:
@@ -162,11 +163,26 @@ class VodmlUrl:
     #: <https://www.ivoa.net/documents/Meas/20221004/index.html>`_
     meas = "https://ivoa.net/xml/VODML/Meas-v1.vo-dml.xml"
 
+
 class EpochPositionAutoMapping:
+    """
+    Expected UCDs for identifying FIELD to be mapped to EpochPosition attributes.
+
+    - UCD-s of the associated errors are derived from them
+    - list items must have an exact match
+    - Single values are evaluated as starting with
+    """
+    #: UCD-s accepted to map the longitude
     longitude = ["POS_EQ_RA_MAIN", "pos.eq.ra;meta.main"]
+    #: UCD-s accepted to map the latitude
     latitude = ["POS_EQ_DEC_MAIN", "pos.eq.dec;meta.main"]
+    #: UCD-s accepted to map the proper motion longitude
     pmLongitude = ["pos.pm;pos.eq.ra"]
+    #: UCD-s accepted to map the proper motion latitude
     pmLatitude = ["pos.pm;pos.eq.dec"]
+    #: UCD-s accepted to map the epoch
     epoch = ["time.epoch;obs;stat.mean", "time.epoch;obs"]
+    #: UCD-s accepted to map the parallax
     parallax = ["pos.parallax.trig"]
+    #: first word of UCD-s accepted to map the radial velocity
     radialVelocity = "spect.dopplerVeloc.opt"
