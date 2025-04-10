@@ -110,7 +110,7 @@ def add_epoch_positon(builder):
 @pytest.mark.usefixtures("mocked_fps_grvs", "mocked_fps_grp")
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_all_properties():
-    votable_filename = get_pkg_data_filename("data/gaia_nomivot.xml")
+    votable_filename = get_pkg_data_filename("data/test.mango_annoter.xml")
 
     votable = parse(votable_filename)
     builder = InstancesFromModels(votable, dmid="DR3Name")
@@ -158,7 +158,7 @@ def test_all_properties():
 
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_extraction_from_votable_header():
-    votable_filename = get_pkg_data_filename("data/gaia_epoch_propagation_flat_full.xml")
+    votable_filename = get_pkg_data_filename("data/test.writer_0.xml")
 
     votable = parse(votable_filename)
     builder = InstancesFromModels(votable, dmid="URAT1")
@@ -175,4 +175,5 @@ def test_extraction_from_votable_header():
 
 
 if __name__ == "__main__":
+    test_all_properties()
     test_extraction_from_votable_header()

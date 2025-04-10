@@ -111,7 +111,6 @@ class InstancesFromModels(object):
         mapping = self._header_mapper.extract_origin_mapping()
         return self.add_query_origin(mapping)
 
-
     def extract_epoch_position_parameters(self):
         """
         Build a dictionary with the 3 parameters required by
