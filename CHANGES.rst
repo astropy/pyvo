@@ -14,6 +14,8 @@ Enhancements and Fixes
 - Add a UAT constraint to the registry interface for constraining
   subjects [#649]
 
+- Add an API helping to map VOtable data in the Mango data model by using Mivot [#664]
+
 
 Deprecations and Removals
 -------------------------
