@@ -72,16 +72,7 @@ class XPath:
         list
             The list of all the elements of the XML tree that match the given XPath query.
         """
-        cnt = 1
-        result = []
-        run = True
-        while run:
-            if etree.find(path + str(cnt)) is not None:
-                result.append(etree.find(path + str(cnt)))
-                cnt += 1
-            else:
-                run = False
-        return result
+        return {elem for elem in etree.iter() if elem.tag.startswith("REFERENCE_")}
 
     @staticmethod
     def select_elements_by_atttribute(etree, element, attribute, attribute_value):
