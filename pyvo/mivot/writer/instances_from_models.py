@@ -30,8 +30,8 @@ from pyvo.mivot.glossary import (
 
 class InstancesFromModels(object):
     """
-    Top-level API class that allows to create VOTable annotations with objects issued
-    from the Mango model and imported classes.
+    **Top-level API class** that allows to create VOTable annotations with objects issued
+    from the Mango model and its imported classes.
 
     The annotation structure is handled by the API based on mapping
     rules provided by the user.
@@ -40,9 +40,9 @@ class InstancesFromModels(object):
 
     - Photometric Calibrations (PhotDM)
     - Spatial and temporal coordinate systems (Coordinates DM)
-    - MangoObject, EpochPosition, Brightness and Color (Mango, DM)
+    - MangoObject (QueryOrigin, EpochPosition, Brightness and Color)
 
-    The mapping built by this API relate to the first table.
+    The mapping built by this API relates to the first table.
     """
 
     def __init__(self, votable, *, dmid=None):
@@ -51,9 +51,9 @@ class InstancesFromModels(object):
 
         Parameters
         ----------
-        votable: astropy.io.votable.tree.VOTableFile
+        votable : astropy.io.votable.tree.VOTableFile
             parsed votable to be annotated
-        dmid: string, optional (default is None)
+        dmid : string, optional (default is None)
             Column identifier or value (is starts with ``*``) to be used as identifier of the
             MangoObject mapping each data row
         """
@@ -80,21 +80,21 @@ class InstancesFromModels(object):
         The instances are added to the GLOBALS Mivot block.
 
         .. note::
-           The VOTable can host multiple instances of COOSYS or TIMESYS.
-           All of them are the  instancied
+           The VOTable can host multiple instances of COOSYS or TIMESYS, but in
+           the current implementation, only the first one is taken
 
         Returns
         -------
         {"spaceSys": [{"dmid"}], "timeSys": [{"dmid"}]}
             Dictionary of all dmid-s of the frames actually added to the annotations.
             These dmid-s must be used by instances ATTRIBUTEs to their related frames.
-            This dictionary can be used ``frames`` parameter of ``add_epoch_position`` 
+            This dictionary can be used ``frames`` parameter of ``add_mango_epoch_position``
         """
-        ids = {"spaceSys": [], "timeSys": []}
+        ids = {"spaceSys": {}, "timeSys": {}}
         for coosys_mapping in self._header_mapper.extract_coosys_mapping():
-            ids["spaceSys"].append({"dmid": self.add_simple_space_frame(**coosys_mapping)})
+            ids["spaceSys"]["dmid"] = self.add_simple_space_frame(**coosys_mapping)
         for timesys_mapping in self._header_mapper.extract_timesys_mapping():
-            ids["timeSys"].append({"dmid": self.add_simple_time_frame(**timesys_mapping)})
+            ids["timeSys"]["dmid"] = self.add_simple_time_frame(**timesys_mapping)
         return ids
 
     def extract_data_origin(self):
@@ -111,6 +111,42 @@ class InstancesFromModels(object):
         mapping = self._header_mapper.extract_origin_mapping()
         return self.add_query_origin(mapping)
 
+
+    def extract_epoch_position_parameters(self):
+        """
+        Build a dictionary with the 3 parameters required by
+        :py:meth:`pyvo.mivot.writer.InstancesFromModels.add_mango_epoch_position`
+        (frames, mapping, semantic).
+
+        - frames: references to the frames created from COOSYS/TIMSYS
+          (see :py:meth:`pyvo.mivot.writer.InstancesFromModels.extract_frames`
+        - mapping: inferred from the FIELD ucd-s
+        - semantics: hard-coded
+
+        This method does not add the ``EpochPosition`` property because the
+        mapping parameters often need first to be completed (or fixed) by hand.
+        This especially true for the correlations that cannot be automatically
+        detected in a generic way (no specific UCD)
+
+        .. code-block::
+
+            epoch_position_mapping = builder.extract_epoch_position_parameters()
+            builder.add_mango_epoch_position(**epoch_position_mapping)
+
+        Returns
+        -------
+        {"frames", "mapping", "semantics"}
+            Dictionary of mapping elements that can unpacked to feed ``add_mango_epoch_position()``.
+        """
+        mapping, error_mapping = self._header_mapper.extract_epochposition_mapping()
+        mapping["errors"] = error_mapping
+        mapping["correlations"] = {}
+        semantics = {"description": "6 parameters position",
+                     "uri": "https://www.ivoa.net/rdf/uat/2024-06-25/uat.html#astronomical-location",
+                     "label": "Astronomical location"}
+        frames = self.extract_frames()
+        return {"frames": frames, "mapping": mapping, "semantics": semantics}
+
     def add_photcal(self, filter_name):
         """
         Add to the GLOBALS the requested photometric calibration as defined in PhotDM1.1.
@@ -119,8 +155,9 @@ class InstancesFromModels(object):
         (https://ui.adsabs.harvard.edu/abs/2020sea..confE.182R/abstract)
 
         It is returned as one block containing the whole PhotCal instance.
-        The Filter instance is extracted from the PhotCal one where it is replaced by a REFERENCE.
-        This make the filter accessible as a GLOBALS for objects that would need it.
+        The filter instance is extracted from the PhotCal object, where it is
+        replaced with a REFERENCE.
+        This makes the filter available as a GLOBALS to objects that need it.
 
         - The dmid of the PhotCal is ``_photcal_DMID`` where DMID is the formatted
           version of ``filter_name``
@@ -130,7 +167,7 @@ class InstancesFromModels(object):
 
         Parameters
         ----------
-        filter_name: str
+        filter_name : str
             FPS identifier (SVO Photcal ID) of the request filter
 
         Returns
@@ -297,7 +334,7 @@ class InstancesFromModels(object):
 
         Notes:
 
-        - This function implements only the most commonly used features. Custom reference directions
+        - This function implements only the most commonly used features. *Custom reference directions*
           are not supported. However, methods for implementing missing features can be derived from
           this code.
         - A warning is emitted if either ``timescale`` or ``refPosition`` have unexpected values.
@@ -372,8 +409,8 @@ class InstancesFromModels(object):
         mapping : dict, optional (default to an empty dictionary ({})
             A dictionary defining the mapping of values. It includes:
 
-            - The mapping of the brightness value.
-            - One separate block for the error specification.
+            - mapping of the brightness value
+            - one separate block for the error specification
 
         semantics : dict, optional (default to an empty dictionary ({})
             A dictionary specifying semantic details to be added to the Mango property.
@@ -386,7 +423,7 @@ class InstancesFromModels(object):
         Notes
         -----
         The mapping example below maps the data of the GaiaD3 table that can be found
-        in the test suite.
+        in the test suite. Notice that the (fake) error bounds are given as literalS.
 
         .. code-block:: python
 
@@ -415,7 +452,7 @@ class InstancesFromModels(object):
     def add_mango_color(self, *, filter_ids={}, mapping={}, semantics={}):
         """
         Add a Mango ``Color`` instance to the current `MangoObject` with the specified
-        low and high filers, using the mapping parameter to associate VOtable data with it.
+        low and high filters, using the mapping parameter to associate VOtable data with it.
         This method acts as a front-end for `pyvo.mivot.writer.MangoObject` logic.
 
         Parameters
@@ -483,7 +520,8 @@ class InstancesFromModels(object):
             Frames parameters are global, they cannot refer to table columns.
             If a frame description contains the "dmid" key, that value will be used as an identifier
             an already installed frame (e.g. with ``extract_frames()``). Otherwise the content of
-            the frame description is meant to be used in input parameter for ``add_simple_(space)time_frame()``
+            the frame description is meant to be used in input parameter
+            for ``add_simple_(space)time_frame()``
         mapping : dict, optional (default to an empty dictionary {})
             A dictionary defining the mapping of values. It includes:
 
@@ -538,7 +576,7 @@ class InstancesFromModels(object):
             if "dmid" in frames["spaceSys"]:
                 space_frame_id = frames["spaceSys"]["dmid"]
             else:
-                space_frame_id = self.add_simple_space_frame(**frames["spaceSys"])
+                space_frame_id = self.add_simple_space_frame(*frames["spaceSys"])
         time_frame_id = ""
         if "timeSys" in frames:
             if "dmid" in frames["timeSys"]:
@@ -565,8 +603,8 @@ class InstancesFromModels(object):
 
         Notes
         -----
-        The partial mapping example below maps a fake QueryOrigin to the GaiaD3
-        table that can be found in the test suite.
+        The partial mapping example below maps a fake QueryOrigin. A complete (long) example based on GaiaD3
+        can be found in the test suite.
 
         .. code-block:: python
 
@@ -626,7 +664,7 @@ class InstancesFromModels(object):
             Content of the REPORT Mivot tag
         sparse: boolean, optional (default to False)
             If True, all properties are added in a independent way to the the TEMPLATES.
-            They are packed in a MangoObject otherwise
+            They are packed in a MangoObject otherwise.
         """
         self._annotation.set_report(True, report_msg)
         if sparse is True:

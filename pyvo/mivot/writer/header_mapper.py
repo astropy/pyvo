@@ -10,12 +10,13 @@ class HeaderMapper:
     """
     This utility class generates dictionaries from header elements of a VOTable.
     These dictionaries are used as input parameters by `pyvo.mivot.writer.InstancesFromModels`
-    to create MIVOT instances that are placed in the GLOBALS block.
-    In the current implementations, the following elements can be extracted:
+    to create MIVOT instances that are placed in the GLOBALS block or in the TEMPLATES.
+    In the current implementation, the following elements can be extracted:
 
     - COOSYS -> coords:SpaceSys
     - TIMESYS - coords:TimeSys
-    - INFO -> mango:queryOrigin
+    - INFO -> mango:QueryOrigin
+    - FIELD -> mango:EpochPosition
     """
 
     def __init__(self, votable):
@@ -24,7 +25,7 @@ class HeaderMapper:
 
         Parameters
         ----------
-        votable: astropy.io.votable.tree.VOTableFile
+        votable : astropy.io.votable.tree.VOTableFile
             parsed votable from which INFO element are processed
         """
         self._votable = votable
@@ -40,9 +41,9 @@ class HeaderMapper:
 
     def _extract_query_origin(self):
         """
-        Create a mapping dictionary from  ``INFO`` elements found
+        Create a mapping dictionary from ``INFO`` elements found
         in the VOTable header.
-        This dictionary is used to populate the `mango:QueryOrigin` attributes
+        This dictionary is used to populate the ``mango:QueryOrigin`` attributes
 
         Returns
         -------
@@ -95,12 +96,12 @@ class HeaderMapper:
 
     def extract_origin_mapping(self):
         """
-        Create a mapping dictionary from all  ``INFO`` elements found
-        in the first VOTable. This dictionary is used to build a `mango:QueryOrigin` INSTANCE
+        Create a mapping dictionary from all  VOTable ``INFO`` elements.
+        This dictionary is used to build a ``mango:QueryOrigin`` INSTANCE
 
         - INFO elements located in the VOTable header are used to build the ``mango:QueryOrigin``
           part which scope is the whole VOtable by construction (one query -> one VOTable)
-        - INFO elements located in the resource header are used to build the `mango:DataOrigin`
+        - INFO elements located in the resource header are used to build the ``mango:DataOrigin``
           part which scope is the data located in this resource.
 
         Returns
@@ -165,55 +166,85 @@ class HeaderMapper:
                 mappings.append(mapping)
 
         return mappings
-    
-    def _check_ucd(self, mapping_entry, ucd, mapping):
-        if mapping_entry in mapping:
-            return False
-        dict_entry = getattr(EpochPositionAutoMapping, mapping_entry)
-        if isinstance(dict_entry, list):
-            return ucd in dict_entry
-        else:
-            return ucd.startswith(dict_entry)
-    def XXX(self):
+
+    def extract_epochposition_mapping(self):
+        """
+        Analyze the FIELD UCD-s to infer a data mapping to the EpochPosition class.
+        This mapping covers the 6 parameters with the Epoch and their errors.
+        The correlation part is not covered since there is no specific UCD for this.
+        The UCD-s accepted for each parameter are defined in `pyvo.mivot.glossary`.
+
+        The error classes are hard-coded as the most likely types.
+
+        - PErrorSym2D for 2D parameters
+        - PErrorSym1D for 1D parameters
+
+        Returns
+        -------
+        (dict, dict)
+            A mapping proposal for the EpochPosiion + errors that can be used as input parameter
+            by :py:meth:`pyvo.mivot.writer.InstancesFromModels.add_mango_epoch_position`.
+        """
+        def _check_ucd(mapping_entry, ucd, mapping):
+            """
+            Inner function checking that mapping_entry matches with ucd according to
+            `pyvo.mivot.glossary`
+            """
+            if mapping_entry in mapping:
+                return False
+            dict_entry = getattr(EpochPositionAutoMapping, mapping_entry)
+            if isinstance(dict_entry, list):
+                return ucd in dict_entry
+            else:
+                return ucd.startswith(dict_entry)
+
         table = self._votable.get_first_table()
         fields = table.fields
         mapping = {}
         error_mapping = {}
-        
+
         for field in fields:
             ucd = field.ucd
-            print(field.ucd)
             for mapping_entry in Roles.EpochPosition:
-                if self._check_ucd(mapping_entry, ucd, mapping) is True:
+                if _check_ucd(mapping_entry, ucd, mapping) is True:
                     mapping[mapping_entry] = field.ID if field.ID is not None else field.name
+                    # Once we got a parameter mapping, we look for its associated error
+                    # This nested loop makes sure we never have error without value
                     for err_field in fields:
                         err_ucd = err_field.ucd
-                        if err_ucd == ("stat.error;" + ucd):
-                            error_mapping[mapping_entry] = err_field.ID if err_field.ID is not None else err_field.name
+                        # We assume the error UCDs are the same the these of the
+                        # related quantities but prefixed with "stat.error;" and without "meta.main" qualifier
+                        if err_ucd == ("stat.error;" + ucd.replace(";meta.main", "")):
+                            param_mapping = err_field.ID if err_field.ID is not None else err_field.name
+                            if mapping_entry == "parallax":
+                                error_mapping[mapping_entry] = {"class": "PErrorSym1D",
+                                                                "sigma": param_mapping}
+                            elif mapping_entry == "radialVelocity":
+                                error_mapping[mapping_entry] = {"class": "PErrorSym1D",
+                                                                "sigma": param_mapping}
+                            elif mapping_entry == "longitude":
+                                if "position" in error_mapping:
+                                    error_mapping["position"]["sigma1"] = param_mapping
+                                else:
+                                    error_mapping["position"] = {"class": "PErrorSym2D",
+                                                                 "sigma1": param_mapping}
+                            elif mapping_entry == "latitude":
+                                if "position" in error_mapping:
+                                    error_mapping["position"]["sigma2"] = param_mapping
+                                else:
+                                    error_mapping["position"] = {"class": "PErrorSym2D",
+                                                                 "sigma2": param_mapping}
+                            elif mapping_entry == "pmLongitude":
+                                if "properMotion" in error_mapping:
+                                    error_mapping["properMotion"]["sigma1"] = param_mapping
+                                else:
+                                    error_mapping["properMotion"] = {"class": "PErrorSym2D",
+                                                                     "sigma1": param_mapping}
+                            elif mapping_entry == "pmLatitude":
+                                if "properMotion" in error_mapping:
+                                    error_mapping["properMotion"]["sigma2"] = param_mapping
+                                else:
+                                    error_mapping["properMotion"] = {"class": "PErrorSym2D",
+                                                                     "sigma2": param_mapping}
 
-
-        print(mapping)            
-        print(error_mapping)            
-        """
-            {"longitude": "_RAJ2000", "latitude": "_DEJ2000",
-                     "pmLongitude": "pmRA", "pmLatitude": "pmDE",
-                     "parallax": "Plx", "radialVelocity": "RV",
-                     "correlations": {"isCovariance": True, "longitudeLatitude": "RADEcor",
-                                      "latitudePmLongitude": "DEpmRAcor", "latitudePmLatitude": "DEpmDEcor",
-                                      "longitudePmLongitude": "RApmRAcor", "longitudePmLatitude": "RApmDEcor",
-                                      "longitudeParallax": "RAPlxcor", "latitudeParallax": "DEPlxcor",
-                                      "pmLongitudeParallax": "PlxpmRAcor", "pmLatitudeParallax": "PlxpmDEcor",
-                     },
-                     "errors": { "position": { "class": "PErrorSym2D", "sigma1": "e_RA_ICRS",
-                                               "sigma2": "e_DE_ICRS"},
-                                 "properMotion": { "class": "PErrorSym2D", "sigma1": "e_pmRA",
-                                                   "sigma2": "e_pmDE"},
-                                 "parallax": { "class": "PErrorSym1D", "sigma": "e_Plx"},
-                                 "radialVelocity": { "class": "PErrorSym1D", "sigma": "e_RV"}
-                     }
-            }
-            semantics={"description": "6 parameters position",
-                       "uri": "https://www.ivoa.net/rdf/uat/2024-06-25/uat.html#astronomical-location",
-                       "label": "Astronomical location"}
-    
-        """
+        return mapping, error_mapping
