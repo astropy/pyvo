@@ -254,8 +254,7 @@ constraint on the description ``get_service(service_type='conesearch', keyword='
 
   >>> for interface in voresource.list_interfaces():
   ...     print(interface)
-  Interface(type='tap#aux', description='', url='http://tapvizier.cds.unistra.fr/TAPVizieR/tap')
-  Interface(type='vr:webbrowser', description='', url='http://vizier.cds.unistra.fr/viz-bin/VizieR-2?-source=J/ApJ/727/14')
+  Interface(type='tap#aux', description='', url='https://tapvizier.cds.unistra.fr/TAPVizieR/tap')
   Interface(type='conesearch', description='Cone search capability for table J/ApJ/727/14/table2 (AKARI IRC 3-24{mu}m, and Spitzer MIPS 24/70{mu}m photometry of Abell 2255 member galaxies)', url='https://vizier.cds.unistra.fr/viz-bin/conesearch/J/ApJ/727/14/table2?')
 
 Or construct the service object directly from the list of interfaces with:
@@ -263,7 +262,7 @@ Or construct the service object directly from the list of interfaces with:
 .. doctest-remote-data::
 
   >>> voresource.list_interfaces()[0].to_service()
-  TAPService(baseurl : 'http://tapvizier.cds.unistra.fr/TAPVizieR/tap', description : '')
+  TAPService(baseurl : 'https://tapvizier.cds.unistra.fr/TAPVizieR/tap', description : '')
 
 The list of interfaces can also be filtered to interfaces corresponding to services of a
 specific service type:
@@ -271,7 +270,7 @@ specific service type:
 .. doctest-remote-data::
 
   >>> voresource.list_interfaces("tap")
-  [Interface(type='tap#aux', description='', url='http://tapvizier.cds.unistra.fr/TAPVizieR/tap')]
+  [Interface(type='tap#aux', description='', url='https://tapvizier.cds.unistra.fr/TAPVizieR/tap')]
 
 To operate TAP services, you need to know what tables make up a
 resource; you could construct a TAP service and access its ``tables``
