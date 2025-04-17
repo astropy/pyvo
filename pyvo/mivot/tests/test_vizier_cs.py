@@ -82,7 +82,7 @@ def path_to_badref(data_path, data_sample_url):
 def test_with_name(path_to_withname, delt_coo):
     """ Test that the epoch propagation works with all FIELDs referenced by name or by ID
     """
-    m_viewer = MivotViewer(votable_path=path_to_withname)
+    m_viewer = MivotViewer(votable_path=path_to_withname, resolve_ref=True)
     m_viewer.next()
     mivot_object = m_viewer.dm_instance
 

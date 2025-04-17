@@ -86,7 +86,11 @@ def recusive_xml_check(xml_simple_votable, MivotInstance):
                                 pytest.approx(float(value), MivotInstance_attribute.value, 0.0001)
                             else:
                                 assert value == MivotInstance_attribute.value
+            elif child.tag.startswith("REFERENCE"):
+                # Viewer not in resolve_ref mode: REFRENCEs are not filtered
+                pass
             else:
+                print(child.tag)
                 assert False
 
 

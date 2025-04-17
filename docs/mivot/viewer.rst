@@ -47,7 +47,8 @@ mapped to the ``EpochPosition`` class.
     ...     scs_srv.search(
     ...         pos=SkyCoord(ra=52.26708 * u.degree, dec=59.94027 * u.degree, frame='icrs'),
     ...         radius=0.05
-    ...     )
+    ...     ),
+    ...     resolve_ref=True
     ... )
     >>> mivot_instance = m_viewer.dm_instance
     >>> print(mivot_instance.dmtype)
