@@ -8,7 +8,6 @@ from urllib.request import urlretrieve
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer import MivotViewer
 from pyvo.mivot.utils.mivot_utils import MivotUtils
-from hypothesis.internal.conjecture.junkdrawer import startswith
 
 
 @pytest.mark.remote_data
