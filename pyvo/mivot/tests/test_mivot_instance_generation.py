@@ -8,6 +8,7 @@ from urllib.request import urlretrieve
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer import MivotViewer
 from pyvo.mivot.utils.mivot_utils import MivotUtils
+from hypothesis.internal.conjecture.junkdrawer import startswith
 
 
 @pytest.mark.remote_data
@@ -86,7 +87,11 @@ def recusive_xml_check(xml_simple_votable, MivotInstance):
                                 pytest.approx(float(value), MivotInstance_attribute.value, 0.0001)
                             else:
                                 assert value == MivotInstance_attribute.value
+            elif child.tag.startswith("REFERENCE"):
+                # Viewer not in resolve_ref mode: REFRENCEs are not filtered 
+                pass
             else:
+                print(child.tag)
                 assert False
 
 
