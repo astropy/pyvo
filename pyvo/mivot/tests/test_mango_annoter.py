@@ -165,10 +165,8 @@ def test_extraction_from_votable_header():
     builder.extract_frames()
     builder.extract_data_origin()
     epoch_position_mapping = builder.extract_epoch_position_parameters()
-
     builder.add_mango_epoch_position(**epoch_position_mapping)
     builder.pack_into_votable()
-
     assert XmlUtils.strip_xml(builder._annotation.mivot_block) == (
         XmlUtils.strip_xml(get_pkg_data_contents("data/reference/test_header_extraction.xml"))
     )

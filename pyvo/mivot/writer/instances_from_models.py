@@ -91,10 +91,15 @@ class InstancesFromModels(object):
             This dictionary can be used ``frames`` parameter of ``add_mango_epoch_position``
         """
         ids = {"spaceSys": {}, "timeSys": {}}
+        # take the first coord system  assuming it the most relevant
         for coosys_mapping in self._header_mapper.extract_coosys_mapping():
-            ids["spaceSys"]["dmid"] = self.add_simple_space_frame(**coosys_mapping)
+            dmid = self.add_simple_space_frame(**coosys_mapping)
+            if "dmid" not in ids["spaceSys"]:
+                ids["spaceSys"]["dmid"] = dmid
         for timesys_mapping in self._header_mapper.extract_timesys_mapping():
-            ids["timeSys"]["dmid"] = self.add_simple_time_frame(**timesys_mapping)
+            dmid = self.add_simple_time_frame(**timesys_mapping)
+            if "dmid" not in ids["timeSys"]:
+                ids["timeSys"]["dmid"] = dmid
         return ids
 
     def extract_data_origin(self):
@@ -245,7 +250,8 @@ class InstancesFromModels(object):
 
         return photcal_id, filter_id
 
-    def add_simple_space_frame(self, spaceRefFrame="ICRS", refPosition="BARYCENTER", equinox=None):
+    def add_simple_space_frame(self, spaceRefFrame="ICRS", refPosition="BARYCENTER",
+                               equinox=None, epoch=None):
         """
         Adds a SpaceSys instance to the GLOBALS block as defined in the Coordinates
         data model V1.0 (https://ivoa.net/documents/Coords/20221004/index.html).
@@ -271,6 +277,9 @@ class InstancesFromModels(object):
 
         equinox : str, optional, default None
             The equinox for the reference frame, if applicable.
+
+        epoch : str, optional, default None
+            The epoch for the reference location, if applicable.
 
         Returns
         -------
@@ -312,12 +321,23 @@ class InstancesFromModels(object):
             space_frame_instance.add_attribute(dmtype=f"{ModelPrefix.coords}:Epoch",
                                                dmrole=f"{ModelPrefix.coords}:SpaceFrame.equinox",
                                                value=MivotUtils.as_literal(equinox))
-        # then let's build the reference position
-        ref_position_instance = MivotInstance(dmtype=f"{ModelPrefix.coords}:StdRefLocation",
-                                              dmrole=f"{ModelPrefix.coords}:SpaceFrame.refPosition")
-        ref_position_instance.add_attribute(dmtype=IvoaType.string,
-                                            dmrole=f"{ModelPrefix.coords}:StdRefLocation.position",
-                                            value=MivotUtils.as_literal(refPosition))
+        # then let's build the reference position.
+        # The RefLocation type depends on the presence of an epoch (see coords DM)
+        if epoch is not None:
+            ref_position_instance = MivotInstance(dmtype=f"{ModelPrefix.coords}:CustomRefLocation",
+                                                  dmrole=f"{ModelPrefix.coords}:SpaceFrame.refPosition")
+            ref_position_instance.add_attribute(dmtype=IvoaType.string,
+                                                dmrole=f"{ModelPrefix.coords}:CustomRefLocation.position",
+                                                value=MivotUtils.as_literal(refPosition))
+            ref_position_instance.add_attribute(dmtype="coords:Epoch",
+                                                dmrole=f"{ModelPrefix.coords}:CustomRefLocation.epoch",
+                                                value=MivotUtils.as_literal(epoch))
+        else:
+            ref_position_instance = MivotInstance(dmtype=f"{ModelPrefix.coords}:StdRefLocation",
+                                                  dmrole=f"{ModelPrefix.coords}:SpaceFrame.refPosition")
+            ref_position_instance.add_attribute(dmtype=IvoaType.string,
+                                                dmrole=f"{ModelPrefix.coords}:StdRefLocation.position",
+                                                value=MivotUtils.as_literal(refPosition))
         # and pack everything
         space_frame_instance.add_instance(ref_position_instance)
         space_system_instance.add_instance(space_frame_instance)

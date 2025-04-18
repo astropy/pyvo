@@ -7,12 +7,13 @@
     <INSTANCE dmtype="coords:SpaceSys" dmid="_spaceframe_ICRS_BARYCENTER">
       <INSTANCE dmtype="coords:SpaceFrame" dmrole="coords:PhysicalCoordSys.frame">
         <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:SpaceFrame.spaceRefFrame" value="ICRS"/>
-        <INSTANCE dmtype="coords:StdRefLocation" dmrole="coords:SpaceFrame.refPosition">
-          <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:StdRefLocation.position" value="BARYCENTER"/>
+        <INSTANCE dmtype="coords:CustomRefLocation" dmrole="coords:SpaceFrame.refPosition">
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:CustomRefLocation.position" value="BARYCENTER"/>
+          <ATTRIBUTE dmtype="coords:Epoch" dmrole="coords:CustomRefLocation.epoch" value="2016.000"/>
         </INSTANCE>
       </INSTANCE>
     </INSTANCE>
-    <INSTANCE dmtype="coords:SpaceSys" dmid="_spaceframe_eq_FK5_J2000_BARYCENTER">
+     <INSTANCE dmtype="coords:SpaceSys" dmid="_spaceframe_eq_FK5_J2000_BARYCENTER">
       <INSTANCE dmtype="coords:SpaceFrame" dmrole="coords:PhysicalCoordSys.frame">
         <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:SpaceFrame.spaceRefFrame" value="eq_FK5"/>
         <ATTRIBUTE dmtype="coords:Epoch" dmrole="coords:SpaceFrame.equinox" value="J2000"/>
@@ -85,7 +86,7 @@
               <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorSym1D.sigma" unit="km / s" ref="e_RV"/>
             </INSTANCE>
           </INSTANCE>
-          <REFERENCE dmrole="mango:EpochPosition.spaceSys" dmref="_spaceframe_eq_FK5_J2000_BARYCENTER"/>
+          <REFERENCE dmrole="mango:EpochPosition.spaceSys" dmref="_spaceframe_ICRS_BARYCENTER"/>
           <REFERENCE dmrole="mango:EpochPosition.timeSys" dmref="_timeframe_TCB_BARYCENTER"/>
         </INSTANCE>
       </COLLECTION>
