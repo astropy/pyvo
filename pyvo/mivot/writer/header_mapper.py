@@ -136,6 +136,8 @@ class HeaderMapper:
                 mapping["spaceRefFrame"] = coordinate_system.system
                 if self._check_votable_head_element(coordinate_system.equinox):
                     mapping["equinox"] = coordinate_system.equinox
+                if self._check_votable_head_element(coordinate_system.epoch):
+                    mapping["epoch"] = coordinate_system.epoch
                 mappings.append(mapping)
         return mappings
 

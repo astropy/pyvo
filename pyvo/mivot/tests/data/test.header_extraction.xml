@@ -32,8 +32,9 @@ Constraint -out.meta=dhuM</INFO>
   <INFO name="reference_url" value="https://cdsarc.cds.unistra.fr/viz-bin/cat/I/329">    Dataset landing page  </INFO>
   <INFO name="publication_date" value="2023-12-19">    Date of first publication in the data centre  </INFO>
   <INFO name="rights_uri" value="https://cds.unistra.fr/vizier-org/licences_vizier.html">    Licence URI  </INFO>
-
-  <COOSYS ID="H" system="ICRS"/>
+  
+  <!--  epoch added by hand for the unit test purpose  -->
+  <COOSYS ID="H" system="ICRS" epoch="2345"/>
   <TIMESYS ID="time_1" refposition="UNKNOWN" timeorigin="0.000000" timescale="TCB"/>
 
   <TABLE ID="I_329_urat1" name="I/329/urat1">

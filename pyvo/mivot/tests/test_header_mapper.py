@@ -39,7 +39,7 @@ data_origin_mapping = {
     }]
 }
 
-coosys_mappings = [{"spaceRefFrame": "ICRS"}]
+coosys_mappings = [{"spaceRefFrame": "ICRS", "epoch": "2345"}]
 timesys_mappings = [{"timescale": "TCB"}]
 
 
