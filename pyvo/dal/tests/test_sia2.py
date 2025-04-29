@@ -213,3 +213,34 @@ def test_variable_deprecation():
     with pytest.warns(AstropyDeprecationWarning):
         from pyvo.dal.sia2 import SIA_PARAMETERS_DESC
         assert SIA_PARAMETERS_DESC
+
+def test_none_standardid_capability():
+    """Test that SIA2Service handles capabilities with None standardID."""
+    from pyvo.dal.sia2 import SIA2Service
+    import requests_mock
+    
+    # Mock a capabilities response with a None standardID
+    with requests_mock.Mocker() as m:
+        # Mock the capabilities endpoint
+        m.get('http://example.com/sia/capabilities',
+              content=b'''<?xml version="1.0" encoding="UTF-8"?>
+<vosi:capabilities xmlns:vosi="http://www.ivoa.net/xml/VOSICapabilities/v1.0">
+  <capability>
+    <!-- This capability has no standardID attribute -->
+    <interface>
+      <accessURL use="full">http://example.com/sia/query</accessURL>
+    </interface>
+  </capability>
+  <capability standardID="ivo://ivoa.net/std/SIA#query-2.0">
+    <interface>
+      <accessURL use="full">http://example.com/sia/query</accessURL>
+    </interface>
+  </capability>
+</vosi:capabilities>''')
+        
+        # This should not raise an AttributeError
+        sia2_service = SIA2Service('http://example.com/sia')
+        
+        # Basic verification that the service was created successfully
+        assert sia2_service is not None
+        assert sia2_service.query_ep is not None
