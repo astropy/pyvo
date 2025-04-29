@@ -327,7 +327,14 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             self.baseurl, query, language=language, maxrec=maxrec, uploads=uploads,
             session=self._session, **keywords)
         job = job.run().wait()
-        job.raise_if_error()
+
+        try:
+            job.raise_if_error()
+        except DALQueryError:
+            if delete:
+                job.delete()
+            raise
+
         result = job.fetch_result()
 
         if delete:
