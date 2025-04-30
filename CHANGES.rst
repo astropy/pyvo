@@ -14,6 +14,8 @@ Enhancements and Fixes
 - Add a UAT constraint to the registry interface for constraining
   subjects [#649]
 
+- Correctly delete jobs in ``TAPService.run_async`` even when the server returns an
+  error [#667]
 
 Deprecations and Removals
 -------------------------
