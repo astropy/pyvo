@@ -186,7 +186,7 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
                 # assumes that the access URL is the same regardless of the
                 # authentication method except BasicAA which is not supported
                 # in pyvo. So pick any access url as long as it's not
-                if cap.standardid.lower() == SIA2_STANDARD_ID.lower():
+                if cap.standardid and cap.standardid.lower() == SIA2_STANDARD_ID.lower():
                     for interface in cap.interfaces:
                         if interface.accessurls and \
                                 not (len(interface.securitymethods) == 1

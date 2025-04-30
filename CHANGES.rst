@@ -17,6 +17,9 @@ Enhancements and Fixes
 - Correctly delete jobs in ``TAPService.run_async`` even when the server returns an
   error [#667]
 
+- Fixed AttributeError when a capability has None standardID in SIA2Service. [#669]
+
+
 Deprecations and Removals
 -------------------------
 
