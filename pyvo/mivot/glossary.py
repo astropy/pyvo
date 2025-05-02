@@ -31,6 +31,8 @@ class IvoaType:
     RealQuantity = "ivoa:RealQuantity"
     #: primitive type for booleans
     bool = "ivoa:boolean"
+    #: primitive type for a point in time
+    datetime = "ivoa:datatime"
 
 
 class Roles:
@@ -123,6 +125,10 @@ class CoordSystems:
     #: see  IVOA  `timescale <https://www.ivoa.net/rdf/timescale/2019-03-15/timescale.html>`_ vocabulary
     time_frames = ["TAI", "TT", "TDT", "ET", "IAT", "UT1",
                    "UTC", "GMT", "GPS", "TCG", "TCB", "TBD", "LOCAL"]
+    #: supported time formats (see time-format ivoa vocabulary issued from Astropy Time.FORMATS)
+    time_formats = ["byear", "byear_str", "cxcsec", "decimalyear", "fits",
+                    "gps", "iso", "isot", "jd", "jyear", "jyear_str", "mjd",
+                    "unix", "unix_tai", "yday "]
 
 
 class ModelPrefix:

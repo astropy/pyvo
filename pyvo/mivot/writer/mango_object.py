@@ -6,7 +6,8 @@ Created on 22 Jan 2025
 from pyvo.mivot.utils.exceptions import MappingError
 from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.writer.instance import MivotInstance
-from pyvo.mivot.glossary import IvoaType, ModelPrefix, Roles
+from pyvo.mivot.glossary import (
+    IvoaType, ModelPrefix, Roles, CoordSystems)
 
 
 class Property(MivotInstance):
@@ -126,6 +127,36 @@ class MangoObject(object):
                                              mapping))
         return err_instance
 
+    def _add_epoch_position_epoch(self, **mapping):
+        """
+        Private method building and returning the observation date (DateTime) of the EpohPosition.
+
+        Parameters
+        ----------
+        mapping: dict(representation, datetime)
+                Mapping of the DateTime fields
+
+        Returns
+        -------
+        `Property`
+            The EpochPosition error instance
+        """
+        datetime_instance = MivotInstance(dmtype=f"{ModelPrefix.mango}:DateTime",
+                                       dmrole=f"{ModelPrefix.mango}:EpochPosition.obsDate")
+
+        representation = mapping.get("representation")
+        value = mapping["dateTime"]
+        if representation not in CoordSystems.time_formats:
+            raise MappingError(f"epoch representation {representation} not supported. "
+                               f"Take on of {CoordSystems.time_formats}")
+        datetime_instance.add_attribute(IvoaType.string,
+                                        f"{ModelPrefix.mango}:DateTime.representation",
+                                        value=representation)
+        datetime_instance.add_attribute(IvoaType.datetime,
+                                        f"{ModelPrefix.mango}:DateTime.dateTime",
+                                        value=value)
+        return datetime_instance
+
     def add_epoch_position(self, space_frame_id, time_frame_id, mapping, semantics):
         """
         Add an ``EpochPosition`` instance to the properties of the current ``MangoObject``.
@@ -152,9 +183,12 @@ class MangoObject(object):
                                     semantics=semantics)
         MivotUtils.populate_instance(ep_instance, "EpochPosition",
                                      mapping, self._table, IvoaType.RealQuantity)
-
-        ep_instance.add_instance(self._add_epoch_position_correlations(**mapping["correlations"]))
-        ep_instance.add_instance(self._add_epoch_position_errors(**mapping["errors"]))
+        if "obsDate" in mapping:
+            ep_instance.add_instance(self._add_epoch_position_epoch(**mapping["obsDate"]))
+        if "correlations" in mapping:
+            ep_instance.add_instance(self._add_epoch_position_correlations(**mapping["correlations"]))
+        if "errors" in mapping:
+            ep_instance.add_instance(self._add_epoch_position_errors(**mapping["errors"]))
         ep_instance.add_reference(dmrole=f"{ModelPrefix.mango}:EpochPosition.spaceSys",
                                   dmref=space_frame_id)
         ep_instance.add_reference(dmrole=f"{ModelPrefix.mango}:EpochPosition.timeSys",
