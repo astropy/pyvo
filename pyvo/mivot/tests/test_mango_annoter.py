@@ -16,6 +16,7 @@ from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.writer.instances_from_models import InstancesFromModels
 
+
 # Enable MIVOT-specific features in the pyvo library
 activate_features("MIVOT")
 
@@ -87,6 +88,7 @@ def add_epoch_positon(builder):
     mapping = {"longitude": "_RAJ2000", "latitude": "_DEJ2000",
              "pmLongitude": "pmRA", "pmLatitude": "pmDE",
              "parallax": "Plx", "radialVelocity": "RV",
+             "obsDate": {"representation": "mjd", "dateTime": 579887.6},
              "correlations": {"isCovariance": True,
                               "longitudeLatitude": "RADEcor",
                               "latitudePmLongitude": "DEpmRAcor", "latitudePmLatitude": "DEpmDEcor",
