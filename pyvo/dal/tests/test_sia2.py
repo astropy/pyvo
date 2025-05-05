@@ -4,12 +4,14 @@
 Tests for pyvo.dal.sia
 """
 from functools import partial
+from pathlib import Path
 import re
 import requests_mock
 
 import pytest
 
 from pyvo.dal.sia2 import search, SIA2Service, SIA2Query, SIAService, SIAQuery
+from pyvo.dal.exceptions import DALServiceError
 
 import astropy.units as u
 from astropy.coordinates import SkyCoord
@@ -217,8 +219,6 @@ def test_variable_deprecation():
 
 def test_none_standardid_capability():
     """Test that SIA2Service handles capabilities with None standardID."""
-    from pyvo.dal.sia2 import SIA2Service
-    import requests_mock
     # Mock a capabilities response with a None standardID
     with requests_mock.Mocker() as m:
         # Mock the capabilities endpoint
@@ -242,3 +242,14 @@ def test_none_standardid_capability():
         # Basic verification that the service was created successfully
         assert sia2_service is not None
         assert sia2_service.query_ep is not None
+
+
+def test_url_is_not_sia2():
+    # with capabilities from an other service type, we raise an error
+    with open(Path(__file__).parent / "data/tap/capabilities.xml", "rb") as f:
+        with requests_mock.Mocker() as mocker:
+            mocker.get("http://example.com/sia/capabilities", content=f.read())
+            with pytest.raises(DALServiceError,
+                               match="This URL does not seem to correspond to an "
+                                     "SIA2 service."):
+                SIA2Service('http://example.com/sia')

@@ -20,6 +20,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .query import DALResults, DALQuery, DALService, Record
 from .adhoc import DatalinkResultsMixin, AxisParamMixin, SodaRecordMixin, DatalinkRecordMixin
+from .exceptions import DALServiceError
 from .params import IntervalQueryParam, StrQueryParam, EnumQueryParam
 from .vosi import AvailabilityMixin, CapabilityMixin
 from ..dam import ObsCoreMetadata, CALIBRATION_LEVELS
@@ -197,6 +198,8 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
                     else:
                         continue
                     break
+            else:
+                raise DALServiceError("This URL does not seem to correspond to an SIA2 service.")
 
     def search(self, pos=None, *, band=None, time=None, pol=None,
                field_of_view=None, spatial_resolution=None,
