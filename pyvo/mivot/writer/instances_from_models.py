@@ -65,6 +65,10 @@ class InstancesFromModels(object):
         self._annotation.add_model("ivoa",
                                    vodml_url=VodmlUrl.ivoa)
 
+    @property
+    def mivot_block(self):
+        return self._annotation.mivot_block
+
     def _check_value_consistency(self, word, suggested_words):
         """
         Utility checking that the word belongs to the list of suggested words
@@ -153,7 +157,7 @@ class InstancesFromModels(object):
 
     def add_photcal(self, filter_name):
         """
-        Add to the GLOBALS the requested photometric calibration as defined in PhotDM1.1.
+        Add to the GLOBALS the requested photometric calibration as defined in PhotDM1.1
 
         The MIVOT serialization is provided by the SVO Filter Profile Service
         (https://ui.adsabs.harvard.edu/abs/2020sea..confE.182R/abstract)
@@ -591,13 +595,13 @@ class InstancesFromModels(object):
         self._annotation.add_model(ModelPrefix.mango, vodml_url=VodmlUrl.mango)
 
         space_frame_id = ""
-        if "spaceSys" in frames:
+        if "spaceSys" in frames and frames["spaceSys"]:
             if "dmid" in frames["spaceSys"]:
                 space_frame_id = frames["spaceSys"]["dmid"]
             else:
                 space_frame_id = self.add_simple_space_frame(*frames["spaceSys"])
         time_frame_id = ""
-        if "timeSys" in frames:
+        if "timeSys" in frames and frames["timeSys"]:
             if "dmid" in frames["timeSys"]:
                 time_frame_id = frames["timeSys"]["dmid"]
             else:
@@ -628,12 +632,31 @@ class InstancesFromModels(object):
         .. code-block:: python
 
             builder = InstancesFromModels(votable, dmid="DR3Name")
-            builder.add_query_origin({"publisher": "xy",
-                                      "dataOrigin":[{"ivoid": "IVOID"},
-                                                    {"ivoid": "IVOID2", "articles": [{"identifier": "ID1"},
-                                                                                     {"identifier": "ID2"}]
-                                                    }]
-                                      })
+            builder.add_query_origin(
+                {
+                    "service_protocol": "ivo://ivoa.net/std/ConeSearch/v1.03",
+                    "request_date": "2025-04-07T12:06:32",
+                    "request": (
+                        "https://cdsarc.cds.unistra.fr/beta/viz-bin/mivotconesearch"
+                        "/I/329/urat1?RA=52.26708&DEC=59.94027&SR=0.05"
+                    ),
+                    "contact": "cds-question@unistra.fr",
+                    "server_software": "7.4.6",
+                    "publisher": "CDS",
+                    "dataOrigin": [
+                        {
+                            "ivoid": "ivo://cds.vizier/i/329",
+                            "creators": ["Zacharias N."],
+                            "cites": "bibcode:2015AJ....150..101Z",
+                            "original_date": "2015",
+                            "reference_url": "https://cdsarc.cds.unistra.fr/viz-bin/cat/I/329",
+                            "rights_uri": "https://cds.unistra.fr/vizier-org/licences_vizier.html",
+                            "articles": [{"editor": "Astronomical Journal (AAS)"}],
+                        }
+                    ],
+                }
+            )
+
         """
         self._annotation.add_model(ModelPrefix.mango, vodml_url=VodmlUrl.mango)
         query_origin_instance = MivotInstance(dmtype=f"{ModelPrefix.mango}:origin.QueryOrigin",
