@@ -49,7 +49,7 @@ class Roles:
         "radialVelocity",
         "pmLongitude",
         "pmLatitude",
-        "epoch",
+        "obsDate",
     ]
     #: Roles of the EpochPositionCorrelations class that are supported
     EpochPositionCorrelations = [
@@ -119,16 +119,15 @@ class CoordSystems:
     Supported values for the coordinate system parameters (space and time)
     """
     #: see  IVOA  `refframe <https://www.ivoa.net/rdf/refframe/2022-02-22/refframe.html>`_ vocabulary
-    space_frames = ["FK4", "FK5", "ICRS", "GALACTIC", "SUPER_GALACTIC", "ECLIPTIC"]
+    space_frames = ["eq_FK4", "FK4", "eq_FK5", "FK5", "ICRS", "GALACTIC", "SUPER_GALACTIC", "ECLIPTIC"]
     #: see  IVOA  `refposition <https://www.ivoa.net/rdf/refposition/2019-03-15/refposition.html>`_ vocabulary
     ref_positions = ["BARYCENTER", "GEOCENTER", "TOPOCENTER"]
     #: see  IVOA  `timescale <https://www.ivoa.net/rdf/timescale/2019-03-15/timescale.html>`_ vocabulary
     time_frames = ["TAI", "TT", "TDT", "ET", "IAT", "UT1",
                    "UTC", "GMT", "GPS", "TCG", "TCB", "TBD", "LOCAL"]
-    #: supported time formats (see time-format ivoa vocabulary issued from Astropy Time.FORMATS)
-    time_formats = ["byear", "byear_str", "cxcsec", "decimalyear", "fits",
-                    "gps", "iso", "isot", "jd", "jyear", "jyear_str", "mjd",
-                    "unix", "unix_tai", "yday "]
+    #: supported time formats (could be replaced witha vocabulary later on)
+    time_formats = ["byear", "cxcsec", "decimalyear", "fits",
+                    "gps", "iso", "timestamp", "jd", "mjd"]
 
 
 class ModelPrefix:
@@ -186,8 +185,8 @@ class EpochPositionAutoMapping:
     pmLongitude = ["pos.pm;pos.eq.ra"]
     #: UCD-s accepted to map the proper motion latitude
     pmLatitude = ["pos.pm;pos.eq.dec"]
-    #: UCD-s accepted to map the epoch
-    epoch = ["time.epoch;obs;stat.mean", "time.epoch;obs"]
+    #: UCD-s accepted to map the obsDate
+    obsDate = ["time.epoch;obs;stat.mean", "time.epoch;obs"]
     #: UCD-s accepted to map the parallax
     parallax = ["pos.parallax.trig"]
     #: first word of UCD-s accepted to map the radial velocity
