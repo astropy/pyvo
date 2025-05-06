@@ -131,8 +131,8 @@ class HeaderMapper:
             for coordinate_system in resource.coordinate_systems:
                 mapping = {}
                 if not self._check_votable_head_element(coordinate_system.system):
-                    logging.warning("Invalid COOSYS: ignored in MIVOT")
-
+                    logging.warning(f"Not valid COOSYS found: ignored in MIVOT: {coordinate_system}")
+                    continue
                 mapping["spaceRefFrame"] = coordinate_system.system
                 if self._check_votable_head_element(coordinate_system.equinox):
                     mapping["equinox"] = coordinate_system.equinox
@@ -160,13 +160,12 @@ class HeaderMapper:
             for time_system in resource.time_systems:
                 mapping = {}
                 if not self._check_votable_head_element(time_system.timescale):
-                    logging.warning("Invalid TIMESYS: ignored in MIVOT")
-                    return mapping
+                    logging.warning(f"Not valid TIMESYS found: ignored in MIVOT: {time_system}")
+                    continue
                 mapping["timescale"] = time_system.timescale
                 if self._check_votable_head_element(time_system.refposition):
                     mapping["refPosition"] = time_system.refposition
                 mappings.append(mapping)
-
         return mappings
 
     def extract_epochposition_mapping(self):
@@ -200,6 +199,24 @@ class HeaderMapper:
             else:
                 return ucd.startswith(dict_entry)
 
+        def _check_obs_date(field):
+            """ check if the field can be interpreted as a value date time
+            This algorithm is a bit specific for Vizier CS
+            """
+            xtype = field.xtype
+            unit = field.unit
+            representation = None
+            if xtype == "timestamp" or unit == "'Y:M:D'" or unit == "'Y-M-D'":
+                representation = "iso"
+            # let's assume that dates expressed as days are MJD
+            elif xtype == "mjd" or unit == "d":
+                representation = "mjd"
+
+            if representation is not None:
+                field_ref = field.ID if field.ID is not None else field.name
+                return {"dateTime": field_ref, "representation": representation}
+            return None
+
         table = self._votable.get_first_table()
         fields = table.fields
         mapping = {}
@@ -209,7 +226,11 @@ class HeaderMapper:
             ucd = field.ucd
             for mapping_entry in Roles.EpochPosition:
                 if _check_ucd(mapping_entry, ucd, mapping) is True:
-                    mapping[mapping_entry] = field.ID if field.ID is not None else field.name
+                    if mapping_entry == "obsDate":
+                        if (obs_date_mapping := _check_obs_date(field)) is not None:
+                            mapping[mapping_entry] = obs_date_mapping
+                    else:
+                        mapping[mapping_entry] = field.ID if field.ID is not None else field.name
                     # Once we got a parameter mapping, we look for its associated error
                     # This nested loop makes sure we never have error without value
                     for err_field in fields:

@@ -189,10 +189,12 @@ class MangoObject(object):
             ep_instance.add_instance(self._add_epoch_position_correlations(**mapping["correlations"]))
         if "errors" in mapping:
             ep_instance.add_instance(self._add_epoch_position_errors(**mapping["errors"]))
-        ep_instance.add_reference(dmrole=f"{ModelPrefix.mango}:EpochPosition.spaceSys",
-                                  dmref=space_frame_id)
-        ep_instance.add_reference(dmrole=f"{ModelPrefix.mango}:EpochPosition.timeSys",
-                                  dmref=time_frame_id)
+        if space_frame_id:
+            ep_instance.add_reference(dmrole=f"{ModelPrefix.mango}:EpochPosition.spaceSys",
+                                      dmref=space_frame_id)
+        if time_frame_id:
+            ep_instance.add_reference(dmrole=f"{ModelPrefix.mango}:EpochPosition.timeSys",
+                                      dmref=time_frame_id)
         self._properties.append(ep_instance)
         return ep_instance
 
