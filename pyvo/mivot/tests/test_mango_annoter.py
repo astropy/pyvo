@@ -160,7 +160,9 @@ def test_all_properties():
 
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_extraction_from_votable_header():
-    votable_filename = get_pkg_data_filename("data/test.writer_0.xml")
+    """ test that the automatic mapping extraction is well connected with the annoter
+    """
+    votable_filename = get_pkg_data_filename("data/test.header_extraction.1.xml")
 
     votable = parse(votable_filename)
     builder = InstancesFromModels(votable, dmid="URAT1")
