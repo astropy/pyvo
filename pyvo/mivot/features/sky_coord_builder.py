@@ -118,7 +118,7 @@ class SkyCoordBuilder:
         FK2, FK5, ICRS or Galactic
             Astropy space frame instance
         """
-        coo_sys = self._mivot_instance_dict["coordSys"]
+        coo_sys = self._mivot_instance_dict["spaceSys"]["frame"]
         equinox = None
         frame = coo_sys["spaceRefFrame"]["value"].lower()
 
