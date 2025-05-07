@@ -70,3 +70,5 @@ The ``pyvo.mivot`` module can be used to either read or build annotations.
    viewer
    annoter
    writer
+   example
+   
