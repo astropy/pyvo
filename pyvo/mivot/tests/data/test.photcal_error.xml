@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.1" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <INFO name="QUERY_STATUS" value="ERROR">
+    <DESCRIPTION>PhotCalID not found: zaada</DESCRIPTION>
+  </INFO>
+</VOTABLE>

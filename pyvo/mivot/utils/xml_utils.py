@@ -1,8 +1,10 @@
 """
 Utility class to process XML.
 """
+import re
 from pyvo.mivot.utils.xpath_utils import XPath
 import xml.etree.ElementTree as ET
+from xml.dom import minidom
 from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.mivot.utils.vocabulary import Att
 from pyvo.mivot.utils.exceptions import MivotError
@@ -13,66 +15,76 @@ class XmlUtils:
     Static class implementing convenient operations on XML
     """
     @staticmethod
-    def pretty_print(xmltree):
+    def pretty_print(xmltree, *, lshift=""):
         """
-        Pretty print an XML tree.
+        Pretty print an XML tree
+
         Parameters
         ----------
-        xmltree (~`xml.etree.ElementTree.Element`): XML tree to pretty print.
+        xmltree: (~`xml.etree.ElementTree.Element`)
+            XML tree to pretty print
+
+        lshift : str, optional, default ""
+            Sequence to be inserted at the beginning of each line
+            Usually a space sequence
         """
-        print(XmlUtils.pretty_string(xmltree))
+        print(XmlUtils.pretty_string(xmltree, lshift=lshift))
 
     @staticmethod
-    def pretty_string(xmltree, clean_namespace=True):
+    def pretty_string(xmltree, *, lshift="", clean_namespace=True):
         """
-        Return a pretty string representation of an XML tree.
+        Return a pretty string representation of an XML tree (as Etree or string)
+
         Parameters
         ----------
-        xmltree (~`xml.etree.ElementTree.Element`): XML tree to convert to a pretty string
-        clean_namespace (boolean): Ddefault namspace (ns0) removed from element names if True
+        xmltree (~`xml.etree.ElementTree.Element`) or string:
+            XML tree to convert to a pretty string
+
+        lshift : str, optional, default ""
+            Sequence to be inserted at the beginning of each line
+            Usually a space sequence
+
+        clean_namespace : boolean, optional, default True
+            Default namespace (ns0) removed from element names if True
+
         Returns
         -------
         str: The pretty string representation of the XML tree.
         """
-        if hasattr(xmltree, 'getroot'):
-            XmlUtils.indent(xmltree.getroot())
-            new_xml = ET.tostring(xmltree.getroot(), encoding='unicode')
+        if isinstance(xmltree, str):
+            root = xmltree
         else:
-            XmlUtils.indent(xmltree)
-            new_xml = ET.tostring(xmltree, encoding='unicode')
+            if hasattr(xmltree, 'getroot'):
+                root = ET.tostring(xmltree.getroot(), encoding='unicode')
+            else:
+                root = ET.tostring(xmltree, encoding='unicode')
+            root = root.replace("<?xml version=\"1.0\" ?>\n", "")
+        reparsed = minidom.parseString(root)
+        pretty_string = re.sub(r" +\n", "", reparsed.toprettyxml(indent="  "))
+        pretty_string = pretty_string.replace("<?xml version=\"1.0\" ?>\n", "") \
+                                     .replace("\n\n", "\n") \
+                                     .replace("<", f"{lshift}<")
+
         if clean_namespace:
-            return new_xml.replace("ns0:", "")
+            return pretty_string.replace("ns0:", "")
         else:
-            return new_xml
+            return pretty_string
 
     @staticmethod
-    def indent(elem, level=0):
+    def strip_xml(xml_string):
         """
-        Indent an XML tree.
-        Parameters
-        ----------
-        elem (~`xml.etree.ElementTree.Element`): XML tree to indent.
-        level (int): level of indentation.
-        Returns
-        -------
-        ~`xml.etree.ElementTree.Element`
-            The indented XML tree.
+        Strip unnecessary whitespace and newline characters from an XML string.
+        Used by unit tests to compare xml strings
+
+        Parameters:
+        - xml_string (str): The XML string to strip.
+
+        Returns:
+        - str: The stripped XML string.
         """
-        i = "\n" + level * "  "
-        j = "\n" + (level - 1) * "  "
-        if len(elem):
-            if not elem.text or not elem.text.strip():
-                elem.text = i + "  "
-            if not elem.tail or not elem.tail.strip():
-                elem.tail = i
-            for subelem in elem:
-                XmlUtils.indent(subelem, level + 1)
-            if not elem.tail or not elem.tail.strip():
-                elem.tail = j
-        else:
-            if level and (not elem.tail or not elem.tail.strip()):
-                elem.tail = j
-        return elem
+        return (
+            xml_string.replace("\n", "").replace(" ", "").replace("'", "").replace('"', "")
+        )
 
     @staticmethod
     def add_column_indices(mapping_block, index_map):
