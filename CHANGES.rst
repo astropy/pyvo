@@ -16,6 +16,11 @@ Enhancements and Fixes
 
 - Add an API helping to map VOtable data in the Mango data model by using Mivot [#664]
 
+- Correctly delete jobs in ``TAPService.run_async`` even when the server returns an
+  error [#667]
+
+- Fixed AttributeError when a capability has None standardID in SIA2Service. [#669]
+
 
 Deprecations and Removals
 -------------------------

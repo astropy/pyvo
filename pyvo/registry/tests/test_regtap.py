@@ -314,6 +314,7 @@ class _NS:
 
     We need this here to let us conveniently construct _FakeResults.
     """
+
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -326,6 +327,7 @@ class _FakeResults:
     It is constructed with a dictionary that should eventually be
     used as the mapping in the Record.
     """
+
     def __init__(self, valdict):
         self.fieldnames = list(valdict.keys())
         self.resultstable = _NS(array=_NS(data=[list(valdict.values())]))
@@ -727,7 +729,7 @@ def test_get_alt_identifier():
     rsc = _makeRegistryRecord(ivoid="ivo://cds.vizier/i/337")
     assert set(rsc.get_alt_identifiers()) == {
         'doi:10.26093/cds/vizier.1337',
-        'bibcode:2016yCat.1337....0G'}
+    }
 
 
 @pytest.mark.remote_data

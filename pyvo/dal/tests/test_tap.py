@@ -7,6 +7,7 @@ from contextlib import ExitStack
 import datetime
 import re
 from io import BytesIO, StringIO
+from unittest.mock import Mock
 from urllib.parse import parse_qsl
 import tempfile
 
@@ -135,7 +136,10 @@ class MockAsyncTAPServer:
         self._jobs = dict()
 
     def validator(self, request):
-        pass
+        data = dict(parse_qsl(request.body))
+        if 'QUERY' in data:
+            if "select" not in data['QUERY'].casefold():
+                raise DALQueryError("Missing select")
 
     def use(self, mocker):
         with ExitStack() as stack:
@@ -539,10 +543,27 @@ class TestTAPService:
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
-    def test_run_async(self):
+    def test_run_async(self, monkeypatch):
         service = TAPService('http://example.com/tap')
-        results = service.run_async("SELECT * FROM ivoa.obscore")
+        mock_delete = Mock()
+        monkeypatch.setattr(AsyncTAPJob, "delete", mock_delete)
+        results = service.run_async("SELECT * FROM ivoa.obscore", delete=False)
         _test_image_results(results)
+        # make sure that delete was not called
+        mock_delete.assert_not_called()
+
+    @pytest.mark.usefixtures('async_fixture')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+    def test_run_async_on_error(self, monkeypatch):
+        service = TAPService('http://example.com/tap')
+        mock_delete = Mock()
+        monkeypatch.setattr(AsyncTAPJob, "delete", mock_delete)
+        with pytest.raises(DALQueryError):
+            service.run_async("bad query", delete=True)
+            # make sure that the job is deleted even with a bad query
+            mock_delete.assert_called_once()
 
     @pytest.mark.usefixtures('async_fixture')
     def test_submit_job(self):

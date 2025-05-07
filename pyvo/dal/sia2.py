@@ -20,6 +20,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .query import DALResults, DALQuery, DALService, Record
 from .adhoc import DatalinkResultsMixin, AxisParamMixin, SodaRecordMixin, DatalinkRecordMixin
+from .exceptions import DALServiceError
 from .params import IntervalQueryParam, StrQueryParam, EnumQueryParam
 from .vosi import AvailabilityMixin, CapabilityMixin
 from ..dam import ObsCoreMetadata, CALIBRATION_LEVELS
@@ -186,7 +187,7 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
                 # assumes that the access URL is the same regardless of the
                 # authentication method except BasicAA which is not supported
                 # in pyvo. So pick any access url as long as it's not
-                if cap.standardid.lower() == SIA2_STANDARD_ID.lower():
+                if cap.standardid and cap.standardid.lower() == SIA2_STANDARD_ID.lower():
                     for interface in cap.interfaces:
                         if interface.accessurls and \
                                 not (len(interface.securitymethods) == 1
@@ -197,6 +198,8 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
                     else:
                         continue
                     break
+            else:
+                raise DALServiceError("This URL does not seem to correspond to an SIA2 service.")
 
     def search(self, pos=None, *, band=None, time=None, pol=None,
                field_of_view=None, spatial_resolution=None,
