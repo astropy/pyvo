@@ -127,7 +127,7 @@ class CoordSystems:
                    "UTC", "GMT", "GPS", "TCG", "TCB", "TBD", "LOCAL"]
     #: supported time formats (could be replaced witha vocabulary later on)
     time_formats = ["byear", "cxcsec", "decimalyear", "fits",
-                    "gps", "iso", "timestamp", "jd", "mjd"]
+                    "gps", "iso", "timestamp", "jyear", "year", "jd", "mjd"]
 
 
 class ModelPrefix:

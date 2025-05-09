@@ -151,7 +151,7 @@ class MangoObject(object):
                                f"Take on of {CoordSystems.time_formats}")
         datetime_instance.add_attribute(IvoaType.string,
                                         f"{ModelPrefix.mango}:DateTime.representation",
-                                        value=representation)
+                                        value=MivotUtils.as_literal(representation))
         datetime_instance.add_attribute(IvoaType.datetime,
                                         f"{ModelPrefix.mango}:DateTime.dateTime",
                                         value=value)
