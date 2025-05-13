@@ -19,7 +19,7 @@ class MangoRoles:
     PM_LATITUDE = "pmLatitude"
     PARALLAX = "parallax"
     RADIAL_VELOCITY = "radialVelocity"
-    EPOCH = "epoch"
+    EPOCH = "obsDate"
     FRAME = "frame"
     EQUINOX = "equinox"
     PMCOSDELTAPPLIED = "pmCosDeltApplied"
@@ -98,6 +98,14 @@ class SkyCoordBuilder:
             attribute value formatted as [scale]year
         """
         scale = "J" if not besselian else "B"
+        # Process complex type "mango:DateTime
+        # only "year" representation are supported yet
+        if hk_field['dmtype'] == "mango:DateTime":
+            representation = hk_field['representation']['value']
+            timestamp = hk_field['dateTime']['value']
+            if representation == "year":
+                return f"{scale}{timestamp}"
+            return None
         return (f"{scale}{hk_field['value']}" if hk_field["unit"] in ("yr", "year")
                 else hk_field["value"])
 

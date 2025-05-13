@@ -187,7 +187,7 @@
           <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.parallax" unit="mas" ref="Plx"/>
           <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.radialVelocity" unit="km / s" ref="RV"/>
           <INSTANCE dmtype="mango:DateTime" dmrole="mango:EpochPosition.obsDate">
-            <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:DateTime.representation" ref="mjd"/>
+            <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:DateTime.representation" value="mjd"/>
             <ATTRIBUTE dmtype="ivoa:datatime" dmrole="mango:DateTime.dateTime" value="579887.6"/>
           </INSTANCE>
           <INSTANCE dmtype="mango:EpochPositionCorrelations" dmrole="mango:EpochPosition.correlations">

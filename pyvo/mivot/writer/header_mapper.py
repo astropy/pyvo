@@ -211,10 +211,10 @@ class HeaderMapper:
             # let's assume that dates expressed as days are MJD
             elif xtype == "mjd" or unit == "d":
                 representation = "mjd"
-            
+
             if representation is None and unit == "year":
                 representation = "year"
-                
+
             if representation is not None:
                 field_ref = field.ID if field.ID is not None else field.name
                 return {"dateTime": field_ref, "representation": representation}
