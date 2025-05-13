@@ -39,7 +39,7 @@ vizier_dict = {
         "unit": "mas/yr",
         "ref": "pmDE",
     },
-    "epoch": {
+    "obsDate": {
         "dmtype": "ivoa:RealQuantity",
         "value": 1991.25,
         "unit": "yr",
@@ -92,7 +92,7 @@ vizier_equin_dict = {
         "unit": "mas",
         "ref": "parallax",
     },
-    "epoch": {
+    "obsDate": {
         "dmtype": "ivoa:RealQuantity",
         "value": 1991.25,
         "unit": "yr",
@@ -151,7 +151,7 @@ vizier_dummy_type = {
         "unit": "mas",
         "ref": "parallax",
     },
-    "epoch": {
+    "obsDate": {
         "dmtype": "ivoa:RealQuantity",
         "value": 1991.25,
         "unit": "yr",
