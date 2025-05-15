@@ -1,0 +1,227 @@
+<VODML xmlns="http://www.ivoa.net/xml/mivot">
+  <REPORT status="OK"/>
+  <MODEL name="ivoa" url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml"/>
+  <MODEL name="mango" url="https://raw.githubusercontent.com/ivoa-std/MANGO/refs/heads/wd-v1.0/vo-dml/mango.vo-dml.xml"/>
+  <MODEL name="Phot" url="https://ivoa.net/xml/VODML/Phot-v1.vodml.xml"/>
+  <MODEL name="coords" url="https://ivoa.net/xml/VODML/Coords-v1.vo-dml.xml"/>
+  <GLOBALS>
+    <INSTANCE dmtype="mango:origin.QueryOrigin" dmid="_origin">
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.QueryOrigin.service_protocol" value="ASU"/>
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.QueryOrigin.request_date" value="2024-03-21T15:16:08"/>
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.QueryOrigin.request" value="https://vizier.cds.unistra.fr/viz-bin/votable?-oc.form=dec&amp;amp;-out.max=5&amp;amp;-out.add=_r&amp;amp;-out.add=_RAJ,_DEJ&amp;amp;-sort=_r&amp;amp;-c.eq=J2000&amp;amp;-c.r=  2&amp;amp;-c.u=arcmin&amp;amp;-c.geom=r&amp;amp;-source=I/355/gaiadr3&amp;amp;-order=I&amp;amp;-out.orig=standard&amp;amp;-out=DR3Name&amp;amp;-out=RA_ICRS&amp;amp;-out=DE_ICRS&amp;amp;-out=Source&amp;amp;-out=e_RA_ICRS&amp;amp;-out=e_DE_ICRS&amp;amp;-out=Plx&amp;amp;-out=e_Plx&amp;amp;-out=PM&amp;amp;-out=pmRA&amp;amp;-out=e_pmRA&amp;amp;-out=pmDE&amp;amp;-out=e_pmDE&amp;amp;-out=RADEcor&amp;amp;-out=RAPlxcor&amp;amp;-out=RApmRAcor&amp;amp;-out=RApmDEcor&amp;amp;-out=DEPlxcor&amp;amp;-out=DEpmRAcor&amp;amp;-out=DEpmDEcor&amp;amp;-out=PlxpmRAcor&amp;amp;-out=PlxpmDEcor&amp;amp;-out=pmRApmDEcor&amp;amp;-out=RV&amp;amp;-out=e_RV&amp;amp;-out=Vbroad&amp;amp;-out=GRVSmag&amp;amp;-out=QSO&amp;amp;-out=Gal&amp;amp;-out=NSS&amp;amp;-out=XPcont&amp;amp;-out=XPsamp&amp;amp;-out=RVS&amp;amp;-out=EpochPh&amp;amp;-out=EpochRV&amp;amp;-out=MCMCGSP&amp;amp;-out=MCMCMSC&amp;amp;-out=And&amp;amp;-out=Teff&amp;amp;-out=logg&amp;amp;-out=[Fe/H]&amp;amp;-out=Dist&amp;amp;-out=A0&amp;amp;-out=HIP&amp;amp;-out=PS1&amp;amp;-out=SDSS13&amp;amp;-out=SKYM2&amp;amp;-out=TYC2&amp;amp;-out=URAT1&amp;amp;-out=AllWISE&amp;amp;-out=APASS9&amp;amp;-out=GSC23&amp;amp;-out=RAVE5&amp;amp;-out=2MASS&amp;amp;-out=RAVE6&amp;amp;-out=RAJ2000&amp;amp;-out=DEJ2000&amp;amp;"/>
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.QueryOrigin.contact" value="cds-question@unistra.fr"/>
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.QueryOrigin.server_software" value="7.33.3"/>
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.QueryOrigin.publisher" value="CDS"/>
+      <COLLECTION dmrole="mango:origin.QueryOrigin.dataOrigin">
+        <INSTANCE dmtype="mango:origin.DataOrigin">
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.DataOrigin.ivoid" value="ivo://cds.vizier/i/355"/>
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.DataOrigin.cites" value="bibcode:2022yCat.1355....0G, doi:10.26093/cds/vizier.1355"/>
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.DataOrigin.original_date" value="2022"/>
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.DataOrigin.reference_url" value="https://cdsarc.cds.unistra.fr/viz-bin/cat/I/355"/>
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.DataOrigin.rights_uri" value="https://cds.unistra.fr/vizier-org/licences_vizier.html"/>
+          <COLLECTION dmrole="mango:origin.DataOrigin.articles">
+            <INSTANCE dmtype="mango:origin.Article">
+              <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.Article.identifier" value="doi:10.1051/0004-6361/202039657e]"/>
+              <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.Article.editor" value="A&amp;A"/>
+            </INSTANCE>
+          </COLLECTION>
+          <COLLECTION dmrole="mango:origin.DataOrigin.creators">
+            <ATTRIBUTE dmtype="ivoa:string" value="Gaia collaboration"/>
+          </COLLECTION>
+        </INSTANCE>
+      </COLLECTION>
+    </INSTANCE>
+    <INSTANCE dmtype="Phot:PhotCal" dmid="_photcal_GAIA_GAIA3_Grvs_AB">
+      <ATTRIBUTE dmrole="Phot:PhotCal.identifier" dmtype="ivoa:string" value="GAIA/GAIA3.Grvs/AB"/>
+      <INSTANCE dmrole="Phot:PhotCal.zeroPoint" dmtype="Phot:ZeroPoint">
+        <ATTRIBUTE dmrole="Phot:ZeroPoint.type" dmtype="ivoa:integer" value="0"/>
+        <ATTRIBUTE dmrole="Phot:ZeroPoint.referenceMagnitudeValue" dmtype="ivoa:real" value="0"/>
+        <ATTRIBUTE dmrole="Phot:ZeroPoint.referenceMagnitudeError" dmtype="ivoa:real" value="0"/>
+        <!-- ATTRIBUTE dmrole="Phot:ZeroPoint.softeningParameter" dmtype="ivoa:real" value=""/ -->
+        <INSTANCE dmrole="Phot:ZeroPoint.flux" dmtype="Phot:Flux">
+          <ATTRIBUTE dmrole="Phot:Flux.ucd" dmtype="Phot:UCD" value="phot.flux.density"/>
+          <ATTRIBUTE dmrole="Phot:Flux.unitexpression" dmtype="ivoa:Unit" value="Jy"/>
+          <ATTRIBUTE dmrole="Phot:Flux.value" dmtype="ivoa:real" value="3631"/>
+          <ATTRIBUTE dmrole="Phot:Flux.error" dmtype="ivoa:real" value="0"/>
+        </INSTANCE>
+      </INSTANCE>
+      <INSTANCE dmrole="Phot:PhotCal.magnitudeSystem" dmtype="Phot:MagnitudeSystem">
+        <ATTRIBUTE dmrole="Phot:MagnitudeSystem.type" dmtype="Phot:TypeOfMagSystem" value="AB"/>
+      </INSTANCE>
+      <REFERENCE dmrole="Phot:PhotCal.photometryFilter" dmref="_photfilter_GAIA_GAIA3_Grvs_AB"/>
+    </INSTANCE>
+    <INSTANCE dmtype="Phot:PhotometryFilter" dmid="_photfilter_GAIA_GAIA3_Grvs_AB">
+      <ATTRIBUTE dmrole="Phot:PhotometryFilter.fpsIdentifier" dmtype="ivoa:string" value="ivo://svo/fps"/>
+      <ATTRIBUTE dmrole="Phot:PhotometryFilter.identifier" dmtype="ivoa:string" value="GAIA/GAIA3.Grvs"/>
+      <ATTRIBUTE dmrole="Phot:PhotometryFilter.name" dmtype="ivoa:string" value="GAIA3.Grvs"/>
+      <ATTRIBUTE dmrole="Phot:PhotometryFilter.description" dmtype="ivoa:string" value="GAIA Grvs filter, DR3"/>
+      <ATTRIBUTE dmrole="Phot:PhotometryFilter.bandName" dmtype="ivoa:string" value=""/>
+      <INSTANCE dmrole="Phot:PhotometryFilter.bandwidth" dmtype="Phot:Bandwidth">
+        <ATTRIBUTE dmrole="Phot:Bandwidth.ucd" dmtype="Phot:UCD" value="instr.bandwidth"/>
+        <ATTRIBUTE dmrole="Phot:Bandwidth.unitexpression" dmtype="ivoa:Unit" value=""/>
+        <ATTRIBUTE dmrole="Phot:Bandwidth.extent" dmtype="ivoa:real" value="235.1243119935"/>
+        <ATTRIBUTE dmrole="Phot:Bandwidth.start" dmtype="ivoa:real" value="8459.7502595805"/>
+        <ATTRIBUTE dmrole="Phot:Bandwidth.stop" dmtype="ivoa:real" value="8459.7502595805"/>
+      </INSTANCE>
+      <INSTANCE dmrole="Phot:PhotometryFilter.transmissionCurve" dmtype="Phot:TransmissionCurve">
+        <INSTANCE dmrole="Phot:TransmissionCurve.access" dmtype="Phot:Access">
+          <ATTRIBUTE dmrole="Phot:Access.reference" dmtype="ivoa:anyURI" value="http://svo2.cab.inta-csic.es/theory/fps/fps.php?ID=GAIA/GAIA3.Grvs"/>
+          <ATTRIBUTE dmrole="Phot:Access.size" dmtype="ivoa:integer" value="24"/>
+          <ATTRIBUTE dmrole="Phot:Access.format" dmtype="ivoa:string" value="application/x-votable+xml"/>
+        </INSTANCE>
+      </INSTANCE>
+      <INSTANCE dmrole="Phot:PhotometryFilter.spectralLocation" dmtype="Phot:SpectralLocation">
+        <ATTRIBUTE dmrole="Phot:SpectralLocation.ucd" dmtype="Phot:UCD" value="em.wl;meta.main"/>
+        <ATTRIBUTE dmrole="Phot:SpectralLocation.unitexpression" dmtype="ivoa:Unit" value="Angstrom"/>
+        <ATTRIBUTE dmrole="Phot:SpectralLocation.value" dmtype="ivoa:real" value="8578.7613420633"/>
+      </INSTANCE>
+    </INSTANCE>
+    <INSTANCE dmtype="Phot:PhotCal" dmid="_photcal_GAIA_GAIA3_Grp_AB">
+      <ATTRIBUTE dmrole="Phot:PhotCal.identifier" dmtype="ivoa:string" value="GAIA/GAIA3.Grp/AB"/>
+      <INSTANCE dmrole="Phot:PhotCal.zeroPoint" dmtype="Phot:ZeroPoint">
+        <ATTRIBUTE dmrole="Phot:ZeroPoint.type" dmtype="ivoa:integer" value="0"/>
+        <ATTRIBUTE dmrole="Phot:ZeroPoint.referenceMagnitudeValue" dmtype="ivoa:real" value="0"/>
+        <ATTRIBUTE dmrole="Phot:ZeroPoint.referenceMagnitudeError" dmtype="ivoa:real" value="0"/>
+        <!-- ATTRIBUTE dmrole="Phot:ZeroPoint.softeningParameter" dmtype="ivoa:real" value=""/ -->
+        <INSTANCE dmrole="Phot:ZeroPoint.flux" dmtype="Phot:Flux">
+          <ATTRIBUTE dmrole="Phot:Flux.ucd" dmtype="Phot:UCD" value="phot.flux.density"/>
+          <ATTRIBUTE dmrole="Phot:Flux.unitexpression" dmtype="ivoa:Unit" value="Jy"/>
+          <ATTRIBUTE dmrole="Phot:Flux.value" dmtype="ivoa:real" value="3631"/>
+          <ATTRIBUTE dmrole="Phot:Flux.error" dmtype="ivoa:real" value="0"/>
+        </INSTANCE>
+      </INSTANCE>
+      <INSTANCE dmrole="Phot:PhotCal.magnitudeSystem" dmtype="Phot:MagnitudeSystem">
+        <ATTRIBUTE dmrole="Phot:MagnitudeSystem.type" dmtype="Phot:TypeOfMagSystem" value="AB"/>
+      </INSTANCE>
+      <REFERENCE dmrole="Phot:PhotCal.photometryFilter" dmref="_photfilter_GAIA_GAIA3_Grp_AB"/>
+    </INSTANCE>
+    <INSTANCE dmtype="Phot:PhotometryFilter" dmid="_photfilter_GAIA_GAIA3_Grp_AB">
+      <ATTRIBUTE dmrole="Phot:PhotometryFilter.fpsIdentifier" dmtype="ivoa:string" value="ivo://svo/fps"/>
+      <ATTRIBUTE dmrole="Phot:PhotometryFilter.identifier" dmtype="ivoa:string" value="GAIA/GAIA3.Grp"/>
+      <ATTRIBUTE dmrole="Phot:PhotometryFilter.name" dmtype="ivoa:string" value="GAIA3.Grp"/>
+      <ATTRIBUTE dmrole="Phot:PhotometryFilter.description" dmtype="ivoa:string" value="GAIA Grp filter, DR3"/>
+      <ATTRIBUTE dmrole="Phot:PhotometryFilter.bandName" dmtype="ivoa:string" value=""/>
+      <INSTANCE dmrole="Phot:PhotometryFilter.bandwidth" dmtype="Phot:Bandwidth">
+        <ATTRIBUTE dmrole="Phot:Bandwidth.ucd" dmtype="Phot:UCD" value="instr.bandwidth"/>
+        <ATTRIBUTE dmrole="Phot:Bandwidth.unitexpression" dmtype="ivoa:Unit" value=""/>
+        <ATTRIBUTE dmrole="Phot:Bandwidth.extent" dmtype="ivoa:real" value="2924.4362576966"/>
+        <ATTRIBUTE dmrole="Phot:Bandwidth.start" dmtype="ivoa:real" value="6200.4566154641"/>
+        <ATTRIBUTE dmrole="Phot:Bandwidth.stop" dmtype="ivoa:real" value="6200.4566154641"/>
+      </INSTANCE>
+      <INSTANCE dmrole="Phot:PhotometryFilter.transmissionCurve" dmtype="Phot:TransmissionCurve">
+        <INSTANCE dmrole="Phot:TransmissionCurve.access" dmtype="Phot:Access">
+          <ATTRIBUTE dmrole="Phot:Access.reference" dmtype="ivoa:anyURI" value="http://svo2.cab.inta-csic.es/theory/fps/fps.php?ID=GAIA/GAIA3.Grp"/>
+          <ATTRIBUTE dmrole="Phot:Access.size" dmtype="ivoa:integer" value="10"/>
+          <ATTRIBUTE dmrole="Phot:Access.format" dmtype="ivoa:string" value="application/x-votable+xml"/>
+        </INSTANCE>
+      </INSTANCE>
+      <INSTANCE dmrole="Phot:PhotometryFilter.spectralLocation" dmtype="Phot:SpectralLocation">
+        <ATTRIBUTE dmrole="Phot:SpectralLocation.ucd" dmtype="Phot:UCD" value="em.wl;meta.main"/>
+        <ATTRIBUTE dmrole="Phot:SpectralLocation.unitexpression" dmtype="ivoa:Unit" value="Angstrom"/>
+        <ATTRIBUTE dmrole="Phot:SpectralLocation.value" dmtype="ivoa:real" value="7769.0226260418"/>
+      </INSTANCE>
+    </INSTANCE>
+    <INSTANCE dmtype="coords:SpaceSys" dmid="_spaceframe_spaceRefFrame_equinox_refPosition">
+      <INSTANCE dmtype="coords:SpaceFrame" dmrole="coords:PhysicalCoordSys.frame">
+        <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:SpaceFrame.spaceRefFrame" value="spaceRefFrame"/>
+        <ATTRIBUTE dmtype="coords:Epoch" dmrole="coords:SpaceFrame.equinox" value="equinox"/>
+        <INSTANCE dmtype="coords:StdRefLocation" dmrole="coords:SpaceFrame.refPosition">
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:StdRefLocation.position" value="refPosition"/>
+        </INSTANCE>
+      </INSTANCE>
+    </INSTANCE>
+    <INSTANCE dmtype="coords:TimeSys" dmid="_timeframe_TCB_BARYCENTER">
+      <INSTANCE dmtype="coords:TimeFrame" dmrole="coords:PhysicalCoordSys.frame">
+        <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:TimeFrame.timescale" value="TCB"/>
+        <INSTANCE dmtype="coords:StdRefLocation" dmrole="coords:TimeFrame.refPosition">
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:StdRefLocation.position" value="BARYCENTER"/>
+        </INSTANCE>
+      </INSTANCE>
+    </INSTANCE>
+  </GLOBALS>
+  <TEMPLATES>
+    <INSTANCE dmtype="mango:MangoObject" dmid="DR3Name">
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:MangoObject.identifier" ref="DR3Name"/>
+      <REFERENCE dmrole="mango:MangoObject.queryOrigin" dmref="_origin"/>
+      <COLLECTION dmrole="mango:MangoObject.propertyDock">
+        <INSTANCE dmtype="mango:Color">
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:Property.description" value="very nice color"/>
+          <INSTANCE dmtype="mango:VocabularyTerm" dmrole="mango:Property.semantics">
+            <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:VocabularyTerm.uri" value="vocabulary#term"/>
+            <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:VocabularyTerm.label" value="term"/>
+          </INSTANCE>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:PhotometricProperty.value" value="8.76"/>
+          <INSTANCE dmtype="mango:error.PErrorAsym1D" dmrole="mango:PhotometricProperty.error">
+            <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorAsym1D.low" value="1"/>
+            <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorAsym1D.high" value="3"/>
+          </INSTANCE>
+          <INSTANCE dmtype="mango:ColorDef" dmrole="mango:Color.colorDef">
+            <ATTRIBUTE dmtype="mango:ColorDefinition" dmrole="mango:ColorDef.definition" value="ColorIndex"/>
+            <REFERENCE dmrole="mango:ColorDef.low" dmref="_photfilter_GAIA_GAIA3_Grvs_AB"/>
+            <REFERENCE dmrole="mango:ColorDef.high" dmref="_photfilter_GAIA_GAIA3_Grp_AB"/>
+          </INSTANCE>
+        </INSTANCE>
+        <INSTANCE dmtype="mango:Brightness">
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:Property.description" value="Grvs magnitude"/>
+          <INSTANCE dmtype="mango:VocabularyTerm" dmrole="mango:Property.semantics">
+            <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:VocabularyTerm.uri" value="https://www.ivoa.net/rdf/uat/2024-06-25/uat.html#magnitude"/>
+            <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:VocabularyTerm.label" value="magnitude"/>
+          </INSTANCE>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:PhotometricProperty.value" unit="mag" ref="GRVSmag"/>
+          <INSTANCE dmtype="mango:error.PErrorAsym1D" dmrole="mango:PhotometricProperty.error">
+            <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorAsym1D.low" value="1"/>
+            <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorAsym1D.high" value="3"/>
+          </INSTANCE>
+          <REFERENCE dmrole="mango:Brightness.photCal" dmref="_photcal_GAIA_GAIA3_Grvs_AB"/>
+        </INSTANCE>
+        <INSTANCE dmtype="mango:EpochPosition">
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:Property.description" value="6 parameters position"/>
+          <INSTANCE dmtype="mango:VocabularyTerm" dmrole="mango:Property.semantics">
+            <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:VocabularyTerm.uri" value="https://www.ivoa.net/rdf/uat/2024-06-25/uat.html#astronomical-location"/>
+            <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:VocabularyTerm.label" value="Astronomical location"/>
+          </INSTANCE>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.longitude" unit="deg" ref="_RAJ2000"/>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.latitude" unit="deg" ref="_DEJ2000"/>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.pmLongitude" unit="mas / yr" ref="pmRA"/>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.pmLatitude" unit="mas / yr" ref="pmDE"/>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.parallax" unit="mas" ref="Plx"/>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.radialVelocity" unit="km / s" ref="RV"/>
+          <INSTANCE dmtype="mango:DateTime" dmrole="mango:EpochPosition.obsDate">
+            <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:DateTime.representation" value="mjd"/>
+            <ATTRIBUTE dmtype="ivoa:datatime" dmrole="mango:DateTime.dateTime" value="579887.6"/>
+          </INSTANCE>
+          <INSTANCE dmtype="mango:EpochPositionCorrelations" dmrole="mango:EpochPosition.correlations">
+            <ATTRIBUTE dmtype="ivoa:boolean" dmrole="mango:EpochPositionCorrelations.isCovariance" value="True"/>
+            <ATTRIBUTE dmtype="ivoa:real" dmrole="mango:EpochPositionCorrelations.longitudeLatitude" ref="RADEcor"/>
+            <ATTRIBUTE dmtype="ivoa:real" dmrole="mango:EpochPositionCorrelations.latitudePmLongitude" ref="DEpmRAcor"/>
+            <ATTRIBUTE dmtype="ivoa:real" dmrole="mango:EpochPositionCorrelations.latitudePmLatitude" ref="DEpmDEcor"/>
+            <ATTRIBUTE dmtype="ivoa:real" dmrole="mango:EpochPositionCorrelations.longitudePmLongitude" ref="RApmRAcor"/>
+            <ATTRIBUTE dmtype="ivoa:real" dmrole="mango:EpochPositionCorrelations.longitudePmLatitude" ref="RApmDEcor"/>
+            <ATTRIBUTE dmtype="ivoa:real" dmrole="mango:EpochPositionCorrelations.longitudeParallax" ref="RAPlxcor"/>
+            <ATTRIBUTE dmtype="ivoa:real" dmrole="mango:EpochPositionCorrelations.latitudeParallax" ref="DEPlxcor"/>
+            <ATTRIBUTE dmtype="ivoa:real" dmrole="mango:EpochPositionCorrelations.pmLongitudeParallax" ref="PlxpmRAcor"/>
+            <ATTRIBUTE dmtype="ivoa:real" dmrole="mango:EpochPositionCorrelations.pmLatitudeParallax" ref="PlxpmDEcor"/>
+          </INSTANCE>
+          <INSTANCE dmtype="mango:EpochPositionErrors" dmrole="mango:EpochPosition.errors">
+            <INSTANCE dmtype="mango:error.PErrorSym2D" dmrole="mango:EpochPositionErrors.position">
+              <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorSym2D.sigma1" unit="mas" ref="e_RA_ICRS"/>
+              <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorSym2D.sigma2" unit="mas" ref="e_DE_ICRS"/>
+            </INSTANCE>
+            <INSTANCE dmtype="mango:error.PErrorSym2D" dmrole="mango:EpochPositionErrors.properMotion">
+              <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorSym2D.sigma1" unit="mas / yr" ref="e_pmRA"/>
+              <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorSym2D.sigma2" unit="mas / yr" ref="e_pmDE"/>
+            </INSTANCE>
+            <INSTANCE dmtype="mango:error.PErrorSym1D" dmrole="mango:EpochPositionErrors.parallax">
+              <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorSym1D.sigma" unit="mas" ref="e_Plx"/>
+            </INSTANCE>
+            <INSTANCE dmtype="mango:error.PErrorSym1D" dmrole="mango:EpochPositionErrors.radialVelocity">
+              <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorSym1D.sigma" unit="km / s" ref="e_RV"/>
+            </INSTANCE>
+          </INSTANCE>
+          <REFERENCE dmrole="mango:EpochPosition.spaceSys" dmref="_spaceframe_spaceRefFrame_equinox_refPosition"/>
+          <REFERENCE dmrole="mango:EpochPosition.timeSys" dmref="_timeframe_TCB_BARYCENTER"/>
+        </INSTANCE>
+      </COLLECTION>
+    </INSTANCE>
+  </TEMPLATES>
+</VODML>

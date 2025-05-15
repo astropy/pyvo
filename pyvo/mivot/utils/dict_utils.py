@@ -13,6 +13,28 @@ class DictUtils:
     """
 
     @staticmethod
+    def add_array_element(dictionnary, key):
+        """
+        Add a [] as key element if not exist
+
+        Parameters:
+        -----------
+        dictionnary: dict
+            dictionnary to be updated
+        key: string
+            key to be added
+
+        Returns:
+        --------
+        Bool
+          True if the key element has been added
+        """
+        if key not in dictionnary:
+            dictionnary[key] = []
+            return True
+        return False
+
+    @staticmethod
     def read_dict_from_file(filename, fatal=False):
         """
         Read a dictionary from a file and raise an exception if something goes wrong.

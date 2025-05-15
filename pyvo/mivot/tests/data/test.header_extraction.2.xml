@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
+  xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/v1.3">
+ <DESCRIPTION>
+   VizieR Astronomical Server cds:8082
+    Date: 2025-04-19T10:08:58 [V7.5]
+   Explanations and Statistics of UCDs:			See LINK below
+   In case of problem, please report to:	cds-question@unistra.fr
+ </DESCRIPTION>
+<!-- VOTable description at http://www.ivoa.net/Documents/latest/VOT.html -->
+<INFO name="service_protocol" value="ivo://ivoa.net/std/ConeSearch/v1.03">  IVOID of the protocol through which the data was retrieved</INFO>
+<INFO name="request_date" value="2025-04-19T10:08:58">  Query execution date</INFO>
+<INFO name="request" value="https://cds/local/viz-bin/mivotconesearch/VIII/6/maps?RA=0.6405&amp;DEC=-8.221&amp;SR=1">  Full request URL</INFO>
+<INFO name="contact" value="cds-question@unistra.fr">  Email or URL to contact publisher</INFO>
+<INFO name="server_software" value="7.5">  Software version</INFO>
+<INFO name="publisher" value="CDS">  Data centre that produced the VOTable</INFO>
+
+<!--
+Execution Reports
+ -->
+<INFO name="MaxTuples" value="50000" />
+<INFO ID="Target" name="-c" value="000.640500-08.221000,rd=1.">
+Constraint -out.meta=dhuM</INFO>
+
+<RESOURCE ID="yCat_8006" name="VIII/6" type="results">
+  <DESCRIPTION>1400-MHz Sky Survey, Maps Covering Dec -5 to +82 (Condon+ 1985-86)</DESCRIPTION>  <INFO name="ivoid" value="ivo://cds.vizier/viii/6">    IVOID of underlying data collection  </INFO>
+  <INFO name="creator" value="Condon J.J.">    First author or institution  </INFO>
+  <INFO name="cites" value="bibcode:1985AJ.....90.2540C">    Article or Data origin sources  </INFO>
+  <INFO name="editor" value="Astronomical Journal (AAS)">    Editor name (article)  </INFO>
+  <INFO name="original_date" value="1985">    Year of the article publication  </INFO>
+  <INFO name="reference_url" value="https://cdsarc.cds.unistra.fr/viz-bin/cat/VIII/6">    Dataset landing page  </INFO>
+  <INFO name="publication_date" value="2018-01-31">    Date of first publication in the data centre  </INFO>
+  <INFO name="rights_uri" value="https://cds.unistra.fr/vizier-org/licences_vizier.html">    Licence URI  </INFO>
+
+  <COOSYS ID="B1950" system="eq_FK4" equinox="B1950"/>
+  <TABLE ID="VIII_6_maps" name="VIII/6/maps">
+    <DESCRIPTION>List of the map centers</DESCRIPTION>
+    <!-- Definitions of GROUPs and FIELDs -->
+<!--The precision of the computed positions has been increased compared to the original positions-->
+    <FIELD name="_r" ucd="pos.angDistance" datatype="double" width="4" precision="2" unit=""><!-- ucd="POS_ANG_DIST_GENERAL" -->
+      <DESCRIPTION>Distance from center (000.0-08.5)[FK4/B1950]</DESCRIPTION>
+    </FIELD>
+    <FIELD name="recno" ucd="ID_MAIN" datatype="char" arraysize="8*"><!-- ucd="meta.record" -->
+      <DESCRIPTION>Record number assigned by the VizieR team. Should Not be used for identification. [datatype=int]</DESCRIPTION>
+    </FIELD>
+    <FIELD name="ObsDate" ucd="time.epoch;obs" datatype="char" arraysize="10" unit="'Y:M:D'"><!-- ucd="TIME_DATE" -->
+      <DESCRIPTION>Observation date</DESCRIPTION>
+      <VALUES null=" " />
+    </FIELD>
+    <FIELD name="RAB1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="double" width="5" precision="1" unit="deg"><!-- ucd="pos.eq.ra;meta.main" -->
+      <DESCRIPTION>Right Ascension (B1950) of map center</DESCRIPTION>
+    </FIELD>
+    <FIELD name="DEB1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="double" width="5" precision="1" unit="deg"><!-- ucd="pos.eq.dec;meta.main" -->
+      <DESCRIPTION>Declination (B1950) of map center</DESCRIPTION>
+    </FIELD>
+    <FIELD name="FITSfile" ucd="meta.id;meta.fits" datatype="char" arraysize="8"><!-- ucd="ID_FILE" -->
+      <DESCRIPTION>Name of FITS file in "maps" subdirectory</DESCRIPTION>
+<!-- Name of FITS file in "\begin{tex}\vFile{VIII/6/./maps}{maps}\end{tex}" subdirectory -->
+
+    </FIELD>
+    <FIELD name="AssocData" ucd="meta.bib.page" datatype="char" arraysize="4"><!-- ucd="DATA_LINK" -->
+      <DESCRIPTION>Associated Data web page</DESCRIPTION>
+    </FIELD>
+    <FIELD name="FITS" ucd="meta.ref.url" datatype="char" arraysize="4"><!-- ucd="DATA_LINK" -->
+      <DESCRIPTION>Downbload the FITS file</DESCRIPTION>
+    </FIELD>
+    <FIELD name="_RA.icrs" ucd="pos.eq.ra" datatype="double" width="8" precision="4" unit="deg"><!-- ucd="POS_EQ_RA_OTHER" -->
+      <DESCRIPTION>Right ascension (ICRS) (computed by VizieR, not part of the original data)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+    <FIELD name="_DE.icrs" ucd="pos.eq.dec" datatype="double" width="8" precision="4" unit="deg"><!-- ucd="POS_EQ_DEC_OTHER" -->
+      <DESCRIPTION>Declination (ICRS) (computed by VizieR, not part of the original data)</DESCRIPTION>
+      <VALUES null="NaN" />
+    </FIELD>
+<DATA><TABLEDATA>
+<TR><TD>0.00</TD><TD>1</TD><TD>1983-10-06</TD><TD>000.0</TD><TD>-08.5</TD><TD>f001.fit</TD><TD>fits</TD><TD>FITS</TD><TD>000.6405</TD><TD>-08.2216</TD></TR>
+</TABLEDATA></DATA>
+</TABLE>
+<INFO name="matches" value="1">matching records</INFO>
+</RESOURCE>
+</VOTABLE>

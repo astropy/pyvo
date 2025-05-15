@@ -32,10 +32,12 @@ fake_hk_dict = {
 fake_dict = {
     "dmtype": "EpochPosition",
             "longitude": {
+                "dmtype": "RealQuantity",
                 "value": 52.2340018,
                 "unit": "deg",
             },
             "latitude": {
+                "dmtype": "RealQuantity",
                 "value": 59.8937333,
                 "unit": "deg",
             }
@@ -50,40 +52,40 @@ test_dict = {
         "observable": [
             {
                 "dmtype": "cube:Observable",
-                "dependent": {"value": True},
+                "dependent": {"dmtype": "ivoa:boolean", "value": True},
                 "measure": {
                     "dmrole": "cube:MeasurementAxis.measure",
                     "dmtype": "meas:Time",
                     "coord": {
                         "dmrole": "meas:Time.coord",
                         "dmtype": "coords:MJD",
-                        "date": {"value": 1705.9437360200984},
+                        "date": {"dmtype": "ivoa:real", "value": 1705.9437360200984},
                     },
                 },
             },
             {
                 "dmtype": "cube:Observable",
-                "dependent": {"value": True},
+                "dependent": {"dmtype": "ivoa:boolean", "value": True},
                 "measure": {
                     "dmrole": "cube:MeasurementAxis.measure",
                     "dmtype": "meas:GenericMeasure",
                     "coord": {
                         "dmrole": "meas:GenericMeasure.coord",
                         "dmtype": "coords:PhysicalCoordinate",
-                        "cval": {"value": 15.216575},
+                        "cval": {"dmtype": "ivoa:RealQuantity", "value": 15.216575},
                     },
                 },
             },
             {
                 "dmtype": "cube:Observable",
-                "dependent": {"value": True},
+                "dependent": {"dmtype": "ivoa:boolean", "value": True},
                 "measure": {
                     "dmrole": "cube:MeasurementAxis.measure",
                     "dmtype": "meas:GenericMeasure",
                     "coord": {
                         "dmrole": "meas:GenericMeasure.coord",
                         "dmtype": "coords:PhysicalCoordinate",
-                        "cval": {"value": 15442.456},
+                        "cval": {"dmtype": "ivoa:RealQuantity", "value": 15442.456},
                     },
                     "error": {
                         "dmrole": "meas:Measure.error",
@@ -91,7 +93,7 @@ test_dict = {
                         "statError": {
                             "dmrole": "meas:Error.statError",
                             "dmtype": "meas:Symmetrical",
-                            "radius": {"value": 44.15126},
+                            "radius": {"dmtype": "ivoa:RealQuantity", "value": 44.15126},
                         },
                     },
                 },

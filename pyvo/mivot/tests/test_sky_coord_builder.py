@@ -39,21 +39,23 @@ vizier_dict = {
         "unit": "mas/yr",
         "ref": "pmDE",
     },
-    "epoch": {
+    "obsDate": {
         "dmtype": "ivoa:RealQuantity",
         "value": 1991.25,
         "unit": "yr",
         "ref": None,
     },
-    "coordSys": {
+    "spaceSys": {
         "dmtype": "coords:SpaceSys",
         "dmid": "SpaceFrame_ICRS",
         "dmrole": "coords:Coordinate.coordSys",
-        "spaceRefFrame": {
+        "frame": {
             "dmtype": "coords:SpaceFrame",
-            "value": "ICRS",
-            "unit": None,
-            "ref": None,
+            "dmrole": "coords:PhysicalCoordSys.frame",
+            "spaceRefFrame": {
+                "dmtype": "ivoa:string",
+                "value": "ICRS"
+            },
         },
     },
 }
@@ -90,27 +92,29 @@ vizier_equin_dict = {
         "unit": "mas",
         "ref": "parallax",
     },
-    "epoch": {
+    "obsDate": {
         "dmtype": "ivoa:RealQuantity",
         "value": 1991.25,
         "unit": "yr",
         "ref": None,
     },
-    "coordSys": {
+    "spaceSys": {
         "dmtype": "coords:SpaceSys",
         "dmid": "SpaceFrame_ICRS",
         "dmrole": "coords:Coordinate.coordSys",
-        "spaceRefFrame": {
-            "dmtype": "coords:SpaceFrame.spaceRefFrame",
-            "value": "FK5",
-            "unit": None,
-            "ref": None,
-        },
-        "equinox": {
-            "dmtype": "coords:SpaceFrame.equinox",
-            "value": "2012",
-            "unit": "yr",
-        },
+        "frame": {
+            "dmtype": "coords:SpaceFrame",
+            "dmrole": "coords:PhysicalCoordSys.frame",
+            "spaceRefFrame": {
+                "dmtype": "ivoa:string",
+                "value": "FK5"
+            },
+            "equinox": {
+                "dmtype": "coords:SpaceFrame.equinox",
+                "value": "2012",
+                "unit": "yr",
+            }
+        }
     },
 }
 
@@ -147,7 +151,7 @@ vizier_dummy_type = {
         "unit": "mas",
         "ref": "parallax",
     },
-    "epoch": {
+    "obsDate": {
         "dmtype": "ivoa:RealQuantity",
         "value": 1991.25,
         "unit": "yr",
@@ -197,14 +201,14 @@ def test_vizier_output():
             == "<SkyCoord (ICRS): (ra, dec) in deg(52.26722684, 59.94033461) "
                "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
 
-    vizier_dict["coordSys"]["spaceRefFrame"]["value"] = "Galactic"
+    vizier_dict["spaceSys"]["frame"]["spaceRefFrame"]["value"] = "Galactic"
     mivot_instance = MivotInstance(**vizier_dict)
     scoo = mivot_instance.get_SkyCoord()
     assert (str(scoo).replace("\n", "").replace("  ", "")
             == "<SkyCoord (Galactic): (l, b) in deg(52.26722684, 59.94033461) "
                "(pm_l_cosb, pm_b) in mas / yr(-0.82, -1.85)>")
 
-    vizier_dict["coordSys"]["spaceRefFrame"]["value"] = "QWERTY"
+    vizier_dict["spaceSys"]["frame"]["spaceRefFrame"]["value"] = "QWERTY"
     mivot_instance = MivotInstance(**vizier_dict)
     scoo = mivot_instance.get_SkyCoord()
     assert (str(scoo).replace("\n", "").replace("  ", "")
@@ -225,7 +229,7 @@ def test_vizier_output_with_equinox_and_parallax():
                "(deg, deg, pc)(52.26722684, 59.94033461, 600.) "
                "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
 
-    vizier_equin_dict["coordSys"]["spaceRefFrame"]["value"] = "FK4"
+    vizier_equin_dict["spaceSys"]["frame"]["spaceRefFrame"]["value"] = "FK4"
     mivot_instance = MivotInstance(**vizier_equin_dict)
     scoo = mivot_instance.get_SkyCoord()
     assert (str(scoo).replace("\n", "").replace("  ", "")
