@@ -35,7 +35,7 @@ Let's start by retrieving and parsing a regular VOTable from the Vizier Cone sea
     from pyvo.mivot.utils.dict_utils import DictUtils
 
     scs_srv = SCSService(
-        "http://viz-beta.u-strasbg.fr/viz-bin/conesearch/I/239/hip_main"
+        "https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main"
         )
 
     query_result = scs_srv.search(

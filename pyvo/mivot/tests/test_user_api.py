@@ -62,7 +62,7 @@ def data_sample_url():
 
 @pytest.fixture
 def vizier_url():
-    return "http://viz-beta.u-strasbg.fr/viz-bin/conesearch/V1.5/I/239/hip_main"
+    return "https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main?RA=0&DEC=0&;SR=0.5"
 
 
 @pytest.fixture
