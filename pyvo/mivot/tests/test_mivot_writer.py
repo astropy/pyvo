@@ -195,4 +195,3 @@ def test_MivotInstanceAll():
     assert mv.dm_instance.to_dict() == DictUtils.read_dict_from_file(
         os.path.join(data_path, "reference/test_mivot_writer.json")
     )
-    votable.to_xml(data_path + "/essai.xml")

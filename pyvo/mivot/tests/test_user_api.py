@@ -62,7 +62,7 @@ def data_sample_url():
 
 @pytest.fixture
 def vizier_url():
-    return "https://cdsarc.cds.unistra.fr/beta/viz-bin/mivotconesearch/I/239/hip_main"
+    return "https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main?RA=0&DEC=0&;SR=0.5"
 
 
 @pytest.fixture
@@ -392,7 +392,7 @@ def test_cone_search(vizier_url):
     )
     mivot_instance = m_viewer.dm_instance
     assert mivot_instance.dmtype == "mango:EpochPosition"
-    assert mivot_instance.coordSys.spaceRefFrame.value == "ICRS"
+    assert mivot_instance.spaceSys.frame.spaceRefFrame.value == "ICRS"
     ra = []
     dec = []
     pmra = []
