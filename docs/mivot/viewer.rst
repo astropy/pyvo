@@ -41,7 +41,7 @@ to the ``EpochPosition`` class.
     >>> activate_features("MIVOT")
     >>> if check_astropy_version() is False:
     ...    pytest.skip("MIVOT test skipped because of the astropy version.")
-    >>> scs_srv = SCSService(" https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main")
+    >>> scs_srv = SCSService("https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main")
     >>> m_viewer = MivotViewer(
     ...     scs_srv.search(
     ...         pos=SkyCoord(ra=52.26708 * u.degree, dec=59.94027 * u.degree, frame='icrs'),
@@ -196,4 +196,3 @@ Reference/API
 =============
 
 .. automodapi:: pyvo.mivot.viewer
-
