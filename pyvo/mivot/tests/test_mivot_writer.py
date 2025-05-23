@@ -81,3 +81,4 @@ def test_MivotAnnotations():
     with pytest.raises(MappingError):
         mb.add_globals(12)
 
+
