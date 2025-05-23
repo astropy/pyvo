@@ -80,5 +80,3 @@ def test_MivotAnnotations():
         mb.add_templates(12)
     with pytest.raises(MappingError):
         mb.add_globals(12)
-
-
