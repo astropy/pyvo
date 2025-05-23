@@ -1,0 +1,86 @@
+<VODML xmlns="http://www.ivoa.net/xml/mivot">
+  <REPORT status="OK"/>
+  <MODEL name="ivoa" url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml"/>
+  <MODEL name="coords" url="https://ivoa.net/xml/VODML/Coords-v1.vo-dml.xml"/>
+  <MODEL name="mango" url="https://raw.githubusercontent.com/ivoa-std/MANGO/refs/heads/wd-v1.0/vo-dml/mango.vo-dml.xml"/>
+  <GLOBALS>
+    <INSTANCE dmtype="coords:SpaceSys" dmid="_spaceframe_ICRS_BARYCENTER">
+      <INSTANCE dmtype="coords:SpaceFrame" dmrole="coords:PhysicalCoordSys.frame">
+        <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:SpaceFrame.spaceRefFrame" value="ICRS"/>
+        <INSTANCE dmtype="coords:CustomRefLocation" dmrole="coords:SpaceFrame.refPosition">
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:CustomRefLocation.position" value="BARYCENTER"/>
+          <ATTRIBUTE dmtype="coords:Epoch" dmrole="coords:CustomRefLocation.epoch" value="2016.000"/>
+        </INSTANCE>
+      </INSTANCE>
+    </INSTANCE>
+     <INSTANCE dmtype="coords:SpaceSys" dmid="_spaceframe_eq_FK5_J2000_BARYCENTER">
+      <INSTANCE dmtype="coords:SpaceFrame" dmrole="coords:PhysicalCoordSys.frame">
+        <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:SpaceFrame.spaceRefFrame" value="eq_FK5"/>
+        <ATTRIBUTE dmtype="coords:Epoch" dmrole="coords:SpaceFrame.equinox" value="J2000"/>
+        <INSTANCE dmtype="coords:StdRefLocation" dmrole="coords:SpaceFrame.refPosition">
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:StdRefLocation.position" value="BARYCENTER"/>
+        </INSTANCE>
+      </INSTANCE>
+    </INSTANCE>
+    <INSTANCE dmtype="mango:origin.QueryOrigin" dmid="_origin">
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.QueryOrigin.service_protocol" value="ASU"/>
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.QueryOrigin.request_date" value="2024-03-21T15:16:08"/>
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.QueryOrigin.request" value="https://vizier.cds.unistra.fr/viz-bin/votable?-oc.form=dec&amp;-out.max=5&amp;-out.add=_r&amp;-out.add=_RAJ,_DEJ&amp;-sort=_r&amp;-c.eq=J2000&amp;-c.r=  2&amp;-c.u=arcmin&amp;-c.geom=r&amp;-source=I/355/gaiadr3&amp;-order=I&amp;-out.orig=standard&amp;-out=DR3Name&amp;-out=RA_ICRS&amp;-out=DE_ICRS&amp;-out=Source&amp;-out=e_RA_ICRS&amp;-out=e_DE_ICRS&amp;-out=Plx&amp;-out=e_Plx&amp;-out=PM&amp;-out=pmRA&amp;-out=e_pmRA&amp;-out=pmDE&amp;-out=e_pmDE&amp;-out=RADEcor&amp;-out=RAPlxcor&amp;-out=RApmRAcor&amp;-out=RApmDEcor&amp;-out=DEPlxcor&amp;-out=DEpmRAcor&amp;-out=DEpmDEcor&amp;-out=PlxpmRAcor&amp;-out=PlxpmDEcor&amp;-out=pmRApmDEcor&amp;-out=RV&amp;-out=e_RV&amp;-out=Vbroad&amp;-out=GRVSmag&amp;-out=QSO&amp;-out=Gal&amp;-out=NSS&amp;-out=XPcont&amp;-out=XPsamp&amp;-out=RVS&amp;-out=EpochPh&amp;-out=EpochRV&amp;-out=MCMCGSP&amp;-out=MCMCMSC&amp;-out=And&amp;-out=Teff&amp;-out=logg&amp;-out=[Fe/H]&amp;-out=Dist&amp;-out=A0&amp;-out=HIP&amp;-out=PS1&amp;-out=SDSS13&amp;-out=SKYM2&amp;-out=TYC2&amp;-out=URAT1&amp;-out=AllWISE&amp;-out=APASS9&amp;-out=GSC23&amp;-out=RAVE5&amp;-out=2MASS&amp;-out=RAVE6&amp;-out=RAJ2000&amp;-out=DEJ2000&amp;"/>
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.QueryOrigin.contact" value="cds-question@unistra.fr"/>
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.QueryOrigin.server_software" value="7.33.3"/>
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.QueryOrigin.publisher" value="CDS"/>
+      <COLLECTION dmrole="mango:origin.QueryOrigin.dataOrigin">
+        <INSTANCE dmtype="mango:origin.DataOrigin">
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.DataOrigin.ivoid" value="ivo://cds.vizier/i/355"/>
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.DataOrigin.cites" value="bibcode:2022yCat.1355....0G"/>
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.DataOrigin.original_date" value="2022"/>
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.DataOrigin.reference_url" value="https://cdsarc.cds.unistra.fr/viz-bin/cat/I/355"/>
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:origin.DataOrigin.rights_uri" value="https://cds.unistra.fr/vizier-org/licences_vizier.html"/>
+          <COLLECTION dmrole="mango:origin.DataOrigin.creators">
+            <ATTRIBUTE dmtype="ivoa:string" value="Gaia collaboration"/>
+          </COLLECTION>
+        </INSTANCE>
+      </COLLECTION>
+    </INSTANCE>
+  </GLOBALS>
+  <TEMPLATES>
+    <INSTANCE dmtype="mango:MangoObject" dmid="URAT1">
+      <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:MangoObject.identifier" ref="URAT1"/>
+      <REFERENCE dmrole="mango:MangoObject.queryOrigin" dmref="_origin"/>
+      <COLLECTION dmrole="mango:MangoObject.propertyDock">
+        <INSTANCE dmtype="mango:EpochPosition">
+          <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:Property.description" value="6 parameters position"/>
+          <INSTANCE dmtype="mango:VocabularyTerm" dmrole="mango:Property.semantics">
+            <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:VocabularyTerm.uri" value="https://www.ivoa.net/rdf/uat/2024-06-25/uat.html#astronomical-location"/>
+            <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:VocabularyTerm.label" value="Astronomical location"/>
+          </INSTANCE>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.longitude" unit="deg" ref="RA_ICRS"/>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.latitude" unit="deg" ref="DE_ICRS"/>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.parallax" unit="mas" ref="Plx"/>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.pmLongitude" unit="mas / yr" ref="pmRA"/>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.pmLatitude" unit="mas / yr" ref="pmDE"/>
+          <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.radialVelocity" unit="km / s" ref="RV"/>
+          <INSTANCE dmtype="mango:EpochPositionCorrelations" dmrole="mango:EpochPosition.correlations">
+</INSTANCE>
+          <INSTANCE dmtype="mango:EpochPositionErrors" dmrole="mango:EpochPosition.errors">
+            <INSTANCE dmtype="mango:error.PErrorSym2D" dmrole="mango:EpochPositionErrors.position">
+              <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorSym2D.sigma1" unit="mas" ref="e_RA_ICRS"/>
+              <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorSym2D.sigma2" unit="mas" ref="e_DE_ICRS"/>
+            </INSTANCE>
+            <INSTANCE dmtype="mango:error.PErrorSym1D" dmrole="mango:EpochPositionErrors.parallax">
+              <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorSym1D.sigma" unit="mas" ref="e_Plx"/>
+            </INSTANCE>
+            <INSTANCE dmtype="mango:error.PErrorSym2D" dmrole="mango:EpochPositionErrors.properMotion">
+              <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorSym2D.sigma1" unit="mas / yr" ref="e_pmRA"/>
+              <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorSym2D.sigma2" unit="mas / yr" ref="e_pmDE"/>
+            </INSTANCE>
+            <INSTANCE dmtype="mango:error.PErrorSym1D" dmrole="mango:EpochPositionErrors.radialVelocity">
+              <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorSym1D.sigma" unit="km / s" ref="e_RV"/>
+            </INSTANCE>
+          </INSTANCE>
+          <REFERENCE dmrole="mango:EpochPosition.spaceSys" dmref="_spaceframe_ICRS_BARYCENTER"/>
+        </INSTANCE>
+      </COLLECTION>
+    </INSTANCE>
+  </TEMPLATES>
+</VODML>

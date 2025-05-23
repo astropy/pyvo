@@ -56,7 +56,7 @@ class MivotViewer:
     MivotViewer is a PyVO table wrapper aiming at providing
     a model view on VOTable data read with usual tools.
     """
-    def __init__(self, votable_path, tableref=None):
+    def __init__(self, votable_path, tableref=None, resolve_ref=False):
         """
         Constructor of the MivotViewer class.
 
@@ -68,6 +68,11 @@ class MivotViewer:
         tableref : str, optional
             Used to identify the table to process. If not specified,
             the first table is taken by default.
+        Parameters
+        ----------
+        resolve_ref : bool, optional
+            If True, resolves the references (i.e. include space frames in sky position)
+            Default is False.
         """
         if not check_astropy_version():
             raise AstropyVersionException(f"Astropy version {version.version} "
@@ -93,6 +98,7 @@ class MivotViewer:
         self._mapped_tables = []
         self._resource_seeker = None
         self._dm_instance = None
+        self._resolve_ref = resolve_ref
         try:
             self._set_resource()
             self._set_mapping_block()
@@ -371,18 +377,13 @@ class MivotViewer:
         self._set_column_indices()
         self._set_column_units()
 
-    def _get_model_view(self, resolve_ref=True):
+    def _get_model_view(self):
         """
         Return an XML model view of the last read row.
         This function resolves references by default.
-
-        Parameters
-        ----------
-        resolve_ref : bool, optional
-            If True, resolves the references. Default is True.
         """
         templates_copy = deepcopy(self._templates)
-        if resolve_ref is True:
+        if self._resolve_ref is True:
             while StaticReferenceResolver.resolve(self._annotation_seeker, self._connected_tableref,
                                                   templates_copy) > 0:
                 pass
