@@ -80,8 +80,3 @@ def test_MivotAnnotations():
         mb.add_templates(12)
     with pytest.raises(MappingError):
         mb.add_globals(12)
-
-
-if __name__ == "__main__":
-    mivot_annotations = MivotAnnotations()
-    dmid = mivot_annotations.add_photcal("SLOAN/SDSS.g/AB")
