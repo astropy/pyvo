@@ -312,9 +312,8 @@ with the query facility (this uses python's ``webbrowser`` module):
 
 Note that for interactive data discovery in the VO Registry, you may
 also want to have a look at Aladin's discovery tree, TOPCAT's VO menu,
-or at services like DataScope_ or WIRR_ in your web browser.
+or at services like WIRR_ in your web browser.
 
-.. _DataScope: https://heasarc.gsfc.nasa.gov/cgi-bin/vo/datascope/init.pl
 .. _WIRR: https://dc.g-vo.org/WIRR
 
 
