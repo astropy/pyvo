@@ -10,7 +10,7 @@ row can be interpreted as a Mango Object.
 Mango objects are made of a property container, a description of the data origin and links
 on other Mango objects (not implemented yet).
 
-In this current implementation, only a 3 properties are supported (Epoch position, photometry, and color)
+In this current implementation, only 3 properties are supported (Epoch position, photometry, and color)
 in addition to the data origin that can be added as literal values (not connected with table data). 
 
 The pseudo codes below show the way to use this API.
