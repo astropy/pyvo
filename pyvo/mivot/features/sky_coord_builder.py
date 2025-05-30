@@ -94,7 +94,7 @@ class SkyCoordBuilder:
 
         returns
         -------
-        string
+        string or None
             attribute value formatted as [scale]year
         """
         scale = "J" if not besselian else "B"

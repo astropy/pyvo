@@ -78,7 +78,7 @@ class MivotInstance:
             dmtype of the ATTRIBUTE (mandatory)
         dmrole : str
             dmrole of the ATTRIBUTE (mandatory)
-        value : str or numerical, optional =======A CORRIGER======
+        value : str or numerical, optional
             ID of the column to set the attribute value.
             If ref is a string starting with a * or is numerical,
             it is considered as a value (* stripped)
