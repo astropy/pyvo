@@ -255,6 +255,7 @@ constraint on the description ``get_service(service_type='conesearch', keyword='
   >>> for interface in voresource.list_interfaces():
   ...     print(interface)
   Interface(type='tap#aux', description='', url='https://tapvizier.cds.unistra.fr/TAPVizieR/tap')
+  Interface(type='vr:webbrowser', description='', url='https://vizier.cds.unistra.fr/viz-bin/VizieR-2?-source=J/ApJ/727/14')
   Interface(type='conesearch', description='Cone search capability for table J/ApJ/727/14/table2 (AKARI IRC 3-24{mu}m, and Spitzer MIPS 24/70{mu}m photometry of Abell 2255 member galaxies)', url='https://vizier.cds.unistra.fr/viz-bin/conesearch/J/ApJ/727/14/table2?')
 
 Or construct the service object directly from the list of interfaces with:
@@ -311,9 +312,8 @@ with the query facility (this uses python's ``webbrowser`` module):
 
 Note that for interactive data discovery in the VO Registry, you may
 also want to have a look at Aladin's discovery tree, TOPCAT's VO menu,
-or at services like DataScope_ or WIRR_ in your web browser.
+or at services like WIRR_ in your web browser.
 
-.. _DataScope: https://heasarc.gsfc.nasa.gov/cgi-bin/vo/datascope/init.pl
 .. _WIRR: https://dc.g-vo.org/WIRR
 
 

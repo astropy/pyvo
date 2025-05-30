@@ -31,12 +31,12 @@ takes advantage of the general capabilities of Astopy (and numpy), and
 so a secondary goal is to provide a development platform for migrating
 more VO capabilities into Astropy.
 
-Source code can be found `on GitHub <http://github.com/astropy/pyvo>`_
+Source code can be found `on GitHub <https://github.com/astropy/pyvo>`_
 
 Installation and Requirements
 -----------------------------
 
-Releases of PyVO are available from `PyPI <https://pypi.python.org/pypi/pyvo>`_
+Releases of PyVO are available from `PyPI <https://pypi.org/project/pyvo/>`_
 thus, it and its prerequisites can be most easily installed using ``pip``:
 
    pip install pyvo
@@ -51,7 +51,7 @@ PyVO requires Python 3.8 or later.
 The following packages are required for PyVO:
 
  * `astropy <https://astropy.org>`__ (>=4.1)
- * `requests <http://docs.python-requests.org/en/latest/>`_
+ * `requests <https://docs.python-requests.org/en/latest/>`_
 
 The following packages are optional dependencies and are required for the
 full functionality:
@@ -87,7 +87,7 @@ be found in `astroquery <https://github.com/astropy/astroquery/blob/main/.github
 Examples
 --------
 
-Many instructive examples can be found in the `PyVO Documentation <http://pyvo.readthedocs.org>`_.
+Many instructive examples can be found in the `PyVO Documentation <https://pyvo.readthedocs.io/en/latest/>`_.
 Additional examples can be found in the examples directory.
 
 Unit Tests
