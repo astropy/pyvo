@@ -43,12 +43,14 @@ to tell the server to annotate the queried data.
         """,
         format="application/x-votable+xml;content=mivot"
         )
- 	# Print out the Mivot annotations read out of the VOtable
- 	# This statement is just for a pedagogic purpose (access to a private attribute)
- 	XmlUtils.pretty_print(m_viewer._mapping_block)
  	
     # The MIVOT viewer generates the model view of the data
-    m_viewer = MivotViewer(result, resolve_ref=True)
+    m_viewer = MivotViewer(result, resolve_ref=True)   
+     	
+    # Print out the Mivot annotations read out of the VOtable
+ 	# This statement is just for a pedagogic purpose (access to a private attribute)
+ 	XmlUtils.pretty_print(m_viewer._mapping_block)
+    
 
 In this first step we just queried the service and we built the object that will process the Mivot annotations.
 The Mivot block printing output is too long to be listed here. However, the screenshot below shows its shallow structure.
