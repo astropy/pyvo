@@ -83,8 +83,3 @@ def test_field_extraction():
                         "longitude": "RAB1950",
                         "latitude": "DEB1950"
                      }
-
-
-if __name__ == "__main__":
-    test_all()
-    test_field_extraction()

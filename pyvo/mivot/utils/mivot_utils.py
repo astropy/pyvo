@@ -173,7 +173,7 @@ class MivotUtils:
         # empty strings cannot be casted
         if "string" not in lower_dmtype and value == "":
             return None
-        if type(value) in [numpy.float32, numpy.float64]:
+        if numpy.issubdtype(type(value), numpy.floating):
             return float(value)
         if isinstance(value, str):
             lower_value = value.lower()
@@ -231,7 +231,7 @@ class MivotUtils:
                 field = table.get_field_by_id_or_name(ref)
                 return str(field.unit), column_id, None
             except KeyError as keyerror:
-                raise MappingError() from keyerror
+                raise MappingError(f"Cannot find any field identified by {column_id}") from keyerror
 
     @staticmethod
     def get_ref_or_literal(value_or_ref):

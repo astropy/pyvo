@@ -175,8 +175,3 @@ def test_extraction_from_votable_header():
     assert XmlUtils.strip_xml(builder._annotation.mivot_block) == (
         XmlUtils.strip_xml(get_pkg_data_contents("data/reference/test_header_extraction.xml"))
     )
-
-
-if __name__ == "__main__":
-    test_all_properties()
-    test_extraction_from_votable_header()

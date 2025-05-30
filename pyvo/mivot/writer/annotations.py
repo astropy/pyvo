@@ -161,7 +161,7 @@ class MivotAnnotations:
         templates_block += "</TEMPLATES>\n"
         return templates_block
 
-    def build_mivot_block(self, *, templates_id=None, no_schema_check=False):
+    def build_mivot_block(self, *, templates_id=None, schema_check=True):
         """
         Build a complete MIVOT block from the declared components and validates it
         against the MIVOT XML schema.
@@ -170,8 +170,8 @@ class MivotAnnotations:
         ----------
         templates_id : str, optional
             The ID to associate with the <TEMPLATES> block. Defaults to None.
-        no_schema_check : boolean, optional
-            Skip the XSD validation if True (use to make test working in local mode).
+        schema_check : boolean, optional
+            Skip the XSD validation if False (use to make test working in local mode).
 
         Raises
         ------
@@ -192,7 +192,7 @@ class MivotAnnotations:
         self._mivot_block += "</VODML>\n"
         self._mivot_block = self.mivot_block.replace("\n\n", "\n")
         self._mivot_block = XmlUtils.pretty_string(self._mivot_block)
-        if not no_schema_check:
+        if schema_check:
             self.check_xml()
 
     def add_templates(self, templates_instance):
