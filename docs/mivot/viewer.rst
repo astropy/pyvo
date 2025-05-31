@@ -1,6 +1,6 @@
-*****************************************
-MIVOT (``pyvo.mivot``): Annotation Viewer
-*****************************************
+******************************************************
+MIVOT (``pyvo.mivot``): Annotation Viewer - Public API
+******************************************************
 
 
 Introduction
@@ -55,7 +55,7 @@ mapped to the ``EpochPosition`` class.
     mango:EpochPosition
     >>> print(mivot_instance.spaceSys.frame.spaceRefFrame.value)
     ICRS
-    >>> while m_viewer.next():
+    >>> while m_viewer.next_row_view():
     ...     print(f"position: {mivot_instance.latitude.value} {mivot_instance.longitude.value}")
     position: 59.94033461 52.26722684
 
@@ -137,7 +137,7 @@ The model instances can also be serialized as XML elements that can be parsed wi
     :caption: Accessing the XML view of the mapped model instances
 
     with MivotViewer(path_to_votable) as mivot_viewer:
-        while mivot_viewer.next():
+        while mivot_viewer.next_row_view():
         	xml_view = mivot_viewer.xml_view
         	# do whatever you want with this XML element
 

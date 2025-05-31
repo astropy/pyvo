@@ -95,15 +95,15 @@ The 3 functions adding properties have all 3 arguments
   +-------------+---------------------------------+
   | **value**   | **attribute value**             |
   +=============+=================================+
-  | "\*M31"     | always M31                      |
+  | "\*M31"     | "M31"                           |
   +-------------+---------------------------------+
   | "ObjName"   | value of the column "ObjName"   |
   +-------------+---------------------------------+
-  | True        | always True                     |
+  | True        | True                            |
   +-------------+---------------------------------+
-  | 123456      | always 123456                   |
+  | 123456      | 123456                          |
   +-------------+---------------------------------+
-  | 45.8987     | always 45.8987                  |
+  | 45.8987     | 45.8987                         |
   +-------------+---------------------------------+
 
 - ``semantics``: Semantic tags (text + vocabulary entry) that apply to the property.
@@ -164,8 +164,6 @@ although synthetic properties (literal value only) can be added as well.
 
 - The properties are stored in a container named ``propertyDock``. 
 - During he annotation process, properties are added one by one by specific methods. 
-- Only ``Photometry``, ``color`` and ``EpochPosition``  are supported yet.
-
 
 .. figure:: _images/mangoProperties.png
    :width: 500

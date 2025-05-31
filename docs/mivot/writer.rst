@@ -232,7 +232,7 @@ Validate the annotations against the models
  .. code-block:: shell
 
 
-    % pip install mivot-validatorXXX
+    % pip install mivot-validator
     % mivot-instance-validate pyvo-tuto.xml
     ...
     Valid if no error message

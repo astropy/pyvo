@@ -107,7 +107,7 @@ def test_mivot_viewer_next(path_to_votable):
     dec = []
     pmra = []
     pmdec = []
-    while mivot_viewer.next():
+    while mivot_viewer.next_row_view():
         ra.append(mivot_instance.longitude.value)
         dec.append(mivot_instance.latitude.value)
         pmra.append(mivot_instance.pmLongitude.value)
@@ -189,7 +189,7 @@ def test_with_withstatement(path_to_votable):
     read_pmdec = []
     with MivotViewer(path_to_votable) as mivot_viewer:
         mivot_object = mivot_viewer.dm_instance
-        while mivot_viewer.next():
+        while mivot_viewer.next_row_view():
             read_ra.append(mivot_object.longitude.value)
             read_dec.append(mivot_object.latitude.value)
             read_pmra.append(mivot_object.pmLongitude.value)
@@ -208,7 +208,7 @@ def test_with_dict(path_to_votable):
     with MivotViewer(path_to_votable, resolve_ref=True) as mivot_viewer:
         mivot_object = mivot_viewer.dm_instance
         # let"s focus on the last data row
-        while mivot_viewer.next():
+        while mivot_viewer.next_row_view():
             pass
 
     # check the slim (user friendly) dictionary
@@ -283,7 +283,7 @@ def test_with_full_dict(path_to_full_mapped_votable):
     with MivotViewer(path_to_full_mapped_votable, resolve_ref=True) as mivot_viewer:
         mivot_object = mivot_viewer.dm_instance
         # let"s focus on the second data row
-        while mivot_viewer.next():
+        while mivot_viewer.next_row_view():
             # check the slim (user friendly) dictionary
             assert mivot_object.to_dict() == {
                 "dmtype": "mango:EpochPosition",
@@ -398,7 +398,7 @@ def test_cone_search(vizier_url):
     pmra = []
     pmdec = []
 
-    while m_viewer.next():
+    while m_viewer.next_row_view():
         ra.append(mivot_instance.longitude.value)
         dec.append(mivot_instance.latitude.value)
         pmra.append(mivot_instance.pmLongitude.value)

@@ -296,7 +296,7 @@ class MivotUtils:
         as_literal : boolean, optional (default isTrue)
             If True, all attribute are set with literal values (@value="...")
         package : str, optional (default as None)
-            Package name possibly prefixing dmrolesssssssssssssss
+            Package name possibly prefixing dmroles
         """
         mapped_roles = MivotUtils._valid_mapped_dmroles(mapping.items(), class_name)
         pkg = f"{package}." if package else ""
