@@ -91,7 +91,7 @@ class MangoObject(object):
 
     def _add_epoch_position_correlations(self, **correlations):
         """
-        Private method building and returning an the correlation block of the EpocPosition object.
+        Private method building and returning the correlation block of the EpocPosition object.
 
         Returns
         -------
@@ -107,7 +107,7 @@ class MangoObject(object):
 
     def _add_epoch_position_errors(self, **errors):
         """
-        Private method building and returning an the error block of the EpocPosition object.
+        Private method building and returning the error block of the EpocPosition object.
 
         Returns
         -------
@@ -139,7 +139,7 @@ class MangoObject(object):
         Returns
         -------
         `Property`
-            The EpochPosition error instance
+            The EpochPosition observation date instance
         """
         datetime_instance = MivotInstance(dmtype=f"{ModelPrefix.mango}:DateTime",
                                        dmrole=f"{ModelPrefix.mango}:EpochPosition.obsDate")

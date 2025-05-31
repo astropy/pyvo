@@ -15,7 +15,7 @@ The code below shows a typical use of `MivotViewer
         print(f"space frame is  {mivot_instance.Coordinate_coordSys.spaceRefFrame.value}")
 
         mivot_object = mivot_viewer.dm_instance
-        while mivot_viewer.next():
+        while mivot_viewer.next_row_view():
             print(f"latitude={mivot_object.latitude.value}")
             print(f"longitude={mivot_object.longitude.value}")
 
@@ -71,7 +71,9 @@ class MivotViewer:
         Parameters
         ----------
         resolve_ref : bool, optional
-            If True, resolves the references (i.e. include space frames in sky position)
+            If True, replace the REFERENCE elements with a copy of the objects they refer to.
+            e.g. copy the space coordinates system, usually located in the GLOBALS
+            block, in the position objects
             Default is False.
         """
         if not check_astropy_version():
@@ -194,7 +196,7 @@ class MivotViewer:
         """ getter for the current astropy.table.array row """
         return self._current_data_row
 
-    def next(self):
+    def next_row_view(self):
         """
         jump to the next table row and update the MivotInstance instance
 
