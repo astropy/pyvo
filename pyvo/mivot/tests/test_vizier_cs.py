@@ -82,8 +82,8 @@ def path_to_badref(data_path, data_sample_url):
 def test_with_name(path_to_withname, delt_coo):
     """ Test that the epoch propagation works with all FIELDs referenced by name or by ID
     """
-    m_viewer = MivotViewer(votable_path=path_to_withname)
-    m_viewer.next()
+    m_viewer = MivotViewer(votable_path=path_to_withname, resolve_ref=True)
+    m_viewer.next_row_view()
     mivot_object = m_viewer.dm_instance
 
     assert abs(mivot_object.longitude.value - 52.2340018) < delt_coo
@@ -93,7 +93,7 @@ def test_with_name(path_to_withname, delt_coo):
     assert str(mivot_object.epoch.value) == '2013.418'
     assert str(mivot_object.coordSys.spaceRefFrame.value) == 'ICRS'
 
-    m_viewer.next()
+    m_viewer.next_row_view()
 
     assert abs(mivot_object.longitude.value - 32.2340018) < delt_coo
     assert abs(mivot_object.latitude.value - 49.8937333) < delt_coo
@@ -110,7 +110,7 @@ def test_with_id(path_to_withid, delt_coo):
     """
     # Test with all FILELDs referenced by names
     m_viewer = MivotViewer(votable_path=path_to_withid)
-    m_viewer.next()
+    m_viewer.next_row_view()
     mivot_instance = m_viewer.dm_instance
     assert abs(mivot_instance.longitude.value - 52.2340018) < delt_coo
     assert abs(mivot_instance.latitude.value - 59.8937333) < delt_coo

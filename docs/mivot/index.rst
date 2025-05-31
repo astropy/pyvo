@@ -39,7 +39,7 @@ are based on the ``EpochPropagation`` class of the ``Mango`` data model
 that is still a draft.
 This class collects all the parameters we need to compute the epoch propagation of moving sky objects.
 Some of the examples have been provided by a special end-point of the Vizier cone-search service
-(https://cdsarc.cds.unistra.fr/beta/viz-bin/mivotconesearch) that maps query results to this model.
+(https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/) that maps query results to this model.
 
 .. image:: _images/mangoEpochPosition.png
    :width: 500
@@ -68,11 +68,8 @@ The ``pyvo.mivot`` module can be used to either read or build annotations.
    :maxdepth: 2
    
    viewer
+   annoter
    writer
-
-
-Reference/API
-=============
-
-.. automodapi:: pyvo.mivot
-
+   example
+   annoter_tips
+   

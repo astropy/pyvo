@@ -24,7 +24,7 @@ def test_model_viewer3(votable_test, simple_votable):
     assert xml_simple_votable.tag == 'TEMPLATES'
     recusive_xml_check(xml_simple_votable, MivotInstance)
     m_viewer_votable_test = MivotViewer(votable_path=votable_test)
-    m_viewer_votable_test.next()
+    m_viewer_votable_test.next_row_view()
     mivot_instance = m_viewer_votable_test.dm_instance
     xml_votable_test = m_viewer_votable_test.xml_view
     assert xml_simple_votable.tag == 'TEMPLATES'
@@ -86,7 +86,11 @@ def recusive_xml_check(xml_simple_votable, MivotInstance):
                                 pytest.approx(float(value), MivotInstance_attribute.value, 0.0001)
                             else:
                                 assert value == MivotInstance_attribute.value
+            elif child.tag.startswith("REFERENCE"):
+                # Viewer not in resolve_ref mode: REFRENCEs are not filtered
+                pass
             else:
+                print(child.tag)
                 assert False
 
 
@@ -102,7 +106,7 @@ def test_dict_model_viewer3(votable_test, simple_votable):
     This test run on 2 votables : votable_test and simple_votable.
     """
     m_viewer_votable_test = MivotViewer(votable_path=votable_test)
-    m_viewer_votable_test.next()
+    m_viewer_votable_test.next_row_view()
     mivot_instance = m_viewer_votable_test.dm_instance
     _dict = MivotUtils.xml_to_dict(m_viewer_votable_test.xml_viewer.view)
     recursive_check(mivot_instance, **_dict)

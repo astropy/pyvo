@@ -1,6 +1,6 @@
-*****************************************
-MIVOT (``pyvo.mivot``): Annotation Viewer
-*****************************************
+******************************************************
+MIVOT (``pyvo.mivot``): Annotation Viewer - Public API
+******************************************************
 
 
 Introduction
@@ -28,9 +28,8 @@ Integrated Readout
 The ``ModelViewer`` module manages access to data mapped to a model through dynamically
 generated objects (``MivotInstance`` class).
 
-The example below shows how a VOTable result of a cone-search query can be parsed and data
-mapped to the ``EpochPosition`` class.
-
+The example below shows how can be consumed a VOTable resulting from a cone-search query which data are mapped
+to the ``EpochPosition`` class.
 
 .. doctest-remote-data::
     >>> import astropy.units as u
@@ -47,14 +46,15 @@ mapped to the ``EpochPosition`` class.
     ...     scs_srv.search(
     ...         pos=SkyCoord(ra=52.26708 * u.degree, dec=59.94027 * u.degree, frame='icrs'),
     ...         radius=0.05
-    ...     )
+    ...     ),
+    ...     resolve_ref=True
     ... )
     >>> mivot_instance = m_viewer.dm_instance
     >>> print(mivot_instance.dmtype)
     mango:EpochPosition
     >>> print(mivot_instance.spaceSys.frame.spaceRefFrame.value)
     ICRS
-    >>> while m_viewer.next():
+    >>> while m_viewer.next_row_view():
     ...     print(f"position: {mivot_instance.latitude.value} {mivot_instance.longitude.value}")
     position: 59.94033461 52.26722684
 
@@ -136,7 +136,7 @@ The model instances can also be serialized as XML elements that can be parsed wi
     :caption: Accessing the XML view of the mapped model instances
 
     with MivotViewer(path_to_votable) as mivot_viewer:
-        while mivot_viewer.next():
+        while mivot_viewer.next_row_view():
         	xml_view = mivot_viewer.xml_view
         	# do whatever you want with this XML element
 

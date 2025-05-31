@@ -14,7 +14,7 @@ from pyvo.dal.scs import SCSService
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer import MivotViewer
 from astropy.io.votable import parse
-from pyvo.mivot.utils.dict_utils import DictUtils
+
 
 ref_ra = [
     0.04827189,
@@ -99,7 +99,7 @@ def test_mivot_viewer_next(path_to_votable):
     """
     Check that ten MivotViewer iterating over the data rows provides the expected values
     """
-    mivot_viewer = MivotViewer(path_to_votable)
+    mivot_viewer = MivotViewer(path_to_votable, resolve_ref=True)
     mivot_instance = mivot_viewer.dm_instance
     assert mivot_instance.dmtype == "mango:EpochPosition"
     assert mivot_instance.coordSys.spaceRefFrame.value == "ICRS"
@@ -107,7 +107,7 @@ def test_mivot_viewer_next(path_to_votable):
     dec = []
     pmra = []
     pmdec = []
-    while mivot_viewer.next():
+    while mivot_viewer.next_row_view():
         ra.append(mivot_instance.longitude.value)
         dec.append(mivot_instance.latitude.value)
         pmra.append(mivot_instance.pmLongitude.value)
@@ -130,7 +130,7 @@ def test_mivot_tablerow_next(path_to_votable):
     """
     votable = parse(path_to_votable)
     table = votable.resources[0].tables[0]
-    mivot_viewer = MivotViewer(votable)
+    mivot_viewer = MivotViewer(votable, resolve_ref=True)
 
     mivot_instance = mivot_viewer.dm_instance
     assert mivot_instance.dmtype == "mango:EpochPosition"
@@ -189,7 +189,7 @@ def test_with_withstatement(path_to_votable):
     read_pmdec = []
     with MivotViewer(path_to_votable) as mivot_viewer:
         mivot_object = mivot_viewer.dm_instance
-        while mivot_viewer.next():
+        while mivot_viewer.next_row_view():
             read_ra.append(mivot_object.longitude.value)
             read_dec.append(mivot_object.latitude.value)
             read_pmra.append(mivot_object.pmLongitude.value)
@@ -205,26 +205,25 @@ def test_with_withstatement(path_to_votable):
 def test_with_dict(path_to_votable):
     """check that the MIVOT object user dictionary match the read data"""
 
-    with MivotViewer(path_to_votable) as mivot_viewer:
+    with MivotViewer(path_to_votable, resolve_ref=True) as mivot_viewer:
         mivot_object = mivot_viewer.dm_instance
-        # let's focus on the last data row
-        while mivot_viewer.next():
+        # let"s focus on the last data row
+        while mivot_viewer.next_row_view():
             pass
-    DictUtils.print_pretty_json(mivot_object.to_hk_dict())
 
     # check the slim (user friendly) dictionary
     assert mivot_object.to_dict() == {
         "dmtype": "mango:EpochPosition",
-        "longitude": {"value": 359.94372764, "unit": "deg"},
-        "latitude": {"value": -0.28005255, "unit": "deg"},
-        "pmLongitude": {"value": -5.14, "unit": "mas/yr"},
-        "pmLatitude": {"value": -25.43, "unit": "mas/yr"},
-        "epoch": {"value": 1991.25, "unit": "year"},
+        "longitude": {"dmtype": "ivoa:RealQuantity", "value": 359.94372764, "unit": "deg"},
+        "latitude": {"dmtype": "ivoa:RealQuantity", "value": -0.28005255, "unit": "deg"},
+        "pmLongitude": {"dmtype": "ivoa:RealQuantity", "value": -5.14, "unit": "mas/yr"},
+        "pmLatitude": {"dmtype": "ivoa:RealQuantity", "value": -25.43, "unit": "mas/yr"},
+        "epoch": {"dmtype": "ivoa:RealQuantity", "value": 1991.25, "unit": "year"},
         "coordSys": {
             "dmtype": "coords:SpaceSys",
             "dmid": "SpaceFrame_ICRS",
             "dmrole": "coords:Coordinate.coordSys",
-            "spaceRefFrame": {"value": "ICRS"},
+            "spaceRefFrame": {"dmtype": "coords:SpaceFrame", "value": "ICRS"},
         },
     }
     # check the whole dictionary
@@ -281,45 +280,45 @@ def test_with_full_dict(path_to_full_mapped_votable):
     - The data sample used here maps the whole EpochPosition model except TimeSys
     """
 
-    with MivotViewer(path_to_full_mapped_votable) as mivot_viewer:
+    with MivotViewer(path_to_full_mapped_votable, resolve_ref=True) as mivot_viewer:
         mivot_object = mivot_viewer.dm_instance
-        # let's focus on the second data row
-        while mivot_viewer.next():
+        # let"s focus on the second data row
+        while mivot_viewer.next_row_view():
             # check the slim (user friendly) dictionary
             assert mivot_object.to_dict() == {
                 "dmtype": "mango:EpochPosition",
-                "longitude": {"value": 307.79115807079, "unit": "deg"},
-                "latitude": {"value": 20.43108005561, "unit": "deg"},
-                "parallax": {"value": 0.4319, "unit": "mas"},
-                "radialVelocity": {"value": None, "unit": "km/s"},
-                "pmLongitude": {"value": -2.557, "unit": "mas/yr"},
-                "pmLatitude": {"value": -5.482, "unit": "mas/yr"},
-                "epoch": {"value": "2016.5"},
-                "pmCosDeltApplied": {"value": True},
+                "longitude": {"dmtype": "ivoa:RealQuantity", "value": 307.79115807079, "unit": "deg"},
+                "latitude": {"dmtype": "ivoa:RealQuantity", "value": 20.43108005561, "unit": "deg"},
+                "parallax": {"dmtype": "ivoa:RealQuantity", "value": 0.4319, "unit": "mas"},
+                "radialVelocity": {"dmtype": "ivoa:RealQuantity", "value": None, "unit": "km/s"},
+                "pmLongitude": {"dmtype": "ivoa:RealQuantity", "value": -2.557, "unit": "mas/yr"},
+                "pmLatitude": {"dmtype": "ivoa:RealQuantity", "value": -5.482, "unit": "mas/yr"},
+                "epoch": {"dmtype": "coords:Epoch", "value": "2016.5"},
+                "pmCosDeltApplied": {"dmtype": "ivoa:boolean", "value": True},
                 "errors": {
                     "dmrole": "mango:EpochPosition.errors",
                     "dmtype": "mango:EpochPositionErrors",
                     "parallax": {
                         "dmrole": "mango:EpochPositionErrors.parallax",
                         "dmtype": "mango:ErrorTypes.PropertyError1D",
-                        "sigma": {"value": 0.06909999996423721, "unit": "mas"},
+                        "sigma": {"dmtype": "ivoa:real", "value": 0.06909999996423721, "unit": "mas"},
                     },
                     "radialVelocity": {
                         "dmrole": "mango:EpochPositionErrors.radialVelocity",
                         "dmtype": "mango:ErrorTypes.PropertyError1D",
-                        "sigma": {"value": None, "unit": "km/s"},
+                        "sigma": {"dmtype": "ivoa:real", "value": None, "unit": "km/s"},
                     },
                     "position": {
                         "dmrole": "mango:EpochPositionErrors.position",
                         "dmtype": "mango:ErrorTypes.ErrorMatrix",
-                        "sigma1": {"value": 0.0511, "unit": "mas"},
-                        "sigma2": {"value": 0.0477, "unit": "mas"},
+                        "sigma1": {"dmtype": "ivoa:real", "value": 0.0511, "unit": "mas"},
+                        "sigma2": {"dmtype": "ivoa:real", "value": 0.0477, "unit": "mas"},
                     },
                     "properMotion": {
                         "dmrole": "mango:EpochPositionErrors.properMotion",
                         "dmtype": "mango:ErrorTypes.ErrorMatrix",
-                        "sigma1": {"value": 0.06400000303983688, "unit": "mas/yr"},
-                        "sigma2": {"value": 0.06700000166893005, "unit": "mas/yr"},
+                        "sigma1": {"dmtype": "ivoa:real", "value": 0.06400000303983688, "unit": "mas/yr"},
+                        "sigma2": {"dmtype": "ivoa:real", "value": 0.06700000166893005, "unit": "mas/yr"},
                     },
                 },
                 "correlations": {
@@ -328,39 +327,39 @@ def test_with_full_dict(path_to_full_mapped_votable):
                     "positionPm": {
                         "dmrole": "mango:EpochPositionCorrelations.positionPm",
                         "dmtype": "mango:Correlation22",
-                        "isCovariance": {"value": True},
-                        "a2b1": {"value": -0.0085},
-                        "a2b2": {"value": -0.2983},
-                        "a1b1": {"value": -0.4109},
-                        "a1b2": {"value": -0.0072},
+                        "isCovariance": {"dmtype": "ivoa:boolean", "value": True},
+                        "a2b1": {"dmtype": "ivoa:real", "value": -0.0085},
+                        "a2b2": {"dmtype": "ivoa:real", "value": -0.2983},
+                        "a1b1": {"dmtype": "ivoa:real", "value": -0.4109},
+                        "a1b2": {"dmtype": "ivoa:real", "value": -0.0072},
                     },
                     "parallaxPm": {
                         "dmrole": "mango:EpochPositionCorrelations.parallaxPm",
                         "dmtype": "mango:Correlation12",
-                        "isCovariance": {"value": True},
-                        "a1b1": {"value": -0.2603},
-                        "a1b2": {"value": -0.0251},
+                        "isCovariance": {"dmtype": "ivoa:boolean", "value": True},
+                        "a1b1": {"dmtype": "ivoa:real", "value": -0.2603},
+                        "a1b2": {"dmtype": "ivoa:real", "value": -0.0251},
                     },
                     "positionParallax": {
                         "dmrole": "mango:EpochPositionCorrelations.positionParallax",
                         "dmtype": "mango:Correlation21",
-                        "isCovariance": {"value": True},
-                        "a2b1": {"value": 0.0069},
-                        "a1b1": {"value": 0.1337},
+                        "isCovariance": {"dmtype": "ivoa:boolean", "value": True},
+                        "a2b1": {"dmtype": "ivoa:real", "value": 0.0069},
+                        "a1b1": {"dmtype": "ivoa:real", "value": 0.1337},
                     },
                     "positionPosition": {
                         "dmrole": "mango:EpochPositionCorrelations.positionPosition",
                         "dmtype": "mango:Correlation22",
-                        "isCovariance": {"value": True},
-                        "a2b1": {"value": 0.1212},
-                        "a1b2": {"value": 0.1212},
+                        "isCovariance": {"dmtype": "ivoa:boolean", "value": True},
+                        "a2b1": {"dmtype": "ivoa:real", "value": 0.1212},
+                        "a1b2": {"dmtype": "ivoa:real", "value": 0.1212},
                     },
                     "properMotionPm": {
                         "dmrole": "mango:EpochPositionCorrelations.properMotionPm",
                         "dmtype": "mango:Correlation22",
-                        "isCovariance": {"value": True},
-                        "a2b1": {"value": 0.2688},
-                        "a1b2": {"value": 0.2688},
+                        "isCovariance": {"dmtype": "ivoa:boolean", "value": True},
+                        "a2b1": {"dmtype": "ivoa:real", "value": 0.2688},
+                        "a1b2": {"dmtype": "ivoa:real", "value": 0.2688},
                     },
                 },
                 "coordSys": {
@@ -370,7 +369,7 @@ def test_with_full_dict(path_to_full_mapped_votable):
                     "frame": {
                         "dmrole": "coords:PhysicalCoordSys.frame",
                         "dmtype": "coords:SpaceFrame",
-                        "spaceRefFrame": {"value": "ICRS"},
+                        "spaceRefFrame": {"dmtype": "ivoa:string", "value": "ICRS"},
                     },
                 },
             }
@@ -388,7 +387,8 @@ def test_cone_search(vizier_url):
         scs_srv.search(
             pos=SkyCoord(ra=52.26708 * u.degree, dec=59.94027 * u.degree, frame="icrs"),
             radius=0.05,
-        )
+        ),
+        resolve_ref=True
     )
     mivot_instance = m_viewer.dm_instance
     assert mivot_instance.dmtype == "mango:EpochPosition"
@@ -397,7 +397,8 @@ def test_cone_search(vizier_url):
     dec = []
     pmra = []
     pmdec = []
-    while m_viewer.next():
+
+    while m_viewer.next_row_view():
         ra.append(mivot_instance.longitude.value)
         dec.append(mivot_instance.latitude.value)
         pmra.append(mivot_instance.pmLongitude.value)
