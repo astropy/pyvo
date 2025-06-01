@@ -1,25 +1,28 @@
-1.7 (unreleased)
+1.7 (2025-06-01)
 ================
 
 Enhancements and Fixes
 ----------------------
 
-- Extending the MIVOT module with the ability to build annotations component by component
-  and put them into a VOTable. [#627]
+- Extend the MIVOT module with the ability to build annotations component by
+  component and put them into a VOTable. [#627]
+
+- Add an API helping to map VOtable data in the Mango data model by using
+  MIVOT [#664]
 
 - Make deletion of TAP jobs optional via a new ``delete`` kwarg. [#640]
 
-- Change AsyncTAPJob.result to return None if no result is found explicitly [#644]
+- Correctly delete jobs in ``TAPService.run_async`` even when the server
+  returns an error. [#667]
+
+- Change AsyncTAPJob.result to return None if no result is found explicitly.
+  [#644]
 
 - Add a UAT constraint to the registry interface for constraining
   subjects [#649]
 
-- Correctly delete jobs in ``TAPService.run_async`` even when the server returns an
-  error [#667]
-
-- Fixed AttributeError when a capability has None standardID in SIA2Service. [#669]
-
-- Add an API helping to map VOtable data in the Mango data model by using Mivot [#664]
+- Fixed AttributeError when a capability has None standardID in SIA2Service.
+  [#669]
 
 Deprecations and Removals
 -------------------------
