@@ -17,6 +17,7 @@ htmlcov
 MANIFEST
 .ipynb_checkpoints
 .hypothesis
+*api_sample*
 
 # Sphinx
 docs/api

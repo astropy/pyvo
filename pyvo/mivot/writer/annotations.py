@@ -9,7 +9,7 @@ try:
     import xmlschema
 except ImportError:
     xmlschema = None
-# Use defusedxml only if already present in order to avoid a new depency.
+# Use defusedxml only if already present in order to avoid a new dependency.
 try:
     from defusedxml import ElementTree as etree
 except ImportError:
@@ -45,6 +45,19 @@ class MivotAnnotations:
     - Embed the MIVOT block into an existing VOTable file.
 
     The MIVOT block is constructed as a string to maintain compatibility with the Astropy API.
+
+    Attributes
+    ----------
+    suggested_space_frames: string array, class attribute
+        A warning is emitted if a frame not in this list is used to build a space frame.
+        This list matches https://www.ivoa.net/rdf/refframe/2022-02-22/refframe.html.
+    suggested_ref_positions: string array, class attribute
+        A warning is emitted if a reference position not in this list is
+        used to build a space or a time frame.
+    suggested_time_frames: string array, class attribute
+        A warning is emitted if a frame not in this list is used to build a space frame.
+        This list matches https://www.ivoa.net/rdf/timescale/2019-03-15/timescale.html.
+
     """
 
     def __init__(self):
@@ -62,6 +75,8 @@ class MivotAnnotations:
         self._templates = []
         # str: An optional ID for the TEMPLATES block.
         self._templates_id = ""
+        # str: list of the dmid of the INSTANCE stored in the GLOBALS
+        self._dmids = []
         # str: Complete MIVOT block as a string
         self._mivot_block = ""
 
@@ -146,7 +161,7 @@ class MivotAnnotations:
         templates_block += "</TEMPLATES>\n"
         return templates_block
 
-    def build_mivot_block(self, *, templates_id=None):
+    def build_mivot_block(self, *, templates_id=None, schema_check=True):
         """
         Build a complete MIVOT block from the declared components and validates it
         against the MIVOT XML schema.
@@ -155,6 +170,8 @@ class MivotAnnotations:
         ----------
         templates_id : str, optional
             The ID to associate with the <TEMPLATES> block. Defaults to None.
+        schema_check : boolean, optional
+            Skip the XSD validation if False (use to make test working in local mode).
 
         Raises
         ------
@@ -174,7 +191,9 @@ class MivotAnnotations:
         self._mivot_block += "\n"
         self._mivot_block += "</VODML>\n"
         self._mivot_block = self.mivot_block.replace("\n\n", "\n")
-        self.check_xml()
+        self._mivot_block = XmlUtils.pretty_string(self._mivot_block)
+        if schema_check:
+            self.check_xml()
 
     def add_templates(self, templates_instance):
         """
@@ -192,6 +211,8 @@ class MivotAnnotations:
         """
         if isinstance(templates_instance, MivotInstance):
             self._templates.append(templates_instance.xml_string())
+            if templates_instance.dmid is not None:
+                self._dmids.append(templates_instance.dmid)
         elif isinstance(templates_instance, str):
             self._templates.append(templates_instance)
         else:
@@ -215,6 +236,8 @@ class MivotAnnotations:
         """
         if isinstance(globals_instance, MivotInstance):
             self._globals.append(globals_instance.xml_string())
+            if globals_instance.dmid is not None:
+                self._dmids.append(globals_instance.dmid)
         elif isinstance(globals_instance, str):
             self._globals.append(globals_instance)
         else:
@@ -274,8 +297,8 @@ class MivotAnnotations:
         root = etree.fromstring(self._mivot_block)
         mivot_block = XmlUtils.pretty_string(root, clean_namespace=False)
         if not xmlschema:
-            logging.error(
-                "XML validation skipped: no XML schema found. "
+            logging.warning(
+                "XML validation skipped: no XML schema validator found. "
                 + "Please install it (e.g., pip install xmlschema)."
             )
             return
@@ -305,14 +328,15 @@ class MivotAnnotations:
         """
         if not check_astropy_version():
             raise AstropyVersionException(f"Astropy version {version.version} "
-                                          f"is below the required version 6.0 for the use of MIVOT.")
+                                          "is below the required version 6.0 for the use of MIVOT.")
         if isinstance(votable_file, str):
             votable = parse(votable_file)
         elif isinstance(votable_file, VOTableFile):
             votable = votable_file
         else:
             raise MappingError(
-                "votable_file must be a file path string or a VOTableFile instance."
+                "votable_file must be a file path string or a VOTableFile instance, "
+                "not a {type(votable_file)}."
             )
 
         for resource in votable.resources:

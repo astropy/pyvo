@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<INSTANCE dmrole="" dmtype="Phot:PhotCal">
+  <ATTRIBUTE dmrole="Phot:PhotCal.identifier" dmtype="ivoa:string" value="GAIA/GAIA3.Grvs/AB" />
+  <INSTANCE dmrole="Phot:PhotCal.zeroPoint" dmtype="Phot:ZeroPoint">
+    <ATTRIBUTE dmrole="Phot:ZeroPoint.type" dmtype="ivoa:integer" value="0" />
+    <ATTRIBUTE dmrole="Phot:ZeroPoint.referenceMagnitudeValue" dmtype="ivoa:real" value="0" />
+    <ATTRIBUTE dmrole="Phot:ZeroPoint.referenceMagnitudeError" dmtype="ivoa:real" value="0" />
+    <ATTRIBUTE dmrole="Phot:ZeroPoint.softeningParameter" dmtype="ivoa:real" value="" />
+    <INSTANCE dmrole="Phot:ZeroPoint.flux" dmtype="Phot:Flux">
+      <ATTRIBUTE dmrole="Phot:Flux.ucd" dmtype="Phot:UCD" value="phot.flux.density" />
+      <ATTRIBUTE dmrole="Phot:Flux.unitexpression" dmtype="ivoa:Unit" value="Jy" />
+      <ATTRIBUTE dmrole="Phot:Flux.value" dmtype="ivoa:real" value="3631" />
+      <ATTRIBUTE dmrole="Phot:Flux.error" dmtype="ivoa:real" value="0" />
+    </INSTANCE>
+  </INSTANCE>
+  <INSTANCE dmrole="Phot:PhotCal.magnitudeSystem" dmtype="Phot:MagnitudeSystem">
+    <ATTRIBUTE dmrole="Phot:MagnitudeSystem.type" dmtype="Phot:TypeOfMagSystem" value="AB" />
+  </INSTANCE>
+  <INSTANCE dmrole="Phot:PhotCal.photometryFilter" dmtype="Phot:photometryFilter">
+    <ATTRIBUTE dmrole="Phot:PhotometryFilter.fpsIdentifier" dmtype="ivoa:string" value="ivo://svo/fps" />
+    <ATTRIBUTE dmrole="Phot:PhotometryFilter.identifier" dmtype="ivoa:string" value="GAIA/GAIA3.Grvs" />
+    <ATTRIBUTE dmrole="Phot:PhotometryFilter.name" dmtype="ivoa:string" value="GAIA3.Grvs" />
+    <ATTRIBUTE dmrole="Phot:PhotometryFilter.description" dmtype="ivoa:string" value="GAIA Grvs filter, DR3" />
+    <ATTRIBUTE dmrole="Phot:PhotometryFilter.bandName" dmtype="ivoa:string" value="" />
+    <INSTANCE dmrole="Phot:PhotCal.photometryFilter.bandwidth" dmtype="Phot:Bandwidth">
+      <ATTRIBUTE dmrole="Phot:Bandwidth.ucd" dmtype="Phot:UCD" value="instr.bandwidth" />
+      <ATTRIBUTE dmrole="Phot:Bandwidth.unitexpression" dmtype="ivoa:Unit" value="" />
+      <ATTRIBUTE dmrole="Phot:Bandwidth.extent" dmtype="ivoa:real" value="235.1243119935" />
+      <ATTRIBUTE dmrole="Phot:Bandwidth.start" dmtype="ivoa:real" value="8459.7502595805" />
+      <ATTRIBUTE dmrole="Phot:Bandwidth.stop" dmtype="ivoa:real" value="8459.7502595805" />
+    </INSTANCE>
+    <INSTANCE dmrole="Phot:PhotometryFilter.transmissionCurve" dmtype="Phot:TransmissionCurve">
+      <INSTANCE dmrole="Phot:TransmissionCurve.access" dmtype="Phot:Access">
+        <ATTRIBUTE dmrole="Phot:Access.reference" dmtype="ivoa:anyURI"
+          value="http://svo2.cab.inta-csic.es/theory/fps/fps.php?ID=GAIA/GAIA3.Grvs" />
+        <ATTRIBUTE dmrole="Phot:Access.size" dmtype="ivoa:integer" value="24" />
+        <ATTRIBUTE dmrole="Phot:Access.format" dmtype="ivoa:string" value="application/x-votable+xml" />
+      </INSTANCE>
+    </INSTANCE>
+    <INSTANCE dmrole="Phot:PhotometryFilter.spectralLocation" dmtype="Phot:SpectralLocation">
+      <ATTRIBUTE dmrole="Phot:SpectralLocation.ucd" dmtype="Phot:UCD" value="em.wl;meta.main" />
+      <ATTRIBUTE dmrole="Phot:SpectralLocation.unitexpression" dmtype="ivoa:Unit" value="Angstrom" />
+      <ATTRIBUTE dmrole="Phot:SpectralLocation.value" dmtype="ivoa:real" value="8578.7613420633" />
+    </INSTANCE>
+  </INSTANCE>
+</INSTANCE>

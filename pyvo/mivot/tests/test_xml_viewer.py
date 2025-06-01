@@ -16,7 +16,7 @@ from pyvo.mivot.utils.exceptions import MivotError
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_xml_viewer(m_viewer):
 
-    m_viewer.next()
+    m_viewer.next_row_view()
     xml_viewer = m_viewer.xml_viewer
     with pytest.raises(MivotError,
                        match="Cannot find dmrole wrong_role in any instances of the VOTable"):

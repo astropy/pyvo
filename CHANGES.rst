@@ -19,6 +19,7 @@ Enhancements and Fixes
 
 - Fixed AttributeError when a capability has None standardID in SIA2Service. [#669]
 
+- Add an API helping to map VOtable data in the Mango data model by using Mivot [#664]
 
 Deprecations and Removals
 -------------------------
