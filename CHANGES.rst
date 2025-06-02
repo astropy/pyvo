@@ -1,3 +1,21 @@
+1.8 (unreleased)
+================
+
+Enhancements and Fixes
+----------------------
+
+
+Deprecations and Removals
+-------------------------
+
+
+1.7.1 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+
 1.7 (2025-06-01)
 ================
 
