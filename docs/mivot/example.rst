@@ -7,7 +7,7 @@ Photometric properties readout
 
 This example is based on VOTables provided by the ``XTapDB`` service.
 This service exposes the slim `4XMM dr14 catalogue <http://xmmssc.irap.omp.eu/>`_.
-It  is able to map query responses on the fly to the MANGO data model. 
+It  is able to map query responses on the fly to the MANGO data model.
 The annotation process only annotates the columns that are selected by the query.
 
 The following properties are supported:
@@ -23,32 +23,32 @@ to tell the server to annotate the queried data.
 (*Please read the comment inside the code snippet carefully to fully understand the process*)
 
  .. code-block:: python
- 
+
     import pytest
     from pyvo.utils import activate_features
     from pyvo.dal import TAPService
     from pyvo.mivot.utils.xml_utils import XmlUtils
     from pyvo.mivot.utils.dict_utils import DictUtils
     from pyvo.mivot.viewer.mivot_viewer import MivotViewer
- 
+
     # Enable MIVOT-specific features in the pyvo library
     activate_features("MIVOT")
- 
+
     service = TAPService('https://xcatdb.unistra.fr/xtapdb')
     result = service.run_sync(
         """
-        SELECT TOP 5 * FROM "public".mergedentry 
+        SELECT TOP 5 * FROM "public".mergedentry
         """,
         format="application/x-votable+xml;content=mivot"
         )
- 	
+
     # The MIVOT viewer generates the model view of the data
-    m_viewer = MivotViewer(result, resolve_ref=True)   
-     	
+    m_viewer = MivotViewer(result, resolve_ref=True)
+
     # Print out the Mivot annotations read out of the VOtable
     # This statement is just for a pedagogic purpose (access to a private attribute)
     XmlUtils.pretty_print(m_viewer._mapping_block)
-    
+
 
 In this first step we just queried the service and we built the object that will process the Mivot annotations.
 The Mivot block printing output is too long to be listed here. However, the screenshot below shows its shallow structure.
@@ -61,13 +61,13 @@ The Mivot block printing output is too long to be listed here. However, the scre
   the detection flags and the photometric calibrations.
 - The TEMPLATES section contains the objects to which table data is mapped. In this example, there is one
   ``MangoObject`` instance which holds all the mapped properties.
-   
+
 At instantiation time, the viewer reads the first data row, which must exist,
-in order to construct a Python object that reflects the mapped model. 
+in order to construct a Python object that reflects the mapped model.
 
  .. code-block:: python
-  
-    # Build a Python object matching the TEMPLATES content and 
+
+    # Build a Python object matching the TEMPLATES content and
     # which leaves are set with the values of the first row
     mango_object = m_viewer.dm_instance
 
@@ -107,12 +107,12 @@ Now, we can iterate through the table data and retrieve an updated Mivot instanc
     ...
 
 The same code can easily be connected with matplotlib to plot SEDs as shown below (code not provided).
-  
+
 
 .. image:: _images/xtapdbSED.png
    :width: 500
    :alt: XMM SED
-   
+
 It is to noted that the current table row keeps available through the Mivot viewer.
 
  .. code-block:: python
@@ -133,7 +133,7 @@ EpochPosition property readout
 ==============================
 
 This example is based on a VOtable resulting on a Vizier cone search.
-This service maps the data to  the ``EpochPosition`` MANGO property, 
+This service maps the data to  the ``EpochPosition`` MANGO property,
 which models a full source's  astrometry at a given date.
 
 
@@ -141,15 +141,15 @@ which models a full source's  astrometry at a given date.
    At the time of writing, Vizier only mapped positions and proper motions (when  available),
    and the definitive epoch class had not been adopted.
    Therefore, this implementation may differ a little bit from the standard model.
-   
+
    Vizier does not wrap the source properties in a MANGO object,
-   but rather lists them in the Mivot *TEMPLATES*. 
+   but rather lists them in the Mivot *TEMPLATES*.
    The annotation reader must support both designs.
 
 In the first step below, we run a standard cone search query by using the standard PyVO API.
 
  .. code-block:: python
- 
+
     import pytest
     import astropy.units as u
     from astropy.coordinates import SkyCoord
@@ -162,7 +162,7 @@ In the first step below, we run a standard cone search query by using the standa
 
     # Enable MIVOT-specific features in the pyvo library
     activate_features("MIVOT")
-    
+
     scs_srv = SCSService("https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main")
 
     query_result = scs_srv.search(
@@ -175,8 +175,8 @@ In the first step below, we run a standard cone search query by using the standa
 Once the query is finished, we can get a reference to the object that will process the Mivot annotations.
 
  .. code-block:: python
-  
-    # Build a Python object matching the TEMPLATES content and 
+
+    # Build a Python object matching the TEMPLATES content and
     # which leaves are set with the values of the first row
     mango_property = m_viewer.dm_instance
 
@@ -188,7 +188,7 @@ The annotations are consumed by this dynamic Python object which leaves are set 
 You can explore the structure of this object by using standard object paths or by browsing the dictionary shown below.
 
  .. code-block:: json
- 
+
 	{
 	  "dmtype": "mango:EpochPosition",
 	  "longitude": {
@@ -234,14 +234,14 @@ You can explore the structure of this object by using standard object paths or b
 	      }
 	    }
 	  }
-	}   
+	}
 
- 
+
  The reader can transform ``EpochPosition`` instances into ``SkyCoord`` instances.
  These can then be used for further scientific processing.
-   
+
  .. code-block:: python
- 
+
     while m_viewer.next_row_view():
        if mango_property.dmtype == "mango:EpochPosition":
            scb = SkyCoordBuilder(mango_property.to_dict())
@@ -251,9 +251,9 @@ You can explore the structure of this object by using standard object paths or b
 .. important::
    Similar to the previous example, this code can be used with any VOTable with data mapped to MANGO.
    It contains no features specific to the Vizier output.
-   
+
    It avoids the need for users to build SkyCoord objects by hand from VOTable fields,
    which is never an easy task.
- 
- 
-The next section provides some tips to use the API documented in the annoter `page <annoter.html>`_.
+
+
+The next section provides some tips to use the API documented in the :ref:`annoter page <mivot-annoter>`.
