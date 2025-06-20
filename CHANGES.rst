@@ -6,6 +6,8 @@ Enhancements and Fixes
 
 - Add support for the jobInfo element for UWS jobs [#679]
 
+- Fix job result handling to prioritize standard URL structure [#684]
+
 Deprecations and Removals
 -------------------------
 

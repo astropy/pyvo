@@ -921,6 +921,130 @@ class TestTAPService:
             error_msg = str(excinfo.value)
             assert "HTTP Code: 500" in error_msg
 
+    @pytest.mark.usefixtures('async_fixture')
+    def test_job_result_with_non_standard_id(self):
+        """Test fix for Github issue
+        https://github.com/astropy/pyvo/issues/670"""
+        status_response = '''<?xml version="1.0" encoding="UTF-8"?>
+                <uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0"
+                    xmlns:xlink="http://www.w3.org/1999/xlink">
+                    <uws:jobId>1</uws:jobId>
+                    <uws:phase>COMPLETED</uws:phase>
+                    <uws:results>
+                        <uws:result id="main"
+                            xlink:href="http://example.com/tap/async/1/results/result"/>
+                    </uws:results>
+                </uws:job>'''
+
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+
+        with requests_mock.Mocker() as rm:
+            rm.get(f'http://example.com/tap/async/{job.job_id}',
+                   text=status_response)
+            job._update()
+
+            result = job.result
+            assert result is not None
+            assert result.id_ == "main"
+            assert result.href.endswith("results/result")
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_job_result_fallback_to_id_based_lookup(self):
+        status_response = '''<?xml version="1.0" encoding="UTF-8"?>
+            <uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0"
+                xmlns:xlink="http://www.w3.org/1999/xlink">
+                <uws:jobId>1</uws:jobId>
+                <uws:phase>COMPLETED</uws:phase>
+                <uws:results>
+                    <uws:result id="result"
+                        xlink:href="http://example.com/tap/async/1/custom/result"/>
+                </uws:results>
+            </uws:job>'''
+
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+
+        with requests_mock.Mocker() as rm:
+            rm.get(f'http://example.com/tap/async/{job.job_id}',
+                   text=status_response)
+            job._update()
+            result = job.result
+            assert result is not None
+            assert result.id_ == "result"
+            assert not result.href.endswith("results/result")
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_job_result_multiple_results(self):
+        """Test that standard URL structure is preferred when multiple results exist."""
+        status_response = '''<?xml version="1.0" encoding="UTF-8"?>
+            <uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0"
+                xmlns:xlink="http://www.w3.org/1999/xlink">
+                <uws:jobId>1</uws:jobId>
+                <uws:phase>COMPLETED</uws:phase>
+                <uws:results>
+                    <uws:result id="result"
+                        xlink:href="http://example.com/tap/async/1/custom/result"/>
+                    <uws:result id="main"
+                        xlink:href="http://example.com/tap/async/1/results/result"/>
+                </uws:results>
+            </uws:job>'''
+
+        # Check that we return the /results/result URL if it exists
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+
+        with requests_mock.Mocker() as rm:
+            rm.get(f'http://example.com/tap/async/{job.job_id}',
+                   text=status_response)
+            job._update()
+            result = job.result
+            assert result is not None
+            assert result.id_ == "main"
+            assert result.href.endswith("results/result")
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_job_result_empty_href(self):
+        status_response = '''<?xml version="1.0" encoding="UTF-8"?>
+            <uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0"
+                xmlns:xlink="http://www.w3.org/1999/xlink">
+                <uws:jobId>1</uws:jobId>
+                <uws:phase>COMPLETED</uws:phase>
+                <uws:results>
+                    <uws:result id="result" xlink:href=""/>
+                </uws:results>
+            </uws:job>'''
+
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+
+        with requests_mock.Mocker() as rm:
+            rm.get(f'http://example.com/tap/async/{job.job_id}',
+                   text=status_response)
+            job._update()
+            result = job.result
+            assert result is None
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_job_result_handles_attribute_error(self):
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+        job._job = None
+        result = job.result
+        assert result is None
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_job_result_handles_malformed_results(self):
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+        mock_result = Mock()
+        del mock_result.href
+        mock_job = Mock()
+        mock_job.results = [mock_result]
+        job._job = mock_job
+        result = job.result
+        assert result is None
+
 
 @pytest.mark.usefixtures("tapservice")
 class TestTAPCapabilities:
