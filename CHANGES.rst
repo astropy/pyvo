@@ -1,3 +1,12 @@
+1.7.1 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+- Fix job result handling to prioritize standard URL structure [#684]
+
+
 1.7 (2025-06-01)
 ================
 

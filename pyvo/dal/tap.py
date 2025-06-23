@@ -870,15 +870,23 @@ class AsyncTAPJob:
     @property
     def result(self):
         """
-        Returns the UWS result with id='result' if it exists, otherwise None.
+        Returns the UWS result that corresponds to the standard TAP result
+        endpoint: "results/result".
+
+        If no such result is found it falls back to the old behavior of returning
+        the first result with id 'result'.
         """
         try:
             for r in self._job.results:
-                if r.id_ == 'result':
+                if r.href and r.href.endswith("results/result"):
+                    return r
+
+            for r in self._job.results:
+                if r.href and r.href.strip() and r.id_ == 'result':
                     return r
 
             return None
-        except IndexError:
+        except (IndexError, AttributeError):
             return None
 
     @property
