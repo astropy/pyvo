@@ -6,8 +6,6 @@ Enhancements and Fixes
 
 - Add support for the jobInfo element for UWS jobs [#679]
 
-- Added user documentation for uws package [#682]
-
 Deprecations and Removals
 -------------------------
 
