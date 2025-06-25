@@ -36,7 +36,7 @@ XSOutDate = partial(Time, out_subfmt='date')
 
 __all__ = [
     'UWSElement', 'Reference', 'JobSummary', 'Parameters', 'Parameter',
-    'Results', 'Result']
+    'Results', 'Result', 'Jobs']
 
 
 def _convert_boolean(value, default=None):
