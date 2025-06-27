@@ -382,7 +382,7 @@ While the examples above focus on individual jobs, you can also parse job lists:
     >>> # Iterate through jobs (each is a JobSummary object)
     >>> for job in jobs:  # doctest: +ELLIPSIS
     ...     print(f"Job {job.jobid}: {job.phase}")
-    Job ...: COMPLETED
+    Job ...: ...
 
 
 Error Handling

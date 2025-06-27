@@ -1099,6 +1099,107 @@ class TestTAPCapabilities:
         func = tapservice.get_tap_capability().get_adql().get_udf("IVO_hasword")  # case insensitive!
         assert func.form == "ivo_hasword(haystack TEXT, needle TEXT) -> INTEGER"
 
+    def test_prefer_async_default_false(self):
+        service = TAPService('http://example.com/tap')
+        assert service._prefer_async is False
+
+    def test_prefer_async_parameter(self):
+        service = TAPService('http://example.com/tap', prefer_async=True)
+        assert service._prefer_async is True
+
+    @pytest.mark.usefixtures('sync_fixture')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+    def test_search_default_behavior_unchanged(self):
+        service = TAPService('http://example.com/tap')
+
+        from unittest.mock import patch
+        with patch.object(service, 'run_sync') as mock_sync, \
+                patch.object(service, 'run_async') as mock_async:
+            mock_sync.return_value = "sync_result"
+            mock_async.return_value = "async_result"
+            result = service.search("SELECT * FROM ivoa.obscore")
+            mock_sync.assert_called_once_with(
+                "SELECT * FROM ivoa.obscore",
+                language="ADQL",
+                maxrec=None,
+                uploads=None
+            )
+            mock_async.assert_not_called()
+            assert result == "sync_result"
+
+    @pytest.mark.usefixtures('async_fixture')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+    def test_search_prefer_async_true(self):
+        service = TAPService('http://example.com/tap', prefer_async=True)
+
+        from unittest.mock import patch
+        with patch.object(service, 'run_sync') as mock_sync, \
+                patch.object(service, 'run_async') as mock_async:
+            mock_sync.return_value = "sync_result"
+            mock_async.return_value = "async_result"
+            result = service.search("SELECT * FROM ivoa.obscore")
+            mock_async.assert_called_once_with(
+                "SELECT * FROM ivoa.obscore",
+                language="ADQL",
+                maxrec=None,
+                uploads=None
+            )
+            mock_sync.assert_not_called()
+            assert result == "async_result"
+
+    @pytest.mark.usefixtures('sync_fixture')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+    def test_search_force_sync_overrides_prefer_async(self):
+        service = TAPService('http://example.com/tap', prefer_async=True)
+
+        from unittest.mock import patch
+        with patch.object(service, 'run_sync') as mock_sync, \
+                patch.object(service, 'run_async') as mock_async:
+
+            mock_sync.return_value = "sync_result"
+            mock_async.return_value = "async_result"
+            result = service.search("SELECT * FROM ivoa.obscore", force_sync=True)
+            mock_sync.assert_called_once_with(
+                "SELECT * FROM ivoa.obscore",
+                language="ADQL",
+                maxrec=None,
+                uploads=None
+            )
+            mock_async.assert_not_called()
+            assert result == "sync_result"
+
+    @pytest.mark.usefixtures('async_fixture')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+    def test_search_parameters_passed_through(self):
+        service = TAPService('http://example.com/tap', prefer_async=True)
+
+        uploads = {'test_table': 'test_data'}
+        from unittest.mock import patch
+        with patch.object(service, 'run_async') as mock_async:
+            mock_async.return_value = "async_result"
+            service.search(
+                "SELECT * FROM ivoa.obscore",
+                language="SQL",
+                maxrec=100,
+                uploads=uploads,
+                extra_param="test_value"
+            )
+            mock_async.assert_called_once_with(
+                "SELECT * FROM ivoa.obscore",
+                language="SQL",
+                maxrec=100,
+                uploads=uploads,
+                extra_param="test_value"
+            )
+
 
 def test_get_endpoint_candidates():
     # Directly instantiate the TAPService with a known base URL
