@@ -107,7 +107,8 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
     _tables = None
     _examples = None
 
-    def __init__(self, baseurl, *, capability_description=None, session=None):
+    def __init__(self, baseurl, *, capability_description=None,
+                 session=None, prefer_async=False):
         """
         instantiate a Table Access Protocol service
 
@@ -117,6 +118,12 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
            the base URL that should be used for forming queries to the service.
         session : object
            optional session to use for network requests
+        capability_description : str, optional
+              a capability description URL to use instead of the service
+              capabilities.
+        prefer_async : bool, optional
+            Whether to prefer async queries over sync queries. (Default:
+            false)
         """
         try:
             super().__init__(baseurl, session=session, capability_description=capability_description)
@@ -130,6 +137,8 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         except DALServiceError as e:
             raise DALServiceError(f"Cannot find TAP service at '"
                                   f"{baseurl}'.\n\n{str(e)}") from None
+
+        self._prefer_async = prefer_async
 
     def get_tap_capability(self):
         """
@@ -281,8 +290,55 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             query, language=language, maxrec=maxrec, uploads=uploads,
             **keywords).execute()
 
-    # alias for service discovery
-    search = run_sync
+    def search(self, query, *, language="ADQL", maxrec=None, uploads=None,
+               force_sync=False, **keywords):
+        """
+        submit a TAP query and return its result.
+        Checks the prefer_async setting and runs the query synchronously or
+        asynchronously depending on the setting.
+
+        Parameters
+        ----------
+        query : str
+            The query string / parameters
+        language : str
+            specifies the query language, default ADQL.
+            useful for services which allow to use the backend query language.
+        maxrec : int
+            the maximum records to return. defaults to the service default
+        uploads : dict
+            a mapping from table names to file like objects containing a votable
+        force_sync : bool
+            if True, forces synchronous execution regardless of prefer_async setting
+        **keywords
+            additional keyword arguments passed to the underlying query method
+
+        Returns
+        -------
+        TAPResults
+            the query result
+
+        Raises
+        ------
+        DALServiceError
+            for errors connecting to or communicating with the service
+        DALQueryError
+            for errors either in the input query syntax or
+            other user errors detected by the service
+        DALFormatError
+            for errors parsing the VOTable response
+
+        See Also
+        --------
+        TAPResults
+        AsyncTAPJob
+        """
+        if self._prefer_async and not force_sync:
+            return self.run_async(query, language=language, maxrec=maxrec,
+                                  uploads=uploads, **keywords)
+        else:
+            return self.run_sync(query, language=language, maxrec=maxrec,
+                                 uploads=uploads, **keywords)
 
     def run_async(
             self, query, *, language="ADQL", maxrec=None, uploads=None,

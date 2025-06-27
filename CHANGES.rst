@@ -8,6 +8,9 @@ Enhancements and Fixes
 
 - Fix job result handling to prioritize standard URL structure [#684]
 
+- Add prefer_async param to TAPService constructor to control what mode uses [#686]
+
+
 Deprecations and Removals
 -------------------------
 

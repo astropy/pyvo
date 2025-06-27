@@ -222,6 +222,16 @@ other channels. Most commonly, you will discover them in the VO
 registry (cf. :ref:`pyvo.registry<pyvo-registry>`).
 
 To perform a query using ADQL, the ``search()`` method is used.
+For services that work better with asynchronous queries, you can configure
+the service to prefer async execution by default:
+
+.. doctest-remote-data::
+
+    >>> tap_service = vo.dal.TAPService("http://dc.g-vo.org/tap", prefer_async=True)
+
+This will make the ``search()`` method use asynchronous execution automatically,
+while still allowing you to force synchronous execution when needed.
+
 TAPService instances have several methods to inspect the metadata
 of the service - in particular, what tables with what columns are
 available - discussed below.
@@ -250,8 +260,42 @@ robust of long-running queries.  It also supports queuing queries,
 which allows service operators to be a lot more generous with
 resource limits.
 
-To specify the query mode, you can use either ``run_sync()`` for
+There are a few ways to control the query mode:
+
+**Explicit method calls:**
+To explicitly specify the query mode, you can use either ``run_sync()`` for
 synchronous query or ``run_async()`` for asynchronous query.
+
+**Service-level preference:**
+Alternatively, you can configure whether you want the service to prefer async execution 
+by passing the ``prefer_async`` parameter to the service constructor.
+Then the ``search()`` method will use async execution by default, but
+you can still force sync execution when needed by passing the
+``force_sync`` parameter to ``search()``.
+
+.. doctest-remote-data::
+
+    >>> # Service configured to prefer async
+    >>> service = vo.dal.TAPService("http://dc.g-vo.org/tap", prefer_async=True)
+    >>> result = service.search(ex_query)  # Uses async automatically
+    >>> # Force sync execution when needed
+    >>> result = service.search(ex_query, force_sync=True)  # Uses sync
+
+**Default behavior:**
+By default, ``search()`` will use synchronous execution:
+
+.. doctest-remote-data::
+
+    >>> # Default service (prefer_async=False)
+    >>> service = vo.dal.TAPService("http://dc.g-vo.org/tap")
+    >>> result = service.search(ex_query)  # Always uses sync
+
+**Running as AsyncTAPJobs:**
+The methods above (``search()`` with ``prefer_async=True`` and ``run_async()``)
+handle job lifecycle automatically. However, you may also want to work with
+job objects directly, which can give more control over the query execution
+and job information (for example some TAP services may display progress
+information in the job output).
 
 .. doctest-remote-data::
 
@@ -335,6 +379,19 @@ For more attributes please read the description for the job object
 With ``run_async()`` you basically submit an asynchronous query and
 return its result. It is like running ``submit_job()`` first and then
 run the query manually.
+
+Choosing the right execution mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Use synchronous queries when:**
+- Running quick queries (typically < 1 minute)
+- The service has efficient sync implementation
+- Query results are relatively small
+
+**Use asynchronous queries when:**
+- Running long-running queries where query might hit sync timeout limits
+- Working with services that have more robust async execution
+- You want access to (UWS) jobs you have run and metadata or results for any of your async jobs
 
 Query limit
 ^^^^^^^^^^^
