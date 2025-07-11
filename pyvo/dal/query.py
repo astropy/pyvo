@@ -338,7 +338,7 @@ class DALResults:
             raise DALQueryError(self._status[1], self._status[0], url)
 
         if self._status[0].lower() == "overflow":
-            warn("Partial result set. Potential causes MAXREC, async storage space, etc.",
+            warn("Result set limited by user- or server-supplied MAXREC parameter.",
                  category=DALOverflowWarning)
 
         self._resultstable = self._findresultstable(votable)
