@@ -354,7 +354,7 @@ you reach the ``maxrec`` limit:
 .. doctest-remote-data::
 
     >>> tap_results = tap_service.search("SELECT * FROM arihip.main", maxrec=5)  # doctest: +SHOW_WARNINGS
-    DALOverflowWarning: Partial result set. Potential causes MAXREC, async storage space, etc.
+    DALOverflowWarning: Result set limited by user- or server-supplied MAXREC parameter.
 
 Services will not let you raise maxrec beyond the hard match limit:
 

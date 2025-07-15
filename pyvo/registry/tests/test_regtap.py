@@ -712,7 +712,7 @@ def test_maxrec():
     with pytest.warns(DALOverflowWarning) as w:
         _ = regsearch(servicetype="tap", maxrec=1)
     assert len(w) == 1
-    assert str(w[0].message).startswith("Partial result set.")
+    assert str(w[0].message).startswith("Result set limited")
 
 
 @pytest.mark.remote_data
