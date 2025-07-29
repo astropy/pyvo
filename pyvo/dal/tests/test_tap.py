@@ -2,6 +2,7 @@
 """
 Tests for pyvo.dal.tap
 """
+import warnings
 from functools import partial
 from contextlib import ExitStack
 import datetime
@@ -16,7 +17,7 @@ import requests
 import requests_mock
 
 from pyvo.dal.tap import escape, search, AsyncTAPJob, TAPService
-from pyvo.dal import DALQueryError, DALServiceError
+from pyvo.dal import DALQueryError, DALServiceError, DALOverflowWarning
 
 from pyvo.io.uws import JobFile
 from pyvo.io.uws.tree import Parameter, Result, ErrorSummary, Message
@@ -129,6 +130,32 @@ def get_index_job(phase):
         </uws:parameters>
         <uws:results />
     </uws:job>""".format(phase).encode('utf-8')
+
+
+@pytest.fixture()
+def overflow_fixture(mocker):
+    """Mock TAP service that returns overflow status with exactly 10 records"""
+    def callback(request, context):
+        votable_content = '''<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.3" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+  <RESOURCE type="results">
+    <INFO name="QUERY_STATUS" value="OVERFLOW">Result truncated due to MAXREC</INFO>
+    <TABLE>
+      <FIELD name="id" datatype="int"/>
+      <FIELD name="value" datatype="char" arraysize="*"/>
+      <DATA>
+        <TABLEDATA>''' + ''.join(f'<TR><TD>{i}</TD><TD>test{i}</TD></TR>' for i in range(10)) + '''
+        </TABLEDATA>
+      </DATA>
+    </TABLE>
+  </RESOURCE>
+</VOTABLE>'''
+        return votable_content.encode('utf-8')
+
+    with mocker.register_uri(
+        'POST', 'http://example.com/tap/sync', content=callback
+    ) as matcher:
+        yield matcher
 
 
 class MockAsyncTAPServer:
@@ -1335,3 +1362,129 @@ def test_tap_upload_remote(stream_type):
     assert len(res) == 3
     for row in res:
         assert row['proposal_id'] == '2013.1.01365.S'
+
+
+@pytest.mark.usefixtures('overflow_fixture')
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+class TestTAPOverflowWarnings:
+    """Test TAP overflow warning behavior"""
+
+    def test_sync_no_maxrec_overflow_warning(self):
+        service = TAPService('http://example.com/tap')
+
+        with pytest.warns(DALOverflowWarning, match="Results truncated due to server limits"):
+            results = service.run_sync("SELECT * FROM ivoa.obscore")
+            assert len(results) == 10
+
+    def test_sync_maxrec_exact_match_no_warning(self):
+        service = TAPService('http://example.com/tap')
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            _ = service.run_sync("SELECT * FROM ivoa.obscore", maxrec=10)
+            overflow_warnings = [warning for warning in w
+                                 if issubclass(warning.category, DALOverflowWarning)]
+
+            assert len(overflow_warnings) == 0, f"Unexpected overflow warnings: {overflow_warnings}"
+
+    def test_sync_maxrec_service_truncation_warning(self):
+        service = TAPService('http://example.com/tap')
+
+        with pytest.warns(DALOverflowWarning, match="Results truncated at "
+                                                    "10 records by service limits.*you requested maxrec=100"):
+            results = service.run_sync("SELECT * FROM ivoa.obscore", maxrec=100)
+            assert len(results) == 10
+
+    def test_search_function_no_maxrec(self):
+        with pytest.warns(DALOverflowWarning,
+                          match="Results truncated due to server limits"):
+            results = search('http://example.com/tap',
+                             "SELECT * FROM ivoa.obscore")
+            assert len(results) == 10
+
+    def test_search_function_with_maxrec(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            _ = search('http://example.com/tap', "SELECT * FROM "
+                                                 "ivoa.obscore", maxrec=10)
+
+            overflow_warnings = [warning for warning in w
+                                 if issubclass(warning.category, DALOverflowWarning)]
+
+            assert len(overflow_warnings) == 0, f"Unexpected overflow warnings: {overflow_warnings}"
+
+    def test_tapresults_suppresses_construction_warning(self):
+        from pyvo.dal.tap import TAPResults
+        from astropy.io.votable import parse as votableparse
+        import requests
+
+        response = requests.post('http://example.com/tap/sync',
+                                 data={'QUERY': 'SELECT * FROM test'})
+        votable = votableparse(BytesIO(response.content))
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            result = TAPResults(votable, url='http://test.com', session=None)
+            assert len(result) == 10
+
+    def test_tap_create_query_maxrec_tracking(self):
+        service = TAPService('http://example.com/tap')
+
+        query = service.create_query("SELECT * FROM ivoa.obscore", maxrec=10)
+        assert query._user_maxrec == 10
+        assert query["MAXREC"] == 10
+
+        query2 = service.create_query("SELECT * FROM ivoa.obscore")
+        assert query2._user_maxrec is None
+        assert "MAXREC" not in query2
+
+    def test_edge_case_maxrec_zero(self):
+        service = TAPService('http://example.com/tap')
+
+        query = service.create_query("SELECT * FROM ivoa.obscore", maxrec=0)
+        assert query._user_maxrec == 0
+        assert "MAXREC" not in query
+
+
+@pytest.mark.usefixtures('async_fixture')
+class TestTAPAsyncOverflowWarnings:
+    """Test async TAP overflow warnings"""
+
+    def test_async_job_stores_maxrec(self):
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore", maxrec=5)
+
+        assert job._user_maxrec == 5
+
+    def test_async_job_manual_creation_no_maxrec(self):
+        job_response = '''<?xml version="1.0" encoding="UTF-8"?>
+        <uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0">
+            <uws:jobId>123</uws:jobId>
+            <uws:phase>PENDING</uws:phase>
+            <uws:quote>2025-07-29T17:34:19.638</uws:quote>
+            <uws:creationTime>2025-07-28T17:34:19.638</uws:creationTime>
+            <uws:executionDuration>14400</uws:executionDuration>
+            <uws:destruction>2025-07-04T17:34:19.638</uws:destruction>
+            <uws:parameters/>
+            <uws:results/>
+        </uws:job>'''
+
+        with requests_mock.Mocker() as rm:
+            rm.get('http://example.com/tap/async/123', text=job_response)
+
+            job = AsyncTAPJob('http://example.com/tap/async/123')
+
+            assert job._user_maxrec is None
+            assert job.job_id == '123'
+            assert job.phase == 'PENDING'
+
+
+def test_tap_integration_with_existing_tests():
+    service = TAPService('http://example.com/tap')
+
+    query = service.create_query("SELECT * FROM ivoa.obscore")
+    assert query is not None
+    assert hasattr(query, '_user_maxrec')
