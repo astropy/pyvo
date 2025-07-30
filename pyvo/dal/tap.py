@@ -654,6 +654,7 @@ class AsyncTAPJob:
             uploads=uploads, session=session, **keywords)
         response = tapquery.submit()
         job = cls(response.url, session=session)
+        job._user_maxrec = maxrec
         return job
 
     def __init__(self, url, *, session=None, delete=True):
@@ -672,6 +673,7 @@ class AsyncTAPJob:
         self._url = url
         self._session = use_session(session)
         self._delete_on_exit = delete
+        self._user_maxrec = None
         self._update()
 
     def __enter__(self):
@@ -1047,7 +1049,9 @@ class AsyncTAPJob:
 
         response.raw.read = partial(
             response.raw.read, decode_content=True)
-        return TAPResults(votableparse(response.raw.read), url=self.result_uri, session=self._session)
+        result = TAPResults(votableparse(response.raw.read), url=self.result_uri, session=self._session)
+        result.check_overflow_warning(self._user_maxrec)
+        return result
 
 
 class TAPQuery(DALQuery):
@@ -1103,6 +1107,8 @@ class TAPQuery(DALQuery):
         self["REQUEST"] = "doQuery"
         self["LANG"] = language
 
+        self._user_maxrec = maxrec
+
         if maxrec:
             self["MAXREC"] = maxrec
 
@@ -1155,7 +1161,14 @@ class TAPQuery(DALQuery):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return TAPResults(self.execute_votable(), url=self.queryurl, session=self._session)
+        result = TAPResults(
+            self.execute_votable(),
+            url=self.queryurl,
+            session=self._session
+        )
+        result.check_overflow_warning(self._user_maxrec)
+
+        return result
 
     def submit(self, *, post=False):
         """
@@ -1264,6 +1277,15 @@ class TAPResults(DatalinkResultsMixin, DALResults):
         Record
         """
         return TAPRecord(self, index, session=self._session)
+
+    def _handle_overflow_warning(self, user_maxrec=None):
+        """
+        TAP-specific overflow warning handling.
+
+        For TAP results we suppress the default overflow warning during
+        initialization because TAPQuery.execute() will call check_overflow_warning()
+        """
+        pass
 
 
 class TAPRecord(SodaRecordMixin, DatalinkRecordMixin, Record):

@@ -4,6 +4,8 @@
 Enhancements and Fixes
 ----------------------
 
+- No longer show a warning when an overflow status is encountered with a maxrec set by the user [#690]
+
 - Add support for the jobInfo element for UWS jobs [#679]
 
 - Fix job result handling to prioritize standard URL structure [#684]

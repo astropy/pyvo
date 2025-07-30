@@ -348,13 +348,23 @@ rows they will return before overflowing:
     20000
 
 To retrieve more rows than that (often conservative) default limit, you
-must override maxrec in the call to ``search``. A warning can be expected if
-you reach the ``maxrec`` limit:
+must override maxrec in the call to ``search``. PyVO will only warn about 
+truncation when it's unexpected. If you request 5 records and get 5 records,
+no warning is issued:
 
 .. doctest-remote-data::
 
-    >>> tap_results = tap_service.search("SELECT * FROM arihip.main", maxrec=5)  # doctest: +SHOW_WARNINGS
-    DALOverflowWarning: Result set limited by user- or server-supplied MAXREC parameter.
+    >>> tap_results = tap_service.search("SELECT * FROM arihip.main", maxrec=5)
+    >>> len(tap_results)
+    5
+
+However, if results are truncated by server limits without you specifying 
+maxrec, you'll receive a helpful warning:
+
+.. doctest-remote-data::
+
+    >>> tap_results = tap_service.search("SELECT * FROM arihip.main")  # doctest: +SHOW_WARNINGS
+    DALOverflowWarning: Results truncated due to server limits. Consider setting a maxrec value.
 
 Services will not let you raise maxrec beyond the hard match limit:
 
