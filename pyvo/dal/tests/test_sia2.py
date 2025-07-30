@@ -111,6 +111,9 @@ class TestSIA2Service:
                   12.0 * u.deg, 35.0 * u.deg),
                  (SkyCoord(2, 4, unit='deg'), 0.166 * u.deg)]
 
+    ERR_POSITIONS = [(SkyCoord(2, 4, unit='deg'), "radius should be provided in the pos tuple"),
+                     ((1, 2), "a 2-length pos should be a coordinate and a radius")]
+
     @pytest.mark.usefixtures('sia')
     @pytest.mark.usefixtures('capabilities')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
@@ -123,6 +126,15 @@ class TestSIA2Service:
         results = service.search(pos=position)
         result = results[0]
         _test_result(result)
+
+    @pytest.mark.usefixtures('sia')
+    @pytest.mark.usefixtures('capabilities')
+    @pytest.mark.parametrize(("position", "expected_errmsg"), ERR_POSITIONS)
+    def test_search_scalar_errors(self, position, expected_errmsg):
+        service = SIA2Service('https://example.com/sia')
+
+        with pytest.raises(ValueError, match=expected_errmsg):
+            service.search(pos=position)
 
     @pytest.mark.usefixtures('sia')
     @pytest.mark.usefixtures('capabilities')
