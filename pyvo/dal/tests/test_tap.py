@@ -1434,18 +1434,18 @@ class TestTAPOverflowWarnings:
         service = TAPService('http://example.com/tap')
 
         query = service.create_query("SELECT * FROM ivoa.obscore", maxrec=10)
-        assert query._user_maxrec == 10
+        assert query._client_set_maxrec == 10
         assert query["MAXREC"] == 10
 
         query2 = service.create_query("SELECT * FROM ivoa.obscore")
-        assert query2._user_maxrec is None
+        assert query2._client_set_maxrec is None
         assert "MAXREC" not in query2
 
     def test_edge_case_maxrec_zero(self):
         service = TAPService('http://example.com/tap')
 
         query = service.create_query("SELECT * FROM ivoa.obscore", maxrec=0)
-        assert query._user_maxrec == 0
+        assert query._client_set_maxrec == 0
         assert "MAXREC" not in query
 
 
@@ -1457,7 +1457,7 @@ class TestTAPAsyncOverflowWarnings:
         service = TAPService('http://example.com/tap')
         job = service.submit_job("SELECT * FROM ivoa.obscore", maxrec=5)
 
-        assert job._user_maxrec == 5
+        assert job._client_set_maxrec == 5
 
     def test_async_job_manual_creation_no_maxrec(self):
         job_response = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -1477,7 +1477,7 @@ class TestTAPAsyncOverflowWarnings:
 
             job = AsyncTAPJob('http://example.com/tap/async/123')
 
-            assert job._user_maxrec is None
+            assert job._client_set_maxrec is None
             assert job.job_id == '123'
             assert job.phase == 'PENDING'
 
@@ -1487,4 +1487,4 @@ def test_tap_integration_with_existing_tests():
 
     query = service.create_query("SELECT * FROM ivoa.obscore")
     assert query is not None
-    assert hasattr(query, '_user_maxrec')
+    assert hasattr(query, '_client_set_maxrec')

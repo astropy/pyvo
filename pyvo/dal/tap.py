@@ -654,7 +654,7 @@ class AsyncTAPJob:
             uploads=uploads, session=session, **keywords)
         response = tapquery.submit()
         job = cls(response.url, session=session)
-        job._user_maxrec = maxrec
+        job._client_set_maxrec = maxrec
         return job
 
     def __init__(self, url, *, session=None, delete=True):
@@ -673,7 +673,7 @@ class AsyncTAPJob:
         self._url = url
         self._session = use_session(session)
         self._delete_on_exit = delete
-        self._user_maxrec = None
+        self._client_set_maxrec = None
         self._update()
 
     def __enter__(self):
@@ -1050,7 +1050,7 @@ class AsyncTAPJob:
         response.raw.read = partial(
             response.raw.read, decode_content=True)
         result = TAPResults(votableparse(response.raw.read), url=self.result_uri, session=self._session)
-        result.check_overflow_warning(self._user_maxrec)
+        result.check_overflow_warning(self._client_set_maxrec)
         return result
 
 
@@ -1107,7 +1107,7 @@ class TAPQuery(DALQuery):
         self["REQUEST"] = "doQuery"
         self["LANG"] = language
 
-        self._user_maxrec = maxrec
+        self._client_set_maxrec = maxrec
 
         if maxrec:
             self["MAXREC"] = maxrec
@@ -1166,7 +1166,7 @@ class TAPQuery(DALQuery):
             url=self.queryurl,
             session=self._session
         )
-        result.check_overflow_warning(self._user_maxrec)
+        result.check_overflow_warning(self._client_set_maxrec)
 
         return result
 
@@ -1278,7 +1278,7 @@ class TAPResults(DatalinkResultsMixin, DALResults):
         """
         return TAPRecord(self, index, session=self._session)
 
-    def _handle_overflow_warning(self, user_maxrec=None):
+    def _handle_overflow_warning(self, client_set_maxrec=None):
         """
         TAP-specific overflow warning handling.
 

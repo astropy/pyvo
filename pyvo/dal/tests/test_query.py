@@ -433,20 +433,20 @@ class TestDALResults:
 
         with warnings.catch_warnings():
             warnings.simplefilter("error")
-            dalresults.check_overflow_warning(user_maxrec=3)
+            dalresults.check_overflow_warning(client_set_maxrec=3)
 
     def test_check_overflow_warning_service_truncation(self):
         with pytest.warns(DALOverflowWarning):
             dalresults = DALResults.from_result_url('http://example.com/query/overflowstatus')
 
         with pytest.warns(DALOverflowWarning, match="Results truncated at 3 records by service limits"):
-            dalresults.check_overflow_warning(user_maxrec=1000)
+            dalresults.check_overflow_warning(client_set_maxrec=1000)
 
     def test_check_overflow_warning_uses_stored_maxrec(self):
         with pytest.warns(DALOverflowWarning):
             dalresults = DALResults.from_result_url('http://example.com/query/overflowstatus')
 
-        dalresults._user_maxrec = 1000
+        dalresults._client_set_maxrec = 1000
 
         with pytest.warns(DALOverflowWarning, match="Results truncated at 3 records by service limits"):
             dalresults.check_overflow_warning()
@@ -455,18 +455,18 @@ class TestDALResults:
         with pytest.warns(DALOverflowWarning):
             dalresults = DALResults.from_result_url('http://example.com/query/overflowstatus')
 
-        dalresults._user_maxrec = 1000
+        dalresults._client_set_maxrec = 1000
 
         with warnings.catch_warnings():
             warnings.simplefilter("error")
-            dalresults.check_overflow_warning(user_maxrec=3)
+            dalresults.check_overflow_warning(client_set_maxrec=3)
 
     def test_check_overflow_warning_no_overflow_status(self):
         dalresults = DALResults.from_result_url('http://example.com/query/basic')
 
         with warnings.catch_warnings():
             warnings.simplefilter("error")
-            dalresults.check_overflow_warning(user_maxrec=1000)
+            dalresults.check_overflow_warning(client_set_maxrec=1000)
 
     def test_handle_overflow_warning_default_behavior(self):
         votable = votableparse(BytesIO(get_pkg_data_contents('data/query/overflowstatus.xml')))
@@ -475,14 +475,14 @@ class TestDALResults:
                           match="Result set limited by user- or server-supplied MAXREC parameter."):
             _ = DALResults(votable, url='http://test.com')
 
-    def test_stored_user_maxrec_initialization(self):
+    def test_stored_client_set_maxrec_initialization(self):
         votable = votableparse(BytesIO(get_pkg_data_contents('data/query/basic.xml')))
 
-        result = DALResults(votable, url='http://test.com', user_maxrec=100)
-        assert result._user_maxrec == 100
+        result = DALResults(votable, url='http://test.com', client_set_maxrec=100)
+        assert result._client_set_maxrec == 100
 
         result2 = DALResults(votable, url='http://test.com')
-        assert result2._user_maxrec is None
+        assert result2._client_set_maxrec is None
 
 
 @pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W03')

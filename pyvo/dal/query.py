@@ -303,7 +303,7 @@ class DALResults:
             url=result_url,
             session=session)
 
-    def __init__(self, votable, *, url=None, session=None, user_maxrec=None):
+    def __init__(self, votable, *, url=None, session=None, client_set_maxrec=None):
         """
         initialize the cursor.  This constructor is not typically called
         by directly applications; rather an instance is obtained from calling
@@ -318,8 +318,8 @@ class DALResults:
            the URL that produced the response
         session : object
            optional session to use for network requests
-        user_maxrec: int
-              the maximum number of records that the user requested.
+        client_set_maxrec: int
+              the maximum number of records that were requested by the client.
 
         Raises
         ------
@@ -334,14 +334,14 @@ class DALResults:
 
         self._url = url
         self._session = use_session(session)
-        self._user_maxrec = user_maxrec
+        self._client_set_maxrec = client_set_maxrec
 
         self._status = self._findstatus(votable)
         if self._status[0].lower() not in ("ok", "overflow"):
             raise DALQueryError(self._status[1], self._status[0], url)
 
         if self._status[0].lower() == "overflow":
-            self._handle_overflow_warning(user_maxrec)
+            self._handle_overflow_warning(client_set_maxrec)
 
         self._resultstable = self._findresultstable(votable)
         if not self._resultstable:
@@ -357,7 +357,7 @@ class DALResults:
 
         self._infos = self._findinfos(votable)
 
-    def _handle_overflow_warning(self, user_maxrec=None):
+    def _handle_overflow_warning(self, client_set_maxrec=None):
         """
         Handle overflow warning - can be overridden by subclasses.
 
@@ -366,13 +366,13 @@ class DALResults:
 
         Parameters
         ----------
-        user_maxrec : int, optional
-            The maximum records requested by the user
+        client_set_maxrec : int, optional
+            The maximum records requested by the client
         """
         warn("Result set limited by user- or server-supplied MAXREC "
              "parameter.", category=DALOverflowWarning)
 
-    def check_overflow_warning(self, user_maxrec=None):
+    def check_overflow_warning(self, client_set_maxrec=None):
         """
         Check for overflow warnings and issue them if appropriate.
         It will check if the results were truncated due to server limits
@@ -386,11 +386,11 @@ class DALResults:
 
         Parameters
         ----------
-        user_maxrec : int, optional
-            The maximum records explicitly requested by the user
+        client_set_maxrec : int, optional
+            The maximum records explicitly requested by the client
         """
         if self._status[0].lower() == "overflow":
-            maxrec_to_check = user_maxrec if user_maxrec is not None else self._user_maxrec
+            maxrec_to_check = client_set_maxrec if client_set_maxrec is not None else self._client_set_maxrec
 
             if (maxrec_to_check is not None
                     and len(self.resultstable.array) == maxrec_to_check):
