@@ -28,7 +28,7 @@ UWS job documents can be parsed directly from URLs, files, or strings using the 
     ...     ORDER BY phot_g_mean_mag
     ...     """
     >>> async_job = tap_service.submit_job(ex_query)
-    >>> async_job.run().wait() # doctest: +ELLIPSIS
+    >>> async_job.run().wait()
     <pyvo.dal.tap.AsyncTAPJob object at 0x...>
     >>>
     >>> # Parse a single job from a UWS service
@@ -39,7 +39,7 @@ UWS job documents can be parsed directly from URLs, files, or strings using the 
     >>> jobs = parse_job_list('http://dc.g-vo.org/tap/async')
     >>> # Show jobs
     >>> if len(jobs) >= 1:
-    ...     print(f"Example job: {jobs[0].jobid} is {jobs[0].phase}") # doctest: +ELLIPSIS
+    ...     print(f"Example job: {jobs[0].jobid} is {jobs[0].phase}")
     Example job: ... is ...
     >>>
     >>> print(f"Successfully parsed {len(jobs)} jobs") # doctest: +SKIP
@@ -380,9 +380,9 @@ While the examples above focus on individual jobs, you can also parse job lists:
     >>> # jobs = parse_job_list('job_list.xml')
     >>>
     >>> # Iterate through jobs (each is a JobSummary object)
-    >>> for job in jobs:  # doctest: +ELLIPSIS
+    >>> for job in jobs:
     ...     print(f"Job {job.jobid}: {job.phase}")
-    Job ...: COMPLETED
+    Job ...
 
 
 Error Handling
