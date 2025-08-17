@@ -321,7 +321,7 @@ class PosQueryParam(AbstractDalQueryParam):
         """
         validates position
 
-        This has probably done already somewhere else
+        This has probably been done already somewhere else
         """
         if isinstance(pos, SkyCoord) and pos.size < 4:
             raise ValueError("radius should be provided in the pos tuple "
