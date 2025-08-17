@@ -381,8 +381,29 @@ While the examples above focus on individual jobs, you can also parse job lists:
     >>>
     >>> # Iterate through jobs (each is a JobSummary object)
     >>> for job in jobs:
-    ...     print(f"Job {job.jobid}: {job.phase}")
-    Job ...
+    ...     print(f"Job {job.jobid}: {job.phase}")  # doctest: +IGNORE_OUTPUT
+    Job tk7xsqux: PENDING
+    Job swmua8pe: ERROR
+    Job e58i7yoa: ERROR
+    Job 84w2yz8q: COMPLETED
+    Job 6r51ymds: COMPLETED
+    Job undl67gs: COMPLETED
+    Job _wyoqule: COMPLETED
+    Job ltct6n8d: COMPLETED
+    Job 71kg_stz: COMPLETED
+    Job sc9vc_8h: ERROR
+    Job psn4i8_s: ERROR
+    Job kbrhcstw: COMPLETED
+    Job lvzez3fa: COMPLETED
+    Job l9pfluab: COMPLETED
+    Job lkv6rlxx: COMPLETED
+    Job yb77nhg3: COMPLETED
+    Job vkf4h48y: PENDING
+    Job xr3g9c4d: ERROR
+    Job x9xryn2x: COMPLETED
+    Job wba5foai: COMPLETED
+    Job pni8axcg: ERROR
+    Job j6ip1kn_: ERROR
 
 
 Error Handling
