@@ -321,12 +321,14 @@ class PosQueryParam(AbstractDalQueryParam):
         """
         validates position
 
-        This has probably done already somewhere else
+        This has probably been done already somewhere else
         """
-
+        if isinstance(pos, SkyCoord) and pos.size < 4:
+            raise ValueError("radius should be provided in the pos tuple "
+                             "for CIRCLE searches.")
         if len(pos) == 2:
             if not isinstance(pos[0], SkyCoord):
-                raise ValueError
+                raise ValueError("a 2-length pos should be a coordinate and a radius")
             if not isinstance(pos[1], Quantity):
                 radius = pos[1] * u.deg
             else:
