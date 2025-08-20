@@ -12,6 +12,9 @@ Enhancements and Fixes
 
 - Fix DALOverflowWarning error message to only indicate the cause as limits from user or server. [#689]
 
+- Add retry option to AsyncTAPJob.fetch_result for transient failures [#696]
+
+
 Deprecations and Removals
 -------------------------
 

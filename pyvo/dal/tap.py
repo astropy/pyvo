@@ -4,7 +4,9 @@ A module for accessing remote source and observation catalogs
 """
 from functools import partial
 from datetime import datetime
+import time
 from time import sleep
+import random
 
 import requests
 from urllib.parse import urlparse, urljoin
@@ -38,6 +40,11 @@ TABLE_UPLOAD_FORMAT = {'tsv': 'text/tab-separated-values',
 # file formats supported by table create and their corresponding MIME types
 TABLE_DEF_FORMAT = {'VOSITable': 'text/xml',
                     'VOTable': 'application/x-votable+xml'}
+
+# common transient errors that can be retried
+TRANSIENT_ERRORS = (requests.exceptions.ConnectionError,
+                    requests.exceptions.Timeout,
+                    requests.exceptions.ChunkedEncodingError)
 
 
 def _from_ivoa_format(datetime_str):
@@ -335,7 +342,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
                 job.delete()
             raise
 
-        result = job.fetch_result()
+        result = job.fetch_result(max_retries=keywords.get('max_retries', 0))
 
         if delete:
             job.delete()
@@ -1027,9 +1034,15 @@ class AsyncTAPJob:
             msg = msg or "<No useful error from server>"
             raise DALQueryError("Query Error: " + msg, self.url)
 
-    def fetch_result(self):
+    def fetch_result(self, max_retries=0):
         """
         returns the result votable if query is finished
+
+        Parameters
+        ----------
+        max_retries : int, optional
+            Maximum number of retry attempts for transient network errors.
+            Default is 0 (no retries).
         """
         result_uri = self.result_uri
         if result_uri is None:
@@ -1038,17 +1051,39 @@ class AsyncTAPJob:
             raise DALServiceError(reason="No result URI available",
                                   url=self.url)
 
-        try:
-            response = self._session.get(self.result_uri, stream=True)
-            response.raise_for_status()
-        except requests.RequestException as ex:
-            self._update()
-            # we propably got a 404 because query error. raise with error msg
-            self.raise_if_error()
-            raise DALServiceError.from_except(ex, self.url)
+        last_exception = None
+        response = None
 
-        response.raw.read = partial(
-            response.raw.read, decode_content=True)
+        for attempt in range(max_retries + 1):
+            try:
+                response = self._session.get(self.result_uri, stream=True)
+                response.raise_for_status()
+                last_exception = None
+                break
+            except TRANSIENT_ERRORS as ex:
+                last_exception = ex
+                if attempt < max_retries:
+                    delay = (2 ** attempt) + random.uniform(0, 1)
+                    time.sleep(delay)
+                    continue
+                else:
+                    break
+            except requests.RequestException as ex:
+                last_exception = ex
+                break
+
+        # Handle the case where we exhausted retries
+        if last_exception is not None:
+            if isinstance(last_exception, requests.RequestException) and not isinstance(
+                    last_exception, (requests.exceptions.ConnectionError,
+                                     requests.exceptions.Timeout,
+                                     requests.exceptions.ChunkedEncodingError)):
+                self._update()
+                # we probably got a 404 because query error. raise with error msg
+                self.raise_if_error()
+            raise DALServiceError.from_except(last_exception, self.url)
+
+        response.raw.read = partial(response.raw.read, decode_content=True)
         result = TAPResults(votableparse(response.raw.read), url=self.result_uri, session=self._session)
         result.check_overflow_warning(self._client_set_maxrec)
         return result
