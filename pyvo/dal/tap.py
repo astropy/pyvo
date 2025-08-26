@@ -43,8 +43,7 @@ TABLE_DEF_FORMAT = {'VOSITable': 'text/xml',
 
 # common transient errors that can be retried
 TRANSIENT_ERRORS = (requests.exceptions.ConnectionError,
-                    requests.exceptions.Timeout,
-                    requests.exceptions.ChunkedEncodingError)
+                    requests.exceptions.Timeout)
 
 
 def _from_ivoa_format(datetime_str):
