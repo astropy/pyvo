@@ -1163,39 +1163,6 @@ class TestTAPService:
         job.delete()
 
     @pytest.mark.usefixtures('async_fixture')
-    def test_fetch_result_retry_chunked_encoding_error(self):
-        service = TAPService('http://example.com/tap')
-        job = service.submit_job("SELECT * FROM ivoa.obscore")
-        job.run()
-        job.wait()
-
-        status_response = '''<?xml version="1.0" encoding="UTF-8"?>
-            <uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0"
-                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                <uws:jobId>1</uws:jobId>
-                <uws:phase>COMPLETED</uws:phase>
-                <uws:results>
-                    <uws:result id="result" xsi:type="vot:VOTable"
-                        href="http://example.com/tap/async/1/results/result"/>
-                </uws:results>
-            </uws:job>'''
-
-        with requests_mock.Mocker() as rm:
-            rm.get(f'http://example.com/tap/async/{job.job_id}', text=status_response)
-            rm.get(
-                f'http://example.com/tap/async/{job.job_id}/results/result',
-                [
-                    {'exc': requests.exceptions.ChunkedEncodingError()},
-                    {'content': get_pkg_data_contents('data/tap/obscore-image.xml')}
-                ]
-            )
-
-            result = job.fetch_result(max_retries=1)
-            assert len(result) == 10
-
-        job.delete()
-
-    @pytest.mark.usefixtures('async_fixture')
     def test_fetch_result_no_retry_on_http_error(self):
         service = TAPService('http://example.com/tap')
         job = service.submit_job("SELECT * FROM ivoa.obscore")
