@@ -1051,37 +1051,27 @@ class AsyncTAPJob:
             raise DALServiceError(reason="No result URI available",
                                   url=self.url)
 
-        last_exception = None
         response = None
 
         for attempt in range(max_retries + 1):
             try:
                 response = self._session.get(self.result_uri, stream=True)
                 response.raise_for_status()
-                last_exception = None
                 break
+
             except TRANSIENT_ERRORS as ex:
-                last_exception = ex
                 if attempt < max_retries:
-                    delay = (2 ** attempt) + random.uniform(0, 1)
+                    delay = (2 ** attempt) + random.uniform(0.8, 1)
                     time.sleep(delay)
                     continue
                 else:
-                    break
-            except requests.RequestException as ex:
-                last_exception = ex
-                break
+                    raise DALServiceError.from_except(ex, self.url)
 
-        # Handle the case where we exhausted retries
-        if last_exception is not None:
-            if isinstance(last_exception, requests.RequestException) and not isinstance(
-                    last_exception, (requests.exceptions.ConnectionError,
-                                     requests.exceptions.Timeout,
-                                     requests.exceptions.ChunkedEncodingError)):
+            except requests.RequestException as ex:
+                # Non-retryable error - update and check for query errors
                 self._update()
-                # we probably got a 404 because query error. raise with error msg
                 self.raise_if_error()
-            raise DALServiceError.from_except(last_exception, self.url)
+                raise DALServiceError.from_except(ex, self.url)
 
         response.raw.read = partial(response.raw.read, decode_content=True)
         result = TAPResults(votableparse(response.raw.read), url=self.result_uri, session=self._session)
