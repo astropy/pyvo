@@ -1072,6 +1072,186 @@ class TestTAPService:
         result = job.result
         assert result is None
 
+    @pytest.mark.usefixtures('async_fixture')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+    def test_fetch_result_retry_connection_error(self):
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+        job.run()
+        job.wait()
+
+        status_response = '''<?xml version="1.0" encoding="UTF-8"?>
+            <uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <uws:jobId>1</uws:jobId>
+                <uws:phase>COMPLETED</uws:phase>
+                <uws:results>
+                    <uws:result id="result" xsi:type="vot:VOTable"
+                        href="http://example.com/tap/async/1/results/result"/>
+                </uws:results>
+            </uws:job>'''
+
+        with requests_mock.Mocker() as rm:
+            rm.get(f'http://example.com/tap/async/{job.job_id}', text=status_response)
+
+            call_count = 0
+
+            def response_callback(request, context):
+                nonlocal call_count
+                call_count += 1
+                if call_count <= 2:
+                    raise requests.exceptions.ConnectionError()
+                else:
+                    return get_pkg_data_contents('data/tap/obscore-image.xml')
+
+            rm.get(
+                f'http://example.com/tap/async/{job.job_id}/results/result',
+                content=response_callback
+            )
+
+            result = job.fetch_result(max_retries=2)
+            assert len(result) == 10
+            assert call_count == 3
+
+        job.delete()
+
+    @pytest.mark.usefixtures('async_fixture')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+    def test_fetch_result_retry_timeout_error(self):
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+        job.run()
+        job.wait()
+
+        status_response = '''<?xml version="1.0" encoding="UTF-8"?>
+            <uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <uws:jobId>1</uws:jobId>
+                <uws:phase>COMPLETED</uws:phase>
+                <uws:results>
+                    <uws:result id="result" xsi:type="vot:VOTable"
+                        href="http://example.com/tap/async/1/results/result"/>
+                </uws:results>
+            </uws:job>'''
+
+        with requests_mock.Mocker() as rm:
+            rm.get(f'http://example.com/tap/async/{job.job_id}', text=status_response)
+
+            call_count = 0
+
+            def response_callback(request, context):
+                nonlocal call_count
+                call_count += 1
+                if call_count == 1:
+                    raise requests.exceptions.Timeout()
+                else:
+                    return get_pkg_data_contents('data/tap/obscore-image.xml')
+
+            rm.get(
+                f'http://example.com/tap/async/{job.job_id}/results/result',
+                content=response_callback
+            )
+
+            result = job.fetch_result(max_retries=1)
+            assert len(result) == 10
+            assert call_count == 2
+
+        job.delete()
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_fetch_result_no_retry_on_http_error(self):
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+        job.run()
+        job.wait()
+
+        status_response = '''<?xml version="1.0" encoding="UTF-8"?>
+            <uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <uws:jobId>1</uws:jobId>
+                <uws:phase>COMPLETED</uws:phase>
+                <uws:results>
+                    <uws:result id="result" xsi:type="vot:VOTable"
+                        href="http://example.com/tap/async/1/results/result"/>
+                </uws:results>
+            </uws:job>'''
+
+        with requests_mock.Mocker() as rm:
+            rm.get(f'http://example.com/tap/async/{job.job_id}', text=status_response)
+            rm.get(
+                f'http://example.com/tap/async/{job.job_id}/results/result',
+                status_code=404
+            )
+
+            with pytest.raises(DALServiceError):
+                job.fetch_result(max_retries=2)
+
+        job.delete()
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_fetch_result_retry_exhausted(self):
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+        job.run()
+        job.wait()
+
+        status_response = '''<?xml version="1.0" encoding="UTF-8"?>
+            <uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <uws:jobId>1</uws:jobId>
+                <uws:phase>COMPLETED</uws:phase>
+                <uws:results>
+                    <uws:result id="result" xsi:type="vot:VOTable"
+                        href="http://example.com/tap/async/1/results/result"/>
+                </uws:results>
+            </uws:job>'''
+
+        with requests_mock.Mocker() as rm:
+            rm.get(f'http://example.com/tap/async/{job.job_id}', text=status_response)
+            rm.get(
+                f'http://example.com/tap/async/{job.job_id}/results/result',
+                exc=requests.exceptions.ConnectionError()
+            )
+
+            with pytest.raises(DALServiceError):
+                job.fetch_result(max_retries=2)
+
+        job.delete()
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_fetch_result_default_no_retry(self):
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+        job.run()
+        job.wait()
+
+        status_response = '''<?xml version="1.0" encoding="UTF-8"?>
+            <uws:job xmlns:uws="http://www.ivoa.net/xml/UWS/v1.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <uws:jobId>1</uws:jobId>
+                <uws:phase>COMPLETED</uws:phase>
+                <uws:results>
+                    <uws:result id="result" xsi:type="vot:VOTable"
+                        href="http://example.com/tap/async/1/results/result"/>
+                </uws:results>
+            </uws:job>'''
+
+        with requests_mock.Mocker() as rm:
+            rm.get(f'http://example.com/tap/async/{job.job_id}', text=status_response)
+            rm.get(
+                f'http://example.com/tap/async/{job.job_id}/results/result',
+                exc=requests.exceptions.ConnectionError()
+            )
+
+            with pytest.raises(DALServiceError):
+                job.fetch_result()
+
+        job.delete()
+
 
 @pytest.mark.usefixtures("tapservice")
 class TestTAPCapabilities:
