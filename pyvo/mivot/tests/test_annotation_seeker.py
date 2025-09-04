@@ -97,6 +97,7 @@ def test_all_reverts(a_seeker):
     assert a_seeker.get_globals_instance_from_collection("wrong_dmid", "ICRS") is None
 
 
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_multiple_seeker(a_multiple_seeker):
     assert (a_multiple_seeker.get_instance_dmtypes()["TEMPLATES"]
             == {"Results": ["mango:Brightness", "mango:Brightness", "mango:Brightness"]})
