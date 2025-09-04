@@ -153,7 +153,6 @@ def test_all_properties():
     add_photometry(builder)
     add_epoch_positon(builder)
     builder.pack_into_votable()
-    XmlUtils.pretty_print(builder._annotation.mivot_block)
     assert XmlUtils.strip_xml(builder._annotation.mivot_block) == (
         XmlUtils.strip_xml(get_pkg_data_contents("data/reference/mango_object.xml"))
     )

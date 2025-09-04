@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VOTABLE version="1.3" xmlns="http://www.ivoa.net/xml/VOTable/v1.3"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/v1.3">
+  <RESOURCE type="results">
+    <INFO name="QUERY_STATUS" value="OK" />
+    <INFO name="QUERY"
+      value='SELECT  TOP 1  "public".mergedentry.SC_EP_1_FLUX,"public".mergedentry.SC_EP_2_FLUX,"public".mergedentry.SC_EP_3_FLUX
+FROM "public".mergedentry
+' />
+    <!-- Here starts the mapping block This bloc maps all data contained in the VOTable on the MANGO MODEL_INSTANCE. The MODEL_INSTANCEInstanceInVot 
+      syntax is detailed here https://github.com/ivoa-std/MODEL_INSTANCEinstanceinvot with a lot of snippet here https://github.com/ivoa/MODEL_INSTANCEinstanceinvot-code -->
+    <RESOURCE type="meta">
+      <VODML xmlns="http://www.ivoa.net/xml/mivot">
+        <REPORT status="OK">Automatically annotated by XTAPDB</REPORT>
+        <MODEL name="ivoa" url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml" />
+        <MODEL name="coords" url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml" />
+        <MODEL name="meas" url="https://www.ivoa.net/xml/Meas/20200908/Meas-v1.0.vo-dml.xml" />
+        <MODEL name="phot" url="https://ivoa.net/xml/VODML/Phot-v1.vodml.xml" />
+        <MODEL name="mango" url="https://github.com/ivoa-std/MANGO/raw/refs/heads/wd-v1.0/vo-dml/mango.vo-dml.xml" />
+        <!-- The GLOBALS block contains all objects with a scope covering all data. This is typically the case for the coordinate 
+          Systems -->
+        <GLOBALS>
+          <INSTANCE dmid="CoordSystem_XMM_EB1_id" dmtype="Phot:PhotCal">
+            <ATTRIBUTE dmrole="Phot:PhotCal.identifier" dmtype="ivoa:string" value="XMM/EPIC/EB1" />
+            <!-- Magnitude System -->
+            <INSTANCE dmrole="Phot:PhotCal.magnitudeSystem" dmtype="Phot:MagnitudeSystem">
+              <ATTRIBUTE dmrole="Phot:MagnitudeSystem.type" dmtype="Phot:TypeOfMagSystem" value="XMM" />
+              <ATTRIBUTE dmrole="Phot:MagnitudeSystem.referenceSpectrum" dmtype="ivoa:anyURI"
+                value="https://xmm-tools.cosmos.esa.int/external/xmm_user_support/documentation/sas_usg/USG/SASUSG.html" />
+            </INSTANCE>
+            <!-- Filter -->
+            <REFERENCE dmref="CoordSystem_XMM_FILTER_EB1_id" dmrole="Phot:PhotCal.photometryFilter" />
+          </INSTANCE>
+          <INSTANCE dmid="CoordSystem_XMM_EB2_id" dmtype="Phot:PhotCal">
+            <ATTRIBUTE dmrole="Phot:PhotCal.identifier" dmtype="ivoa:string" value="XMM/EPIC/EB2" />
+            <!-- Magnitude System -->
+            <INSTANCE dmrole="Phot:PhotCal.magnitudeSystem" dmtype="Phot:MagnitudeSystem">
+              <ATTRIBUTE dmrole="Phot:MagnitudeSystem.type" dmtype="Phot:TypeOfMagSystem" value="XMM" />
+              <ATTRIBUTE dmrole="Phot:MagnitudeSystem.referenceSpectrum" dmtype="ivoa:anyURI"
+                value="https://xmm-tools.cosmos.esa.int/external/xmm_user_support/documentation/sas_usg/USG/SASUSG.html" />
+            </INSTANCE>
+            <!-- Filter -->
+            <REFERENCE dmref="CoordSystem_XMM_FILTER_EB2_id" dmrole="Phot:PhotCal.photometryFilter" />
+          </INSTANCE>
+          <INSTANCE dmid="CoordSystem_XMM_EB3_id" dmtype="Phot:PhotCal">
+            <ATTRIBUTE dmrole="Phot:PhotCal.identifier" dmtype="ivoa:string" value="XMM/EPIC/EB3" />
+            <!-- Magnitude System -->
+            <INSTANCE dmrole="Phot:PhotCal.magnitudeSystem" dmtype="Phot:MagnitudeSystem">
+              <ATTRIBUTE dmrole="Phot:MagnitudeSystem.type" dmtype="Phot:TypeOfMagSystem" value="XMM" />
+              <ATTRIBUTE dmrole="Phot:MagnitudeSystem.referenceSpectrum" dmtype="ivoa:anyURI"
+                value="https://xmm-tools.cosmos.esa.int/external/xmm_user_support/documentation/sas_usg/USG/SASUSG.html" />
+            </INSTANCE>
+            <!-- Filter -->
+            <REFERENCE dmref="CoordSystem_XMM_FILTER_EB3_id" dmrole="Phot:PhotCal.photometryFilter" />
+          </INSTANCE>
+          <INSTANCE dmid="CoordSystem_XMM_FILTER_EB1_id" dmtype="Phot:PhotometryFilter">
+            <ATTRIBUTE dmrole="Phot:PhotometryFilter.identifier" dmtype="ivoa:string" value="XMM/EPIC/EB1" />
+            <ATTRIBUTE dmrole="Phot:PhotometryFilter.name" dmtype="ivoa:string" value="XMM EPIC EB1" />
+            <ATTRIBUTE dmrole="Phot:PhotometryFilter.description" dmtype="ivoa:string" value="Soft" />
+            <ATTRIBUTE dmrole="Phot:PhotometryFilter.bandName" dmtype="ivoa:string" value="EB1" />
+            <!-- Spectral Location -->
+            <INSTANCE dmrole="Phot:PhotometryFilter.spectralLocation" dmtype="Phot:SpectralLocation">
+              <ATTRIBUTE dmrole="Phot:SpectralLocation.ucd" dmtype="Phot:UCD" value="em.wl.effective" />
+              <ATTRIBUTE dmrole="Phot:SpectralLocation.unitexpression" dmtype="ivoa:Unit" value="keV" />
+              <ATTRIBUTE dmrole="Phot:SpectralLocation.value" dmtype="ivoa:real" value="0.35" />
+            </INSTANCE>
+            <!-- Band width -->
+            <INSTANCE dmrole="Phot:PhotometryFilter.bandwidth" dmtype="Phot:Bandwidth">
+              <ATTRIBUTE dmrole="Phot:Bandwidth.ucd" dmtype="Phot:UCD" value="instr.bandwidth;stat.fwhm" />
+              <ATTRIBUTE dmrole="Phot:Bandwidth.unitexpression" dmtype="ivoa:Unit" value="keV" />
+              <ATTRIBUTE dmrole="Phot:Bandwidth.extent" dmtype="ivoa:real" value="0.3" />
+              <ATTRIBUTE dmrole="Phot:Bandwidth.start" dmtype="ivoa:real" value="0.2" />
+              <ATTRIBUTE dmrole="Phot:Bandwidth.stop" dmtype="ivoa:real" value="0.5" />
+            </INSTANCE>
+            <!-- Transmission Curve -->
+            <INSTANCE dmrole="Phot:PhotometryFilter.transmissionCurve" dmtype="Phot:TransmissionCurve">
+              <INSTANCE dmrole="Phot:TransmissionCurve.access" dmtype="Phot:Access">
+                <ATTRIBUTE dmrole="Phot:Access.reference" dmtype="ivoa:anyURI"
+                  value="https://xmm-tools.cosmos.esa.int/external/xmm_user_support/documentation/sas_usg/USG/SASUSG.html" />
+                <ATTRIBUTE dmrole="Phot:Access.format" dmtype="ivoa:string" value="text/html" />
+              </INSTANCE>
+            </INSTANCE>
+          </INSTANCE>
+          <INSTANCE dmid="CoordSystem_XMM_FILTER_EB2_id" dmtype="Phot:PhotometryFilter">
+            <ATTRIBUTE dmrole="Phot:PhotometryFilter.identifier" dmtype="ivoa:string" value="XMM/EPIC/EB2" />
+            <ATTRIBUTE dmrole="Phot:PhotometryFilter.name" dmtype="ivoa:string" value="XMM EPIC EB2" />
+            <ATTRIBUTE dmrole="Phot:PhotometryFilter.description" dmtype="ivoa:string" value="Soft" />
+            <ATTRIBUTE dmrole="Phot:PhotometryFilter.bandName" dmtype="ivoa:string" value="EB2" />
+            <!-- Spectral Location -->
+            <INSTANCE dmrole="Phot:PhotometryFilter.spectralLocation" dmtype="Phot:SpectralLocation">
+              <ATTRIBUTE dmrole="Phot:SpectralLocation.ucd" dmtype="Phot:UCD" value="em.wl.effective" />
+              <ATTRIBUTE dmrole="Phot:SpectralLocation.unitexpression" dmtype="ivoa:Unit" value="keV" />
+              <ATTRIBUTE dmrole="Phot:SpectralLocation.value" dmtype="ivoa:real" value="0.75" />
+            </INSTANCE>
+            <!-- Band width -->
+            <INSTANCE dmrole="Phot:PhotometryFilter.bandwidth" dmtype="Phot:Bandwidth">
+              <ATTRIBUTE dmrole="Phot:Bandwidth.ucd" dmtype="Phot:UCD" value="instr.bandwidth;stat.fwhm" />
+              <ATTRIBUTE dmrole="Phot:Bandwidth.unitexpression" dmtype="ivoa:Unit" value="keV" />
+              <ATTRIBUTE dmrole="Phot:Bandwidth.extent" dmtype="ivoa:real" value="0.5" />
+              <ATTRIBUTE dmrole="Phot:Bandwidth.start" dmtype="ivoa:real" value="0.5" />
+              <ATTRIBUTE dmrole="Phot:Bandwidth.stop" dmtype="ivoa:real" value="1.0" />
+            </INSTANCE>
+            <!-- Transmission Curve -->
+            <INSTANCE dmrole="Phot:PhotometryFilter.transmissionCurve" dmtype="Phot:TransmissionCurve">
+              <INSTANCE dmrole="Phot:TransmissionCurve.access" dmtype="Phot:Access">
+                <ATTRIBUTE dmrole="Phot:Access.reference" dmtype="ivoa:anyURI"
+                  value="https://xmm-tools.cosmos.esa.int/external/xmm_user_support/documentation/sas_usg/USG/SASUSG.html" />
+                <ATTRIBUTE dmrole="Phot:Access.format" dmtype="ivoa:string" value="text/html" />
+              </INSTANCE>
+            </INSTANCE>
+          </INSTANCE>
+          <INSTANCE dmid="CoordSystem_XMM_FILTER_EB3_id" dmtype="Phot:PhotometryFilter">
+            <ATTRIBUTE dmrole="Phot:PhotometryFilter.identifier" dmtype="ivoa:string" value="XMM/EPIC/EB3" />
+            <ATTRIBUTE dmrole="Phot:PhotometryFilter.name" dmtype="ivoa:string" value="XMM EPIC EB3" />
+            <ATTRIBUTE dmrole="Phot:PhotometryFilter.description" dmtype="ivoa:string" value="Medium" />
+            <ATTRIBUTE dmrole="Phot:PhotometryFilter.bandName" dmtype="ivoa:string" value="EB3" />
+            <!-- Spectral Location -->
+            <INSTANCE dmrole="Phot:PhotometryFilter.spectralLocation" dmtype="Phot:SpectralLocation">
+              <ATTRIBUTE dmrole="Phot:SpectralLocation.ucd" dmtype="Phot:UCD" value="em.wl.effective" />
+              <ATTRIBUTE dmrole="Phot:SpectralLocation.unitexpression" dmtype="ivoa:Unit" value="keV" />
+              <ATTRIBUTE dmrole="Phot:SpectralLocation.value" dmtype="ivoa:real" value="1.5" />
+            </INSTANCE>
+            <!-- Band width -->
+            <INSTANCE dmrole="Phot:PhotometryFilter.bandwidth" dmtype="Phot:Bandwidth">
+              <ATTRIBUTE dmrole="Phot:Bandwidth.ucd" dmtype="Phot:UCD" value="instr.bandwidth;stat.fwhm" />
+              <ATTRIBUTE dmrole="Phot:Bandwidth.unitexpression" dmtype="ivoa:Unit" value="keV" />
+              <ATTRIBUTE dmrole="Phot:Bandwidth.extent" dmtype="ivoa:real" value="1.0" />
+              <ATTRIBUTE dmrole="Phot:Bandwidth.start" dmtype="ivoa:real" value="1.0" />
+              <ATTRIBUTE dmrole="Phot:Bandwidth.stop" dmtype="ivoa:real" value="2.0" />
+            </INSTANCE>
+            <!-- Transmission Curve -->
+            <INSTANCE dmrole="Phot:PhotometryFilter.transmissionCurve" dmtype="Phot:TransmissionCurve">
+              <INSTANCE dmrole="Phot:TransmissionCurve.access" dmtype="Phot:Access">
+                <ATTRIBUTE dmrole="Phot:Access.reference" dmtype="ivoa:anyURI"
+                  value="https://xmm-tools.cosmos.esa.int/external/xmm_user_support/documentation/sas_usg/USG/SASUSG.html" />
+                <ATTRIBUTE dmrole="Phot:Access.format" dmtype="ivoa:string" value="text/html" />
+              </INSTANCE>
+            </INSTANCE>
+          </INSTANCE>
+        </GLOBALS>
+        <!-- This block maps the data of the table identified as "Results" -->
+        <TEMPLATES tableref="Results">
+          <INSTANCE dmrole="" dmtype="mango:Brightness">
+            <ATTRIBUTE dmrole="mango:Brightness.value" dmtype="ivoa:RealQuantity" ref="SC_EP_1_FLUX" />
+            <REFERENCE dmref="CoordSystem_XMM_EB1_id" dmrole="mango:Brightness.photCal" />
+          </INSTANCE>
+          <INSTANCE dmrole="" dmtype="mango:Brightness">
+            <ATTRIBUTE dmrole="mango:Brightness.value" dmtype="ivoa:RealQuantity" ref="SC_EP_2_FLUX" />
+            <REFERENCE dmref="CoordSystem_XMM_EB2_id" dmrole="mango:Brightness.photCal" />
+          </INSTANCE>
+          <INSTANCE dmrole="" dmtype="mango:Brightness">
+            <ATTRIBUTE dmrole="mango:Brightness.value" dmtype="ivoa:RealQuantity" ref="SC_EP_3_FLUX" />
+            <REFERENCE dmref="CoordSystem_XMM_EB3_id" dmrole="mango:Brightness.photCal" />
+          </INSTANCE>
+        </TEMPLATES>
+      </VODML>
+    </RESOURCE>
+
+    <TABLE name="Results">
+      <FIELD datatype="float" name="SC_EP_1_FLUX" ucd="phot.flux" unit="erg/cm**2/s">
+        <DESCRIPTION>the flux of the energy band number 1 of the ep camera in sc</DESCRIPTION>
+      </FIELD>
+      <FIELD datatype="float" name="SC_EP_2_FLUX" ucd="phot.flux" unit="erg/cm**2/s">
+        <DESCRIPTION>the flux of the energy band number 2 of the ep camera in sc</DESCRIPTION>
+      </FIELD>
+      <FIELD datatype="float" name="SC_EP_3_FLUX" ucd="phot.flux" unit="erg/cm**2/s">
+        <DESCRIPTION>the flux of the energy band number 3 of the ep camera in sc</DESCRIPTION>
+      </FIELD>
+      <DATA>
+        <TABLEDATA>
+          <TR>
+            <TD>0.0</TD>
+            <TD>0.1</TD>
+            <TD>0.2</TD>
+          </TR>
+          <TR>
+            <TD>1.0</TD>
+            <TD>2.1</TD>
+            <TD>3.2</TD>
+          </TR>
+        </TABLEDATA>
+      </DATA>
+    </TABLE>
+  </RESOURCE>
+</VOTABLE>
