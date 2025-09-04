@@ -4,14 +4,9 @@ Created on 19 févr. 2024
 
 @author: michel
 '''
-import os
 import pytest
 from astropy.table import Table
-from astropy.utils.data import get_pkg_data_filename
-from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.mivot_instance import MivotInstance
-from pyvo.mivot.utils.mivot_utils import MivotUtils
-from pyvo.mivot.viewer import MivotViewer
 
 fake_hk_dict = {
     "dmtype": "EpochPosition",
@@ -101,22 +96,6 @@ test_dict = {
         ],
     },
 }
-
-
-@pytest.fixture
-def m_viewer():
-    data_path = get_pkg_data_filename(os.path.join("data",
-                                       "test.mivot_viewer.xml")
-    )
-    return MivotViewer(data_path, tableref="Results")
-
-
-@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
-def test_xml_viewer(m_viewer):
-
-    xml_instance = m_viewer.xml_viewer.view
-    dm_instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
-    assert dm_instance.to_dict() == test_dict
 
 
 def test_mivot_instance_constructor():

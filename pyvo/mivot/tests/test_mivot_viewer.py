@@ -13,6 +13,39 @@ from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer import MivotViewer
 from astropy import version as astropy_version
 
+dm_raw_instances = [
+    {
+        "dmrole": "",
+        "dmtype": "mango:Brightness",
+        "value": {
+            "dmtype": "ivoa:RealQuantity",
+            "value": None,
+            "unit": None,
+            "ref": "SC_EP_1_FLUX",
+        },
+    },
+    {
+        "dmrole": "",
+        "dmtype": "mango:Brightness",
+        "value": {
+            "dmtype": "ivoa:RealQuantity",
+            "value": None,
+            "unit": None,
+            "ref": "SC_EP_2_FLUX",
+        },
+    },
+    {
+        "dmrole": "",
+        "dmtype": "mango:Brightness",
+        "value": {
+            "dmtype": "ivoa:RealQuantity",
+            "value": None,
+            "unit": None,
+            "ref": "SC_EP_3_FLUX",
+        },
+    },
+]
+
 
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_get_first_instance_dmtype(path_to_first_instance):
@@ -22,11 +55,11 @@ def test_get_first_instance_dmtype(path_to_first_instance):
     """
     m_viewer = MivotViewer(votable_path=path_to_first_instance)
     assert m_viewer.get_first_instance_dmtype("one_instance") == "one_instance"
-    assert m_viewer.get_first_instance_dmtype("coll_and_instances") == "first"
-    assert m_viewer.get_first_instance_dmtype("one_collection") == Constant.ROOT_COLLECTION
-    assert m_viewer.get_first_instance_dmtype("only_collection") == Constant.ROOT_COLLECTION
-    with pytest.raises(Exception, match="Can't find the first INSTANCE/COLLECTION in TEMPLATES"):
+    assert m_viewer.get_first_instance_dmtype("some_instances") == "first"
+    with pytest.raises(Exception, match="Can't find the first INSTANCE in TEMPLATES"):
         m_viewer.get_first_instance_dmtype("empty")
+    with pytest.raises(Exception, match="No TEMPLATES with tableref=not_existing_tableref"):
+        m_viewer.get_first_instance_dmtype("not_existing_tableref")
 
 
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
@@ -77,7 +110,7 @@ def test_global_getters(m_viewer):
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
 def test_no_mivot(path_no_mivot):
     """
-    Test each getter for GLOBALS of the model_viewer specific .
+    Test the viewer behavior when there is no mapping
     """
     m_viewer = MivotViewer(path_no_mivot)
     assert m_viewer.get_table_ids() is None
@@ -90,6 +123,33 @@ def test_no_mivot(path_no_mivot):
         m_viewer._connect_table()
 
     assert m_viewer.next_table_row() is None
+
+
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
+def test_instance_mutiple_in_templates(path_to_multiple_instance):
+    """
+    Test case with a TEMPLATES containing multiple instances
+    """
+    m_viewer = MivotViewer(votable_path=path_to_multiple_instance)
+    instance_dict = []
+    # test the DM instances children of TEMPLATES before their values are set
+    for dmi in m_viewer.dm_instances:
+        instance_dict.append(dmi.to_hk_dict())
+    assert instance_dict == dm_raw_instances
+
+    # test the DM instances children of TEMPLATES set with the values of the first row
+    m_viewer.next_row_view()
+    row_values = []
+    for dmi in m_viewer.dm_instances:
+        row_values.append(dmi.value.value)
+    assert row_values == pytest.approx([0.0, 0.1, 0.2], rel=1e-3)
+
+    # test the DM instances children of TEMPLATES set with the values of the second row
+    m_viewer.next_row_view()
+    row_values = []
+    for dmi in m_viewer.dm_instances:
+        row_values.append(dmi.value.value)
+    assert row_values == pytest.approx([1.0, 2.1, 3.2], rel=1e-3)
 
 
 def test_check_version(path_to_viewer):
@@ -126,7 +186,15 @@ def path_to_viewer():
 
 
 @pytest.fixture
+def path_to_multiple_instance():
+
+    votable_name = "test.instance_multiple.xml"
+    return get_pkg_data_filename(os.path.join("data", votable_name))
+
+
+@pytest.fixture
 def path_to_first_instance():
+
     votable_name = "test.mivot_viewer.first_instance.xml"
     return get_pkg_data_filename(os.path.join("data", votable_name))
 
