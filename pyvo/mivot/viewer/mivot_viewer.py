@@ -99,6 +99,7 @@ class MivotViewer:
         self._mapped_tables = []
         self._resource_seeker = None
         self._dm_instances = []
+        self._dm_globals_instances = []
         self._resolve_ref = resolve_ref
         try:
             self._set_resource()
@@ -107,6 +108,7 @@ class MivotViewer:
             self._set_mapped_tables()
             self._connect_table(tableref)
             self._init_instances()
+            self._init_globals_instances()
         except MappingError as mnf:
             logging.error(str(mnf))
 
@@ -177,6 +179,18 @@ class MivotViewer:
                             of the current read data row.
         """
         return self._dm_instances
+
+    @property
+    def dm_globals_instances(self):
+        """
+        @@@@@@@@@
+        Returns
+        -------
+           [MivotInstance]: The list of Python objects (MivotInstance) built from the XML views of
+                            the TEMPLATES children, whose attribute values are set from the values
+                            of the current read data row.
+        """
+        return self._dm_globals_instances
 
     @property
     def table_row(self):
@@ -391,7 +405,6 @@ class MivotViewer:
             XmlUtils.add_column_units(templates_copy,
                                       self._resource_seeker
                                       .get_id_unit_mapping(self._connected_tableref))
-        # for ele in templates_copy.xpath("//ATTRIBUTE"):
         for ele in XPath.x_path(templates_copy, ".//ATTRIBUTE"):
             ref = ele.get(Att.ref)
             if ref is not None and ref != Constant.NOT_SET and Constant.COL_INDEX in ele.attrib:
@@ -414,6 +427,23 @@ class MivotViewer:
                         **MivotUtils.xml_to_dict(self._get_model_view(xml_instance))
                     ))
             self.rewind()
+
+    def _init_globals_instances(self):
+        """
+        Build one MivotInstance for each GLOBALS/INSTANCE. Internal references are always resolved
+        Globals MivotInstance are stored in the _dm_globals_instances list
+        """
+        if not self._dm_globals_instances:
+            globals_copy = deepcopy(self._annotation_seeker.globals_block)
+
+            while StaticReferenceResolver.resolve(self._annotation_seeker, None,
+                                                  globals_copy) > 0:
+                pass
+            for ele in XPath.x_path(globals_copy, "./" + Ele.INSTANCE):
+                self._dm_globals_instances.append(
+                    MivotInstance(
+                        **MivotUtils.xml_to_dict(ele)
+                    ))
 
     def _set_mapped_tables(self):
         """
