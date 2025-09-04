@@ -15,7 +15,6 @@ from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer import MivotViewer
 from astropy.io.votable import parse
 
-
 ref_ra = [
     0.04827189,
     0.16283175,
