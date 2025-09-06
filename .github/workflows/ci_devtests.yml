@@ -20,6 +20,7 @@ concurrency:
 jobs:
   devdeps:
     runs-on: ubuntu-latest
+    name: linux (3.13 py313-test-devdeps-alldeps-cov)
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
       - name: Set up Python 3.13
@@ -37,8 +38,9 @@ jobs:
           file: ./coverage.xml
           verbose: true
 
-  py313:
+  py314:
     runs-on: ubuntu-latest
+    name: linux (3.14 py314-test)
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
       - name: Set up Python 3.14

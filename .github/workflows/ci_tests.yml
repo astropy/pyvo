@@ -25,17 +25,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: py39 oldest dependencies
-            python-version: '3.9'
+          - python-version: '3.9'
             tox_env: py39-test-oldestdeps-alldeps
-          - name: py310 mandatory dependencies only
-            python-version: '3.10'
+          - python-version: '3.10'
             tox_env: py310-test
-          - name: py311 alldeps
-            python-version: '3.11'
+          - python-version: '3.11'
             tox_env: py311-test-alldeps
-          - name: py313 alldeps online
-            python-version: '3.13'
+          - python-version: '3.13'
             tox_env: py313-test-alldeps
 
     steps:
@@ -54,7 +50,7 @@ jobs:
 
   mac_windows:
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }} py312
+    name: ${{ matrix.os }} (3.12 py312-test-alldeps)
     strategy:
       fail-fast: false
       matrix:
