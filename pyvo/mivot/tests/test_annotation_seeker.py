@@ -12,7 +12,7 @@ from pyvo.mivot.seekers.annotation_seeker import AnnotationSeeker
 from pyvo.mivot.utils.dict_utils import DictUtils
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer import MivotViewer
-from . import XMLOutputChecker
+from pyvo.mivot.tests import XMLOutputChecker
 
 
 @pytest.fixture
@@ -21,6 +21,14 @@ def a_seeker():
         get_pkg_data_filename("data/test.mivot_viewer.xml"),
         tableref="Results"
     )
+    return AnnotationSeeker(m_viewer._mapping_block)
+
+
+@pytest.fixture
+def a_multiple_seeker():
+    m_viewer = MivotViewer(
+        get_pkg_data_filename("data/test.instance_multiple.xml"),
+        tableref="Results")
     return AnnotationSeeker(m_viewer._mapping_block)
 
 
@@ -87,3 +95,9 @@ def test_all_reverts(a_seeker):
     assert a_seeker.get_globals_instance_from_collection(
         "_CoordinateSystems", "ICRS").get("dmtype") == "coords:SpaceSys"
     assert a_seeker.get_globals_instance_from_collection("wrong_dmid", "ICRS") is None
+
+
+@pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
+def test_multiple_seeker(a_multiple_seeker):
+    assert (a_multiple_seeker.get_instance_dmtypes()["TEMPLATES"]
+            == {"Results": ["mango:Brightness", "mango:Brightness", "mango:Brightness"]})

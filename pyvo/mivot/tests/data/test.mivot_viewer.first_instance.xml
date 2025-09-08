@@ -12,20 +12,11 @@
 				<TEMPLATES tableref="one_instance">
 					<INSTANCE dmtype="one_instance"/>
 				</TEMPLATES>
-				<TEMPLATES tableref="coll_and_instances">
-					<COLLECTION dmrole="coll"/>
+				<TEMPLATES tableref="some_instances">
 					<INSTANCE dmtype="first"/>
 					<INSTANCE dmtype="second"/>
 				</TEMPLATES>
-				<TEMPLATES tableref="one_collection">
-					<COLLECTION dmrole="OneCollection"/>
-				</TEMPLATES>
-				<TEMPLATES tableref="only_collection">
-					<COLLECTION dmrole="First"/>
-					<COLLECTION dmrole="Second"/>
-				</TEMPLATES>
-				<TEMPLATES tableref="empty">
-				</TEMPLATES>
+            <TEMPLATES tableref="empty"/>
 			</VODML>
 		</RESOURCE>
 		<TABLE ID="Results" name="Result">
