@@ -2,11 +2,12 @@
 """
 Utility transforming MIVOT annotation into SkyCoord instances
 """
-
+import numbers
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.coordinates import ICRS, Galactic, FK4, FK5
-from pyvo.mivot.utils.exceptions import NoMatchingDMTypeError
+from astropy.time.core import Time
+from pyvo.mivot.utils.exceptions import NoMatchingDMTypeError, MappingError
 
 
 class MangoRoles:
@@ -62,7 +63,9 @@ class SkyCoordBuilder:
     def build_sky_coord(self):
         """
         Build a SkyCoord instance from the MivotInstance dictionary.
-        The operation requires the dictionary to have ``mango:EpochPosition`` as dmtype
+        The operation requires the dictionary to have ``mango:EpochPosition`` as dmtype.
+        This instance can be either the root of the dictionary or it can be one
+        of the Mango properties if the root object is a mango:MangoObject instance
         This is a public method which could be extended to support other dmtypes.
 
         returns
@@ -75,15 +78,28 @@ class SkyCoordBuilder:
         NoMatchingDMTypeError
             if the SkyCoord instance cannot be built.
         """
-        if self._mivot_instance_dict and self._mivot_instance_dict["dmtype"] == "mango:EpochPosition":
+
+        if self._mivot_instance_dict and self._mivot_instance_dict["dmtype"] == "mango:MangoObject":
+            property_dock = self._mivot_instance_dict["propertyDock"]
+            for mango_property in property_dock:
+                if mango_property["dmtype"] == "mango:EpochPosition":
+                    self._mivot_instance_dict = mango_property
+                    return self._build_sky_coord_from_mango()
+            raise NoMatchingDMTypeError(
+                "No INSTANCE with dmtype='mango:EpochPosition' has been found:"
+                " in the property dock of the MangoObject, "
+                "cannot build a SkyCoord from annotations")
+
+        elif self._mivot_instance_dict and self._mivot_instance_dict["dmtype"] == "mango:EpochPosition":
             return self._build_sky_coord_from_mango()
         raise NoMatchingDMTypeError(
             "No INSTANCE with dmtype='mango:EpochPosition' has been found:"
             " cannot build a SkyCoord from annotations")
 
-    def _set_year_time_format(self, hk_field, besselian=False):
+    def _get_time_instance(self, hk_field, besselian=False):
         """
         Format a date expressed in year as [scale]year
+        - Exception possibly risen by Astropy are not caught
 
         parameters
         ----------
@@ -94,33 +110,96 @@ class SkyCoordBuilder:
 
         returns
         -------
-        string or None
-            attribute value formatted as [scale]year
+        Time instance or None
+
+        raise
+        -----
+        MappingError: if the Time instance cannot be built for some reason
         """
-        scale = "J" if not besselian else "B"
         # Process complex type "mango:DateTime
-        # only "year" representation are supported yet
         if hk_field['dmtype'] == "mango:DateTime":
             representation = hk_field['representation']['value']
             timestamp = hk_field['dateTime']['value']
-            if representation == "year":
-                return f"{scale}{timestamp}"
-            return None
-        return (f"{scale}{hk_field['value']}" if hk_field["unit"] in ("yr", "year")
-                else hk_field["value"])
+        # Process simple attribute
+        else:
+            representation = hk_field.get("unit")
+            timestamp = hk_field.get("value")
 
-    def _get_space_frame(self, obstime=None):
+        if not representation or not timestamp:
+            raise MappingError(f"Cannot interpret field {hk_field} "
+                               f"as a {('besselian' if besselian else 'julian')} timestamp")
+
+        time_instance = self. _build_time_instance(timestamp, representation, besselian)
+        if not time_instance:
+            raise MappingError(f"Cannot build a Time instance from {hk_field}")
+
+        return time_instance
+
+    def _build_time_instance(self, timestamp, representation, besselian=False):
+        """
+        Build a Time instance matching the input parameters.
+        - Returns None if the parameters do not allow any Time setup
+        - Exception possibly risen by Astropy are not caught at this level
+
+        parameters
+        ----------
+        timestamp: string or number
+            The timestamp must comply with the given representation
+        representation: string
+            year, iso, ... (See MANGO primitive types derived from ivoa:timeStamp)
+        besselian: boolean (optional)
+            Flag telling to use the besselain calendar. We assume it to only be
+            relevant for FK5 frame
+        returns
+        -------
+        Time instance or None
+        """
+        if representation in ["year", "yr"]:
+            # it the timestamp is numeric, we infer its format from the besselian flag
+            if isinstance(timestamp, numbers.Number):
+                return Time(f"{('B' if besselian else 'J')}{timestamp}",
+                            format=("byear_str" if besselian else "jyear_str"))
+            if besselian:
+                if timestamp.startswith("B"):
+                    return Time(f"{timestamp}", format="byear_str")
+                elif timestamp.startswith("J"):
+                    # a besselain year cannot be given as "Jxxxx"
+                    return None
+                elif timestamp.isnumeric():
+                    # we force the string representation not to break the test assertions
+                    return Time(f"B{timestamp}", format="byear_str")
+            else:
+                if timestamp.startswith("J"):
+                    return Time(f"{timestamp}", format="jyear_str")
+                elif timestamp.startswith("B"):
+                    # a julian year cannot be given as "Bxxxx"
+                    return None
+                elif timestamp.isnumeric():
+                    # we force the string representation not to break the test assertions
+                    return Time(f"J{timestamp}", format="jyear_str")
+            # no case matches
+            return None
+        # in the following cases, the calendar (B or J) is givent by the besselian flag
+        # We force to use the  string representation to avoid breaking unit tests.
+        elif representation == "mjd":
+            time = Time(f"{timestamp}", format="mjd")
+            return (Time(time.byear_str) if besselian else time)
+        elif representation == "jd":
+            time = Time(f"{timestamp}", format="jd")
+            return (Time(time.byear_str) if besselian else time)
+        elif representation == "iso":
+            time = Time(f"{timestamp}", format="iso")
+            return (Time(time.byear_str) if besselian else time)
+
+        return None
+
+    def _get_space_frame(self):
         """
         Build an astropy space frame instance from the MIVOT annotations.
 
         - Equinox are supported for FK4/5
         - Reference location is not supported
 
-        parameters
-        ----------
-        obstime: str
-            Observation time is given to the space frame builder (this method) because
-            it must be set by the coordinate system constructor in case of FK4 frame.
         returns
         -------
         FK2, FK5, ICRS or Galactic
@@ -133,14 +212,15 @@ class SkyCoordBuilder:
         if frame == 'fk4':
             self._map_coord_names = skycoord_param_default
             if "equinox" in coo_sys:
-                equinox = self._set_year_time_format(coo_sys["equinox"], True)
-                return FK4(equinox=equinox, obstime=obstime)
+                equinox = self._get_time_instance(coo_sys["equinox"], True)
+                # by FK4 takes obstime=equinox by default
+                return FK4(equinox=equinox)
             return FK4()
 
         if frame == 'fk5':
             self._map_coord_names = skycoord_param_default
             if "equinox" in coo_sys:
-                equinox = self._set_year_time_format(coo_sys["equinox"])
+                equinox = self._get_time_instance(coo_sys["equinox"])
                 return FK5(equinox=equinox)
             return FK5()
 
@@ -153,9 +233,7 @@ class SkyCoordBuilder:
 
     def _build_sky_coord_from_mango(self):
         """
-        Build silently a SkyCoord instance from the ``mango:EpochPosition instance``.
-        No error is trapped, unconsistencies in the ``mango:EpochPosition`` instance will
-        raise Astropy errors.
+        Build a SkyCoord instance from the ``mango:EpochPosition instance``.
 
         - The epoch (obstime) is meant to be given in year.
         - ICRS frame is taken by default
@@ -170,26 +248,31 @@ class SkyCoordBuilder:
         kwargs = {}
         kwargs["frame"] = self._get_space_frame()
 
-        for key, value in self._map_coord_names.items():
-            # ignore not set parameters
-            if key not in self._mivot_instance_dict:
+        for mango_role, skycoord_field in self._map_coord_names.items():
+            # ignore not mapped parameters
+            if mango_role not in self._mivot_instance_dict:
                 continue
-            hk_field = self._mivot_instance_dict[key]
-            # format the observation time (J-year by default)
-            if value == "obstime":
-                # obstime must be set into the KK4 frame but not as an input parameter
-                fobstime = self._set_year_time_format(hk_field)
-                if isinstance(kwargs["frame"], FK4):
-                    kwargs["frame"] = self._get_space_frame(obstime=fobstime)
+            hk_field = self._mivot_instance_dict[mango_role]
+            if mango_role == "obsDate":
+                besselian = isinstance(kwargs["frame"], FK4)
+                fobstime = self._get_time_instance(hk_field,
+                                                      besselian=besselian)
+                # FK4 class has an obstime attribute which must be set at instanciation time
+                if besselian:
+                    kwargs["frame"] = FK4(equinox=kwargs["frame"].equinox, obstime=fobstime)
+                # This is not the case for any other space frames
                 else:
-                    kwargs[value] = fobstime
-            # Convert the parallax (mango) into a distance
-            elif value == "distance":
-                kwargs[value] = (hk_field["value"]
-                                 * u.Unit(hk_field["unit"]).to(u.parsec, equivalencies=u.parallax()))
-                kwargs[value] = kwargs[value] * u.parsec
-            elif "unit" in hk_field and hk_field["unit"]:
-                kwargs[value] = hk_field["value"] * u.Unit(hk_field["unit"])
-            else:
-                kwargs[value] = hk_field["value"]
+                    kwargs[skycoord_field] = fobstime
+            # ignore not set parameters
+            elif (hk_value := hk_field["value"]) is not None:
+                # Convert the parallax (mango) into a distance
+                if skycoord_field == "distance":
+                    kwargs[skycoord_field] = (hk_value
+                                     * u.Unit(hk_field["unit"]).to(u.parsec, equivalencies=u.parallax()))
+                    kwargs[skycoord_field] = kwargs[skycoord_field] * u.parsec
+                elif "unit" in hk_field and hk_field["unit"]:
+                    kwargs[skycoord_field] = hk_value * u.Unit(hk_field["unit"])
+                else:
+                    kwargs[skycoord_field] = hk_value
+
         return SkyCoord(**kwargs)
