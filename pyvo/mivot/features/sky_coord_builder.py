@@ -154,7 +154,7 @@ class SkyCoordBuilder:
         -------
         Time instance or None
         """
-        if representation in ["year", "yr"]:
+        if representation in ["year", "yr", "y"]:
             # it the timestamp is numeric, we infer its format from the besselian flag
             if isinstance(timestamp, numbers.Number):
                 return Time(f"{('B' if besselian else 'J')}{timestamp}",
@@ -274,5 +274,4 @@ class SkyCoordBuilder:
                     kwargs[skycoord_field] = hk_value * u.Unit(hk_field["unit"])
                 else:
                     kwargs[skycoord_field] = hk_value
-
         return SkyCoord(**kwargs)

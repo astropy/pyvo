@@ -258,3 +258,4 @@ def test_simad_cs_output():
             == "<SkyCoord (ICRS): (ra, dec, distance) in "
                "(deg, deg, pc)(269.45207696, 4.69336497, 546975.9) "
                "(pm_ra_cosdec, pm_dec) in mas / yr(-801.551, 10362.394)>")
+    assert str(scoo.obstime) == "J2000.000"
