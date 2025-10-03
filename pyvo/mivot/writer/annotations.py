@@ -170,7 +170,7 @@ class MivotAnnotations:
         ----------
         templates_id : str, optional
             The ID to associate with the <TEMPLATES> block. Defaults to None.
-        schema_check : boolean, optional
+        schema_check : boolean, optional (default True)
             Skip the XSD validation if False (use to make test working in local mode).
 
         Raises
