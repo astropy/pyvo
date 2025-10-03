@@ -232,7 +232,7 @@ def test_vizier_output_with_equinox_and_parallax():
     scoo = scb.build_sky_coord()
     assert (str(scoo).replace("\n", "").replace("  ", "")
             == "<SkyCoord (FK5: equinox=J2012.000): (ra, dec, distance) in "
-               "(deg, deg, pc)(52.26722684, 59.94033461, 600.) "
+               "(deg, deg, pc)(52.26722684, 59.94033461, 1666.66666667) "
                "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
 
     vizier_equin_dict["spaceSys"]["frame"]["spaceRefFrame"]["value"] = "FK4"
@@ -240,7 +240,7 @@ def test_vizier_output_with_equinox_and_parallax():
     scoo = mivot_instance.get_SkyCoord()
     assert (str(scoo).replace("\n", "").replace("  ", "")
             == "<SkyCoord (FK4: equinox=B2012.000, obstime=B1991.250): (ra, dec, distance) in "
-               "(deg, deg, pc)(52.26722684, 59.94033461, 600.) "
+               "(deg, deg, pc)(52.26722684, 59.94033461, 1666.66666667) "
                "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
 
 
@@ -256,6 +256,6 @@ def test_simad_cs_output():
 
     assert (str(scoo).replace("\n", "").replace("  ", "")
             == "<SkyCoord (ICRS): (ra, dec, distance) in "
-               "(deg, deg, pc)(269.45207696, 4.69336497, 546975.9) "
+               "(deg, deg, pc)(269.45207696, 4.69336497, 1.82823411) "
                "(pm_ra_cosdec, pm_dec) in mas / yr(-801.551, 10362.394)>")
     assert str(scoo.obstime) == "J2000.000"

@@ -267,9 +267,8 @@ class SkyCoordBuilder:
             elif (hk_value := hk_field["value"]) is not None:
                 # Convert the parallax (mango) into a distance
                 if skycoord_field == "distance":
-                    kwargs[skycoord_field] = (hk_value
-                                     * u.Unit(hk_field["unit"]).to(u.parsec, equivalencies=u.parallax()))
-                    kwargs[skycoord_field] = kwargs[skycoord_field] * u.parsec
+                    kwargs[skycoord_field] = (
+                        (hk_value * u.Unit(hk_field["unit"])).to(u.parsec, equivalencies=u.parallax()))
                 elif "unit" in hk_field and hk_field["unit"]:
                     kwargs[skycoord_field] = hk_value * u.Unit(hk_field["unit"])
                 else:
