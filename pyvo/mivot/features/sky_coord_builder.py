@@ -7,35 +7,8 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.coordinates import ICRS, Galactic, FK4, FK5
 from astropy.time.core import Time
+from pyvo.mivot.glossary import SkyCoordMapping
 from pyvo.mivot.utils.exceptions import NoMatchingDMTypeError, MappingError
-
-
-class MangoRoles:
-    """
-    Place holder for the roles (attribute names) of the mango:EpochPosition class
-    """
-    LONGITUDE = "longitude"
-    LATITUDE = "latitude"
-    PM_LONGITUDE = "pmLongitude"
-    PM_LATITUDE = "pmLatitude"
-    PARALLAX = "parallax"
-    RADIAL_VELOCITY = "radialVelocity"
-    EPOCH = "obsDate"
-    FRAME = "frame"
-    EQUINOX = "equinox"
-    PMCOSDELTAPPLIED = "pmCosDeltApplied"
-
-
-# Mapping of the MANGO parameters on the SkyCoord parameters
-skycoord_param_default = {
-    MangoRoles.LONGITUDE: 'ra', MangoRoles.LATITUDE: 'dec', MangoRoles.PARALLAX: 'distance',
-    MangoRoles.PM_LONGITUDE: 'pm_ra_cosdec', MangoRoles.PM_LATITUDE: 'pm_dec',
-    MangoRoles.RADIAL_VELOCITY: 'radial_velocity', MangoRoles.EPOCH: 'obstime'}
-
-skycoord_param_galactic = {
-    MangoRoles.LONGITUDE: 'l', MangoRoles.LATITUDE: 'b', MangoRoles.PARALLAX: 'distance',
-    MangoRoles.PM_LONGITUDE: 'pm_l_cosb', MangoRoles.PM_LATITUDE: 'pm_b',
-    MangoRoles.RADIAL_VELOCITY: 'radial_velocity', MangoRoles.EPOCH: 'obstime'}
 
 
 class SkyCoordBuilder:
@@ -210,7 +183,7 @@ class SkyCoordBuilder:
         frame = coo_sys["spaceRefFrame"]["value"].lower()
 
         if frame == 'fk4':
-            self._map_coord_names = skycoord_param_default
+            self._map_coord_names = SkyCoordMapping.default_params
             if "equinox" in coo_sys:
                 equinox = self._get_time_instance(coo_sys["equinox"], True)
                 # by FK4 takes obstime=equinox by default
@@ -218,17 +191,17 @@ class SkyCoordBuilder:
             return FK4()
 
         if frame == 'fk5':
-            self._map_coord_names = skycoord_param_default
+            self._map_coord_names = SkyCoordMapping.default_params
             if "equinox" in coo_sys:
                 equinox = self._get_time_instance(coo_sys["equinox"])
                 return FK5(equinox=equinox)
             return FK5()
 
         if frame == 'galactic':
-            self._map_coord_names = skycoord_param_galactic
+            self._map_coord_names = SkyCoordMapping.galactic_params
             return Galactic()
 
-        self._map_coord_names = skycoord_param_default
+        self._map_coord_names = SkyCoordMapping.default_params
         return ICRS()
 
     def _build_sky_coord_from_mango(self):

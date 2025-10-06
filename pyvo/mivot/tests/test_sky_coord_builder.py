@@ -7,6 +7,7 @@ Both tests check the generation of SkyCoord instances from the MivotInstances bu
 for the output of this service.
 '''
 import pytest
+from copy import deepcopy
 from astropy.utils.data import get_pkg_data_filename
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.mivot_instance import MivotInstance
@@ -234,9 +235,11 @@ def test_vizier_output_with_equinox_and_parallax():
             == "<SkyCoord (FK5: equinox=J2012.000): (ra, dec, distance) in "
                "(deg, deg, pc)(52.26722684, 59.94033461, 1666.66666667) "
                "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
+    
 
-    vizier_equin_dict["spaceSys"]["frame"]["spaceRefFrame"]["value"] = "FK4"
-    mivot_instance = MivotInstance(**vizier_equin_dict)
+    mydict = deepcopy(vizier_equin_dict)
+    mydict["spaceSys"]["frame"]["spaceRefFrame"]["value"] = "FK4"
+    mivot_instance = MivotInstance(**mydict)
     scoo = mivot_instance.get_SkyCoord()
     assert (str(scoo).replace("\n", "").replace("  ", "")
             == "<SkyCoord (FK4: equinox=B2012.000, obstime=B1991.250): (ra, dec, distance) in "
@@ -259,3 +262,28 @@ def test_simad_cs_output():
                "(deg, deg, pc)(269.45207696, 4.69336497, 1.82823411) "
                "(pm_ra_cosdec, pm_dec) in mas / yr(-801.551, 10362.394)>")
     assert str(scoo.obstime) == "J2000.000"
+    
+def test_time_representation():
+    """
+    Test various time representations
+    Inconsistent values are not tested since there are detected by ``astropy.core.Time``
+    """
+    # work with a copy to not alter other test functions
+    mydict = deepcopy(vizier_equin_dict)
+    mydict["obsDate"]["unit"] = "mjd"
+    scb = SkyCoordBuilder(mydict)
+    scoo = scb.build_sky_coord()
+    assert scoo.obstime.jyear_str == "J1864.331"
+    
+    mydict["obsDate"]["unit"] = "jd"
+    mydict["obsDate"]["value"] = "2460937.36"
+    scb = SkyCoordBuilder(mydict)
+    scoo = scb.build_sky_coord()
+    assert scoo.obstime.jyear_str == "J2025.715"
+    
+    mydict["obsDate"]["unit"] = "iso"
+    mydict["obsDate"]["value"] = "2025-05-03"
+    scoo = scb.build_sky_coord()
+    scb = SkyCoordBuilder(mydict)
+    assert scoo.obstime.jyear_str == "J2025.335"
+
