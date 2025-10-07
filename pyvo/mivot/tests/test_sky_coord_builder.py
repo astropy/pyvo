@@ -235,7 +235,6 @@ def test_vizier_output_with_equinox_and_parallax():
             == "<SkyCoord (FK5: equinox=J2012.000): (ra, dec, distance) in "
                "(deg, deg, pc)(52.26722684, 59.94033461, 1666.66666667) "
                "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
-    
 
     mydict = deepcopy(vizier_equin_dict)
     mydict["spaceSys"]["frame"]["spaceRefFrame"]["value"] = "FK4"
@@ -262,7 +261,8 @@ def test_simad_cs_output():
                "(deg, deg, pc)(269.45207696, 4.69336497, 1.82823411) "
                "(pm_ra_cosdec, pm_dec) in mas / yr(-801.551, 10362.394)>")
     assert str(scoo.obstime) == "J2000.000"
-    
+
+
 def test_time_representation():
     """
     Test various time representations
@@ -274,16 +274,15 @@ def test_time_representation():
     scb = SkyCoordBuilder(mydict)
     scoo = scb.build_sky_coord()
     assert scoo.obstime.jyear_str == "J1864.331"
-    
+
     mydict["obsDate"]["unit"] = "jd"
     mydict["obsDate"]["value"] = "2460937.36"
     scb = SkyCoordBuilder(mydict)
     scoo = scb.build_sky_coord()
     assert scoo.obstime.jyear_str == "J2025.715"
-    
+
     mydict["obsDate"]["unit"] = "iso"
     mydict["obsDate"]["value"] = "2025-05-03"
     scoo = scb.build_sky_coord()
     scb = SkyCoordBuilder(mydict)
     assert scoo.obstime.jyear_str == "J2025.335"
-

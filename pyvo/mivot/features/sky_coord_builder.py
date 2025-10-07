@@ -21,16 +21,19 @@ class SkyCoordBuilder:
       it contains the information required to compute the epoch propagation which is a major use-case
     '''
 
-    def __init__(self, mivot_instance_dict):
+    def __init__(self, mivot_instance):
         '''
         Constructor
 
         parameters
         -----------
-        mivot_instance_dict: viewer.MivotInstance.to_dict()
-            Internal dictionary of the dynamic Python object generated from the MIVOT block
+        mivot_instance: dict or MivotInstance
+            Python object generated from the MIVOT block as either a Pyhon object or a dict
         '''
-        self._mivot_instance_dict = mivot_instance_dict
+        if isinstance(mivot_instance, dict):
+            self._mivot_instance_dict = mivot_instance
+        else:
+            self._mivot_instance_dict = mivot_instance.to_dict()
         self._map_coord_names = None
 
     def build_sky_coord(self):
