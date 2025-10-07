@@ -10,7 +10,6 @@ Instances of this class are built by `pyvo.mivot.viewer.mivot_viewer`.
 Although attribute values can be changed by users, this class is first
 meant to provide a convenient access the mapped VOTable data
 """
-from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.utils.dict_utils import DictUtils
@@ -75,9 +74,6 @@ class MivotInstance:
         """
 
         for key, value in kwargs.items():
-            # roles are used as key and the first element in a TEMPLATE has no role
-            if not key:
-                key = Constant.ROOT_OBJECT
             if isinstance(value, list):  # COLLECTION
                 setattr(self, self._remove_model_name(key), [])
                 for item in value:
@@ -186,6 +182,7 @@ class MivotInstance:
             The serializable dictionary representation of the input.
         """
 
+        # This case is likely not to occur because MIVOT does not support dictionaries
         if isinstance(obj, dict):
             data = {}
             for (k, v) in obj.items():

@@ -193,6 +193,7 @@ class EpochPositionAutoMapping:
     #: first word of UCD-s accepted to map the radial velocity
     radialVelocity = "spect.dopplerVeloc.opt"
 
+
 class SkyCoordMapping:
     """
     Mapping of the MANGO:EpochPositiob parameters to the SkyCoord parameters
@@ -203,11 +204,10 @@ class SkyCoordMapping:
         Roles.EpochPosition[3]: 'radial_velocity',
         Roles.EpochPosition[4]: 'pm_ra_cosdec', Roles.EpochPosition[5]: 'pm_dec',
         Roles.EpochPosition[6]: 'obstime'}
-    
+
     galactic_params = {
         Roles.EpochPosition[0]: 'l', Roles.EpochPosition[1]: 'b',
         Roles.EpochPosition[2]: 'distance',
-        Roles.EpochPosition[3]: 'radial_velocity', 
+        Roles.EpochPosition[3]: 'radial_velocity',
         Roles.EpochPosition[4]: 'pm_l_cosb', Roles.EpochPosition[5]: 'pm_b',
         Roles.EpochPosition[6]: 'obstime'}
-
