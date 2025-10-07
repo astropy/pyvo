@@ -1,11 +1,6 @@
-{
-  "COLLECTION": [
-    "coords:TimeSys",
-    "coords:SpaceSys",
-    "mango:coordinates.PhotometryCoordSys",
-    "ds:experiment.ObsDataset"
-  ],
-  "INSTANCE": [
-    "ds:experiment.Target"
-  ]
-}
+{"coords": "https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml",
+          "cube": "https://volute.g-vo.org/svn/trunk/projects/dm/Cube/vo-dml/Cube-1.0.vo-dml.xml",
+          "ds": "https://volute.g-vo.org/svn/trunk/projects/dm/DatasetMetadata/vo-dml/DatasetMetadata-1.0.vo-dml.xml",
+          "ivoa": "https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml",
+          "mango": "file:/Users/sao/Documents/IVOA/GitHub/ivoa-dm-examples/tmp/Mango-v1.0.vo-dml.xml",
+          "meas": "https://www.ivoa.net/xml/Meas/20200908/Meas-v1.0.vo-dml.xml"}
