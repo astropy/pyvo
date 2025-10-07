@@ -12,6 +12,9 @@ Enhancements and Fixes
 
 - Add retry option to AsyncTAPJob.fetch_result for transient failures [#696]
 
+- Improve the gateway between annotations and SkyCoord objects, simplify the viewer API (XML accessors removed),
+  support of mapping with multiple instances per row, revamp the viewer documentation. [#698]
+
 
 Deprecations and Removals
 -------------------------
