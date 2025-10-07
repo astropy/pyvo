@@ -61,12 +61,15 @@ class MivotViewer:
 
         Parameters
         ----------
-        votable_path : str, parsed VOTable or DALResults instance
-            VOTable that will be parsed with the parser of Astropy,
-            which extracts the annotation block.
+        DALResults, VOTableFile or votable_path : Reference of the VOTable from which Astropy,
+            will extracts the annotation block.
         tableref : str, optional
             Used to identify the table to process. If not specified,
             the first table is taken by default.
+        resolve_ref : boolean
+            Ask for references between MIVOT instances to be resolved (referenced instances
+            are copied into the host object). This is usually used to copy the coordinates
+            systems into the object that uses them.
         Parameters
         ----------
         resolve_ref : bool, optional
@@ -167,7 +170,8 @@ class MivotViewer:
                            first 'TEMPLATES' child, with the attribute values set according
                            to the values of the current read data row.
         """
-        return self._dm_instances[0]
+        dm_instances = self._dm_instances
+        return self.dm_instances[0] if dm_instances else None
 
     @property
     def dm_instances(self):
@@ -183,12 +187,15 @@ class MivotViewer:
     @property
     def dm_globals_instances(self):
         """
-        @@@@@@@@@
         Returns
         -------
            [MivotInstance]: The list of Python objects (MivotInstance) built from the XML views of
-                            the TEMPLATES children, whose attribute values are set from the values
+                            the GLOBALS children, whose attribute values are set from the values
                             of the current read data row.
+                            This method allows to retrieve the GLOBALS (coordinates systems usually)
+                            even when the viewer is in ``resolve_ref=False`` mode or if the reference
+                            to the coordinates systems have not been setup in the objects representing
+                            the mapped data.
         """
         return self._dm_globals_instances
 
@@ -225,25 +232,6 @@ class MivotViewer:
             return None
         return self.resource_seeker.get_table_ids()
 
-    def get_globals_models(self):
-        """
-        Get collection types in GLOBALS.
-        Collection types are GLOBALS/COLLECTION/INSTANCE@dmtype:
-        used for collections of static objects.
-
-        Returns
-        -------
-        dict
-            A dictionary containing the dmtypes of all the top-level INSTANCE/COLLECTION of GLOBALS.
-            The structure of the dictionary is {'COLLECTION': [dmtypes], 'INSTANCE': [dmtypes]}.
-        """
-        if self._annotation_seeker is None:
-            return None
-        globals_models = {}
-        globals_models[Ele.COLLECTION] = self._annotation_seeker.get_globals_collection_dmtypes()
-        globals_models[Ele.INSTANCE] = self._annotation_seeker.get_globals_instance_dmtypes()
-        return globals_models
-
     def get_models(self):
         """
         Get a dictionary of models and their URLs.
@@ -256,24 +244,6 @@ class MivotViewer:
         if self._annotation_seeker is None:
             return None
         return self._annotation_seeker.get_models()
-
-    def get_templates_models(self):
-        """
-        Get dmtypes (except ivoa:..) of all INSTANCE/COLLECTION of all TEMPLATES.
-        Note: COLLECTION not implemented yet.
-
-        Returns
-        -------
-        dict: A dictionary containing dmtypes of all INSTANCE/COLLECTION of all TEMPLATES.
-              The format is {'tableref': {'COLLECTIONS': [dmtypes], 'INSTANCE': [dmtypes]}, ...}.
-        """
-        if self._annotation_seeker is None:
-            return None
-        templates_models = {}
-        gni = self._annotation_seeker.get_instance_dmtypes()[Ele.TEMPLATES]
-        for tid, tmplids in gni.items():
-            templates_models[tid] = {Ele.COLLECTION: [], Ele.INSTANCE: tmplids}
-        return templates_models
 
     def next_table_row(self):
         """
@@ -294,7 +264,7 @@ class MivotViewer:
         if self._table_iterator:
             self._table_iterator.rewind()
 
-    def get_templates_child_instances(self, tableref=None):
+    def _get_templates_child_instances(self, tableref=None):
         """
         Returns
         -------
@@ -306,9 +276,9 @@ class MivotViewer:
         templates_block = self._annotation_seeker.get_templates_block(tableref)
         return XPath.x_path(templates_block, ".//" + Ele.INSTANCE)
 
-    def get_first_instance_dmtype(self, tableref):
+    def get_dm_instance_dmtypes(self, tableref):
         """
-        Return the dmtype of the head INSTANCE (first TEMPLATES child) of the
+        Return the dmtypes of the INSTANCEs children of the
         TEMPLATES block mapping the data table identified by tableref.
 
         Parameters
@@ -318,23 +288,26 @@ class MivotViewer:
 
         Returns
         -------
-        string
-            dmtype of the selected INSTANCE
+        [string]
+            list of dmtypes
 
         Raises
         ------
         MivotError
             if no INSTANCE can be found
         """
+        dmtypes = []
         templates_block = self._annotation_seeker.get_templates_block(tableref)
         instances = XPath.x_path(templates_block, ".//" + Ele.INSTANCE)
         for instance in instances:
-            return instance.get(Att.dmtype)
+            dmtypes.append(instance.get(Att.dmtype))
 
-        raise MivotError(
-            "Can't find the first " + Ele.INSTANCE
-            + " in " + Ele.TEMPLATES
-        )
+        if not dmtypes:
+            raise MivotError(
+                "Can't find " + Ele.INSTANCE
+                + " in " + Ele.TEMPLATES
+            )
+        return dmtypes
 
     def _connect_table(self, tableref=None):
         """
@@ -419,7 +392,7 @@ class MivotViewer:
         """
         if not self._dm_instances:
             self.next_table_row()
-            xml_instances = self.get_templates_child_instances(self.connected_table_ref)
+            xml_instances = self._get_templates_child_instances(self.connected_table_ref)
             self._dm_instances = []
             for xml_instance in xml_instances:
                 self._dm_instances.append(

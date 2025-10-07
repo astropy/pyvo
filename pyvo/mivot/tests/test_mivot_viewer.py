@@ -168,12 +168,14 @@ def test_get_first_instance_dmtype(path_to_first_instance):
     used to find the first INSTANCE/COLLECTION in TEMPLATES.
     """
     m_viewer = MivotViewer(votable_path=path_to_first_instance)
-    assert m_viewer.get_first_instance_dmtype("one_instance") == "one_instance"
-    assert m_viewer.get_first_instance_dmtype("some_instances") == "first"
-    with pytest.raises(Exception, match="Can't find the first INSTANCE in TEMPLATES"):
-        m_viewer.get_first_instance_dmtype("empty")
+    assert m_viewer.get_dm_instance_dmtypes("one_instance")[0] == "one_instance"
+    assert m_viewer.get_dm_instance_dmtypes("some_instances")[0] == "first"
+
+    with pytest.raises(Exception, match="Can't find INSTANCE in TEMPLATES"):
+        m_viewer.get_dm_instance_dmtypes("empty")
+
     with pytest.raises(Exception, match="No TEMPLATES with tableref=not_existing_tableref"):
-        m_viewer.get_first_instance_dmtype("not_existing_tableref")
+        m_viewer.get_dm_instance_dmtypes("not_existing_tableref")
 
 
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
@@ -204,10 +206,9 @@ def test_global_getters(m_viewer):
     Test each getter for TEMPLATES of the model_viewer.
     """
     assert m_viewer.get_table_ids() == ['_PKTable', 'Results']
-    assert m_viewer.get_globals_models() == DictUtils.read_dict_from_file(
+    assert m_viewer.get_models() == DictUtils.read_dict_from_file(
         get_pkg_data_filename("data/reference/globals_models.json"))
-    assert m_viewer.get_templates_models() == DictUtils.read_dict_from_file(
-        get_pkg_data_filename("data/reference/templates_models.json"))
+
     m_viewer._connect_table('_PKTable')
     row = m_viewer.next_table_row()
     assert row[0] == '5813181197970338560'
@@ -228,9 +229,8 @@ def test_no_mivot(path_no_mivot):
     """
     m_viewer = MivotViewer(path_no_mivot)
     assert m_viewer.get_table_ids() is None
-    assert m_viewer.get_globals_models() is None
+    assert m_viewer.get_models() is None
 
-    assert m_viewer.get_templates_models() is None
     with pytest.raises(MappingError):
         m_viewer._connect_table('_PKTable')
     with pytest.raises(MappingError):
