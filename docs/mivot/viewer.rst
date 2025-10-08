@@ -32,7 +32,7 @@ These objects can be used as standard Python instances, with the fields represen
 They can also be used as Python dictionaries (provided by the ``to_dict()`` method), with the keys
 representing the model elements. 
 
-The code below, based on the processing of a cone-search query result, demonstrates both uses.
+The code below, based on the processing of a cone-search output, demonstrates both uses.
 
 The first step is to instanciate a viewer that will provide the API for browsing annotations.
 The viewer can be built from a VOTable file path, a parsed VOtable (``VOTableFile`` object),
@@ -61,8 +61,8 @@ or a ``DALResults`` instance.
        resolve_ref=True
        )
 
-In this example, the query result is mapped to the 'mango:EpochPosition' class,
-but users do not need to know this in advance, since the API provides a way
+In this example, the query result is mapped to the ``mango:EpochPosition`` class,
+but users do not need to know this in advance, since the API provides tools
 to discover the mapped models.
 
 .. code-block:: python
@@ -73,7 +73,7 @@ to discover the mapped models.
 	
    data is mapped to the MANGO data model
 
-We can also check which classes the data is mapped to.
+We can also check which datamodel classes the data is mapped to.
 
 .. code-block:: python
 
@@ -103,11 +103,10 @@ and that the data rows can be interpreted as instances of the ``mango:EpochPosit
     
 .. important::
 	
-   The coordinate systems are usually mapped in the GLOBALS MIVOT block. 
+   Coordinate systems are usually mapped in the GLOBALS MIVOT block. 
    This allows them to be referenced from any other MIVOT element. 
-   These references are resolved by copying the coordinate system instance
-   into the host element when the viewer's ``resolve_ref`` flag (constructor parameter) 
-   is True.    
+   The viewer resolves such references when the constructor flag ``resolve_ref`` is set to ``True``.
+   In this case the coordinate system instances are copied into their host elements.    
 
 The code below shows how to access GLOBALS instances independently of the mapped data.
 
@@ -166,11 +165,11 @@ using the ``to_dict()`` property of ``MivotInstance``.
         },
     }
 
-The ``to_hk_dict()`` method adds references to the mapped columns to the model leaves.
+The ``to_hk_dict()`` method extends the model leaves with the references of the mapped columns.
 
 - It is recommended to work with deepcopies of the
   dictionaries as they are rebuilt each time the ``to_dict()`` property is invoked.
-- The default representation of ``MivotInstance`` instances is made with a pretty
+- The Python representation (``__repr__()``) of ``MivotInstance`` instances is made with a pretty
   string serialization of this dictionary.
 
 Per-Row Readout
@@ -186,23 +185,21 @@ with the `astropy.io.votable` API:
     # init the viewer
     mivot_viewer = MivotViewer(votable, resource_number=0)
     mivot_object = mivot_viewer.dm_instance
-    # and feed it with the table row
-    read = []
+    # and feed it with the numpy table row
     for rec in table.array:
+        # apply the mapping to current row
         mivot_object.update(rec)
-        read.append(mivot_object.longitude.value)
         # show that the model retrieve the correct values
+        # ... or do whatever you want 
         assert rec["RAICRS"] == mivot_object.longitude.value
         assert rec["DEICRS"] == mivot_object.latitude.value
-
-In this case, it is up to the user to ensure that the read data rows are those mapped by the Mivot annotations.
 
 Mivot/Mango as a Direct Gateway from Data to Astropy SkyCoord
 -------------------------------------------------------------
 
-A straightforward way to make the most of the annotations is to use
-them to build Astropy objects directly, without analysing the metadata,
-whether from the annotation or the VOTable.
+A simple way to get the most out of annotations is to use them
+to directly create Astropy objects, without having to parse the metadata,
+whether it comes from the annotation or the VOTable.
 
 .. code-block:: python
 
@@ -224,10 +221,10 @@ If this is not the case, an error is raised.
 
 .. important::
 	
-	In the current implementation, the gateway only works from ``mango:EpochPosition`` objects 
-	to the ``SkyCoord`` class. In future. We plan to use the same mechanism to instantiate 
-	any property modelled by ``Mango``, as well as potentially other IVOA models.
-
+   In the current implementation, the only functioning gateway connects 
+   ``Mango::EpochPosition`` objects with the ``SkyCoord`` class. In future,
+   we will implement the same mechanism for any property modelled by Mango,
+   as well as potentially for other IVOA models.
 
 Class Generation in a Nutshell
 ------------------------------
@@ -274,6 +271,9 @@ identifiers, which have the following structure: ``model:a.b``.
 
    print(mivot_instance.Coordinate_coordSys.spaceRefFrame.__dict__.keys())
    dict_keys(['dmtype', 'value', 'unit', 'ref'])
+
+
+*More examples can be found* :ref:`here <mivot-examples>`.
 
 Reference/API
 =============

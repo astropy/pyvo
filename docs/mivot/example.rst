@@ -1,3 +1,5 @@
+.. _mivot-examples:
+
 ************************************************************
 MIVOT (``pyvo.mivot``): How to use annotated data - Examples
 ************************************************************
@@ -282,4 +284,4 @@ It's a good case to exercise this API.
        MAXREC=MAXREC)
 
 
-The next section provides some tips to use the API documented in the :ref:`annoter page <mivot-annoter>`.
+*The next section provides some tips to use the API documented in the* :ref:`annoter page <mivot-annoter>`.
