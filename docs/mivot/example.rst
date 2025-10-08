@@ -2,7 +2,7 @@
 MIVOT (``pyvo.mivot``): How to use annotated data - Examples
 ************************************************************
 
-Photometric properties readout
+Photometric Properties Readout
 ==============================
 
 This example is based on VOTables provided by the ``XTapDB`` service.
@@ -132,7 +132,7 @@ It is to be noted that the current table row keeps available through the Mivot v
 
    The same client code can be reused in many places with many datasets, provided they are annotated.
 
-EpochPosition property readout
+EpochPosition Property Readout
 ==============================
 
 This example is based on a VOtable resulting on a Vizier cone search.

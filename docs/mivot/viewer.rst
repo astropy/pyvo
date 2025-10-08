@@ -197,7 +197,7 @@ with the `astropy.io.votable` API:
 
 In this case, it is up to the user to ensure that the read data rows are those mapped by the Mivot annotations.
 
-Mivot/Mango as a direct gateway from data to astropy SkyCoord
+Mivot/Mango as a Direct Gateway from Data to Astropy SkyCoord
 -------------------------------------------------------------
 
 A straightforward way to make the most of the annotations is to use
