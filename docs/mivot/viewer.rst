@@ -23,6 +23,10 @@ Introduction
 Using the API
 =============
 
+ .. attention::
+	The module based on XPath queries and allowing to browse the XML
+	annotations (``viewer.XmlViewer``)  has been removed from version 1.8
+	
 Integrated Readout
 ------------------
 The ``ModelViewer`` module manages access to data mapped to a model through dynamically

@@ -303,10 +303,7 @@ class MivotViewer:
             dmtypes.append(instance.get(Att.dmtype))
 
         if not dmtypes:
-            raise MivotError(
-                "Can't find " + Ele.INSTANCE
-                + " in " + Ele.TEMPLATES
-            )
+            raise MivotError("Can't find " + Ele.INSTANCE + " in " + Ele.TEMPLATES)
         return dmtypes
 
     def _connect_table(self, tableref=None):
