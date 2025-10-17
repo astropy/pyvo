@@ -8,8 +8,6 @@ Enhancements and Fixes
 
 - Add support for the jobInfo element for UWS jobs [#679]
 
-- Fix job result handling to prioritize standard URL structure [#684]
-
 - Fix DALOverflowWarning error message to only indicate the cause as limits from user or server. [#689]
 
 - Add retry option to AsyncTAPJob.fetch_result for transient failures [#696]
@@ -19,11 +17,15 @@ Deprecations and Removals
 -------------------------
 
 
-1.7.1 (unreleased)
+1.7.1 (2025-10-16)
 ==================
 
 Bug Fixes
 ---------
+
+- Fix job result handling to prioritize standard URL structure [#684]
+
+- Improving error messaging for invalid SIAv2 inputs. [#693]
 
 
 1.7 (2025-06-01)
