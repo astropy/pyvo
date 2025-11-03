@@ -196,7 +196,7 @@ class EpochPositionAutoMapping:
 
 class SkyCoordMapping:
     """
-    Mapping of the MANGO:EpochPositiob parameters to the SkyCoord parameters
+    Mapping of the MANGO:EpochPosition parameters to the SkyCoord parameters
     """
     default_params = {
         Roles.EpochPosition[0]: 'ra', Roles.EpochPosition[1]: 'dec',

@@ -143,13 +143,13 @@ which models a full source's  astrometry at a given date.
 
 
 .. warning::
-   At the time of writing, Vizier only mapped positions and proper motions (when  available),
+   At the time of writing (Q1 2025), Vizier only mapped positions and proper motions (when  available),
    and the definitive epoch class had not been adopted.
    Therefore, this implementation may differ a little bit from the standard model.
 
    Vizier does not wrap the source properties in a MANGO object,
    but rather lists them in the Mivot *TEMPLATES*.
-   The annotation reader must support both designs.
+   The annotation reader supports both designs.
 
 In the first step below, we run a standard cone search query by using the standard PyVO API.
 
@@ -173,7 +173,7 @@ In the first step below, we run a standard cone search query by using the standa
         pos=SkyCoord(ra=52.26708 * u.degree, dec=59.94027 * u.degree, frame='icrs'),
         radius=0.5)
 
-   # The MIVOt viewer generates the model view of the data
+   # The MIVOT viewer generates the model view of the data
    m_viewer = MivotViewer(query_result, resolve_ref=True)
 
 Once the query is finished, we can get a reference to the object that will process the Mivot annotations.
@@ -247,8 +247,9 @@ You can explore the structure of this object by using standard object paths or b
 .. code-block:: python
 
    while m_viewer.next_row_view():
+      mango_property = m_viewer.dm_instance
       if mango_property.dmtype == "mango:EpochPosition":
-          scb = SkyCoordBuilder(mango_property.to_dict())
+          scb = SkyCoordBuilder(mango_property)
           # do whatever process with the SkyCoord object
           print(scb.build_sky_coord())
 
@@ -274,13 +275,15 @@ It's a good case to exercise this API.
    DEC = 4.6933649* u.degree
    SR = 0.1* u.degree
    MAXREC = 100
+   RESPONSEFORMAT = "mivot"
    
    scs_srv = SCSService(SERVER)
 
    query_result = scs_srv.search(
-       pos=SkyCoord(ra=RA, dec=DEC, frame='icrs'), radius=SR
+       pos=SkyCoord(ra=RA, dec=DEC, frame='icrs'),
+       radius=SR,
        verbosity=VERB,
-       RESPONSEFORMAT="mivot",
+       RESPONSEFORMAT=RESPONSEFORMAT,
        MAXREC=MAXREC)
 
 

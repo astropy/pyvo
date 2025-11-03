@@ -44,6 +44,7 @@ or a ``DALResults`` instance.
 
 .. code-block:: python
 
+   import pytest
    import astropy.units as u
    from astropy.coordinates import SkyCoord
    from pyvo.dal.scs import SCSService
@@ -116,7 +117,7 @@ The code below shows how to access GLOBALS instances independently of the mapped
 
 .. code-block:: python
 
-   for globals_instance in globals_instances:
+   for globals_instance in m_viewer.dm_globals_instances():
        print(globals_instance)
        
 .. code-block:: json
@@ -148,7 +149,7 @@ using the ``to_dict()`` property of ``MivotInstance``.
 
    from pyvo.mivot.utils.dict_utils import DictUtils
 
-    mivot_instance = m_viewer.dm_instance
+    mivot_object = m_viewer.dm_instance
     mivot_object_dict = mivot_object.to_dict()
     DictUtils.print_pretty_json(mivot_object_dict)
  
@@ -171,7 +172,7 @@ using the ``to_dict()`` property of ``MivotInstance``.
 
 The ``to_hk_dict()`` method extends the model leaves with the references of the mapped columns.
 
-- It is recommended to work with deepcopies of the
+- It is recommended to work with deep copies of the
   dictionaries as they are rebuilt each time the ``to_dict()`` property is invoked.
 - The Python representation (``__repr__()``) of ``MivotInstance`` instances is made with a pretty
   string serialization of this dictionary.
@@ -268,13 +269,13 @@ identifiers, which have the following structure: ``model:a.b``.
    mivot_instance = mivot_viewer.dm_instance
 
    print(mivot_instance.__dict__.keys())
-   dict_keys(['dmtype', 'longitude', 'latitude', 'pmLongitude', 'pmLatitude', 'epoch', 'Coordinate_coordSys'])
+   # dict_keys(['dmtype', 'longitude', 'latitude', 'pmLongitude', 'pmLatitude', 'epoch', 'Coordinate_coordSys'])
 
    print(mivot_instance.Coordinate_coordSys.__dict__.keys())
-   dict_keys(['dmtype', 'dmid', 'dmrole', 'spaceRefFrame'])
+   # dict_keys(['dmtype', 'dmid', 'dmrole', 'spaceRefFrame'])
 
    print(mivot_instance.Coordinate_coordSys.spaceRefFrame.__dict__.keys())
-   dict_keys(['dmtype', 'value', 'unit', 'ref'])
+   # dict_keys(['dmtype', 'value', 'unit', 'ref'])
 
 
 *More examples can be found* :ref:`here <mivot-examples>`.
