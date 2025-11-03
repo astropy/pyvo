@@ -130,7 +130,7 @@ class SkyCoordBuilder:
         -------
         Time instance or None
         """
-        if representation in ["year", "yr", "y"]:
+        if representation in ("year", "yr", "y"):
             # it the timestamp is numeric, we infer its format from the besselian flag
             if isinstance(timestamp, numbers.Number):
                 return Time(f"{('B' if besselian else 'J')}{timestamp}",
@@ -155,16 +155,10 @@ class SkyCoordBuilder:
                     return Time(f"J{timestamp}", format="jyear_str")
             # no case matches
             return None
-        # in the following cases, the calendar (B or J) is givent by the besselian flag
+        # in the following cases, the calendar (B or J) is given by the besselian flag
         # We force to use the  string representation to avoid breaking unit tests.
-        elif representation == "mjd":
-            time = Time(f"{timestamp}", format="mjd")
-            return (Time(time.byear_str) if besselian else time)
-        elif representation == "jd":
-            time = Time(f"{timestamp}", format="jd")
-            return (Time(time.byear_str) if besselian else time)
-        elif representation == "iso":
-            time = Time(f"{timestamp}", format="iso")
+        elif representation in ("mjd", "jd", "iso"):
+            time = Time(f"{timestamp}", format=representation)
             return (Time(time.byear_str) if besselian else time)
 
         return None
