@@ -207,6 +207,7 @@ to directly create Astropy objects, without having to parse the metadata,
 whether it comes from the annotation or the VOTable.
 
 .. code-block:: python
+
     from pyvo.mivot.features.sky_coord_builder import SkyCoordBuilder
 
     m_viewer.rewind()

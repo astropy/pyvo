@@ -61,7 +61,7 @@ class MivotViewer:
 
         Parameters
         ----------
-        votable_path : str, DALResults, VOTableFile 
+        votable_path : str, DALResults, VOTableFile
             Reference of the VOTable from which Astropy will extracts the annotation block
         tableref : str, optional
             Used to identify the table to process. If not specified,
