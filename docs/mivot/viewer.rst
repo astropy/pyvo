@@ -187,8 +187,8 @@ with the `astropy.io.votable` API:
 
     votable = parse(path_to_votable)
     table = votable.resources[0].tables[0]
-    # init the viewer
-    mivot_viewer = MivotViewer(votable, resource_number=0)
+    # init the viewer on the first resource of the votable (default)
+    mivot_viewer = MivotViewer(votable)
     mivot_object = mivot_viewer.dm_instance
     # and feed it with the numpy table row
     for rec in table.array:
