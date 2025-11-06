@@ -117,7 +117,7 @@ The code below shows how to access GLOBALS instances independently of the mapped
 
 .. code-block:: python
 
-   for globals_instance in m_viewer.dm_globals_instances():
+   for globals_instance in m_viewer.dm_globals_instances:
        print(globals_instance)
        
 .. code-block:: json
