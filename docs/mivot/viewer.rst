@@ -61,7 +61,7 @@ or a ``DALResults`` instance.
        scs_srv.search(
             pos=SkyCoord(ra=52.26708 * u.degree, dec=59.94027 * u.degree,
                          frame='icrs'),
-            radius=0.05
+            radius=0.1
             ),
        resolve_ref=True
        )
@@ -207,6 +207,7 @@ to directly create Astropy objects, without having to parse the metadata,
 whether it comes from the annotation or the VOTable.
 
 .. code-block:: python
+    from pyvo.mivot.features.sky_coord_builder import SkyCoordBuilder
 
     m_viewer.rewind()
     while m_viewer.next_row_view():
