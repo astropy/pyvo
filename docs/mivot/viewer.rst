@@ -42,69 +42,67 @@ The first step is to instanciate a viewer that will provide the API for browsing
 The viewer can be built from a VOTable file path, a parsed VOtable (``VOTableFile`` object),
 or a ``DALResults`` instance.
 
-.. code-block:: python
+.. doctest-remote-data::
 
-   import pytest
-   import astropy.units as u
-   from astropy.coordinates import SkyCoord
-   from pyvo.dal.scs import SCSService
-   from pyvo.utils.prototype import activate_features
-   from pyvo.mivot.version_checker import check_astropy_version
-   from pyvo.mivot.viewer.mivot_viewer import MivotViewer
+    >>> import pytest
+    >>> import astropy.units as u
+    >>> from astropy.coordinates import SkyCoord
+    >>> from pyvo.dal.scs import SCSService
+    >>> from pyvo.utils.prototype import activate_features
+    >>> from pyvo.mivot.version_checker import check_astropy_version
+    >>> from pyvo.mivot.viewer.mivot_viewer import MivotViewer
    
-   activate_features("MIVOT")
-   if check_astropy_version() is False:
-       pytest.skip("MIVOT test skipped because of the astropy version.")
+    >>> activate_features("MIVOT")
+    >>> if check_astropy_version() is False:
+    >>>    pytest.skip("MIVOT test skipped because of the astropy version.")
        
-   scs_srv = SCSService("https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main")
-   m_viewer = MivotViewer(
-       scs_srv.search(
-            pos=SkyCoord(ra=52.26708 * u.degree, dec=59.94027 * u.degree,
-                         frame='icrs'),
-            radius=0.1
-            ),
-       resolve_ref=True
-       )
+    >>> scs_srv = SCSService("https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main")
+    >>> m_viewer = MivotViewer(
+    ...     scs_srv.search(
+    ...         pos=SkyCoord(ra=52.26708 * u.degree, dec=59.94027 * u.degree,
+    ...                      frame='icrs'),
+    ...         radius=0.1
+    ...         ),
+    ...     resolve_ref=True
+    ... )
 
 In this example, the query result is mapped to the ``mango:EpochPosition`` class,
 but users do not need to know this in advance, since the API provides tools
 to discover the mapped models.
 
-.. code-block:: python
+.. doctest-skip::
 	
-   if m_viewer.get_models().get("mango"):
-       print("data is mapped to the MANGO data model")      
-.. code-block:: text
-	
+   >>> if m_viewer.get_models().get("mango"):
+   >>>     print("data is mapped to the MANGO data model")      	
    data is mapped to the MANGO data model
 
 We can also check which datamodel classes the data is mapped to.
 
-.. code-block:: python
+.. doctest-skip::
 
-   mivot_instances = m_viewer.dm_instances
-   print(f"data is mapped to {len(mivot_instances)} model class(es)")
-   mivot_instance = m_viewer.dm_instances[0]
-   print(f"data is mapped to the {mivot_instance.dmtype} class")
-.. code-block:: text
-	
-   data is mapped to 1 model clsss(es)
+   >>> mivot_instances = m_viewer.dm_instances
+   >>> print(f"data is mapped to {len(mivot_instances)} model class(es)")
+   data is mapped to 1 model class(es)
+
+.. doctest-skip::
+
+   >>> mivot_instance = m_viewer.dm_instances[0]
+   >>> print(f"data is mapped to the {mivot_instance.dmtype} class")
    data is mapped to the mango:EpochPosition class
 
 At this point, we know that the data has been mapped to the ``MANGO`` model,
 and that the data rows can be interpreted as instances of the ``mango:EpochPosition``. 
 
-.. code-block:: python
+.. doctest-skip::
 	
-   print(mivot_instance.spaceSys.frame.spaceRefFrame.value)
-   while m_viewer.next_row_view():
-      print(f"position: {mivot_instance.latitude.value} {mivot_instance.longitude.value}")
-
-.. code-block:: text
-	
+   >>> print(mivot_instance.spaceSys.frame.spaceRefFrame.value)
    ICRS
+
+.. doctest-skip::
+
+   >>> while m_viewer.next_row_view():
+   >>>     print(f"position: {mivot_instance.latitude.value} {mivot_instance.longitude.value}")
    position: 59.94033461 52.26722684
-   ...
     
 .. important::
 	
@@ -113,16 +111,13 @@ and that the data rows can be interpreted as instances of the ``mango:EpochPosit
    The viewer resolves such references when the constructor flag ``resolve_ref`` is set to ``True``.
    In this case the coordinate system instances are copied into their host elements.    
 
-The code below shows how to access GLOBALS instances independently of the mapped data.
+The code below shows how to access GLOBALS instances (one in the example) independently of the mapped data.
 
-.. code-block:: python
+.. doctest-skip::
 
-   for globals_instance in m_viewer.dm_globals_instances:
-       print(globals_instance)
-       
-.. code-block:: json
-	
-    {
+   >>> for globals_instance in m_viewer.dm_globals_instances:
+   >>>    print(globals_instance)
+   {
       "dmtype": "coords:SpaceSys",
       "dmid": "SpaceFrame_ICRS",
       "frame": {
@@ -145,17 +140,14 @@ This is because they contain additional metadata as well as values:
 The model view on a data row can also be passed as a Python dictionary
 using the ``to_dict()`` property of ``MivotInstance``.
 
-.. code-block:: python
+.. doctest-skip::
 
-   from pyvo.mivot.utils.dict_utils import DictUtils
-
-    mivot_object = m_viewer.dm_instance
-    mivot_object_dict = mivot_object.to_dict()
-    DictUtils.print_pretty_json(mivot_object_dict)
- 
-.. code-block:: json
-	
-	{
+   >>> from pyvo.mivot.utils.dict_utils import DictUtils
+   >>>
+   >>> mivot_object = m_viewer.dm_instance
+   >>> mivot_object_dict = mivot_object.to_dict()
+   >>> DictUtils.print_pretty_json(mivot_object_dict)
+   {
         "dmtype": "EpochPosition",
         "longitude": {"value": 359.94372764, "unit": "deg"},
         "latitude": {"value": -0.28005255, "unit": "deg"},
@@ -168,7 +160,7 @@ using the ``to_dict()`` property of ``MivotInstance``.
             "dmrole": "coordSys",
             "spaceRefFrame": {"value": "ICRS"},
         },
-    }
+   }
 
 The ``to_hk_dict()`` method extends the model leaves with the references of the mapped columns.
 
@@ -183,21 +175,21 @@ Per-Row Readout
 The annotation schema can also be applied to table rows read outside of the ``MivotViewer``
 with the `astropy.io.votable` API:
 
-.. code-block:: python
+.. doctest-skip::
 
-    votable = parse(path_to_votable)
-    table = votable.resources[0].tables[0]
-    # init the viewer on the first resource of the votable (default)
-    mivot_viewer = MivotViewer(votable)
-    mivot_object = mivot_viewer.dm_instance
-    # and feed it with the numpy table row
-    for rec in table.array:
-        # apply the mapping to current row
-        mivot_object.update(rec)
-        # show that the model retrieve the correct values
-        # ... or do whatever you want 
-        assert rec["RAICRS"] == mivot_object.longitude.value
-        assert rec["DEICRS"] == mivot_object.latitude.value
+    >>> votable = parse(path_to_votable)
+    >>> table = votable.resources[0].tables[0]
+    >>> # init the viewer on the first resource of the votable (default)
+    >>> mivot_viewer = MivotViewer(votable)
+    >>> mivot_object = mivot_viewer.dm_instance
+    >>> # and feed it with the numpy table row
+    >>> for rec in table.array:
+    >>>     # apply the mapping to current row
+    >>>     mivot_object.update(rec)
+    >>>     # show that the model retrieve the correct values
+    >>>     # ... or do whatever you want 
+    >>>     assert rec["RAICRS"] == mivot_object.longitude.value
+    >>>     assert rec["DEICRS"] == mivot_object.latitude.value
 
 Mivot/Mango as a Direct Gateway from Data to Astropy SkyCoord
 -------------------------------------------------------------
@@ -206,18 +198,15 @@ A simple way to get the most out of annotations is to use them
 to directly create Astropy objects, without having to parse the metadata,
 whether it comes from the annotation or the VOTable.
 
-.. code-block:: python
+.. doctest-skip::
 
-    from pyvo.mivot.features.sky_coord_builder import SkyCoordBuilder
-
-    m_viewer.rewind()
-    while m_viewer.next_row_view():
-        sky_coord_builder = SkyCoordBuilder(mivot_instance)
-        sky_coord = sky_coord_builder.build_sky_coord()
-        print(sky_coord)
-
-.. code-block:: text
-	
+    >>> from pyvo.mivot.features.sky_coord_builder import SkyCoordBuilder
+    >>> 
+    >>> m_viewer.rewind()
+    >>> while m_viewer.next_row_view():
+    >>>     sky_coord_builder = SkyCoordBuilder(mivot_instance)
+    >>>     sky_coord = sky_coord_builder.build_sky_coord()
+    >>>     print(sky_coord)
     <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, pc)
         (52.26722684, 59.94033461, 1315.7894902)
      (pm_ra_cosdec, pm_dec) in mas / yr
@@ -227,12 +216,13 @@ In the above example, we assume that the mapped model can be used as a ``SkyCoor
 If this is not the case, an error is raised.
 
 .. important::
-	
-   In the current implementation, the only functioning gateway connects 
-   ``Mango::EpochPosition`` objects with the ``SkyCoord`` class. In future,
-   we will implement the same mechanism for any property modelled by Mango,
-   as well as potentially for other IVOA models.
 
+   In the current implementation, the only functioning gateway connects 
+   ``Mango::EpochPosition`` objects with the ``SkyCoord`` class. 
+   The ultimate objective is to generalize this mechanism to any property modeled by Mango,
+   and eventually to other IVOA models, thereby realizing the full potential
+   of a comprehensive and interoperable mapping framework.
+  
 Class Generation in a Nutshell
 ------------------------------
 
@@ -266,18 +256,21 @@ identifiers, which have the following structure: ``model:a.b``.
   - 2.  From the internal  class dictionary ``MivotInstance.__dict__``
         (see the Python `data model <https://docs.python.org/3/reference/datamodel.html>`_).
 
-.. code-block:: python
+.. doctest-skip::
 
-   mivot_instance = mivot_viewer.dm_instance
+   >>> mivot_instance = mivot_viewer.dm_instance
+   >>> print(mivot_instance.__dict__.keys())
+   dict_keys(['dmtype', 'longitude', 'latitude', 'pmLongitude', 'pmLatitude', 'epoch', 'Coordinate_coordSys'])
 
-   print(mivot_instance.__dict__.keys())
-   # dict_keys(['dmtype', 'longitude', 'latitude', 'pmLongitude', 'pmLatitude', 'epoch', 'Coordinate_coordSys'])
+.. doctest-skip::
 
-   print(mivot_instance.Coordinate_coordSys.__dict__.keys())
-   # dict_keys(['dmtype', 'dmid', 'dmrole', 'spaceRefFrame'])
+   >>> print(mivot_instance.Coordinate_coordSys.__dict__.keys())
+   dict_keys(['dmtype', 'dmid', 'dmrole', 'spaceRefFrame'])
 
-   print(mivot_instance.Coordinate_coordSys.spaceRefFrame.__dict__.keys())
-   # dict_keys(['dmtype', 'value', 'unit', 'ref'])
+.. doctest-skip::
+
+   >>> print(mivot_instance.Coordinate_coordSys.spaceRefFrame.__dict__.keys())
+   dict_keys(['dmtype', 'value', 'unit', 'ref'])
 
 
 *More examples can be found* :ref:`here <mivot-examples>`.
