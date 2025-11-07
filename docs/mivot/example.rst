@@ -24,32 +24,31 @@ to tell the server to annotate the queried data.
 
 (*Please read the comment inside the code snippet carefully to fully understand the process*)
 
-.. code-block:: python
+.. doctest-skip::
 
-   import pytest
-   from pyvo.utils import activate_features
-   from pyvo.dal import TAPService
-   from pyvo.mivot.utils.xml_utils import XmlUtils
-   from pyvo.mivot.utils.dict_utils import DictUtils
-   from pyvo.mivot.viewer.mivot_viewer import MivotViewer
-
-   # Enable MIVOT-specific features in the pyvo library
-   activate_features("MIVOT")
-
-   service = TAPService('https://xcatdb.unistra.fr/xtapdb')
-   result = service.run_sync(
-        """
-        SELECT TOP 5 * FROM "public".mergedentry
-        """,
-        format="application/x-votable+xml;content=mivot"
-        )
-
-   # The MIVOT viewer generates the model view of the data
-   m_viewer = MivotViewer(result, resolve_ref=True)
-
-   # Print out the Mivot annotations read out of the VOtable
-   # This statement is just for a pedagogic purpose (access to a private attribute)
-   XmlUtils.pretty_print(m_viewer._mapping_block)
+   >>> import pytest
+   >>> from pyvo.utils import activate_features
+   >>> from pyvo.dal import TAPService
+   >>> from pyvo.mivot.utils.xml_utils import XmlUtils
+   >>> from pyvo.mivot.viewer.mivot_viewer import MivotViewer
+   >>> 
+   >>> # Enable MIVOT-specific features in the pyvo library
+   >>> activate_features("MIVOT")
+   >>>
+   >>> service = TAPService('https://xcatdb.unistra.fr/xtapdb')
+   >>> result = service.run_sync(
+   ...     """
+   ...     SELECT TOP 5 * FROM "public".mergedentry
+   ...     """,
+   ...     format="application/x-votable+xml;content=mivot"
+   ...     )
+   >>>
+   >>> # The MIVOT viewer generates the model view of the data
+   >>> m_viewer = MivotViewer(result, resolve_ref=True)
+   >>> 
+   >>> # Print out the Mivot annotations read out of the VOtable
+   >>> # This statement is just for a pedagogic purpose (access to a private attribute)
+   >>> XmlUtils.pretty_print(m_viewer._mapping_block)
 
 
 In this first step we just queried the service and we built the object that will process the Mivot annotations.
@@ -73,37 +72,31 @@ in order to construct a Python object that reflects the mapped model.
    # which leaves are set with the values of the first row
    mango_object = m_viewer.dm_instance
 
-   # Print out the content of the Python object
-   # This statement is just for a pedagogic purpose
-   DictUtils.print_pretty_json(mango_object.to_dict())
+   # Print out the json serializaton of the Python object
+   print(mango_object)
 
 The annotations are consumed by this dynamic Python object which leaves are set with the data of the current row.
-You can explore the structure of this object by using the printed dictionary or standard object paths as shown below.
+You can explore the structure of this object by using the standard object paths as shown below.
 
 Now, we can iterate through the table data and retrieve an updated Mivot instance for each row.
 
-.. code-block:: python
+.. doctest-skip::
 
-   while m_viewer.next_row_view():
-       if mango_object.dmtype == "mango:MangoObject":
-           print(f"Read source {mango_object.identifier.value} {mango_object.dmtype}")
-           for mango_property in mango_object.propertyDock:
-               if  mango_property.dmtype == "mango:Brightness":
-                   if mango_property.value.value:
-                       mag_value = mango_property.value.value
-                       mag_error = mango_property.error.sigma.value
-                       phot_cal = mango_property.photCal
-                       spectral_location = phot_cal.photometryFilter.spectralLocation
-                       mag_filter = phot_cal.identifier.value
-                       spectral_location = phot_cal.photometryFilter.spectralLocation
-                       mag_wl = spectral_location.value.value
-                       sunit = spectral_location.unitexpression.value
-
-                       print(f"  flux at {mag_wl} {sunit} (filter {mag_filter}) is {mag_value:.2e} +/- {mag_error:.2e}")
-
-
-.. code-block:: text
-
+   >>> while m_viewer.next_row_view():
+   >>>     if mango_object.dmtype == "mango:MangoObject":
+   >>>         print(f"Read source {mango_object.identifier.value} {mango_object.dmtype}")
+   >>>         for mango_property in mango_object.propertyDock:
+   >>>             if  mango_property.dmtype == "mango:Brightness":
+   >>>                 if mango_property.value.value:
+   >>>                     mag_value = mango_property.value.value
+   >>>                     mag_error = mango_property.error.sigma.value
+   >>>                     phot_cal = mango_property.photCal
+   >>>                     spectral_location = phot_cal.photometryFilter.spectralLocation
+   >>>                     mag_filter = phot_cal.identifier.value
+   >>>                     spectral_location = phot_cal.photometryFilter.spectralLocation
+   >>>                     mag_wl = spectral_location.value.value
+   >>>                     sunit = spectral_location.unitexpression.value
+   >>>                     print(f"  flux at {mag_wl} {sunit} (filter {mag_filter}) is {mag_value:.2e} +/- {mag_error:.2e}")
    Read source 4XMM J054329.3-682106 mango:MangoObject
       flux at 0.35 keV (filter XMM/EPIC/EB1) is 8.35e-14 +/- 3.15e-14
       flux at 0.75 keV (filter XMM/EPIC/EB2) is 3.26e-15 +/- 5.45e-15
@@ -153,46 +146,41 @@ which models a full source's  astrometry at a given date.
 
 In the first step below, we run a standard cone search query by using the standard PyVO API.
 
-.. code-block:: python
+.. doctest-skip::
 
-   import pytest
-   import astropy.units as u
-   from astropy.coordinates import SkyCoord
-   from pyvo.dal.scs import SCSService
-   from pyvo.utils import activate_features
-   from pyvo.mivot.viewer.mivot_viewer import MivotViewer
-   from pyvo.mivot.features.sky_coord_builder import SkyCoordBuilder
-   from pyvo.mivot.utils.dict_utils import DictUtils
-
-   # Enable MIVOT-specific features in the pyvo library
-   activate_features("MIVOT")
-
-   scs_srv = SCSService("https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main")
-
-   query_result = scs_srv.search(
-        pos=SkyCoord(ra=52.26708 * u.degree, dec=59.94027 * u.degree, frame='icrs'),
-        radius=0.5)
-
-   # The MIVOT viewer generates the model view of the data
-   m_viewer = MivotViewer(query_result, resolve_ref=True)
+   >>> import pytest
+   >>> import astropy.units as u
+   >>> from astropy.coordinates import SkyCoord
+   >>> from pyvo.dal.scs import SCSService
+   >>> from pyvo.utils import activate_features
+   >>> from pyvo.mivot.viewer.mivot_viewer import MivotViewer
+   >>> from pyvo.mivot.features.sky_coord_builder import SkyCoordBuilder
+   >>> 
+   >>> # Enable MIVOT-specific features in the pyvo library
+   >>> activate_features("MIVOT")
+   >>> 
+   >>> scs_srv = SCSService("https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main")
+   >>> 
+   >>> query_result = scs_srv.search(
+   ...     pos=SkyCoord(ra=52.26708 * u.degree, dec=59.94027 * u.degree, frame='icrs'),
+   ...     radius=0.5)
+   >>> 
+   >>> # The MIVOT viewer generates the model view of the data
+   >>> m_viewer = MivotViewer(query_result, resolve_ref=True)
 
 Once the query is finished, we can get a reference to the object that will process the Mivot annotations.
 
-.. code-block:: python
-
-   # Build a Python object matching the TEMPLATES content and
-   # which leaves are set with the values of the first row
-   mango_property = m_viewer.dm_instance
-
-   # Print out the content of the Python object
-   # This statement is just for a pedagogic purpose
-   DictUtils.print_pretty_json(mango_property.to_dict())
-
 The annotations are consumed by this dynamic Python object which leaves are set with the data of the current row.
-You can explore the structure of this object by using standard object paths or by browsing the dictionary shown below.
+You can explore the structure of this object by using standard object paths as shown below.
 
- .. code-block:: json
+.. doctest-skip::
 
+   >>> # Build a Python object matching the TEMPLATES content and
+   >>> # which leaves are set with the values of the first row
+   >>> mango_property = m_viewer.dm_instance
+   >>> 
+   >>> # Print out the json serialization of the Python object
+   >>> print(mango_property)
    {
 	  "dmtype": "mango:EpochPosition",
 	  "longitude": {
@@ -235,23 +223,22 @@ You can explore the structure of this object by using standard object paths or b
 	      "spaceRefFrame": {
 	        "dmtype": "ivoa:string",
 	        "value": "ICRS"
-	      }
-	    }
-	  }
-    }
+          }
+        }
+      }
+   }
+   
+The reader can transform ``EpochPosition`` instances into ``SkyCoord`` instances.
+These can then be used for further scientific processing.
 
+.. doctest-skip::
 
- The reader can transform ``EpochPosition`` instances into ``SkyCoord`` instances.
- These can then be used for further scientific processing.
-
-.. code-block:: python
-
-   while m_viewer.next_row_view():
-      mango_property = m_viewer.dm_instance
-      if mango_property.dmtype == "mango:EpochPosition":
-          scb = SkyCoordBuilder(mango_property)
-          # do whatever process with the SkyCoord object
-          print(scb.build_sky_coord())
+   >>> while m_viewer.next_row_view():
+   >>>    mango_property = m_viewer.dm_instance
+   >>>    if mango_property.dmtype == "mango:EpochPosition":
+   >>>        scb = SkyCoordBuilder(mango_property)
+   >>>        # do whatever process with the SkyCoord object
+   >>>        print(scb.build_sky_coord())
 
 .. important::
    Similar to the previous example, this code can be used with any VOTable with data mapped to MANGO.
