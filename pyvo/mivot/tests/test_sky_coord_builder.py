@@ -189,7 +189,7 @@ def test_no_matching_mapping():
     """
     with pytest.raises(NoMatchingDMTypeError):
         mivot_instance = MivotInstance(**vizier_dummy_type)
-        scb = SkyCoordBuilder(mivot_instance.to_dict())
+        scb = SkyCoordBuilder(mivot_instance)
         scb.build_sky_coord()
 
 
@@ -198,7 +198,7 @@ def test_vizier_output():
     """ Test the SkyCoord issued from the Vizier response
     """
     mivot_instance = MivotInstance(**vizier_dict)
-    scb = SkyCoordBuilder(mivot_instance.to_dict())
+    scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
     assert (str(scoo).replace("\n", "").replace("  ", "")
             == "<SkyCoord (ICRS): (ra, dec) in deg(52.26722684, 59.94033461) "
@@ -229,7 +229,7 @@ def test_vizier_output_with_equinox_and_parallax():
     (parallax added and FK5 + Equinox frame)
     """
     mivot_instance = MivotInstance(**vizier_equin_dict)
-    scb = SkyCoordBuilder(mivot_instance.to_dict())
+    scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
     assert (str(scoo).replace("\n", "").replace("  ", "")
             == "<SkyCoord (FK5: equinox=J2012.000): (ra, dec, distance) in "
@@ -253,7 +253,7 @@ def test_simad_cs_output():
     filename = get_pkg_data_filename('data/simbad-cone-mivot.xml')
     m_viewer = MivotViewer(filename, resolve_ref=True)
     mivot_instance = m_viewer.dm_instance
-    scb = SkyCoordBuilder(mivot_instance.to_dict())
+    scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
 
     assert (str(scoo).replace("\n", "").replace("  ", "")
@@ -271,18 +271,23 @@ def test_time_representation():
     # work with a copy to not alter other test functions
     mydict = deepcopy(vizier_equin_dict)
     mydict["obsDate"]["unit"] = "mjd"
-    scb = SkyCoordBuilder(mydict)
+    mivot_instance = MivotInstance(**mydict)
+    scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
     assert scoo.obstime.jyear_str == "J1864.331"
 
     mydict["obsDate"]["unit"] = "jd"
     mydict["obsDate"]["value"] = "2460937.36"
-    scb = SkyCoordBuilder(mydict)
+    mivot_instance = MivotInstance(**mydict)
+    scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
     assert scoo.obstime.jyear_str == "J2025.715"
 
+    mydict = deepcopy(vizier_equin_dict)
     mydict["obsDate"]["unit"] = "iso"
+    mydict["obsDate"]["dmtype"] = "ivoa:string"
     mydict["obsDate"]["value"] = "2025-05-03"
+    mivot_instance = MivotInstance(**mydict)
+    scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
-    scb = SkyCoordBuilder(mydict)
     assert scoo.obstime.jyear_str == "J2025.335"

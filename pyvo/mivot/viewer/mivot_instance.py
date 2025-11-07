@@ -127,7 +127,7 @@ class MivotInstance:
         -------
         - a SkyCoord instance or None
         """
-        return SkyCoordBuilder(self.to_dict()).build_sky_coord()
+        return SkyCoordBuilder(self).build_sky_coord()
 
     @staticmethod
     def _remove_model_name(value):

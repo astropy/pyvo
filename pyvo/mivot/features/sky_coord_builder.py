@@ -30,10 +30,7 @@ class SkyCoordBuilder:
         mivot_instance: dict or MivotInstance
             Python object generated from the MIVOT block as either a Pyhon object or a dict
         '''
-        if isinstance(mivot_instance, dict):
-            self._mivot_instance_dict = mivot_instance
-        else:
-            self._mivot_instance_dict = mivot_instance.to_dict()
+        self._mivot_instance_dict = mivot_instance.to_dict()
         self._map_coord_names = None
 
     def build_sky_coord(self):
