@@ -41,9 +41,15 @@ class MivotInstance:
         """
         self._create_class(**instance_dict)
 
+    def __str__(self):
+        """
+        return  a human readable representation of object
+        """
+        return f"<MivotInstance: dmtype=\"{self.dmtype}\">"
+
     def __repr__(self):
         """
-        return  a human readable (json) representation of object
+        return  a human readable (json) unambigous representation of object
         """
         return DictUtils._get_pretty_json(self.to_dict())
 

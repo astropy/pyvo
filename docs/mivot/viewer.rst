@@ -118,6 +118,13 @@ The code below shows how to access GLOBALS instances (one in this example) indep
 
    >>> for globals_instance in m_viewer.dm_globals_instances:
    >>>    print(globals_instance)
+   <MivotInstance: dmtype="coords:SpaceSys">
+
+We can also provide a complete instance representation that includes all fields in the entire hierarchy.
+
+.. doctest-skip::
+	
+   >>> print(repr(globals_instance))
    {
       "dmtype": "coords:SpaceSys",
       "dmid": "SpaceFrame_ICRS",
@@ -130,6 +137,7 @@ The code below shows how to access GLOBALS instances (one in this example) indep
         }
       }
     }
+
 
 As you can see from the previous examples, model leaves (class attributes) are complex types.
 This is because they contain additional metadata as well as values:

@@ -181,6 +181,13 @@ You can explore the structure of this object by using standard object paths as s
    >>> 
    >>> # Print out the json serialization of the Python object
    >>> print(mango_property)
+   <MivotInstance: dmtype="mango:EpochPosition">
+   
+We can also provide a complete instance representation that includes all fields in the entire hierarchy.
+
+.. doctest-skip:: 
+	  
+   >>> print(repr(mango_property))
    {
 	  "dmtype": "mango:EpochPosition",
 	  "longitude": {
