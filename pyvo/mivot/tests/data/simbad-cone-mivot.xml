@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/votable-1.4.xsd">
+<VOTABLE version="1.4"
+         xmlns="http://www.ivoa.net/xml/VOTable/v1.3" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/votable-1.4.xsd">
 <RESOURCE name="simbad_cone-search_result" type="results">
 <INFO name="standardID" value="ivo://ivoa.net/std/conesearch">IVOID of the service specification</INFO>
 <INFO name="service_protocol" value="Simple Cone Search 1.03-extended">Used access protocol and version</INFO>
@@ -13,7 +16,7 @@
     <VODML xmlns="http://www.ivoa.net/xml/mivot">
         <REPORT status="OK"/>
         <MODEL name="ivoa" url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml"/>
-        <MODEL name="coords" url="https://ivoa.net/xml/VODML/Coords-v1.vo-dml.xml"/>
+        <MODEL name="coords" url="https://ivoa.net/xml/VODML/Coords-v1.0.vo-dml.xml"/>
         <MODEL name="mango" url="https://raw.githubusercontent.com/ivoa-std/MANGO/refs/heads/wd-v1.0/vo-dml/mango.vo-dml.xml"/>
         <GLOBALS>
             <INSTANCE dmtype="coords:SpaceSys" dmid="_spaceframe_ICRS_2000_BARYCENTER">
