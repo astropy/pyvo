@@ -145,6 +145,7 @@ which models a full source's  astrometry at a given date.
    The annotation reader supports both designs.
 
 In the first step below, we run a standard cone search query by using the standard PyVO API.
+Once the query is finished, we can get a reference to the object that will process the Mivot annotations.
 
 .. doctest-skip::
 
@@ -167,27 +168,32 @@ In the first step below, we run a standard cone search query by using the standa
    >>> 
    >>> # The MIVOT viewer generates the model view of the data
    >>> m_viewer = MivotViewer(query_result, resolve_ref=True)
-
-Once the query is finished, we can get a reference to the object that will process the Mivot annotations.
-
-The annotations are consumed by this dynamic Python object which leaves are set with the data of the current row.
-You can explore the structure of this object by using standard object paths as shown below.
+   
+We can now discover which data model classes the data is mapped to.
 
 .. doctest-skip::
-
-   >>> # Build a Python object matching the TEMPLATES content and
+	
+   >>> # Get a set of Python objects matching the TEMPLATES content and
    >>> # which leaves are set with the values of the first row
-   >>> mango_property = m_viewer.dm_instance
-   >>> 
-   >>> # Print out the json serialization of the Python object
-   >>> print(mango_property)
+   >>> for dm_instance in m_viewer.dm_instances;
+   >>>     print(dm_instance)
    <MivotInstance: dmtype="mango:EpochPosition">
+
+The first instance can be accessed by the ``m_viewer.dm_instance`` getter. 
+This is a simple shorcut aiming at simplifying the code.
+
+.. doctest-skip::
+    
+   >>> dm_instance = m_viewer.dm_instance
+   >>> print(dm_instance.dmtype)
+   mango:EpochPosition
    
 We can also provide a complete instance representation that includes all fields in the entire hierarchy.
 
 .. doctest-skip:: 
 	  
-   >>> print(repr(mango_property))
+   >>> # Print out the json serialization of the Python object
+   >>> print(repr(dm_instance))
    {
 	  "dmtype": "mango:EpochPosition",
 	  "longitude": {
