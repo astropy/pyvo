@@ -155,9 +155,11 @@ class AnnotationSeeker:
     def get_templates(self):
         """
         Return a list of TEMPLATES @tableref.
+
         Returns
         -------
-        list: TEMPLATES tablerefs
+        [string]
+            tablerefs of all TEMPLATES elements
         """
         templates_found = []
         eset = XPath.x_path(self._xml_block, ".//" + Ele.TEMPLATES)
@@ -170,19 +172,26 @@ class AnnotationSeeker:
 
     def get_templates_block(self, tableref):
         """
-        Return the TEMPLATES mapping block of the table matching @tableref.
-        If tableref is None returns all values of templates_blocks.
+        Return the TEMPLATES mapping block of the table identified @tableref.
+        If tableref is None or equals to Constant.FIRST_TABLE, return the first TEMPLATES.
+
         Parameters
         ----------
         tableref (str): @tableref of the searched TEMPLATES
+
         Returns
         -------
-        dict: TEMPLATES tablerefs and their mapping blocks {'tableref': mapping_block, ...}
+        XML element: matching TEMPLATES block or None
         """
         # one table: name forced to DEFAULT or take the first
         if tableref is None or tableref == Constant.FIRST_TABLE:
             for _, tmpl in self._templates_blocks.items():
                 return tmpl
+
+        if tableref not in self._templates_blocks:
+            raise MivotError(
+                "No TEMPLATES with tableref=" + tableref)
+
         return self._templates_blocks[tableref]
 
     """
@@ -191,6 +200,7 @@ class AnnotationSeeker:
     def get_instance_dmtypes(self):
         """
         Get @dmtypes of all mapped instances
+
         Returns
         -------
         dict:  @dmtypes of all mapped instances {GLOBALS: [], TEMPLATES: {}}

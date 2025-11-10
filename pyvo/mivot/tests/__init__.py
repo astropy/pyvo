@@ -31,7 +31,8 @@ class XMLOutputChecker:
         bool
             True if the two XML outputs are equal, False otherwise.
         """
-        return self._format_xml(want.strip()) == self._format_xml(got.strip())
+        return (self._format_xml(want.strip()) 
+                == self._format_xml(got.strip()))
 
     def output_difference(self, want, got):
         """
@@ -121,7 +122,8 @@ class XMLOutputChecker:
             The path to the file containing the second XML tree.
         """
         xmltree2 = XMLOutputChecker.xmltree_from_file(xmltree2_file).getroot()
-        xml_str1 = etree.tostring(xmltree1).decode("utf-8")
-        xml_str2 = etree.tostring(xmltree2).decode("utf-8")
+        xml_str1 = etree.tostring(xmltree1).decode("utf-8").strip()
+        xml_str2 = etree.tostring(xmltree2).decode("utf-8").strip()
         checker = XMLOutputChecker()
+
         assert checker.check_output(xml_str1, xml_str2), f"XML trees differ:\n{xml_str1}\n---\n{xml_str2}"

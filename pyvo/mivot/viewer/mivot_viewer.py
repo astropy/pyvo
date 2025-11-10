@@ -42,7 +42,6 @@ from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.mivot_instance import MivotInstance
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.mivot_utils import MivotUtils
-from pyvo.mivot.viewer.xml_viewer import XMLViewer
 # Use defusedxml only if already present in order to avoid a new depency.
 try:
     from defusedxml import ElementTree as etree
@@ -62,12 +61,15 @@ class MivotViewer:
 
         Parameters
         ----------
-        votable_path : str, parsed VOTable or DALResults instance
-            VOTable that will be parsed with the parser of Astropy,
-            which extracts the annotation block.
+        votable_path : str, DALResults, VOTableFile
+            Reference of the VOTable from which Astropy will extracts the annotation block
         tableref : str, optional
             Used to identify the table to process. If not specified,
             the first table is taken by default.
+        resolve_ref : boolean
+            Ask for references between MIVOT instances to be resolved (referenced instances
+            are copied into the host object). This is usually used to copy the coordinates
+            systems into the object that uses them.
         Parameters
         ----------
         resolve_ref : bool, optional
@@ -99,7 +101,8 @@ class MivotViewer:
         self._mapping_block = None
         self._mapped_tables = []
         self._resource_seeker = None
-        self._dm_instance = None
+        self._dm_instances = []
+        self._dm_globals_instances = []
         self._resolve_ref = resolve_ref
         try:
             self._set_resource()
@@ -107,7 +110,8 @@ class MivotViewer:
             self._resource_seeker = ResourceSeeker(self._resource)
             self._set_mapped_tables()
             self._connect_table(tableref)
-            self._init_instance()
+            self._init_instances()
+            self._init_globals_instances()
         except MappingError as mnf:
             logging.error(str(mnf))
 
@@ -162,34 +166,38 @@ class MivotViewer:
         """
         returns
         -------
-           A Python object (MivotInstance) built from the XML view of
-           the mapped model with attribute values set from the last values
-           of the last read data rows
+            MivotInstance: The Python object (MivotInstance) built from the XML view of the
+                           first 'TEMPLATES' child, with the attribute values set according
+                           to the values of the current read data row.
         """
-        return self._dm_instance
+        dm_instances = self._dm_instances
+        return self.dm_instances[0] if dm_instances else None
 
     @property
-    def xml_view(self):
+    def dm_instances(self):
         """
-        returns
+        Returns
         -------
-            The XML view on the current data row
+           [MivotInstance]: The list of Python objects (MivotInstance) built from the XML views of
+                            the TEMPLATES children, whose attribute values are set from the values
+                            of the current read data row.
         """
-        return self.xml_viewer.view
+        return self._dm_instances
 
     @property
-    def xml_viewer(self):
+    def dm_globals_instances(self):
         """
-        returns
-            XMLViewer tuned to browse the TEMPLATES content
+        Returns
+        -------
+           [MivotInstance]: The list of Python objects (MivotInstance) built from the XML views of
+                            the GLOBALS children, whose attribute values are set from the values
+                            of the current read data row.
+                            This method allows to retrieve the GLOBALS (coordinates systems usually)
+                            even when the viewer is in ``resolve_ref=False`` mode or if the reference
+                            to the coordinates systems have not been setup in the objects representing
+                            the mapped data.
         """
-        # build a first XMLViewer for extract the content of the TEMPLATES element
-        model_view = XMLViewer(self._get_model_view())
-        first_instance_dmype = self.get_first_instance_dmtype(tableref=self.connected_table_ref)
-        model_view.get_instance_by_type(first_instance_dmype)
-
-        # return an XMLViewer tuned to process the TEMPLATES content
-        return XMLViewer(model_view._xml_view)
+        return self._dm_globals_instances
 
     @property
     def table_row(self):
@@ -198,23 +206,23 @@ class MivotViewer:
 
     def next_row_view(self):
         """
-        jump to the next table row and update the MivotInstance instance
+        jump to the next table row and update the MivotInstance instance with the row values
 
-        returns
+        Returns
         -------
-            MivotInstance: the updated instance or None
-                           it he able end has been reached
+        [MivotInstance]
+            List of updated instances or None
+            it he able end has been reached
         """
         self.next_table_row()
 
         if self._current_data_row is None:
             return None
+        self._init_instances()
 
-        if self._dm_instance is None:
-            xml_instance = self.xml_viewer.view
-            self._dm_instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
-        self._dm_instance.update(self._current_data_row)
-        return self._dm_instance
+        for dm_instance in self._dm_instances:
+            dm_instance.update(self._current_data_row)
+        return self._dm_instances
 
     def get_table_ids(self):
         """
@@ -223,25 +231,6 @@ class MivotViewer:
         if self.resource_seeker is None:
             return None
         return self.resource_seeker.get_table_ids()
-
-    def get_globals_models(self):
-        """
-        Get collection types in GLOBALS.
-        Collection types are GLOBALS/COLLECTION/INSTANCE@dmtype:
-        used for collections of static objects.
-
-        Returns
-        -------
-        dict
-            A dictionary containing the dmtypes of all the top-level INSTANCE/COLLECTION of GLOBALS.
-            The structure of the dictionary is {'COLLECTION': [dmtypes], 'INSTANCE': [dmtypes]}.
-        """
-        if self._annotation_seeker is None:
-            return None
-        globals_models = {}
-        globals_models[Ele.COLLECTION] = self._annotation_seeker.get_globals_collection_dmtypes()
-        globals_models[Ele.INSTANCE] = self._annotation_seeker.get_globals_instance_dmtypes()
-        return globals_models
 
     def get_models(self):
         """
@@ -255,24 +244,6 @@ class MivotViewer:
         if self._annotation_seeker is None:
             return None
         return self._annotation_seeker.get_models()
-
-    def get_templates_models(self):
-        """
-        Get dmtypes (except ivoa:..) of all INSTANCE/COLLECTION of all TEMPLATES.
-        Note: COLLECTION not implemented yet.
-
-        Returns
-        -------
-        dict: A dictionary containing dmtypes of all INSTANCE/COLLECTION of all TEMPLATES.
-              The format is {'tableref': {'COLLECTIONS': [dmtypes], 'INSTANCE': [dmtypes]}, ...}.
-        """
-        if self._annotation_seeker is None:
-            return None
-        templates_models = {}
-        gni = self._annotation_seeker.get_instance_dmtypes()[Ele.TEMPLATES]
-        for tid, tmplids in gni.items():
-            templates_models[tid] = {Ele.COLLECTION: [], Ele.INSTANCE: tmplids}
-        return templates_models
 
     def next_table_row(self):
         """
@@ -293,48 +264,47 @@ class MivotViewer:
         if self._table_iterator:
             self._table_iterator.rewind()
 
-    def get_first_instance_dmtype(self, tableref=None):
+    def _get_templates_child_instances(self, tableref=None):
         """
-        Return the dmtype of the head INSTANCE (first TEMPLATES child).
-        If no INSTANCE is found, take the first COLLECTION.
-
-        Parameters
-        ----------
-        tableref : str or None, optional
-            Identifier of the table.
         Returns
         -------
-        ~`xml.etree.ElementTree.Element`
-            The first child of TEMPLATES.
+        [`xml.etree.ElementTree.Element`]
+            List of all INSTANCES elements children of the current TEMPLATES block
         """
         if self._annotation_seeker is None:
             return None
-        child_template = self._annotation_seeker.get_templates_block(tableref)
-        child = child_template.findall("*")
-        collection = XPath.x_path(self._annotation_seeker.get_templates_block(tableref),
-                                  ".//" + Ele.COLLECTION)
-        instance = XPath.x_path(self._annotation_seeker.get_templates_block(tableref), ".//" + Ele.INSTANCE)
-        if len(collection) >= 1:
-            collection[0].set(Att.dmtype, Constant.ROOT_COLLECTION)
-            (self._annotation_seeker.get_templates_block(tableref).find(".//" + Ele.COLLECTION)
-             .set(Att.dmtype, Constant.ROOT_COLLECTION))
-        if len(child) > 1:
-            if len(instance) >= 1:
-                for inst in instance:
-                    if inst in child:
-                        return inst.get(Att.dmtype)
-            elif len(collection) >= 1:
-                for coll in collection:
-                    if coll in child:
-                        return coll.get(Att.dmtype)
-        elif len(child) == 1:
-            if child[0] in instance:
-                return child[0].get(Att.dmtype)
-            elif child[0] in collection:
-                return collection[0].get(Att.dmtype)
-        else:
-            raise MivotError("Can't find the first " + Ele.INSTANCE
-                                       + "/" + Ele.COLLECTION + " in " + Ele.TEMPLATES)
+        templates_block = self._annotation_seeker.get_templates_block(tableref)
+        return XPath.x_path(templates_block, ".//" + Ele.INSTANCE)
+
+    def get_dm_instance_dmtypes(self, tableref):
+        """
+        Return the dmtypes of the INSTANCEs children of the
+        TEMPLATES block mapping the data table identified by tableref.
+
+        Parameters
+        ----------
+        tableref : str or None
+            Identifier of the data table.
+
+        Returns
+        -------
+        [string]
+            list of dmtypes
+
+        Raises
+        ------
+        MivotError
+            if no INSTANCE can be found
+        """
+        dmtypes = []
+        templates_block = self._annotation_seeker.get_templates_block(tableref)
+        instances = XPath.x_path(templates_block, ".//" + Ele.INSTANCE)
+        for instance in instances:
+            dmtypes.append(instance.get(Att.dmtype))
+
+        if not dmtypes:
+            raise MivotError("Can't find " + Ele.INSTANCE + " in " + Ele.TEMPLATES)
+        return dmtypes
 
     def _connect_table(self, tableref=None):
         """
@@ -379,12 +349,20 @@ class MivotViewer:
         self._set_column_indices()
         self._set_column_units()
 
-    def _get_model_view(self):
+    def _get_model_view(self, xml_instance):
         """
         Return an XML model view of the last read row.
-        This function resolves references by default.
+
+        - References are possibly resolved here.
+        - ``ATTRIBUTE@value`` are set with actual data row values
+
+        Returns
+        -------
+        `xml.etree.ElementTree.Element`
+            XML model view  of the last read row.
+
         """
-        templates_copy = deepcopy(self._templates)
+        templates_copy = deepcopy(xml_instance)
         if self._resolve_ref is True:
             while StaticReferenceResolver.resolve(self._annotation_seeker, self._connected_tableref,
                                                   templates_copy) > 0:
@@ -397,7 +375,6 @@ class MivotViewer:
             XmlUtils.add_column_units(templates_copy,
                                       self._resource_seeker
                                       .get_id_unit_mapping(self._connected_tableref))
-        # for ele in templates_copy.xpath("//ATTRIBUTE"):
         for ele in XPath.x_path(templates_copy, ".//ATTRIBUTE"):
             ref = ele.get(Att.ref)
             if ref is not None and ref != Constant.NOT_SET and Constant.COL_INDEX in ele.attrib:
@@ -405,25 +382,45 @@ class MivotViewer:
                 ele.attrib[Att.value] = str(self._current_data_row[int(index)])
         return templates_copy
 
-    def _init_instance(self):
+    def _init_instances(self):
         """
-        Read the first table row and build the MivotInstance (_instance attribute) from it.
-        The table row iterator in rewind at he end to make sure we won't lost the first data row.
+        Read the first table row and build all MivotInstances (_dm_instances attribute) from it.
+        The table row iterator in rewind at the end to make sure we won't lost the first data row.
         """
-        if self._dm_instance is None:
+        if not self._dm_instances:
             self.next_table_row()
-            first_instance = self.get_first_instance_dmtype(tableref=self.connected_table_ref)
-            xml_instance = self.xml_viewer.get_instance_by_type(first_instance)
-            self._dm_instance = MivotInstance(**MivotUtils.xml_to_dict(xml_instance))
+            xml_instances = self._get_templates_child_instances(self.connected_table_ref)
+            self._dm_instances = []
+            for xml_instance in xml_instances:
+                self._dm_instances.append(
+                    MivotInstance(
+                        **MivotUtils.xml_to_dict(self._get_model_view(xml_instance))
+                    ))
             self.rewind()
-        return self._dm_instance
+
+    def _init_globals_instances(self):
+        """
+        Build one MivotInstance for each GLOBALS/INSTANCE. Internal references are always resolved
+        Globals MivotInstance are stored in the _dm_globals_instances list
+        """
+        if not self._dm_globals_instances:
+            globals_copy = deepcopy(self._annotation_seeker.globals_block)
+
+            while StaticReferenceResolver.resolve(self._annotation_seeker, None,
+                                                  globals_copy) > 0:
+                pass
+            for ele in XPath.x_path(globals_copy, "./" + Ele.INSTANCE):
+                self._dm_globals_instances.append(
+                    MivotInstance(
+                        **MivotUtils.xml_to_dict(ele)
+                    ))
 
     def _set_mapped_tables(self):
         """
-        Set the mapped tables with a list of the TEMPLATES tablerefs.
+        Set the _mapped_tables list with the TEMPLATES tablerefs.
         """
         if not self.resource_seeker:
-            self._mapped_table = []
+            self._mapped_tables = []
         else:
             self._mapped_tables = self._annotation_seeker.get_templates()
 
@@ -478,7 +475,7 @@ class MivotViewer:
     def _set_column_indices(self):
         """
         Add column ranks to attribute having a ref.
-        Using ranks allow identifying columns even numpy raw have been serialised as []
+        Using ranks allow identifying columns even when numpy raw have been serialised as []
         """
         index_map = self._resource_seeker.get_id_index_mapping(self._connected_tableref)
         XmlUtils.add_column_indices(self._templates, index_map)

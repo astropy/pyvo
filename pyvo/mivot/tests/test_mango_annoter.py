@@ -152,8 +152,7 @@ def test_all_properties():
     add_color(builder)
     add_photometry(builder)
     add_epoch_positon(builder)
-    builder.pack_into_votable()
-    XmlUtils.pretty_print(builder._annotation.mivot_block)
+    builder.pack_into_votable(schema_check=False)
     assert XmlUtils.strip_xml(builder._annotation.mivot_block) == (
         XmlUtils.strip_xml(get_pkg_data_contents("data/reference/mango_object.xml"))
     )
@@ -171,7 +170,7 @@ def test_extraction_from_votable_header():
     builder.extract_data_origin()
     epoch_position_mapping = builder.extract_epoch_position_parameters()
     builder.add_mango_epoch_position(**epoch_position_mapping)
-    builder.pack_into_votable()
+    builder.pack_into_votable(schema_check=True)
     assert XmlUtils.strip_xml(builder._annotation.mivot_block) == (
         XmlUtils.strip_xml(get_pkg_data_contents("data/reference/test_header_extraction.xml"))
     )

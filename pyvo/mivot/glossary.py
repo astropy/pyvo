@@ -41,7 +41,8 @@ class Roles:
     correspond to the last path element of the ``dmroles``
     as defined in VODML (VODML-ID)
     """
-    #: Roles of the EpochPosition class that are supported
+    # Roles of the EpochPosition class that are supported
+    # Do not change the ordering: it used below to access fields
     EpochPosition = [
         "longitude",
         "latitude",
@@ -191,3 +192,22 @@ class EpochPositionAutoMapping:
     parallax = ["pos.parallax.trig"]
     #: first word of UCD-s accepted to map the radial velocity
     radialVelocity = "spect.dopplerVeloc.opt"
+
+
+class SkyCoordMapping:
+    """
+    Mapping of the MANGO:EpochPosition parameters to the SkyCoord parameters
+    """
+    default_params = {
+        Roles.EpochPosition[0]: 'ra', Roles.EpochPosition[1]: 'dec',
+        Roles.EpochPosition[2]: 'distance',
+        Roles.EpochPosition[3]: 'radial_velocity',
+        Roles.EpochPosition[4]: 'pm_ra_cosdec', Roles.EpochPosition[5]: 'pm_dec',
+        Roles.EpochPosition[6]: 'obstime'}
+
+    galactic_params = {
+        Roles.EpochPosition[0]: 'l', Roles.EpochPosition[1]: 'b',
+        Roles.EpochPosition[2]: 'distance',
+        Roles.EpochPosition[3]: 'radial_velocity',
+        Roles.EpochPosition[4]: 'pm_l_cosb', Roles.EpochPosition[5]: 'pm_b',
+        Roles.EpochPosition[6]: 'obstime'}

@@ -1,6 +1,6 @@
 <TEMPLATES tableref="Results">
   <INSTANCE dmid="_ts_data" dmrole="" dmtype="cube:NDPoint">
-    <COLLECTION dmrole="cube:NDPoint.observable" dmtype="root_collection">
+    <COLLECTION dmrole="cube:NDPoint.observable">
       <INSTANCE dmtype="cube:Observable">
         <ATTRIBUTE dmrole="cube:DataAxis.dependent" dmtype="ivoa:boolean" value="False">
           </ATTRIBUTE>

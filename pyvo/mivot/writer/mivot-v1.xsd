@@ -9,9 +9,9 @@
 
 
     <!-- Required to validate mapping block within a VOTable (LM 08/2021) -->
-    <xs:import namespace="http://www.ivoa.net/xml/VOTable/v1.3" schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3"/>
-    <xs:import namespace="http://www.ivoa.net/xml/VOTable/v1.2" schemaLocation="http://www.ivoa.net/xml/VOTable/v1.2"/>
-    <xs:import namespace="http://www.ivoa.net/xml/VOTable/v1.1" schemaLocation="http://www.ivoa.net/xml/VOTable/v1.1"/>
+    <xs:import namespace="http://www.ivoa.net/xml/VOTable/v1.3" schemaLocation="v1.3.xsd"/>
+    <xs:import namespace="http://www.ivoa.net/xml/VOTable/v1.2" schemaLocation="v1.2.xsd"/>
+    <xs:import namespace="http://www.ivoa.net/xml/VOTable/v1.1" schemaLocation="v1.1.xsd"/>
 
     <!-- Top level structure of the mapping block -->
     <xs:element name="VODML">

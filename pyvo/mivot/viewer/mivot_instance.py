@@ -10,7 +10,6 @@ Instances of this class are built by `pyvo.mivot.viewer.mivot_viewer`.
 Although attribute values can be changed by users, this class is first
 meant to provide a convenient access the mapped VOTable data
 """
-from pyvo.mivot.utils.vocabulary import Constant
 from pyvo.utils.prototype import prototype_feature
 from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.utils.dict_utils import DictUtils
@@ -42,9 +41,15 @@ class MivotInstance:
         """
         self._create_class(**instance_dict)
 
+    def __str__(self):
+        """
+        return  a human readable representation of object
+        """
+        return f"<MivotInstance: dmtype=\"{self.dmtype}\">"
+
     def __repr__(self):
         """
-        return  a human readable (json) representation of object
+        return  a human readable (json) unambigous representation of object
         """
         return DictUtils._get_pretty_json(self.to_dict())
 
@@ -75,9 +80,6 @@ class MivotInstance:
         """
 
         for key, value in kwargs.items():
-            # roles are used as key and the first element in a TEMPLATE has no role
-            if not key:
-                key = Constant.ROOT_OBJECT
             if isinstance(value, list):  # COLLECTION
                 setattr(self, self._remove_model_name(key), [])
                 for item in value:
@@ -131,7 +133,7 @@ class MivotInstance:
         -------
         - a SkyCoord instance or None
         """
-        return SkyCoordBuilder(self.to_dict()).build_sky_coord()
+        return SkyCoordBuilder(self).build_sky_coord()
 
     @staticmethod
     def _remove_model_name(value):
@@ -186,6 +188,7 @@ class MivotInstance:
             The serializable dictionary representation of the input.
         """
 
+        # This case is likely not to occur because MIVOT does not support dictionaries
         if isinstance(obj, dict):
             data = {}
             for (k, v) in obj.items():

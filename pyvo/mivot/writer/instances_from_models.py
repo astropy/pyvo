@@ -696,17 +696,20 @@ class InstancesFromModels(object):
         self._annotation._dmids.append("_origin")
         return query_origin_instance
 
-    def pack_into_votable(self, *, report_msg="", sparse=False):
+    def pack_into_votable(self, *, report_msg="", sparse=False, schema_check=True):
         """
         Pack all mapped objects in the annotation block and put it in the VOTable.
 
         Parameters
         ----------
-        report_msg: string, optional (default to an empty string)
+        report_msg : string, optional (default to an empty string)
             Content of the REPORT Mivot tag
-        sparse: boolean, optional (default to False)
+        sparse : boolean, optional (default to False)
             If True, all properties are added in a independent way to the the TEMPLATES.
             They are packed in a MangoObject otherwise.
+        schema_check : boolean, optional (default to True)
+            If True the MIVOT block is validated against its schema.
+            This may test failing due to remote accesses.
         """
         self._annotation.set_report(True, report_msg)
         if sparse is True:
@@ -718,5 +721,5 @@ class InstancesFromModels(object):
             self._annotation.add_templates(self._mango_instance.get_mango_object(
                 with_origin=("_origin" in self._annotation._dmids)))
 
-        self._annotation.build_mivot_block()
+        self._annotation.build_mivot_block(schema_check=schema_check)
         self._annotation.insert_into_votable(self._votable, override=True)

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VOTABLE version="1.4"
+         xmlns="http://www.ivoa.net/xml/VOTable/v1.3" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/votable-1.4.xsd">
+<RESOURCE name="simbad_cone-search_result" type="results">
+<INFO name="standardID" value="ivo://ivoa.net/std/conesearch">IVOID of the service specification</INFO>
+<INFO name="service_protocol" value="Simple Cone Search 1.03-extended">Used access protocol and version</INFO>
+<INFO name="publisher" value="CDS/SIMBAD">Data publisher</INFO>
+<INFO name="request" value="https://simbad.cds.unistra.fr/cone/?RA=269.4521&amp;DEC=4.693365&amp;SR=0.01&amp;VERB=2&amp;MAXREC=1&amp;ORDER_BY=distance&amp;ORDER_DIR=ASC&amp;RESPONSEFORMAT=application%2Fx-votable%2Bxml%3Bcontent%3Dmivot%3Bserialization%3DTABLEDATA%3Bcharset%3DUTF-8">HTTP request URL</INFO>
+<INFO name="request_date" value="2025-09-23T15:01:26.078545Z">Query execution date</INFO>
+<INFO name="contact" value="cds-question@unistra.fr">Publisher email address</INFO>
+<INFO name="QUERY_STATUS" value="OK">Successful query</INFO>
+<COOSYS ID="SIMBAD-COOSYS" system="ICRS" epoch="J2000" equinox="2000"/>
+<RESOURCE type="meta">
+    <VODML xmlns="http://www.ivoa.net/xml/mivot">
+        <REPORT status="OK"/>
+        <MODEL name="ivoa" url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml"/>
+        <MODEL name="coords" url="https://ivoa.net/xml/VODML/Coords-v1.0.vo-dml.xml"/>
+        <MODEL name="mango" url="https://raw.githubusercontent.com/ivoa-std/MANGO/refs/heads/wd-v1.0/vo-dml/mango.vo-dml.xml"/>
+        <GLOBALS>
+            <INSTANCE dmtype="coords:SpaceSys" dmid="_spaceframe_ICRS_2000_BARYCENTER">
+                <INSTANCE dmtype="coords:SpaceFrame" dmrole="coords:PhysicalCoordSys.frame">
+                    <ATTRIBUTE dmtype="ivoa:string" dmrole="coords:SpaceFrame.spaceRefFrame" value="ICRS"/>
+                </INSTANCE>
+              </INSTANCE>
+        </GLOBALS>
+        <TEMPLATES>
+            <INSTANCE dmtype="mango:MangoObject" dmid="main_id">
+                <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:MangoObject.identifier" ref="main_id"/>
+                <COLLECTION dmrole="mango:MangoObject.propertyDock">
+                    <INSTANCE dmtype="mango:EpochPosition">
+                        <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:Property.description" value="6 parameters position"/>
+                        <INSTANCE dmtype="mango:VocabularyTerm" dmrole="mango:Property.semantics">
+                            <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:VocabularyTerm.uri" value="https://www.ivoa.net/rdf/uat/2024-06-25/uat.html#astronomical-location"/>
+                            <ATTRIBUTE dmtype="ivoa:string" dmrole="mango:VocabularyTerm.label" value="Astronomical location"/>
+                        </INSTANCE>
+                        <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.longitude" unit="deg" ref="ra"/>
+                        <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.latitude" unit="deg" ref="dec"/>
+                        <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.pmLongitude" unit="mas / yr" ref="pmra"/>
+                        <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.pmLatitude" unit="mas / yr" ref="pmdec"/>
+                        <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.parallax" unit="mas" ref="plx_value"/>
+                        <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.radialVelocity" unit="km / s" ref="rvz_radvel"/>
+                        <INSTANCE dmrole="mango:EpochPosition.obsDate" dmtype="mango:DateTime">
+                            <ATTRIBUTE dmrole="mango:DateTime.representation" dmtype="ivoa:string" value="year"/>
+                            <ATTRIBUTE dmrole="mango:DateTime.dateTime" dmtype="ivoa:datetime" value="2000" unit="y"/>
+                        </INSTANCE>
+                        <INSTANCE dmtype="mango:EpochPositionErrors" dmrole="mango:EpochPosition.errors">
+                            <INSTANCE dmtype="mango:error.PErrorEllipse" dmrole="mango:EpochPositionErrors.position">
+                                <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorEllipse.semiMajorAxis" unit="mas" ref="coo_err_maja"/>
+                                <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorEllipse.semiMinorAxis" unit="mas" ref="coo_err_mina"/>
+                                <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorEllipse.angle" unit="deg" ref="coo_err_angle"/>
+                            </INSTANCE>
+                            <INSTANCE dmtype="mango:error.PErrorEllipse" dmrole="mango:EpochPositionErrors.properMotion">
+                                <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorEllipse.semiMajorAxis" unit="mas / yr" ref="pm_err_maja"/>
+                                <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorEllipse.semiMinorAxis" unit="mas / yr" ref="pm_err_mina"/>
+                                <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorEllipse.angle" unit="deg" ref="pm_err_angle"/>
+                            </INSTANCE>
+                        </INSTANCE>
+                        <REFERENCE dmrole="mango:EpochPosition.spaceSys" dmref="_spaceframe_ICRS_2000_BARYCENTER"/>
+                    </INSTANCE>
+                </COLLECTION>
+            </INSTANCE>
+        </TEMPLATES>
+    </VODML>
+</RESOURCE>
+<TABLE>
+<FIELD datatype="float" name="distance" ucd="pos.angDistance" unit="deg">
+<DESCRIPTION>Distance (in degrees) between this object and the cone-search's target.</DESCRIPTION>
+</FIELD>
+<FIELD ID="main_id" arraysize="*" datatype="char" name="main_id" ucd="meta.id;meta.main">
+<DESCRIPTION>Main identifier for an object</DESCRIPTION>
+<LINK href="https://simbad.cds.unistra.fr/simbad/sim-id?Ident=${main_id}&amp;NbIdent=1"/>
+</FIELD>
+<FIELD datatype="double" name="ra" ref="SIMBAD-COOSYS" ucd="pos.eq.ra;meta.main" unit="deg">
+<DESCRIPTION>Right ascension</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="dec" ref="SIMBAD-COOSYS" ucd="pos.eq.dec;meta.main" unit="deg">
+<DESCRIPTION>Declination</DESCRIPTION>
+</FIELD>
+<FIELD arraysize="*" datatype="char" name="otype" ucd="src.class">
+<DESCRIPTION>Object type</DESCRIPTION>
+<LINK href="https://simbad.cds.unistra.fr/guide/otypes.htx#${otype}"/>
+</FIELD>
+<FIELD arraysize="*" datatype="char" name="coo"/>
+<FIELD datatype="double" name="coo_err_maja" ucd="phys.angSize.smajAxis;pos.errorEllipse;pos.eq" unit="mas">
+<DESCRIPTION>Coordinate error major axis</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="coo_err_mina" ucd="phys.angSize.sminAxis;pos.errorEllipse;pos.eq" unit="mas">
+<DESCRIPTION>Coordinate error minor axis</DESCRIPTION>
+</FIELD>
+<FIELD datatype="short" name="coo_err_angle" ucd="pos.posAng;pos.errorEllipse;pos.eq" unit="deg">
+<DESCRIPTION>Coordinate error angle</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="pmra" ucd="pos.pm;pos.eq.ra" unit="mas.yr-1">
+<DESCRIPTION>Proper motion in RA</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="pmdec" ucd="pos.pm;pos.eq.dec" unit="mas.yr-1">
+<DESCRIPTION>Proper motion in DEC</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="pm_err_maja" ucd="phys.angSize.smajAxis;pos.errorEllipse;pos.pm" unit="mas.yr-1">
+<DESCRIPTION>Proper motion error major axis</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="pm_err_mina" ucd="phys.angSize.sminAxis;pos.errorEllipse;pos.pm" unit="mas.yr-1">
+<DESCRIPTION>Proper motion error minor axis</DESCRIPTION>
+</FIELD>
+<FIELD datatype="short" name="pm_err_angle" ucd="pos.posAng;pos.errorEllipse;pos.pm" unit="deg">
+<DESCRIPTION>Proper motion error angle</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="plx_value" ucd="pos.parallax.trig" unit="mas">
+<DESCRIPTION>Parallax</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="rvz_radvel" ucd="spect.dopplerVeloc.opt" unit="km.s-1">
+<DESCRIPTION>Radial Velocity</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="galdim_majaxis" ucd="phys.angSize.smajAxis" unit="arcmin">
+<DESCRIPTION>Angular size major axis</DESCRIPTION>
+</FIELD>
+<FIELD datatype="double" name="galdim_minaxis" ucd="phys.angSize.sminAxis" unit="arcmin">
+<DESCRIPTION>Angular size minor axis</DESCRIPTION>
+</FIELD>
+<FIELD datatype="short" name="galdim_angle" ucd="pos.posAng" unit="deg">
+<DESCRIPTION>Galaxy ellipse angle</DESCRIPTION>
+</FIELD>
+<FIELD arraysize="*" datatype="char" name="sp_type" ucd="src.spType">
+<DESCRIPTION>MK spectral type</DESCRIPTION>
+</FIELD>
+<FIELD arraysize="*" datatype="char" name="morph_type" ucd="src.morph.type">
+<DESCRIPTION>Morphological type</DESCRIPTION>
+</FIELD>
+<FIELD datatype="int" name="biblist"/>
+<DATA>
+<TABLEDATA>
+  <TR>
+    <TD>1.0409523503457668E-5</TD>
+    <TD>NAME Barnard's Star c</TD>
+    <TD>269.45207695861900</TD>
+    <TD>4.69336496657667</TD>
+    <TD>Planet</TD>
+    <TD> 17  57  48.4984700683 +04  41  36.113879675</TD>
+    <TD>0.0262</TD>
+    <TD>0.0290</TD>
+    <TD>90</TD>
+    <TD>-801.551</TD>
+    <TD>10362.394</TD>
+    <TD>0.032</TD>
+    <TD>0.036</TD>
+    <TD>90</TD>
+    <TD>546.9759</TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD></TD>
+    <TD>1</TD>
+  </TR>
+</TABLEDATA>
+</DATA>
+</TABLE>
+<INFO name="QUERY_STATUS" value="OVERFLOW">Truncated result</INFO>
+</RESOURCE>
+</VOTABLE>
