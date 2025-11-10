@@ -26,13 +26,13 @@ Using the API
  .. attention::
 	The module based on XPath queries and allowing to browse the XML
 	annotations (``viewer.XmlViewer``)  has been removed from version 1.8
-	
+
 Integrated Readout
 ------------------
 The ``ModelViewer`` module manages access to data mapped to a model through dynamically
 generated objects (``MivotInstance`` class).
 
-``MivotInstance`` is a generic class that does not refer to any specific model. 
+``MivotInstance`` is a generic class that does not refer to any specific model.
 The mapped class of a particular instance is stored in its ``dmtype`` attribute.
 
 These objects can be used as standard Python objects, with their fields representing
@@ -43,18 +43,18 @@ The viewer can be built from a VOTable file path, a parsed VOtable (``VOTableFil
 or a ``DALResults`` instance.
 
  .. attention::
-	
-	The code below only works with ``astropy 6+``
+
+    The code below only works with ``astropy 6+``
+
 
 .. doctest-skip::
 
-    >>> import pytest
     >>> import astropy.units as u
     >>> from astropy.coordinates import SkyCoord
     >>> from pyvo.dal.scs import SCSService
     >>> from pyvo.utils.prototype import activate_features
     >>> from pyvo.mivot.viewer.mivot_viewer import MivotViewer
-    >>>   
+    >>>
     >>> scs_srv = SCSService("https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main")
     >>> m_viewer = MivotViewer(
     ...     scs_srv.search(
@@ -70,9 +70,9 @@ but users do not need to know this in advance, since the API provides tools
 to discover the mapped models.
 
 .. doctest-skip::
-	
+
    >>> if m_viewer.get_models().get("mango"):
-   >>>     print("data is mapped to the MANGO data model")      	
+   >>>     print("data is mapped to the MANGO data model")
    data is mapped to the MANGO data model
 
 We can also check which datamodel classes the data is mapped to.
@@ -93,7 +93,7 @@ At this point, we know that the data has been mapped to the ``MANGO`` model,
 and that the data rows can be interpreted as instances of the ``mango:EpochPosition``.
 
 .. doctest-skip::
-	
+
    >>> print(mivot_instance.spaceSys.frame.spaceRefFrame.value)
    ICRS
 
@@ -103,13 +103,13 @@ and that the data rows can be interpreted as instances of the ``mango:EpochPosit
    >>>     print(f"position: {mivot_instance.latitude.value} {mivot_instance.longitude.value}")
    position: 59.94033461 52.26722684
    ....
-    
+
 .. important::
-	
-   Coordinate systems are usually mapped in the GLOBALS MIVOT block. 
-   This allows them to be referenced from any other MIVOT element. 
+
+   Coordinate systems are usually mapped in the GLOBALS MIVOT block.
+   This allows them to be referenced from any other MIVOT element.
    The viewer resolves such references when the constructor flag ``resolve_ref`` is set to ``True``.
-   In this case the coordinate system instances are copied into their host elements.    
+   In this case the coordinate system instances are copied into their host elements.
 
 The code below shows how to access GLOBALS instances (one in this example) independently of the mapped data.
 
@@ -122,7 +122,7 @@ The code below shows how to access GLOBALS instances (one in this example) indep
 We can also provide a complete instance representation that includes all fields in the entire hierarchy.
 
 .. doctest-skip::
-	
+
    >>> print(repr(globals_instance))
    {
       "dmtype": "coords:SpaceSys",
@@ -163,7 +163,7 @@ outside of the ``MivotViewer`` context.
     >>>     # apply the mapping to current row
     >>>     mivot_object.update(rec)
     >>>     # show that the model retrieve the correct values
-    >>>     # ... or do whatever you want 
+    >>>     # ... or do whatever you want
     >>>     assert rec["RAICRS"] == mivot_object.longitude.value
     >>>     assert rec["DEICRS"] == mivot_object.latitude.value
 
@@ -177,7 +177,7 @@ whether it comes from the annotation or the VOTable.
 .. doctest-skip::
 
     >>> from pyvo.mivot.features.sky_coord_builder import SkyCoordBuilder
-    >>> 
+    >>>
     >>> m_viewer.rewind()
     >>> while m_viewer.next_row_view():
     >>>     sky_coord_builder = SkyCoordBuilder(mivot_instance)
@@ -188,17 +188,17 @@ whether it comes from the annotation or the VOTable.
      (pm_ra_cosdec, pm_dec) in mas / yr
         (-0.82, -1.85)>
 
-In the above example, we assume that the mapped model can be used as a ``SkyCoord`` precursor. 
+In the above example, we assume that the mapped model can be used as a ``SkyCoord`` precursor.
 If this is not the case, an error is raised.
 
 .. important::
 
-   In the current implementation, the only functioning gateway connects 
-   ``Mango:EpochPosition`` objects with the ``SkyCoord`` class. 
+   In the current implementation, the only functioning gateway connects
+   ``Mango:EpochPosition`` objects with the ``SkyCoord`` class.
    The ultimate objective is to generalize this mechanism to any property modeled by Mango,
    and eventually to other IVOA models, thereby realizing the full potential
    of a comprehensive and interoperable mapping framework.
-  
+
 Class Generation in a Nutshell
 ------------------------------
 
@@ -224,8 +224,8 @@ identifiers, which have the following structure: ``model:a.b``.
 - Only the last part of the path is kept for attribute names.
 - For class names, forbidden characters (``:`` or ``.``) are replaced with ``_``.
 - Original ``@dmtype`` are kept as attributes of generated Python objects.
-- If the end-user is unaware of the class mapped by the actual ``MivotInstance``, 
-  if can can explore it by using its class dictionary ``MivotInstance.__dict__`` 
+- If the end-user is unaware of the class mapped by the actual ``MivotInstance``,
+  if can can explore it by using its class dictionary ``MivotInstance.__dict__``
   (see the Python `data model <https://docs.python.org/3/reference/datamodel.html>`_).
 
 .. doctest-skip::

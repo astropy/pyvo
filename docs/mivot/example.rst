@@ -26,12 +26,11 @@ to tell the server to annotate the queried data.
 
 .. doctest-skip::
 
-   >>> import pytest
    >>> from pyvo.utils import activate_features
    >>> from pyvo.dal import TAPService
    >>> from pyvo.mivot.utils.xml_utils import XmlUtils
    >>> from pyvo.mivot.viewer.mivot_viewer import MivotViewer
-   >>> 
+   >>>
    >>> # Enable MIVOT-specific features in the pyvo library
    >>> activate_features("MIVOT")
    >>>
@@ -45,7 +44,7 @@ to tell the server to annotate the queried data.
    >>>
    >>> # The MIVOT viewer generates the model view of the data
    >>> m_viewer = MivotViewer(result, resolve_ref=True)
-   >>> 
+   >>>
    >>> # Print out the Mivot annotations read out of the VOtable
    >>> # This statement is just for a pedagogic purpose (access to a private attribute)
    >>> XmlUtils.pretty_print(m_viewer._mapping_block)
@@ -68,7 +67,7 @@ in order to construct the Python objects that reflect the mapped models and
 to make the data available through them.
 
 .. doctest-skip::
-	
+
    >>> # Discover the Python objects matching the TEMPLATES content
    >>> for dm_instance in m_viewer.dm_instances;
    >>>     print(dm_instance)
@@ -149,49 +148,48 @@ Once the query is finished, we can get a reference to the object that will proce
 
 .. doctest-skip::
 
-   >>> import pytest
    >>> import astropy.units as u
    >>> from astropy.coordinates import SkyCoord
    >>> from pyvo.dal.scs import SCSService
    >>> from pyvo.utils import activate_features
    >>> from pyvo.mivot.viewer.mivot_viewer import MivotViewer
    >>> from pyvo.mivot.features.sky_coord_builder import SkyCoordBuilder
-   >>> 
+   >>>
    >>> # Enable MIVOT-specific features in the pyvo library
    >>> activate_features("MIVOT")
-   >>> 
+   >>>
    >>> scs_srv = SCSService("https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main")
-   >>> 
+   >>>
    >>> query_result = scs_srv.search(
    ...     pos=SkyCoord(ra=52.26708 * u.degree, dec=59.94027 * u.degree, frame='icrs'),
    ...     radius=0.5)
-   >>> 
+   >>>
    >>> # The MIVOT viewer generates the model view of the data
    >>> m_viewer = MivotViewer(query_result, resolve_ref=True)
-   
+
 We can now discover which data model classes the data is mapped to.
 
 .. doctest-skip::
-	
+
    >>> # Get a set of Python objects matching the TEMPLATES content and
    >>> # which leaves are set with the values of the first row
    >>> for dm_instance in m_viewer.dm_instances;
    >>>     print(dm_instance)
    <MivotInstance: dmtype="mango:EpochPosition">
 
-The first instance can be accessed by the ``m_viewer.dm_instance`` getter. 
+The first instance can be accessed by the ``m_viewer.dm_instance`` getter.
 This is a simple shorcut aiming at simplifying the code.
 
 .. doctest-skip::
-    
+
    >>> dm_instance = m_viewer.dm_instance
    >>> print(dm_instance.dmtype)
    mango:EpochPosition
-   
+
 We can also provide a complete instance representation that includes all fields in the entire hierarchy.
 
-.. doctest-skip:: 
-	  
+.. doctest-skip::
+
    >>> # Print out the json serialization of the Python object
    >>> print(repr(dm_instance))
    {
@@ -240,7 +238,7 @@ We can also provide a complete instance representation that includes all fields 
         }
       }
    }
-   
+
 The reader can transform ``EpochPosition`` instances into ``SkyCoord`` instances.
 These can then be used for further scientific processing.
 
@@ -268,7 +266,7 @@ It's a good case to exercise this API.
 
 
 .. code-block:: python
- 
+
    SERVER = "https://simbad.cds.unistra.fr/cone?"
    VERB = 2
    RA = 269.452076* u.degree
@@ -276,7 +274,7 @@ It's a good case to exercise this API.
    SR = 0.1* u.degree
    MAXREC = 100
    RESPONSEFORMAT = "mivot"
-   
+
    scs_srv = SCSService(SERVER)
 
    query_result = scs_srv.search(
