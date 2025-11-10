@@ -64,24 +64,24 @@ The Mivot block printing output is too long to be listed here. However, the scre
   ``MangoObject`` instance which holds all the mapped properties.
 
 At instantiation time, the viewer reads the first data row, which must exist,
-in order to construct a Python object that reflects the mapped model.
+in order to construct the Python objects that reflect the mapped models and
+to make the data available through them.
 
-.. code-block:: python
-
-   # Build a Python object matching the TEMPLATES content and
-   # which leaves are set with the values of the first row
-   mango_object = m_viewer.dm_instance
-
-   # Print out the json serializaton of the Python object
-   print(mango_object)
+.. doctest-skip::
+	
+   >>> # Discover the Python objects matching the TEMPLATES content
+   >>> for dm_instance in m_viewer.dm_instances;
+   >>>     print(dm_instance)
+   <MivotInstance: dmtype="mango:MangoObject">
 
 The annotations are consumed by this dynamic Python object which leaves are set with the data of the current row.
-You can explore the structure of this object by using the standard object paths as shown below.
+You can explore the structure of this object by using standard object paths as shown below.
 
 Now, we can iterate through the table data and retrieve an updated Mivot instance for each row.
 
 .. doctest-skip::
 
+   >>> mango_object = m_viewer.dm_instances[0]
    >>> while m_viewer.next_row_view():
    >>>     if mango_object.dmtype == "mango:MangoObject":
    >>>         print(f"Read source {mango_object.identifier.value} {mango_object.dmtype}")
