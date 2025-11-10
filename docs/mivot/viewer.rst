@@ -42,6 +42,10 @@ The first step is to instanciate a viewer that will provide the API for browsing
 The viewer can be built from a VOTable file path, a parsed VOtable (``VOTableFile`` object),
 or a ``DALResults`` instance.
 
+ .. attention::
+	
+	The code below only works with ``astropy 6+``
+
 .. doctest-skip::
 
     >>> import pytest
@@ -49,12 +53,7 @@ or a ``DALResults`` instance.
     >>> from astropy.coordinates import SkyCoord
     >>> from pyvo.dal.scs import SCSService
     >>> from pyvo.utils.prototype import activate_features
-    >>> from pyvo.mivot.version_checker import check_astropy_version
     >>> from pyvo.mivot.viewer.mivot_viewer import MivotViewer
-    >>>
-    >>> activate_features("MIVOT")
-    >>> if check_astropy_version() is False:
-    >>>    pytest.skip("MIVOT test skipped because of the astropy version.")
     >>>   
     >>> scs_srv = SCSService("https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main")
     >>> m_viewer = MivotViewer(
