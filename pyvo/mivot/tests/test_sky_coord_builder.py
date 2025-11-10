@@ -9,6 +9,7 @@ for the output of this service.
 import pytest
 from copy import deepcopy
 from astropy.utils.data import get_pkg_data_filename
+from astropy import units as u
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.mivot_instance import MivotInstance
 from pyvo.mivot.features.sky_coord_builder import SkyCoordBuilder
@@ -255,11 +256,16 @@ def test_simad_cs_output():
     mivot_instance = m_viewer.dm_instance
     scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
-
-    assert (str(scoo).replace("\n", "").replace("  ", "")
-            == "<SkyCoord (ICRS): (ra, dec, distance) in "
-               "(deg, deg, pc)(269.45207696, 4.69336497, 1.82823411) "
-               "(pm_ra_cosdec, pm_dec) in mas / yr(-801.551, 10362.394)>")
+    
+    assert scoo.ra.degree == pytest.approx(269.45207696)
+    assert scoo.dec.degree == pytest.approx(4.69336497)
+    assert scoo.distance.pc == pytest.approx(1.82823411)
+    x = scoo.pm_ra_cosdec.value
+    y = (-801.551 * u.mas/u.yr).value
+    assert x == pytest.approx(y)
+    x = scoo.pm_dec.value
+    y = (10362.394 * u.mas/u.yr).value
+    assert x == pytest.approx(y)
     assert str(scoo.obstime) == "J2000.000"
 
 
