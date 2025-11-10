@@ -197,7 +197,7 @@ class HeaderMapper:
             if isinstance(dict_entry, list):
                 return ucd in dict_entry
             else:
-                return ucd.startswith(dict_entry)
+                return ucd and ucd.startswith(dict_entry)
 
         def _check_obs_date(field):
             """ check if the field can be interpreted as a value date time

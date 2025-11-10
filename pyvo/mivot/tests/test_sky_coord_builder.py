@@ -256,7 +256,7 @@ def test_simad_cs_output():
     mivot_instance = m_viewer.dm_instance
     scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
-    
+
     assert scoo.ra.degree == pytest.approx(269.45207696)
     assert scoo.dec.degree == pytest.approx(4.69336497)
     assert scoo.distance.pc == pytest.approx(1.82823411)
