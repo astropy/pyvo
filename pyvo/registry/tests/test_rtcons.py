@@ -166,7 +166,7 @@ class TestServicetypeConstraint:
         assert str(excinfo.value) == ("Service type junk is neither"
                                       " a full standard URI nor one of the bespoke identifiers"
                                       " image, sia, sia1, spectrum, ssap, ssa, scs, conesearch, line, slap,"
-                                      " table, tap, sia2")
+                                      " table, tap, sia2, hats, hips")
 
     def test_legacy_term(self):
         assert (rtcons.Servicetype("conesearch").get_search_condition(FAKE_GAVO)
