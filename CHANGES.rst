@@ -13,10 +13,12 @@ Enhancements and Fixes
 - Add retry option to AsyncTAPJob.fetch_result for transient failures [#696]
 
 - Upgrade of the ``MivotViewer`` API (``xml_viewer`` module removed, support of
-  multiple mapped objects per row, partial redesign of the public API) -  
+  multiple mapped objects per row, partial redesign of the public API) -
   Improve the gateway between annotations and ``SkyCoord`` objects -
   revamp the viewer documentation. [#698]
 
+- Adding "hats" and "hips" servicetype shorthands for registry searches for
+  HATS and HIPS resources. [#706]
 
 Deprecations and Removals
 -------------------------

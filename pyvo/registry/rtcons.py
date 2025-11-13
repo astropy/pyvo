@@ -428,10 +428,16 @@ class Servicetype(Constraint):
             elif std == 'sia2':
                 self.extra_fragments.append(
                     "standard_id like 'ivo://ivoa.net/std/sia#query-2.%'")
+            elif std == 'hats':
+                self.extra_fragments.append(
+                    "standard_id like 'ivo://ivoa.net/std/hats#hats-%'")
+            elif std == 'hips':
+                self.extra_fragments.append(
+                    "standard_id like 'ivo://ivoa.net/std/hips#hipslist-%'")
             else:
                 raise dalq.DALQueryError("Service type {} is neither a full"
                                          " standard URI nor one of the bespoke identifiers"
-                                         " {}, sia2".format(std, ", ".join(SERVICE_TYPE_MAP)))
+                                         " {}, sia2, hats, hips".format(std, ", ".join(SERVICE_TYPE_MAP)))
 
     def clone(self):
         """returns a copy of this servicetype constraint.
