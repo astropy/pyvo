@@ -396,6 +396,48 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             yield from self._iter_datalinks_from_dlblock(
                 preserve_order=preserve_order)
 
+    def iter_parse_json_params(
+        self,
+        colname: str="cloud_access",
+        key: str="aws",
+        verbose: bool=False,
+        **match_params
+    ):
+
+        for irow, record in enumerate(self):
+            access_points = record.parse_json_params(
+                colname=colname,
+                key=key,
+                verbose=verbose,
+                **match_params
+                )
+            access_points.add_column([irow]*len(access_points), name="record_row", index=0)
+            if irow == 0:
+                new_table = access_points
+            else:
+                for row in access_points.iterrows():
+                    new_table.add_row(row)
+
+        return new_table
+
+    def iter_get_cloud_params(
+        self,
+        colname: str="cloud_access",
+        provider: str="aws",
+        verbose: bool=False,
+        **match_params
+    ):
+        for irow, record in enumerate(self):
+            # do the json parsing
+            cloud_params = record.get_cloud_params(colname, provider, verbose, **match_params)
+            cloud_params.add_column([irow]*len(cloud_params), name="record_row", index=0)
+            if irow == 0:
+                new_table = cloud_params
+            else:
+                for row in cloud_params.iterrows():
+                    new_table.add_row(row)
+
+        return new_table
 
 class DatalinkRecordMixin:
     """
@@ -445,6 +487,110 @@ class DatalinkRecordMixin:
             # this should go to Record.getdataset()
             return super().getdataset(timeout=timeout)
 
+    def parse_json_params(
+        self,
+        colname: str="cloud_access",
+        key: str="aws",
+        verbose: bool=False,
+        **match_params
+        ):
+        """Parse information stored as JSON by key
+        
+        Parameters
+        ----------
+        colname: str
+            name of column to search in
+        provider: str, optional
+            name of data provider: only 'aws' is presently supported.
+        verbose: bool
+            If True, print progress and debug text.
+            
+        Return
+        ------
+        A dict or a list of dict of parameters for every row in products
+
+        """
+        import json
+
+        # init results table (avoiding adding import of astropy.table.Table)
+        new_table = TableElement(VOTableFile()).to_table()
+        
+        if verbose:
+            print(f'searching for and processing json column {colname}')
+
+        try:
+            jsontxt  = self[colname]
+            jsonDict = json.loads(jsontxt)
+            if key not in jsonDict and verbose:
+                print(f'No key "{key}" found for record'
+                        'in column "{colname}"')
+            else:
+                p_params = jsonDict[key]
+                checks = []
+                for k, value in match_params.items():
+                    checks.append(p_params.getitem(k, value) == value)
+
+                if all(checks):
+                    if not isinstance(p_params, list):
+                        p_params = [p_params]
+                    colnames = list(p_params[0].keys())
+                    colvals = [[] for _ in colnames]
+                    for ppar in p_params:
+                        for idx, val in enumerate(ppar.values()):
+                            colvals[idx].append(val)
+                    new_table.add_columns(cols=colvals, names=colnames)
+
+        except KeyError:
+            # no json column, return empty list
+            if verbose:
+                print(f'No column {colname} found for record.')
+
+        return new_table
+
+    def get_cloud_params(self, colname="cloud_access", provider="aws", verbose=False, **match_params):
+        """Parse information stored as JSON by key
+        
+        Parameters
+        ----------
+        colname: str
+            name of column to search in
+        provider: str, optional
+            name of data provider: only 'aws' is presently supported.
+        verbose: bool
+            If True, print progress and debug text.
+            
+        Return
+        ------
+        An astropy Table with parameters for every row in the datalinks
+
+        """
+        dl_results = self.getdatalink()
+        products = dl_results.bysemantics("#this")
+
+
+        for irow, row in enumerate(products):
+            # if no colname column, there is nothing to do    
+            try:
+                access_points = row.parse_json_params(
+                    colname=colname,
+                    key=provider,
+                    verbose=verbose,
+                    **match_params
+                    )
+                access_points.add_column([irow]*len(access_points), name="datalink_row", index=0)
+                if irow == 0:
+                    new_table = access_points
+                else:
+                    for row in access_points.iterrows():
+                        new_table.add_row(row)
+            except KeyError:
+                # no json column, continue
+                if verbose:
+                    print(f'No column {colname} found for row {irow}')
+                new_table = TableElement(VOTableFile()).to_table()
+                continue
+
+        return new_table
 
 class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
     """
@@ -838,6 +984,28 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         res = super().from_result_url(result_url, session=session)
         res.original_row = original_row
         return res
+
+    def get_cloud_params(self, colname="cloud_access", provider="aws", verbose=False, **match_params):
+        products = list(self.bysemantics("#this"))
+        rows_access_points = [[] for i in range(len(products))]
+        
+        for irow, row in enumerate(products):
+                    # if no colname column, there is nothing to do    
+            try:
+                access_points  = row.parse_json_params(
+                    colname=colname,
+                    key=provider,
+                    verbose=verbose,
+                    **match_params
+                    )
+                rows_access_points[irow].append(access_points)
+            except KeyError:
+                # no json column, continue
+                if verbose:
+                    print(f'No column {colname} found for row {irow}')
+                continue
+
+        return rows_access_points
 
 
 class SodaRecordMixin:
