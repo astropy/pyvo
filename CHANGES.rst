@@ -1,27 +1,31 @@
-1.8 (unreleased)
+1.8 (2025-11-13)
 ================
 
 Enhancements and Fixes
 ----------------------
 
-- No longer show a warning when an overflow status is encountered with a maxrec set by the user [#690]
+- No longer show a warning when an overflow status is encountered with a maxrec
+  set by the user [#690]
 
 - Add support for the jobInfo element for UWS jobs [#679]
 
-- Fix DALOverflowWarning error message to only indicate the cause as limits from user or server. [#689]
+- Fix DALOverflowWarning error message to only indicate the cause as limits from
+  user or server. [#689]
 
 - Add retry option to AsyncTAPJob.fetch_result for transient failures [#696]
 
-- Upgrade of the ``MivotViewer`` API (``xml_viewer`` module removed, support of
-  multiple mapped objects per row, partial redesign of the public API) -
-  Improve the gateway between annotations and ``SkyCoord`` objects -
-  revamp the viewer documentation. [#698]
+- Improve the ``MivotViewer`` API: adding support of multiple mapped objects
+  per row and a partial redesign of the public API. Also, improved the gateway
+  between annotations and ``SkyCoord`` objects. [#698]
 
 - Adding "hats" and "hips" servicetype shorthands for registry searches for
   HATS and HIPS resources. [#706]
 
 Deprecations and Removals
 -------------------------
+
+- Upgrade of the ``MivotViewer`` API including the removal of the
+  ``xml_viewer`` module. [#698]
 
 
 1.7.1 (2025-10-16)
