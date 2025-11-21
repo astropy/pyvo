@@ -403,7 +403,28 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         verbose: bool=False,
         **match_params
     ):
+        """
+        Iterate over all Records in a DalResult and return parsed json parameters.
 
+        Parameters
+        ----------
+        colname : str, optional
+            The column containing JSON to be parsed, by default "cloud_access"
+        key : str, optional
+            The key to filter JSON results by, by default "aws"
+        verbose : bool, optional
+            Whether to print progress and errors, by default False
+        **match_params : str, optional
+            Any further parameters to match on.
+
+        Returns
+        -------
+        astropy.Table
+            A table containing the JSON parameters separated into columns, each
+            row corresponding to a matching JSON entry for each DataLinkRecord
+            for each row of the original DalResult.
+
+        """
         for irow, record in enumerate(self):
             access_points = record.parse_json_params(
                 colname=colname,
@@ -427,9 +448,55 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         verbose: bool=False,
         **match_params
     ):
-        for irow, record in enumerate(self):
+        """
+        Iterate over all Records in a DalResult and return parsed cloud parameters.
+
+        Parameters
+        ----------
+        colname : str, optional
+            The column containing JSON to be parsed, by default "cloud_access"
+        provider : str, optional
+            The key to filter JSON results by, by default "aws"
+        verbose : bool, optional
+            Whether to print progress and errors, by default False
+        **match_params : str, optional
+            Any further parameters to match on.
+
+        Returns
+        -------
+        astropy.Table
+            A table containing the JSON parameters separated into columns, each
+            row corresponding to matching JSON entries from each Record.
+
+        """
+        for irow, dl_results in enumerate(self.iter_datalinks()):
+
+            products = dl_results.bysemantics("#this")
+
+            for jrow, row in enumerate(products):
+                # if no colname column, there is nothing to do    
+                try:
+                    access_points = row.parse_json_params(
+                        colname=colname,
+                        key=provider,
+                        verbose=verbose,
+                        **match_params
+                        )
+                    access_points.add_column([jrow]*len(access_points), name="datalink_row", index=0)
+                    if jrow == 0:
+                        new_dl_table = access_points
+                    else:
+                        for row in access_points.iterrows():
+                            new_dl_table.add_row(row)
+                except KeyError:
+                    # no json column, continue
+                    if verbose:
+                        print(f'No column {colname} found for row {irow}, datalink {jrow}')
+                    new_dl_table = TableElement(VOTableFile()).to_table()
+                    continue
+
             # do the json parsing
-            cloud_params = record.get_cloud_params(colname, provider, verbose, **match_params)
+            cloud_params = access_points
             cloud_params.add_column([irow]*len(cloud_params), name="record_row", index=0)
             if irow == 0:
                 new_table = cloud_params
@@ -498,16 +565,20 @@ class DatalinkRecordMixin:
         
         Parameters
         ----------
-        colname: str
-            name of column to search in
-        provider: str, optional
-            name of data provider: only 'aws' is presently supported.
-        verbose: bool
-            If True, print progress and debug text.
-            
-        Return
-        ------
-        A dict or a list of dict of parameters for every row in products
+        colname : str, optional
+            The column containing JSON to be parsed, by default "cloud_access"
+        key : str, optional
+            The key to filter JSON results by, by default "aws"
+        verbose : bool, optional
+            Whether to print progress and errors, by default False
+        **match_params : str, optional
+            Any further parameters to match on.
+
+        Returns
+        -------
+        astropy.Table
+            A table containing the JSON parameters separated into columns, each
+            row representing a matching JSON entry.
 
         """
         import json
@@ -548,7 +619,7 @@ class DatalinkRecordMixin:
         return new_table
 
     def get_cloud_params(self, colname="cloud_access", provider="aws", verbose=False, **match_params):
-        """Parse information stored as JSON by key
+        """Parse cloud information stored as JSON by provider
         
         Parameters
         ----------
@@ -558,10 +629,13 @@ class DatalinkRecordMixin:
             name of data provider: only 'aws' is presently supported.
         verbose: bool
             If True, print progress and debug text.
+        **match_params
             
         Return
         ------
-        An astropy Table with parameters for every row in the datalinks
+        astropy.Table
+            A table containing the JSON parameters separated into columns,
+            each row being a unique JSON entry and/or from a different DatalinkRecord.
 
         """
         dl_results = self.getdatalink()

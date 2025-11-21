@@ -4,10 +4,12 @@
 Tests for pyvo.dal.datalink
 """
 from functools import partial
+from io import BytesIO
 import re
 
 import pytest
 
+from astropy.io.votable import parse, writeto, from_table
 import pyvo as vo
 from pyvo.dal.adhoc import DatalinkResults, DALServiceError
 from pyvo.dal.sia2 import SIA2Results
@@ -74,6 +76,21 @@ def datalink_product(mocker):
     ) as matcher:
         yield matcher
 
+@pytest.fixture()
+def datalink_cloud(mocker):
+    def callback(request, context): 
+        dl_base = parse('pyvo/dal/tests/data/datalink/datalink.xml')
+        dl_base_table = dl_base.get_first_table().to_table()
+        cloud_access_str = '{"aws": {"bucket_name": "test", "key":"path/to/cloudfile.fits", "region": "us-west-2"}}'
+        dl_base_table.add_column([cloud_access_str]*4, name='cloud_access')
+        out = BytesIO()
+        writeto(from_table(dl_base_table), out)
+        return out.getvalue()
+
+    with mocker.register_uri(
+        'GET', 'http://example.com/datalink-cloud.xml', content=callback
+    ) as matcher:
+        yield matcher
 
 @pytest.fixture()
 def obscore_datalink(mocker):
@@ -336,3 +353,59 @@ def test_no_datalink():
     result = results[0]
     with pytest.raises(DALServiceError, match="No datalink found for record."):
         result.getdatalink()
+
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
+@pytest.mark.usefixtures('datalink_cloud')
+class TestJsonColumns:
+    """Tests for producing datalinks from tables containing links to
+    datalink documents.
+    """
+
+    res = testing.create_dalresults([
+            {"name": "access_url", "datatype": "char", "arraysize": "*",
+                "ucd": "meta.ref.url"},
+            {"name": "access_format", "datatype": "char", "arraysize": "*",
+                "utype": "meta.code.mime"},
+            {"name": "cloud_access", "datatype": "char", "arraysize": "*"},],
+            [("http://example.com/datalink-cloud.xml",
+                "application/x-votable+xml;content=datalink",
+                '{"aws": {"bucket_name": "test", "key":"path/to/file1.fits", "region": "us-west-2"}}',),
+                ("http://example.com/datalink-cloud.xml",
+                "application/x-votable+xml;content=datalink",
+                '{"aws": {"bucket_name": "test", "key":"path/to/file2.fits", "region": "us-west-2"}}',)],
+            resultsClass=SIA2Results
+        )
+    def test_record_w_json(self):
+
+
+        parsed_json_matches = self.res[0].parse_json_params("cloud_access", "aws")
+        assert parsed_json_matches[0]["bucket_name"] == "test"
+        assert parsed_json_matches[0]["key"] == "path/to/file1.fits"
+        assert parsed_json_matches[0]["region"] == "us-west-2"
+
+    def test_iter_json(self):
+
+        parsed_json_matches = self.res.iter_parse_json_params("cloud_access", "aws")
+        assert parsed_json_matches[0]["record_row"] == 0
+        assert parsed_json_matches[0]["bucket_name"] == "test"
+        assert parsed_json_matches[0]["key"] == "path/to/file1.fits"
+        assert parsed_json_matches[0]["region"] == "us-west-2"
+        assert parsed_json_matches[1]["record_row"] == 1
+        assert parsed_json_matches[1]["key"] == "path/to/file2.fits"
+
+    def test_datalink_json(self):
+        parsed_cloud_params = self.res[0].get_cloud_params("cloud_access", "aws")
+        assert parsed_cloud_params[0]["bucket_name"] == "test"
+        assert parsed_cloud_params[0]["key"] == "path/to/cloudfile.fits"
+        assert parsed_cloud_params[0]["region"] == "us-west-2"
+
+    def test_iter_datalink_json(self):
+        parsed_json_matches = self.res.iter_get_cloud_params("cloud_access", "aws")
+        assert parsed_json_matches[0]["record_row"] == 0
+        assert parsed_json_matches[0]["datalink_row"] == 0
+        assert parsed_json_matches[0]["bucket_name"] == "test"
+        assert parsed_json_matches[0]["key"] == "path/to/cloudfile.fits"
+        assert parsed_json_matches[0]["region"] == "us-west-2"
+        assert parsed_json_matches[1]["record_row"] == 1
+        assert parsed_json_matches[1]["datalink_row"] == 0
+        assert parsed_json_matches[1]["key"] == "path/to/cloudfile.fits"
