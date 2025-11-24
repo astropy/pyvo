@@ -1059,28 +1059,6 @@ class DatalinkResults(DatalinkResultsMixin, DALResults):
         res.original_row = original_row
         return res
 
-    def get_cloud_params(self, colname="cloud_access", provider="aws", verbose=False, **match_params):
-        products = list(self.bysemantics("#this"))
-        rows_access_points = [[] for i in range(len(products))]
-        
-        for irow, row in enumerate(products):
-                    # if no colname column, there is nothing to do    
-            try:
-                access_points  = row.parse_json_params(
-                    colname=colname,
-                    key=provider,
-                    verbose=verbose,
-                    **match_params
-                    )
-                rows_access_points[irow].append(access_points)
-            except KeyError:
-                # no json column, continue
-                if verbose:
-                    print(f'No column {colname} found for row {irow}')
-                continue
-
-        return rows_access_points
-
 
 class SodaRecordMixin:
     """

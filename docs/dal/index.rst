@@ -869,9 +869,11 @@ DatalinkResults using
     >>> next(datalink.bysemantics("#this")).content_type
     'application/fits'
 
+Cloud Access Information [subject to change]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 As data becomes available from different cloud providers, some services are
 including cloud access information in the associated Datalink in JSON format.
-The ``get_cloud_params`` and ``iter_get_cloud_params`` fucntions for
+The ``get_cloud_params`` and ``iter_get_cloud_params`` functions for
 Records and Results respectively return an ``astropy.Table`` with the
 parameters specified to access data via the cloud service provider specified.
 
