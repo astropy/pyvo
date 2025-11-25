@@ -89,10 +89,14 @@ class SkyCoordBuilder:
         -----
         MappingError: if the Time instance cannot be built for some reason
         """
-        # Process complex type "mango:DateTime
+        # Process complex type "mango:DateTime"
         if hk_field['dmtype'] == "mango:DateTime":
             representation = hk_field['representation']['value']
             timestamp = hk_field['dateTime']['value']
+        # Process complex type "coords:epoch" used for the space frame equinox
+        elif hk_field['dmtype'] == "coords:Epoch":
+            representation = 'yr' if "unit" not in hk_field else hk_field.get("unit")
+            timestamp = hk_field['value']
         # Process simple attribute
         else:
             representation = hk_field.get("unit")
@@ -104,7 +108,8 @@ class SkyCoordBuilder:
 
         time_instance = self. _build_time_instance(timestamp, representation, besselian)
         if not time_instance:
-            raise MappingError(f"Cannot build a Time instance from {hk_field}")
+            mode = "besselian" if besselian else "julian"
+            raise MappingError(f"Cannot build a Time instance from {hk_field} ({mode} date)")
 
         return time_instance
 
@@ -175,7 +180,6 @@ class SkyCoordBuilder:
         coo_sys = self._mivot_instance_dict["spaceSys"]["frame"]
         equinox = None
         frame = coo_sys["spaceRefFrame"]["value"].lower()
-
         if frame == 'fk4':
             self._map_coord_names = SkyCoordMapping.default_params
             if "equinox" in coo_sys:
