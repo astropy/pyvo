@@ -398,8 +398,8 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
 
     def iter_parse_json_params(
         self,
+        json_key: str,
         colname: str="cloud_access",
-        key: str="aws",
         verbose: bool=False,
         **match_params
     ):
@@ -408,14 +408,14 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
 
         Parameters
         ----------
+        json_key : str
+            The primary key by which to filter JSON results.
         colname : str, optional
-            The column containing JSON to be parsed, by default "cloud_access"
-        key : str, optional
-            The key to filter JSON results by, by default "aws"
+            The column containing JSON to be parsed, by default "cloud_access".
         verbose : bool, optional
-            Whether to print progress and errors, by default False
+            Whether to print progress and errors, by default False.
         **match_params : str, optional
-            Any further parameters to match on.
+            Further parameters on which to match beyond `json_key`.
 
         Returns
         -------
@@ -428,7 +428,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         for irow, record in enumerate(self):
             access_points = record.parse_json_params(
                 colname=colname,
-                key=key,
+                json_key=json_key,
                 verbose=verbose,
                 **match_params
                 )
@@ -443,8 +443,8 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
 
     def iter_get_cloud_params(
         self,
+        provider: str,
         colname: str="cloud_access",
-        provider: str="aws",
         verbose: bool=False,
         **match_params
     ):
@@ -453,14 +453,14 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
 
         Parameters
         ----------
+        provider : str
+            Name of the data provider.
         colname : str, optional
-            The column containing JSON to be parsed, by default "cloud_access"
-        provider : str, optional
-            The key to filter JSON results by, by default "aws"
+            The column containing cloud access JSON, by default "cloud_access".
         verbose : bool, optional
-            Whether to print progress and errors, by default False
+            Whether to print debug text, by default False.
         **match_params : str, optional
-            Any further parameters to match on.
+            Further parameters on which to match beyond `provider`.
 
         Returns
         -------
@@ -478,7 +478,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                 try:
                     access_points = row.parse_json_params(
                         colname=colname,
-                        key=provider,
+                        json_key=provider,
                         verbose=verbose,
                         **match_params
                         )
@@ -556,8 +556,8 @@ class DatalinkRecordMixin:
 
     def parse_json_params(
         self,
+        json_key: str,
         colname: str="cloud_access",
-        key: str="aws",
         verbose: bool=False,
         **match_params
         ):
@@ -565,14 +565,14 @@ class DatalinkRecordMixin:
         
         Parameters
         ----------
+        json_key : str
+            The primary key by which to filter JSON results
         colname : str, optional
             The column containing JSON to be parsed, by default "cloud_access"
-        key : str, optional
-            The key to filter JSON results by, by default "aws"
         verbose : bool, optional
             Whether to print progress and errors, by default False
         **match_params : str, optional
-            Any further parameters to match on.
+            Further parameters on which to match beyond `json_key`.
 
         Returns
         -------
@@ -592,11 +592,11 @@ class DatalinkRecordMixin:
         try:
             jsontxt  = self[colname]
             jsonDict = json.loads(jsontxt)
-            if key not in jsonDict and verbose:
-                print(f'No key "{key}" found for record'
+            if json_key not in jsonDict and verbose:
+                print(f'No key "{json_key}" found for record'
                         'in column "{colname}"')
             else:
-                p_params = jsonDict[key]
+                p_params = jsonDict[json_key]
                 checks = []
                 for k, value in match_params.items():
                     checks.append(p_params.getitem(k, value) == value)
@@ -618,18 +618,25 @@ class DatalinkRecordMixin:
 
         return new_table
 
-    def get_cloud_params(self, colname="cloud_access", provider="aws", verbose=False, **match_params):
+    def get_cloud_params(
+        self,
+        provider: str,
+        colname: str = "cloud_access",
+        verbose: bool = False,
+        **match_params
+        ):
         """Parse cloud information stored as JSON by provider
         
         Parameters
         ----------
-        colname: str
-            name of column to search in
-        provider: str, optional
-            name of data provider: only 'aws' is presently supported.
-        verbose: bool
-            If True, print progress and debug text.
+        provider: str
+            Name of the data provider
+        colname: str, optional
+            The column name containing the cloud access JSON, by default "cloud_access"
+        verbose: bool, optional
+            If True, print progress and debug text, by default False
         **match_params
+            Further parameters on which to match beyond `provider`.
             
         Return
         ------
