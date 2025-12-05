@@ -6,6 +6,7 @@ import numpy as np
 import warnings
 import copy
 import requests
+import json
 
 from .query import DALResults, DALQuery, DALService, Record
 from .exceptions import DALServiceError
@@ -397,51 +398,6 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             yield from self._iter_datalinks_from_dlblock(
                 preserve_order=preserve_order)
 
-    def iter_parse_json_params(
-        self,
-        json_key: str,
-        colname: str="cloud_access",
-        verbose: bool=False,
-        **match_params
-    ):
-        """
-        Iterate over all Records in a DalResult and return parsed json parameters.
-
-        Parameters
-        ----------
-        json_key : str
-            The primary key by which to filter JSON results.
-        colname : str, optional
-            The column containing JSON to be parsed, by default "cloud_access".
-        verbose : bool, optional
-            Whether to print progress and errors, by default False.
-        **match_params : str, optional
-            Further parameters on which to match beyond `json_key`.
-
-        Returns
-        -------
-        astropy.Table
-            A table containing the JSON parameters separated into columns, each
-            row corresponding to a matching JSON entry for each DataLinkRecord
-            for each row of the original DalResult.
-
-        """
-        for irow, record in enumerate(self):
-            access_points = record.parse_json_params(
-                colname=colname,
-                json_key=json_key,
-                verbose=verbose,
-                **match_params
-                )
-            access_points.add_column([irow]*len(access_points), name="record_row", index=0)
-            if irow == 0:
-                new_table = access_points
-            else:
-                for row in access_points.iterrows():
-                    new_table.add_row(row)
-
-        return new_table
-
     def iter_get_cloud_params(
         self,
         provider: str,
@@ -476,9 +432,10 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
 
             for jrow, row in enumerate(products):
                 # if no colname column, there is nothing to do    
-                try:
+                jsontxt = row._guess_cloud_column(colname=colname)
+                if jsontxt:
                     access_points = row.parse_json_params(
-                        colname=colname,
+                        json_txt=jsontxt,
                         json_key=provider,
                         verbose=verbose,
                         **match_params
@@ -489,15 +446,14 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                     else:
                         for row in access_points.iterrows():
                             new_dl_table.add_row(row)
-                except KeyError:
+                else:
                     # no json column, continue
                     if verbose:
-                        print(f'No column {colname} found for row {irow}, datalink {jrow}')
+                        print(f'No column {colname} found for Results row {irow}, datalink row {jrow}')
                     new_dl_table = TableElement(VOTableFile()).to_table()
-                    continue
 
             # do the json parsing
-            cloud_params = access_points
+            cloud_params = new_dl_table
             cloud_params.add_column([irow]*len(cloud_params), name="record_row", index=0)
             if irow == 0:
                 new_table = cloud_params
@@ -555,10 +511,10 @@ class DatalinkRecordMixin:
             # this should go to Record.getdataset()
             return super().getdataset(timeout=timeout)
 
+    @staticmethod
     def parse_json_params(
-        self,
+        json_txt: str,
         json_key: str,
-        colname: str="cloud_access",
         verbose: bool=False,
         **match_params
         ):
@@ -566,10 +522,10 @@ class DatalinkRecordMixin:
         
         Parameters
         ----------
+        json_txt : str
+            Text interpreted as JSON
         json_key : str
             The primary key by which to filter JSON results
-        colname : str, optional
-            The column containing JSON to be parsed, by default "cloud_access"
         verbose : bool, optional
             Whether to print progress and errors, by default False
         **match_params : str, optional
@@ -582,42 +538,51 @@ class DatalinkRecordMixin:
             row representing a matching JSON entry.
 
         """
-        import json
 
         # init results table (avoiding adding import of astropy.table.Table)
         new_table = TableElement(VOTableFile()).to_table()
-        
-        if verbose:
-            print(f'searching for and processing json column {colname}')
 
-        try:
-            jsontxt  = self[colname]
-            jsonDict = json.loads(jsontxt)
-            if json_key not in jsonDict and verbose:
-                print(f'No key "{json_key}" found for record'
-                        'in column "{colname}"')
-            else:
-                p_params = jsonDict[json_key]
-                checks = []
-                for k, value in match_params.items():
-                    checks.append(p_params.getitem(k, value) == value)
+        jsonDict = json.loads(json_txt)
+        if json_key not in jsonDict and verbose:
+            print(f'No key "{json_key}" found in json_txt given.')
+        else:
+            p_params = jsonDict[json_key]
+            checks = []
+            for k, value in match_params.items():
+                checks.append(p_params.getitem(k, value) == value)
 
-                if all(checks):
-                    if not isinstance(p_params, list):
-                        p_params = [p_params]
-                    colnames = list(p_params[0].keys())
-                    colvals = [[] for _ in colnames]
-                    for ppar in p_params:
-                        for idx, val in enumerate(ppar.values()):
-                            colvals[idx].append(val)
-                    new_table.add_columns(cols=colvals, names=colnames)
-
-        except KeyError:
-            # no json column, return empty list
-            if verbose:
-                print(f'No column {colname} found for record.')
+            if all(checks):
+                if not isinstance(p_params, list):
+                    p_params = [p_params]
+                colnames = list(p_params[0].keys())
+                colvals = [[] for _ in colnames]
+                for ppar in p_params:
+                    for idx, val in enumerate(ppar.values()):
+                        colvals[idx].append(val)
+                new_table.add_columns(cols=colvals, names=colnames)
 
         return new_table
+
+    def _guess_cloud_column(self, colname="cloud_access"):
+        """returns a guess for a URI to a data product in row.
+
+        This tries a few heuristics based on how cloud access or records might
+        be marked up.  This will return None if row does not look as if
+        it contained a cloud access column.
+        """
+        if hasattr(self, colname):
+            return getattr(self, colname)
+
+        if colname in self:
+            return self[colname]
+
+        cloud_access = self.getbyutype("adhoc:cloudstorage")
+        if cloud_access:
+            return cloud_access
+
+        cloud_access = self.getbyucd("meta.ref.cloudstorage") 
+        if cloud_access:
+            return cloud_access
 
     def get_cloud_params(
         self,
@@ -652,10 +617,11 @@ class DatalinkRecordMixin:
 
         for irow, row in enumerate(products):
             # if no colname column, there is nothing to do    
-            try:
+            cloud_json = row._guess_cloud_column(colname=colname)
+            if cloud_json:
                 access_points = row.parse_json_params(
-                    colname=colname,
-                    key=provider,
+                    json_txt=cloud_json,
+                    json_key=provider,
                     verbose=verbose,
                     **match_params
                     )
@@ -665,12 +631,12 @@ class DatalinkRecordMixin:
                 else:
                     for row in access_points.iterrows():
                         new_table.add_row(row)
-            except KeyError:
-                # no json column, continue
+            else:
+                # no json column, return None
                 if verbose:
                     print(f'No column {colname} found for row {irow}')
-                new_table = TableElement(VOTableFile()).to_table()
-                continue
+                new_table = None
+                break
 
         return new_table
 
