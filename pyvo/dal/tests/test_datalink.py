@@ -76,12 +76,14 @@ def datalink_product(mocker):
     ) as matcher:
         yield matcher
 
+
 @pytest.fixture()
 def datalink_cloud1(mocker):
-    def callback(request, context): 
+    def callback(request, context):
         dl_base = parse('pyvo/dal/tests/data/datalink/datalink.xml')
         dl_base_table = dl_base.get_first_table().to_table()
-        cloud_access_str = '{"aws": {"bucket_name": "test", "key":"path/to/cloudfile.fits", "region": "us-west-2"}}'
+        cloud_access_str = ('{"aws": {"bucket_name": "test", '
+        '"key":"path/to/cloudfile.fits", "region": "us-west-2"}}')
         dl_base_table.add_column([cloud_access_str]*4, name='cloud_access')
         out = BytesIO()
         votable = from_table(dl_base_table)
@@ -94,14 +96,17 @@ def datalink_cloud1(mocker):
     ) as matcher:
         yield matcher
 
+
 @pytest.fixture()
 def datalink_cloud2(mocker):
-    def callback(request, context): 
+    def callback(request, context):
         dl_base = parse('pyvo/dal/tests/data/datalink/datalink.xml')
         dl_base_table = dl_base.get_first_table().to_table()
         cloud_access_str = ('{"aws": '
-                            '[{"bucket_name": "test", "key": "path/to/cloudfile.fits", "region": "us-west-2"}, '
-                             '{"bucket_name": "test", "key": "path/to/cloudfile2.fits", "region": "us-west-2"}]}')
+                            '[{"bucket_name": "test", '
+                            '"key": "path/to/cloudfile.fits", "region": "us-west-2"}, '
+                             '{"bucket_name": "test", '
+                             '"key": "path/to/cloudfile2.fits", "region": "us-west-2"}]}')
         dl_base_table.add_column([cloud_access_str]*4, name='cloud_access')
         out = BytesIO()
         votable = from_table(dl_base_table)
@@ -113,6 +118,7 @@ def datalink_cloud2(mocker):
         'GET', 'http://example.com/datalink-cloud2.xml', content=callback
     ) as matcher:
         yield matcher
+
 
 @pytest.fixture()
 def obscore_datalink(mocker):
@@ -376,31 +382,32 @@ def test_no_datalink():
     with pytest.raises(DALServiceError, match="No datalink found for record."):
         result.getdatalink()
 
+
 @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.E02")
 @pytest.mark.usefixtures('datalink_cloud1', 'datalink_cloud2', 'datalink_product')
 class TestJsonColumns:
-    """Tests for producing datalinks from tables containing links to
-    datalink documents.
+    """Tests for parsing JSON in Records and Results columns.
     """
 
     res = testing.create_dalresults([
-            {"name": "access_url", "datatype": "char", "arraysize": "*",
-                "ucd": "meta.ref.url"},
-            {"name": "access_format", "datatype": "char", "arraysize": "*",
-                "utype": "meta.code.mime"},
-            {"name": "cloud_access", "datatype": "char", "arraysize": "*",
-                "utype": "adhoc:cloudstorage", "ucd": "meta.ref.cloudstorage"},],
-            [("http://example.com/datalink-cloud1.xml",
-                "application/x-votable+xml;content=datalink",
-                '{"aws": {"bucket_name": "test", "key":"path/to/file1.fits", "region": "us-west-2"}}',),
-                ("http://example.com/datalink-cloud2.xml",
-                "application/x-votable+xml;content=datalink",
-                '{"aws": {"bucket_name": "test", "key":"path/to/file2.fits", "region": "us-west-2"}}',),
-                 ("http://example.com/datalink.xml",
-                "application/x-votable+xml;content=datalink",
-                '{"aws": {"bucket_name": "test", "key":"path/to/file2.fits", "region": "us-west-2"}}',),],
-            resultsClass=SIA2Results
-        )
+        {"name": "access_url", "datatype": "char", "arraysize": "*",
+         "ucd": "meta.ref.url"},
+        {"name": "access_format", "datatype": "char", "arraysize": "*",
+         "utype": "meta.code.mime"},
+        {"name": "cloud_access", "datatype": "char", "arraysize": "*",
+         "utype": "adhoc:cloudstorage", "ucd": "meta.ref.cloudstorage"},],
+        [("http://example.com/datalink-cloud1.xml",
+          "application/x-votable+xml;content=datalink",
+          '{"aws": {"bucket_name": "test", "key":"path/to/file1.fits", "region": "us-west-2"}}',),
+        ("http://example.com/datalink-cloud2.xml",
+         "application/x-votable+xml;content=datalink",
+         '{"aws": {"bucket_name": "test", "key":"path/to/file2.fits", "region": "us-west-2"}}',),
+        ("http://example.com/datalink.xml",
+         "application/x-votable+xml;content=datalink",
+         '{"aws": {"bucket_name": "test", "key":"path/to/file2.fits", "region": "us-west-2"}}',),],
+        resultsClass=SIA2Results
+    )
+
     def test_record_w_json(self):
 
         jsontxt = '{"aws": {"bucket_name": "test", "key":"path/to/file1.fits", "region": "us-west-2"}}'
@@ -413,11 +420,14 @@ class TestJsonColumns:
         # Check that giving extra kwargs matches parameters
         jsontxt = '{"aws": {"bucket_name": "test", "key":"path/to/file1.fits", "region": "us-west-2"}}'
         parsed_json_matches0 = self.res[0].parse_json_params(json_txt=jsontxt, json_key="aws")
-        parsed_json_matches1 = self.res[0].parse_json_params(json_txt=jsontxt, json_key="aws", region="us-west-2")
+        parsed_json_matches1 = self.res[0].parse_json_params(json_txt=jsontxt,
+                                                             json_key="aws", region="us-west-2")
 
         assert parsed_json_matches0 == parsed_json_matches1
 
-        parsed_json_matches2 = self.res[0].parse_json_params(json_txt=jsontxt, json_key="aws", region="us-west-1")
+        parsed_json_matches2 = self.res[0].parse_json_params(json_txt=jsontxt,
+                                                             json_key="aws",
+                                                             region="us-west-1")
         assert len(parsed_json_matches2) == 0
 
     def test_datalink_json(self):
@@ -444,7 +454,9 @@ class TestJsonColumns:
 
     def no_column_in_datalink(self, capsys):
         # All column guesses come back empty
-        parsed_cloud_params = self.res[1].get_cloud_params(provider="aws", colname="cloud_access", verbose=True)
+        parsed_cloud_params = self.res[1].get_cloud_params(provider="aws",
+                                                           colname="cloud_access",
+                                                           verbose=True)
         assert "No column cloud_access" in capsys
         assert parsed_cloud_params is None
 
@@ -463,4 +475,3 @@ class TestJsonColumns:
         assert parsed_json_matches[2]["record_row"] == 1
         assert parsed_json_matches[2]["datalink_row"] == 0
         assert parsed_json_matches[2]["key"] == "path/to/cloudfile2.fits"
-        

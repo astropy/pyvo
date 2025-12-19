@@ -400,8 +400,8 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
     def iter_get_cloud_params(
         self,
         provider: str,
-        colname: str="cloud_access",
-        verbose: bool=False,
+        colname: str = "cloud_access",
+        verbose: bool = False,
         **match_params
     ):
         """
@@ -416,7 +416,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
         verbose : bool, optional
             Whether to print debug text, by default False.
         **match_params : str, optional
-            Further parameters on which to match beyond `provider`.
+            Further parameters on which to match beyond provider.
 
         Returns
         -------
@@ -430,7 +430,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
             products = dl_results.bysemantics("#this")
 
             for jrow, row in enumerate(products):
-                # if no colname column, there is nothing to do    
+                # if no colname column, there is nothing to do
                 jsontxt = row._guess_cloud_column(colname=colname)
                 if jsontxt:
                     access_points = row.parse_json_params(
@@ -438,7 +438,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                         json_key=provider,
                         verbose=verbose,
                         **match_params
-                        )
+                    )
                     access_points.add_column([jrow]*len(access_points), name="datalink_row", index=0)
                     if jrow == 0:
                         new_dl_table = access_points
@@ -461,6 +461,7 @@ class DatalinkResultsMixin(AdhocServiceResultsMixin):
                     new_table.add_row(row)
 
         return new_table
+
 
 class DatalinkRecordMixin:
     """
@@ -514,11 +515,11 @@ class DatalinkRecordMixin:
     def parse_json_params(
         json_txt: str,
         json_key: str,
-        verbose: bool=False,
+        verbose: bool = False,
         **match_params
-        ):
+    ):
         """Parse information stored as JSON by key
-        
+
         Parameters
         ----------
         json_txt : str
@@ -528,7 +529,7 @@ class DatalinkRecordMixin:
         verbose : bool, optional
             Whether to print progress and errors, by default False
         **match_params : str, optional
-            Further parameters on which to match beyond `json_key`.
+            Further parameters on which to match beyond json_key.
 
         Returns
         -------
@@ -540,7 +541,7 @@ class DatalinkRecordMixin:
 
         # init results table (avoiding adding import of astropy.table.Table)
         new_table = TableElement(VOTableFile()).to_table()
-    
+
         jsonDict = json.loads(json_txt)
         if json_key not in jsonDict and verbose:
             print(f'No key "{json_key}" found in json_txt given.')
@@ -591,7 +592,7 @@ class DatalinkRecordMixin:
         if cloud_access:
             return cloud_access
 
-        cloud_access = self.getbyucd("meta.ref.cloudstorage") 
+        cloud_access = self.getbyucd("meta.ref.cloudstorage")
         if cloud_access:
             return cloud_access
 
@@ -601,9 +602,9 @@ class DatalinkRecordMixin:
         colname: str = "cloud_access",
         verbose: bool = False,
         **match_params
-        ):
+    ):
         """Parse cloud information stored as JSON by provider
-        
+
         Parameters
         ----------
         provider: str
@@ -613,8 +614,8 @@ class DatalinkRecordMixin:
         verbose: bool, optional
             If True, print progress and debug text, by default False
         **match_params
-            Further parameters on which to match beyond `provider`.
-            
+            Further parameters on which to match beyond provider.
+
         Return
         ------
         astropy.Table
@@ -625,9 +626,8 @@ class DatalinkRecordMixin:
         dl_results = self.getdatalink()
         products = dl_results.bysemantics("#this")
 
-
         for irow, row in enumerate(products):
-            # if no colname column, there is nothing to do    
+            # if no colname column, there is nothing to do
             cloud_json = row._guess_cloud_column(colname=colname)
             if cloud_json:
                 access_points = row.parse_json_params(
@@ -635,7 +635,7 @@ class DatalinkRecordMixin:
                     json_key=provider,
                     verbose=verbose,
                     **match_params
-                    )
+                )
                 access_points.add_column([irow]*len(access_points), name="datalink_row", index=0)
                 if irow == 0:
                     new_table = access_points
@@ -650,6 +650,7 @@ class DatalinkRecordMixin:
                 break
 
         return new_table
+
 
 class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
     """
