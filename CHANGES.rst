@@ -4,7 +4,7 @@
 Enhancements and Fixes
 ----------------------
 - Added functionality to the DatalinkRecordMixin and the DatalinkResultsMixin
-  to handle basic parsing of JSON entries
+  to handle basic parsing of JSON entries [#709]
 
 
 Deprecations and Removals

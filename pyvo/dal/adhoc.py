@@ -540,25 +540,37 @@ class DatalinkRecordMixin:
 
         # init results table (avoiding adding import of astropy.table.Table)
         new_table = TableElement(VOTableFile()).to_table()
-
+    
         jsonDict = json.loads(json_txt)
         if json_key not in jsonDict and verbose:
             print(f'No key "{json_key}" found in json_txt given.')
         else:
-            p_params = jsonDict[json_key]
+            # Expected format is a dictionary of providers as keys, with lists
+            # of dictionaries, for example:
+            # {"json_key1": [{"param1": p1val1, "param2": p2val1},
+            #                {"param1": p1val2, "param2": p2val2}]
+            #  "json_key2": [{"param1": p1val3, "param2": p2val3}]
+            # }
+            jkey_params = jsonDict[json_key]
+            if isinstance(jkey_params, dict):
+                jkey_params = [jkey_params]
             checks = []
-            for k, value in match_params.items():
-                checks.append(p_params.getitem(k, value) == value)
+            col_init = False
+            for params in jkey_params:
+                for k, value in match_params.items():
+                    checks.append(params.get(k, value) == value)
 
-            if all(checks):
-                if not isinstance(p_params, list):
-                    p_params = [p_params]
-                colnames = list(p_params[0].keys())
-                colvals = [[] for _ in colnames]
-                for ppar in p_params:
-                    for idx, val in enumerate(ppar.values()):
+                if all(checks):
+                    if not col_init:
+                        colnames = list(params.keys())
+                        colvals = [[] for _ in colnames]
+                        col_init = True
+                    for idx, val in enumerate(params.values()):
                         colvals[idx].append(val)
+            try:
                 new_table.add_columns(cols=colvals, names=colnames)
+            except UnboundLocalError:
+                pass
 
         return new_table
 
