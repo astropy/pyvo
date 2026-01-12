@@ -1,3 +1,12 @@
+1.8.1 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+- Pass session through to DatalinkService requests (#715)
+
+
 1.8 (2025-11-13)
 ================
 

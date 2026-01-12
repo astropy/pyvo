@@ -510,7 +510,7 @@ class DatalinkService(DALService, AvailabilityMixin, CapabilityMixin):
             the output format
         """
         return DatalinkQuery(
-            self.baseurl, id=id, responseformat=responseformat, **keywords)
+            self.baseurl, id=id, responseformat=responseformat, session=self._session, **keywords)
 
 
 class DatalinkQuery(DALQuery):
