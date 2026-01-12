@@ -4,6 +4,7 @@
 Enhancements and Fixes
 ----------------------
 
+- Pass session through to DatalinkService requests (#715)
 
 
 Deprecations and Removals
