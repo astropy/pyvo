@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 from astropy.utils.decorators import lazyproperty, deprecated
 
-from .exceptions import DALServiceError
+from .exceptions import DALServiceError, DALRateLimitError
 from ..io import vosi
 from ..utils.url import url_sibling
 from ..utils.decorators import stream_decode_content, response_decode_content
@@ -61,6 +61,9 @@ class EndpointMixin:
         """Handle HTTP errors and update attempted_urls list"""
 
         response_body = self._get_response_body(error.response)
+
+        if error.response.status_code == 429:
+            raise DALRateLimitError.from_response(error.response, error, url)
 
         if error.response.status_code == 503:
             # Handle Retry-After header, if present
@@ -196,6 +199,10 @@ class TablesMixin(CapabilityMixin):
                 response = self._session.get(tables_url, stream=True)
                 response.raise_for_status()
                 break
+            except requests.HTTPError as e:
+                if e.response.status_code == 429:
+                    raise DALRateLimitError.from_response(e.response, e, tables_url)
+                continue
             except requests.RequestException:
                 continue
         else:
