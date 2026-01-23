@@ -216,7 +216,7 @@ class DALRateLimitError(DALServiceError):
     """
     _defreason = "Rate limit exceeded"
 
-    def __init__(self, reason=None, code=429, cause=None, url=None,
+    def __init__(self, reason=None, *, code=429, cause=None, url=None,
                  retry_after_seconds=None, retry_after_raw=None,
                  retry_after_date=None):
         """
@@ -348,7 +348,7 @@ class DALRateLimitError(DALServiceError):
             now = datetime.now(timezone.utc)
             seconds = max(0, int((date - now).total_seconds()))
             return seconds, date
-        except (ValueError, TypeError):
+        except ValueError:
             return None, None
 
 

@@ -199,9 +199,10 @@ class TablesMixin(CapabilityMixin):
                 response = self._session.get(tables_url, stream=True)
                 response.raise_for_status()
                 break
-            except requests.HTTPError as e:
-                if e.response.status_code == 429:
-                    raise DALRateLimitError.from_response(e.response, e, tables_url)
+            except requests.HTTPError as ex:
+                if ex.response.status_code == 429:
+                    raise DALRateLimitError.from_response(ex.response, ex,
+                                                          tables_url)
                 continue
             except requests.RequestException:
                 continue
