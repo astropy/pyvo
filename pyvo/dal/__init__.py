@@ -18,7 +18,7 @@ from .tap import TAPService, TAPQuery, TAPResults, AsyncTAPJob
 
 from .exceptions import (
     DALAccessError, DALProtocolError, DALFormatError, DALServiceError,
-    DALQueryError, DALOverflowWarning)
+    DALQueryError, DALOverflowWarning, DALRateLimitError)
 
 __all__ = [
     "imagesearch", "spectrumsearch", "linesearch", "conesearch", "tablesearch",
@@ -31,4 +31,4 @@ __all__ = [
     "SIARecord", "SSARecord", "SLARecord", "SCSRecord",
     "AsyncTAPJob",
     "DALAccessError", "DALProtocolError", "DALFormatError", "DALServiceError",
-    "DALQueryError", "DALOverflowWarning"]
+    "DALQueryError", "DALOverflowWarning", "DALRateLimitError"]

@@ -6,6 +6,8 @@ Enhancements and Fixes
 
 - Pass session through to DatalinkService requests (#715)
 
+- Add DALRateLimitError for HTTP 429 responses with retry timing info [#718]
+
 
 Deprecations and Removals
 -------------------------

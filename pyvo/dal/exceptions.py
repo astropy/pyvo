@@ -4,9 +4,11 @@ DAL Exceptions.
 
 __all__ = [
     "DALAccessError", "DALProtocolError", "DALFormatError", "DALServiceError",
-    "DALQueryError", "DALOverflowWarning"]
+    "DALQueryError", "DALOverflowWarning", "DALRateLimitError"]
 
 import re
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 
 import requests
 
@@ -184,6 +186,10 @@ class DALServiceError(DALProtocolError):
             # if there is a response, refine the error message
             if response is not None:
                 code = response.status_code
+
+                if code == 429:
+                    return DALRateLimitError.from_response(response, exc, url)
+
                 content_type = response.headers.get('content-type', None)
                 if content_type and 'text/plain' in content_type:
                     message = f'{response.text} for {url}'
@@ -196,6 +202,154 @@ class DALServiceError(DALProtocolError):
                                    cause=exc, url=url)
         else:
             raise TypeError("from_except: expected Exception")
+
+
+class DALRateLimitError(DALServiceError):
+    """
+    Exception for HTTP 429 Too Many Requests responses.
+
+    This exception is raised when a DAL service returns a 429 status code,
+    indicating that the client has exceeded a rate limit. It provides
+    structured access to retry timing information from the Retry-After header
+    via the ``retry_after_seconds``, ``retry_after_raw``, and ``retry_after_date``
+    properties.
+    """
+    _defreason = "Rate limit exceeded"
+
+    def __init__(self, reason=None, *, code=429, cause=None, url=None,
+                 retry_after_seconds=None, retry_after_raw=None,
+                 retry_after_date=None):
+        """
+        Initialize the rate limit exception.
+
+        Parameters
+        ----------
+        reason : str
+            A message describing the error.
+        code : int
+            The HTTP status code (default 429).
+        cause : Exception
+            The underlying exception that caused this error.
+        url : str
+            The query URL that produced the error.
+        retry_after_seconds : int or None
+            Seconds to wait before retrying.
+        retry_after_raw : str or None
+            Raw Retry-After header value.
+        retry_after_date : datetime or None
+            Parsed datetime if header was HTTP-date format.
+        """
+        super().__init__(reason, code, cause, url)
+        self._retry_after_seconds = retry_after_seconds
+        self._retry_after_raw = retry_after_raw
+        self._retry_after_date = retry_after_date
+
+    @property
+    def retry_after_seconds(self):
+        """
+        Seconds to wait before retrying, or None if not specified.
+        """
+        return self._retry_after_seconds
+
+    @property
+    def retry_after_raw(self):
+        """
+        The raw Retry-After header value, or None if not provided.
+        """
+        return self._retry_after_raw
+
+    @property
+    def retry_after_date(self):
+        """
+        If Retry-After was an HTTP-date, the parsed datetime.
+        None if it was an integer or not provided.
+        """
+        return self._retry_after_date
+
+    @classmethod
+    def from_response(cls, response, cause=None, url=None):
+        """
+        Create a DALRateLimitError from an HTTP response.
+
+        Parameters
+        ----------
+        response : requests.Response
+            The HTTP response object with status code 429.
+        cause : Exception
+            The underlying exception that caused this error.
+        url : str
+            The query URL that produced the error.
+
+        Returns
+        -------
+        DALRateLimitError
+            A new exception instance with parsed retry information.
+        """
+        retry_after_raw = None
+        for header_name in response.headers:
+            if header_name.lower() == 'retry-after':
+                retry_after_raw = response.headers[header_name]
+                break
+
+        retry_after_seconds = None
+        retry_after_date = None
+
+        if retry_after_raw is not None:
+            retry_after_seconds, retry_after_date = cls._parse_retry_after(
+                retry_after_raw)
+
+        if url:
+            message = f"Rate limit exceeded (HTTP 429) for {url}"
+        else:
+            message = "Rate limit exceeded (HTTP 429)"
+
+        if retry_after_seconds is not None:
+            message += f". Retry after {retry_after_seconds} seconds"
+            if retry_after_date:
+                message += f" (at {retry_after_raw})"
+
+        return cls(
+            reason=message,
+            code=429,
+            cause=cause,
+            url=url,
+            retry_after_seconds=retry_after_seconds,
+            retry_after_raw=retry_after_raw,
+            retry_after_date=retry_after_date
+        )
+
+    @staticmethod
+    def _parse_retry_after(value):
+        """
+        Parse a Retry-After header value.
+
+        Parameters
+        ----------
+        value : str
+            The Retry-After header value (integer seconds or date).
+
+        Returns
+        -------
+        tuple
+            (seconds, date) where seconds is an int and date is a datetime.
+            For integer format, date is None. For a date format, both are set.
+            Returns (None, None) if parsing fails.
+        """
+        try:
+            seconds = int(value)
+            return max(0, seconds), None
+        except ValueError:
+            pass
+
+        try:
+            date = parsedate_to_datetime(value)
+            if date.tzinfo is None:
+                date = date.replace(tzinfo=timezone.utc)
+            now = datetime.now(timezone.utc)
+            seconds = max(0, int((date - now).total_seconds()))
+            return seconds, date
+        except ValueError:
+            return None, None
 
 
 class DALQueryError(DALAccessError):

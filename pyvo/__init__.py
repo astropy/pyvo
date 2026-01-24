@@ -39,4 +39,4 @@ from .registry import search as regsearch
 from .dal import (
     imagesearch, spectrumsearch, conesearch, linesearch, tablesearch,
     DALAccessError, DALProtocolError, DALFormatError, DALServiceError,
-    DALQueryError)
+    DALQueryError, DALRateLimitError)
