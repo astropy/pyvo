@@ -17,8 +17,7 @@ Deprecations and Removals
 Bug Fixes
 ---------
 
-- Fix a bug in the space frame equinox processing. 
-  Update of the Hipparcos catalogue (I/311/hip2) used in the viewer doc [710]
+- Fix a bug in the space frame equinox processing. [#710]
 
 
 1.8 (2025-11-13)

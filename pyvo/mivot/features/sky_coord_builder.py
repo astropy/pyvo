@@ -106,7 +106,7 @@ class SkyCoordBuilder:
             raise MappingError(f"Cannot interpret field {hk_field} "
                                f"as a {('besselian' if besselian else 'julian')} timestamp")
 
-        time_instance = self. _build_time_instance(timestamp, representation, besselian)
+        time_instance = self._build_time_instance(timestamp, representation, besselian)
         if not time_instance:
             mode = "besselian" if besselian else "julian"
             raise MappingError(f"Cannot build a Time instance from {hk_field} ({mode} date)")
