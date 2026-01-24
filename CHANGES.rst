@@ -20,7 +20,7 @@ Deprecations and Removals
 Bug Fixes
 ---------
 
-
+- Fix a bug in the space frame equinox processing. [#710]
 
 
 1.8 (2025-11-13)
