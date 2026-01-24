@@ -50,12 +50,13 @@ or a ``DALResults`` instance.
 .. doctest-skip::
 
     >>> import astropy.units as u
+    >>> from astropy.io.votable import parse
     >>> from astropy.coordinates import SkyCoord
     >>> from pyvo.dal.scs import SCSService
     >>> from pyvo.utils.prototype import activate_features
     >>> from pyvo.mivot.viewer.mivot_viewer import MivotViewer
     >>>
-    >>> scs_srv = SCSService("https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/239/hip_main")
+    >>> scs_srv = SCSService("https://vizier.cds.unistra.fr/viz-bin/conesearch/V1.5/I/311/hip2")
     >>> m_viewer = MivotViewer(
     ...     scs_srv.search(
     ...         pos=SkyCoord(ra=52.26708 * u.degree, dec=59.94027 * u.degree,
@@ -95,13 +96,14 @@ and that the data rows can be interpreted as instances of the ``mango:EpochPosit
 .. doctest-skip::
 
    >>> print(mivot_instance.spaceSys.frame.spaceRefFrame.value)
-   ICRS
+   FK5
 
 .. doctest-skip::
 
    >>> while m_viewer.next_row_view():
    >>>     print(f"position: {mivot_instance.latitude.value} {mivot_instance.longitude.value}")
-   position: 59.94033461 52.26722684
+   position: 59.90665631 52.12106214
+   position: 59.94033468 52.26722736
    ....
 
 .. important::
@@ -125,18 +127,21 @@ We can also provide a complete instance representation that includes all fields 
 
    >>> print(repr(globals_instance))
    {
-      "dmtype": "coords:SpaceSys",
-      "dmid": "SpaceFrame_ICRS",
-      "frame": {
+     "dmtype": "coords:SpaceSys",
+     "dmid": "SpaceFrame_ICRS",
+     "frame": {
         "dmrole": "coords:PhysicalCoordSys.frame",
         "dmtype": "coords:SpaceFrame",
         "spaceRefFrame": {
-          "dmtype": "ivoa:string",
-          "value": "ICRS"
-        }
-      }
+           "dmtype": "ivoa:string",
+           "value": "FK5"
+         },
+         "equinox": {
+            "dmtype": "coords:Epoch",
+            "value": "J2000"
+         }
+       }
     }
-
 
 As you can see from the previous examples, model leaves (class attributes) are complex types.
 This is because they contain additional metadata as well as values:

@@ -9,11 +9,10 @@ for the output of this service.
 import pytest
 from copy import deepcopy
 from astropy.utils.data import get_pkg_data_filename
-from astropy import units as u
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.viewer.mivot_instance import MivotInstance
 from pyvo.mivot.features.sky_coord_builder import SkyCoordBuilder
-from pyvo.mivot.utils.exceptions import NoMatchingDMTypeError
+from pyvo.mivot.utils.exceptions import NoMatchingDMTypeError, MappingError
 from pyvo.mivot.viewer.mivot_viewer import MivotViewer
 from pyvo.utils import activate_features
 
@@ -118,9 +117,8 @@ vizier_equin_dict = {
                 "value": "FK5"
             },
             "equinox": {
-                "dmtype": "coords:SpaceFrame.equinox",
+                "dmtype": "coords:Epoch",
                 "value": "2012",
-                "unit": "yr",
             }
         }
     },
@@ -176,12 +174,33 @@ vizier_dummy_type = {
             "ref": None,
         },
         "equinox": {
-            "dmtype": "coords:SpaceFrame.equinox",
+            "dmtype": "coords:Epoch",
             "value": "2012",
             "unit": "yr",
         },
     },
 }
+
+
+def check_skycoo(scoo, ra, dec, distance, pm_ra_cosdec, pm_dec, obstime):
+    """
+    Check the SkyCoord instance against the constant values given as parameters
+    """
+    try:
+        assert scoo.ra.degree == pytest.approx(ra)
+        assert scoo.dec.degree == pytest.approx(dec)
+        if distance:
+            assert scoo.distance.pc == pytest.approx(distance)
+        if pm_ra_cosdec:
+            assert scoo.pm_ra_cosdec.value == pytest.approx(pm_ra_cosdec)
+        if pm_dec:
+            assert scoo.pm_dec.value == pytest.approx(pm_dec)
+    except AttributeError:
+        assert scoo.galactic.l.degree == pytest.approx(ra)
+        assert scoo.galactic.b.degree == pytest.approx(dec)
+
+    if obstime:
+        assert str(scoo.obstime) == obstime
 
 
 def test_no_matching_mapping():
@@ -201,13 +220,9 @@ def test_vizier_output():
     mivot_instance = MivotInstance(**vizier_dict)
     scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
-    assert (str(scoo).replace("\n", "").replace("  ", "")
-            == "<SkyCoord (ICRS): (ra, dec) in deg(52.26722684, 59.94033461) "
-               "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
-    scoo = mivot_instance.get_SkyCoord()
-    assert (str(scoo).replace("\n", "").replace("  ", "")
-            == "<SkyCoord (ICRS): (ra, dec) in deg(52.26722684, 59.94033461) "
-               "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
+    check_skycoo(scoo, 52.26722684, 59.94033461, None,
+                 -0.82, -1.85,
+                 None)
 
     vizier_dict["spaceSys"]["frame"]["spaceRefFrame"]["value"] = "Galactic"
     mivot_instance = MivotInstance(**vizier_dict)
@@ -215,13 +230,16 @@ def test_vizier_output():
     assert (str(scoo).replace("\n", "").replace("  ", "")
             == "<SkyCoord (Galactic): (l, b) in deg(52.26722684, 59.94033461) "
                "(pm_l_cosb, pm_b) in mas / yr(-0.82, -1.85)>")
+    check_skycoo(scoo, 52.26722684, 59.94033461, None,
+                 -0.82, -1.85,
+                 None)
 
     vizier_dict["spaceSys"]["frame"]["spaceRefFrame"]["value"] = "QWERTY"
     mivot_instance = MivotInstance(**vizier_dict)
     scoo = mivot_instance.get_SkyCoord()
-    assert (str(scoo).replace("\n", "").replace("  ", "")
-            == "<SkyCoord (ICRS): (ra, dec) in deg(52.26722684, 59.94033461) "
-               "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
+    check_skycoo(scoo, 52.26722684, 59.94033461, None,
+                 -0.82, -1.85,
+                 "J1991.250")
 
 
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
@@ -232,19 +250,24 @@ def test_vizier_output_with_equinox_and_parallax():
     mivot_instance = MivotInstance(**vizier_equin_dict)
     scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
-    assert (str(scoo).replace("\n", "").replace("  ", "")
-            == "<SkyCoord (FK5: equinox=J2012.000): (ra, dec, distance) in "
-               "(deg, deg, pc)(52.26722684, 59.94033461, 1666.66666667) "
-               "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
+    check_skycoo(scoo, 52.26722684, 59.94033461, 1666.66666667,
+                 -0.82, -1.85,
+                 "J1991.250")
 
     mydict = deepcopy(vizier_equin_dict)
     mydict["spaceSys"]["frame"]["spaceRefFrame"]["value"] = "FK4"
     mivot_instance = MivotInstance(**mydict)
     scoo = mivot_instance.get_SkyCoord()
-    assert (str(scoo).replace("\n", "").replace("  ", "")
-            == "<SkyCoord (FK4: equinox=B2012.000, obstime=B1991.250): (ra, dec, distance) in "
-               "(deg, deg, pc)(52.26722684, 59.94033461, 1666.66666667) "
-               "(pm_ra_cosdec, pm_dec) in mas / yr(-0.82, -1.85)>")
+    check_skycoo(scoo, 52.26722684, 59.94033461, 1666.66666667,
+                 -0.82, -1.85,
+                 "B1991.250")
+
+    mydict = deepcopy(vizier_equin_dict)
+    mydict["spaceSys"]["frame"]["spaceRefFrame"]["value"] = "FK4"
+    mydict["spaceSys"]["frame"]["equinox"]["value"] = "J2012"
+    with pytest.raises(MappingError, match=r".*besselian date.*"):
+        mivot_instance = MivotInstance(**mydict)
+        scoo = mivot_instance.get_SkyCoord()
 
 
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
@@ -257,16 +280,9 @@ def test_simad_cs_output():
     scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
 
-    assert scoo.ra.degree == pytest.approx(269.45207696)
-    assert scoo.dec.degree == pytest.approx(4.69336497)
-    assert scoo.distance.pc == pytest.approx(1.82823411)
-    x = scoo.pm_ra_cosdec.value
-    y = (-801.551 * u.mas/u.yr).value
-    assert x == pytest.approx(y)
-    x = scoo.pm_dec.value
-    y = (10362.394 * u.mas/u.yr).value
-    assert x == pytest.approx(y)
-    assert str(scoo.obstime) == "J2000.000"
+    check_skycoo(scoo, 269.45207696, 4.69336497, 1.82823411,
+                 -801.551, 10362.394,
+                 "J2000.000")
 
 
 def test_time_representation():

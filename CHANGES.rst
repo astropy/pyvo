@@ -8,6 +8,8 @@ Bug Fixes
 
 - Add DALRateLimitError for HTTP 429 responses with retry timing info [#718]
 
+- Fix a bug in the space frame equinox processing. [#710]
+
 
 1.8 (2025-11-13)
 ================
