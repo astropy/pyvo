@@ -659,6 +659,10 @@ class AsyncTAPJob:
             baseurl, query, mode="async", language=language, maxrec=maxrec,
             uploads=uploads, session=session, **keywords)
         response = tapquery.submit()
+        try:
+            response.raise_for_status()
+        except requests.RequestException as ex:
+            raise DALServiceError.from_except(ex, tapquery.queryurl)
         job = cls(response.url, session=session)
         job._client_set_maxrec = maxrec
         return job

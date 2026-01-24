@@ -17,7 +17,7 @@ import requests
 import requests_mock
 
 from pyvo.dal.tap import escape, search, AsyncTAPJob, TAPService
-from pyvo.dal import DALQueryError, DALServiceError, DALOverflowWarning
+from pyvo.dal import DALQueryError, DALServiceError, DALOverflowWarning, DALRateLimitError
 
 from pyvo.io.uws import JobFile
 from pyvo.io.uws.tree import Parameter, Result, ErrorSummary, Message
@@ -1668,3 +1668,163 @@ def test_tap_integration_with_existing_tests():
     query = service.create_query("SELECT * FROM ivoa.obscore")
     assert query is not None
     assert hasattr(query, '_client_set_maxrec')
+
+
+@pytest.mark.usefixtures('async_fixture')
+class TestRateLimitError:
+    """Tests for HTTP 429 rate limit error handling"""
+
+    def test_rate_limit_error_with_retry_after_integer(self):
+        service = TAPService('http://example.com/tap')
+
+        with requests_mock.Mocker() as rm:
+            rm.get('http://example.com/tap/capabilities',
+                   status_code=429,
+                   headers={'Retry-After': '30'},
+                   text='Rate limit exceeded')
+
+            rm.get('http://example.com/capabilities',
+                   status_code=404)
+
+            with pytest.raises(DALRateLimitError) as excinfo:
+                service._get_endpoint('capabilities')
+
+            error = excinfo.value
+            assert error.retry_after_seconds == 30
+            assert error.retry_after_raw == '30'
+            assert error.retry_after_date is None
+            assert error.code == 429
+            assert "Rate limit exceeded" in str(error)
+            assert "Retry after 30 seconds" in str(error)
+
+    def test_rate_limit_error_with_retry_after_http_date(self):
+        service = TAPService('http://example.com/tap')
+        http_date = 'Wed, 21 Oct 2099 07:28:00 GMT'
+
+        with requests_mock.Mocker() as rm:
+            rm.get('http://example.com/tap/capabilities',
+                   status_code=429,
+                   headers={'Retry-After': http_date},
+                   text='Rate limit exceeded')
+
+            rm.get('http://example.com/capabilities',
+                   status_code=404)
+
+            with pytest.raises(DALRateLimitError) as excinfo:
+                service._get_endpoint('capabilities')
+
+            error = excinfo.value
+            assert error.retry_after_raw == http_date
+            assert error.retry_after_date is not None
+            assert error.retry_after_seconds is not None
+            assert error.retry_after_seconds > 0
+            assert error.code == 429
+            assert http_date in str(error)
+
+    def test_rate_limit_error_case_insensitive_header(self):
+        service = TAPService('http://example.com/tap')
+
+        with requests_mock.Mocker() as rm:
+            rm.get('http://example.com/tap/capabilities',
+                   status_code=429,
+                   headers={'RETRY-AFTER': '60'},
+                   text='Rate limit exceeded')
+
+            rm.get('http://example.com/capabilities',
+                   status_code=404)
+
+            with pytest.raises(DALRateLimitError) as excinfo:
+                service._get_endpoint('capabilities')
+
+            error = excinfo.value
+            assert error.retry_after_seconds == 60
+            assert error.retry_after_raw == '60'
+
+    def test_rate_limit_error_without_retry_after(self):
+        service = TAPService('http://example.com/tap')
+
+        with requests_mock.Mocker() as rm:
+            rm.get('http://example.com/tap/capabilities',
+                   status_code=429,
+                   text='Rate limit exceeded')
+
+            rm.get('http://example.com/capabilities',
+                   status_code=404)
+
+            with pytest.raises(DALRateLimitError) as excinfo:
+                service._get_endpoint('capabilities')
+
+            error = excinfo.value
+            assert error.retry_after_seconds is None
+            assert error.retry_after_raw is None
+            assert error.retry_after_date is None
+            assert error.code == 429
+            assert "Rate limit exceeded" in str(error)
+
+    def test_rate_limit_is_dal_service_error(self):
+        service = TAPService('http://example.com/tap')
+
+        with requests_mock.Mocker() as rm:
+            rm.get('http://example.com/tap/capabilities',
+                   status_code=429,
+                   headers={'Retry-After': '30'},
+                   text='Rate limit exceeded')
+
+            rm.get('http://example.com/capabilities',
+                   status_code=404)
+
+            with pytest.raises(DALServiceError) as excinfo:
+                service._get_endpoint('capabilities')
+
+            assert isinstance(excinfo.value, DALRateLimitError)
+            assert excinfo.value.retry_after_seconds == 30
+
+    def test_rate_limit_from_except_returns_rate_limit_error(self):
+        mock_response = requests.models.Response()
+        mock_response.status_code = 429
+        mock_response.headers = {'Retry-After': '45'}
+
+        http_error = requests.exceptions.HTTPError(response=mock_response)
+
+        result = DALServiceError.from_except(http_error, url='http://example.com/tap')
+
+        assert isinstance(result, DALRateLimitError)
+        assert result.retry_after_seconds == 45
+        assert result.code == 429
+
+    def test_rate_limit_on_async_job_submission(self):
+        service = TAPService('http://example.com/tap')
+
+        with requests_mock.Mocker() as rm:
+            rm.get(requests_mock.ANY, text='<capabilities/>')
+
+            rm.post('http://example.com/tap/async',
+                    status_code=429,
+                    headers={'Retry-After': '120'},
+                    text='Rate limit exceeded')
+
+            with pytest.raises(DALRateLimitError) as excinfo:
+                service.run_async("SELECT * FROM table")
+
+            error = excinfo.value
+            assert error.retry_after_seconds == 120
+            assert error.code == 429
+
+    def test_rate_limit_on_tables_endpoint(self):
+        with requests_mock.Mocker() as rm:
+            rm.get('http://example.com/tap/capabilities',
+                   text='<capabilities/>')
+
+            rm.get('http://example.com/tap/tables',
+                   status_code=429,
+                   headers={'Retry-After': '60'},
+                   text='Rate limit exceeded')
+
+            service = TAPService('http://example.com/tap')
+
+            with pytest.raises(DALRateLimitError) as excinfo:
+                _ = service.tables
+
+            error = excinfo.value
+            assert error.retry_after_seconds == 60
+            assert error.code == 429

@@ -6,6 +6,8 @@ Bug Fixes
 
 - Pass session through to DatalinkService requests (#715)
 
+- Add DALRateLimitError for HTTP 429 responses with retry timing info [#718]
+
 
 1.8 (2025-11-13)
 ================
