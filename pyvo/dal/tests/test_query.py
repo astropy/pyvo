@@ -114,7 +114,7 @@ def register_mocks(mocker):
 
         def useragent_callback(request, context):
             assert 'User-Agent' in request.headers
-            assert request.headers['User-Agent'] == 'pyVO/{} Python/{} ({})'.format(
+            assert request.headers['User-Agent'] == 'pyvo-unittest pyVO/{} Python/{} ({}) (IVOA-test)'.format(
                 version, platform.python_version(), platform.system())
             return get_pkg_data_contents('data/query/basic.xml')
 

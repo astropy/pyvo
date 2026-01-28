@@ -39,6 +39,10 @@ except ImportError:
 from astropy.utils.iers import conf as iers_conf
 iers_conf.auto_download = False
 
+# set up the user-agent header to match IVOA SoftId
+from pyvo.utils.http import setup_user_agent
+setup_user_agent(purpose="test", primary_component=f"pyvo-unittest")
+
 
 def pytest_configure(config):
     """Configure Pytest with Astropy.

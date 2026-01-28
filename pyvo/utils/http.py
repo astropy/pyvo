@@ -6,7 +6,41 @@ import platform
 import requests
 from ..version import version
 
-DEFAULT_USER_AGENT = f'pyVO/{version} Python/{platform.python_version()} ({platform.system()})'
+_USER_AGENT_TEMPLATE = ("pyVO/{pyvo_version} Python/{python_version}"
+    " ({system}) (IVOA-{purpose})")
+
+USER_AGENT = "Not initialized"
+
+
+def setup_user_agent(*, purpose="science", primary_component=""):
+    """
+    Sets up a user agent for http requests made by pyVO.
+
+    This respects the IVOA Note "Operational Identification of Software
+    Components", https://ivoa.net/documents/Notes/softid/ ("softid").
+    If you do not want this, perhaps for privacy reasons, you can put an
+    arbitrary string into pyvo.utils.http.USER_AGENT.
+
+    Parameters
+    ----------
+    purpose : str
+        The function of the current user agent in the VO: Usually "science",
+        but infrastructure code might use test or copy as per the softid
+        Note.
+
+    primary_component : str
+        An custom identifier for your particular program, preferably in the
+        form "myProgram/0.2".
+    """
+    global USER_AGENT
+    USER_AGENT = _USER_AGENT_TEMPLATE.format(
+        pyvo_version=version,
+        python_version=platform.python_version(),
+        system=platform.system(),
+        purpose=purpose)
+
+    if primary_component:
+        USER_AGENT = primary_component+" "+USER_AGENT
 
 
 def use_session(session):
@@ -26,5 +60,8 @@ def create_session():
     user agent.
     """
     session = requests.Session()
-    session.headers['User-Agent'] = DEFAULT_USER_AGENT
+    session.headers['User-Agent'] = USER_AGENT
     return session
+
+
+setup_user_agent()

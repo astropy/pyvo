@@ -12,4 +12,5 @@ from pyvo.version import version
 def test_create_session():
     test_session = create_session()
     assert (test_session.headers['User-Agent']
-            == f'pyVO/{version} Python/{platform.python_version()} ({platform.system()})')
+            == (f'pyvo-unittest pyVO/{version} Python/{platform.python_version()}'
+                f' ({platform.system()}) (IVOA-test)'))
