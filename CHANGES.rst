@@ -4,6 +4,8 @@
 Enhancements and Fixes
 ----------------------
 
+- Add DEFAULT_JOB_POLL_TIMEOUT constant [#721]
+
 - Pass session through to DatalinkService requests (#715)
 
 - Add DALRateLimitError for HTTP 429 responses with retry timing info [#718]
