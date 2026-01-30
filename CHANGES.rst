@@ -8,6 +8,9 @@ Enhancements and Fixes
 
 - Add DALRateLimitError for HTTP 429 responses with retry timing info [#718]
 
+- Provide an API for SoftId-compliant management of the user-agent
+  header [#719]
+
 
 Deprecations and Removals
 -------------------------
