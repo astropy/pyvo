@@ -6,10 +6,11 @@ import platform
 import requests
 from ..version import version
 
+__all__ = ["setup_user_agent"]
+
+
 _USER_AGENT_TEMPLATE = ("pyVO/{pyvo_version} Python/{python_version}"
     " ({system}) (IVOA-{purpose})")
-
-USER_AGENT = "Not initialized"
 
 
 def setup_user_agent(*, purpose="science", primary_component=""):
