@@ -10,6 +10,8 @@ Bug Fixes
 
 - Fix a bug in the space frame equinox processing. [#710]
 
+- Add DEFAULT_JOB_POLL_TIMEOUT constant [#721]
+
 
 1.8 (2025-11-13)
 ================

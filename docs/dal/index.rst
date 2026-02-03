@@ -668,6 +668,20 @@ Besides ``run`` there are also several other job control methods:
     The destruction time can be obtained and changed with
     :py:attr:`~pyvo.dal.AsyncTAPJob.destruction`
 
+Job polling timeout
+-------------------
+When polling for job status, pyVO uses a default timeout of 10 seconds for
+each request. Some services may occasionally respond slowly, causing
+``ReadTimeout`` errors during polling. If you experience intermittent timeout
+failures when polling job status, you can try increasing this timeout::
+
+    import pyvo.dal.tap
+    pyvo.dal.tap.DEFAULT_JOB_POLL_TIMEOUT = 30  # seconds
+
+This is a module-level setting that affects all follow-up async job operations.
+Note that a response time of 10 or more seconds for a status request
+would likely indicate that the service may be experiencing issues.
+
 Also, :py:class:`pyvo.dal.AsyncTAPJob` works as a context manager which
 takes care of this automatically:
 
