@@ -28,7 +28,7 @@ from pyvo.mivot.glossary import (
     VodmlUrl, IvoaType, ModelPrefix, Url, CoordSystems)
 
 
-class InstancesFromModels(object):
+class InstancesFromModels:
     """
     **Top-level API class** that allows to create VOTable annotations with objects issued
     from the Mango model and its imported classes.
