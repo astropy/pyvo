@@ -36,7 +36,7 @@ from ..registry import regtap
 
 
 # imports for type hints
-from typing import Callable, Optional
+from collections.abc import Callable
 from collections.abc import Generator
 from astropy.units import quantity
 
@@ -577,13 +577,13 @@ class ImageDiscoverer:
 
 def images_globally(
         *,
-        space: Optional[tuple[float, float, float]] = None,
-        spectrum: Optional[quantity.Quantity] = None,
-        time: Optional[time.Time] = None,
+        space: tuple[float, float, float] | None = None,
+        spectrum: quantity.Quantity | None = None,
+        time: time.Time | None = None,
         inclusive: bool = False,
-        watcher: Optional[Callable[['ImageDiscoverer', str], None]] = None,
+        watcher: Callable[['ImageDiscoverer', str], None] | None = None,
         timeout: float = 20,
-        services: Optional[registry.RegistryResults] = None)\
+        services: registry.RegistryResults | None = None)\
         -> tuple[list[obscore.ObsCoreMetadata], list[str]]:
     """returns a collection of ObsCoreMetadata-s matching certain constraints
     and a list of log lines.
