@@ -29,7 +29,8 @@ import xml.etree.ElementTree
 import io
 
 __all__ = [
-    "search", "escape", "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults"]
+    "search", "escape", "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults",
+    "DEFAULT_JOB_POLL_TIMEOUT"]
 
 IVOA_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
@@ -44,6 +45,9 @@ TABLE_DEF_FORMAT = {'VOSITable': 'text/xml',
 # common transient errors that can be retried
 TRANSIENT_ERRORS = (requests.exceptions.ConnectionError,
                     requests.exceptions.Timeout)
+
+# Default timeout (in seconds) for job status polling requests.
+DEFAULT_JOB_POLL_TIMEOUT = 10
 
 
 def _from_ivoa_format(datetime_str):
@@ -704,10 +708,12 @@ class AsyncTAPJob:
             except DALServiceError:
                 pass
 
-    def _update(self, wait_for_statechange=False, timeout=10.):
+    def _update(self, wait_for_statechange=False, timeout=None):
         """
         updates local job infos with remote values
         """
+        if timeout is None:
+            timeout = DEFAULT_JOB_POLL_TIMEOUT
         try:
             if wait_for_statechange:
                 response = self._session.get(
