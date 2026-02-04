@@ -7,7 +7,7 @@ from pyvo.mivot.utils.exceptions import MappingError
 from pyvo.mivot.utils.mivot_utils import MivotUtils
 from pyvo.mivot.writer.instance import MivotInstance
 from pyvo.mivot.glossary import (
-    IvoaType, ModelPrefix, Roles, CoordSystems)
+    IvoaType, ModelPrefix, Roles)
 
 
 class Property(MivotInstance):
@@ -126,36 +126,6 @@ class MangoObject(object):
                                              f"{ModelPrefix.mango}:EpochPositionErrors.{role}",
                                              mapping))
         return err_instance
-
-    def _add_epoch_position_epoch(self, **mapping):
-        """
-        Private method building and returning the observation date (DateTime) of the EpohPosition.
-
-        Parameters
-        ----------
-        mapping: dict(representation, datetime)
-                Mapping of the DateTime fields
-
-        Returns
-        -------
-        `Property`
-            The EpochPosition observation date instance
-        """
-        datetime_instance = MivotInstance(dmtype=f"{ModelPrefix.mango}:DateTime",
-                                       dmrole=f"{ModelPrefix.mango}:EpochPosition.obsDate")
-
-        representation = mapping.get("representation")
-        value = mapping["dateTime"]
-        if representation not in CoordSystems.time_formats:
-            raise MappingError(f"epoch representation {representation} not supported. "
-                               f"Take on of {CoordSystems.time_formats}")
-        datetime_instance.add_attribute(IvoaType.string,
-                                        f"{ModelPrefix.mango}:DateTime.representation",
-                                        value=MivotUtils.as_literal(representation))
-        datetime_instance.add_attribute(IvoaType.datetime,
-                                        f"{ModelPrefix.mango}:DateTime.dateTime",
-                                        value=value)
-        return datetime_instance
 
     def add_epoch_position(self, space_frame_id, time_frame_id, mapping, semantics):
         """
