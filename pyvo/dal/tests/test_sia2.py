@@ -7,11 +7,12 @@ from functools import partial
 from pathlib import Path
 import re
 import requests_mock
+import warnings
 
 import pytest
 
 from pyvo.dal.sia2 import search, SIA2Service, SIA2Query, SIAService, SIAQuery
-from pyvo.dal.exceptions import DALServiceError
+from pyvo.dal.exceptions import DALServiceError, DALOverflowWarning
 
 import astropy.units as u
 from astropy.coordinates import SkyCoord
@@ -265,3 +266,70 @@ def test_url_is_not_sia2():
                                match="This URL does not seem to correspond to an "
                                      "SIA2 service."):
                 SIA2Service('http://example.com/sia')
+
+
+@pytest.fixture()
+def sia2_overflow_fixture(mocker):
+    """Mock SIA2 service that returns overflow status with exactly 10 records"""
+    def callback(request, context):
+        votable_content = '''<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.3" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+  <RESOURCE type="results">
+    <INFO name="QUERY_STATUS" value="OVERFLOW">Result truncated</INFO>
+    <TABLE>
+      <FIELD name="obs_collection" datatype="char" arraysize="128*"/>
+      <FIELD name="obs_id" datatype="char" arraysize="128*"/>
+      <FIELD name="facility_name" datatype="char" arraysize="128*"/>
+      <FIELD name="instrument_name" datatype="char" arraysize="128*"/>
+      <DATA>
+        <TABLEDATA>''' + ''.join(
+            f'<TR><TD>TEST</TD><TD>obs{i}</TD><TD>TEST</TD><TD>TEST</TD></TR>'
+            for i in range(10)) + '''
+        </TABLEDATA>
+      </DATA>
+    </TABLE>
+  </RESOURCE>
+</VOTABLE>'''
+        return votable_content.encode('utf-8')
+
+    with mocker.register_uri(
+        'GET', 'https://example.com/sia/capabilities',
+        content=get_pkg_data_contents('data/sia2/capabilities.xml')
+    ):
+        with mocker.register_uri(
+            'GET', sia_re, content=callback
+        ):
+            yield mocker
+
+
+@pytest.mark.usefixtures('sia2_overflow_fixture')
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+class TestSIA2OverflowWarnings:
+    """Test SIA2 overflow warning behavior"""
+
+    def test_no_maxrec_overflow_warning(self):
+        service = SIA2Service('https://example.com/sia')
+
+        with pytest.warns(DALOverflowWarning, match="Results truncated due to server limits"):
+            results = service.search(pos=(33.3, 4.2, 0.1))
+            assert len(results) == 10
+
+    def test_maxrec_exact_match_no_warning(self):
+        service = SIA2Service('https://example.com/sia')
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            results = service.search(pos=(33.3, 4.2, 0.1), maxrec=10)
+            overflow_warnings = [warning for warning in w
+                                 if issubclass(warning.category, DALOverflowWarning)]
+            assert len(overflow_warnings) == 0, f"Unexpected overflow warnings: {overflow_warnings}"
+            assert len(results) == 10
+
+    def test_maxrec_service_truncation_warning(self):
+        service = SIA2Service('https://example.com/sia')
+
+        with pytest.warns(DALOverflowWarning,
+                          match=r"Results truncated at 10 records by service limits"
+                                r".*you requested maxrec=100"):
+            results = service.search(pos=(33.3, 4.2, 0.1), maxrec=100)
+            assert len(results) == 10

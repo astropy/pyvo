@@ -4,6 +4,8 @@
 Enhancements and Fixes
 ----------------------
 
+- Fix SIA2 overflow warnings [#727]
+
 - Add DEFAULT_JOB_POLL_TIMEOUT constant [#721]
 
 - Pass session through to DatalinkService requests (#715)
