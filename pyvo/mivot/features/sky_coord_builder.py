@@ -89,14 +89,7 @@ class SkyCoordBuilder:
         -----
         MappingError: if the Time instance cannot be built for some reason
         """
-        # Process complex type "mango:DateTime"
-        # (obsolete but kept in place until MANGO is a REC)
-        if hk_field['dmtype'] == "mango:DateTime":
-            representation = hk_field['representation']['value']
-            timestamp = hk_field['dateTime']['value']
-        # Process complex type "coords:epoch" used for the space frame equinox
-        # (obsolete but kept in place until MANGO is a REC)
-        elif hk_field['dmtype'] == "coords:Epoch":
+        if hk_field['dmtype'] == "coords:Epoch":
             representation = 'yr' if "unit" not in hk_field else hk_field.get("unit")
             timestamp = hk_field['value']
         # Process simple attribute
@@ -130,7 +123,7 @@ class SkyCoordBuilder:
             (See MANGO primitive types derived from ivoa:timeStamp)
         besselian: boolean (optional)
             Flag telling to use the besselain calendar. We assume it to only be
-            relevant for FK5 frame
+            relevant for FK4 frame
         returns
         -------
         Time instance or None
@@ -167,6 +160,7 @@ class SkyCoordBuilder:
             time = Time(f"{timestamp}", format=astropyformat)
             return (Time(time.byear_str) if besselian else time)
 
+        print("================= 4")
         return None
 
     def _get_space_frame(self):

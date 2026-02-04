@@ -312,3 +312,27 @@ def test_time_representation():
     scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
     assert scoo.obstime.jyear_str == "J2025.335"
+
+    mydict = deepcopy(vizier_equin_dict)
+    mydict["obsDate"]["dmtype"] = "mango:year"
+    mydict["obsDate"]["value"] = "B356"
+    mivot_instance = MivotInstance(**mydict)
+    scb = SkyCoordBuilder(mivot_instance)
+    with pytest.raises(MappingError):
+        scb.build_sky_coord()
+
+    mydict = deepcopy(vizier_equin_dict)
+    mydict["obsDate"]["dmtype"] = "mango:year"
+    mydict["obsDate"]["value"] = "turlutu"
+    mivot_instance = MivotInstance(**mydict)
+    scb = SkyCoordBuilder(mivot_instance)
+    with pytest.raises(MappingError):
+        scb.build_sky_coord()
+
+    mydict = deepcopy(vizier_equin_dict)
+    mydict["obsDate"]["dmtype"] = "turlututu"
+    mydict["obsDate"]["value"] = "turlututu"
+    mivot_instance = MivotInstance(**mydict)
+    scb = SkyCoordBuilder(mivot_instance)
+    with pytest.raises(MappingError):
+        scb.build_sky_coord()
