@@ -15,6 +15,7 @@ from pyvo.utils import activate_features
 from pyvo.mivot.version_checker import check_astropy_version
 from pyvo.mivot.utils.xml_utils import XmlUtils
 from pyvo.mivot.writer.instances_from_models import InstancesFromModels
+from pyvo.mivot.utils.exceptions import MappingError
 
 
 # Enable MIVOT-specific features in the pyvo library
@@ -82,7 +83,7 @@ def add_photometry(builder):
     builder.add_mango_brightness(photcal_id=photcal_id, mapping=mapping, semantics=semantics)
 
 
-def add_epoch_positon(builder):
+def add_epoch_position(builder):
     frames = {"spaceSys": {"spaceRefFrame": "ICRS", "refPosition": 'BARYCENTER', "equinox": None},
              "timeSys": {"timescale": "TCB", "refPosition": 'BARYCENTER'}}
     mapping = {"longitude": "_RAJ2000", "latitude": "_DEJ2000",
@@ -101,6 +102,19 @@ def add_epoch_positon(builder):
                          "parallax": {"class": "PErrorSym1D", "sigma": "e_Plx"},
                          "radialVelocity": {"class": "PErrorSym1D", "sigma": "e_RV"}
                         }
+             }
+    semantics = {"description": "6 parameters position",
+                 "uri": "https://www.ivoa.net/rdf/uat/2024-06-25/uat.html#astronomical-location",
+                 "label": "Astronomical location"}
+
+    builder.add_mango_epoch_position(frames=frames, mapping=mapping, semantics=semantics)
+
+
+def add_epoch_position_with_wrong_date(builder):
+    frames = {"spaceSys": {"spaceRefFrame": "ICRS", "refPosition": 'BARYCENTER', "equinox": None},
+             "timeSys": {"timescale": "TCB", "refPosition": 'BARYCENTER'}}
+    mapping = {"longitude": "_RAJ2000", "latitude": "_DEJ2000",
+             "obsDate": {"representation": "mango:mjd", "value": 579887.6},
              }
     semantics = {"description": "6 parameters position",
                  "uri": "https://www.ivoa.net/rdf/uat/2024-06-25/uat.html#astronomical-location",
@@ -151,11 +165,15 @@ def test_all_properties():
           })
     add_color(builder)
     add_photometry(builder)
-    add_epoch_positon(builder)
+    add_epoch_position(builder)
     builder.pack_into_votable(schema_check=False)
     assert XmlUtils.strip_xml(builder._annotation.mivot_block) == (
         XmlUtils.strip_xml(get_pkg_data_contents("data/reference/mango_object.xml"))
     )
+
+    builder = InstancesFromModels(votable, dmid="DR3Name")
+    with pytest.raises(MappingError):
+        add_epoch_position_with_wrong_date(builder)
 
 
 @pytest.mark.skipif(not check_astropy_version(), reason="need astropy 6+")
