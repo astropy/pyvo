@@ -4,7 +4,7 @@
 Enhancements and Fixes
 ----------------------
 
-- Support the flat representation of the MANGO observation dates (year, mjd, jd, iso) [#725]
+- Support the flat representation of the MANGO observation dates (year, mjd, jd, iso) [#726]
 
 - Add DEFAULT_JOB_POLL_TIMEOUT constant [#721]
 
