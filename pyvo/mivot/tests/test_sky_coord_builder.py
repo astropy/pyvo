@@ -47,7 +47,7 @@ vizier_dict = {
         "ref": "pmDE",
     },
     "obsDate": {
-        "dmtype": "ivoa:RealQuantity",
+        "dmtype": "mango:year",
         "value": 1991.25,
         "unit": "yr",
         "ref": None,
@@ -100,7 +100,7 @@ vizier_equin_dict = {
         "ref": "parallax",
     },
     "obsDate": {
-        "dmtype": "ivoa:RealQuantity",
+        "dmtype": "mango:year",
         "value": 1991.25,
         "unit": "yr",
         "ref": None,
@@ -292,13 +292,13 @@ def test_time_representation():
     """
     # work with a copy to not alter other test functions
     mydict = deepcopy(vizier_equin_dict)
-    mydict["obsDate"]["unit"] = "mjd"
+    mydict["obsDate"]["dmtype"] = "mango:mjd"
     mivot_instance = MivotInstance(**mydict)
     scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
     assert scoo.obstime.jyear_str == "J1864.331"
 
-    mydict["obsDate"]["unit"] = "jd"
+    mydict["obsDate"]["dmtype"] = "mango:jd"
     mydict["obsDate"]["value"] = "2460937.36"
     mivot_instance = MivotInstance(**mydict)
     scb = SkyCoordBuilder(mivot_instance)
@@ -306,10 +306,33 @@ def test_time_representation():
     assert scoo.obstime.jyear_str == "J2025.715"
 
     mydict = deepcopy(vizier_equin_dict)
-    mydict["obsDate"]["unit"] = "iso"
-    mydict["obsDate"]["dmtype"] = "ivoa:string"
+    mydict["obsDate"]["dmtype"] = "mango:iso"
     mydict["obsDate"]["value"] = "2025-05-03"
     mivot_instance = MivotInstance(**mydict)
     scb = SkyCoordBuilder(mivot_instance)
     scoo = scb.build_sky_coord()
     assert scoo.obstime.jyear_str == "J2025.335"
+
+    mydict = deepcopy(vizier_equin_dict)
+    mydict["obsDate"]["dmtype"] = "mango:year"
+    mydict["obsDate"]["value"] = "B356"
+    mivot_instance = MivotInstance(**mydict)
+    scb = SkyCoordBuilder(mivot_instance)
+    with pytest.raises(MappingError):
+        scb.build_sky_coord()
+
+    mydict = deepcopy(vizier_equin_dict)
+    mydict["obsDate"]["dmtype"] = "mango:year"
+    mydict["obsDate"]["value"] = "turlutu"
+    mivot_instance = MivotInstance(**mydict)
+    scb = SkyCoordBuilder(mivot_instance)
+    with pytest.raises(MappingError):
+        scb.build_sky_coord()
+
+    mydict = deepcopy(vizier_equin_dict)
+    mydict["obsDate"]["dmtype"] = "turlututu"
+    mydict["obsDate"]["value"] = "turlututu"
+    mivot_instance = MivotInstance(**mydict)
+    scb = SkyCoordBuilder(mivot_instance)
+    with pytest.raises(MappingError):
+        scb.build_sky_coord()

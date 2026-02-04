@@ -4,6 +4,8 @@
 Enhancements and Fixes
 ----------------------
 
+- Support the flat representation of the MANGO observation dates (year, mjd, jd, iso) [#726]
+
 - Add DEFAULT_JOB_POLL_TIMEOUT constant [#721]
 
 - Pass session through to DatalinkService requests (#715)
@@ -12,7 +14,7 @@ Enhancements and Fixes
 
 - Provide an API for SoftId-compliant management of the 'User-Agent'
   header [#719]
-
+  
 
 Deprecations and Removals
 -------------------------
