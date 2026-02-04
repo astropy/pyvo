@@ -88,7 +88,7 @@ def add_epoch_positon(builder):
     mapping = {"longitude": "_RAJ2000", "latitude": "_DEJ2000",
              "pmLongitude": "pmRA", "pmLatitude": "pmDE",
              "parallax": "Plx", "radialVelocity": "RV",
-             "obsDate": {"representation": "mjd", "dateTime": 579887.6},
+             "obsDate": {"dmtype": "mango:mjd", "value": 579887.6},
              "correlations": {"isCovariance": True,
                               "longitudeLatitude": "RADEcor",
                               "latitudePmLongitude": "DEpmRAcor", "latitudePmLatitude": "DEpmDEcor",

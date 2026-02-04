@@ -90,16 +90,18 @@ class SkyCoordBuilder:
         MappingError: if the Time instance cannot be built for some reason
         """
         # Process complex type "mango:DateTime"
+        # (obsolete but kept in place until MANGO is a REC)
         if hk_field['dmtype'] == "mango:DateTime":
             representation = hk_field['representation']['value']
             timestamp = hk_field['dateTime']['value']
         # Process complex type "coords:epoch" used for the space frame equinox
+        # (obsolete but kept in place until MANGO is a REC)
         elif hk_field['dmtype'] == "coords:Epoch":
             representation = 'yr' if "unit" not in hk_field else hk_field.get("unit")
             timestamp = hk_field['value']
         # Process simple attribute
         else:
-            representation = hk_field.get("unit")
+            representation = hk_field.get("dmtype")
             timestamp = hk_field.get("value")
 
         if not representation or not timestamp:
@@ -124,7 +126,8 @@ class SkyCoordBuilder:
         timestamp: string or number
             The timestamp must comply with the given representation
         representation: string
-            year, iso, ... (See MANGO primitive types derived from ivoa:timeStamp)
+            mango:year, mango:iso, mango:mjd, mango:jd
+            (See MANGO primitive types derived from ivoa:timeStamp)
         besselian: boolean (optional)
             Flag telling to use the besselain calendar. We assume it to only be
             relevant for FK5 frame
@@ -132,7 +135,7 @@ class SkyCoordBuilder:
         -------
         Time instance or None
         """
-        if representation in ("year", "yr", "y"):
+        if representation in ("mango:year", "yr", "y"):
             # it the timestamp is numeric, we infer its format from the besselian flag
             if isinstance(timestamp, numbers.Number):
                 return Time(f"{('B' if besselian else 'J')}{timestamp}",
@@ -159,8 +162,9 @@ class SkyCoordBuilder:
             return None
         # in the following cases, the calendar (B or J) is given by the besselian flag
         # We force to use the  string representation to avoid breaking unit tests.
-        elif representation in ("mjd", "jd", "iso"):
-            time = Time(f"{timestamp}", format=representation)
+        elif representation in ("mango:mjd", "mango:jd", "mango:iso"):
+            astropyformat = representation.split(":")[1]
+            time = Time(f"{timestamp}", format=astropyformat)
             return (Time(time.byear_str) if besselian else time)
 
         return None

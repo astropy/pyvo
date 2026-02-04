@@ -184,7 +184,11 @@ class MangoObject(object):
         MivotUtils.populate_instance(ep_instance, "EpochPosition",
                                      mapping, self._table, IvoaType.RealQuantity)
         if "obsDate" in mapping:
-            ep_instance.add_instance(self._add_epoch_position_epoch(**mapping["obsDate"]))
+            if "dmtype" not in mapping["obsDate"] or "value" not in mapping["obsDate"]:
+                raise MappingError("obsDate requires both 'dmtype' and 'value' keys")
+            ep_instance.add_attribute(dmtype=mapping["obsDate"]["dmtype"],
+                                      dmrole="mango:EpochPosition.obsDate",
+                                      value=mapping["obsDate"]["value"])
         if "correlations" in mapping:
             ep_instance.add_instance(self._add_epoch_position_correlations(**mapping["correlations"]))
         if "errors" in mapping:
