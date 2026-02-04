@@ -12,6 +12,8 @@ Bug Fixes
 
 - Add DEFAULT_JOB_POLL_TIMEOUT constant [#721]
 
+- Fix SIA2 overflow warnings [#727]
+
 
 1.8 (2025-11-13)
 ================
