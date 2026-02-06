@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # By default, tests should not use the internet.
-from pyvo.astropy_samp import conf
-from pyvo.astropy_samp.errors import SAMPClientError, SAMPHubError, SAMPProxyError
+from pyvo.samp import conf
+from pyvo.samp.errors import SAMPClientError, SAMPHubError, SAMPProxyError
 
 
 def setup_module(module):

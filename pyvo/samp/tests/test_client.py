@@ -3,11 +3,11 @@
 import pytest
 
 # By default, tests should not use the internet.
-from pyvo.astropy_samp import SAMPWarning, conf
-from pyvo.astropy_samp.client import SAMPClient
-from pyvo.astropy_samp.hub import SAMPHubServer
-from pyvo.astropy_samp.hub_proxy import SAMPHubProxy
-from pyvo.astropy_samp.integrated_client import SAMPIntegratedClient
+from pyvo.samp import SAMPWarning, conf
+from pyvo.samp.client import SAMPClient
+from pyvo.samp.hub import SAMPHubServer
+from pyvo.samp.hub_proxy import SAMPHubProxy
+from pyvo.samp.integrated_client import SAMPIntegratedClient
 
 
 def setup_module(module):
