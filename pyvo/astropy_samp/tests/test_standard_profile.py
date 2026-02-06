@@ -2,10 +2,11 @@ import pytest
 
 # By default, tests should not use the internet.
 from pyvo.astropy_samp import conf
-from pyvo.astropy_samp.errors import SAMPProxyError
 from pyvo.astropy_samp.hub import SAMPHubServer
 from pyvo.astropy_samp.integrated_client import SAMPIntegratedClient
 from astropy.tests.helper import CI
+
+import xmlrpc.client
 
 from .test_helpers import TEST_REPLY, Receiver, assert_output, random_params
 
@@ -112,7 +113,7 @@ class TestStandardProfile:
         message["samp.mtype"] = "table.load.votable"
         message["samp.params"] = {}
 
-        with pytest.raises(SAMPProxyError):
+        with pytest.raises(xmlrpc.client.Fault):
             self.client1.notify(self.client2_id, message)
 
         # Check that there are no currently active subscriptions
