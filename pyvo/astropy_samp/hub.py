@@ -16,10 +16,10 @@ from urllib.parse import urlunparse
 from astropy import log
 
 from .constants import SAMP_STATUS_OK, __profile_version__
-from .errors import SAMPHubError, SAMPProxyError, SAMPWarning
+from .errors import SAMPHubError, SAMPProxyError, SAMPProxyTimeoutError, SAMPWarning
 from .lockfile_helpers import create_lock_file, read_lockfile
 from .standard_profile import ThreadingXMLRPCServer
-from .utils import ServerProxyPool, _HubAsClient, internet_on
+from .utils import SAMPXXEServerProxy, ServerProxyPool, _HubAsClient, internet_on
 from .web_profile import WebProfileXMLRPCServer, web_profile_text_dialog
 
 __all__ = ["SAMPHubServer", "WebProfileDialog"]
@@ -744,7 +744,7 @@ class SAMPHubServer:
             server_proxy_pool = None
 
             server_proxy_pool = ServerProxyPool(
-                self._pool_size, xmlrpc.ServerProxy, xmlrpc_addr, allow_none=1
+                self._pool_size, SAMPXXEServerProxy, xmlrpc_addr, allow_none=1
             )
 
             public_id = self._private_keys[private_key][0]
@@ -826,11 +826,7 @@ class SAMPHubServer:
     def _declare_metadata(self, private_key, metadata):
         self._update_last_activity_time(private_key)
         if private_key in self._private_keys:
-            log.debug(
-                "declare_metadata: private-key = {} metadata = {}".format(
-                    private_key, str(metadata)
-                )
-            )
+            log.debug(f"declare_metadata: private-key = {private_key} {metadata = !s}")
             self._metadata[private_key] = metadata
             self._notify_metadata(private_key)
         else:
@@ -860,9 +856,7 @@ class SAMPHubServer:
 
         if private_key in self._private_keys:
             log.debug(
-                "declare_subscriptions: private-key = {} mtypes = {}".format(
-                    private_key, str(mtypes)
-                )
+                f"declare_subscriptions: private-key = {private_key} {mtypes = !s}"
             )
 
             # remove subscription to previous mtypes
@@ -888,9 +882,8 @@ class SAMPHubServer:
                                 del mtypes[mtype2]
 
             log.debug(
-                "declare_subscriptions: subscriptions accepted from {} => {}".format(
-                    private_key, str(mtypes)
-                )
+                "declare_subscriptions: subscriptions accepted from "
+                f"{private_key} => {str(mtypes)}"
             )
 
             for mtype in mtypes:
@@ -915,9 +908,8 @@ class SAMPHubServer:
             if client_private_key is not None:
                 if client_private_key in self._id2mtypes:
                     log.debug(
-                        "get_subscriptions: client-id = {} mtypes = {}".format(
-                            client_id, str(self._id2mtypes[client_private_key])
-                        )
+                        f"get_subscriptions: client-id = {client_id} "
+                        f"mtypes = {self._id2mtypes[client_private_key]!s}"
                     )
                     return self._id2mtypes[client_private_key]
                 else:
@@ -939,9 +931,7 @@ class SAMPHubServer:
                 if pkey != private_key:
                     reg_clients.append(self._private_keys[pkey][0])
             log.debug(
-                "get_registered_clients: private_key = {} clients = {}".format(
-                    private_key, reg_clients
-                )
+                f"get_registered_clients: {private_key = !s} clients = {reg_clients}"
             )
             return reg_clients
         else:
@@ -1217,7 +1207,7 @@ class SAMPHubServer:
             while self._is_running:
                 if 0 < timeout <= time.time() - now:
                     del self._sync_msg_ids_heap[msg_id]
-                    raise SAMPProxyError(1, "Timeout expired!")
+                    raise SAMPProxyTimeoutError(1, "Timeout expired!")
 
                 if self._sync_msg_ids_heap[msg_id] is not None:
                     response = copy.deepcopy(self._sync_msg_ids_heap[msg_id])
@@ -1278,8 +1268,9 @@ class SAMPHubServer:
 
         except Exception as exc:
             warnings.warn(
-                "{} reply from client {} to client {} failed [{}]".format(
-                    recipient_msg_tag, responder_public_id, recipient_public_id, exc
+                (
+                    f"{recipient_msg_tag} reply from client {responder_public_id} "
+                    f"to client {recipient_public_id} failed [{exc}]"
                 ),
                 SAMPWarning,
             )
@@ -1332,9 +1323,8 @@ class SAMPHubServer:
 
             except xmlrpc.Fault as exc:
                 log.debug(
-                    "{} XML-RPC endpoint error (attempt {}): {}".format(
-                        recipient_public_id, attempt + 1, exc.faultString
-                    )
+                    f"{recipient_public_id} XML-RPC endpoint error "
+                    f"(attempt {attempt + 1}): {exc.faultString}"
                 )
                 time.sleep(0.01)
             else:
@@ -1355,11 +1345,9 @@ class SAMPHubServer:
     def _get_new_hub_msg_id(self, sender_public_id, sender_msg_id):
         with self._thread_lock:
             self._hub_msg_id_counter += 1
-        return "msg#{};;{};;{};;{}".format(
-            self._hub_msg_id_counter,
-            self._hub_public_id,
-            sender_public_id,
-            sender_msg_id,
+        return (
+            f"msg#{self._hub_msg_id_counter};;{self._hub_public_id};;"
+            f"{sender_public_id};;{sender_msg_id}"
         )
 
     def _update_last_activity_time(self, private_key=None):
