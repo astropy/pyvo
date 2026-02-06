@@ -18,6 +18,7 @@ from .hub import *
 from .hub_proxy import *
 from .integrated_client import *
 from .utils import *
+from .vo_helpers import *
 
 
 class Conf(_config.ConfigNamespace):

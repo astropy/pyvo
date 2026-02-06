@@ -3,8 +3,8 @@ import sys
 
 import pytest
 
-from pyvo.astropy_samp import conf
-from pyvo.astropy_samp.hub_script import hub_script
+from pyvo.samp import conf
+from pyvo.samp.hub_script import hub_script
 
 
 def setup_module(module):

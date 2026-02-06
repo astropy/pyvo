@@ -4,8 +4,8 @@ import time
 
 import pytest
 
-from pyvo.astropy_samp import conf
-from pyvo.astropy_samp.hub import SAMPHubServer
+from pyvo.samp import conf
+from pyvo.samp.hub import SAMPHubServer
 
 
 def setup_module(module):

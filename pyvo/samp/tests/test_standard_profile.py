@@ -1,9 +1,9 @@
 import pytest
 
 # By default, tests should not use the internet.
-from pyvo.astropy_samp import conf
-from pyvo.astropy_samp.hub import SAMPHubServer
-from pyvo.astropy_samp.integrated_client import SAMPIntegratedClient
+from pyvo.samp import conf
+from pyvo.samp.hub import SAMPHubServer
+from pyvo.samp.integrated_client import SAMPIntegratedClient
 from astropy.tests.helper import CI
 
 import xmlrpc.client

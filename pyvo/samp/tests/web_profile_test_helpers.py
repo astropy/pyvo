@@ -2,12 +2,12 @@ import threading
 import time
 import xmlrpc.client as xmlrpc
 
-from pyvo.astropy_samp.client import SAMPClient
-from pyvo.astropy_samp.errors import SAMPClientError, SAMPHubError
-from pyvo.astropy_samp.hub import WebProfileDialog
-from pyvo.astropy_samp.hub_proxy import SAMPHubProxy
-from pyvo.astropy_samp.integrated_client import SAMPIntegratedClient
-from pyvo.astropy_samp.utils import SAMPXXEServerProxy, ServerProxyPool
+from pyvo.samp.client import SAMPClient
+from pyvo.samp.errors import SAMPClientError, SAMPHubError
+from pyvo.samp.hub import WebProfileDialog
+from pyvo.samp.hub_proxy import SAMPHubProxy
+from pyvo.samp.integrated_client import SAMPIntegratedClient
+from pyvo.samp.utils import SAMPXXEServerProxy, ServerProxyPool
 
 
 class AlwaysApproveWebProfileDialog(WebProfileDialog):
@@ -102,8 +102,8 @@ class SAMPWebClient(SAMPClient):
 
     Parameters
     ----------
-    hub : :class:`~pyvo.astropy_samp.hub_proxy.SAMPWebHubProxy`
-        An instance of :class:`~pyvo.astropy_samp.hub_proxy.SAMPWebHubProxy` to
+    hub : :class:`~pyvo.samp.hub_proxy.SAMPWebHubProxy`
+        An instance of :class:`~pyvo.samp.hub_proxy.SAMPWebHubProxy` to
         be used for messaging with the SAMP Hub.
 
     name : str, optional
@@ -239,8 +239,8 @@ class SAMPIntegratedWebClient(SAMPIntegratedClient):
     a means of testing a hub's support for the web profile from Python.
 
     This class is meant to simplify the client usage providing a proxy class
-    that merges the :class:`~pyvo.astropy_samp.client.SAMPWebClient` and
-    :class:`~pyvo.astropy_samp.hub_proxy.SAMPWebHubProxy` functionalities in a
+    that merges the :class:`~pyvo.samp.client.SAMPWebClient` and
+    :class:`~pyvo.samp.hub_proxy.SAMPWebHubProxy` functionalities in a
     simplified API.
 
     Parameters
