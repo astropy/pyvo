@@ -7,7 +7,7 @@ from pyvo.astropy_samp.errors import SAMPClientError, SAMPHubError
 from pyvo.astropy_samp.hub import WebProfileDialog
 from pyvo.astropy_samp.hub_proxy import SAMPHubProxy
 from pyvo.astropy_samp.integrated_client import SAMPIntegratedClient
-from pyvo.astropy_samp.utils import ServerProxyPool
+from pyvo.astropy_samp.utils import SAMPXXEServerProxy, ServerProxyPool
 
 
 class AlwaysApproveWebProfileDialog(WebProfileDialog):
@@ -51,7 +51,7 @@ class SAMPWebHubProxy(SAMPHubProxy):
         try:
             self.proxy = ServerProxyPool(
                 pool_size,
-                xmlrpc.ServerProxy,
+                SAMPXXEServerProxy,
                 f"http://127.0.0.1:{web_port}",
                 allow_none=1,
             )
