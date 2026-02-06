@@ -826,7 +826,7 @@ class SAMPHubServer:
     def _declare_metadata(self, private_key, metadata):
         self._update_last_activity_time(private_key)
         if private_key in self._private_keys:
-            log.debug(f"declare_metadata: private-key = {private_key} {metadata = !s}")
+            log.debug(f"declare_metadata: private-key = {private_key} {metadata=!s}")
             self._metadata[private_key] = metadata
             self._notify_metadata(private_key)
         else:
@@ -856,7 +856,7 @@ class SAMPHubServer:
 
         if private_key in self._private_keys:
             log.debug(
-                f"declare_subscriptions: private-key = {private_key} {mtypes = !s}"
+                f"declare_subscriptions: private-key = {private_key} {mtypes=!s}"
             )
 
             # remove subscription to previous mtypes
@@ -931,7 +931,7 @@ class SAMPHubServer:
                 if pkey != private_key:
                     reg_clients.append(self._private_keys[pkey][0])
             log.debug(
-                f"get_registered_clients: {private_key = !s} clients = {reg_clients}"
+                f"get_registered_clients: {private_key=!s} clients = {reg_clients}"
             )
             return reg_clients
         else:
