@@ -14,10 +14,10 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from astropy import log
-from astropy.config.paths import _find_home
 from astropy.utils.data import get_readable_fileobj
 
 from .errors import SAMPHubError, SAMPWarning
+from .utils import SAMPXXEServerProxy
 
 
 def read_lockfile(lockfilename):
@@ -58,7 +58,7 @@ def create_lock_file(lockfilename=None, mode=None, hub_id=None, hub_params=None)
     if "SAMP_HUB" in os.environ:
         # For the time being I assume just the std profile supported.
         if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
-            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:") :]
+            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
             lockfile_parsed = urlparse(lockfilename)
 
             if lockfile_parsed[0] != "file":
@@ -123,7 +123,7 @@ def get_main_running_hub():
     if "SAMP_HUB" in os.environ:
         # For the time being I assume just the std profile supported.
         if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
-            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:") :]
+            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
         else:
             raise SAMPHubError("SAMP Hub profile not supported.")
     else:
@@ -158,7 +158,7 @@ def get_running_hubs():
     if "SAMP_HUB" in os.environ:
         # For the time being I assume just the std profile supported.
         if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
-            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:") :]
+            lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
     else:
         lockfilename = os.path.join(Path.home(), ".samp")
 
