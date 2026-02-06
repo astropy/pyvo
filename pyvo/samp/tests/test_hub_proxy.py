@@ -1,6 +1,6 @@
-from pyvo.astropy_samp import conf
-from pyvo.astropy_samp.hub import SAMPHubServer
-from pyvo.astropy_samp.hub_proxy import SAMPHubProxy
+from pyvo.samp import conf
+from pyvo.samp.hub import SAMPHubServer
+from pyvo.samp.hub_proxy import SAMPHubProxy
 
 
 def setup_module(module):

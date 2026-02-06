@@ -4,7 +4,7 @@ import random
 import string
 import time
 
-from pyvo.astropy_samp import SAMP_STATUS_OK
+from pyvo.samp import SAMP_STATUS_OK
 
 TEST_REPLY = {"samp.status": SAMP_STATUS_OK, "samp.result": {"txt": "test"}}
 
