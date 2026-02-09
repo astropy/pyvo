@@ -296,7 +296,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
 
     def run_async(
             self, query, *, language="ADQL", maxrec=None, uploads=None,
-            delete=True, **keywords):
+            delete=True, timeout=600., **keywords):
         """
         runs async query and returns its result
 
@@ -313,6 +313,8 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             a mapping from table names to objects containing a votable
         delete : bool
             delete the job after fetching the results
+        timeout : float
+            maximum time to wait for job completion in seconds. Default is 600.
 
         Returns
         -------
@@ -336,7 +338,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         job = AsyncTAPJob.create(
             self.baseurl, query, language=language, maxrec=maxrec, uploads=uploads,
             session=self._session, **keywords)
-        job = job.run().wait()
+        job = job.run().wait(timeout=timeout)
 
         try:
             job.raise_if_error()
