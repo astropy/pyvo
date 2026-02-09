@@ -19,6 +19,9 @@ Enhancements and Fixes
 Deprecations and Removals
 -------------------------
 
+- Versions of Python <3.10 are no longer supported. [#724]
+
+- Versions of Astropy <5.0 are no longer supported. [#724]
 
 
 1.8.1 (unreleased)
