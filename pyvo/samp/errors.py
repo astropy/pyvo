@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Defines custom errors and exceptions used in `astropy.samp`.
+Defines custom errors and exceptions used in `pyvo.samp`.
 """
 
 import xmlrpc.client as xmlrpc

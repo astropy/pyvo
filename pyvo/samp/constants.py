@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Defines constants used in `astropy.samp`.
+Defines constants used in `pyvo.samp`.
 """
 
 from astropy.utils.data import get_pkg_data_filename

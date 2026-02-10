@@ -972,7 +972,7 @@ class SAMPHubServer:
 
         Examples
         --------
-        >>> from astropy.samp import SAMPHubServer
+        >>> from pyvo.samp import SAMPHubServer
         >>> SAMPHubServer.get_mtype_subtypes("samp.app.ping")
         ['samp.app.ping', 'samp.app.*', 'samp.*', '*']
         """
