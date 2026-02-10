@@ -5,6 +5,7 @@ with the web profile active, and the user might want to run the tests in
 parallel.
 """
 
+import os
 import threading
 from urllib.request import Request, urlopen
 
@@ -12,7 +13,6 @@ import pytest
 
 from pyvo.samp import SAMPHubServer, SAMPIntegratedClient, conf
 from pyvo.samp.web_profile import CLIENT_ACCESS_POLICY, CROSS_DOMAIN
-from astropy.tests.helper import CI
 from astropy.utils.data import get_readable_fileobj
 
 from .test_standard_profile import TestStandardProfile as BaseTestStandardProfile
@@ -20,6 +20,8 @@ from .web_profile_test_helpers import (
     AlwaysApproveWebProfileDialog,
     SAMPIntegratedWebClient,
 )
+
+CI = os.environ.get("CI", "false") == "true"
 
 
 def setup_module(module):
