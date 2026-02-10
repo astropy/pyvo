@@ -10,8 +10,8 @@ from urllib.request import Request, urlopen
 
 import pytest
 
-from astropy.samp import SAMPHubServer, SAMPIntegratedClient, conf
-from astropy.samp.web_profile import CLIENT_ACCESS_POLICY, CROSS_DOMAIN
+from pyvo.samp import SAMPHubServer, SAMPIntegratedClient, conf
+from pyvo.samp.web_profile import CLIENT_ACCESS_POLICY, CROSS_DOMAIN
 from astropy.tests.helper import CI
 from astropy.utils.data import get_readable_fileobj
 

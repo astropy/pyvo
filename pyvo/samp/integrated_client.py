@@ -14,8 +14,8 @@ class SAMPIntegratedClient:
     A Simple SAMP client.
 
     This class is meant to simplify the client usage providing a proxy class
-    that merges the :class:`~astropy.samp.SAMPClient` and
-    :class:`~astropy.samp.SAMPHubProxy` functionalities in a
+    that merges the :class:`~pyvo.samp.SAMPClient` and
+    :class:`~pyvo.samp.SAMPHubProxy` functionalities in a
     simplified API.
 
     Parameters
@@ -94,7 +94,7 @@ class SAMPIntegratedClient:
 
         Parameters
         ----------
-        hub : `~astropy.samp.SAMPHubServer`, optional
+        hub : `~pyvo.samp.SAMPHubServer`, optional
             The hub to connect to.
 
         hub_params : dict, optional
@@ -190,7 +190,7 @@ class SAMPIntegratedClient:
 
     def enotify(self, recipient_id, mtype, **params):
         """
-        Easy to use version of :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.notify`.
+        Easy to use version of :meth:`~pyvo.samp.integrated_client.SAMPIntegratedClient.notify`.
 
         This is a proxy to ``notify`` method that allows to send the
         notification message in a simplified way.
@@ -213,7 +213,7 @@ class SAMPIntegratedClient:
 
         Examples
         --------
-        >>> from astropy.samp import SAMPIntegratedClient
+        >>> from pyvo.samp import SAMPIntegratedClient
         >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> cli.enotify("samp.msg.progress", msgid = "xyz", txt = "initialization",
@@ -229,7 +229,7 @@ class SAMPIntegratedClient:
 
     def enotify_all(self, mtype, **params):
         """
-        Easy to use version of :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.notify_all`.
+        Easy to use version of :meth:`~pyvo.samp.integrated_client.SAMPIntegratedClient.notify_all`.
 
         This is a proxy to ``notifyAll`` method that allows to send the
         notification message in a simplified way.
@@ -249,7 +249,7 @@ class SAMPIntegratedClient:
 
         Examples
         --------
-        >>> from astropy.samp import SAMPIntegratedClient
+        >>> from pyvo.samp import SAMPIntegratedClient
         >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> cli.enotify_all("samp.msg.progress", txt = "initialization",
@@ -266,7 +266,7 @@ class SAMPIntegratedClient:
 
     def ecall(self, recipient_id, msg_tag, mtype, **params):
         """
-        Easy to use version of :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.call`.
+        Easy to use version of :meth:`~pyvo.samp.integrated_client.SAMPIntegratedClient.call`.
 
         This is a proxy to ``call`` method that allows to send a call message
         in a simplified way.
@@ -292,7 +292,7 @@ class SAMPIntegratedClient:
 
         Examples
         --------
-        >>> from astropy.samp import SAMPIntegratedClient
+        >>> from pyvo.samp import SAMPIntegratedClient
         >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> msgid = cli.ecall("abc", "xyz", "samp.msg.progress",
@@ -309,7 +309,7 @@ class SAMPIntegratedClient:
 
     def ecall_all(self, msg_tag, mtype, **params):
         """
-        Easy to use version of :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.call_all`.
+        Easy to use version of :meth:`~pyvo.samp.integrated_client.SAMPIntegratedClient.call_all`.
 
         This is a proxy to ``callAll`` method that allows to send the call
         message in a simplified way.
@@ -332,7 +332,7 @@ class SAMPIntegratedClient:
 
         Examples
         --------
-        >>> from astropy.samp import SAMPIntegratedClient
+        >>> from pyvo.samp import SAMPIntegratedClient
         >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> msgid = cli.ecall_all("xyz", "samp.msg.progress",
@@ -351,7 +351,7 @@ class SAMPIntegratedClient:
 
     def ecall_and_wait(self, recipient_id, mtype, timeout, **params):
         """
-        Easy to use version of :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.call_and_wait`.
+        Easy to use version of :meth:`~pyvo.samp.integrated_client.SAMPIntegratedClient.call_and_wait`.
 
         This is a proxy to ``callAndWait`` method that allows to send the call
         message in a simplified way.
@@ -377,7 +377,7 @@ class SAMPIntegratedClient:
 
         Examples
         --------
-        >>> from astropy.samp import SAMPIntegratedClient
+        >>> from pyvo.samp import SAMPIntegratedClient
         >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> cli.ecall_and_wait("xyz", "samp.msg.progress", "5",
@@ -405,7 +405,7 @@ class SAMPIntegratedClient:
 
     def ereply(self, msg_id, status, result=None, error=None):
         """
-        Easy to use version of :meth:`~astropy.samp.integrated_client.SAMPIntegratedClient.reply`.
+        Easy to use version of :meth:`~pyvo.samp.integrated_client.SAMPIntegratedClient.reply`.
 
         This is a proxy to ``reply`` method that allows to send a reply
         message in a simplified way.
@@ -426,7 +426,7 @@ class SAMPIntegratedClient:
 
         Examples
         --------
-        >>> from astropy.samp import SAMPIntegratedClient, SAMP_STATUS_ERROR
+        >>> from pyvo.samp import SAMPIntegratedClient, SAMP_STATUS_ERROR
         >>> cli = SAMPIntegratedClient()
         >>> ...
         >>> cli.ereply("message_id", SAMP_STATUS_ERROR, result={},

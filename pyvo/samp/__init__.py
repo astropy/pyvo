@@ -23,13 +23,13 @@ from .vo_helpers import *
 
 class Conf(_config.ConfigNamespace):
     """
-    Configuration parameters for `astropy.samp`.
+    Configuration parameters for `pyvo.samp`.
     """
 
     use_internet = _config.ConfigItem(
         True,
-        "Whether to allow `astropy.samp` to use the internet, if available.",
-        aliases=["astropy.samp.utils.use_internet"],
+        "Whether to allow `pyvo.samp` to use the internet, if available.",
+        aliases=["pyvo.samp.utils.use_internet"],
     )
 
     n_retries = _config.ConfigItem(

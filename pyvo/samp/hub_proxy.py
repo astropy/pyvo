@@ -34,7 +34,7 @@ class SAMPHubProxy:
 
         Parameters
         ----------
-        hub : `~astropy.samp.SAMPHubServer`, optional
+        hub : `~pyvo.samp.SAMPHubServer`, optional
             The hub to connect to.
 
         hub_params : dict, optional
