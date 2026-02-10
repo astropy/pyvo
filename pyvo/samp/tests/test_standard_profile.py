@@ -1,14 +1,16 @@
+import os
 import pytest
 
 # By default, tests should not use the internet.
 from pyvo.samp import conf
 from pyvo.samp.hub import SAMPHubServer
 from pyvo.samp.integrated_client import SAMPIntegratedClient
-from astropy.tests.helper import CI
 
 import xmlrpc.client
 
 from .test_helpers import TEST_REPLY, Receiver, assert_output, random_params
+
+CI = os.environ.get("CI", "false") == "true"
 
 
 def setup_module(module):
