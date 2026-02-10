@@ -15,6 +15,9 @@ Enhancements and Fixes
 - Provide an API for SoftId-compliant management of the 'User-Agent'
   header [#719]
 
+- The ``astropy.samp`` module has been relocated and is now accessible under
+  ``pyvo.samp`` [#729]
+
 
 Deprecations and Removals
 -------------------------
