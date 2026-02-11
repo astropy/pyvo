@@ -30,7 +30,7 @@ import io
 
 __all__ = [
     "search", "escape", "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults",
-    "DEFAULT_JOB_POLL_TIMEOUT"]
+    "DEFAULT_JOB_POLL_TIMEOUT", "DEFAULT_JOB_WAIT_TIMEOUT"]
 
 IVOA_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
@@ -48,6 +48,9 @@ TRANSIENT_ERRORS = (requests.exceptions.ConnectionError,
 
 # Default timeout (in seconds) for job status polling requests.
 DEFAULT_JOB_POLL_TIMEOUT = 10
+
+# Default timeout (in seconds) for overall job wait.
+DEFAULT_JOB_WAIT_TIMEOUT = 600.
 
 
 def _from_ivoa_format(datetime_str):
@@ -296,7 +299,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
 
     def run_async(
             self, query, *, language="ADQL", maxrec=None, uploads=None,
-            delete=True, timeout=600., **keywords):
+            delete=True, timeout=DEFAULT_JOB_WAIT_TIMEOUT, **keywords):
         """
         runs async query and returns its result
 
@@ -972,7 +975,7 @@ class AsyncTAPJob:
 
         return self
 
-    def wait(self, *, phases=None, timeout=600.):
+    def wait(self, *, phases=None, timeout=DEFAULT_JOB_WAIT_TIMEOUT):
         """
         waits for the job to reach the given phases.
 
