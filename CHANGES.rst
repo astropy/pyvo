@@ -4,16 +4,6 @@
 Enhancements and Fixes
 ----------------------
 
-- Add timeout parameter to run_async method in tap module [#730]
-
-- Fix SIA2 overflow warnings [#727]
-
-- Add DEFAULT_JOB_POLL_TIMEOUT constant [#721]
-
-- Pass session through to DatalinkService requests (#715)
-
-- Add DALRateLimitError for HTTP 429 responses with retry timing info [#718]
-
 - Provide an API for SoftId-compliant management of the 'User-Agent'
   header [#719]
 
@@ -26,13 +16,29 @@ Deprecations and Removals
 - Versions of Astropy <5.0 are no longer supported. [#724]
 
 
-1.8.1 (unreleased)
+1.8.2 (unreleased)
+==================
+
+- No changes yet.
+
+
+1.8.1 (2026-02-12)
 ==================
 
 Bug Fixes
 ---------
 
+- Pass session through to DatalinkService requests. [#716]
+
+- Add DALRateLimitError for HTTP 429 responses with retry timing info. [#718]
+
 - Fix a bug in the space frame equinox processing. [#710]
+
+- Add DEFAULT_JOB_POLL_TIMEOUT constant. [#721]
+
+- Fix SIA2 overflow warnings. [#727]
+
+- Add timeout parameter to run_async method in tap module. [#730]
 
 
 1.8 (2025-11-13)
