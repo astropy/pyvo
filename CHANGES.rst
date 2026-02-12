@@ -1,20 +1,20 @@
-1.8.1 (unreleased)
+1.8.1 (2026-02-12)
 ==================
 
 Bug Fixes
 ---------
 
-- Pass session through to DatalinkService requests (#715)
+- Pass session through to DatalinkService requests. [#716]
 
-- Add DALRateLimitError for HTTP 429 responses with retry timing info [#718]
+- Add DALRateLimitError for HTTP 429 responses with retry timing info. [#718]
 
 - Fix a bug in the space frame equinox processing. [#710]
 
-- Add DEFAULT_JOB_POLL_TIMEOUT constant [#721]
+- Add DEFAULT_JOB_POLL_TIMEOUT constant. [#721]
 
-- Fix SIA2 overflow warnings [#727]
+- Fix SIA2 overflow warnings. [#727]
 
-- Add timeout parameter to run_async method in tap module [#730]
+- Add timeout parameter to run_async method in tap module. [#730]
 
 
 1.8 (2025-11-13)
