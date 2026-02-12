@@ -14,6 +14,8 @@ Bug Fixes
 
 - Fix SIA2 overflow warnings [#727]
 
+- Add timeout parameter to run_async method in tap module [#730]
+
 
 1.8 (2025-11-13)
 ================
