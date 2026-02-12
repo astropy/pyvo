@@ -4,6 +4,8 @@
 Enhancements and Fixes
 ----------------------
 
+- Add timeout parameter to run_async method in tap module [#730]
+
 - Fix SIA2 overflow warnings [#727]
 
 - Add DEFAULT_JOB_POLL_TIMEOUT constant [#721]
