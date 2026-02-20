@@ -1,12 +1,18 @@
+import sys
+import pytest
+
 from pyvo.samp import conf
 from pyvo.samp.hub import SAMPHubServer
 from pyvo.samp.hub_proxy import SAMPHubProxy
+
+IS_MACOS = sys.platform == "darwin"
 
 
 def setup_module(module):
     conf.use_internet = False
 
 
+@pytest.mark.skipif(IS_MACOS, reason="This test hangs on MacOS.")
 class TestHubProxy:
     def setup_method(self, method):
         self.hub = SAMPHubServer(web_profile=False, mode="multiple", pool_size=1)

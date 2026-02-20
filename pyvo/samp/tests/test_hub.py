@@ -1,22 +1,27 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import time
+import sys
 
 import pytest
 
 from pyvo.samp import conf
 from pyvo.samp.hub import SAMPHubServer
 
+IS_MACOS = sys.platform == "darwin"
+
 
 def setup_module(module):
     conf.use_internet = False
 
 
+@pytest.mark.skipif(IS_MACOS, reason="This test hangs on MacOS.")
 def test_SAMPHubServer():
     """Test that SAMPHub can be instantiated"""
     SAMPHubServer(web_profile=False, mode="multiple", pool_size=1)
 
 
+@pytest.mark.skipif(IS_MACOS, reason="This test hangs on MacOS.")
 @pytest.mark.slow
 def test_SAMPHubServer_run():
     """Test that SAMPHub can be run"""
@@ -26,6 +31,7 @@ def test_SAMPHubServer_run():
     hub.stop()
 
 
+@pytest.mark.skipif(IS_MACOS, reason="This test hangs on MacOS.")
 @pytest.mark.slow
 def test_SAMPHubServer_run_repeated():
     """
