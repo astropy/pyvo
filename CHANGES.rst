@@ -4,11 +4,13 @@
 Enhancements and Fixes
 ----------------------
 
+- Preserve text/plain error body in raise_if_error() after stream is consumed. [#736]
+
 - Provide an API for SoftId-compliant management of the 'User-Agent'
-  header [#719]
+  header. [#719]
 
 - The ``astropy.samp`` module has been relocated and is now accessible under
-  ``pyvo.samp`` [#729]
+  ``pyvo.samp``. [#729]
 
 
 Deprecations and Removals
