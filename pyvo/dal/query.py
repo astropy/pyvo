@@ -211,11 +211,7 @@ class DALQuery(dict):
         try:
             response.raise_for_status()
         except requests.RequestException as ex:
-            # Cache the response body before returning the raw stream. If the
-            # caller consumes the stream before calling raise_if_error()
-            # this would lead to an empty error message
-            _ = response.content
-            self._ex = ex
+            self._ex = DALServiceError.from_except(ex, self.queryurl)
 
         return response.raw
 
@@ -270,8 +266,7 @@ class DALQuery(dict):
         Raise if there was an error on http level.
         """
         if self._ex:
-            e = self._ex
-            raise DALServiceError.from_except(e, self.queryurl)
+            raise self._ex
 
     @property
     def queryurl(self):
