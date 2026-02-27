@@ -1,5 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
+import sys
+
 import pytest
 
 # By default, tests should not use the internet.
@@ -8,6 +11,10 @@ from pyvo.samp.client import SAMPClient
 from pyvo.samp.hub import SAMPHubServer
 from pyvo.samp.hub_proxy import SAMPHubProxy
 from pyvo.samp.integrated_client import SAMPIntegratedClient
+
+
+CI = os.environ.get("CI", "false") == "true"
+IS_MACOS = sys.platform == "darwin"
 
 
 def setup_module(module):
@@ -40,6 +47,7 @@ def samp_hub():
     my_hub.stop()
 
 
+@pytest.mark.skipif(IS_MACOS and CI, reason="This test hangs on MacOS GHA.")
 @pytest.mark.filterwarnings("ignore:unclosed <socket:ResourceWarning")
 def test_SAMPIntegratedClient_notify_all(samp_hub):
     """Test that SAMP returns a warning if no receiver got the message."""
@@ -51,6 +59,7 @@ def test_SAMPIntegratedClient_notify_all(samp_hub):
     client.disconnect()
 
 
+@pytest.mark.skipif(IS_MACOS and CI, reason="This test hangs on MacOS GHA.")
 def test_reconnect(samp_hub):
     """Test that SAMPIntegratedClient can reconnect.
     This is a regression test for bug [#2673]

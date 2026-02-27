@@ -16,6 +16,7 @@ def setup_module(module):
     conf.use_internet = False
 
 
+@pytest.mark.skipif(IS_MACOS and CI, reason="This test hangs on MacOS GHA.")
 class TestHubProxy:
     def setup_method(self, method):
         self.hub = SAMPHubServer(web_profile=False, mode="multiple", pool_size=1)
