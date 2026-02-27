@@ -2,6 +2,7 @@
 
 import os
 import sys
+
 import pytest
 
 # By default, tests should not use the internet.
@@ -11,6 +12,7 @@ from pyvo.samp.hub import SAMPHubServer
 from pyvo.samp.hub_proxy import SAMPHubProxy
 from pyvo.samp.integrated_client import SAMPIntegratedClient
 
+
 CI = os.environ.get("CI", "false") == "true"
 IS_MACOS = sys.platform == "darwin"
 
@@ -19,13 +21,11 @@ def setup_module(module):
     conf.use_internet = False
 
 
-@pytest.mark.skipif(IS_MACOS and CI, reason="This test hangs on MacOS GHA.")
 def test_SAMPHubProxy():
     """Test that SAMPHubProxy can be instantiated"""
     SAMPHubProxy()
 
 
-@pytest.mark.skipif(IS_MACOS and CI, reason="This test hangs on MacOS GHA.")
 @pytest.mark.slow
 def test_SAMPClient():
     """Test that SAMPClient can be instantiated"""
@@ -33,7 +33,6 @@ def test_SAMPClient():
     SAMPClient(proxy)
 
 
-@pytest.mark.skipif(IS_MACOS and CI, reason="This test hangs on MacOS GHA.")
 def test_SAMPIntegratedClient():
     """Test that SAMPIntegratedClient can be instantiated"""
     SAMPIntegratedClient()
