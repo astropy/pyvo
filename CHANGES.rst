@@ -4,6 +4,8 @@
 Enhancements and Fixes
 ----------------------
 
+- Improve handling of timeouts in tap wait and _update [#740]
+
 - Preserve text/plain error body in raise_if_error() after stream is consumed. [#736]
 
 - Provide an API for SoftId-compliant management of the 'User-Agent'
