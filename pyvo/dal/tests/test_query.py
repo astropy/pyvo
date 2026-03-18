@@ -94,6 +94,12 @@ def register_mocks(mocker):
                 text='Error', status_code=500
             )),
             stack.enter_context(mocker.register_uri(
+                'GET', 'http://example.com/query/plaintext_error',
+                content=b'No intersection between cutout and image',
+                headers={'Content-Type': 'text/plain; charset=utf-8'},
+                status_code=500
+            )),
+            stack.enter_context(mocker.register_uri(
                 'GET', 'http://example.com/query/errorstatus',
                 content=get_pkg_data_contents('data/query/errorstatus.xml')
             )),
@@ -224,6 +230,14 @@ class TestDALService:
             assert exc.code == 500
         else:
             assert False
+
+    def test_http_exception_message_preserved(self):
+        query = DALQuery('http://example.com/query/plaintext_error')
+        stream = query.execute_stream()
+        stream.read()
+        with pytest.raises(DALServiceError) as exc_info:
+            query.raise_if_error()
+        assert 'No intersection between cutout and image' in str(exc_info.value)
 
     def test_query_exception(self):
         service = DALService('http://example.com/query/errorstatus')
