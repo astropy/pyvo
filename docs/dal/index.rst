@@ -250,26 +250,31 @@ robust of long-running queries.  It also supports queuing queries,
 which allows service operators to be a lot more generous with
 resource limits.
 
-To specify the query mode, you can use either ``run_sync()`` for
-synchronous query or ``run_async()`` for asynchronous query.
+For most long-running queries, ``run_async()`` should generally be the
+preferred approach.  It submits the job, waits for it to complete, and returns
+the result in one call:
+
+.. doctest-remote-data::
+
+    >>> result = tap_service.run_async(ex_query)
+
+For more control over the job lifecycle, for example to set a
+custom execution time limit, inspect the job URL, or manage the job
+manually you can use the ``submit_job()`` workflow  instead.  This submits an
+asynchronous query without starting it, returning an
+:py:class:`~pyvo.dal.AsyncTAPJob` object:
 
 .. doctest-remote-data::
 
     >>> job = tap_service.submit_job(ex_query)
 
-To learn more details from the asynchronous query, let's look at the
-``submit_job()`` method. This submits an asynchronous query without
-starting it, it creates a new object :py:class:`~pyvo.dal.AsyncTAPJob`.
+The job URL is in the ``url`` attribute and can be used to inspect or
+manage the job. The same is available programmatically via various attributes:
 
 .. doctest-remote-data::
 
     >>> job.url
     'http://dc.g-vo.org/__system__/tap/run/async/...'
-
-The job URL mentioned before is available in the ``url`` attribute.
-Clicking on the URL leads you to the query itself, where you can check
-the status(phase) of the query and decide to run, modify or delete
-the job. You can also do it via various attributes:
 
 .. doctest-remote-data::
 
@@ -331,10 +336,6 @@ that you can change if you need to) is reached.
 
 For more attributes please read the description for the job object
 :py:class:`~pyvo.dal.AsyncTAPJob`.
-
-With ``run_async()`` you basically submit an asynchronous query and
-return its result. It is like running ``submit_job()`` first and then
-run the query manually.
 
 Query limit
 ^^^^^^^^^^^
