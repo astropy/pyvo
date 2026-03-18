@@ -83,7 +83,8 @@ if not hasattr(Resource, 'groups'):
 __all__ = [
     "AdhocServiceResultsMixin", "DatalinkResultsMixin", "DatalinkRecordMixin",
     "DatalinkService", "DatalinkQuery", "DatalinkResults", "DatalinkRecord",
-    "SodaRecordMixin", "SodaQuery"]
+    "SodaRecordMixin", "SodaQuery",
+    "DATALINK_BATCH_CALL_SIZE"]
 
 
 def _get_input_params_from_resource(resource):

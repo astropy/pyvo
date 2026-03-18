@@ -930,6 +930,20 @@ def test_sia2_service_operation():
     assert "s_dec" in res.to_table().columns
 
 
+def test_get_RegTAP_service_url_default():
+    assert regtap.get_RegTAP_service_url() == regtap.REGISTRY_BASEURL
+
+
+def test_get_RegTAP_service_url_reflects_changes():
+    alt_svc = "https://example.com/tap"
+    previous_url = regtap.REGISTRY_BASEURL
+    try:
+        regtap.choose_RegTAP_service(alt_svc)
+        assert regtap.get_RegTAP_service_url() == alt_svc
+    finally:
+        regtap.choose_RegTAP_service(previous_url)
+
+
 @pytest.mark.remote_data
 def test_endpoint_switching():
     alt_svc = "https://mast.stsci.edu/vo-tap/api/v0.1/registry"

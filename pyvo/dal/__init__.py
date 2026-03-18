@@ -13,7 +13,8 @@ from .sia2 import SIA2Service, SIA2Query, SIA2Results, ObsCoreRecord
 from .ssa import SSAService, SSAQuery, SSAResults, SSARecord
 from .sla import SLAService, SLAQuery, SLAResults, SLARecord
 from .scs import SCSService, SCSQuery, SCSResults, SCSRecord
-from .tap import TAPService, TAPQuery, TAPResults, AsyncTAPJob
+from .tap import TAPService, TAPQuery, TAPResults, AsyncTAPJob, DEFAULT_JOB_POLL_TIMEOUT, DEFAULT_JOB_WAIT_TIMEOUT
+from .adhoc import DATALINK_BATCH_CALL_SIZE
 
 
 from .exceptions import (
@@ -31,4 +32,6 @@ __all__ = [
     "SIARecord", "SSARecord", "SLARecord", "SCSRecord",
     "AsyncTAPJob",
     "DALAccessError", "DALProtocolError", "DALFormatError", "DALServiceError",
-    "DALQueryError", "DALOverflowWarning", "DALRateLimitError"]
+    "DALQueryError", "DALOverflowWarning", "DALRateLimitError",
+    "DEFAULT_JOB_POLL_TIMEOUT", "DEFAULT_JOB_WAIT_TIMEOUT",
+    "DATALINK_BATCH_CALL_SIZE"]

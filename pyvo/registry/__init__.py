@@ -7,6 +7,7 @@ The regtap module supports access to the IVOA Registries
 
 from .regtap import (search, ivoid2service,
     get_RegTAP_query,
+    get_RegTAP_service_url,
     choose_RegTAP_service,
     RegistryResults, RegistryResource)
 
@@ -15,7 +16,8 @@ from .rtcons import (Constraint, SubqueriedConstraint,
                      UCD, UAT, Spatial, Spectral, Temporal,
                      RegTAPFeatureMissing)
 
-__all__ = ["search", "get_RegTAP_query", "Constraint", "SubqueriedConstraint",
+__all__ = ["search", "get_RegTAP_query", "get_RegTAP_service_url",
+           "Constraint", "SubqueriedConstraint",
            "Freetext", "Author",
            "Servicetype", "Waveband", "Datamodel", "Ivoid", "UCD",
            "UAT", "Spatial", "Spectral", "Temporal",

@@ -34,7 +34,7 @@ from ..io.vosi import vodataservice
 from ..utils.formatting import para_format_desc
 
 
-__all__ = ["search", "get_RegTAP_query", "Interface",
+__all__ = ["search", "get_RegTAP_query", "get_RegTAP_service_url", "Interface",
            "RegistryResource", "RegistryResults", "ivoid2service"]
 
 REGISTRY_BASEURL = os.environ.get("IVOA_REGISTRY", "http://reg.g-vo.org/tap"
@@ -109,6 +109,22 @@ def get_RegTAP_service():
     :py:func:`choose_RegTAP_service`.
     """
     return tap.TAPService(REGISTRY_BASEURL)
+
+
+def get_RegTAP_service_url():
+    """
+    Return the access URL of the currently configured RegTAP service.
+
+    By default, pyVO uses whatever is given in the environment variable
+    ``IVOA_REGISTRY``, defaulting to GAVO's TAP service.  To change this
+    use :py:func:`pyvo.registry.choose_RegTAP_service`.
+
+    Returns
+    -------
+    str
+        The TAP access URL of the current RegTAP endpoint.
+    """
+    return REGISTRY_BASEURL
 
 
 def choose_RegTAP_service(access_url):
