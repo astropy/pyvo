@@ -718,7 +718,10 @@ class AsyncTAPJob:
         updates local job infos with remote values
         """
         if timeout is None:
-            timeout = DEFAULT_JOB_POLL_TIMEOUT
+            timeout = (
+                DEFAULT_JOB_WAIT_TIMEOUT if wait_for_statechange
+                else DEFAULT_JOB_POLL_TIMEOUT
+            )
         try:
             if wait_for_statechange:
                 response = self._session.get(
@@ -983,8 +986,9 @@ class AsyncTAPJob:
         ----------
         phases : list
             phases to wait for
-        timeout : float
-            maximum time to wait in seconds
+        timeout : float or None
+            maximum time to wait in seconds. If None, defaults to
+            ``DEFAULT_JOB_WAIT_TIMEOUT``.
 
         Raises
         ------
