@@ -1045,7 +1045,7 @@ class AsyncTAPJob:
         DALQueryError
             if theres an error
         """
-        if self.phase in {"ERROR", "ABORTED"}:
+        if self._job.phase in {"ERROR", "ABORTED"}:
             msg = ""
             if self._job and self._job.errorsummary:
                 msg = self._job.errorsummary.message.content
