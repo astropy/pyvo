@@ -16,9 +16,9 @@ import pytest
 import requests
 import requests_mock
 
+from pyvo import dal
 from pyvo.dal.tap import escape, search, AsyncTAPJob, TAPService
 from pyvo.dal import DALQueryError, DALServiceError, DALOverflowWarning, DALRateLimitError
-
 from pyvo.io.uws import JobFile
 from pyvo.io.uws.tree import Parameter, Result, ErrorSummary, Message
 from pyvo.io.vosi.exceptions import VOSIError
@@ -1828,3 +1828,9 @@ class TestRateLimitError:
             error = excinfo.value
             assert error.retry_after_seconds == 60
             assert error.code == 429
+
+
+def test_public_constants_accessible_from_dal():
+    assert isinstance(dal.DEFAULT_JOB_POLL_TIMEOUT, (int, float))
+    assert isinstance(dal.DEFAULT_JOB_WAIT_TIMEOUT, (int, float))
+    assert isinstance(dal.DATALINK_BATCH_CALL_SIZE, int)

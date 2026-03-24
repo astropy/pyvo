@@ -4,6 +4,9 @@
 Enhancements and Fixes
 ----------------------
 
+- Add ``pyvo.registry.get_RegTAP_service_url()`` to allow users to inspect the
+  currently configured registry endpoint. Expose other user-facing constants at their package level. [#742]
+
 - Improve handling of timeouts in tap wait and _update [#740]
 
 - Preserve text/plain error body in raise_if_error() after stream is consumed. [#736]
