@@ -4,6 +4,8 @@
 Enhancements and Fixes
 ----------------------
 
+- Declaratively define new-style standard IDs in Servicetype constraint [#744]
+
 - Fix raise_if_error() to use cached job phase instead of re-polling [#743]
 
 - Add ``pyvo.registry.get_RegTAP_service_url()`` to allow users to inspect the
