@@ -52,8 +52,9 @@ SERVICE_TYPE_MAP = {k: "ivo://ivoa.net/std/" + v
 # be matched with equality, so we match them with LIKE patterns instead.
 NEW_STYLE_STDIDS = {
     "sia2": ("ivo://ivoa.net/std/sia#query-2.%", "ivo://ivoa.net/std/sia#query-aux-2.%"),
-    "hats": ("ivo://ivoa.net/std/hats#hats-%", None),
-    "hips": ("ivo://ivoa.net/std/hips#hipslist-%", None),
+    # The HATS standard does not yet define capability identifiers,
+    # so we omit it for now.
+    "hips": ("ivo://ivoa.net/std/hips#hips-1.%", None),
 }
 
 
