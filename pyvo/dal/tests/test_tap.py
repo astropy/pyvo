@@ -617,6 +617,16 @@ class TestTAPService:
             job.raise_if_error()
         assert 'test_erroneus_submit.non_existent not found' in str(e)
 
+    def test_raise_if_error_uses_cached_phase(self, async_fixture):
+        matchers = async_fixture
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job(
+            "SELECT * FROM test_erroneus_submit.non_existent")
+        call_count_before = matchers["job"].call_count
+        with pytest.raises(DALQueryError):
+            job.raise_if_error()
+        assert call_count_before == matchers["job"].call_count
+
     @pytest.mark.usefixtures('async_fixture')
     def test_submit_job_case(self):
         """Test using mixed case in the QUERY parameter to a job.
