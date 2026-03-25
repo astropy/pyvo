@@ -166,7 +166,7 @@ class TestServicetypeConstraint:
         assert str(excinfo.value) == ("Service type junk is neither"
                                       " a full standard URI nor one of the bespoke identifiers"
                                       " image, sia, sia1, spectrum, ssap, ssa, scs, conesearch, line, slap,"
-                                      " table, tap, sia2, hats, hips")
+                                      " table, tap, sia2, hips")
 
     def test_legacy_term(self):
         assert (rtcons.Servicetype("conesearch").get_search_condition(FAKE_GAVO)
@@ -185,18 +185,9 @@ class TestServicetypeConstraint:
                     " OR standard_id like 'ivo://ivoa.net/std/sia#query-2.%'"
                     " OR standard_id like 'ivo://ivoa.net/std/sia#query-aux-2.%'"))
 
-    def test_hats(self):
-        assert (rtcons.Servicetype("hats").get_search_condition(FAKE_GAVO)
-                == "standard_id like 'ivo://ivoa.net/std/hats#hats-%'")
-
-    def test_hats_aux(self):
-        constraint = rtcons.Servicetype("hats").include_auxiliary_services()
-        assert (constraint.get_search_condition(FAKE_GAVO)
-                == "standard_id like 'ivo://ivoa.net/std/hats#hats-%'")
-
     def test_hips(self):
         assert (rtcons.Servicetype("hips").get_search_condition(FAKE_GAVO)
-                == "standard_id like 'ivo://ivoa.net/std/hips#hipslist-%'")
+                == "standard_id like 'ivo://ivoa.net/std/hips#hips-1.%'")
 
     def test_image_deprecated(self):
         with pytest.warns(AstropyDeprecationWarning):
