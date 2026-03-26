@@ -697,7 +697,7 @@ class DALResults:
         """
         with samp.connection() as conn:
             samp.send_table_to(
-                conn, self.to_table(),
+                conn, self.votable,
                 client_name=client_name, name=self.queryurl)
 
     def cursor(self):

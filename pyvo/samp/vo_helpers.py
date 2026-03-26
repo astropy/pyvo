@@ -6,6 +6,8 @@ import contextlib
 import os
 import tempfile
 
+from astropy.io.votable.tree import VOTableFile
+
 from .integrated_client import SAMPIntegratedClient
 
 
@@ -96,7 +98,10 @@ def accessible_table(table):
     """
     handle, f_name = tempfile.mkstemp(suffix=".xml")
     with open(handle, "w") as f:
-        table.write(output=f, format="votable")
+        if isinstance(table, VOTableFile):
+            table.to_xml(f)
+        else:
+            table.write(output=f, format="votable")
     try:
         yield "file://" + f_name
     finally:
