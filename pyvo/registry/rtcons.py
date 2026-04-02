@@ -37,8 +37,6 @@ SERVICE_TYPE_MAP = {k: "ivo://ivoa.net/std/" + v
                             ("image", "sia"),
                             ("sia", "sia"),
                             ("sia1", "sia"),
-                            # SIA2 is irregular
-                            # funky scheme used by SIA2 without breaking everything else
                             ("spectrum", "ssa"),
                             ("ssap", "ssa"),
                             ("ssa", "ssa"),
@@ -49,6 +47,14 @@ SERVICE_TYPE_MAP = {k: "ivo://ivoa.net/std/" + v
                             ("table", "tap"),
                             ("tap", "tap"),
                         ]}
+
+# New-style standard IDs carry a #fragment with a minor version and cannot
+# be matched with equality, so we match them with LIKE patterns instead.
+NEW_STYLE_STDIDS = {
+    "sia2": ("ivo://ivoa.net/std/sia#query-2.%", "ivo://ivoa.net/std/sia#query-aux-2.%"),
+    "hats": ("ivo://ivoa.net/std/hats#hats-%", None),
+    "hips": ("ivo://ivoa.net/std/hips#hips-1.%", None),
+}
 
 
 class RegTAPFeatureMissing(dalq.DALQueryError):
@@ -411,7 +417,7 @@ class Servicetype(Constraint):
             match records that have any of them.
         """
         self.stdids = set()
-        self.extra_fragments = []
+        self.like_patterns = set()
 
         for std in stds:
             if std in ('image', 'spectrum'):
@@ -425,38 +431,34 @@ class Servicetype(Constraint):
                 self.stdids.add(SERVICE_TYPE_MAP[std])
             elif "://" in std:
                 self.stdids.add(std)
-            elif std == 'sia2':
-                self.extra_fragments.append(
-                    "standard_id like 'ivo://ivoa.net/std/sia#query-2.%'")
-            elif std == 'hats':
-                self.extra_fragments.append(
-                    "standard_id like 'ivo://ivoa.net/std/hats#hats-%'")
-            elif std == 'hips':
-                self.extra_fragments.append(
-                    "standard_id like 'ivo://ivoa.net/std/hips#hipslist-%'")
+            elif std in NEW_STYLE_STDIDS:
+                self.like_patterns.add(NEW_STYLE_STDIDS[std][0])
             else:
                 raise dalq.DALQueryError("Service type {} is neither a full"
                                          " standard URI nor one of the bespoke identifiers"
-                                         " {}, sia2, hats, hips".format(std, ", ".join(SERVICE_TYPE_MAP)))
+                                         " {}, {}".format(std, ", ".join(SERVICE_TYPE_MAP),
+                                                          ", ".join(NEW_STYLE_STDIDS)))
 
     def clone(self):
         """returns a copy of this servicetype constraint.
         """
         new_constraint = Servicetype()
         new_constraint.stdids = set(self.stdids)
-        new_constraint.extra_fragments = self.extra_fragments[:]
+        new_constraint.like_patterns = set(self.like_patterns)
         return new_constraint
 
     def get_search_condition(self, service):
-        # we sort the stdids to make it easy for tests (and it's
+        # we sort to make it easy for tests (and it's
         # virtually free for the small sets we have here).
         fragments = []
         std_ids = ", ".join(make_sql_literal(s)
             for s in sorted(self.stdids))
         if std_ids:
             fragments.append(f"standard_id IN ({std_ids})")
+        for pattern in sorted(self.like_patterns):
+            fragments.append(f"standard_id like '{pattern}'")
 
-        return " OR ".join(fragments + self.extra_fragments)
+        return " OR ".join(fragments)
 
     def include_auxiliary_services(self):
         """returns a Servicetype constraint that has self's
@@ -465,11 +467,10 @@ class Servicetype(Constraint):
         This is a convenience to maintain registry.search's signature.
         """
         expanded = self.clone()
-        expanded.stdids |= {
-            std + '#aux' for std in expanded.stdids}
-        if "standard_id like 'ivo://ivoa.net/std/sia#query-2.%'" in expanded.extra_fragments:
-            expanded.extra_fragments.append(
-                "standard_id like 'ivo://ivoa.net/std/sia#query-aux-2.%'")
+        expanded.stdids |= {std + '#aux' for std in expanded.stdids}
+        for main_pattern, aux_pattern in NEW_STYLE_STDIDS.values():
+            if main_pattern in expanded.like_patterns and aux_pattern:
+                expanded.like_patterns.add(aux_pattern)
         return expanded
 
 
