@@ -5,6 +5,7 @@ Created on 19 févr. 2024
 @author: michel
 '''
 import pytest
+from copy import deepcopy
 from astropy.table import Table
 from pyvo.mivot.viewer.mivot_instance import MivotInstance
 
@@ -119,6 +120,23 @@ def test_mivot_instance_update():
     mivot_object.update(t[0])
     assert mivot_object.longitude.value == 67.87
     assert mivot_object.latitude.value == -89.87
+
+
+def test_mivot_instance_missing_filed():
+    """Test that the generated class returns None
+    for missing fields instead of raising an error.
+    """
+    mivot_object = MivotInstance(**fake_hk_dict)
+    assert mivot_object.missing_field is None
+
+
+def test_mivot_instance_unit_filtering():
+    """Test that the @@@@@@@@
+    """
+    mydict = deepcopy(fake_hk_dict)
+    mydict["longitude"]["unit"] = "mas.year-1"
+    mivot_object = MivotInstance(**mydict)
+    assert mivot_object.longitude.unit == "mas.year-1"
 
 
 def test_mivot_instance_update_wrong_columns():
