@@ -19,17 +19,15 @@ class SkyCoordBuilder:
       set of required parameters (a position).
     - In this implementation, only the mango:EpochPosition class is supported since
       it contains the information required to compute the epoch propagation which is a major use-case
+
+
+    parameters
+    -----------
+    mivot_instance: dict or MivotInstance
+        Python object generated from the MIVOT block as either a Pyhon object or a dict
     '''
 
     def __init__(self, mivot_instance):
-        '''
-        Constructor
-
-        parameters
-        -----------
-        mivot_instance: dict or MivotInstance
-            Python object generated from the MIVOT block as either a Pyhon object or a dict
-        '''
         self._mivot_instance_dict = mivot_instance.to_dict()
         self._map_coord_names = None
 
@@ -89,17 +87,12 @@ class SkyCoordBuilder:
         -----
         MappingError: if the Time instance cannot be built for some reason
         """
-        # Process complex type "mango:DateTime"
-        if hk_field['dmtype'] == "mango:DateTime":
-            representation = hk_field['representation']['value']
-            timestamp = hk_field['dateTime']['value']
-        # Process complex type "coords:epoch" used for the space frame equinox
-        elif hk_field['dmtype'] == "coords:Epoch":
+        if hk_field['dmtype'] == "coords:Epoch":
             representation = 'yr' if "unit" not in hk_field else hk_field.get("unit")
             timestamp = hk_field['value']
         # Process simple attribute
         else:
-            representation = hk_field.get("unit")
+            representation = hk_field.get("dmtype")
             timestamp = hk_field.get("value")
 
         if not representation or not timestamp:
@@ -113,7 +106,7 @@ class SkyCoordBuilder:
 
         return time_instance
 
-    def _build_time_instance(self, timestamp, representation, besselian=False):
+    def _build_time_instance(self, timestamp, dmtype, besselian=False):
         """
         Build a Time instance matching the input parameters.
         - Returns None if the parameters do not allow any Time setup
@@ -122,17 +115,20 @@ class SkyCoordBuilder:
         parameters
         ----------
         timestamp: string or number
-            The timestamp must comply with the given representation
-        representation: string
-            year, iso, ... (See MANGO primitive types derived from ivoa:timeStamp)
+            The timestamp must comply with the given dmtype
+        dmtype: string
+            mango:DecimalYear, mango:JulianEpoch, mango:BesselianEpoch,
+            mango:iso, mango:mjd, mango:jd
+            (See MANGO primitive types derived from ivoa:timeStamp)
         besselian: boolean (optional)
             Flag telling to use the besselain calendar. We assume it to only be
-            relevant for FK5 frame
+            relevant for FK4 frame
         returns
         -------
         Time instance or None
         """
-        if representation in ("year", "yr", "y"):
+        # these types are not MANGO dmtype, however they can encountered in some free-style datasets.
+        if dmtype in ("mango:year", "yr", "y"):
             # it the timestamp is numeric, we infer its format from the besselian flag
             if isinstance(timestamp, numbers.Number):
                 return Time(f"{('B' if besselian else 'J')}{timestamp}",
@@ -159,9 +155,20 @@ class SkyCoordBuilder:
             return None
         # in the following cases, the calendar (B or J) is given by the besselian flag
         # We force to use the  string representation to avoid breaking unit tests.
-        elif representation in ("mjd", "jd", "iso"):
-            time = Time(f"{timestamp}", format=representation)
+        elif dmtype in ("mango:mjd", "mango:jd", "mango:iso"):
+            astropyformat = dmtype.split(":")[1]
+            time = Time(f"{timestamp}", format=astropyformat)
             return (Time(time.byear_str) if besselian else time)
+        elif dmtype == "mango:DecimalYear":
+            return Time(float(timestamp), format="decimalyear")
+        elif dmtype == "mango:BesselianYear":
+            if isinstance(timestamp, str) and (timestamp.startswith("B") or timestamp.startswith("J")):
+                timestamp = timestamp[1:]
+            return Time(float(timestamp), format="byear")
+        elif dmtype == "mango:JulianYear":
+            if isinstance(timestamp, str) and (timestamp.startswith("B") or timestamp.startswith("J")):
+                timestamp = timestamp[1:]
+            return Time(float(timestamp), format="jyear")
 
         return None
 

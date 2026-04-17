@@ -41,10 +41,7 @@
                         <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.pmLatitude" unit="mas / yr" ref="pmdec"/>
                         <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.parallax" unit="mas" ref="plx_value"/>
                         <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:EpochPosition.radialVelocity" unit="km / s" ref="rvz_radvel"/>
-                        <INSTANCE dmrole="mango:EpochPosition.obsDate" dmtype="mango:DateTime">
-                            <ATTRIBUTE dmrole="mango:DateTime.representation" dmtype="ivoa:string" value="year"/>
-                            <ATTRIBUTE dmrole="mango:DateTime.dateTime" dmtype="ivoa:datetime" value="2000" unit="y"/>
-                        </INSTANCE>
+                        <ATTRIBUTE dmrole="mango:EpochPosition.obsDate" dmtype="mango:year" value="2000" />
                         <INSTANCE dmtype="mango:EpochPositionErrors" dmrole="mango:EpochPosition.errors">
                             <INSTANCE dmtype="mango:error.PErrorEllipse" dmrole="mango:EpochPositionErrors.position">
                                 <ATTRIBUTE dmtype="ivoa:RealQuantity" dmrole="mango:error.PErrorEllipse.semiMajorAxis" unit="mas" ref="coo_err_maja"/>
