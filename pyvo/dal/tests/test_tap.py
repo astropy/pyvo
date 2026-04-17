@@ -16,9 +16,9 @@ import pytest
 import requests
 import requests_mock
 
+from pyvo import dal
 from pyvo.dal.tap import escape, search, AsyncTAPJob, TAPService
 from pyvo.dal import DALQueryError, DALServiceError, DALOverflowWarning, DALRateLimitError
-
 from pyvo.io.uws import JobFile
 from pyvo.io.uws.tree import Parameter, Result, ErrorSummary, Message
 from pyvo.io.vosi.exceptions import VOSIError
@@ -616,6 +616,16 @@ class TestTAPService:
         with pytest.raises(DALQueryError) as e:
             job.raise_if_error()
         assert 'test_erroneus_submit.non_existent not found' in str(e)
+
+    def test_raise_if_error_uses_cached_phase(self, async_fixture):
+        matchers = async_fixture
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job(
+            "SELECT * FROM test_erroneus_submit.non_existent")
+        call_count_before = matchers["job"].call_count
+        with pytest.raises(DALQueryError):
+            job.raise_if_error()
+        assert call_count_before == matchers["job"].call_count
 
     @pytest.mark.usefixtures('async_fixture')
     def test_submit_job_case(self):
@@ -1828,3 +1838,9 @@ class TestRateLimitError:
             error = excinfo.value
             assert error.retry_after_seconds == 60
             assert error.code == 429
+
+
+def test_public_constants_accessible_from_dal():
+    assert isinstance(dal.DEFAULT_JOB_POLL_TIMEOUT, (int, float))
+    assert isinstance(dal.DEFAULT_JOB_WAIT_TIMEOUT, (int, float))
+    assert isinstance(dal.DATALINK_BATCH_CALL_SIZE, int)

@@ -604,6 +604,15 @@ Within a Python session, you can use the
 `pyvo.registry.choose_RegTAP_service` function, which also takes the
 TAP access URL.
 
+To inspect which endpoint is currently in use, call
+`pyvo.registry.get_RegTAP_service_url`:
+
+.. doctest::
+
+  >>> from pyvo import registry
+  >>> registry.get_RegTAP_service_url()
+  'http://reg.g-vo.org/tap'
+
 As long as you have on working registry endpoint, you can find the other
 RegTAP services using:
 

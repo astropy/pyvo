@@ -185,6 +185,20 @@ class TestServicetypeConstraint:
                     " OR standard_id like 'ivo://ivoa.net/std/sia#query-2.%'"
                     " OR standard_id like 'ivo://ivoa.net/std/sia#query-aux-2.%'"))
 
+    def test_hats(self):
+        assert (rtcons.Servicetype("hats").get_search_condition(FAKE_GAVO)
+                == "standard_id like 'ivo://ivoa.net/std/hats#hats-%'")
+
+    def test_hats_aux(self):
+        # hats has no auxiliary service concept; aux expansion should not add a pattern
+        constraint = rtcons.Servicetype("hats").include_auxiliary_services()
+        assert (constraint.get_search_condition(FAKE_GAVO)
+                == "standard_id like 'ivo://ivoa.net/std/hats#hats-%'")
+
+    def test_hips(self):
+        assert (rtcons.Servicetype("hips").get_search_condition(FAKE_GAVO)
+                == "standard_id like 'ivo://ivoa.net/std/hips#hips-1.%'")
+
     def test_image_deprecated(self):
         with pytest.warns(AstropyDeprecationWarning):
             assert (rtcons.Servicetype("image").get_search_condition(FAKE_GAVO)

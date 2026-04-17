@@ -30,7 +30,7 @@ import io
 
 __all__ = [
     "search", "escape", "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults",
-    "DEFAULT_JOB_POLL_TIMEOUT"]
+    "DEFAULT_JOB_POLL_TIMEOUT", "DEFAULT_JOB_WAIT_TIMEOUT"]
 
 IVOA_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
@@ -48,6 +48,9 @@ TRANSIENT_ERRORS = (requests.exceptions.ConnectionError,
 
 # Default timeout (in seconds) for job status polling requests.
 DEFAULT_JOB_POLL_TIMEOUT = 10
+
+# Default timeout (in seconds) for overall job wait.
+DEFAULT_JOB_WAIT_TIMEOUT = 600.
 
 
 def _from_ivoa_format(datetime_str):
@@ -296,7 +299,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
 
     def run_async(
             self, query, *, language="ADQL", maxrec=None, uploads=None,
-            delete=True, **keywords):
+            delete=True, timeout=DEFAULT_JOB_WAIT_TIMEOUT, **keywords):
         """
         runs async query and returns its result
 
@@ -313,6 +316,8 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             a mapping from table names to objects containing a votable
         delete : bool
             delete the job after fetching the results
+        timeout : float
+            maximum time to wait for job completion in seconds. Default is 600.
 
         Returns
         -------
@@ -336,7 +341,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         job = AsyncTAPJob.create(
             self.baseurl, query, language=language, maxrec=maxrec, uploads=uploads,
             session=self._session, **keywords)
-        job = job.run().wait()
+        job = job.run().wait(timeout=timeout)
 
         try:
             job.raise_if_error()
@@ -713,7 +718,10 @@ class AsyncTAPJob:
         updates local job infos with remote values
         """
         if timeout is None:
-            timeout = DEFAULT_JOB_POLL_TIMEOUT
+            timeout = (
+                DEFAULT_JOB_WAIT_TIMEOUT if wait_for_statechange
+                else DEFAULT_JOB_POLL_TIMEOUT
+            )
         try:
             if wait_for_statechange:
                 response = self._session.get(
@@ -970,7 +978,7 @@ class AsyncTAPJob:
 
         return self
 
-    def wait(self, *, phases=None, timeout=600.):
+    def wait(self, *, phases=None, timeout=DEFAULT_JOB_WAIT_TIMEOUT):
         """
         waits for the job to reach the given phases.
 
@@ -978,8 +986,9 @@ class AsyncTAPJob:
         ----------
         phases : list
             phases to wait for
-        timeout : float
-            maximum time to wait in seconds
+        timeout : float or None
+            maximum time to wait in seconds. If None, defaults to
+            ``DEFAULT_JOB_WAIT_TIMEOUT``.
 
         Raises
         ------
@@ -1036,9 +1045,9 @@ class AsyncTAPJob:
         DALQueryError
             if theres an error
         """
-        if self.phase in {"ERROR", "ABORTED"}:
+        if self._job.phase in {"ERROR", "ABORTED"}:
             msg = ""
-            if self._job and self._job.errorsummary:
+            if self._job.errorsummary:
                 msg = self._job.errorsummary.message.content
             msg = msg or "<No useful error from server>"
             raise DALQueryError("Query Error: " + msg, self.url)

@@ -8,28 +8,57 @@ Enhancements and Fixes
   as modeled in the final version of the MANGO data model (DecimalYear,
   BesselianEpoch, JulianEpoch, mjd, jd, iso) [#726]
 
-- Add DEFAULT_JOB_POLL_TIMEOUT constant [#721]
+- Support VOTableFile in accessible_table and broadcast_samp [#745]
 
-- Pass session through to DatalinkService requests (#715)
+- Declaratively define new-style standard IDs in Servicetype constraint [#744]
 
-- Add DALRateLimitError for HTTP 429 responses with retry timing info [#718]
+- Fix raise_if_error() to use cached job phase instead of re-polling [#743]
+
+- Add ``pyvo.registry.get_RegTAP_service_url()`` to allow users to inspect the
+  currently configured registry endpoint. Expose other user-facing constants at their package level. [#742]
+
+- Improve handling of timeouts in tap wait and _update [#740]
+
+- Preserve text/plain error body in raise_if_error() after stream is consumed. [#736]
 
 - Provide an API for SoftId-compliant management of the 'User-Agent'
-  header [#719]
-  
+  header. [#719]
+
+- The ``astropy.samp`` module has been relocated and is now accessible under
+  ``pyvo.samp``. [#729]
+
 
 Deprecations and Removals
 -------------------------
 
+- Versions of Python <3.10 are no longer supported. [#724]
+
+- Versions of Astropy <5.0 are no longer supported. [#724]
 
 
-1.8.1 (unreleased)
+1.8.2 (unreleased)
+==================
+
+- No changes yet.
+
+
+1.8.1 (2026-02-12)
 ==================
 
 Bug Fixes
 ---------
 
+- Pass session through to DatalinkService requests. [#716]
+
+- Add DALRateLimitError for HTTP 429 responses with retry timing info. [#718]
+
 - Fix a bug in the space frame equinox processing. [#710]
+
+- Add DEFAULT_JOB_POLL_TIMEOUT constant. [#721]
+
+- Fix SIA2 overflow warnings. [#727]
+
+- Add timeout parameter to run_async method in tap module. [#730]
 
 
 1.8 (2025-11-13)

@@ -83,7 +83,7 @@ def certificate_auth_service(mocker):
 
 class MockBasicAuthTAPServer(MockAsyncTAPServer):
     def validator(self, request):
-        pw = 'testuser:hunter2'.encode('ascii')
+        pw = b'testuser:hunter2'
         basic_encoded = 'Basic ' + base64.b64encode(pw).decode('ascii')
 
         assert request.cert is None

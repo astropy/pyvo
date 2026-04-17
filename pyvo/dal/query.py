@@ -211,8 +211,7 @@ class DALQuery(dict):
         try:
             response.raise_for_status()
         except requests.RequestException as ex:
-            # save for later use
-            self._ex = ex
+            self._ex = DALServiceError.from_except(ex, self.queryurl)
 
         return response.raw
 
@@ -267,8 +266,7 @@ class DALQuery(dict):
         Raise if there was an error on http level.
         """
         if self._ex:
-            e = self._ex
-            raise DALServiceError.from_except(e, self.queryurl)
+            raise self._ex
 
     @property
     def queryurl(self):
@@ -699,7 +697,7 @@ class DALResults:
         """
         with samp.connection() as conn:
             samp.send_table_to(
-                conn, self.to_table(),
+                conn, self.votable,
                 client_name=client_name, name=self.queryurl)
 
     def cursor(self):

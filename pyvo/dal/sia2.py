@@ -450,9 +450,10 @@ class SIA2Query(DALQuery, AxisParamMixin):
 
     @maxrec.setter
     def maxrec(self, val):
-        if not isinstance(val, int):
-            if not val:
-                return
+        if val is None:
+            self._maxrec = None
+            return
+        if not isinstance(val, int) or val < 0:
             raise ValueError(f'maxrec {val} must be non-negative int')
         self._maxrec = val
         self['MAXREC'] = str(val)
@@ -471,7 +472,9 @@ class SIA2Query(DALQuery, AxisParamMixin):
         DALFormatError
            for errors parsing the VOTable response
         """
-        return SIA2Results(self.execute_votable(), url=self.queryurl, session=self._session)
+        result = SIA2Results(self.execute_votable(), url=self.queryurl, session=self._session)
+        result.check_overflow_warning(self._maxrec)
+        return result
 
 
 class SIA2Results(DatalinkResultsMixin, DALResults):
@@ -515,6 +518,16 @@ class SIA2Results(DatalinkResultsMixin, DALResults):
     and the data from the column matching that name is returned as
     a Numpy array.
     """
+
+    def _handle_overflow_warning(self, client_set_maxrec=None):
+        """
+        SIA2 overflow warning handling.
+
+        For SIA2 results we suppress the default overflow warning during
+        initialization because SIA2Query.execute() will call
+        check_overflow_warning() after the results are initialized.
+        """
+        pass
 
     def getrecord(self, index):
         """

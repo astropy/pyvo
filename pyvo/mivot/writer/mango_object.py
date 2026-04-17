@@ -52,7 +52,7 @@ class Property(MivotInstance):
             self.add_instance(semantics_instance)
 
 
-class MangoObject(object):
+class MangoObject:
     """
     This class handles all the components of a MangoObject (properties, origin, instance identifier).
      It is meant to be used by `pyvo.mivot.writer.InstancesFromModels` but not by end users.
