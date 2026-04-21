@@ -104,14 +104,8 @@ class MivotInstance:
                 if key == 'value':  # We cast the value read in the row
                     setattr(self, self._remove_model_name(key),
                             MivotUtils.cast_type_value(value, getattr(self, 'dmtype')))
-                elif key not in ["dmtype", "dmrole", "unit"]:
-                    setattr(self, self._remove_model_name(key), self._remove_model_name(value))
                 else:
                     setattr(self, self._remove_model_name(key), value)
-
-                if key == 'unit':  # We convert the unit to astropy unit or to astropy time format if possible
-                    # The first Vizier implementation used mas/year for the mapped pm unit: let's correct it
-                    value = value.replace("year", "yr") if value else None
 
     def update(self, row, ref=None):
         """

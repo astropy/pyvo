@@ -131,12 +131,25 @@ def test_mivot_instance_missing_filed():
 
 
 def test_mivot_instance_unit_filtering():
-    """Test that the @@@@@@@@
+    """Test that unit are properly read and stored in the class instance.
     """
     mydict = deepcopy(fake_hk_dict)
     mydict["longitude"]["unit"] = "mas.year-1"
     mivot_object = MivotInstance(**mydict)
     assert mivot_object.longitude.unit == "mas.year-1"
+    mydict["dmid"] = "a.b.c"
+    mivot_object = MivotInstance(**mydict)
+
+
+def test_mivot_instance_ref_id():
+    """Test that dmid/ref are properly read and stored in the class instance.
+    """
+    mydict = deepcopy(fake_hk_dict)
+    mydict["longitude"]["ref"] = "ref.b.c"
+    mydict["dmid"] = "id.b.c"
+    mivot_object = MivotInstance(**mydict)
+    assert mivot_object.dmid == "id.b.c"
+    assert mivot_object.longitude.ref == "ref.b.c"
 
 
 def test_mivot_instance_update_wrong_columns():
