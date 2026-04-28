@@ -324,7 +324,7 @@ def test_time_representation():
 
     for timestamp in ["B356", "356", 356.0]:
         mydict = deepcopy(vizier_equin_dict)
-        mydict["obsDate"]["dmtype"] = "mango:BesselianYear"
+        mydict["obsDate"]["dmtype"] = "mango:BesselianEpoch"
         mydict["obsDate"]["value"] = timestamp
         mivot_instance = MivotInstance(**mydict)
         scb = SkyCoordBuilder(mivot_instance)
@@ -333,7 +333,7 @@ def test_time_representation():
 
     for timestamp in ["J1899", "1899", 1899]:
         mydict = deepcopy(vizier_equin_dict)
-        mydict["obsDate"]["dmtype"] = "mango:JulianYear"
+        mydict["obsDate"]["dmtype"] = "mango:JulianEpoch"
         mydict["obsDate"]["value"] = timestamp
         mivot_instance = MivotInstance(**mydict)
         scb = SkyCoordBuilder(mivot_instance)
