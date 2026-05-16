@@ -302,6 +302,31 @@ class TestDALQuery:
         assert raw.startswith(b'<?xml')
         assert raw.strip().endswith(b'</VOTABLE>')
 
+    def test_execute_stream_clears_stale_ex_on_success(self, mocker):
+        query = DALQuery('http://example.com/query/basic')
+        with mocker.register_uri('GET', '//example.com/query/basic',
+                                 text='Server Error', status_code=500):
+            query.execute_stream()
+        assert query._ex is not None
+
+        with mocker.register_uri('GET', '//example.com/query/basic',
+                                 content=get_pkg_data_contents('data/query/basic.xml')):
+            query.execute_stream()
+        assert query._ex is None
+
+    def test_execute_votable_raises_parse_error_not_stale_http_error(self, mocker):
+        query = DALQuery('http://example.com/query/basic')
+        with mocker.register_uri('GET', '//example.com/query/basic',
+                                 text='Server Error', status_code=500):
+            query.execute_stream()
+        assert query._ex is not None
+
+        with mocker.register_uri('GET', '//example.com/query/basic',
+                                 content=b'not valid votable xml',
+                                 status_code=200):
+            with pytest.raises(DALFormatError):
+                query.execute_votable()
+
 
 @pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W03')
 @pytest.mark.filterwarnings('ignore::astropy.io.votable.exceptions.W06')
