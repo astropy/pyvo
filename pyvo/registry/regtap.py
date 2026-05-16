@@ -16,6 +16,7 @@ This module provides basic, low-level access to the RegTAP Registries using
 standardized TAP-based services.
 """
 
+import collections
 import functools
 import itertools
 import os
@@ -1150,26 +1151,31 @@ class RegistryResource(dalq.Record):
             FROM rr.res_table
             WHERE ivoid={}""".format(
                 rtcons.make_sql_literal(self.ivoid)))
+
         if len(tables) > table_limit:
             raise dalq.DALQueryError(f"Resource {self.ivoid} reports"
                                      f" {len(tables)} tables.  Pass a higher table_limit"
                                      " to see them all.")
 
-        res = {}
-        for table_row in tables:
-            columns = svc.run_sync(
-                """
-                SELECT name, ucd, unit, utype, datatype, arraysize,
-                    extended_type, column_description
-                FROM rr.table_column
-                WHERE ivoid={}
-                    AND table_index={}""".format(
-                    rtcons.make_sql_literal(self.ivoid),
-                    rtcons.make_sql_literal(table_row["table_index"])))
-            res[table_row["table_name"]] = self._build_vosi_table(
-                table_row, columns)
+        if len(tables) == 0:
+            return {}
 
-        return res
+        all_columns = svc.run_sync(
+            """SELECT name, ucd, unit, utype, datatype, arraysize,
+                    extended_type, column_description, table_index
+            FROM rr.table_column
+            WHERE ivoid={}""".format(
+                rtcons.make_sql_literal(self.ivoid)))
+
+        columns_by_table = collections.defaultdict(list)
+        for col_row in all_columns:
+            columns_by_table[int(col_row["table_index"])].append(col_row)
+
+        return {
+            table_row["table_name"]: self._build_vosi_table(
+                table_row, columns_by_table[int(table_row["table_index"])])
+            for table_row in tables
+        }
 
 
 @deprecated("1.5", "ivoid2service does not work in the presence of"

@@ -4,6 +4,8 @@
 Enhancements and Fixes
 ----------------------
 
+- Change get_tables in regtap.py to use 2 calls instead of N + 1 [#750]
+
 - Clear stale _ex before each execute_stream call [#751]
 
 - Support VOTableFile in accessible_table and broadcast_samp [#745]
