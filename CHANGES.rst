@@ -4,6 +4,8 @@
 Enhancements and Fixes
 ----------------------
 
+- Clear stale _ex before each execute_stream call [#751]
+
 - Support VOTableFile in accessible_table and broadcast_samp [#745]
 
 - Declaratively define new-style standard IDs in Servicetype constraint [#744]
