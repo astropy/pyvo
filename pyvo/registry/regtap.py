@@ -1127,7 +1127,7 @@ class RegistryResource(dalq.Record):
 
         return res
 
-    def get_tables(self, *, table_limit=20):
+    def get_tables(self, *, table_limit=500):
         """
         return the structure of the tables underlying the service.
 
