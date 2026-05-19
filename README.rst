@@ -21,8 +21,10 @@ PyVO is a package providing access to remote data and services of the
 Virtual observatory (VO) using Python.
 
 Its development was launched by the NSF/NASA-funded Virtual Astronomical
-Observatory (VAO, www.usvao.org) project (formerly under the name
-VAOpy) as part of its initiative to bring VO capabilities to desktop.
+Observatory (VAO) project (formerly under the name VAOpy) as part of its
+initiative to bring VO capabilities to desktop. The VAO website has since
+gone offline; an archived snapshot is available at
+https://web.archive.org/web/20190106160759/http://usvao.org/.
 Its goal is to allow astronomers and tool developers to access data and
 services from remote archives and other web resources.  It takes
 advantage of VO standards to give access to thousands of catalogs,
