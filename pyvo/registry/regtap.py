@@ -1165,7 +1165,8 @@ class RegistryResource(dalq.Record):
                     extended_type, column_description, table_index
             FROM rr.table_column
             WHERE ivoid={}""".format(
-                rtcons.make_sql_literal(self.ivoid)))
+                rtcons.make_sql_literal(self.ivoid)),
+            maxrec=1000000)
 
         columns_by_table = collections.defaultdict(list)
         for col_row in all_columns:
