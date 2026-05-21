@@ -21,15 +21,16 @@ PyVO is a package providing access to remote data and services of the
 Virtual observatory (VO) using Python.
 
 Its development was launched by the NSF/NASA-funded Virtual Astronomical
-Observatory (VAO, www.usvao.org) project (formerly under the name
-VAOpy) as part of its initiative to bring VO capabilities to desktop.
-Its goal is to allow astronomers and tool developers to access data and
+Observatory (VAO) project (formerly under the name VAOpy) as part of its
+initiative to bring VO capabilities to desktop.
+
+PyVO main goal is to allow astronomers and tool developers to access data and
 services from remote archives and other web resources.  It takes
 advantage of VO standards to give access to thousands of catalogs,
 data archives, information services, and analysis tools.  It also
 takes advantage of the general capabilities of Astopy (and numpy), and
-so a secondary goal is to provide a development platform for migrating
-more VO capabilities into Astropy.
+so a secondary goal is to provide a development platform for prototypes for 
+functionalities that are under development and not yet accepted as a VO standard.
 
 Source code can be found `on GitHub <https://github.com/astropy/pyvo>`_
 
@@ -44,28 +45,6 @@ thus, it and its prerequisites can be most easily installed using ``pip``:
 
 Releases are also conda packaged and available on the ``conda-forge``
 channel.
-
-
-PyVO requires Python 3.8 or later.
-
-The following packages are required for PyVO:
-
- * `astropy <https://astropy.org>`__ (>=4.1)
- * `requests <https://docs.python-requests.org/en/latest/>`_
-
-The following packages are optional dependencies and are required for the
-full functionality:
-
- * pillow
- * defusedxml
-
-For running the tests, and building the documentation, the following
-infrastructure packages are required:
-
-* `pytest-astropy <https://github.com/astropy/pytest-astropy>`__
-* requests-mock
-* `sphinx-astropy <https://github.com/astropy/sphinx-astropy>`__
-
 
 To install from source use ``pip``:
 

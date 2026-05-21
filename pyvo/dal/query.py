@@ -206,6 +206,7 @@ class DALQuery(dict):
         No exceptions are raised here because non-2xx responses might still
         contain payload. They can be raised later by calling ``raise_if_error``
         """
+        self._ex = None
         response = self.submit(post=post)
 
         try:
