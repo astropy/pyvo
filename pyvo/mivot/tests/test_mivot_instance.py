@@ -138,6 +138,7 @@ def test_mivot_instance_unit_filtering():
     mivot_object = MivotInstance(**mydict)
     assert mivot_object.longitude.unit == "mas.year-1"
     mydict["dmid"] = "a.b.c"
+    # make sure that no exception are thrown.
     mivot_object = MivotInstance(**mydict)
 
 
