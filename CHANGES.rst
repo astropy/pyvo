@@ -13,6 +13,10 @@ Enhancements and Fixes
   - Access to not exiting attribute, e.g. not mappped, returns ``None``
   - Support DOTS in unit string, e.g. "mas.year-1"
 
+- Support the flat representation of the MANGO observation dates
+  as modeled in the final version of the MANGO data model (DecimalYear,
+  BesselianEpoch, JulianEpoch, mjd, jd, iso) [#726]
+
 - Support VOTableFile in accessible_table and broadcast_samp [#745]
 
 - Declaratively define new-style standard IDs in Servicetype constraint [#744]
