@@ -5,6 +5,7 @@ Created on 19 févr. 2024
 @author: michel
 '''
 import pytest
+from copy import deepcopy
 from astropy.table import Table
 from pyvo.mivot.viewer.mivot_instance import MivotInstance
 
@@ -119,6 +120,37 @@ def test_mivot_instance_update():
     mivot_object.update(t[0])
     assert mivot_object.longitude.value == 67.87
     assert mivot_object.latitude.value == -89.87
+
+
+def test_mivot_instance_missing_filed():
+    """Test that the generated class returns None
+    for missing fields instead of raising an error.
+    """
+    mivot_object = MivotInstance(**fake_hk_dict)
+    assert mivot_object.missing_field is None
+
+
+def test_mivot_instance_unit_filtering():
+    """Test that unit are properly read and stored in the class instance.
+    """
+    mydict = deepcopy(fake_hk_dict)
+    mydict["longitude"]["unit"] = "mas.year-1"
+    mivot_object = MivotInstance(**mydict)
+    assert mivot_object.longitude.unit == "mas.year-1"
+    mydict["dmid"] = "a.b.c"
+    # make sure that no exception are thrown.
+    mivot_object = MivotInstance(**mydict)
+
+
+def test_mivot_instance_ref_id():
+    """Test that dmid/ref are properly read and stored in the class instance.
+    """
+    mydict = deepcopy(fake_hk_dict)
+    mydict["longitude"]["ref"] = "ref.b.c"
+    mydict["dmid"] = "id.b.c"
+    mivot_object = MivotInstance(**mydict)
+    assert mivot_object.dmid == "id.b.c"
+    assert mivot_object.longitude.ref == "ref.b.c"
 
 
 def test_mivot_instance_update_wrong_columns():

@@ -3,10 +3,15 @@
 
 Enhancements and Fixes
 ----------------------
-
+  
 - Change get_tables in regtap.py to use 2 calls instead of N + 1 [#750]
 
 - Clear stale _ex before each execute_stream call [#751]
+
+- Improve ``pyvo.mivot.viewer.%ivotInstance`` (API to allow users to access the mapped data
+  attributes directly as properties of the instance); [#747]
+  - Access to not exiting attribute, e.g. not mappped, returns ``None``
+  - Support DOTS in unit string, e.g. "mas.year-1"
 
 - Support VOTableFile in accessible_table and broadcast_samp [#745]
 

@@ -41,6 +41,17 @@ class MivotInstance:
         """
         self._create_class(**instance_dict)
 
+    def __getattr__(self, item):
+        """
+        Return None for any attribute that does not exist in the class,
+        except for the attributes that start with "_" which correspond to
+        internal class attributes.
+        This allows to avoid AttributeError when accessing non existing attributes.
+        """
+        if item.startswith("_"):
+            super().__getattr__(item)
+        return None
+
     def __str__(self):
         """
         return  a human readable representation of object
@@ -93,14 +104,8 @@ class MivotInstance:
                 if key == 'value':  # We cast the value read in the row
                     setattr(self, self._remove_model_name(key),
                             MivotUtils.cast_type_value(value, getattr(self, 'dmtype')))
-                elif key not in ["dmtype", "dmrole"]:
-                    setattr(self, self._remove_model_name(key), self._remove_model_name(value))
                 else:
                     setattr(self, self._remove_model_name(key), value)
-
-                if key == 'unit':  # We convert the unit to astropy unit or to astropy time format if possible
-                    # The first Vizier implementation used mas/year for the mapped pm unit: let's correct it
-                    value = value.replace("year", "yr") if value else None
 
     def update(self, row, ref=None):
         """
