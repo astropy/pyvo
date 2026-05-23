@@ -362,6 +362,38 @@ class W37(VOSIWarning, XMLWarning):
     message_template = "The dataType element must not occur more than once"
 
 
+class W38(VOSIWarning, XMLWarning):
+    """
+    The `retentionPeriod` element has a duplicate forMode value.
+    """
+    message_template = (
+        "The retentionPeriod element has duplicate forMode: {}")
+
+
+class W39(VOSIWarning, XMLWarning):
+    """
+    The `executionDuration` element has a duplicate forMode value.
+    """
+    message_template = (
+        "The executionDuration element has duplicate forMode: {}")
+
+
+class W40(VOSIWarning, XMLWarning):
+    """
+    The `outputLimit` element has a duplicate forMode value.
+    """
+    message_template = (
+        "The outputLimit element has duplicate forMode: {}")
+
+
+class W41(VOSIWarning, XMLWarning):
+    """
+    The `uploadLimit` element has a duplicate forMode value.
+    """
+    message_template = (
+        "The uploadLimit element has duplicate forMode: {}")
+
+
 class E01(VOSIWarning, XMLWarning, ValueError):
     r"""
     The attribute must be a valid arraysize according to the VOTable standard.
