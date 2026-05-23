@@ -25,6 +25,7 @@ from pyvo.io.uws.tree import Parameter, Result, ErrorSummary, Message
 from pyvo.auth.authsession import AuthSession
 from pyvo.io.vosi.exceptions import VOSIError
 from pyvo.utils import prototype
+from pyvo.io.vosi.tapregext import TimeLimits, TableAccess
 
 from astropy.time import Time, TimeDelta
 
@@ -564,6 +565,16 @@ class TestTAPService:
         assert service.hardlimit == 10000000
 
     @pytest.mark.usefixtures('capabilities')
+    def test_get_maxrec_no_mode(self):
+        service = TAPService('http://example.com/tap')
+        assert service.get_maxrec() == 20000
+
+    @pytest.mark.usefixtures('capabilities')
+    def test_get_hardlimit_no_mode(self):
+        service = TAPService('http://example.com/tap')
+        assert service.get_hardlimit() == 10000000
+
+    @pytest.mark.usefixtures('capabilities')
     def test_upload_methods(self):
         service = TAPService('http://example.com/tap')
         upload_methods = service.upload_methods
@@ -607,6 +618,28 @@ class TestTAPService:
         _test_image_results(results)
         # make sure that delete was not called
         mock_delete.assert_not_called()
+
+    @pytest.mark.usefixtures('async_fixture')
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+    @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+    def test_run_async_uses_timeout_from_capabilities(self, monkeypatch):
+
+        service = TAPService('http://example.com/tap')
+        mock_wait = Mock(return_value=Mock(
+            phase='COMPLETED', raise_if_error=Mock(), result=Mock()))
+        monkeypatch.setattr(AsyncTAPJob, "wait", mock_wait)
+
+        async_limit = TimeLimits()
+        async_limit.for_mode = 'async'
+        async_limit._default = 7200
+
+        mock_cap = Mock(spec=TableAccess)
+        mock_cap.get_executionduration = Mock(return_value=async_limit)
+        monkeypatch.setattr(service, "get_tap_capability", Mock(return_value=mock_cap))
+
+        service.run_async("SELECT * FROM ivoa.obscore", delete=False)
+        mock_wait.assert_called_once_with(timeout=7200.0)
 
     @pytest.mark.usefixtures('async_fixture')
     @pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")

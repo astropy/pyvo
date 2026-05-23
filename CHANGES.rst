@@ -27,6 +27,9 @@ Deprecations and Removals
 Enhancements and Fixes
 ----------------------
 
+- Add support for the forMode attribute in TAPRegExt, which allows TAP services 
+  to advertise different limits for different modes [#757]
+  
 - Fix auth methods registered for base URLs being dropped for capability-declared
   sub-paths [#758]
 
