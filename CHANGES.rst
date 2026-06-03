@@ -3,6 +3,8 @@
 
 Enhancements and Fixes
 ----------------------
+
+- Fix auth methods registered for base URLs being dropped for capability-declared sub-paths [#758]
   
 - Change get_tables in regtap.py to use 2 calls instead of N + 1 [#750]
 
