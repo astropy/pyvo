@@ -3,6 +3,7 @@
 Tests for pyvo.dal.tap
 """
 import warnings
+from copy import deepcopy
 from functools import partial
 from contextlib import ExitStack
 import datetime
@@ -21,6 +22,7 @@ from pyvo.dal.tap import escape, search, AsyncTAPJob, TAPService
 from pyvo.dal import DALQueryError, DALServiceError, DALOverflowWarning, DALRateLimitError
 from pyvo.io.uws import JobFile
 from pyvo.io.uws.tree import Parameter, Result, ErrorSummary, Message
+from pyvo.auth.authsession import AuthSession
 from pyvo.io.vosi.exceptions import VOSIError
 from pyvo.utils import prototype
 
@@ -459,6 +461,33 @@ def tapservice(capabilities):
     (but of course make sure you don't modify it).
     """
     return TAPService('http://example.com/tap')
+
+
+@pytest.mark.usefixtures('capabilities')
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W27")
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W48")
+@pytest.mark.filterwarnings("ignore::astropy.io.votable.exceptions.W06")
+@pytest.mark.filterwarnings("error::pyvo.io.vosi.exceptions.W19")
+def test_deepcopy_tapservice_with_auth_session():
+    """
+    deepcopy must not re-run ElementWithXSIType.__init__ on capabilities.
+
+    Without that guard, TAPCapRestriction.__init__ runs with standardID=None
+    and raises W19 when capabilities were loaded via AuthSession.
+    """
+    service = TAPService('http://example.com/tap', session=AuthSession())
+    copied = deepcopy(service)
+
+    assert copied is not service
+    assert copied.baseurl == service.baseurl
+    assert copied.capabilities is not service.capabilities
+
+    orig_tap = service.get_tap_capability()
+    copy_tap = copied.get_tap_capability()
+    assert copy_tap is not orig_tap
+    assert copy_tap.standardid == 'ivo://ivoa.net/std/TAP'
+    assert len(copy_tap.languages) == len(orig_tap.languages)
+    assert copy_tap.languages[0].name == orig_tap.languages[0].name == 'ADQL'
 
 
 def test_escape():
