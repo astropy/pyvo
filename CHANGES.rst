@@ -4,6 +4,8 @@
 Enhancements and Fixes
 ----------------------
 
+- Corrections to the TAPResults documentation [#760]
+
 - Fix auth methods registered for base URLs being dropped for capability-declared sub-paths [#758]
 
 - Fix W19 when deep-copying ``TAPService`` (and other objects using
