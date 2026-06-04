@@ -5,7 +5,10 @@ Enhancements and Fixes
 ----------------------
 
 - Fix auth methods registered for base URLs being dropped for capability-declared sub-paths [#758]
-  
+
+- Fix W19 when deep-copying ``TAPService`` (and other objects using
+  ``ElementWithXSIType``) after capabilities have been loaded. [#756]
+
 - Change get_tables in regtap.py to use 2 calls instead of N + 1 [#750]
 
 - Clear stale _ex before each execute_stream call [#751]

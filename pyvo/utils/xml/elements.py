@@ -419,7 +419,8 @@ class ElementWithXSIType(Element):
                 dtype = cls
 
         obj = Element.__new__(dtype)
-        obj.__init__(*args, **kwargs)
+        if args or kwargs:
+            obj.__init__(*args, **kwargs)
         return obj
 
 
