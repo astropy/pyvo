@@ -1,41 +1,41 @@
-1.9 (unreleased)
+1.9 (2026-06-06)
 ================
 
 Enhancements and Fixes
 ----------------------
 
-- Corrections to the TAPResults documentation [#760]
-
-- Fix auth methods registered for base URLs being dropped for capability-declared sub-paths [#758]
+- Fix auth methods registered for base URLs being dropped for capability-declared
+  sub-paths [#758]
 
 - Fix W19 when deep-copying ``TAPService`` (and other objects using
   ``ElementWithXSIType``) after capabilities have been loaded. [#756]
 
-- Change get_tables in regtap.py to use 2 calls instead of N + 1 [#750]
+- Change get_tables in regtap.py to use 2 calls instead of N + 1. [#750]
 
-- Clear stale _ex before each execute_stream call [#751]
+- Clear stale ``_ex`` before each execute_stream call. [#751]
 
-- Improve ``pyvo.mivot.viewer.%ivotInstance`` (API to allow users to access the mapped data
-  attributes directly as properties of the instance); [#747]
-  - Access to not exiting attribute, e.g. not mappped, returns ``None``
+- Improve ``pyvo.mivot.viewer.MivotInstance`` (API to allow users to access the
+  mapped data attributes directly as properties of the instance); [#747]
+  - Access to not-exiting attribute, e.g. not mappped, returns ``None``
   - Support DOTS in unit string, e.g. "mas.year-1"
 
 - Support the flat representation of the MANGO observation dates
-  as modeled in the final version of the MANGO data model (DecimalYear,
-  BesselianEpoch, JulianEpoch, mjd, jd, iso) [#726]
+  as modeled in the final version of the MANGO data model. [#726]
 
-- Support VOTableFile in accessible_table and broadcast_samp [#745]
+- Support VOTableFile in accessible_table and broadcast_samp. [#745]
 
 - Declaratively define new-style standard IDs in Servicetype constraint [#744]
 
 - Fix raise_if_error() to use cached job phase instead of re-polling [#743]
 
 - Add ``pyvo.registry.get_RegTAP_service_url()`` to allow users to inspect the
-  currently configured registry endpoint. Expose other user-facing constants at their package level. [#742]
+  currently configured registry endpoint. Expose other user-facing constants at
+  their package level. [#742]
 
-- Improve handling of timeouts in tap wait and _update [#740]
+- Improve handling of timeouts in tap ``wait`` and ``_update``. [#740]
 
-- Preserve text/plain error body in raise_if_error() after stream is consumed. [#736]
+- Preserve text/plain error body in ``raise_if_error()`` after stream is
+  consumed. [#736]
 
 - Provide an API for SoftId-compliant management of the 'User-Agent'
   header. [#719]
@@ -50,12 +50,6 @@ Deprecations and Removals
 - Versions of Python <3.10 are no longer supported. [#724]
 
 - Versions of Astropy <5.0 are no longer supported. [#724]
-
-
-1.8.2 (unreleased)
-==================
-
-- No changes yet.
 
 
 1.8.1 (2026-02-12)
