@@ -8,10 +8,6 @@ SAMP, the Simple Application Messaging Protocol, lets you send and
 receive tables, datasets, or points of interest between various clients
 on a desktop.
 
-While the main SAMP support still resides in astropy (it might be moved
-over to pyvo in later versions), there are a few wrapper functions in
-pyvo that make a few common SAMP tasks simpler or more robust.
-
 Most importantly, pyvo lets you manage the SAMP connection in a context
 manager, which means you will not have to remember to close your
 connections to avoid ugly artefacts in the SAMP hub.
