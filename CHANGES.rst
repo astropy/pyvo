@@ -12,8 +12,9 @@ Deprecations and Removals
 1.9.1 (unreleased)
 ==================
 
-- No changes yet.
-
+- Removed ``samp_hub`` command-line interface that wrongly pointed to deprecated
+  ``astropy.samp`` module. For SAMP hub access from command line, please use this
+  instead: ``python -m pyvo.samp.hub`` [#763]
 
 1.9 (2026-06-06)
 ================
