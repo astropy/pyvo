@@ -11,3 +11,6 @@ py:obj pyvo.registry.regtap.Interface
 # There is no public API docs for this, yet it's useful to leave the reference in
 py:obj pyvo.io.vosi.exceptions
 py:class pyvo.dal.exceptions.PyvoUserWarning
+
+# other classes and functions that cannot be linked to
+py:class xmlrpc.client.Error
