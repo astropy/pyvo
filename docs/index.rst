@@ -135,7 +135,7 @@ Using ``pyvo``
    discover/index
    io/index
    auth/index
-   samp
+   samp/index
    mivot/index
    utils/index
    utils/prototypes
