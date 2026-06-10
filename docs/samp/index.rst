@@ -27,9 +27,8 @@ these clients can send messages to each other via the hub. The details are
 described in the `SAMP standard <http://www.ivoa.net/documents/SAMP/>`_.
 
 `pyvo.samp` provides classes both to set up such a hub process, and to
-help implement a client that can send and receive messages. It also provides a
-stand-alone program ``samp_hub`` which can run a persistent hub in its own
-process. Note that setting up the hub from Python is not always necessary, since
+help implement a client that can send and receive messages.
+Note that setting up the hub from Python is not always necessary, since
 various other SAMP-aware applications may start up a hub independently; in most
 cases, only one running hub is used during a SAMP session.
 
