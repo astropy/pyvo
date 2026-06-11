@@ -377,10 +377,10 @@ class SAMPHubServer:
 
     def _setup_hub_as_client(self):
         hub_metadata = {
-            "samp.name": "Astropy SAMP Hub",
+            "samp.name": "PyVO SAMP Hub",
             "samp.description.text": self._label,
-            "author.name": "The Astropy Collaboration",
-            "samp.documentation.url": "https://docs.astropy.org/en/stable/samp",
+            "author.name": "The PyVO Collaboration",
+            "samp.documentation.url": "https://pyvo.readthedocs.io/en/latest/dal/",
             "samp.icon.url": self._url + "/samp/icon",
         }
 
