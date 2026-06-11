@@ -1,3 +1,18 @@
+1.10 (unreleased)
+=================
+
+Enhancements and Fixes
+----------------------
+
+
+Deprecations and Removals
+-------------------------
+
+1.9.2 (unreleased)
+==================
+
+- no changes yet
+
 1.9.1 (2026-06-11)
 ==================
 
