@@ -22,6 +22,11 @@ Deprecations and Removals
 Enhancements and Fixes
 ----------------------
 
+- Add support for the forMode attribute in TAPRegExt, which allows TAP services 
+  to advertise different limits for different modes [#757]
+  
+- Change get_tables in regtap.py to use 2 calls instead of N + 1 [#750]
+
 - Fix auth methods registered for base URLs being dropped for capability-declared
   sub-paths [#758]
 

@@ -255,6 +255,47 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             pass
         raise DALServiceError("Hard limit not exposed by the service")
 
+    def get_maxrec(self, mode=None):
+        """
+        The default output limit for the given mode.
+
+        Parameters
+        ----------
+        mode : str or None
+            The access mode ('sync', 'async', or None for the default limit).
+
+        Raises
+        ------
+        DALServiceError
+            if the property is not exposed by the service
+        """
+        try:
+            return self.get_tap_capability().get_outputlimit(
+                mode).default.content
+        except AttributeError:
+            pass
+        raise DALServiceError("Default limit not exposed by the service")
+
+    def get_hardlimit(self, mode=None):
+        """
+        The hard output limit for the given mode.
+
+        Parameters
+        ----------
+        mode : str or None
+            The access mode ('sync', 'async', or None for the default limit).
+
+        Raises
+        ------
+        DALServiceError
+            if the property is not exposed by the service
+        """
+        try:
+            return self.get_tap_capability().get_outputlimit(mode).hard.content
+        except AttributeError:
+            pass
+        raise DALServiceError("Hard limit not exposed by the service")
+
     @property
     def upload_methods(self):
         """
@@ -299,7 +340,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
 
     def run_async(
             self, query, *, language="ADQL", maxrec=None, uploads=None,
-            delete=True, timeout=DEFAULT_JOB_WAIT_TIMEOUT, **keywords):
+            delete=True, timeout=None, **keywords):
         """
         runs async query and returns its result
 
@@ -316,8 +357,10 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             a mapping from table names to objects containing a votable
         delete : bool
             delete the job after fetching the results
-        timeout : float
-            maximum time to wait for job completion in seconds. Default is 600.
+        timeout : float or None
+            maximum time to wait for job completion in seconds. If None,
+            uses the service's advertised async executionDuration,
+            (if available) otherwise use ``DEFAULT_JOB_WAIT_TIMEOUT``.
 
         Returns
         -------
@@ -338,6 +381,13 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
         --------
         AsyncTAPJob
         """
+        if timeout is None:
+            try:
+                limit = self.get_tap_capability().get_executionduration('async')
+                timeout = float(limit.default) if limit and limit.default else DEFAULT_JOB_WAIT_TIMEOUT
+            except DALServiceError:
+                timeout = DEFAULT_JOB_WAIT_TIMEOUT
+
         job = AsyncTAPJob.create(
             self.baseurl, query, language=language, maxrec=maxrec, uploads=uploads,
             session=self._session, **keywords)
