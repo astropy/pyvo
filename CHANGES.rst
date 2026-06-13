@@ -4,6 +4,10 @@
 Enhancements and Fixes
 ----------------------
 
+- Add ``RegistryResource.validate()`` to execute a resource's registered
+  test query on demand and return a ``ValidateResult`` with ``success``,
+  ``response_time_seconds``, and ``status_code`` fields. [#766]
+
 
 Deprecations and Removals
 -------------------------
