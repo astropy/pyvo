@@ -21,6 +21,7 @@ import functools
 import itertools
 import os
 import textwrap
+import time
 import warnings
 
 from astropy import table
@@ -29,6 +30,8 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 
 import numpy
 
+import requests
+
 from . import rtcons
 from ..dal import scs, sia, sia2, ssa, sla, tap, query as dalq
 from ..io.vosi import vodataservice
@@ -36,7 +39,10 @@ from ..utils.formatting import para_format_desc
 
 
 __all__ = ["search", "get_RegTAP_query", "get_RegTAP_service_url", "Interface",
-           "RegistryResource", "RegistryResults", "ivoid2service"]
+           "RegistryResource", "RegistryResults", "ivoid2service", "ValidateResult"]
+
+ValidateResult = collections.namedtuple(
+    "ValidateResult", ["success", "response_time_seconds", "status_code"])
 
 REGISTRY_BASEURL = os.environ.get("IVOA_REGISTRY", "http://reg.g-vo.org/tap"
                                   ).rstrip("/")
@@ -1089,6 +1095,98 @@ class RegistryResource(dalq.Record):
             FROM rr.alt_identifier
             WHERE ivoid={}""".format(rtcons.make_sql_literal(self.ivoid)))
         return [r["alt_identifier"] for r in res]
+
+    def validate(self, session=None):
+        """Execute the resource's registered test query and report the outcome.
+
+        Many registry entries carry a ``testQuery`` element that encodes a
+        known-working example request for the service.  This method assembles
+        that request from the registry, executes it via an HTTP GET, and
+        returns a `ValidateResult` named tuple with three fields:
+
+        * ``success`` (`bool`) - ``True`` when the server replied with
+          HTTP 200, ``False`` otherwise.
+        * ``response_time_seconds`` (`float`) - round-trip wall-clock time
+          measured with `time.monotonic`.
+        * ``status_code`` (`int`) - the HTTP status code returned by the
+          server (e.g. 200, 404, 500).
+
+        Parameters
+        ----------
+        session : requests.Session, optional
+            An existing requests session to use for the HTTP call.  If
+            *None* (the default) a fresh pyvo session is created.
+
+        Returns
+        -------
+        `ValidateResult`
+
+        Raises
+        ------
+        `pyvo.dal.DALQueryError`
+            If the resource has no test query registered in the registry,
+            or if no standard interface with an access URL can be found.
+
+        Examples
+        --------
+        >>> result = resource.validate()   # doctest: +SKIP
+        >>> print(result.success, result.response_time_seconds)  # doctest: +SKIP
+        True 0.42
+        """
+        from ..utils.http import use_session
+
+        # Fetch testQuery params for this resource from the registry.
+        # The registry stores individual testQuery sub-elements as separate
+        # rows in rr.res_detail using XPaths like
+        # /capability/testQuery/ra, /capability/testQuery/dec, etc.
+        # We join with rr.interface to get the access URL for the matching
+        # capability so we can assemble the full request URL.
+        res = get_RegTAP_service().run_sync("""
+            SELECT rd.detail_xpath, rd.detail_value, i.access_url
+            FROM rr.res_detail rd
+            JOIN rr.interface i
+              ON i.ivoid = rd.ivoid
+             AND i.cap_index = rd.cap_index
+            WHERE rd.ivoid = {}
+              AND rd.detail_xpath LIKE '/capability/testQuery/%'
+              AND i.intf_role = 'std'
+        """.format(rtcons.make_sql_literal(self.ivoid)))
+
+        rows = list(res)
+        if not rows:
+            raise dalq.DALQueryError(
+                "Resource {} has no test query registered in the"
+                " registry.".format(self.ivoid))
+
+        # Collect the testQuery parameter name/value pairs and the
+        # access URL (all rows share the same access URL).
+        access_url = str(rows[0]["access_url"])
+        params = {}
+        for row in rows:
+            # XPath looks like /capability/testQuery/<param_name>
+            xpath = str(row["detail_xpath"])
+            param_name = xpath.rsplit("/", 1)[-1]
+            params[param_name] = str(row["detail_value"])
+
+        # Assemble the request URL by appending params to the access URL.
+        # Some access URLs already end in '?' or '&'; requests handles
+        # encoding, but we need to pass params separately so existing
+        # query-string fragments in the base URL are preserved.
+        session = use_session(session)
+        t0 = time.monotonic()
+        try:
+            response = session.get(access_url, params=params)
+        except requests.RequestException as exc:
+            raise dalq.DALQueryError(
+                "HTTP request for test query of {} failed: {}".format(
+                    self.ivoid, exc)) from exc
+        elapsed = time.monotonic() - t0
+
+        return ValidateResult(
+            success=response.status_code == 200,
+            response_time_seconds=elapsed,
+            status_code=response.status_code,
+        )
 
     def _build_vosi_column(self, column_row):
         """

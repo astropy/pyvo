@@ -782,6 +782,109 @@ def test_get_alt_identifier():
     }
 
 
+class TestValidate:
+    """Unit tests for RegistryResource.validate()."""
+
+    _IVOID = "ivo://example.org/svc/cone"
+
+    def _make_detail_rows(self, access_url):
+        """Return a list of mock registry detail rows for a SCS testQuery."""
+        return [
+            {"detail_xpath": "/capability/testQuery/ra",
+             "detail_value": "10.0",
+             "access_url": access_url},
+            {"detail_xpath": "/capability/testQuery/dec",
+             "detail_value": "-20.0",
+             "access_url": access_url},
+            {"detail_xpath": "/capability/testQuery/sr",
+             "detail_value": "0.01",
+             "access_url": access_url},
+        ]
+
+    def test_success(self):
+        """validate() returns success=True when the server replies 200."""
+        access_url = "http://example.org/cone?"
+        rows = self._make_detail_rows(access_url)
+        rsc = _makeRegistryRecord(ivoid=self._IVOID)
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+
+        with patch('pyvo.registry.regtap.get_RegTAP_service',
+                   return_value=_mock_svc(rows)):
+            with patch('pyvo.registry.regtap.requests.Session.get',
+                       return_value=mock_response):
+                with patch('pyvo.utils.http.create_session') as mock_create:
+                    mock_session = MagicMock()
+                    mock_session.get.return_value = mock_response
+                    mock_create.return_value = mock_session
+                    result = rsc.validate()
+
+        assert result.success is True
+        assert result.status_code == 200
+        assert result.response_time_seconds >= 0.0
+
+    def test_no_test_query_raises(self):
+        """validate() raises DALQueryError when no testQuery is registered."""
+        rsc = _makeRegistryRecord(ivoid=self._IVOID)
+
+        with patch('pyvo.registry.regtap.get_RegTAP_service',
+                   return_value=_mock_svc([])):
+            with pytest.raises(dalq.DALQueryError,
+                               match="no test query registered"):
+                rsc.validate()
+
+    def test_http_error_returns_failure(self):
+        """validate() returns success=False when the server replies with a non-200 code."""
+        access_url = "http://example.org/cone?"
+        rows = self._make_detail_rows(access_url)
+        rsc = _makeRegistryRecord(ivoid=self._IVOID)
+
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+
+        with patch('pyvo.registry.regtap.get_RegTAP_service',
+                   return_value=_mock_svc(rows)):
+            with patch('pyvo.utils.http.create_session') as mock_create:
+                mock_session = MagicMock()
+                mock_session.get.return_value = mock_response
+                mock_create.return_value = mock_session
+                result = rsc.validate()
+
+        assert result.success is False
+        assert result.status_code == 500
+        assert result.response_time_seconds >= 0.0
+
+    def test_response_time_is_positive_float(self):
+        """validate() returns a non-negative float for response_time_seconds."""
+        access_url = "http://example.org/cone?"
+        rows = self._make_detail_rows(access_url)
+        rsc = _makeRegistryRecord(ivoid=self._IVOID)
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+
+        with patch('pyvo.registry.regtap.get_RegTAP_service',
+                   return_value=_mock_svc(rows)):
+            with patch('pyvo.utils.http.create_session') as mock_create:
+                mock_session = MagicMock()
+                mock_session.get.return_value = mock_response
+                mock_create.return_value = mock_session
+                result = rsc.validate()
+
+        assert isinstance(result.response_time_seconds, float)
+        assert result.response_time_seconds >= 0.0
+
+    @pytest.mark.remote_data
+    def test_remote_validate(self):
+        """validate() returns a ValidateResult for a known-good live registry resource."""
+        rsc = _makeRegistryRecord(
+            ivoid="ivo://irsa.ipac/planck/catalog/pr2_sz_pws")
+        result = rsc.validate()
+        assert isinstance(result, regtap.ValidateResult)
+        assert result.response_time_seconds > 0.0
+
+
 @pytest.mark.remote_data
 class TestDatamodelQueries:
     # right now, the data model queries are all rather sui generis, and
