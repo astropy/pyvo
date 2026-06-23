@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import copy
 import os
 import queue
@@ -380,7 +379,7 @@ class SAMPHubServer:
             "samp.name": "PyVO SAMP Hub",
             "samp.description.text": self._label,
             "author.name": "The PyVO Collaboration",
-            "samp.documentation.url": "https://pyvo.readthedocs.io/en/latest/dal/",
+            "samp.documentation.url": "https://pyvo.readthedocs.io/en/latest/samp/",
             "samp.icon.url": self._url + "/samp/icon",
         }
 
