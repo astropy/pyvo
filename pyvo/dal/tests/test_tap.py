@@ -395,33 +395,54 @@ def async_fixture_with_timeout(mocker):
     yield from mock_server.use(mocker)
 
 
-@pytest.fixture()
-def tables(mocker):
-    def callback_tables(request, context):
-        return get_pkg_data_contents('data/tap/tables.xml')
+def make_tables_fixture(custom_auth=False):
+    """
+    Returns and registers a pytest fixture to expect tables HTTP calls.
 
-    def callback_table1(request, context):
-        return get_pkg_data_contents('data/tap/lazy-table1.xml')
+    If custom_auth is true, then an auth header will be expected in all calls.
+    """
+    kwargs = {}
+    if custom_auth:
+        kwargs['request_headers'] = {'Authorization': 'Bearer some-token'}
 
-    def callback_table2(request, context):
-        return get_pkg_data_contents('data/tap/lazy-table2.xml')
+    def fixture(mocker, request):
+        def callback_tables(request, context):
+            return get_pkg_data_contents('data/tap/tables.xml')
 
-    with ExitStack() as stack:
-        matchers = {
-            'tables': stack.enter_context(mocker.register_uri(
-                'GET', 'http://example.com/tap/tables', content=callback_tables
-            )),
-            'table1': stack.enter_context(mocker.register_uri(
-                'GET', 'http://example.com/tap/tables/test.table1',
-                content=callback_table1
-            )),
-            'table2': stack.enter_context(mocker.register_uri(
-                'GET', 'http://example.com/tap/tables/test.table2',
-                content=callback_table2
-            )),
-        }
+        def callback_table1(request, context):
+            return get_pkg_data_contents('data/tap/lazy-table1.xml')
 
-        yield matchers
+        def callback_table2(request, context):
+            return get_pkg_data_contents('data/tap/lazy-table2.xml')
+
+
+        with ExitStack() as stack:
+            matchers = {
+                'tables': stack.enter_context(mocker.register_uri(
+                    'GET', 'http://example.com/tap/tables', content=callback_tables,
+                    **kwargs
+                )),
+                'table1': stack.enter_context(mocker.register_uri(
+                    'GET', 'http://example.com/tap/tables/test.table1',
+                    content=callback_table1, **kwargs
+                )),
+                'table2': stack.enter_context(mocker.register_uri(
+                    'GET', 'http://example.com/tap/tables/test.table2',
+                    content=callback_table2, **kwargs
+                )),
+            }
+
+            yield matchers
+
+    return pytest.fixture(fixture)
+
+
+tables = make_tables_fixture()
+"""A fixture to expect tables HTTP requests with no auth."""
+
+
+tables_custom_auth = make_tables_fixture(custom_auth=True)
+"""A fixture to expect tables HTTP requests with auth."""
 
 
 @pytest.fixture()
@@ -517,7 +538,13 @@ class TestTAPService:
         assert service.capability_description == description
         assert str(service) == f"""TAPService(baseurl : '{url}', description : '{description}')"""
 
-    def _test_tables(self, table1, table2):
+    def _test_tables(self, vositables):
+        assert list(vositables.keys()) == ['test.table1', 'test.table2']
+
+        assert "test.table1" in vositables
+        assert "any.random.stuff" not in vositables
+
+        table1, table2 = list(vositables)
         assert table1.description == 'Lazy Test Table 1'
         assert table1.title == 'Test table 1'
 
@@ -527,15 +554,14 @@ class TestTAPService:
     @pytest.mark.usefixtures('tables')
     def test_tables(self):
         service = TAPService('http://example.com/tap')
-        vositables = service.tables
+        self._test_tables(service.tables)
 
-        assert list(vositables.keys()) == ['test.table1', 'test.table2']
-
-        assert "test.table1" in vositables
-        assert "any.random.stuff" not in vositables
-
-        table1, table2 = list(vositables)
-        self._test_tables(table1, table2)
+    @pytest.mark.usefixtures('tables_custom_auth')
+    def test_tables_custom_auth(self):
+        session = requests.Session()
+        session.headers = {'Authorization': 'Bearer some-token'}
+        service = TAPService('http://example.com/tap', session=session)
+        self._test_tables(service.tables)
 
     def _test_examples(self, parsed_examples):
         assert len(parsed_examples) == 6
