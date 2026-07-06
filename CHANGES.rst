@@ -18,6 +18,11 @@ Enhancements and Fixes
   not propagated when retrieving tables with the ``TAPService.tables``
   property. [#772]
 
+Deprecations and Removals
+-------------------------
+
+  - Remove ``dal.vosi.TablesMixin``. It is no longer used anywhere. It creates a ``VOSITables`` object without propagating the existing session, and there is no clear way to fix it. It was added in https://github.com/astropy/pyvo/commit/72005872b8148fd3fee8571b357d0cbcf089d1de and all usages of it were removed in https://github.com/astropy/pyvo/commit/e71a8e3f08ef0300cd68316023bc09b186ac4ea0 on Jan 9, 2018.
+
 
 1.9.1 (2026-06-11)
 ==================
