@@ -2,7 +2,6 @@
 """
 VOSI classes and mixins
 """
-from itertools import chain
 import requests
 from urllib.parse import urlparse
 
@@ -173,47 +172,6 @@ class CapabilityMixin(EndpointMixin):
     @lazyproperty
     def capabilities(self):
         return vosi.parse_capabilities(self._capabilities().read)
-
-
-class TablesMixin(CapabilityMixin):
-    """
-    Mixin for VOSI tables
-    """
-    @stream_decode_content
-    def _tables(self):
-        try:
-            interfaces = next(
-                _ for _ in self.capabilities if _.standardid.startswith(
-                    'ivo://ivoa.net/std/VOSI#tables')
-            ).interfaces
-            accessurls = chain.from_iterable(_.accessurls for _ in interfaces)
-            tables_urls = (_.value for _ in accessurls)
-        except StopIteration:
-            tables_urls = [
-                f'{self.baseurl}/tables',
-                url_sibling(self.baseurl, 'tables')
-            ]
-
-        for tables_url in tables_urls:
-            try:
-                response = self._session.get(tables_url, stream=True)
-                response.raise_for_status()
-                break
-            except requests.HTTPError as ex:
-                if ex.response.status_code == 429:
-                    raise DALRateLimitError.from_response(ex.response, ex,
-                                                          tables_url)
-                continue
-            except requests.RequestException:
-                continue
-        else:
-            raise DALServiceError("No working tables endpoint provided")
-
-        return response.raw
-
-    @lazyproperty
-    def tables(self):
-        return VOSITables(vosi.parse_tables(self._tables().read))
 
 
 class VOSITables:

@@ -177,7 +177,7 @@ class TAPService(DALService, AvailabilityMixin, CapabilityMixin):
             response.raw.read = partial(response.raw.read, decode_content=True)
 
             self._tables = VOSITables(
-                vosi.parse_tables(response.raw.read), tables_url)
+                vosi.parse_tables(response.raw.read), tables_url, session=self._session)
         return self._tables
 
     def _parse_examples(self, examples_uri, *, depth=0):
