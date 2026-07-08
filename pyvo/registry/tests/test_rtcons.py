@@ -47,7 +47,7 @@ class TestAbstractConstraint:
 
 
 class TestSQLLiterals:
-    @pytest.fixture(scope="class", autouse=True)
+    @pytest.fixture(scope="class")
     @classmethod
     def literals(cls):
         class _WithFillers(rtcons.Constraint):

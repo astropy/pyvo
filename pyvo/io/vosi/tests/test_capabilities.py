@@ -13,7 +13,7 @@ import pytest
 import pyvo.io.vosi as vosi
 import pyvo.io.vosi.vodataservice as vs
 import pyvo.io.vosi.tapregext as tr
-from pyvo.io.vosi.exceptions import W06
+from pyvo.io.vosi.exceptions import W06, W39
 
 from astropy.utils.data import get_pkg_data_filename
 
@@ -28,6 +28,43 @@ def _parsed_caps():
 def _minimal_tapregext():
     return vosi.parse_capabilities(get_pkg_data_filename(
         "data/capabilities/minimal-tapregext.xml"))
+
+
+def _read_formode_template(extra_elements):
+    with open(get_pkg_data_filename(
+            "data/capabilities/formode-tapregext-template.xml")) as f:
+        return io.BytesIO(
+            f.read().format(extra_elements=extra_elements).encode())
+
+
+@pytest.fixture(name='parsed_formode_tapregext')
+def _formode_tapregext():
+    return vosi.parse_capabilities(_read_formode_template("""\
+    <executionDuration>
+      <default>600</default>
+    </executionDuration>
+    <executionDuration forMode="sync">
+      <default>60</default>
+    </executionDuration>
+    <executionDuration forMode="async">
+      <default>7200</default>
+    </executionDuration>
+    <outputLimit>
+      <default unit="row">10000</default>
+      <hard unit="row">10000</hard>
+    </outputLimit>
+    <outputLimit forMode="async">
+      <default unit="row">1000000</default>
+      <hard unit="row">1000000</hard>
+    </outputLimit>"""))
+
+
+@pytest.fixture(name='parsed_formode_no_default_tapregext')
+def _formode_no_default_tapregext():
+    return vosi.parse_capabilities(_read_formode_template("""\
+    <executionDuration forMode="sync">
+      <default>60</default>
+    </executionDuration>"""))
 
 
 @pytest.mark.usefixtures("parsed_caps")
@@ -165,8 +202,8 @@ class TestMinimalTAPRegExt:
         assert isinstance(parsed_minimal_tapregext[2], tr.TableAccess)
 
     def test_limits(self, parsed_minimal_tapregext):
-        assert parsed_minimal_tapregext[2]._uploadlimit is None
-        assert parsed_minimal_tapregext[2]._outputlimit is None
+        assert parsed_minimal_tapregext[2]._uploadlimits == []
+        assert parsed_minimal_tapregext[2]._outputlimits == []
 
     def test_adql(self, parsed_minimal_tapregext):
         assert parsed_minimal_tapregext[2].get_adql().name == "ADQL"
@@ -245,3 +282,71 @@ class TestFreePrefixes:
     def test_parses_as_tapregext(self, cap_with_free_prefix):
         _, cap = cap_with_free_prefix
         assert isinstance(cap[0], tr.TableAccess)
+
+
+@pytest.mark.usefixtures("parsed_formode_tapregext")
+class TestForModeTAPRegExt:
+    def test_three_execution_durations(self, parsed_formode_tapregext):
+        assert len(parsed_formode_tapregext[2].executiondurations) == 3
+
+    def test_default_execution_duration(self, parsed_formode_tapregext):
+        assert parsed_formode_tapregext[2].executionduration.default == 600
+
+    def test_sync_execution_duration(self, parsed_formode_tapregext):
+        assert parsed_formode_tapregext[2].get_executionduration('sync').default == 60
+
+    def test_async_execution_duration(self, parsed_formode_tapregext):
+        assert parsed_formode_tapregext[2].get_executionduration('async').default == 7200
+
+    def test_for_mode_sync_parsed(self, parsed_formode_tapregext):
+        assert parsed_formode_tapregext[2].get_executionduration('sync').for_mode == 'sync'
+
+    def test_default_no_for_mode(self, parsed_formode_tapregext):
+        assert parsed_formode_tapregext[2].executionduration.for_mode is None
+
+    def test_case_insensitive_lookup(self, parsed_formode_tapregext):
+        assert parsed_formode_tapregext[2].get_executionduration('SYNC').default == 60
+
+    def test_output_limit_default(self, parsed_formode_tapregext):
+        assert parsed_formode_tapregext[2].outputlimit.default.content == 10000
+
+    def test_output_limit_async(self, parsed_formode_tapregext):
+        assert parsed_formode_tapregext[2].get_outputlimit('async').default.content == 1000000
+
+    def test_output_limit_sync_falls_back_to_default(self, parsed_formode_tapregext):
+        assert parsed_formode_tapregext[2].get_outputlimit('sync').default.content == 10000
+
+
+@pytest.mark.usefixtures("parsed_formode_no_default_tapregext")
+class TestForModeNoDefault:
+    def test_compat_property_returns_mode_entry_when_no_default(
+            self, parsed_formode_no_default_tapregext):
+        assert parsed_formode_no_default_tapregext[2].executionduration.default == 60
+
+    def test_explicit_mode_lookup(self, parsed_formode_no_default_tapregext):
+        assert parsed_formode_no_default_tapregext[2].get_executionduration('sync').default == 60
+
+    def test_missing_mode_returns_none(self, parsed_formode_no_default_tapregext):
+        assert parsed_formode_no_default_tapregext[2].get_executionduration('async') is None
+
+
+class TestForModeDuplicate:
+    def test_duplicate_formode_warns(self):
+        with pytest.warns(W39):
+            vosi.parse_capabilities(_read_formode_template("""\
+    <executionDuration forMode="sync">
+      <default>60</default>
+    </executionDuration>
+    <executionDuration forMode="sync">
+      <default>120</default>
+    </executionDuration>"""))
+
+    def test_duplicate_default_warns(self):
+        with pytest.warns(W39):
+            vosi.parse_capabilities(_read_formode_template("""\
+    <executionDuration>
+      <default>600</default>
+    </executionDuration>
+    <executionDuration>
+      <default>1200</default>
+    </executionDuration>"""))

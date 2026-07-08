@@ -38,6 +38,14 @@ Deprecations and Removals
 Enhancements and Fixes
 ----------------------
 
+- Add support for the forMode attribute in TAPRegExt, which allows TAP services
+  to advertise different limits for different modes [#757]
+
+- Change the default ``timeout`` behavior of ``TAPService.run_async``. When
+  ``timeout`` is not specified, it now uses the advertised async
+  ``executionDuration`` default instead of falling back to
+  ``DEFAULT_JOB_WAIT_TIMEOUT``. [#757]
+
 - Fix auth methods registered for base URLs being dropped for capability-declared
   sub-paths [#758]
 

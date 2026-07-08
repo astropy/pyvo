@@ -8,7 +8,7 @@ from ...utils.xml.elements import (
     Element, ContentMixin, xmlelement, xmlattribute)
 from . import voresource as vr
 from .exceptions import (
-    W05, W06, W19, W20, W21, W22, W23, W24, W25, W26, W27, W28, W29, W30, W31,
+    W05, W06, W19, W20, W21, W26, W27, W28, W29, W30, W31, W38, W39, W40, W41,
     E06, E08, E09, VOSIError)
 
 __all__ = [
@@ -126,10 +126,12 @@ class TimeLimits(Element):
 
         self._default = None
         self._hard = None
+        self.for_mode = kwargs.get('forMode', None)
 
     def __repr__(self):
-        return '<TimeLimits default={} hard={}/>'.format(
-            self.default, self.hard)
+        mode = f' forMode={self.for_mode}' if self.for_mode else ''
+        return '<TimeLimits{} default={} hard={}/>'.format(
+            mode, self.default, self.hard)
 
     @xmlelement(plain=True, multiple_exc=W29)
     def default(self):
@@ -146,6 +148,14 @@ class TimeLimits(Element):
     @hard.setter
     def hard(self, hard):
         self._hard = int(hard)
+
+    @xmlattribute(name='forMode')
+    def for_mode(self):
+        return self._for_mode
+
+    @for_mode.setter
+    def for_mode(self, for_mode):
+        self._for_mode = for_mode
 
 
 class LanguageFeature(Element):
@@ -401,13 +411,16 @@ class DataLimits(Element):
 
         self.default = None
         self.hard = None
+        self.for_mode = kwargs.get('forMode', None)
 
     def __repr__(self):
         parts = []
+        if self.for_mode is not None:
+            parts.append(f"forMode={self.for_mode}")
         if self.default is not None:
-            parts.append("default={self.default}")
+            parts.append(f"default={self.default}")
         if self.hard is not None:
-            parts.append("hard={self.hard}")
+            parts.append(f"hard={self.hard}")
         return '<DataLimits {}/>'.format(" ".join(parts))
 
     @xmlelement(cls=DataLimit, multiple_exc=W29)
@@ -425,6 +438,14 @@ class DataLimits(Element):
     @hard.setter
     def hard(self, hard):
         self._hard = hard
+
+    @xmlattribute(name='forMode')
+    def for_mode(self):
+        return self._for_mode
+
+    @for_mode.setter
+    def for_mode(self, for_mode):
+        self._for_mode = for_mode
 
 
 class TAPCapRestriction(vr.Capability):
@@ -448,10 +469,44 @@ class TableAccess(TAPCapRestriction):
         self._languages = HomogeneousList(Language)
         self._outputformats = HomogeneousList(OutputFormat)
         self._uploadmethods = HomogeneousList(UploadMethod)
-        self.retentionperiod = None
-        self.executionduration = None
-        self.outputlimit = None
-        self.uploadlimit = None
+        self._retentionperiods = HomogeneousList(TimeLimits)
+        self._executiondurations = HomogeneousList(TimeLimits)
+        self._outputlimits = HomogeneousList(DataLimits)
+        self._uploadlimits = HomogeneousList(DataLimits)
+
+    @staticmethod
+    def _get_limit_for_mode(limits, mode=None):
+        """
+        Returns the limit for the given mode, or the default if no
+        mode-specific limit is found.  If there is no default, returns None.
+
+        Parameters
+        ----------
+        limits : list of `~pyvo.io.vosi.tapregext.TimeLimits` or
+            list of `~pyvo.io.vosi.tapregext.DataLimits`
+            The limits to search through
+        mode : str or None
+            The mode to search for.  If None, return the default limit.
+        """
+        default = None
+        mode_specific = None
+
+        for limit in limits:
+            if limit.for_mode is None:
+                default = limit
+            elif mode is not None and limit.for_mode.lower() == mode.lower():
+                mode_specific = limit
+        return mode_specific if mode_specific is not None else default
+
+    @staticmethod
+    def _check_duplicate_modes(limits, exc_class, config):
+        seen = set()
+        for limit in limits:
+            key = limit.for_mode
+            if key in seen:
+                warn_or_raise(exc_class, args=(key,), config=config,
+                              pos=limit._pos)
+            seen.add(key)
 
     def describe(self):
         """
@@ -471,37 +526,36 @@ class TableAccess(TAPCapRestriction):
         for uploadmethod in self.uploadmethods:
             uploadmethod.describe()
 
-        if self.retentionperiod:
-            print("Time a job is kept (in seconds)")
-            print(indent(f"Default {self.retentionperiod.default}", INDENT))
-            if self.retentionperiod.hard:
-                print(indent(f"Maximum {self.retentionperiod.hard}", INDENT))
+        for limit in self._retentionperiods:
+            mode = f" ({limit.for_mode})" if limit.for_mode else ""
+            print(f"Time a job is kept (in seconds){mode}")
+            print(indent(f"Default {limit.default}", INDENT))
+            if limit.hard:
+                print(indent(f"Maximum {limit.hard}", INDENT))
             print()
 
-        if self.executionduration:
-            print("Maximal run time of a job")
-            print(indent(f"Default {self.executionduration.default}", INDENT))
-            if self.executionduration.hard:
-                print(indent(f"Maximum {self.executionduration.hard}", INDENT))
+        for limit in self._executiondurations:
+            mode = f" ({limit.for_mode})" if limit.for_mode else ""
+            print(f"Maximal run time of a job{mode}")
+            print(indent(f"Default {limit.default}", INDENT))
+            if limit.hard:
+                print(indent(f"Maximum {limit.hard}", INDENT))
             print()
 
-        if self.outputlimit:
-            print("Maximum size of resultsets")
-            print(indent("Default {} {}".format(
-                self.outputlimit.default.content,
-                self.outputlimit.default.unit), INDENT)
-            )
-            if self.outputlimit.hard:
-                print(indent("Maximum {} {}".format(
-                    self.outputlimit.hard.content, self.outputlimit.hard.unit), INDENT)
-                )
+        for limit in self._outputlimits:
+            mode = f" ({limit.for_mode})" if limit.for_mode else ""
+            print(f"Maximum size of resultsets{mode}")
+            print(indent(f"Default {limit.default.content} {limit.default.unit}", INDENT))
+            if limit.hard:
+                print(indent(f"Maximum {limit.hard.content} {limit.hard.unit}", INDENT))
             print()
 
-        if self.uploadlimit and self.uploadlimit.hard:
-            print("Maximal size of uploads")
-            print(indent("Maximum {} {}".format(
-                self.uploadlimit.hard.content, self.uploadlimit.hard.unit), INDENT))
-            print()
+        for limit in self._uploadlimits:
+            if limit.hard:
+                mode = f" ({limit.for_mode})" if limit.for_mode else ""
+                print(f"Maximal size of uploads{mode}")
+                print(indent(f"Maximum {limit.hard.content} {limit.hard.unit}", INDENT))
+                print()
 
     def get_adql(self):
         """
@@ -541,40 +595,68 @@ class TableAccess(TAPCapRestriction):
         """
         return self._uploadmethods
 
-    @xmlelement(name='retentionPeriod', cls=TimeLimits, multiple_exc=W22)
-    def retentionperiod(self):
+    @xmlelement(name='retentionPeriod', cls=TimeLimits)
+    def retentionperiods(self):
         """Limits on the time between job creation and destruction time."""
-        return self._retentionperiod
+        return self._retentionperiods
 
-    @retentionperiod.setter
-    def retentionperiod(self, retentionperiod):
-        self._retentionperiod = retentionperiod
-
-    @xmlelement(name='executionDuration', cls=TimeLimits, multiple_exc=W23)
-    def executionduration(self):
+    @xmlelement(name='executionDuration', cls=TimeLimits)
+    def executiondurations(self):
         """Limits on executionDuration."""
-        return self._executionduration
+        return self._executiondurations
 
-    @executionduration.setter
-    def executionduration(self, executionduration):
-        self._executionduration = executionduration
-
-    @xmlelement(name='outputLimit', cls=DataLimits, multiple_exc=W24)
-    def outputlimit(self):
+    @xmlelement(name='outputLimit', cls=DataLimits)
+    def outputlimits(self):
         """Limits on the size of data returned."""
-        return self._outputlimit
+        return self._outputlimits
 
-    @outputlimit.setter
-    def outputlimit(self, outputlimit):
-        self._outputlimit = outputlimit
+    @xmlelement(name='uploadLimit', cls=DataLimits)
+    def uploadlimits(self):
+        return self._uploadlimits
 
-    @xmlelement(name='uploadLimit', cls=DataLimits, multiple_exc=W25)
+    def _get_limit_compat(self, limits):
+        """Return the default limit, falling back to the first entry if no
+        default exists."""
+        result = self._get_limit_for_mode(limits)
+        if result is None and limits:
+            return limits[0]
+        return result
+
+    @property
+    def retentionperiod(self):
+        """The default retentionPeriod limit."""
+        return self._get_limit_compat(self._retentionperiods)
+
+    @property
+    def executionduration(self):
+        """The default executionDuration limit."""
+        return self._get_limit_compat(self._executiondurations)
+
+    @property
+    def outputlimit(self):
+        """The default outputLimit."""
+        return self._get_limit_compat(self._outputlimits)
+
+    @property
     def uploadlimit(self):
-        return self._uploadlimit
+        """The default uploadLimit."""
+        return self._get_limit_compat(self._uploadlimits)
 
-    @uploadlimit.setter
-    def uploadlimit(self, uploadlimit, cls=DataLimits):
-        self._uploadlimit = uploadlimit
+    def get_retentionperiod(self, mode=None):
+        """Get retentionPeriod limit for a specific mode."""
+        return self._get_limit_for_mode(self._retentionperiods, mode)
+
+    def get_executionduration(self, mode=None):
+        """Get executionDuration limit for a specific mode."""
+        return self._get_limit_for_mode(self._executiondurations, mode)
+
+    def get_outputlimit(self, mode=None):
+        """Get outputLimit for a specific mode."""
+        return self._get_limit_for_mode(self._outputlimits, mode)
+
+    def get_uploadlimit(self, mode=None):
+        """Get uploadLimit for a specific mode."""
+        return self._get_limit_for_mode(self._uploadlimits, mode)
 
     def parse(self, iterator, config):
         super().parse(iterator, config)
@@ -584,3 +666,8 @@ class TableAccess(TAPCapRestriction):
 
         if not self.outputformats:
             warn_or_raise(W21, W21, config=config, pos=self._pos)
+
+        self._check_duplicate_modes(self.retentionperiods, W38, config)
+        self._check_duplicate_modes(self.executiondurations, W39, config)
+        self._check_duplicate_modes(self.outputlimits, W40, config)
+        self._check_duplicate_modes(self.uploadlimits, W41, config)
