@@ -442,7 +442,7 @@ tab-separated values (tsv), comma-separated values (cvs) or VOTable (VOTable):
 .. doctest-skip::
 
     >>> tap_service.load_table(name='test_schema.test_table',
-    ...                        source=StringIO('article,count\narticle1,10\narticle2,20\n'), format='csv')
+    ...                        source=StringIO('article,count_of\narticle1,10\narticle2,20\n'), format='csv')
 
 Users can also create indexes on single columns:
 .. doctest-skip::
