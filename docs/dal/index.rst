@@ -429,7 +429,7 @@ functionality is only available to authenticated (and authorized) users.
     ...         <dataType xsi:type="vod:VOTableType" arraysize="30*">char</dataType>
     ...     </column>
     ...     <column>
-    ...         <name>count</name>
+    ...         <name>count_of</name>
     ...         <description>how many</description>
     ...         <dataType xsi:type="vod:VOTableType">long</dataType>
     ...     </column>
@@ -442,7 +442,7 @@ tab-separated values (tsv), comma-separated values (cvs) or VOTable (VOTable):
 .. doctest-skip::
 
     >>> tap_service.load_table(name='test_schema.test_table',
-    ...                        source=StringIO('article,count\narticle1,10\narticle2,20\n'), format='csv')
+    ...                        source=StringIO('article,count_of\narticle1,10\narticle2,20\n'), format='csv')
 
 Users can also create indexes on single columns:
 .. doctest-skip::
