@@ -163,7 +163,7 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
 
         Parameters
         ----------
-        url : str
+        baseurl : str
            url - URL of the SIA2service (base or query endpoint)
         session : object
            optional session to use for network requests

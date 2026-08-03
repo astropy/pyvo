@@ -27,7 +27,7 @@ def parse_for_object(
     ----------
     source : str or readable file-like object
         Path or file object containing a tableset xml file.
-    object : object type to return (subtype `~pyvo.utils.xml.elements.Element`)
+    object_type : object type to return (subtype `~pyvo.utils.xml.elements.Element`)
     pedantic : bool, optional
         When `True`, raise an error when the file violates the spec,
         otherwise issue a warning.  Warnings may be controlled using

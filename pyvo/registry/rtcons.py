@@ -1041,7 +1041,7 @@ class Temporal(SubqueriedConstraint):
 
         Parameters
         ----------
-        spec : astropy.Time or a 2-tuple of astropy.Time-s
+        times : astropy.Time or a 2-tuple of astropy.Time-s
             A point in time or time interval to cover.  Plain numbers
             are interpreted as MJD.  All resources *overlapping* the
             interval are returned.
