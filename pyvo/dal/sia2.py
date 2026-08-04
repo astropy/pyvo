@@ -165,6 +165,8 @@ class SIA2Service(DALService, AvailabilityMixin, CapabilityMixin):
         ----------
         baseurl : str
            url - URL of the SIA2service (base or query endpoint)
+        capability_description : str
+           Optional description of the service.
         session : object
            optional session to use for network requests
         check_baseurl : bool
