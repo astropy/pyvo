@@ -293,7 +293,7 @@ class MivotUtils:
             Table (from parsed VOTable) of the mapped data
         dmtype : string
             common dmtype of object attributes
-        as_literal : boolean, optional (default isTrue)
+        as_literals : boolean, optional (default is True)
             If True, all attribute are set with literal values (@value="...")
         package : str, optional (default as None)
             Package name possibly prefixing dmroles
