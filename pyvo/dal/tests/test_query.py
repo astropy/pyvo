@@ -583,8 +583,8 @@ class TestRecord:
         truth = 'Illuminatus'
         assert record.getbyutype('foobar') == truth
 
-        record.getbyucd('baz') is None
-        record.getbyutype('foobaz') is None
+        assert record.getbyucd('baz') is None
+        assert record.getbyutype('foobaz') is None
 
     def test_datasets(self):
         records = DALResults.from_result_url(
