@@ -2,6 +2,7 @@
 """
 A module for accessing remote source and observation catalogs
 """
+import math
 from functools import partial
 from datetime import datetime
 import time
@@ -13,6 +14,7 @@ from urllib.parse import urlparse, urljoin
 
 from astropy.io.votable import parse as votableparse
 
+from .exceptions import DALJobTimeoutError
 from .query import (
     DALResults, DALQuery, DALService, Record, UploadList,
     DALServiceError, DALQueryError)
@@ -51,6 +53,9 @@ DEFAULT_JOB_POLL_TIMEOUT = 10
 
 # Default timeout (in seconds) for overall job wait.
 DEFAULT_JOB_WAIT_TIMEOUT = 600.
+
+# Max time (in seconds) to block on a single job-status poll.
+MAX_JOB_POLL_BLOCK = 60.
 
 
 def _from_ivoa_format(datetime_str):
@@ -774,9 +779,12 @@ class AsyncTAPJob:
             )
         try:
             if wait_for_statechange:
+                # Return just before our read timeout: this gives us a 200
+                # with the current phase instead of a ReadTimeout
+                wait_secs = max(1, int(timeout) - 1)
                 response = self._session.get(
                     self.url, stream=True, timeout=timeout, params={
-                        "WAIT": "-1"
+                        "WAIT": str(wait_secs)
                     }
                 )
             else:
@@ -1037,11 +1045,12 @@ class AsyncTAPJob:
         phases : list
             phases to wait for
         timeout : float or None
-            maximum time to wait in seconds. If None, defaults to
-            ``DEFAULT_JOB_WAIT_TIMEOUT``.
+            total budget in seconds; None waits indefinitely
 
         Raises
         ------
+        DALJobTimeoutError
+            if the job does not reach one of ``phases`` within ``timeout`` seconds
         DALServiceError
             if the job is in a state that won't lead to an result
         """
@@ -1054,20 +1063,30 @@ class AsyncTAPJob:
         active_phases = {
             "QUEUED", "EXECUTING", "RUN", "COMPLETED", "ERROR", "UNKNOWN"}
 
+        deadline = time.monotonic() + (math.inf if timeout is None else timeout)
+
         while True:
-            self._update(wait_for_statechange=True, timeout=timeout)
-            # use the cached value
-            cur_phase = self._job.phase
-
-            if cur_phase not in active_phases:
-                raise DALServiceError(
-                    "Cannot wait for job completion. Job is not active!")
-
-            if cur_phase in phases:
-                break
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise DALJobTimeoutError(
+                    f"job did not reach {sorted(phases)} within {timeout}s "
+                    f"(last known phase: {self._job.phase})", url=self.url)
+            try:
+                self._update(wait_for_statechange=True, timeout=min(MAX_JOB_POLL_BLOCK, remaining))
+            except DALServiceError as ex:
+                if not isinstance(ex.cause, TRANSIENT_ERRORS):
+                    raise
+            else:
+                # use the cached value
+                cur_phase = self._job.phase
+                if cur_phase not in active_phases:
+                    raise DALServiceError(
+                        "Cannot wait for job completion. Job is not active!")
+                if cur_phase in phases:
+                    break
 
             # fallback for uws 1.0 or unsupported WAIT parameter
-            sleep(interval)
+            sleep(min(interval, max(0, deadline - time.monotonic())))
             interval = min(120, interval * increment)
 
         return self

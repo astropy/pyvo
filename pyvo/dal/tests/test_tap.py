@@ -19,7 +19,9 @@ import requests_mock
 
 from pyvo import dal
 from pyvo.dal.tap import escape, search, AsyncTAPJob, TAPService
-from pyvo.dal import DALQueryError, DALServiceError, DALOverflowWarning, DALRateLimitError
+from pyvo.dal import (
+    DALQueryError, DALServiceError, DALOverflowWarning, DALRateLimitError,
+    DALJobTimeoutError)
 from pyvo.io.uws import JobFile
 from pyvo.io.uws.tree import Parameter, Result, ErrorSummary, Message
 from pyvo.auth.authsession import AuthSession
@@ -1346,6 +1348,104 @@ class TestTAPService:
 
             with pytest.raises(DALServiceError):
                 job.fetch_result()
+
+        job.delete()
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_wait_retries_transient_network_error(self, monkeypatch):
+        monkeypatch.setattr('pyvo.dal.tap.sleep', lambda seconds: None)
+
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+        job.run()
+
+        with requests_mock.Mocker() as rm:
+            rm.get(job.url, [
+                {'exc': requests.exceptions.ConnectionError()},
+                {'content': get_index_job("COMPLETED")},
+            ])
+            job.wait()
+
+        assert rm.call_count == 2
+        assert job._job.phase == "COMPLETED"
+
+        job.delete()
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_wait_does_not_retry_non_transient_error(self, monkeypatch):
+        monkeypatch.setattr('pyvo.dal.tap.sleep', lambda seconds: None)
+
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+        job.run()
+
+        with requests_mock.Mocker() as rm:
+            rm.get(job.url, status_code=500)
+
+            with pytest.raises(DALServiceError) as excinfo:
+                job.wait()
+
+        assert rm.call_count == 1
+        assert not isinstance(excinfo.value, DALJobTimeoutError)
+
+        job.delete()
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_wait_timeout_raises_job_timeout_error(self, monkeypatch):
+        monkeypatch.setattr('pyvo.dal.tap.sleep', lambda seconds: None)
+
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+        job.run()
+
+        with requests_mock.Mocker() as rm:
+            rm.get(job.url, content=get_index_job("EXECUTING"))
+
+            with pytest.raises(DALJobTimeoutError) as excinfo:
+                job.wait(timeout=0.3)
+
+        assert rm.call_count >= 1
+        assert isinstance(excinfo.value, DALServiceError)
+        assert "EXECUTING" in str(excinfo.value)
+        assert "HTTPSConnectionPool" not in str(excinfo.value)
+
+        job.delete()
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_wait_bounds_uws_wait_parameter_below_timeout(self, monkeypatch):
+        monkeypatch.setattr('pyvo.dal.tap.sleep', lambda seconds: None)
+
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+        job.run()
+
+        with requests_mock.Mocker() as rm:
+            rm.get(job.url, content=get_index_job("COMPLETED"))
+            job.wait(timeout=10)
+
+        wait_sent = int(rm.request_history[0].qs['wait'][0])
+        assert 1 <= wait_sent < 10
+
+        job.delete()
+
+    @pytest.mark.usefixtures('async_fixture')
+    def test_wait_backoff_sleep_capped_to_remaining_budget(self, monkeypatch):
+        sleep_calls = []
+        monkeypatch.setattr(
+            'pyvo.dal.tap.sleep', lambda seconds: sleep_calls.append(seconds))
+
+        service = TAPService('http://example.com/tap')
+        job = service.submit_job("SELECT * FROM ivoa.obscore")
+        job.run()
+
+        with requests_mock.Mocker() as rm:
+            rm.get(job.url, content=get_index_job("EXECUTING"))
+
+            with pytest.raises(DALJobTimeoutError):
+                job.wait(timeout=0.2)
+
+        assert sleep_calls
+        assert all(seconds <= 0.2 for seconds in sleep_calls)
 
         job.delete()
 

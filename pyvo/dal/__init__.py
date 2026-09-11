@@ -19,7 +19,7 @@ from .adhoc import DATALINK_BATCH_CALL_SIZE
 
 from .exceptions import (
     DALAccessError, DALProtocolError, DALFormatError, DALServiceError,
-    DALQueryError, DALOverflowWarning, DALRateLimitError)
+    DALQueryError, DALOverflowWarning, DALRateLimitError, DALJobTimeoutError)
 
 __all__ = [
     "imagesearch", "spectrumsearch", "linesearch", "conesearch", "tablesearch",
@@ -32,6 +32,6 @@ __all__ = [
     "SIARecord", "SSARecord", "SLARecord", "SCSRecord",
     "AsyncTAPJob",
     "DALAccessError", "DALProtocolError", "DALFormatError", "DALServiceError",
-    "DALQueryError", "DALOverflowWarning", "DALRateLimitError",
+    "DALQueryError", "DALOverflowWarning", "DALRateLimitError", "DALJobTimeoutError",
     "DEFAULT_JOB_POLL_TIMEOUT", "DEFAULT_JOB_WAIT_TIMEOUT",
     "DATALINK_BATCH_CALL_SIZE"]
