@@ -1,3 +1,17 @@
+"""Session storage with credential management for OAuth2 protected resources
+
+This module contains the SessionStore class which manages oauth session for
+a given protected resource (identified via their URL).
+
+The intended object type of these sessions are OAuth2Session from
+requests_oauthlib, and the intended storage method is via keyring.
+
+Other Session classes can be used as long as they have a `client_id` attribute.
+
+requests_oauthlib, keyring and a keyrings.cryptfile are all dependencies for
+pyvo to ensure this all works. However if necessary other keyring backends can
+be activated.
+"""
 import logging
 import keyring
 
@@ -5,7 +19,6 @@ from requests_oauthlib import OAuth2Session
 from pyvo.utils.http import create_session
 
 __all__ = ["SessionStore"]
-
 
 
 class SessionStore:
@@ -37,19 +50,25 @@ class SessionStore:
     ``None`` when no entry matches.
 
     Client secrets are never kept in memory by this class: they are
-    delegated to the system keystore (via ``keyring``), keyed by the
-    URL they belong to.
+    delegated to the system keystore (via ``keyring``), keyed by their
+    paired client ID which can be extracted from the session stored
+    for a URL.
     """
 
-    def __init__(self, keystore_name):
-        self.keystore_name = keystore_name
-        self.session_entries = {}
-        self.full_urls = {}
-        self._explicit_urls = {}
+    def __init__(self, keystore_name: str):
+        """
+        Initialize this session store
 
+        Parameters
+        ----------
+        keystore_name : str
+            Keystore identifier for the service using this session store.
+        """
+        self.keystore_name: str = keystore_name
+        self.full_urls: dict[str, OAuth2Session] = {}
+        self._explicit_urls: dict[str, OAuth2Session] = {}
 
-
-    def add_client_secret_for_url(self, url, client_secret):
+    def add_client_secret_for_url(self, url: str, client_secret: str):
         """
         Store the client secret associated with a URL in the system
         keystore.
@@ -60,17 +79,22 @@ class SessionStore:
             URL the client secret belongs to
         client_secret : str
             the client secret to store
+
+        Raises
+        ------
+        ValueError
+            if the session for the URL has no ``client_id``
         """
         session = self[url]
         client_id = getattr(session, 'client_id', None)
-        if not client_id:
+        if client_id is None:
             raise ValueError(
                 f'Session for {url} has no client_id; cannot store a client secret'
             )
         logging.debug('Storing client secret for %s in the keystore', url)
         keyring.set_password(self.keystore_name, client_id, client_secret)
 
-    def client_secret_for_url(self, url):
+    def get_client_secret_for_url(self, url: str) -> str | None:
         """
         Return the client secret stored in the system keystore for a URL,
         or ``None`` if no secret has been stored.
@@ -79,6 +103,11 @@ class SessionStore:
         ----------
         url : str
             URL to look up the client secret for
+
+        Returns
+        -------
+        str or None
+            Client secret for URL, or ``None`` if none is stored
 
         Raises
         ------
@@ -97,10 +126,12 @@ class SessionStore:
             logging.debug('No client secret in the keystore for %s', url)
         return client_secret
 
-    def delete_client_secret_for_url(self, url):
+    def delete_client_secret_for_url(self, url: str):
         """
         Remove the client secret stored in the system keystore for a URL.
         Does nothing if no secret has been stored.
+
+        May propagate keyring.delete_password errors on failure.
 
         Parameters
         ----------
@@ -118,12 +149,53 @@ class SessionStore:
             raise ValueError(
                 f'Session for {url} has no client_id; cannot delete a client secret'
             )
-        try:
-            keyring.delete_password(self.keystore_name, client_id)
-        except keyring.errors.PasswordDeleteError:
-            logging.debug('No client secret in the keystore to delete for %s', url)
+        keyring.delete_password(self.keystore_name, client_id)
 
-    def add_session_for_url(self, url, session, client_secret=None, exact=False):
+    def add_session_for_url(
+        self,
+        url: str,
+        session: OAuth2Session,
+        client_secret: str | None = None,
+        exact: bool = False,
+    ):
+        """
+        Register a session object that should be used for requests directed at a
+        given URL.
+
+        The session is stored so that later requests matching the supplied URL can
+        reuse the same authenticated connection. When ``exact`` is enabled the URL
+        is registered as a full, literal match; otherwise it is registered as an
+        explicit prefix-style entry that may also match related URLs. The session
+        must expose a ``client_id`` attribute, since that value identifies the
+        credentials associated with the connection. If a client secret is supplied,
+        it is additionally associated with the same URL so that authentication can
+        be completed later.
+
+        Parameters
+        ----------
+        url : str
+            URL for the session we are storing for
+        session : OAuth2Session
+            The session object to associate with the URL. It must provide a
+            ``client_id`` attribute.
+        client_secret : str, optional
+            Client secret to associate with the URL. When omitted, no secret is
+            stored. Can be stored at a later time using `add_client_secret_for_url`
+        exact : bool, default False
+            If ``True``, the URL is registered as a full exact-match entry. If
+            ``False``, it is registered as an explicit entry that may match
+            non-identical but related URLs.
+
+        Raises
+        ------
+        ValueError
+            If ``session`` does not provide a ``client_id`` attribute, which means
+            the session cannot be stored.
+        """
+        if not hasattr(session, "client_id"):
+            raise ValueError(
+                f'Session for {url} has no client_id; cannot store this session'
+            )
         if exact:
             self.full_urls[url] = session
         else:
@@ -131,7 +203,9 @@ class SessionStore:
         if client_secret:
             self.add_client_secret_for_url(url,client_secret)
 
-    def get_session_for_url(self, url, return_anonymous_if_not_found=True) -> OAuth2Session | None:
+    def get_session_for_url(
+        self, url: str, return_anonymous_if_not_found: bool = True
+    ) -> OAuth2Session | None:
         """
         Return the session for a particular URL.
 
@@ -159,7 +233,7 @@ class SessionStore:
             return session_match
 
         # Return the most-specific matching caller-registered prefix.
-        for prefix, prefix_session in self._sorted(self._explicit_urls):
+        for prefix, prefix_session in self._sorted_by_url_length(self._explicit_urls):
             if url.startswith(prefix):
                 logging.debug(
                     'Matching explicit url %s, session %s', prefix, prefix_session
@@ -174,11 +248,15 @@ class SessionStore:
         logging.debug('No matching session for %s', url)
         return None
 
-    def _sorted(self, url_dict):
-        """Yield (url, methods) pairs from ``url_dict``, longest URL first."""
+    def _sorted_by_url_length(self, url_dict):
+        """
+        Yield (url, session) pairs from ``url_dict``, longest URL first.
+
+        Copied from pyvo.auth.authurls.py
+        """
         yield from sorted(url_dict.items(), key=lambda x: len(x[0]), reverse=True)
 
-    def __getitem__(self, url) -> OAuth2Session:
+    def __getitem__(self, url: str) -> OAuth2Session:
         """
         Return the session for a particular URL using subscript syntax.
 
@@ -199,9 +277,8 @@ class SessionStore:
 
     def __repr__(self):
         urls = []
-        for url, url_session in self.full_urls.items():
+        for url in self.full_urls:
             urls.append('Full match:' + url)
-        for url, url_session in self._sorted(self._explicit_urls):
+        for url, _session in self._sorted_by_url_length(self._explicit_urls):
             urls.append('Explicit match:' + url)
         return '\n'.join(urls)
-
