@@ -32,7 +32,9 @@ import io
 
 __all__ = [
     "search", "escape", "TAPService", "TAPQuery", "AsyncTAPJob", "TAPResults",
-    "DEFAULT_JOB_POLL_TIMEOUT", "DEFAULT_JOB_WAIT_TIMEOUT"]
+    "DEFAULT_JOB_POLL_TIMEOUT", "DEFAULT_JOB_WAIT_TIMEOUT",
+    "MAX_JOB_POLL_BLOCK"
+]
 
 IVOA_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
@@ -1045,7 +1047,9 @@ class AsyncTAPJob:
         phases : list
             phases to wait for
         timeout : float or None
-            total budget in seconds; None waits indefinitely
+            total time budget to wait, in seconds. Defaults to
+            ``DEFAULT_JOB_WAIT_TIMEOUT``. If explicitly set to None,
+            waits indefinitely.
 
         Raises
         ------

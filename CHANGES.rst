@@ -8,7 +8,9 @@ Enhancements and Fixes
   instead of being passed straight through as the per-request timeout.
   Transient network errors encountered while polling are retried
   within that budget and exceeding it now raises a new
-  ``DALJobTimeoutError``. [#784]
+  ``DALJobTimeoutError``. Passing ``timeout=None`` explicitly now waits
+  indefinitely, rather than only affecting the read timeout of individual
+  poll requests. [#784]
 
 Deprecations and Removals
 -------------------------
