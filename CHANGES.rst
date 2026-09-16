@@ -4,6 +4,13 @@
 Enhancements and Fixes
 ----------------------
 
+- ``AsyncTAPJob.wait()``'s ``timeout`` is now enforced as a total wait budget
+  instead of being passed straight through as the per-request timeout.
+  Transient network errors encountered while polling are retried
+  within that budget and exceeding it now raises a new
+  ``DALJobTimeoutError``. Passing ``timeout=None`` explicitly now waits
+  indefinitely, rather than only affecting the read timeout of individual
+  poll requests. [#784]
 
 Deprecations and Removals
 -------------------------

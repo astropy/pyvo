@@ -4,7 +4,7 @@ DAL Exceptions.
 
 __all__ = [
     "DALAccessError", "DALProtocolError", "DALFormatError", "DALServiceError",
-    "DALQueryError", "DALOverflowWarning", "DALRateLimitError"]
+    "DALQueryError", "DALOverflowWarning", "DALRateLimitError", "DALJobTimeoutError"]
 
 import re
 from datetime import datetime, timezone
@@ -390,6 +390,14 @@ class DALQueryError(DALAccessError):
         the INFO's value attribute.
         """
         return self._label
+
+
+class DALJobTimeoutError(DALServiceError):
+    """
+    Raised when an async job does not reach a requested phase within
+    the wait timeout.
+    """
+    _defreason = "timed out waiting for job phase"
 
 
 class PyvoUserWarning(AstropyUserWarning):

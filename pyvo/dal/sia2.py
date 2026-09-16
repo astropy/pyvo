@@ -245,7 +245,7 @@ class SIA2Query(DALQuery, AxisParamMixin):
                  instrument=None, data_type=None, calib_level=None,
                  target_name=None, res_format=None, maxrec=None,
                  session=None, **kwargs):
-        """
+        r"""
         initialize the query object with a url and the given parameters
 
         Note: The majority of the attributes represent constraints used to
@@ -257,7 +257,7 @@ class SIA2Query(DALQuery, AxisParamMixin):
         (float(-inf), 600)
 
         Additional attribute constraints can be specified (or removed) after
-        this object has been created using the *.add and *_del methods.
+        this object has been created using the \*.add and \*_del methods.
 
         Parameters
         ----------
