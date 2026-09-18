@@ -6,8 +6,10 @@ import base64
 from contextlib import ExitStack
 from urllib.parse import parse_qs
 import pytest
+from oauthlib.oauth2 import ServerError, UnsupportedGrantTypeError
+from requests.exceptions import HTTPError
 
-from ..oauth2.oauth2session import PyvoOAuth2Session
+from pyvo.auth.oauth2.oauth2session import VOAuthSession
 
 @pytest.fixture()
 def setup_test_server(mocker):
@@ -217,7 +219,7 @@ def test_as_server_retrieval_openid_configuration(mocker):
         "GET", "https://as-server2/cas/.well-known/oauth-authorization-server",
         status_code=404
     ):
-        session = PyvoOAuth2Session()
+        session = VOAuthSession()
         metadata = session.find_as_metadata(
             ["https://as-server1/cas", "https://as-server2/cas"])
 
@@ -251,7 +253,7 @@ def test_as_server_retrieval_oauth_authorization_server(mocker):
             "token_endpoint": "https://abitrary-endpoint.com/token",
         }
     ):
-        session = PyvoOAuth2Session()
+        session = VOAuthSession()
         metadata = session.find_as_metadata([
             "https://as-server1/cas",
             "https://as-server2/cas",
@@ -264,19 +266,37 @@ def test_as_server_retrieval_oauth_authorization_server(mocker):
 
 
 def test_as_server_discovery_no_as_urls_in_rs_metadata():
-    session = PyvoOAuth2Session()
-    as_metadata = session._discover_as_metadata(
-        {"error": "Missing advertisable authorization servers"}
-    )
-    assert as_metadata is None
-
-def test_rs_metadata_failure_returns_none(mocker):
-    session = PyvoOAuth2Session()
-    with mocker.register_uri("GET", "https://as-server1/bad-rs-metadata", status_code=404):
-        rs_metadata = session.authenticate_new_session_from_metadata(
-            "https://as-server1/bad-rs-metadata"
+    session = VOAuthSession()
+    with pytest.raises(ServerError):
+        session._discover_as_metadata(
+            {"error": "Missing advertisable authorization servers"}
         )
-        assert rs_metadata is None
+
+def test_rs_metadata_failure_raises(mocker):
+    session = VOAuthSession()
+    with mocker.register_uri("GET", "https://as-server1/bad-rs-metadata", status_code=404):
+        with pytest.raises(HTTPError) as e:
+            session.authenticate_new_session_from_metadata(
+                "https://as-server1/bad-rs-metadata"
+            )
+
+            assert e.value.response.status_code == 404
+
+def test_no_grant_type_match(mocker):
+    session = VOAuthSession(grant_types=["something_different"])
+    with mocker.register_uri("GET", "https://example.com/rs-metadata",
+            json={"authorization_servers": ["https://as-server1/cas"]}
+    ), mocker.register_uri(
+        "GET", "https://as-server1/cas/.well-known/openid-configuration",
+        json={
+            "token_endpoint": "https://as-server1.com/token",
+            "grant_types_supported": ["nothing_familiar"]
+        }
+    ):
+        with pytest.raises(UnsupportedGrantTypeError):
+            session.authenticate_new_session_from_metadata(
+                "https://example.com/rs-metadata"
+            )
 
 
 def test_no_compatible_authorization_servers(fake_keyring, mocker):
@@ -302,20 +322,20 @@ def test_no_compatible_authorization_servers(fake_keyring, mocker):
         "GET", "https://as-server3/cas/.well-known/oauth-authorization-server",
         status_code=404, text="not found",
     ):
-        session = PyvoOAuth2Session()
-        metadata = session.find_as_metadata([
-            "https://as-server1/cas",
-            "https://as-server2/cas",
-            "https://as-server3/cas",
-        ])
-    assert metadata is None
+        session = VOAuthSession()
+        with pytest.raises(ServerError):
+            session.find_as_metadata([
+                "https://as-server1/cas",
+                "https://as-server2/cas",
+                "https://as-server3/cas",
+            ])
 
 def test_scope_resolution_session_from_construction():
     """
     Ensure scopes provided to session are prioritized over the authorization
     server metadata
     """
-    session = PyvoOAuth2Session(
+    session = VOAuthSession(
         scope=["read", "write"],
     )
     # Used regardless of as_metadata
@@ -330,7 +350,7 @@ def test_scope_resolution_session_from_construction():
     assert set(scopes) == {"read", "write"}
 
 def test_scope_resolution_session_from_metadata():
-    session = PyvoOAuth2Session()
+    session = VOAuthSession()
     scopes = session._resolve_scopes(
         {"scopes_supported": ["openid", "profile", "offline_access"]})
     assert scopes is not None
@@ -338,17 +358,17 @@ def test_scope_resolution_session_from_metadata():
     assert not session._resolve_scopes({"scopes_supported": []})
 
 def test_scope_empty_metadata():
-    session = PyvoOAuth2Session()
+    session = VOAuthSession()
     scopes = session._resolve_scopes({})
     assert scopes is None
 
 
 def test_grant_types_resolution_no_metadata():
-    session = PyvoOAuth2Session()
+    session = VOAuthSession()
     # Defaults to None if not stored on construction with empty metadata
     assert len(session._resolve_grant_types({})) == 0
 
-    session = PyvoOAuth2Session(
+    session = VOAuthSession(
         grant_types=["refresh_token"],
     )
     # Still needs to intersect with metadata, will be empty
@@ -356,7 +376,7 @@ def test_grant_types_resolution_no_metadata():
 
 
 def test_grant_types_resolution_from_metadata():
-    session = PyvoOAuth2Session()
+    session = VOAuthSession()
     grant_types = session._resolve_grant_types({
         "grant_types_supported": [
             "urn:ietf:params:oauth:grant-type:device_code",
@@ -373,7 +393,7 @@ def test_grant_types_resolution_from_metadata():
 
 
 def test_grant_types_resolution_intersection():
-    session = PyvoOAuth2Session(
+    session = VOAuthSession(
         grant_types=[
             "urn:ietf:params:oauth:grant-type:device_code",
             "authorization_code",
@@ -392,7 +412,7 @@ def test_grant_types_resolution_intersection():
 
 def test_grant_types_resolution_no_overlap():
     """No common grant type means no usable grant type at all."""
-    session = PyvoOAuth2Session(
+    session = VOAuthSession(
         grant_types=["authorization_code"],
     )
     grant_types = session._resolve_grant_types({
@@ -406,7 +426,7 @@ def test_grant_types_resolution_no_overlap():
 
 def test_grant_types_resolution_empty_client_configuration():
     """An explicitly empty client configuration disables every grant type."""
-    session = PyvoOAuth2Session(
+    session = VOAuthSession(
         grant_types=[],
     )
     grant_types = session._resolve_grant_types({
@@ -419,7 +439,7 @@ def test_grant_types_resolution_empty_client_configuration():
 def test_401_without_www_authenticate_just_returns(mocker):
     """A 401 that carries no ``WWW-Authenticate`` header cannot trigger
     RFC9728 discovery, so the original response must be returned as-is."""
-    session = PyvoOAuth2Session()
+    session = VOAuthSession()
 
     with mocker.register_uri(
         "GET", "https://example.com/tap",
@@ -437,7 +457,7 @@ def test_401_without_www_authenticate_just_returns(mocker):
 
 def test_401_missing_resource_metadata_just_returns(mocker):
     # Can"t perform authentication if theres no metadata to work off
-    session = PyvoOAuth2Session()
+    session = VOAuthSession()
     with mocker.register_uri(
         "GET", "https://rs.example.com/no-resource-metadata/tap",
         status_code=401, text="unauthorized",
@@ -461,7 +481,7 @@ def test_dynamic_registration_gets_token(mocker, setup_test_server):
      as_metadata_matcher, register_matcher, authorization_matcher,
      token_matcher) = matchers
 
-    session = PyvoOAuth2Session()
+    session = VOAuthSession()
 
     oauthlib_session, new_client_secret = session.authenticate_new_session_from_metadata(
         "https://example.com/tap/.well-known/oauth-protected-resource",
@@ -487,7 +507,7 @@ def test_dynamic_registration_skipped_with_explicit_client_id_secret(mocker, set
      as_metadata_matcher, register_matcher, authorization_matcher,
      token_matcher) = matchers
     
-    session = PyvoOAuth2Session()
+    session = VOAuthSession()
 
     oauthlib_session, new_client_secret = session.authenticate_new_session_from_metadata(
         "https://example.com/tap/.well-known/oauth-protected-resource",
@@ -512,7 +532,7 @@ def test_dynamic_registration_skipped_with_explicit_client_id_secret(mocker, set
 
 def test_authentication_flow(setup_test_server):
     # Follow the full authentication flow on 401 and ensure all steps are executed
-    session = PyvoOAuth2Session()
+    session = VOAuthSession()
 
     matchers = setup_test_server(
         registered_client_id="new-client",
@@ -520,7 +540,7 @@ def test_authentication_flow(setup_test_server):
     )
 
     (resource_matcher, rs_metadata_matcher, _openid_matcher,
-     as_metadata_matcher, authorization_matcher, register_matcher, token_matcher) = matchers
+     as_metadata_matcher, register_matcher, authorization_matcher,  token_matcher) = matchers
     response = session.get("https://example.com/tap")
 
     # Ensure the final contact is successful
@@ -563,3 +583,39 @@ def test_authentication_flow(setup_test_server):
     assert stored_session.token["access_token"] == "correcttoken"
     assert (session.session_store.get_client_secret_for_url(
         "https://example.com/tap") == "new-secret")
+
+def test_authentication_flow_known_client_id(setup_test_server):
+    # Follow the full authentication flow on 401 and ensure all steps are executed
+    session = VOAuthSession()
+
+    matchers = setup_test_server(
+        registered_client_id="known-client",
+        registered_client_secret="known-secret",
+    )
+
+    (resource_matcher, rs_metadata_matcher, _openid_matcher,
+     as_metadata_matcher, register_matcher, authorization_matcher, token_matcher) = matchers
+    response = session.get("https://example.com/tap",
+                           client_id = "known-client",
+                           client_secret = "known-secret"
+    )
+
+    # Ensure the final contact is successful
+    assert response.status_code == 200
+    assert response.text == "secret data"
+
+    # Called on 401 and after authentication
+    assert resource_matcher.call_count == 2
+    # All auth endpoints have been contacted once for auth flow
+    assert rs_metadata_matcher.called_once
+    assert as_metadata_matcher.called_once
+    assert register_matcher.call_count == 0 # Dynamic registration skipped
+    assert authorization_matcher.called_once
+    assert token_matcher.called_once
+
+    # Ensure client details and token are cached
+    stored_session = session.session_store["https://example.com/tap"]
+    assert stored_session.client_id == "known-client"
+    assert stored_session.token["access_token"] == "correcttoken"
+    assert (session.session_store.get_client_secret_for_url(
+        "https://example.com/tap") == "known-secret")
