@@ -67,7 +67,7 @@ class PyvoOAuth2Session:
         """
         return self._request('DELETE', url, **kwargs)
 
-    def _request(self, http_method, url, perform_auth=True, client_id=None, client_secret=None, **kwargs):
+    def _request(self, http_method, url, perform_auth=True, client_id=None, client_secret=None, auth=None, **kwargs):
         """
         Make an HTTP request with authentication.
 
@@ -85,7 +85,9 @@ class PyvoOAuth2Session:
             the URL to request
         """
         session = self.session_store.get_session_for_url(url)
-        response = session.request(http_method, url, **kwargs)
+        if client_id is not None and client_secret is not None and auth is None:
+            auth = requests.auth.HTTPBasicAuth(client_id, client_secret)
+        response = session.request(http_method, url, auth=auth, **kwargs)
 
         if response.status_code == 401 and perform_auth:
             # Unauthorized with current auth. Attempt token refresh following RFC9728
@@ -105,7 +107,7 @@ class PyvoOAuth2Session:
                 )
                 return response
 
-            session = self.authenticate_new_session_from_metadata(rs_metadata_uri, client_id, client_secret, url)
+            session, new_secret = self.authenticate_new_session_from_metadata(rs_metadata_uri, client_id, client_secret, url)
             if session is None: # New session didn't authenticate properly
                 return response
 
@@ -124,7 +126,7 @@ class PyvoOAuth2Session:
                     "Storing authenticated session for %s in the session store.",
                     url,
                 )
-                self.session_store.add_session_for_url(url, session, client_secret=client_secret)
+                self.session_store.add_session_for_url(url, session, client_secret=new_secret)
                 response = new_response
             else:
                 log.debug(
@@ -136,8 +138,8 @@ class PyvoOAuth2Session:
 
         return response
 
-    def authenticate_new_session_from_metadata(self, rs_metadata_uri, client_id,
-                                               client_secret, redirect_uri=None):
+    def authenticate_new_session_from_metadata(self, rs_metadata_uri, client_id=None,
+                                               client_secret=None, redirect_uri=None):
         """
         Discover the authorization server for a resource and build an
         authenticated :class:`~requests_oauthlib.OAuth2Session` for it.
@@ -154,11 +156,13 @@ class PyvoOAuth2Session:
 
         scopes = self._resolve_scopes(as_metadata)
         grant_types = self._resolve_grant_types(as_metadata)
+        if len(grant_types) == 0:
+            grant_types = None
 
         # Register dynamically (RFC 7591) when no credentials are available."""
         if client_id is None and client_secret is None:
             log.debug(
-                "No client credentials provided, performing dynamic registration"
+                "No client credentials provided, performing dynamic registration."
             )
             if "registration_endpoint" in as_metadata:
                 client_id, client_secret = self.get_dynamic_client_credentials(
@@ -170,36 +174,48 @@ class PyvoOAuth2Session:
             else:
                 log.debug(
                     "Server does not advertise a registration_endpoint, unable "
-                    "to perform dynamic client registration (RFC 7591)."
+                    "to perform dynamic client registration."
                 )
                 return None
 
-        token_endpoint = as_metadata["token_endpoint"]
 
         session = self._build_session(
             client_id, client_secret, scopes, grant_types,
-            token_endpoint, redirect_uri,
+            as_metadata["token_endpoint"], redirect_uri,
         )
         if session is None:
             return None
 
-        self._fetch_session_token_based_on_grant_type(session, token_endpoint, client_id, client_secret)
-        return session
+        self._fetch_session_token_based_on_grant_type(session, as_metadata, client_id, client_secret)
+        return session, client_secret
 
     # -- discovery helpers -------------------------------------------------
     @staticmethod
-    def _fetch_session_token_based_on_grant_type(session, auth_endpoint, client_id, client_secret):
+    def _fetch_session_token_based_on_grant_type(session, as_metadata, client_id, client_secret):
         # Perform authentication based on client type
-        authorization_url, _state = session.authorization_url(auth_endpoint)
+        token_endpoint = as_metadata["token_endpoint"]
 
         if isinstance(session._client, DeviceClient):
+            if "device_authorization_endpoint" in as_metadata:
+                authorization_url, _state = session.authorization_url(
+                    as_metadata["device_authorization_endpoint"]
+                )
+            else:
+                # No specific authorization endpoint published
+                # Leaning back on the regular authorization endpoint
+                authorization_url, _state = session.authorization_url(
+                    as_metadata["authorization_endpoint"]
+                )
+
             log.debug("Device flow detected, polling %s for a token.",
                       authorization_url)
             session.token_from_device_code(
                 authorization_url,
+                token_endpoint,
                 client_id=client_id,
                 client_secret=client_secret,
             )
+        # TODO: Test support for implicit flow
         # elif isinstance(session._client, MobileApplicationClient):
         #     log.debug("Implicit flow detected, requesting authorization at %s.",
         #               authorization_url)
@@ -209,9 +225,10 @@ class PyvoOAuth2Session:
         #     )
         #     session.token_from_fragment(authorization_response)
         else:
-            session.refresh_token(
-                authorization_url,
+            session.fetch_token(
+                token_endpoint,
                 auth=(client_id, client_secret),
+                include_client_id=True
             )
 
 
@@ -229,12 +246,9 @@ class PyvoOAuth2Session:
             return response.json()
         except requests.exceptions.RequestException as e:
             log.debug("Could not retrieve json from %s (%s).",  url, e)
-        except ValueError as e:
-            # Includes json.JSONDecodeError for non-JSON/malformed bodies
-            log.debug("Invalid JSON (%s).", e)
         return None
 
-    def _discover_as_metadata(self, rs_metadata) -> dict:
+    def _discover_as_metadata(self, rs_metadata) -> dict | None:
         """Resolve usable authorization server metadata from resource metadata."""
         log.debug("Resource metadata: %s", rs_metadata)
 
@@ -246,7 +260,7 @@ class PyvoOAuth2Session:
             )
             return None
 
-        as_metadata = self._find_as_metadata(as_servers)
+        as_metadata = self.find_as_metadata(as_servers)
         if as_metadata is None:
             log.debug(
                 "None of the advertised authorization servers %s provided usable "
@@ -259,19 +273,21 @@ class PyvoOAuth2Session:
 
     def _resolve_scopes(self, as_metadata) -> set | None:
         """Use the configured scopes, falling back to those the server advertises."""
-        if self.scope is None and "scopes_supported" in as_metadata:
+        as_metadata_scopes = as_metadata.get("scopes_supported")
+        if self.scope is None and as_metadata_scopes:
             return set(as_metadata["scopes_supported"])
         return self.scope
 
-    def _resolve_grant_types(self, as_metadata) -> List[str] | None:
+    def _resolve_grant_types(self, as_metadata) -> List[str]:
         """Intersect the configured grant types with the advertised ones.
 
-        Returns ``None`` when the authorization server does not advertise any
-        grant types, meaning the default client should be used.
+        Returns empty list when the authorization server does not advertise any
+        grant types or if no requested grant types are supported. Will end up
+        attempting to use the default client.
         """
         advertised = as_metadata.get("grant_types_supported")
         if advertised is None:
-            return None
+            return []
 
         advertised = set(advertised)
         if self.grant_types is None:
@@ -351,7 +367,6 @@ class PyvoOAuth2Session:
         if grant_types is None:
             grant_types = self.grant_types
 
-
         if isinstance(scope, Collection) and not isinstance(scope, str):
             scope = " ".join(str(s) for s in scope)
 
@@ -362,7 +377,9 @@ class PyvoOAuth2Session:
             "scope": scope,
         }
 
-        registration_response = self.post(registration_endpoint, json=registration_params
+        registration_response = self.post(
+            registration_endpoint,
+            json=registration_params
         )
         registration_response.raise_for_status()
         client_metadata = registration_response.json()
@@ -382,7 +399,7 @@ class PyvoOAuth2Session:
 
         return None  # No resource metadata URI found
 
-    def _find_as_metadata(self, authorization_servers):
+    def find_as_metadata(self, authorization_servers):
         for as_base in authorization_servers:  # Try each authorization server
             for as_metadata_uri in [f"{as_base}/.well-known/openid-configuration",
                                         f"{as_base}/.well-known/oauth-authorization-server"]:
