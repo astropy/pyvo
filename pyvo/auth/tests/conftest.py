@@ -3,6 +3,9 @@ from contextlib import contextmanager
 import pytest
 import requests_mock
 
+from pyvo.auth.oauth2 import sessionstore
+from pyvo.auth.tests.mocks import MockKeyring
+
 
 class ContextAdapter(requests_mock.Adapter):
     """
@@ -27,3 +30,8 @@ def mocker():
         adapter=ContextAdapter(case_sensitive=True)
     ) as mocker_ins:
         yield mocker_ins
+
+@pytest.fixture(autouse=True)
+def fake_keyring(monkeypatch):
+    #Initializes a mock keyring module for each test
+    monkeypatch.setattr(sessionstore, 'keyring', MockKeyring())
