@@ -320,15 +320,6 @@ class VOAuthSession:
                 client_id=client_id,
                 client_secret=client_secret,
             )
-        # TODO: Test support for implicit flow
-        # elif isinstance(session._client, MobileApplicationClient):
-        #     log.debug("Implicit flow detected, requesting authorization at %s.",
-        #               authorization_url)
-        #     print(f"Go to: {authorization_url}")
-        #     authorization_response = input(
-        #         "Paste the full redirect URL you were sent to here: "
-        #     )
-        #     session.token_from_fragment(authorization_response)
         else:
             session.fetch_token(
                 token_endpoint,
