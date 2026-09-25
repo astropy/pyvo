@@ -53,6 +53,12 @@ class SessionStore:
     delegated to the system keystore (via ``keyring``), keyed by their
     paired client ID which can be extracted from the session stored
     for a URL.
+
+    Notes
+    -----
+    The keyring dependency with this library uses keyring.cryptfile backend by
+    default, however it is possible to change the backend library-wide
+    using keyring.set_keyring.
     """
 
     def __init__(self, keystore_name: str):
