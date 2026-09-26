@@ -6,9 +6,14 @@ import base64
 from contextlib import ExitStack
 from urllib.parse import parse_qs
 import pytest
+
+pytest.importorskip("keyring", reason="oauth2 extra (keyring) not installed")
+pytest.importorskip(
+    "requests_oauthlib", reason="oauth2 extra (requests-oauthlib) not installed"
+)
+
 from oauthlib.oauth2 import ServerError, UnsupportedGrantTypeError
 from requests.exceptions import HTTPError
-
 from pyvo.auth.oauth2.oauth2session import VOAuthSession
 
 @pytest.fixture()

@@ -3,9 +3,6 @@ from contextlib import contextmanager
 import pytest
 import requests_mock
 
-from pyvo.auth.oauth2 import sessionstore
-from pyvo.auth.tests.mocks import MockKeyring
-
 
 class ContextAdapter(requests_mock.Adapter):
     """
@@ -31,7 +28,19 @@ def mocker():
     ) as mocker_ins:
         yield mocker_ins
 
+# Attempt to import oauth2 related modules for the below mocks. If import fails
+# then the extra packages required for oauth2 are not installed
+try:
+    from pyvo.auth.oauth2 import sessionstore
+    from pyvo.auth.tests.mocks import MockKeyring
+    _OAUTH2_PACKAGES_INSTALLED = True
+except ImportError:
+    _OAUTH2_PACKAGES_INSTALLED = False
+
+
 @pytest.fixture(autouse=True)
 def fake_keyring(monkeypatch):
-    #Initializes a mock keyring module for each test
-    monkeypatch.setattr(sessionstore, 'keyring', MockKeyring())
+    # Initializes a mock keyring module for each test. No-op when the
+    # oauth2 extra is not installed
+    if _OAUTH2_PACKAGES_INSTALLED:
+        monkeypatch.setattr(sessionstore, 'keyring', MockKeyring())

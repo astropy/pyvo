@@ -13,9 +13,15 @@ pyvo to ensure this all works. However if necessary other keyring backends can
 be activated.
 """
 import logging
-import keyring
+try:
+    import keyring
+    from requests_oauthlib import OAuth2Session
+except ImportError as exc:
+    raise ImportError(
+        "OAuth 2 Session support requires packages requests-oauthlib and keyring with a compatible "
+        "backend. Install with pip install pyvo[oauth2]"
+    ) from exc
 
-from requests_oauthlib import OAuth2Session
 from pyvo.utils.http import create_session
 
 __all__ = ["SessionStore"]

@@ -17,15 +17,22 @@ import time
 from typing import Collection, List
 
 import requests
-from oauthlib.oauth2 import (
-    DeviceClient,
-    ServerError,
-    UnsupportedGrantTypeError,
-    OAuth2Error,
-)
-from oauthlib.oauth2.rfc6749.errors import CustomOAuth2Error
-from requests import Response
-from requests_oauthlib import OAuth2Session
+# Oauthlib imports. Raise ImportError if not installed
+try:
+    from oauthlib.oauth2 import (
+        DeviceClient,
+        ServerError,
+        UnsupportedGrantTypeError,
+        OAuth2Error,
+    )
+    from oauthlib.oauth2.rfc6749.errors import CustomOAuth2Error
+    from requests import Response
+    from requests_oauthlib import OAuth2Session
+except ImportError as exc:
+    raise ImportError(
+        "OAuth 2 Session support requires packages requests-oauthlib and keyring with a compatible "
+        "backend. Install with pip install pyvo[oauth2]"
+    ) from exc
 
 from .sessionstore import SessionStore
 
