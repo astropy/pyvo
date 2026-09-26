@@ -1,5 +1,6 @@
 import keyring
 
+
 class MockKeyring:
     # Replaces the keyring library with a mock to not rely on a specific
     # backend for testing. Stores test credentials in memory.

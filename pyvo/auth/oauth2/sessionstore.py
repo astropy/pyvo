@@ -187,7 +187,7 @@ class SessionStore:
         ----------
         url : str
             URL for the session we are storing for
-        session : OAuth2Session
+        session : requests_oauthlib.OAuth2Session
             The session object to associate with the URL. It must provide a
             ``client_id`` attribute.
         client_secret : str, optional
@@ -213,7 +213,7 @@ class SessionStore:
         else:
             self._explicit_urls[url] = session
         if client_secret:
-            self.add_client_secret_for_url(url,client_secret)
+            self.add_client_secret_for_url(url, client_secret)
 
     def get_session_for_url(
         self, url: str, return_anonymous_if_not_found: bool = True

@@ -5,24 +5,29 @@ Tests for pyvo.auth.oauth2 session storage (SessionStore).
 import pytest
 import requests
 
-pytest.importorskip("keyring", reason="oauth2 extra (keyring) not installed")
-requests_oauthlib = pytest.importorskip(
-    "requests_oauthlib", reason="oauth2 extra (requests-oauthlib) not installed"
-)
-from ..oauth2.sessionstore import  SessionStore
+try:
+    from pyvo.auth.oauth2.oauth2session import SessionStore
+    from requests_oauthlib import OAuth2Session
+except ImportError:
+    pytest.skip(
+        "oauth2 extra (keyring, requests-oauthlib) not installed",
+        allow_module_level=True,
+    )
+
 
 def test_exact_match_takes_priority():
     store = SessionStore("pyvo-test-keystore")
-    exact = requests_oauthlib.OAuth2Session("exact")
-    prefix = requests_oauthlib.OAuth2Session("prefix")
+    exact = OAuth2Session("exact")
+    prefix = OAuth2Session("prefix")
     store.add_session_for_url("https://example.com/", prefix)
     store.add_session_for_url("https://example.com/tap", exact, exact=True)
     assert store.get_session_for_url("https://example.com/tap") is exact
 
+
 def test_most_specific_url_session_returned():
     store = SessionStore("pyvo-test-keystore")
-    short = requests_oauthlib.OAuth2Session("short")
-    long = requests_oauthlib.OAuth2Session("long")
+    short = OAuth2Session("short")
+    long = OAuth2Session("long")
     store.add_session_for_url("https://example.com/", short)
     store.add_session_for_url("https://example.com/tap/", long)
     assert store.get_session_for_url("https://example.com/tap/sync") is long
@@ -35,6 +40,7 @@ def test_anonymous_session_returned_if_allowed():
     assert isinstance(should_be_anonymous, requests.Session)
     assert should_be_anonymous.auth is None
 
+
 def test_no_anonymous_fallback_returns_none():
     store = SessionStore("pyvo-test-keystore")
     assert store.get_session_for_url("https://other.com/tap", False) is None
@@ -44,7 +50,7 @@ def test_getitem_returns_session():
     store = SessionStore("pyvo-test-keystore")
     store.add_session_for_url(
         "https://example.com/",
-        requests_oauthlib.OAuth2Session("client-id")
+        OAuth2Session("client-id")
     )
     assert store["https://example.com/tap"].client_id == "client-id"
 
@@ -59,7 +65,7 @@ def test_client_secret_storage():
     store = SessionStore("pyvo-test-keystore")
     store.add_session_for_url(
         "https://example.com/",
-        requests_oauthlib.OAuth2Session("client-id")
+        OAuth2Session("client-id")
     )
     store.add_client_secret_for_url("https://example.com/tap", "secret")
     assert store.get_client_secret_for_url("https://example.com/tap") == "secret"
@@ -72,7 +78,7 @@ def test_client_secret_requires_client_id():
     store = SessionStore("pyvo-test-keystore")
     store.add_session_for_url(
         "https://example.com/",
-        requests_oauthlib.OAuth2Session(client_id=None)
+        OAuth2Session(client_id=None)
     )
     with pytest.raises(ValueError):
         store.add_client_secret_for_url("https://example.com/tap", "secret")
@@ -86,7 +92,7 @@ def test_add_session_stores_client_secret():
     store = SessionStore("pyvo-test-keystore")
     store.add_session_for_url(
         "https://example.com/",
-        requests_oauthlib.OAuth2Session(client_id="client-id"),
+        OAuth2Session(client_id="client-id"),
         client_secret="secret"
     )
     assert store.get_session_for_url("https://example.com/").client_id == "client-id"

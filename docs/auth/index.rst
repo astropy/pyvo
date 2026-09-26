@@ -11,7 +11,7 @@ OAuth2 Authentication Usage
 ===========================
 
 Services that are OAuth2 protected can be accessed by
-building a :py:class:`pyvo.auth.oauth2.oauth2session.VOAuthSession` object and
+building a :class:`pyvo.auth.oauth2.oauth2session.VOAuthSession` object and
 passing it to a PyVO interface that accepts the usage of a ``session`` parameter
 that it uses for requests. For example, using the device code grant to connect
 to an TAP service that requires OAuth2 Authentication:
@@ -54,5 +54,8 @@ Reference/API
 =============
 
 .. automodapi:: pyvo.auth
+    :no-inheritance-diagram:
+
+.. automodapi:: pyvo.auth.oauth2
     :no-inheritance-diagram:
 

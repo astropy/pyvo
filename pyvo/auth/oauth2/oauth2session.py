@@ -53,6 +53,7 @@ GRANT_TO_CLIENT_CLASS = {
     'urn:ietf:params:oauth:grant-type:device_code': DeviceClient,
 }
 
+
 class VOAuthSession:
     """
     A requests-like session for pyvo able to store and use different sessions
@@ -93,7 +94,6 @@ class VOAuthSession:
         self.scope = scope
         self.session_store = SessionStore(keystore_name)
 
-
     def get(self, url, **kwargs):
         """
         Wrapper to make a HTTP GET request with authentication.
@@ -123,7 +123,7 @@ class VOAuthSession:
                  url: str,
                  perform_auth: bool = True,
                  client_id: str | None = None,
-                 client_secret: str | None =None,
+                 client_secret: str | None = None,
                  auth: requests.auth.AuthBase | None = None,
                  **kwargs) -> Response:
         """
@@ -343,7 +343,7 @@ class VOAuthSession:
                 if "authorization_pending" in str(e):
                     print(e.description)
                 elif "slow_down" in str(e):
-                    interval+=5
+                    interval += 5
                     print(f"Polling too fast, trying again in {interval}s")
                 else:
                     raise e
@@ -358,7 +358,7 @@ class VOAuthSession:
     ) -> tuple[OAuth2Session, str | None]:
         """
         Discover the authorization server for a resource and build an
-        authenticated :class:`requests_oauthlib.OAuth2Session` for it.
+        authenticated ``requests_oauthlib.OAuth2Session`` for it.
 
         Parameters
         ----------
@@ -376,12 +376,12 @@ class VOAuthSession:
             clients.
         redirect_uri : str, optional
             Redirect URI to associate with the session and with the dynamic
-            registration request. 
+            registration request.
 
         Returns
         -------
         tuple of (requests_oauthlib.OAuth2Session, str or None)
-            The authenticated :class:`requests_oauthlib.OAuth2Session` and the
+            The authenticated ``requests_oauthlib.OAuth2Session`` and the
             client secret used by it, potentially obtained via the dynamic
             registration flow.
 
@@ -429,7 +429,6 @@ class VOAuthSession:
                 raise ServerError("Server does not advertise "
                         "registration_endpoint, unable to perform dynamic "
                         "client registration.")
-
 
         session = self._build_session(
             client_id, client_secret, scopes, grant_types,
@@ -632,7 +631,7 @@ class VOAuthSession:
         """Resolve usable authorization server metadata from resource metadata."""
         log.debug("Resource metadata: %s", rs_metadata)
 
-        as_servers : List[str] | None= rs_metadata.get("authorization_servers")
+        as_servers: List[str] | None = rs_metadata.get("authorization_servers")
         if not as_servers:
             raise ServerError("No authorization servers advertised in resource server metadata")
 
@@ -651,7 +650,6 @@ class VOAuthSession:
                 if prop.startswith("resource_metadata="):
                     # Extract the prop value from resource_metadata=resource_metadata_url
                     return prop.split("=")[1]
-
 
         raise OAuth2Error("No resource metadata URI found in WWW-Authenticate header")
 
@@ -700,9 +698,9 @@ class VOAuthSession:
                        client_secret: str,
                        scopes: str,
                        grant_types: List[str],
-                       token_endpoint:str,
-                       redirect_uri:str):
-        """Create the :class:`OAuth2Session` matching the negotiated grant type."""
+                       token_endpoint: str,
+                       redirect_uri: str):
+        """Create the ``requests_oauthlib.OAuth2Session`` matching the negotiated grant type."""
         session_kwargs = {
             'scope': scopes,
             'redirect_uri': redirect_uri,
