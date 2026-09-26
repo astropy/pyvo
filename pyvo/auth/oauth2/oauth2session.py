@@ -162,7 +162,7 @@ class VOAuthSession:
         auth : requests.auth.AuthBase, optional
             Authentication handler passed through to ``requests`` as an
             alternative way to pass the client credentials. Will take
-            precedence over `client_id` and `client_secret` if passed alongside
+            precedence over ``client_id`` and ``client_secret`` if passed alongside
             these parameters.
         **kwargs : Other request kwargs
             Additional kwargs to pass to the request.
@@ -236,7 +236,7 @@ class VOAuthSession:
     #  PR has been merged.
     def token_from_device_code(
         self,
-        session: OAuth2Session,
+        session,
         device_authorization_endpoint: str,
         token_endpoint: str,
         client_id: str | None = None,
@@ -251,8 +251,8 @@ class VOAuthSession:
 
         Parameters
         ----------
-        session : requests_oauthlib.OAuth2Session
-            The OAuth2Session used for retrieving the token. Should be
+        session : ``requests_oauthlib.OAuth2Session``
+            The ``OAuth2Session`` used for retrieving the token. Should be
             initialized with the scopes required.
         device_authorization_endpoint : str
             The authorization endpoint used to begin the device code grant.
@@ -355,7 +355,7 @@ class VOAuthSession:
         client_id: str | None = None,
         client_secret: str | None = None,
         redirect_uri: str | None = None,
-    ) -> tuple[OAuth2Session, str | None]:
+    ):
         """
         Discover the authorization server for a resource and build an
         authenticated ``requests_oauthlib.OAuth2Session`` for it.
@@ -367,9 +367,9 @@ class VOAuthSession:
             as a ``resource_metadata`` property of a
             ``WWW-Authenticate`` header.
         client_id : str, optional
-            Client id to authenticate with. If ``None`` along with client_secret
-             being ``None``, a new set of client
-            credentials will be retrieved via dynamic registration.
+            Client id to authenticate with. If ``None`` along with
+            ``client_secret`` being ``None``, a new set of client credentials
+            will be retrieved via dynamic registration.
             See ``get_dynamic_client_credentials``.
         client_secret : str, optional
             Client secret matching ``client_id``. May be ``None`` for public
@@ -380,7 +380,7 @@ class VOAuthSession:
 
         Returns
         -------
-        tuple of (requests_oauthlib.OAuth2Session, str or None)
+        tuple of (``requests_oauthlib.OAuth2Session``, str or None)
             The authenticated ``requests_oauthlib.OAuth2Session`` and the
             client secret used by it, potentially obtained via the dynamic
             registration flow.
@@ -517,8 +517,8 @@ class VOAuthSession:
         (``/.well-known/openid-configuration`` and
         ``/.well-known/oauth-authorization-server``). Servers whose
         metadata document cannot be fetched, or whose metadata does not advertise a
-        ``token_endpoint``, are skipped and the search continues to the next
-         URL. The first metadata document that is both reachable and contains a
+        ``token_endpoint``, are skipped and the search continues to the next URL.
+        The first metadata document that is both reachable and contains a
         ``token_endpoint`` entry is returned.
 
         Parameters
@@ -614,10 +614,10 @@ class VOAuthSession:
 
     @staticmethod
     def _fetch_json(url: str):
-        """Retrieve json via `GET` request from a given URL
+        """Retrieve json via GET request from a given URL
 
         Metadata documents must be readable by unauthenticated clients, so a
-        plain `requests` call is used here.
+        plain ``requests`` call is used here.
 
         Any exceptions that are raised during raise_for_status or response.json
         should be raised by the caller as well.
@@ -640,8 +640,8 @@ class VOAuthSession:
 
     @staticmethod
     def _parse_resource_metadata_uri(response: Response):
-        """Extract the `resource_metadata` uri from a 401 challenge header from
-        the given response object"""
+        """Extract the ``resource_metadata`` property from a 401 challenge header
+        from the given response object"""
         www_auth_headers = response.headers.get("WWW-Authenticate").split(",")
 
         for scheme in www_auth_headers:

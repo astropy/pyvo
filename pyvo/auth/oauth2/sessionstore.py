@@ -6,7 +6,7 @@ a given protected resource (identified via their URL).
 The intended object type of these sessions are OAuth2Session from
 requests_oauthlib, and the intended storage method is via keyring.
 
-Other Session classes can be used as long as they have a `client_id` attribute.
+Other Session classes can be used as long as they have a ``client_id`` attribute.
 
 requests_oauthlib, keyring and a keyrings.cryptfile are all dependencies for
 pyvo to ensure this all works. However if necessary other keyring backends can
@@ -15,7 +15,6 @@ be activated.
 import logging
 try:
     import keyring
-    from requests_oauthlib import OAuth2Session
 except ImportError as exc:
     raise ImportError(
         "OAuth 2 Session support requires packages requests-oauthlib and keyring with a compatible "
@@ -77,8 +76,8 @@ class SessionStore:
             Keystore identifier for the service using this session store.
         """
         self.keystore_name: str = keystore_name
-        self.full_urls: dict[str, OAuth2Session] = {}
-        self._explicit_urls: dict[str, OAuth2Session] = {}
+        self.full_urls: dict = {}
+        self._explicit_urls: dict = {}
 
     def add_client_secret_for_url(self, url: str, client_secret: str):
         """
@@ -166,7 +165,7 @@ class SessionStore:
     def add_session_for_url(
         self,
         url: str,
-        session: OAuth2Session,
+        session,
         client_secret: str | None = None,
         exact: bool = False,
     ):
@@ -187,12 +186,12 @@ class SessionStore:
         ----------
         url : str
             URL for the session we are storing for
-        session : requests_oauthlib.OAuth2Session
+        session : ``requests_oauthlib.OAuth2Session``
             The session object to associate with the URL. It must provide a
             ``client_id`` attribute.
         client_secret : str, optional
             Client secret to associate with the URL. When omitted, no secret is
-            stored. Can be stored at a later time using `add_client_secret_for_url`
+            stored. Can be stored at a later time using :py:meth:`add_client_secret_for_url`
         exact : bool, default False
             If ``True``, the URL is registered as a full exact-match entry. If
             ``False``, it is registered as an explicit entry that may match
@@ -217,7 +216,7 @@ class SessionStore:
 
     def get_session_for_url(
         self, url: str, return_anonymous_if_not_found: bool = True
-    ) -> OAuth2Session | None:
+    ):
         """
         Return the session for a particular URL.
 
@@ -235,6 +234,15 @@ class SessionStore:
             If True (the default), fall back to a fresh anonymous session
             when no registered entry matches the URL.  If False, return
             ``None`` instead so callers can detect the miss.
+
+        Returns
+        -------
+        ``requests_oauthlib.OAuth2Session`` or ``requests.Session`` or None
+            The session registered for ``url``. If there isn't one yet, a
+            unauthenticated generic ``requests.Session`` is returned when
+            ``return_anonymous_if_not_found`` is True, and ``None``
+            otherwise.
+
         """
         logging.debug('Determining session for %s', url)
 
@@ -268,7 +276,7 @@ class SessionStore:
         """
         yield from sorted(url_dict.items(), key=lambda x: len(x[0]), reverse=True)
 
-    def __getitem__(self, url: str) -> OAuth2Session:
+    def __getitem__(self, url: str):
         """
         Return the session for a particular URL using subscript syntax.
 
@@ -276,6 +284,11 @@ class SessionStore:
         ----------
         url : str
             the URL to obtain a session object for
+
+        Returns
+        -------
+        ``requests_oauthlib.OAuth2Session``
+            The session registered for ``url``.
 
         Raises
         ------
