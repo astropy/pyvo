@@ -11,8 +11,8 @@ OAuth2 Authentication Usage
 ===========================
 
 Services that are OAuth2 protected can be accessed by
-building a :class:`~pyvo.auth.oauth2.oauth2session.VOAuthSession` object and
-passing it to a PyVO interface that accepts the usage of a `session` parameter
+building a :py:class:`pyvo.auth.oauth2.oauth2session.VOAuthSession` object and
+passing it to a PyVO interface that accepts the usage of a ``session`` parameter
 that it uses for requests. For example, using the device code grant to connect
 to an TAP service that requires OAuth2 Authentication:
 
@@ -36,6 +36,7 @@ User will be prompted to authenticate using the grant type and print out the
 tables:
 
 .. code-block:: console
+
     Go to: https://example.com/cas/oauth2.0/device
     Enter code: Code-12345678
     Tables:
