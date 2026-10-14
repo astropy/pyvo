@@ -557,6 +557,9 @@ class ExtensibleUWSElement(ContentMixin, UWSElement):
         unique_elements = len(set(self._elements.values()))
         return f"ExtensibleUWSElement(name='{self._name}', elements={unique_elements})"
 
+    def __bool__(self):
+        return bool(self._elements) or self.text is not None
+
 
 class JobInfo(ExtensibleUWSElement):
     """JobInfo element that can contain arbitrary elements."""

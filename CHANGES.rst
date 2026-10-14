@@ -25,6 +25,10 @@ Enhancements and Fixes
   not propagated when retrieving tables with the ``TAPService.tables``
   property. [#772]
 
+- Make ``ExtensibleUWSElement`` (such as ``job.jobinfo``) true when it holds
+  child elements, instead of depending on the text astropy reports at its end
+  tag. [#XXX]
+
 Deprecations and Removals
 -------------------------
 
