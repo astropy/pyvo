@@ -27,7 +27,7 @@ Enhancements and Fixes
 
 - Make ``ExtensibleUWSElement`` (such as ``job.jobinfo``) true when it holds
   child elements, instead of depending on the text astropy reports at its end
-  tag. [#XXX]
+  tag. [#789]
 
 Deprecations and Removals
 -------------------------

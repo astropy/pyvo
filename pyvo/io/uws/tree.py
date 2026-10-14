@@ -558,6 +558,7 @@ class ExtensibleUWSElement(ContentMixin, UWSElement):
         return f"ExtensibleUWSElement(name='{self._name}', elements={unique_elements})"
 
     def __bool__(self):
+        """True if the element has child elements or text content"""
         return bool(self._elements) or self.text is not None
 
 
