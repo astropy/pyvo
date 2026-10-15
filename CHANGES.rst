@@ -11,6 +11,8 @@ Enhancements and Fixes
   ``DALJobTimeoutError``. Passing ``timeout=None`` explicitly now waits
   indefinitely, rather than only affecting the read timeout of individual
   poll requests. [#784]
+- Added functionality to the DatalinkRecordMixin and the DatalinkResultsMixin
+  to handle basic parsing of JSON entries. [#709]
 
 Deprecations and Removals
 -------------------------
