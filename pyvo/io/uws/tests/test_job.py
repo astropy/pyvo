@@ -138,7 +138,7 @@ class TestJob:
         holds only child elements, is True.
 
         This used to rely on astropy giving the jobInfo end tag the text of
-        its last nested element, which astropy/astropy#20509 stops doing.
+        its last nested element, which astropy 8.1 stops doing.
         """
         job = uws.parse_job(get_pkg_data_filename(
             "data/job-with-simple-jobinfo.xml"))
