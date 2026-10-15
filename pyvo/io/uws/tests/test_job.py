@@ -133,6 +133,26 @@ class TestJob:
 
         assert job.jobinfo is None
 
+    def test_jobinfo_with_only_child_elements_is_true(self):
+        """bool(job.jobinfo) for job-with-simple-jobinfo.xml, whose jobInfo
+        holds only child elements, is True.
+
+        This used to rely on astropy giving the jobInfo end tag the text of
+        its last nested element, which astropy 8.1 stops doing.
+        """
+        job = uws.parse_job(get_pkg_data_filename(
+            "data/job-with-simple-jobinfo.xml"))
+
+        assert job.jobinfo
+
+    def test_empty_jobinfo_is_false(self):
+        """bool(job.jobinfo) for job-with-empty-jobinfo.xml, whose jobInfo
+        holds only a comment, is False."""
+        job = uws.parse_job(get_pkg_data_filename(
+            "data/job-with-empty-jobinfo.xml"))
+
+        assert not job.jobinfo
+
     def test_nested_jobinfo_access(self):
         job = uws.parse_job(get_pkg_data_filename(
             "data/job-with-nested-jobinfo.xml"))
