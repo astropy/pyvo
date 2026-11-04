@@ -1,8 +1,16 @@
-1.10 (unreleased)
+1.10 (2026-11-04)
 =================
 
 Enhancements and Fixes
 ----------------------
+
+- Add support for the forMode attribute in TAPRegExt, which allows TAP services
+  to advertise different limits for different modes. [#757]
+
+- Change the default ``timeout`` behavior of ``TAPService.run_async``. When
+  ``timeout`` is not specified, it now uses the advertised async
+  ``executionDuration`` default instead of falling back to
+  ``DEFAULT_JOB_WAIT_TIMEOUT``. [#757]
 
 - ``AsyncTAPJob.wait()``'s ``timeout`` is now enforced as a total wait budget
   instead of being passed straight through as the per-request timeout.
@@ -12,15 +20,6 @@ Enhancements and Fixes
   indefinitely, rather than only affecting the read timeout of individual
   poll requests. [#784]
 
-Deprecations and Removals
--------------------------
-
-1.9.2 (unreleased)
-==================
-
-Enhancements and Fixes
-----------------------
-
 - Fix a bug where a custom session (including authentication configuration) was
   not propagated when retrieving tables with the ``TAPService.tables``
   property. [#772]
@@ -28,11 +27,6 @@ Enhancements and Fixes
 - Make ``ExtensibleUWSElement`` (such as ``job.jobinfo``) true when it holds
   child elements, instead of depending on the text astropy reports at its end
   tag. [#789]
-
-Deprecations and Removals
--------------------------
-
-  - Remove ``dal.vosi.TablesMixin``. It is no longer used anywhere. It creates a ``VOSITables`` object without propagating the existing session, and there is no clear way to fix it. It was added in https://github.com/astropy/pyvo/commit/72005872b8148fd3fee8571b357d0cbcf089d1de and all usages of it were removed in https://github.com/astropy/pyvo/commit/e71a8e3f08ef0300cd68316023bc09b186ac4ea0 on Jan 9, 2018.
 
 
 1.9.1 (2026-06-11)
@@ -48,14 +42,6 @@ Deprecations and Removals
 
 Enhancements and Fixes
 ----------------------
-
-- Add support for the forMode attribute in TAPRegExt, which allows TAP services
-  to advertise different limits for different modes [#757]
-
-- Change the default ``timeout`` behavior of ``TAPService.run_async``. When
-  ``timeout`` is not specified, it now uses the advertised async
-  ``executionDuration`` default instead of falling back to
-  ``DEFAULT_JOB_WAIT_TIMEOUT``. [#757]
 
 - Fix auth methods registered for base URLs being dropped for capability-declared
   sub-paths [#758]
