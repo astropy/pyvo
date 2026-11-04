@@ -26,6 +26,7 @@ python:
       path: .
       extra_requirements:
         - docs
+        - oauth2
         - all
 
 # Don't build any extra formats
